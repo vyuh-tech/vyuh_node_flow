@@ -94,12 +94,13 @@ class StraightConnectionStyle extends ConnectionStyle {
     final targetPosition = targetPort?.position ?? PortPosition.left;
 
     // Calculate extension points based on port positions
+    // Both extensions go AWAY from their respective ports
     final startExtension = _calculateExtensionPoint(
       start,
       sourcePosition,
       offset,
     );
-    final endExtension = _calculateExtensionPoint(end, targetPosition, -offset);
+    final endExtension = _calculateExtensionPoint(end, targetPosition, offset);
 
     // Draw path with extensions
     path.lineTo(startExtension.dx, startExtension.dy);
