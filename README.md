@@ -17,7 +17,7 @@ pipelines with ease.
 
 ## Try the Demo
 
-**[👉 Launch Interactive Demo](https://flow.demo.vyuh.tech)**
+**[👉 Launch Demo](https://flow.demo.vyuh.tech)**
 
 Experience Vyuh Node Flow in action! The live demo showcases all key features, including node
 creation, drag-and-drop connections, custom theming, annotations, minimap, and more.
@@ -1855,24 +1855,10 @@ flutter run -d chrome
 
 ---
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
 ## Acknowledgments
 
 Inspired by [React Flow](https://reactflow.dev/) - a powerful node-based editor for React
 applications.
-
----
-
-## Support
-
-- [Documentation](https://docs.vyuh.tech)
-- [Issue Tracker](https://github.com/vyuh-tech/vyuh/issues)
-- [Discussions](https://github.com/vyuh-tech/vyuh/discussions)
 
 ---
 
