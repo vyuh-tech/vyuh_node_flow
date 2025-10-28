@@ -1,3 +1,8 @@
+## 0.2.0+2
+
+* Updated examples
+* Publishing to https://flow.demo.vyuh.tech
+
 ## 0.2.0+1
 
 * Adding images to README.md

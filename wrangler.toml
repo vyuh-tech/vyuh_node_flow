@@ -1,0 +1,5 @@
+name = "vyuh-node-flow"
+compatibility_date = "2024-10-28"
+
+pages_build_output_dir = "example/build/web"
+

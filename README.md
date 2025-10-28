@@ -2,7 +2,9 @@
 
 ![Vyuh Node Flow Banner](https://github.com/vyuh-tech/vyuh_node_flow/raw/main/assets/node-flow-banner.png)
 
-A flexible, high-performance node-based flow editor for Flutter applications, inspired by React Flow. Build visual programming interfaces, workflow editors, interactive diagrams, and data pipelines with ease.
+A flexible, high-performance node-based flow editor for Flutter applications, inspired by React
+Flow. Build visual programming interfaces, workflow editors, interactive diagrams, and data
+pipelines with ease.
 
 <p align="center">
   <a href="https://pub.dev/packages/vyuh_node_flow">
@@ -12,6 +14,15 @@ A flexible, high-performance node-based flow editor for Flutter applications, in
     <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="License">
   </a>
 </p>
+
+## Try the Demo
+
+**[👉 Launch Interactive Demo](https://flow.demo.vyuh.tech)**
+
+Experience Vyuh Node Flow in action! The live demo showcases all key features, including node
+creation, drag-and-drop connections, custom theming, annotations, minimap, and more.
+
+---
 
 ## ✨ Key Features
 
@@ -119,6 +130,7 @@ class _SimpleFlowEditorState extends State<SimpleFlowEditor> {
 The `NodeFlowController` is the central piece that manages all state:
 
 ```dart
+
 final controller = NodeFlowController<T>(
   config: NodeFlowConfig(
     snapToGrid: true,
@@ -131,7 +143,9 @@ final controller = NodeFlowController<T>(
 ```
 
 > [!TIP]
-> The type parameter `<T>` represents the data type stored in each node. We recommend using a **sealed class hierarchy** with multiple subclasses to create a strongly-typed collection of node types that work together. This provides excellent type safety and pattern matching capabilities.
+> The type parameter `<T>` represents the data type stored in each node. We recommend using a *
+*sealed class hierarchy** with multiple subclasses to create a strongly-typed collection of node
+> types that work together. This provides excellent type safety and pattern matching capabilities.
 
 <details>
 <summary><strong>Controller API Reference</strong></summary>
@@ -140,7 +154,9 @@ final controller = NodeFlowController<T>(
 
 ```dart
 // Add a node
-controller.addNode(node);
+controller.addNode
+(
+node);
 
 // Remove a node
 controller.removeNode(nodeId);
@@ -161,24 +177,35 @@ controller.clearSelection();
 
 ```dart
 // Add a connection
-controller.addConnection(connection);
+controller.addConnection
+(
+connection);
 
 // Remove a connection
 controller.removeConnection(connectionId);
 
 // Get connections for a node
-final connections = controller.getConnectionsForNode(nodeId);
+final connections
+=
+controller
+.
+getConnectionsForNode
+(
+nodeId
+);
 ```
 
 #### Viewport Control
 
 ```dart
 // Pan and zoom
-controller.setViewport(GraphViewport(x: 100, y: 100, zoom: 1.5));
-controller.zoomBy(0.1);   // Zoom in
-controller.zoomBy(-0.1);  // Zoom out
-controller.zoomTo(1.5);   // Set specific zoom level
-controller.fitToView();   // Fit all nodes in view
+controller.setViewport
+(
+GraphViewport(x: 100, y: 100, zoom: 1.5));
+controller.zoomBy(0.1); // Zoom in
+controller.zoomBy(-0.1); // Zoom out
+controller.zoomTo(1.5); // Set specific zoom level
+controller.fitToView(); // Fit all nodes in view
 controller.centerOnNode(nodeId); // Center on specific node
 ```
 
@@ -187,10 +214,17 @@ controller.centerOnNode(nodeId); // Center on specific node
 ```dart
 // Load/save graph
 final graph = controller.exportGraph();
-controller.loadGraph(graph);
+controller.loadGraph
+(
+graph
+);
 
 // Clear everything
-controller.clearGraph();
+controller
+.
+clearGraph
+(
+);
 ```
 
 </details>
@@ -203,10 +237,13 @@ controller.clearGraph();
 
 ```dart
 // Light theme
-controller.setTheme(NodeFlowTheme.light);
+controller.setTheme
+(
+NodeFlowTheme.light);
 
 // Dark theme
-controller.setTheme(NodeFlowTheme.dark);
+controller.setTheme(NodeFlowTheme.dark
+);
 ```
 
 ### Creating Custom Themes
@@ -215,6 +252,7 @@ controller.setTheme(NodeFlowTheme.dark);
 <summary><strong>Complete Custom Theme Example</strong></summary>
 
 ```dart
+
 final customTheme = NodeFlowTheme(
   // Node appearance
   nodeTheme: NodeTheme(
@@ -277,13 +315,17 @@ final customTheme = NodeFlowTheme(
   selectionBorderWidth: 1.0,
 );
 
-controller.setTheme(customTheme);
+controller.setTheme
+(
+customTheme
+);
 ```
 
 </details>
 
 > [!NOTE]
-> Grid styles available: `GridStyle.dots`, `GridStyle.lines`, `GridStyle.hierarchical`, `GridStyle.none`
+> Grid styles available: `GridStyle.dots`, `GridStyle.lines`, `GridStyle.hierarchical`,
+`GridStyle.none`
 
 ---
 
@@ -294,12 +336,13 @@ controller.setTheme(customTheme);
 The simplest way to display nodes is using the default `NodeWidget`:
 
 ```dart
-NodeFlowEditor<String>(
-  controller: controller,
-  theme: theme,
-  nodeBuilder: (context, node) {
-    return NodeWidget.defaultStyle(node: node);
-  },
+NodeFlowEditor<String>
+(
+controller: controller,
+theme: theme,
+nodeBuilder: (context, node) {
+return NodeWidget.defaultStyle(node: node);
+},
 )
 ```
 
@@ -359,21 +402,22 @@ For complete control over node appearance:
 <summary><strong>Custom Node Container Example</strong></summary>
 
 ```dart
-NodeFlowEditor<MyData>(
-  controller: controller,
-  theme: theme,
-  nodeBuilder: (context, node) => _buildNodeContent(node),
-  nodeContainerBuilder: (context, node, content) {
-    // Return NodeWidget with custom styling
-    return NodeWidget<MyData>(
-      node: node,
-      child: content,
-      backgroundColor: _getNodeColor(node),
-      borderColor: node.isSelected ? Colors.blue : Colors.grey,
-      borderWidth: node.isSelected ? 3.0 : 1.0,
-      borderRadius: BorderRadius.circular(12),
-    );
-  },
+NodeFlowEditor<MyData>
+(
+controller: controller,
+theme: theme,
+nodeBuilder: (context, node) => _buildNodeContent(node),
+nodeContainerBuilder: (context, node, content) {
+// Return NodeWidget with custom styling
+return NodeWidget<MyData>(
+node: node,
+child: content,
+backgroundColor: _getNodeColor(node),
+borderColor: node.isSelected ? Colors.blue : Colors.grey,
+borderWidth: node.isSelected ? 3.0 : 1.0,
+borderRadius: BorderRadius.circular(12),
+);
+},
 )
 ```
 
@@ -445,27 +489,27 @@ final node = Node<NodeData>(
 Widget _buildNode(BuildContext context, Node<NodeData> node) {
   return switch (node.data) {
     SourceNodeData(dataSource: final source, format: final format) =>
-      _buildSourceNode(source, format),
+        _buildSourceNode(source, format),
 
     ProcessNodeData(:final title, :final icon, :final color) =>
-      Container(
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          border: Border.all(color: color),
-          borderRadius: BorderRadius.circular(8),
+        Container(
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            border: Border.all(color: color),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Icon(icon, color: color),
+              const SizedBox(height: 8),
+              Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
         ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Icon(icon, color: color),
-            const SizedBox(height: 8),
-            Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
-          ],
-        ),
-      ),
 
     SinkNodeData(:final destination, :final isActive) =>
-      _buildSinkNode(destination, isActive),
+        _buildSinkNode(destination, isActive),
   };
 }
 ```
@@ -542,26 +586,29 @@ Ports are connection points on nodes:
 
 ```dart
 // Input port (left side)
-const Port(
-  id: 'input-1',
-  name: 'Input',
-  position: PortPosition.left,
-  type: PortType.target,  // Can only receive connections
+const Port
+(
+id: 'input-1',
+name: 'Input',
+position: PortPosition.left,
+type: PortType.target, // Can only receive connections
 )
 
 // Output port (right side)
 const Port(
-  id: 'output-1',
-  name: 'Output',
-  position: PortPosition.right,
-  type: PortType.source,  // Can only create connections
+id: 'output-1',
+name: 'Output',
+position: PortPosition.right,
+type: PortType.source, // Can only create connections
 )
 
 // Bidirectional port
 const Port(
-  id: 'bidirectional',
-  name: 'Data',
-  type: PortType.both,  // Can both send and receive
+id: 'bidirectional',
+name: 'Data',
+type: PortType.
+both
+, // Can both send and receive
 )
 ```
 
@@ -573,34 +620,38 @@ const Port(
 ```dart
 // Left-side ports with vertical offsets
 inputPorts: [
-  Port(
-    id: 'in-1',
-    name: 'Input 1',
-    position: PortPosition.left,
-    offset: Offset(0, 20),  // 20px from top
-  ),
-  Port(
-    id: 'in-2',
-    name: 'Input 2',
-    position: PortPosition.left,
-    offset: Offset(0, 60),  // 60px from top
-  ),
+Port
+(
+id: 'in-1',
+name: 'Input 1',
+position: PortPosition.left,
+offset: Offset(0, 20), // 20px from top
+),
+Port(
+id: 'in-2',
+name: 'Input 2',
+position: PortPosition.left,
+offset: Offset(0, 60), // 60px from top
+),
 ]
 
 // Top-side ports with horizontal offsets
 inputPorts: [
-  Port(
-    id: 'in-1',
-    name: 'Input 1',
-    position: PortPosition.top,
-    offset: Offset(40, 0),  // 40px from left
-  ),
-  Port(
-    id: 'in-2',
-    name: 'Input 2',
-    position: PortPosition.top,
-    offset: Offset(120, 0),  // 120px from left
-  ),
+Port(
+id: 'in-1',
+name: 'Input 1',
+position: PortPosition.top,
+offset: Offset(40, 0), // 40px from left
+),
+Port(
+id: 'in-2',
+name: 'Input 2',
+position: PortPosition.top,
+offset: Offset(120, 0
+)
+, // 120px from left
+)
+,
 ]
 ```
 
@@ -609,10 +660,16 @@ inputPorts: [
 ### Port Shapes
 
 ```dart
-const Port(
-  id: 'port-1',
-  name: 'Data',
-  shape: PortShape.capsuleHalf,  // Default, oriented shape
+const Port
+(
+id: 'port-1',
+name: 'Data',
+shape
+:
+PortShape
+.
+capsuleHalf
+, // Default, oriented shape
 )
 
 // Available shapes:
@@ -630,18 +687,19 @@ const Port(
 
 ```dart
 // Allow unlimited connections
-const Port(
-  id: 'output',
-  name: 'Broadcast',
-  multiConnections: true,
+const Port
+(
+id: 'output',
+name: 'Broadcast',
+multiConnections: true,
 )
 
 // Limit to specific number
 const Port(
-  id: 'output',
-  name: 'Limited',
-  multiConnections: true,
-  maxConnections: 3,
+id: 'output',
+name: 'Limited',
+multiConnections: true,
+maxConnections: 3,
 )
 ```
 
@@ -656,10 +714,12 @@ Add or remove ports at runtime:
 
 ```dart
 // Add a port
-node.addOutputPort(Port(
-  id: 'new-output',
-  name: 'New Output',
-  position: PortPosition.right,
+node.addOutputPort
+(
+Port(
+id: 'new-output',
+name: 'New Output',
+position: PortPosition.right,
 ));
 
 // Remove a port
@@ -667,13 +727,15 @@ node.removePort('port-id');
 
 // Update a port
 node.updatePort('port-id', Port(
-  id: 'port-id',
-  name: 'Updated Name',
-  position: PortPosition.right,
+id: 'port-id',
+name: 'Updated Name',
+position: PortPosition.right,
 ));
 
 // Find a port
-final port = node.findPort('port-id');
+final port = node.findPort('port-id
+'
+);
 ```
 
 </details>
@@ -684,9 +746,11 @@ final port = node.findPort('port-id');
 
 ### Creating Connections
 
-Users create connections by dragging from one port to another. You can also create them programmatically:
+Users create connections by dragging from one port to another. You can also create them
+programmatically:
 
 ```dart
+
 final connection = Connection(
   id: 'conn-1',
   sourceNodeId: 'node-1',
@@ -695,7 +759,10 @@ final connection = Connection(
   targetPortId: 'input',
 );
 
-controller.addConnection(connection);
+controller.addConnection
+(
+connection
+);
 ```
 
 ### Connection Validation
@@ -706,47 +773,48 @@ Validate connections before they're created:
 <summary><strong>Connection Validation Example</strong></summary>
 
 ```dart
-NodeFlowEditor<MyData>(
-  controller: controller,
-  theme: theme,
-  nodeBuilder: _buildNode,
+NodeFlowEditor<MyData>
+(
+controller: controller,
+theme: theme,
+nodeBuilder: _buildNode,
 
-  // Validate when starting a connection
-  onBeforeStartConnection: (context) {
-    // Don't allow connections from disabled nodes
-    if (context.sourceNode.data.isDisabled) {
-      return ConnectionValidationResult.invalid(
-        reason: 'Cannot connect from disabled node',
-      );
-    }
-    return ConnectionValidationResult.valid();
-  },
+// Validate when starting a connection
+onBeforeStartConnection: (context) {
+// Don't allow connections from disabled nodes
+if (context.sourceNode.data.isDisabled) {
+return ConnectionValidationResult.invalid(
+reason: 'Cannot connect from disabled node',
+);
+}
+return ConnectionValidationResult.valid();
+},
 
-  // Validate when completing a connection
-  onBeforeCompleteConnection: (context) {
-    // Don't allow self-connections
-    if (context.sourceNode.id == context.targetNode.id) {
-      return ConnectionValidationResult.invalid(
-        reason: 'Cannot connect node to itself',
-      );
-    }
+// Validate when completing a connection
+onBeforeCompleteConnection: (context) {
+// Don't allow self-connections
+if (context.sourceNode.id == context.targetNode.id) {
+return ConnectionValidationResult.invalid(
+reason: 'Cannot connect node to itself',
+);
+}
 
-    // Check for circular dependencies
-    if (_wouldCreateCycle(context)) {
-      return ConnectionValidationResult.invalid(
-        reason: 'Would create circular dependency',
-      );
-    }
+// Check for circular dependencies
+if (_wouldCreateCycle(context)) {
+return ConnectionValidationResult.invalid(
+reason: 'Would create circular dependency',
+);
+}
 
-    // Check port compatibility
-    if (!_arePortsCompatible(context.sourcePort, context.targetPort)) {
-      return ConnectionValidationResult.invalid(
-        reason: 'Incompatible port types',
-      );
-    }
+// Check port compatibility
+if (!_arePortsCompatible(context.sourcePort, context.targetPort)) {
+return ConnectionValidationResult.invalid(
+reason: 'Incompatible port types',
+);
+}
 
-    return ConnectionValidationResult.valid();
-  },
+return ConnectionValidationResult.valid();
+},
 )
 ```
 
@@ -778,18 +846,19 @@ Customize connection line endpoints:
 <summary><strong>Connection Endpoint Styles</strong></summary>
 
 ```dart
-connectionTheme: ConnectionTheme(
-  // Start endpoint (source port)
-  startPoint: ConnectionEndPoint.none,
+connectionTheme: ConnectionTheme
+(
+// Start endpoint (source port)
+startPoint: ConnectionEndPoint.none,
 
-  // End endpoint (target port)
-  endPoint: ConnectionEndPoint.arrow,
+// End endpoint (target port)
+endPoint: ConnectionEndPoint.arrow,
 
-  // Other endpoint options:
-  // - ConnectionEndPoint.none
-  // - ConnectionEndPoint.arrow
-  // - ConnectionEndPoint.circle
-  // - ConnectionEndPoint.capsuleHalf (matches port shape)
+// Other endpoint options:
+// - ConnectionEndPoint.none
+// - ConnectionEndPoint.arrow
+// - ConnectionEndPoint.circle
+// - ConnectionEndPoint.capsuleHalf (matches port shape)
 )
 ```
 
@@ -803,25 +872,27 @@ Add labels to connections:
 <summary><strong>Connection Label Example</strong></summary>
 
 ```dart
+
 final connection = Connection(
   id: 'conn-1',
   sourceNodeId: 'node-1',
   sourcePortId: 'output',
   targetNodeId: 'node-2',
   targetPortId: 'input',
-  label: 'Data Flow',  // Add label
+  label: 'Data Flow', // Add label
 );
 
 // Customize label appearance in theme
-labelTheme: LabelTheme(
-  color: Colors.black87,
-  fontSize: 11.0,
-  fontWeight: FontWeight.w500,
-  backgroundColor: Colors.white,
-  borderColor: Colors.grey.shade300,
-  borderWidth: 1.0,
-  horizontalOffset: 8.0,
-  verticalOffset: 8.0,
+labelTheme: LabelTheme
+(
+color: Colors.black87,
+fontSize: 11.0,
+fontWeight: FontWeight.w500,
+backgroundColor: Colors.white,
+borderColor: Colors.grey.shade300,
+borderWidth: 1.0,
+horizontalOffset: 8.0,
+verticalOffset: 8.0,
 )
 ```
 
@@ -831,7 +902,8 @@ labelTheme: LabelTheme(
 
 ## Annotations
 
-Annotations are floating elements that can be placed on the canvas for labels, notes, or custom visualizations.
+Annotations are floating elements that can be placed on the canvas for labels, notes, or custom
+visualizations.
 
 ### Built-in Annotation Types
 
@@ -840,21 +912,24 @@ Annotations are floating elements that can be placed on the canvas for labels, n
 
 ```dart
 // Add a sticky note annotation
-controller.addAnnotation(
-  StickyAnnotation(
-    id: 'note-1',
-    position: const Offset(100, 100),
-    text: 'This is a note',
-    width: 200,
-    height: 100,
-    color: Colors.yellow.shade100,
-  ),
+controller.addAnnotation
+(
+StickyAnnotation(
+id: 'note-1',
+position: const Offset(100, 100),
+text: 'This is a note',
+width: 200,
+height: 100,
+color: Colors.yellow.shade100,
+),
 );
 
 // Or use the convenience method
 controller.createStickyNote(
-  position: const Offset(100, 100),
-  text: 'This is a note',
+position: const Offset(100, 100),
+text: 'This is a note
+'
+,
 );
 ```
 
@@ -911,11 +986,12 @@ class ImageAnnotation extends Annotation {
   }
 
   @override
-  Map<String, dynamic> toJson() => {
-    'imageUrl': imageUrl,
-    'width': width,
-    'height': height,
-  };
+  Map<String, dynamic> toJson() =>
+      {
+        'imageUrl': imageUrl,
+        'width': width,
+        'height': height,
+      };
 
   @override
   void fromJson(Map<String, dynamic> json) {
@@ -924,12 +1000,16 @@ class ImageAnnotation extends Annotation {
 }
 
 // Use the custom annotation
-controller.addAnnotation(
-  ImageAnnotation(
-    id: 'img-1',
-    position: const Offset(200, 200),
-    imageUrl: 'https://example.com/image.jpg',
-  ),
+controller.addAnnotation
+(
+ImageAnnotation(
+id: 'img-1',
+position: const Offset(200, 200),
+imageUrl: 'https://example.com/image.jpg
+'
+,
+)
+,
 );
 ```
 
@@ -943,6 +1023,7 @@ Make annotations follow nodes automatically:
 <summary><strong>Node-Following Annotation</strong></summary>
 
 ```dart
+
 final annotation = StickyAnnotation(
   id: 'label-1',
   position: const Offset(100, 100),
@@ -950,10 +1031,13 @@ final annotation = StickyAnnotation(
   // This annotation will follow 'node-1'
   dependencies: {'node-1'},
   // Offset relative to the node
-  offset: const Offset(0, -50),  // 50px above the node
+  offset: const Offset(0, -50), // 50px above the node
 );
 
-controller.addAnnotation(annotation);
+controller.addAnnotation
+(
+annotation
+);
 ```
 
 </details>
@@ -968,60 +1052,61 @@ controller.addAnnotation(annotation);
 <summary><strong>All Available Callbacks</strong></summary>
 
 ```dart
-NodeFlowEditor<MyData>(
-  controller: controller,
-  theme: theme,
-  nodeBuilder: _buildNode,
+NodeFlowEditor<MyData>
+(
+controller: controller,
+theme: theme,
+nodeBuilder: _buildNode,
 
-  // Node events
-  onNodeSelected: (node) {
-    print('Node selected: ${node?.id}');
-  },
-  onNodeTap: (node) {
-    print('Node tapped: ${node.id}');
-  },
-  onNodeDoubleTap: (node) {
-    print('Node double-tapped: ${node.id}');
-    _showNodeEditor(node);
-  },
-  onNodeCreated: (node) {
-    print('Node created: ${node.id}');
-  },
-  onNodeDeleted: (node) {
-    print('Node deleted: ${node.id}');
-  },
+// Node events
+onNodeSelected: (node) {
+print('Node selected: ${node?.id}');
+},
+onNodeTap: (node) {
+print('Node tapped: ${node.id}');
+},
+onNodeDoubleTap: (node) {
+print('Node double-tapped: ${node.id}');
+_showNodeEditor(node);
+},
+onNodeCreated: (node) {
+print('Node created: ${node.id}');
+},
+onNodeDeleted: (node) {
+print('Node deleted: ${node.id}');
+},
 
-  // Connection events
-  onConnectionSelected: (connection) {
-    print('Connection selected: ${connection?.id}');
-  },
-  onConnectionTap: (connection) {
-    print('Connection tapped: ${connection.id}');
-  },
-  onConnectionDoubleTap: (connection) {
-    print('Connection double-tapped: ${connection.id}');
-  },
-  onConnectionCreated: (connection) {
-    print('Connection created: ${connection.id}');
-    _notifyConnectionChange();
-  },
-  onConnectionDeleted: (connection) {
-    print('Connection deleted: ${connection.id}');
-  },
+// Connection events
+onConnectionSelected: (connection) {
+print('Connection selected: ${connection?.id}');
+},
+onConnectionTap: (connection) {
+print('Connection tapped: ${connection.id}');
+},
+onConnectionDoubleTap: (connection) {
+print('Connection double-tapped: ${connection.id}');
+},
+onConnectionCreated: (connection) {
+print('Connection created: ${connection.id}');
+_notifyConnectionChange();
+},
+onConnectionDeleted: (connection) {
+print('Connection deleted: ${connection.id}');
+},
 
-  // Annotation events
-  onAnnotationSelected: (annotation) {
-    print('Annotation selected: ${annotation?.id}');
-  },
-  onAnnotationTap: (annotation) {
-    print('Annotation tapped: ${annotation.id}');
-  },
-  onAnnotationCreated: (annotation) {
-    print('Annotation created: ${annotation.id}');
-  },
-  onAnnotationDeleted: (annotation) {
-    print('Annotation deleted: ${annotation.id}');
-  },
+// Annotation events
+onAnnotationSelected: (annotation) {
+print('Annotation selected: ${annotation?.id}');
+},
+onAnnotationTap: (annotation) {
+print('Annotation tapped: ${annotation.id}');
+},
+onAnnotationCreated: (annotation) {
+print('Annotation created: ${annotation.id}');
+},
+onAnnotationDeleted: (annotation) {
+print('Annotation deleted: ${annotation.id}');
+},
 )
 ```
 
@@ -1031,38 +1116,39 @@ NodeFlowEditor<MyData>(
 
 Built-in keyboard shortcuts are available:
 
-| Shortcut | Action |
-|----------|--------|
+| Shortcut               | Action                            |
+|------------------------|-----------------------------------|
 | `Delete` / `Backspace` | Delete selected nodes/connections |
-| `Cmd/Ctrl + A` | Select all nodes |
-| `Cmd/Ctrl + C` | Copy selected nodes |
-| `Cmd/Ctrl + V` | Paste nodes |
-| `Cmd/Ctrl + D` | Duplicate selected nodes |
-| `Cmd/Ctrl + Z` | Undo |
-| `Cmd/Ctrl + Shift + Z` | Redo |
-| `Space + Drag` | Pan canvas |
-| `+` / `-` | Zoom in/out |
-| `0` | Reset zoom to 100% |
-| `F` | Fit view to all nodes |
+| `Cmd/Ctrl + A`         | Select all nodes                  |
+| `Cmd/Ctrl + C`         | Copy selected nodes               |
+| `Cmd/Ctrl + V`         | Paste nodes                       |
+| `Cmd/Ctrl + D`         | Duplicate selected nodes          |
+| `Cmd/Ctrl + Z`         | Undo                              |
+| `Cmd/Ctrl + Shift + Z` | Redo                              |
+| `Space + Drag`         | Pan canvas                        |
+| `+` / `-`              | Zoom in/out                       |
+| `0`                    | Reset zoom to 100%                |
+| `F`                    | Fit view to all nodes             |
 
 <details>
 <summary><strong>Custom Keyboard Shortcuts</strong></summary>
 
 ```dart
 // Register custom actions
-controller.shortcuts.registerAction(
-  NodeFlowAction(
-    id: 'custom-action',
-    label: 'Custom Action',
-    shortcut: SingleActivator(
-      LogicalKeyboardKey.keyK,
-      control: true,
-    ),
-    execute: (controller) {
-      // Your custom logic
-      print('Custom action executed!');
-    },
-  ),
+controller.shortcuts.registerAction
+(
+NodeFlowAction(
+id: 'custom-action',
+label: 'Custom Action',
+shortcut: SingleActivator(
+LogicalKeyboardKey.keyK,
+control: true,
+),
+execute: (controller) {
+// Your custom logic
+print('Custom action executed!');
+},
+),
 );
 
 // Show shortcuts dialog
@@ -1076,18 +1162,19 @@ controller.showShortcutsDialog(context);
 Control which interactions are enabled:
 
 ```dart
-NodeFlowEditor<T>(
-  controller: controller,
-  theme: theme,
-  nodeBuilder: _buildNode,
+NodeFlowEditor<T>
+(
+controller: controller,
+theme: theme,
+nodeBuilder: _buildNode,
 
-  enablePanning: true,           // Pan with space+drag or right-click
-  enableZooming: true,            // Zoom with mouse wheel
-  enableSelection: true,          // Select nodes and connections
-  enableNodeDragging: true,       // Drag nodes to reposition
-  enableConnectionCreation: true, // Create connections by dragging
-  scrollToZoom: true,            // Zoom with trackpad scroll
-  showAnnotations: true,         // Display annotation layer
+enablePanning: true, // Pan with space+drag or right-click
+enableZooming: true, // Zoom with mouse wheel
+enableSelection: true, // Select nodes and connections
+enableNodeDragging: true, // Drag nodes to reposition
+enableConnectionCreation: true, // Create connections by dragging
+scrollToZoom: true, // Zoom with trackpad scroll
+showAnnotations: true, // Display annotation layer
 )
 ```
 
@@ -1101,18 +1188,19 @@ Enable the built-in minimap for easier navigation in large graphs:
 // Configure minimap in the controller
 final controller = NodeFlowController<T>(
   config: NodeFlowConfig(
-    showMinimap: true,                              // Enable minimap
-    isMinimapInteractive: true,                     // Allow click-to-navigate
-    minimapPosition: MinimapPosition.bottomRight,   // Position on screen
-    minimapSize: const Size(200, 150),              // Minimap dimensions
+    showMinimap: true, // Enable minimap
+    isMinimapInteractive: true, // Allow click-to-navigate
+    minimapPosition: MinimapPosition.bottomRight, // Position on screen
+    minimapSize: const Size(200, 150), // Minimap dimensions
   ),
 );
 
 // Use with editor - minimap appears automatically
-NodeFlowEditor<T>(
-  controller: controller,
-  theme: theme,
-  nodeBuilder: _buildNode,
+NodeFlowEditor<T>
+(
+controller: controller,
+theme: theme,
+nodeBuilder: _buildNode,
 )
 ```
 
@@ -1120,14 +1208,21 @@ You can also toggle the minimap at runtime:
 
 ```dart
 // Toggle minimap visibility
-controller.config.toggleMinimap();
+controller.config.toggleMinimap
+();
 
 // Change minimap position
-controller.config.setMinimapPosition(MinimapPosition.topLeft);
+controller.config.setMinimapPosition
+(
+MinimapPosition
+.
+topLeft
+);
 ```
 
 > [!TIP]
-> The minimap automatically updates as you pan, zoom, and modify the graph. Available positions: `topLeft`, `topRight`, `bottomLeft`, `bottomRight`.
+> The minimap automatically updates as you pan, zoom, and modify the graph. Available positions:
+`topLeft`, `topRight`, `bottomLeft`, `bottomRight`.
 
 ---
 
@@ -1136,17 +1231,21 @@ controller.config.setMinimapPosition(MinimapPosition.topLeft);
 Display flows without editing capabilities:
 
 ```dart
-NodeFlowViewer<T>(
-  controller: controller,
-  theme: theme,
-  nodeBuilder: _buildNode,
-  enablePanning: true,
-  enableZooming: true,
-  scrollToZoom: true,
+NodeFlowViewer<T>
+(
+controller: controller,
+theme: theme,
+nodeBuilder: _buildNode,
+enablePanning: true,
+enableZooming: true,
+scrollToZoom:
+true
+,
 )
 ```
 
-The viewer supports panning and zooming but prevents editing, making it perfect for displaying workflows, process diagrams, or results.
+The viewer supports panning and zooming but prevents editing, making it perfect for displaying
+workflows, process diagrams, or results.
 
 ---
 
@@ -1164,7 +1263,11 @@ final json = graph.toJson((data) => data.toJson());
 final jsonString = jsonEncode(json);
 
 // Save to file
-await File('my_flow.json').writeAsString(jsonString);
+await File
+('my_flow.json
+'
+)
+.writeAsString(jsonString);
 
 // Load from file
 final loadedJson = await File('my_flow.json').readAsString();
@@ -1172,11 +1275,15 @@ final decoded = jsonDecode(loadedJson);
 
 // Import graph
 final loadedGraph = NodeGraph.fromJson(
-  decoded,
-  (json) => MyData.fromJson(json),
+decoded,
+(json) => MyData.fromJson(json),
 );
 
-controller.loadGraph(loadedGraph);
+controller.
+loadGraph
+(
+loadedGraph
+);
 ```
 
 </details>
@@ -1185,11 +1292,18 @@ controller.loadGraph(loadedGraph);
 
 ```dart
 // Load graph from a URL (web/assets)
-final graph = await NodeGraph.fromUrl<MyData>(
-  'assets/workflows/my_flow.json',
+final graph = await
+NodeGraph.fromUrl<MyData>
+('assets/workflows/my_flow.json
+'
+,
 );
 
-controller.loadGraph(graph);
+controller.
+loadGraph
+(
+graph
+);
 ```
 
 ---
@@ -1202,17 +1316,19 @@ controller.loadGraph(graph);
 <summary><strong>Grid Configuration</strong></summary>
 
 ```dart
+
 final config = NodeFlowConfig(
-  snapToGrid: true,              // Snap nodes to grid
-  snapAnnotationsToGrid: true,    // Snap annotations to grid
-  gridSize: 20.0,                 // Grid cell size
-  portSnapDistance: 15.0,         // Distance for port snapping
+  snapToGrid: true, // Snap nodes to grid
+  snapAnnotationsToGrid: true, // Snap annotations to grid
+  gridSize: 20.0, // Grid cell size
+  portSnapDistance: 15.0, // Distance for port snapping
 );
 
 // Toggle snapping at runtime
-config.toggleSnapping();
-config.toggleNodeSnapping();
-config.toggleAnnotationSnapping();
+config.toggleSnapping
+();config.toggleNodeSnapping
+();config.toggleAnnotationSnapping
+();
 ```
 
 </details>
@@ -1223,9 +1339,10 @@ config.toggleAnnotationSnapping();
 <summary><strong>Auto-Pan Configuration</strong></summary>
 
 ```dart
+
 final config = NodeFlowConfig(
-  autoPanMargin: 50.0,   // Pixels from edge to trigger auto-pan
-  autoPanSpeed: 0.3,     // Pan speed (0.0 to 1.0)
+  autoPanMargin: 50.0, // Pixels from edge to trigger auto-pan
+  autoPanSpeed: 0.3, // Pan speed (0.0 to 1.0)
 );
 ```
 
@@ -1236,9 +1353,10 @@ When dragging nodes or connections near the canvas edge, the viewport automatica
 ### Zoom Limits
 
 ```dart
+
 final config = NodeFlowConfig(
-  minZoom: 0.25,  // Minimum zoom level (25%)
-  maxZoom: 3.0,   // Maximum zoom level (300%)
+  minZoom: 0.25, // Minimum zoom level (25%)
+  maxZoom: 3.0, // Maximum zoom level (300%)
 );
 ```
 
@@ -1351,10 +1469,14 @@ class _DataPipelineEditorState extends State<DataPipelineEditor> {
 
   IconData _getIcon(String type) {
     switch (type) {
-      case 'source': return Icons.input;
-      case 'transform': return Icons.transform;
-      case 'sink': return Icons.output;
-      default: return Icons.circle;
+      case 'source':
+        return Icons.input;
+      case 'transform':
+        return Icons.transform;
+      case 'sink':
+        return Icons.output;
+      default:
+        return Icons.circle;
     }
   }
 }
@@ -1641,75 +1763,78 @@ class ProcessViewer extends StatelessWidget {
 
 ### NodeFlowController
 
-| Method | Description |
-|--------|-------------|
-| `addNode(Node node)` | Add a node to the graph |
-| `removeNode(String id)` | Remove a node by ID |
-| `getNode(String id)` | Get a node by ID |
-| `setNodePosition(String id, Offset position)` | Set node position |
-| `addConnection(Connection conn)` | Add a connection |
-| `removeConnection(String id)` | Remove a connection |
-| `getConnectionsForNode(String id)` | Get connections for a node |
-| `selectNode(String id)` | Select a node |
-| `clearSelection()` | Clear all selections |
-| `setViewport(GraphViewport)` | Set viewport position and zoom |
-| `zoomBy(double delta)` | Adjust zoom by delta |
-| `zoomTo(double zoom)` | Set specific zoom level |
-| `fitToView()` | Fit all nodes in view |
-| `centerOnNode(String id)` | Center viewport on node |
-| `exportGraph()` | Export graph to JSON |
-| `loadGraph(NodeGraph)` | Load graph from data |
-| `clearGraph()` | Clear all nodes and connections |
+| Method                                        | Description                     |
+|-----------------------------------------------|---------------------------------|
+| `addNode(Node node)`                          | Add a node to the graph         |
+| `removeNode(String id)`                       | Remove a node by ID             |
+| `getNode(String id)`                          | Get a node by ID                |
+| `setNodePosition(String id, Offset position)` | Set node position               |
+| `addConnection(Connection conn)`              | Add a connection                |
+| `removeConnection(String id)`                 | Remove a connection             |
+| `getConnectionsForNode(String id)`            | Get connections for a node      |
+| `selectNode(String id)`                       | Select a node                   |
+| `clearSelection()`                            | Clear all selections            |
+| `setViewport(GraphViewport)`                  | Set viewport position and zoom  |
+| `zoomBy(double delta)`                        | Adjust zoom by delta            |
+| `zoomTo(double zoom)`                         | Set specific zoom level         |
+| `fitToView()`                                 | Fit all nodes in view           |
+| `centerOnNode(String id)`                     | Center viewport on node         |
+| `exportGraph()`                               | Export graph to JSON            |
+| `loadGraph(NodeGraph)`                        | Load graph from data            |
+| `clearGraph()`                                | Clear all nodes and connections |
 
 ### Node
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `id` | String | Unique identifier |
-| `type` | String | Node type label |
-| `data` | T | Custom node data |
-| `position` | Offset | Node position |
-| `size` | Size | Node dimensions |
-| `inputPorts` | List<Port> | Input ports |
-| `outputPorts` | List<Port> | Output ports |
-| `isSelected` | bool | Selection state |
+| Property      | Type       | Description       |
+|---------------|------------|-------------------|
+| `id`          | String     | Unique identifier |
+| `type`        | String     | Node type label   |
+| `data`        | T          | Custom node data  |
+| `position`    | Offset     | Node position     |
+| `size`        | Size       | Node dimensions   |
+| `inputPorts`  | List<Port> | Input ports       |
+| `outputPorts` | List<Port> | Output ports      |
+| `isSelected`  | bool       | Selection state   |
 
 ### Port
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `id` | String | Unique identifier |
-| `name` | String | Display name |
-| `position` | PortPosition | Port location on node |
-| `offset` | Offset | Position offset |
-| `type` | PortType | source/target/both |
-| `shape` | PortShape | Visual appearance |
-| `multiConnections` | bool | Allow multiple connections |
-| `maxConnections` | int? | Connection limit |
+| Property           | Type         | Description                |
+|--------------------|--------------|----------------------------|
+| `id`               | String       | Unique identifier          |
+| `name`             | String       | Display name               |
+| `position`         | PortPosition | Port location on node      |
+| `offset`           | Offset       | Position offset            |
+| `type`             | PortType     | source/target/both         |
+| `shape`            | PortShape    | Visual appearance          |
+| `multiConnections` | bool         | Allow multiple connections |
+| `maxConnections`   | int?         | Connection limit           |
 
 ### Connection
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `id` | String | Unique identifier |
-| `sourceNodeId` | String | Source node ID |
-| `sourcePortId` | String | Source port ID |
-| `targetNodeId` | String | Target node ID |
-| `targetPortId` | String | Target port ID |
-| `label` | String? | Connection label |
+| Property       | Type    | Description       |
+|----------------|---------|-------------------|
+| `id`           | String  | Unique identifier |
+| `sourceNodeId` | String  | Source node ID    |
+| `sourcePortId` | String  | Source port ID    |
+| `targetNodeId` | String  | Target node ID    |
+| `targetPortId` | String  | Target port ID    |
+| `label`        | String? | Connection label  |
 
 ---
 
 ## 💡 Tips and Best Practices
 
 > [!TIP]
-> **Performance**: Use specific data types for `Node<T>` rather than `Map<String, dynamic>` when possible for better type safety and performance.
+> **Performance**: Use specific data types for `Node<T>` rather than `Map<String, dynamic>` when
+> possible for better type safety and performance.
 
 > [!WARNING]
-> **Large Graphs**: For graphs with 100+ nodes, consider implementing virtualization or chunking strategies. The minimap helps with navigation.
+> **Large Graphs**: For graphs with 100+ nodes, consider implementing virtualization or chunking
+> strategies. The minimap helps with navigation.
 
 > [!NOTE]
-> **Serialization**: When implementing custom node data types, ensure they have proper `toJson()` and `fromJson()` methods for serialization.
+> **Serialization**: When implementing custom node data types, ensure they have proper `toJson()`
+> and `fromJson()` methods for serialization.
 
 ---
 
@@ -1738,7 +1863,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-Inspired by [React Flow](https://reactflow.dev/) - a powerful node-based editor for React applications.
+Inspired by [React Flow](https://reactflow.dev/) - a powerful node-based editor for React
+applications.
 
 ---
 
