@@ -5,11 +5,21 @@ import 'connection_path_cache.dart';
 import 'endpoint_painter.dart';
 
 class ConnectionPainter {
-  ConnectionPainter({required this.theme})
-    : _pathCache = ConnectionPathCache(theme: theme);
+  ConnectionPainter({required NodeFlowTheme theme})
+    : _theme = theme,
+      _pathCache = ConnectionPathCache(theme: theme);
 
-  final NodeFlowTheme theme;
+  NodeFlowTheme _theme;
+  NodeFlowTheme get theme => _theme;
+
   final ConnectionPathCache _pathCache;
+
+  /// Update the theme
+  /// Cache invalidation is handled by the path cache itself
+  void updateTheme(NodeFlowTheme newTheme) {
+    _theme = newTheme;
+    _pathCache.updateTheme(newTheme);
+  }
 
   void paintConnection(
     Canvas canvas,

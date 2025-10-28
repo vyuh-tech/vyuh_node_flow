@@ -31,9 +31,31 @@ class _CachedConnectionPath {
 /// Manages connection path caching and hit testing
 /// Separates concerns from ConnectionPainter
 class ConnectionPathCache {
-  ConnectionPathCache({required this.theme});
+  ConnectionPathCache({required NodeFlowTheme theme}) : _theme = theme;
 
-  final NodeFlowTheme theme;
+  NodeFlowTheme _theme;
+  NodeFlowTheme get theme => _theme;
+
+  /// Update the theme and intelligently invalidate cache if needed
+  void updateTheme(NodeFlowTheme newTheme) {
+    final oldTheme = _theme;
+    _theme = newTheme;
+
+    // Invalidate cache only if path-affecting properties changed
+    final pathChanged =
+        oldTheme.connectionStyle != newTheme.connectionStyle ||
+        oldTheme.connectionTheme.bezierCurvature != newTheme.connectionTheme.bezierCurvature ||
+        oldTheme.portTheme.size != newTheme.portTheme.size;
+
+    if (pathChanged) {
+      invalidateAll();
+    }
+  }
+
+  /// Invalidate all cached paths
+  void invalidateAll() {
+    _pathCache.clear();
+  }
 
   /// Get the hit tolerance from the connection theme
   double get defaultHitTolerance => theme.connectionTheme.hitTolerance;

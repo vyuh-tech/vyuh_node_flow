@@ -1320,11 +1320,17 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     );
   }
 
-  /// Set the theme and initialize the connection painter
+  /// Set the theme and update the connection painter
   /// This is called internally by the editor widget only
   void setTheme(NodeFlowTheme theme) {
     _theme = theme;
-    _connectionPainter ??= ConnectionPainter(theme: theme);
+
+    // Create painter if it doesn't exist, otherwise update its theme
+    if (_connectionPainter == null) {
+      _connectionPainter = ConnectionPainter(theme: theme);
+    } else {
+      _connectionPainter!.updateTheme(theme);
+    }
   }
 
   /// Update the callbacks that the controller will use
