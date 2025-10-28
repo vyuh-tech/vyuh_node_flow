@@ -20,6 +20,15 @@ A flexible, high-performance node-based flow editor for Flutter applications, in
 - **Read-Only Viewer** - Display flows without editing capabilities
 - **Serialization** - Save and load flows from JSON
 
+## Screenshots
+
+<div align="center">
+  <img src="assets/image-1.png" alt="Node Flow Editor Screenshot 1" width="800"/>
+  <br/>
+  <br/>
+  <img src="assets/image-2.png" alt="Node Flow Editor Screenshot 2" width="800"/>
+</div>
+
 ## Installation
 
 Add to your `pubspec.yaml`:

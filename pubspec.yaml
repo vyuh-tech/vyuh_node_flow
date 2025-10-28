@@ -5,11 +5,16 @@ description: A flexible, high-performance node-based flow editor for Flutter.
 version: 0.1.0
 
 homepage: https://vyuh.tech
-issue_tracker: https://github.com/vyuh-tech/vyuh/issues
+repository: https://github.com/vyuh-tech/vyuh_node_flow
+issue_tracker: https://github.com/vyuh-tech/vyuh_node_flow/issues
 
 screenshots:
   - description: 'Node Flow Editor - Visual programming interface with reactive node-based editing'
     path: assets/node-flow-banner.png
+  - description: 'Node Flow Editor - Complex workflow with multiple nodes and connections'
+    path: assets/image-1.png
+  - description: 'Node Flow Editor - Interactive diagram with customizable themes and ports'
+    path: assets/image-2.png
 
 topics:
   - node-editor
