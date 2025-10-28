@@ -1,0 +1,17 @@
+# Node related
+**/node_modules
+*.log
+dist
+coverage
+
+# Dart
+.idea
+.DS_Store
+build
+.dart_tool
+pubspec_overrides.yaml
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+*.lock
+devtools_options.yaml

@@ -1,0 +1,42 @@
+name: vyuh_node_flow
+description: A flexible, high-performance node-based flow editor for Flutter. 
+  Build visual programming interfaces, workflow editors, diagrams, and data pipelines with 
+  reactive state management, customizable theming, and comprehensive interaction support.
+version: 0.1.0
+
+homepage: https://vyuh.tech
+issue_tracker: https://github.com/vyuh-tech/vyuh/issues
+
+screenshots:
+  - description: 'Node Flow Editor - Visual programming interface with reactive node-based editing'
+    path: assets/node-flow-banner.png
+
+topics:
+  - node-editor
+  - visual-programming
+  - graph-editor
+  - workflow
+  - diagram
+
+environment:
+  sdk: '>=3.8.0 <4.0.0'
+  flutter: ">=3.32.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  collection: ^1.19.1
+  json_annotation: ^4.9.0
+  equatable: ^2.0.7
+  vector_math: ^2.1.4
+  mobx: ^2.5.0
+  flutter_mobx: ^2.3.0
+  http: ^1.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.8.0
+  json_serializable: ^6.9.5
+

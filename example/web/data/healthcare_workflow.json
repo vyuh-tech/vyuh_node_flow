@@ -1,0 +1,851 @@
+{
+  "nodes": [
+    {
+      "id": "patient-registration",
+      "type": "Registration",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "id": "patient-out",
+          "name": "Patient Info",
+          "dataType": "patient",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "insurance-out",
+          "name": "Insurance",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "Patient Registration",
+        "channels": [
+          "Walk-in",
+          "Online",
+          "Phone"
+        ],
+        "verification": "ID + Insurance",
+        "time": "5-10 minutes"
+      },
+      "position": {
+        "x": 100,
+        "y": 200
+      },
+      "zIndex": 1
+    },
+    {
+      "id": "triage",
+      "type": "Assessment",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "patient-in",
+          "name": "Patient",
+          "dataType": "patient",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "urgent-out",
+          "name": "Urgent",
+          "dataType": "patient",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "routine-out",
+          "name": "Routine",
+          "dataType": "patient",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "vitals-out",
+          "name": "Vitals",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "Triage Station",
+        "nurses": 3,
+        "protocol": "ESI Level 1-5",
+        "avg_time": "3 minutes"
+      },
+      "position": {
+        "x": 350,
+        "y": 200
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "emergency-room",
+      "type": "Treatment",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "patient-in",
+          "name": "Urgent Patient",
+          "dataType": "patient",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "vitals-in",
+          "name": "Vitals",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "treated-out",
+          "name": "Stabilized",
+          "dataType": "patient",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "notes-out",
+          "name": "ER Notes",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Emergency Department",
+        "beds": 20,
+        "doctors": 5,
+        "equipment": [
+          "CT",
+          "X-Ray",
+          "Ultrasound"
+        ],
+        "avg_stay": "4 hours"
+      },
+      "position": {
+        "x": 600,
+        "y": 100
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "consultation",
+      "type": "Consultation",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "patient-in",
+          "name": "Patient",
+          "dataType": "patient",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "history-in",
+          "name": "Medical History",
+          "dataType": "document",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "diagnosis-out",
+          "name": "Diagnosis",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "orders-out",
+          "name": "Orders",
+          "dataType": "order",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "referral-out",
+          "name": "Referrals",
+          "dataType": "referral",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "Doctor Consultation",
+        "specialties": [
+          "General",
+          "Internal",
+          "Pediatrics"
+        ],
+        "appointment_slots": 30,
+        "duration": "15-30 min"
+      },
+      "position": {
+        "x": 600,
+        "y": 300
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "laboratory",
+      "type": "Diagnostic",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "orders-in",
+          "name": "Lab Orders",
+          "dataType": "order",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "samples-in",
+          "name": "Samples",
+          "dataType": "sample",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "results-out",
+          "name": "Lab Results",
+          "dataType": "report",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "alerts-out",
+          "name": "Critical Values",
+          "dataType": "alert",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Clinical Laboratory",
+        "tests": [
+          "Blood",
+          "Urine",
+          "Culture",
+          "Pathology"
+        ],
+        "machines": 15,
+        "turnaround": "2-24 hours",
+        "accreditation": "CAP/CLIA"
+      },
+      "position": {
+        "x": 900,
+        "y": 50
+      },
+      "zIndex": 4
+    },
+    {
+      "id": "radiology",
+      "type": "Imaging",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "orders-in",
+          "name": "Imaging Orders",
+          "dataType": "order",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "patient-in",
+          "name": "Patient",
+          "dataType": "patient",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "images-out",
+          "name": "Images",
+          "dataType": "image",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "report-out",
+          "name": "Radiology Report",
+          "dataType": "report",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Radiology Department",
+        "modalities": [
+          "X-Ray",
+          "CT",
+          "MRI",
+          "Ultrasound"
+        ],
+        "radiologists": 8,
+        "pacs_system": true,
+        "ai_assisted": true
+      },
+      "position": {
+        "x": 900,
+        "y": 200
+      },
+      "zIndex": 4
+    },
+    {
+      "id": "pharmacy",
+      "type": "Pharmacy",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "prescription-in",
+          "name": "Prescriptions",
+          "dataType": "order",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "insurance-in",
+          "name": "Insurance",
+          "dataType": "document",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "medication-out",
+          "name": "Medications",
+          "dataType": "medication",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "instructions-out",
+          "name": "Instructions",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Hospital Pharmacy",
+        "inventory": "10,000+ drugs",
+        "pharmacists": 12,
+        "robots": 2,
+        "verification": "Barcode scanning"
+      },
+      "position": {
+        "x": 900,
+        "y": 350
+      },
+      "zIndex": 4
+    },
+    {
+      "id": "nursing-station",
+      "type": "Care",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "patient-in",
+          "name": "Admitted",
+          "dataType": "patient",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "orders-in",
+          "name": "Care Orders",
+          "dataType": "order",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "meds-in",
+          "name": "Medications",
+          "dataType": "medication",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "vitals-out",
+          "name": "Vitals Log",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "notes-out",
+          "name": "Nursing Notes",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Nursing Unit",
+        "beds": 40,
+        "nurse_ratio": "1:4",
+        "shifts": "12 hours",
+        "monitoring": "Continuous"
+      },
+      "position": {
+        "x": 1150,
+        "y": 300
+      },
+      "zIndex": 5
+    },
+    {
+      "id": "discharge",
+      "type": "Discharge",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "patient-in",
+          "name": "Patient",
+          "dataType": "patient",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "summary-in",
+          "name": "Summary",
+          "dataType": "document",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "discharged-out",
+          "name": "Discharged",
+          "dataType": "patient",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "instructions-out",
+          "name": "Instructions",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "followup-out",
+          "name": "Follow-up",
+          "dataType": "appointment",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "Discharge Planning",
+        "coordinator": true,
+        "checklist": 25,
+        "education": "Video + Print",
+        "satisfaction_survey": true
+      },
+      "position": {
+        "x": 1400,
+        "y": 300
+      },
+      "zIndex": 6
+    },
+    {
+      "id": "billing",
+      "type": "Financial",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "services-in",
+          "name": "Services",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "insurance-in",
+          "name": "Insurance",
+          "dataType": "document",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "claim-out",
+          "name": "Claims",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "invoice-out",
+          "name": "Invoice",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "Medical Billing",
+        "coding": "ICD-10, CPT",
+        "clearinghouse": "Electronic",
+        "denial_rate": "5%"
+      },
+      "position": {
+        "x": 1400,
+        "y": 500
+      },
+      "zIndex": 6
+    },
+    {
+      "id": "ehr-system",
+      "type": "System",
+      "size": {
+        "width": 160,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "all-data",
+          "name": "Clinical Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 70
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "records-out",
+          "name": "Patient Records",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "analytics-out",
+          "name": "Analytics",
+          "dataType": "report",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "alerts-out",
+          "name": "Clinical Alerts",
+          "dataType": "alert",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "Electronic Health Records",
+        "vendor": "Epic",
+        "modules": [
+          "Clinical",
+          "Revenue",
+          "Analytics"
+        ],
+        "interoperability": "HL7 FHIR",
+        "users": 5000
+      },
+      "position": {
+        "x": 600,
+        "y": 550
+      },
+      "zIndex": 7
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "sourceNodeId": "patient-registration",
+      "sourcePortId": "patient-out",
+      "targetNodeId": "triage",
+      "targetPortId": "patient-in"
+    },
+    {
+      "id": "conn-2",
+      "sourceNodeId": "triage",
+      "sourcePortId": "urgent-out",
+      "targetNodeId": "emergency-room",
+      "targetPortId": "patient-in"
+    },
+    {
+      "id": "conn-3",
+      "sourceNodeId": "triage",
+      "sourcePortId": "routine-out",
+      "targetNodeId": "consultation",
+      "targetPortId": "patient-in"
+    },
+    {
+      "id": "conn-4",
+      "sourceNodeId": "triage",
+      "sourcePortId": "vitals-out",
+      "targetNodeId": "emergency-room",
+      "targetPortId": "vitals-in"
+    },
+    {
+      "id": "conn-5",
+      "sourceNodeId": "consultation",
+      "sourcePortId": "orders-out",
+      "targetNodeId": "laboratory",
+      "targetPortId": "orders-in"
+    },
+    {
+      "id": "conn-6",
+      "sourceNodeId": "consultation",
+      "sourcePortId": "orders-out",
+      "targetNodeId": "radiology",
+      "targetPortId": "orders-in"
+    },
+    {
+      "id": "conn-7",
+      "sourceNodeId": "consultation",
+      "sourcePortId": "orders-out",
+      "targetNodeId": "pharmacy",
+      "targetPortId": "prescription-in"
+    },
+    {
+      "id": "conn-8",
+      "sourceNodeId": "emergency-room",
+      "sourcePortId": "treated-out",
+      "targetNodeId": "nursing-station",
+      "targetPortId": "patient-in"
+    },
+    {
+      "id": "conn-9",
+      "sourceNodeId": "pharmacy",
+      "sourcePortId": "medication-out",
+      "targetNodeId": "nursing-station",
+      "targetPortId": "meds-in"
+    },
+    {
+      "id": "conn-10",
+      "sourceNodeId": "nursing-station",
+      "sourcePortId": "notes-out",
+      "targetNodeId": "discharge",
+      "targetPortId": "summary-in"
+    },
+    {
+      "id": "conn-11",
+      "sourceNodeId": "laboratory",
+      "sourcePortId": "results-out",
+      "targetNodeId": "ehr-system",
+      "targetPortId": "all-data"
+    },
+    {
+      "id": "conn-12",
+      "sourceNodeId": "radiology",
+      "sourcePortId": "report-out",
+      "targetNodeId": "ehr-system",
+      "targetPortId": "all-data"
+    },
+    {
+      "id": "conn-13",
+      "sourceNodeId": "nursing-station",
+      "sourcePortId": "vitals-out",
+      "targetNodeId": "ehr-system",
+      "targetPortId": "all-data"
+    },
+    {
+      "id": "conn-14",
+      "sourceNodeId": "patient-registration",
+      "sourcePortId": "insurance-out",
+      "targetNodeId": "billing",
+      "targetPortId": "insurance-in"
+    },
+    {
+      "id": "conn-15",
+      "sourceNodeId": "ehr-system",
+      "sourcePortId": "records-out",
+      "targetNodeId": "billing",
+      "targetPortId": "services-in"
+    }
+  ],
+  "viewport": {
+    "x": -50,
+    "y": -50,
+    "zoom": 0.7
+  }
+}

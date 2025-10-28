@@ -1,0 +1,898 @@
+{
+  "nodes": [
+    {
+      "id": "product-intake",
+      "type": "Intake",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "id": "product-out",
+          "name": "Products",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "batch-info",
+          "name": "Batch Info",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "Product Intake",
+        "capacity": "1000 units/hour",
+        "source": "Production Line A"
+      },
+      "position": {
+        "x": 100,
+        "y": 100
+      },
+      "zIndex": 1
+    },
+    {
+      "id": "visual-inspection",
+      "type": "Inspection",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "product-in",
+          "name": "Products",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "passed-out",
+          "name": "Passed",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "failed-out",
+          "name": "Failed",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "report-out",
+          "name": "Report",
+          "dataType": "document",
+          "position": "bottom",
+          "offset": {
+            "x": 70,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Visual Inspection",
+        "inspectors": 5,
+        "criteria": [
+          "Surface Defects",
+          "Color Consistency",
+          "Dimensions"
+        ],
+        "pass_rate": "95%"
+      },
+      "position": {
+        "x": 350,
+        "y": 100
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "dimensional-check",
+      "type": "Measurement",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "product-in",
+          "name": "Products",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "passed-out",
+          "name": "In Spec",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "failed-out",
+          "name": "Out of Spec",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "data-out",
+          "name": "Measurements",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 70,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "3D Measurement",
+        "equipment": "CMM Machine",
+        "tolerance": "±0.01mm",
+        "parameters": [
+          "Length",
+          "Width",
+          "Height",
+          "Angles"
+        ]
+      },
+      "position": {
+        "x": 600,
+        "y": 100
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "functional-test",
+      "type": "Testing",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "product-in",
+          "name": "Products",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "passed-out",
+          "name": "Passed",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "failed-out",
+          "name": "Failed",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "test-data",
+          "name": "Test Results",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 70,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Functional Testing",
+        "tests": [
+          "Performance",
+          "Durability",
+          "Safety",
+          "Electrical"
+        ],
+        "duration": "15 minutes",
+        "stations": 8
+      },
+      "position": {
+        "x": 850,
+        "y": 100
+      },
+      "zIndex": 4
+    },
+    {
+      "id": "chemical-analysis",
+      "type": "Analysis",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "sample-in",
+          "name": "Samples",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "passed-out",
+          "name": "Compliant",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "failed-out",
+          "name": "Non-Compliant",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "analysis-out",
+          "name": "Analysis",
+          "dataType": "document",
+          "position": "bottom",
+          "offset": {
+            "x": 70,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Chemical Analysis",
+        "method": "Spectroscopy",
+        "parameters": [
+          "Composition",
+          "Purity",
+          "Contaminants"
+        ],
+        "standards": [
+          "ISO",
+          "ASTM"
+        ]
+      },
+      "position": {
+        "x": 600,
+        "y": 300
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "stress-test",
+      "type": "Testing",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "product-in",
+          "name": "Products",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "passed-out",
+          "name": "Passed",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "failed-out",
+          "name": "Failed",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "data-out",
+          "name": "Stress Data",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 70,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Stress Testing",
+        "tests": [
+          "Tension",
+          "Compression",
+          "Fatigue",
+          "Impact"
+        ],
+        "equipment": "Universal Testing Machine",
+        "cycles": "10,000"
+      },
+      "position": {
+        "x": 850,
+        "y": 300
+      },
+      "zIndex": 4
+    },
+    {
+      "id": "final-inspection",
+      "type": "Inspection",
+      "size": {
+        "width": 160,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "visual-in",
+          "name": "Visual Pass",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 20
+          }
+        },
+        {
+          "id": "dimensional-in",
+          "name": "Dimensional Pass",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        },
+        {
+          "id": "functional-in",
+          "name": "Functional Pass",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        },
+        {
+          "id": "chemical-in",
+          "name": "Chemical Pass",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 110
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "approved-out",
+          "name": "Approved",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "rejected-out",
+          "name": "Rejected",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Final QC Approval",
+        "inspectors": 3,
+        "approval_criteria": "All tests passed",
+        "certification": "ISO 9001"
+      },
+      "position": {
+        "x": 1100,
+        "y": 200
+      },
+      "zIndex": 5
+    },
+    {
+      "id": "packaging",
+      "type": "Packaging",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "product-in",
+          "name": "Approved",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "packed-out",
+          "name": "Packaged",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "data": {
+        "name": "Quality Packaging",
+        "materials": "Anti-static, Cushioned",
+        "labeling": "QC Pass Sticker",
+        "tracking": "Serial Number"
+      },
+      "position": {
+        "x": 1350,
+        "y": 200
+      },
+      "zIndex": 6
+    },
+    {
+      "id": "rework-station",
+      "type": "Rework",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "visual-fail",
+          "name": "Visual Fail",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 20
+          }
+        },
+        {
+          "id": "dimensional-fail",
+          "name": "Dim Fail",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        },
+        {
+          "id": "functional-fail",
+          "name": "Func Fail",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "reworked-out",
+          "name": "Reworked",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "scrap-out",
+          "name": "Scrap",
+          "dataType": "waste",
+          "position": "bottom",
+          "offset": {
+            "x": 70,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Rework Station",
+        "technicians": 10,
+        "rework_rate": "60%",
+        "common_fixes": [
+          "Surface Polish",
+          "Dimension Adjust",
+          "Component Replace"
+        ]
+      },
+      "position": {
+        "x": 600,
+        "y": 500
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "data-analytics",
+      "type": "Analytics",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "visual-data",
+          "name": "Visual Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 20
+          }
+        },
+        {
+          "id": "dimensional-data",
+          "name": "Dim Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        },
+        {
+          "id": "test-data",
+          "name": "Test Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "dashboard-out",
+          "name": "Dashboard",
+          "dataType": "visualization",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "alerts-out",
+          "name": "Alerts",
+          "dataType": "notification",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "trends-out",
+          "name": "Trends",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "QC Analytics Platform",
+        "metrics": [
+          "Defect Rate",
+          "First Pass Yield",
+          "Cost of Quality"
+        ],
+        "ml_models": [
+          "Defect Prediction",
+          "Process Optimization"
+        ],
+        "reporting": "Real-time"
+      },
+      "position": {
+        "x": 1100,
+        "y": 500
+      },
+      "zIndex": 5
+    },
+    {
+      "id": "calibration-lab",
+      "type": "Calibration",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "equipment-in",
+          "name": "Equipment",
+          "dataType": "equipment",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "calibrated-out",
+          "name": "Calibrated",
+          "dataType": "equipment",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "certificate-out",
+          "name": "Certificate",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "Calibration Lab",
+        "standards": "NIST Traceable",
+        "frequency": "Monthly",
+        "equipment_types": [
+          "Gauges",
+          "Scales",
+          "Testers"
+        ]
+      },
+      "position": {
+        "x": 100,
+        "y": 400
+      },
+      "zIndex": 1
+    },
+    {
+      "id": "sample-storage",
+      "type": "Storage",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "samples-in",
+          "name": "Samples",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "samples-out",
+          "name": "Retrieved",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        }
+      ],
+      "data": {
+        "name": "Sample Archive",
+        "retention": "5 years",
+        "conditions": "Temperature Controlled",
+        "tracking": "Barcode System"
+      },
+      "position": {
+        "x": 350,
+        "y": 400
+      },
+      "zIndex": 2
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "sourceNodeId": "product-intake",
+      "sourcePortId": "product-out",
+      "targetNodeId": "visual-inspection",
+      "targetPortId": "product-in"
+    },
+    {
+      "id": "conn-2",
+      "sourceNodeId": "visual-inspection",
+      "sourcePortId": "passed-out",
+      "targetNodeId": "dimensional-check",
+      "targetPortId": "product-in"
+    },
+    {
+      "id": "conn-3",
+      "sourceNodeId": "dimensional-check",
+      "sourcePortId": "passed-out",
+      "targetNodeId": "functional-test",
+      "targetPortId": "product-in"
+    },
+    {
+      "id": "conn-4",
+      "sourceNodeId": "functional-test",
+      "sourcePortId": "passed-out",
+      "targetNodeId": "chemical-analysis",
+      "targetPortId": "sample-in"
+    },
+    {
+      "id": "conn-5",
+      "sourceNodeId": "visual-inspection",
+      "sourcePortId": "passed-out",
+      "targetNodeId": "final-inspection",
+      "targetPortId": "visual-in"
+    },
+    {
+      "id": "conn-6",
+      "sourceNodeId": "dimensional-check",
+      "sourcePortId": "passed-out",
+      "targetNodeId": "final-inspection",
+      "targetPortId": "dimensional-in"
+    },
+    {
+      "id": "conn-7",
+      "sourceNodeId": "functional-test",
+      "sourcePortId": "passed-out",
+      "targetNodeId": "final-inspection",
+      "targetPortId": "functional-in"
+    },
+    {
+      "id": "conn-8",
+      "sourceNodeId": "chemical-analysis",
+      "sourcePortId": "passed-out",
+      "targetNodeId": "final-inspection",
+      "targetPortId": "chemical-in"
+    },
+    {
+      "id": "conn-9",
+      "sourceNodeId": "final-inspection",
+      "sourcePortId": "approved-out",
+      "targetNodeId": "packaging",
+      "targetPortId": "product-in"
+    },
+    {
+      "id": "conn-10",
+      "sourceNodeId": "visual-inspection",
+      "sourcePortId": "failed-out",
+      "targetNodeId": "rework-station",
+      "targetPortId": "visual-fail"
+    },
+    {
+      "id": "conn-11",
+      "sourceNodeId": "dimensional-check",
+      "sourcePortId": "failed-out",
+      "targetNodeId": "rework-station",
+      "targetPortId": "dimensional-fail"
+    },
+    {
+      "id": "conn-12",
+      "sourceNodeId": "functional-test",
+      "sourcePortId": "failed-out",
+      "targetNodeId": "rework-station",
+      "targetPortId": "functional-fail"
+    },
+    {
+      "id": "conn-13",
+      "sourceNodeId": "rework-station",
+      "sourcePortId": "reworked-out",
+      "targetNodeId": "visual-inspection",
+      "targetPortId": "product-in"
+    },
+    {
+      "id": "conn-14",
+      "sourceNodeId": "visual-inspection",
+      "sourcePortId": "report-out",
+      "targetNodeId": "data-analytics",
+      "targetPortId": "visual-data"
+    },
+    {
+      "id": "conn-15",
+      "sourceNodeId": "dimensional-check",
+      "sourcePortId": "data-out",
+      "targetNodeId": "data-analytics",
+      "targetPortId": "dimensional-data"
+    },
+    {
+      "id": "conn-16",
+      "sourceNodeId": "functional-test",
+      "sourcePortId": "test-data",
+      "targetNodeId": "data-analytics",
+      "targetPortId": "test-data"
+    }
+  ],
+  "viewport": {
+    "x": -50,
+    "y": -50,
+    "zoom": 0.8
+  }
+}

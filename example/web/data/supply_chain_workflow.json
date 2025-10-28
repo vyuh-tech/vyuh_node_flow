@@ -1,0 +1,946 @@
+{
+  "nodes": [
+    {
+      "id": "supplier-1",
+      "type": "Supplier",
+      "size": {
+        "width": 120,
+        "height": 150
+      },
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "id": "goods-out",
+          "name": "Goods",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "invoice-out",
+          "name": "Invoice",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "Asian Supplier",
+        "location": "Shanghai",
+        "lead_time": "30 days",
+        "reliability": "95%"
+      },
+      "position": {
+        "x": 100,
+        "y": 100
+      },
+      "zIndex": 1
+    },
+    {
+      "id": "supplier-2",
+      "type": "Supplier",
+      "size": {
+        "width": 120,
+        "height": 150
+      },
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "id": "goods-out",
+          "name": "Goods",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "invoice-out",
+          "name": "Invoice",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "European Supplier",
+        "location": "Hamburg",
+        "lead_time": "14 days",
+        "reliability": "98%"
+      },
+      "position": {
+        "x": 100,
+        "y": 250
+      },
+      "zIndex": 1
+    },
+    {
+      "id": "supplier-3",
+      "type": "Supplier",
+      "size": {
+        "width": 120,
+        "height": 150
+      },
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "id": "goods-out",
+          "name": "Goods",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "invoice-out",
+          "name": "Invoice",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "Local Supplier",
+        "location": "Chicago",
+        "lead_time": "3 days",
+        "reliability": "99%"
+      },
+      "position": {
+        "x": 100,
+        "y": 400
+      },
+      "zIndex": 1
+    },
+    {
+      "id": "ocean-freight",
+      "type": "Transport",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "cargo-in",
+          "name": "Cargo",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "cargo-out",
+          "name": "Delivered",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "tracking-out",
+          "name": "Tracking",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "Ocean Freight",
+        "carrier": "Maersk",
+        "route": "Shanghai-LA",
+        "transit_time": "25 days",
+        "capacity": "40ft containers"
+      },
+      "position": {
+        "x": 300,
+        "y": 100
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "air-freight",
+      "type": "Transport",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "cargo-in",
+          "name": "Cargo",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "cargo-out",
+          "name": "Delivered",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "tracking-out",
+          "name": "Tracking",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "Air Freight",
+        "carrier": "DHL Express",
+        "route": "Hamburg-Chicago",
+        "transit_time": "2 days",
+        "capacity": "LD3 containers"
+      },
+      "position": {
+        "x": 300,
+        "y": 250
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "truck-transport",
+      "type": "Transport",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "cargo-in",
+          "name": "Cargo",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "cargo-out",
+          "name": "Delivered",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "tracking-out",
+          "name": "Tracking",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "Truck Transport",
+        "carrier": "J.B. Hunt",
+        "type": "FTL",
+        "transit_time": "1 day",
+        "capacity": "53ft trailer"
+      },
+      "position": {
+        "x": 300,
+        "y": 400
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "customs-clearance",
+      "type": "Regulatory",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "goods-in",
+          "name": "Import Goods",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "docs-in",
+          "name": "Documents",
+          "dataType": "document",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "cleared-out",
+          "name": "Cleared",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "duties-out",
+          "name": "Duties",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Customs Clearance",
+        "port": "Los Angeles",
+        "broker": "CH Robinson",
+        "average_time": "3 days",
+        "compliance_rate": "99.5%"
+      },
+      "position": {
+        "x": 500,
+        "y": 100
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "distribution-center",
+      "type": "Warehouse",
+      "size": {
+        "width": 160,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "ocean-in",
+          "name": "Ocean Freight",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "air-in",
+          "name": "Air Freight",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "truck-in",
+          "name": "Truck Delivery",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "inventory-out",
+          "name": "Inventory",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "pick-pack",
+          "name": "Fulfillment",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Central Distribution Center",
+        "location": "Dallas, TX",
+        "size": "500,000 sq ft",
+        "capacity": "100,000 SKUs",
+        "automation": "85%"
+      },
+      "position": {
+        "x": 700,
+        "y": 250
+      },
+      "zIndex": 4
+    },
+    {
+      "id": "inventory-management",
+      "type": "System",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "stock-levels",
+          "name": "Stock Levels",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "demand-data",
+          "name": "Demand",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "reorder-out",
+          "name": "Reorders",
+          "dataType": "order",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "forecast-out",
+          "name": "Forecast",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "alerts-out",
+          "name": "Alerts",
+          "dataType": "notification",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "Inventory Management System",
+        "software": "SAP IBP",
+        "optimization": "AI-powered",
+        "accuracy": "96%",
+        "lead_time_buffer": "Dynamic"
+      },
+      "position": {
+        "x": 700,
+        "y": 500
+      },
+      "zIndex": 4
+    },
+    {
+      "id": "order-management",
+      "type": "System",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "orders-in",
+          "name": "Orders",
+          "dataType": "order",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "pick-list",
+          "name": "Pick Lists",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "ship-orders",
+          "name": "Ship Orders",
+          "dataType": "order",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "status-out",
+          "name": "Status",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "Order Management System",
+        "channels": [
+          "B2B",
+          "B2C",
+          "Marketplace"
+        ],
+        "daily_orders": "50,000",
+        "sla": "Same day ship",
+        "accuracy": "99.8%"
+      },
+      "position": {
+        "x": 950,
+        "y": 250
+      },
+      "zIndex": 5
+    },
+    {
+      "id": "last-mile-delivery",
+      "type": "Delivery",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "packages-in",
+          "name": "Packages",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "delivered-out",
+          "name": "Delivered",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "pod-out",
+          "name": "Proof of Delivery",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "Last Mile Delivery",
+        "partners": [
+          "FedEx",
+          "UPS",
+          "USPS",
+          "Amazon"
+        ],
+        "delivery_options": [
+          "Standard",
+          "Express",
+          "Same Day"
+        ],
+        "coverage": "98% US zip codes"
+      },
+      "position": {
+        "x": 1150,
+        "y": 250
+      },
+      "zIndex": 6
+    },
+    {
+      "id": "customer",
+      "type": "Customer",
+      "size": {
+        "width": 120,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "delivery-in",
+          "name": "Delivery",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "feedback-out",
+          "name": "Feedback",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 60,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "End Customer",
+        "segments": [
+          "Retail",
+          "Business",
+          "Government"
+        ],
+        "satisfaction": "4.5/5",
+        "return_rate": "3%"
+      },
+      "position": {
+        "x": 1350,
+        "y": 250
+      },
+      "zIndex": 7
+    },
+    {
+      "id": "returns-processing",
+      "type": "Returns",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "returns-in",
+          "name": "Returns",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "restocked-out",
+          "name": "Restocked",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "refund-out",
+          "name": "Refunds",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "disposal-out",
+          "name": "Disposal",
+          "dataType": "waste",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "Returns Center",
+        "process_time": "2 days",
+        "restock_rate": "65%",
+        "inspection": "100%",
+        "refund_method": "Original payment"
+      },
+      "position": {
+        "x": 1150,
+        "y": 450
+      },
+      "zIndex": 6
+    },
+    {
+      "id": "supply-chain-analytics",
+      "type": "Analytics",
+      "size": {
+        "width": 160,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "transport-data",
+          "name": "Transport Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "inventory-data",
+          "name": "Inventory Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "order-data",
+          "name": "Order Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "kpi-out",
+          "name": "KPIs",
+          "dataType": "visualization",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "optimization-out",
+          "name": "Optimization",
+          "dataType": "recommendation",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Supply Chain Analytics",
+        "metrics": [
+          "On-time Delivery",
+          "Fill Rate",
+          "Cost per Order",
+          "Inventory Turns"
+        ],
+        "ml_models": [
+          "Demand Forecasting",
+          "Route Optimization",
+          "Risk Prediction"
+        ],
+        "dashboard": "Power BI"
+      },
+      "position": {
+        "x": 950,
+        "y": 500
+      },
+      "zIndex": 5
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "sourceNodeId": "supplier-1",
+      "sourcePortId": "goods-out",
+      "targetNodeId": "ocean-freight",
+      "targetPortId": "cargo-in"
+    },
+    {
+      "id": "conn-2",
+      "sourceNodeId": "supplier-2",
+      "sourcePortId": "goods-out",
+      "targetNodeId": "air-freight",
+      "targetPortId": "cargo-in"
+    },
+    {
+      "id": "conn-3",
+      "sourceNodeId": "supplier-3",
+      "sourcePortId": "goods-out",
+      "targetNodeId": "truck-transport",
+      "targetPortId": "cargo-in"
+    },
+    {
+      "id": "conn-4",
+      "sourceNodeId": "ocean-freight",
+      "sourcePortId": "cargo-out",
+      "targetNodeId": "customs-clearance",
+      "targetPortId": "goods-in"
+    },
+    {
+      "id": "conn-5",
+      "sourceNodeId": "customs-clearance",
+      "sourcePortId": "cleared-out",
+      "targetNodeId": "distribution-center",
+      "targetPortId": "ocean-in"
+    },
+    {
+      "id": "conn-6",
+      "sourceNodeId": "air-freight",
+      "sourcePortId": "cargo-out",
+      "targetNodeId": "distribution-center",
+      "targetPortId": "air-in"
+    },
+    {
+      "id": "conn-7",
+      "sourceNodeId": "truck-transport",
+      "sourcePortId": "cargo-out",
+      "targetNodeId": "distribution-center",
+      "targetPortId": "truck-in"
+    },
+    {
+      "id": "conn-8",
+      "sourceNodeId": "distribution-center",
+      "sourcePortId": "pick-pack",
+      "targetNodeId": "order-management",
+      "targetPortId": "orders-in"
+    },
+    {
+      "id": "conn-9",
+      "sourceNodeId": "order-management",
+      "sourcePortId": "ship-orders",
+      "targetNodeId": "last-mile-delivery",
+      "targetPortId": "packages-in"
+    },
+    {
+      "id": "conn-10",
+      "sourceNodeId": "last-mile-delivery",
+      "sourcePortId": "delivered-out",
+      "targetNodeId": "customer",
+      "targetPortId": "delivery-in"
+    },
+    {
+      "id": "conn-11",
+      "sourceNodeId": "distribution-center",
+      "sourcePortId": "inventory-out",
+      "targetNodeId": "inventory-management",
+      "targetPortId": "stock-levels"
+    },
+    {
+      "id": "conn-12",
+      "sourceNodeId": "customer",
+      "sourcePortId": "feedback-out",
+      "targetNodeId": "returns-processing",
+      "targetPortId": "returns-in"
+    },
+    {
+      "id": "conn-13",
+      "sourceNodeId": "returns-processing",
+      "sourcePortId": "restocked-out",
+      "targetNodeId": "distribution-center",
+      "targetPortId": "truck-in"
+    },
+    {
+      "id": "conn-14",
+      "sourceNodeId": "ocean-freight",
+      "sourcePortId": "tracking-out",
+      "targetNodeId": "supply-chain-analytics",
+      "targetPortId": "transport-data"
+    },
+    {
+      "id": "conn-15",
+      "sourceNodeId": "inventory-management",
+      "sourcePortId": "forecast-out",
+      "targetNodeId": "supply-chain-analytics",
+      "targetPortId": "inventory-data"
+    },
+    {
+      "id": "conn-16",
+      "sourceNodeId": "order-management",
+      "sourcePortId": "status-out",
+      "targetNodeId": "supply-chain-analytics",
+      "targetPortId": "order-data"
+    }
+  ],
+  "viewport": {
+    "x": -100,
+    "y": -50,
+    "zoom": 0.7
+  }
+}

@@ -1,0 +1,224 @@
+{
+  "nodes": [
+    {
+      "id": "data-source",
+      "type": "DataSource",
+      "size": {
+        "width": 120,
+        "height": 150
+      },
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "id": "data-out",
+          "name": "Data",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "data": {
+        "name": "CSV Data Source",
+        "format": "CSV",
+        "records": 10000
+      },
+      "position": {
+        "x": 100,
+        "y": 200
+      },
+      "zIndex": 1
+    },
+    {
+      "id": "filter",
+      "type": "Filter",
+      "size": {
+        "width": 120,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "data-in",
+          "name": "Input",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "filtered-out",
+          "name": "Filtered",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "data": {
+        "name": "Age Filter",
+        "condition": "age > 18"
+      },
+      "position": {
+        "x": 300,
+        "y": 200
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "transform",
+      "type": "Transform",
+      "size": {
+        "width": 120,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "data-in",
+          "name": "Input",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "transformed-out",
+          "name": "Output",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "data": {
+        "name": "Normalize Data",
+        "operation": "normalize"
+      },
+      "position": {
+        "x": 500,
+        "y": 200
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "aggregate",
+      "type": "Aggregate",
+      "size": {
+        "width": 120,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "data-in",
+          "name": "Input",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "aggregated-out",
+          "name": "Summary",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "data": {
+        "name": "Sum by Category",
+        "groupBy": "category",
+        "operation": "sum"
+      },
+      "position": {
+        "x": 700,
+        "y": 200
+      },
+      "zIndex": 4
+    },
+    {
+      "id": "output",
+      "type": "Output",
+      "size": {
+        "width": 120,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "data-in",
+          "name": "Results",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "outputPorts": [],
+      "data": {
+        "name": "Export to Database",
+        "destination": "PostgreSQL"
+      },
+      "position": {
+        "x": 900,
+        "y": 200
+      },
+      "zIndex": 5
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "sourceNodeId": "data-source",
+      "sourcePortId": "data-out",
+      "targetNodeId": "filter",
+      "targetPortId": "data-in"
+    },
+    {
+      "id": "conn-2",
+      "sourceNodeId": "filter",
+      "sourcePortId": "filtered-out",
+      "targetNodeId": "transform",
+      "targetPortId": "data-in"
+    },
+    {
+      "id": "conn-3",
+      "sourceNodeId": "transform",
+      "sourcePortId": "transformed-out",
+      "targetNodeId": "aggregate",
+      "targetPortId": "data-in"
+    },
+    {
+      "id": "conn-4",
+      "sourceNodeId": "aggregate",
+      "sourcePortId": "aggregated-out",
+      "targetNodeId": "output",
+      "targetPortId": "data-in"
+    }
+  ],
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1.0
+  }
+}

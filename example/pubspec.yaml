@@ -1,0 +1,26 @@
+name: vyuh_node_flow_example
+description: Example application for vyuh_node_flow package
+
+version: 1.0.0+1
+publish_to: none
+
+environment:
+  sdk: '>=3.8.0 <4.0.0'
+  flutter: ">=3.3.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  vyuh_node_flow:
+    path: ../
+  mobx: ^2.5.0
+  flutter_mobx: ^2.3.0
+  http: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

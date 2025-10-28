@@ -1,0 +1,11 @@
+targets:
+  $default:
+    sources:
+      exclude:
+        - example/**/*.dart
+    builders:
+      json_serializable:
+        options:
+          explicit_to_json: true
+          generic_argument_factories: true
+          any_map: true
