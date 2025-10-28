@@ -1,3 +1,9 @@
+## 0.2.0+1
+
+* Adding images to README.md
+* Fixing rendering of Straight line Connection
+* Making the `ConnectionsLayer` reactive to theme changes
+
 ## 0.1.0
 
 * Initial release of Vyuh Node Flow
@@ -13,3 +19,4 @@
 * Strongly-typed node data with sealed class support
 * Pattern matching for node rendering
 * Complete examples demonstrating all features
+

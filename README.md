@@ -4,8 +4,14 @@
 
 A flexible, high-performance node-based flow editor for Flutter applications, inspired by React Flow. Build visual programming interfaces, workflow editors, interactive diagrams, and data pipelines with ease.
 
-[![pub package](https://img.shields.io/pub/v/vyuh_node_flow.svg)](https://pub.dev/packages/vyuh_node_flow)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+<p align="center">
+  <a href="https://pub.dev/packages/vyuh_node_flow">
+    <img src="https://img.shields.io/pub/v/vyuh_node_flow?style=for-the-badge&logo=dart&logoColor=white&color=0175C2" alt="Pub Version">
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="License">
+  </a>
+</p>
 
 ## ✨ Key Features
 
