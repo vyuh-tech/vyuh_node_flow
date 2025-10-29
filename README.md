@@ -2,9 +2,9 @@
 
 ![Vyuh Node Flow Banner](https://github.com/vyuh-tech/vyuh_node_flow/raw/main/assets/node-flow-banner.png)
 
-A flexible, high-performance node-based flow editor for Flutter applications, inspired by React
-Flow. Build visual programming interfaces, workflow editors, interactive diagrams, and data
-pipelines with ease.
+A flexible, high-performance node-based flow editor for Flutter applications,
+inspired by React Flow. Build visual programming interfaces, workflow editors,
+interactive diagrams, and data pipelines with ease.
 
 <p align="center">
   <a href="https://pub.dev/packages/vyuh_node_flow">
@@ -19,20 +19,24 @@ pipelines with ease.
 
 **[👉 Launch Demo](https://flow.demo.vyuh.tech)**
 
-Experience Vyuh Node Flow in action! The live demo showcases all key features, including node
-creation, drag-and-drop connections, custom theming, annotations, minimap, and more.
+Experience Vyuh Node Flow in action! The live demo showcases all key features,
+including node creation, drag-and-drop connections, custom theming, annotations,
+minimap, and more.
 
 ---
 
 ## ✨ Key Features
 
 - **High Performance** - Reactive, optimized rendering for smooth interactions
-- **Fully Customizable** - Comprehensive theming system for nodes, connections, and ports
-- **Flexible Ports** - Multiple port shapes, positions, and connection validation
+- **Fully Customizable** - Comprehensive theming system for nodes, connections,
+  and ports
+- **Flexible Ports** - Multiple port shapes, positions, and connection
+  validation
 - **Annotations** - Add labels, notes, and custom overlays to your flow
 - **Minimap** - Built-in minimap for navigation in complex flows
 - **Keyboard Shortcuts** - Full keyboard support for power users
-- **Connection Styles** - Multiple connection path styles (bezier, smoothstep, straight)
+- **Connection Styles** - Multiple connection path styles (bezier, smoothstep,
+  straight)
 - **Read-Only Viewer** - Display flows without editing capabilities
 - **Serialization** - Save and load flows from JSON
 
@@ -142,10 +146,10 @@ final controller = NodeFlowController<T>(
 );
 ```
 
-> [!TIP]
-> The type parameter `<T>` represents the data type stored in each node. We recommend using a *
-*sealed class hierarchy** with multiple subclasses to create a strongly-typed collection of node
-> types that work together. This provides excellent type safety and pattern matching capabilities.
+> [!TIP] The type parameter `<T>` represents the data type stored in each node.
+> We recommend using a \* \*sealed class hierarchy\*\* with multiple subclasses
+> to create a strongly-typed collection of node types that work together. This
+> provides excellent type safety and pattern matching capabilities.
 
 <details>
 <summary><strong>Controller API Reference</strong></summary>
@@ -323,9 +327,8 @@ customTheme
 
 </details>
 
-> [!NOTE]
-> Grid styles available: `GridStyle.dots`, `GridStyle.lines`, `GridStyle.hierarchical`,
-`GridStyle.none`
+> [!NOTE] Grid styles available: `GridStyle.dots`, `GridStyle.lines`,
+> `GridStyle.hierarchical`, `GridStyle.none`
 
 ---
 
@@ -425,7 +428,8 @@ borderRadius: BorderRadius.circular(12),
 
 ### Node Types and Data
 
-Create strongly-typed nodes using sealed classes for type safety and pattern matching:
+Create strongly-typed nodes using sealed classes for type safety and pattern
+matching:
 
 <details>
 <summary><strong>Sealed Class Node Data Example (Recommended)</strong></summary>
@@ -746,8 +750,8 @@ final port = node.findPort('port-id
 
 ### Creating Connections
 
-Users create connections by dragging from one port to another. You can also create them
-programmatically:
+Users create connections by dragging from one port to another. You can also
+create them programmatically:
 
 ```dart
 
@@ -902,8 +906,8 @@ verticalOffset: 8.0,
 
 ## Annotations
 
-Annotations are floating elements that can be placed on the canvas for labels, notes, or custom
-visualizations.
+Annotations are floating elements that can be placed on the canvas for labels,
+notes, or custom visualizations.
 
 ### Built-in Annotation Types
 
@@ -1117,7 +1121,7 @@ print('Annotation deleted: ${annotation.id}');
 Built-in keyboard shortcuts are available:
 
 | Shortcut               | Action                            |
-|------------------------|-----------------------------------|
+| ---------------------- | --------------------------------- |
 | `Delete` / `Backspace` | Delete selected nodes/connections |
 | `Cmd/Ctrl + A`         | Select all nodes                  |
 | `Cmd/Ctrl + C`         | Copy selected nodes               |
@@ -1220,9 +1224,9 @@ topLeft
 );
 ```
 
-> [!TIP]
-> The minimap automatically updates as you pan, zoom, and modify the graph. Available positions:
-`topLeft`, `topRight`, `bottomLeft`, `bottomRight`.
+> [!TIP] The minimap automatically updates as you pan, zoom, and modify the
+> graph. Available positions: `topLeft`, `topRight`, `bottomLeft`,
+> `bottomRight`.
 
 ---
 
@@ -1244,8 +1248,8 @@ true
 )
 ```
 
-The viewer supports panning and zooming but prevents editing, making it perfect for displaying
-workflows, process diagrams, or results.
+The viewer supports panning and zooming but prevents editing, making it perfect
+for displaying workflows, process diagrams, or results.
 
 ---
 
@@ -1346,7 +1350,8 @@ final config = NodeFlowConfig(
 );
 ```
 
-When dragging nodes or connections near the canvas edge, the viewport automatically pans.
+When dragging nodes or connections near the canvas edge, the viewport
+automatically pans.
 
 </details>
 
@@ -1764,7 +1769,7 @@ class ProcessViewer extends StatelessWidget {
 ### NodeFlowController
 
 | Method                                        | Description                     |
-|-----------------------------------------------|---------------------------------|
+| --------------------------------------------- | ------------------------------- |
 | `addNode(Node node)`                          | Add a node to the graph         |
 | `removeNode(String id)`                       | Remove a node by ID             |
 | `getNode(String id)`                          | Get a node by ID                |
@@ -1786,7 +1791,7 @@ class ProcessViewer extends StatelessWidget {
 ### Node
 
 | Property      | Type       | Description       |
-|---------------|------------|-------------------|
+| ------------- | ---------- | ----------------- |
 | `id`          | String     | Unique identifier |
 | `type`        | String     | Node type label   |
 | `data`        | T          | Custom node data  |
@@ -1799,7 +1804,7 @@ class ProcessViewer extends StatelessWidget {
 ### Port
 
 | Property           | Type         | Description                |
-|--------------------|--------------|----------------------------|
+| ------------------ | ------------ | -------------------------- |
 | `id`               | String       | Unique identifier          |
 | `name`             | String       | Display name               |
 | `position`         | PortPosition | Port location on node      |
@@ -1812,7 +1817,7 @@ class ProcessViewer extends StatelessWidget {
 ### Connection
 
 | Property       | Type    | Description       |
-|----------------|---------|-------------------|
+| -------------- | ------- | ----------------- |
 | `id`           | String  | Unique identifier |
 | `sourceNodeId` | String  | Source node ID    |
 | `sourcePortId` | String  | Source port ID    |
@@ -1824,41 +1829,21 @@ class ProcessViewer extends StatelessWidget {
 
 ## 💡 Tips and Best Practices
 
-> [!TIP]
-> **Performance**: Use specific data types for `Node<T>` rather than `Map<String, dynamic>` when
-> possible for better type safety and performance.
+> [!TIP] **Performance**: Use specific data types for `Node<T>` rather than
+> `Map<String, dynamic>` when possible for better type safety and performance.
 
-> [!WARNING]
-> **Large Graphs**: For graphs with 100+ nodes, consider implementing virtualization or chunking
-> strategies. The minimap helps with navigation.
+> [!WARNING] **Large Graphs**: For graphs with 100+ nodes, consider implementing
+> virtualization or chunking strategies. The minimap helps with navigation.
 
-> [!NOTE]
-> **Serialization**: When implementing custom node data types, ensure they have proper `toJson()`
-> and `fromJson()` methods for serialization.
-
----
-
-### Development Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/vyuh-tech/cdx.git
-cd cdx/packages/vyuh_node_flow
-
-# Install dependencies
-flutter pub get
-
-# Run example
-cd example
-flutter run -d chrome
-```
+> [!NOTE] **Serialization**: When implementing custom node data types, ensure
+> they have proper `toJson()` and `fromJson()` methods for serialization.
 
 ---
 
 ## Acknowledgments
 
-Inspired by [React Flow](https://reactflow.dev/) - a powerful node-based editor for React
-applications.
+Inspired by [React Flow](https://reactflow.dev/) - a powerful node-based editor
+for React applications.
 
 ---
 
