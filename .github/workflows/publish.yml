@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - 'lib/**'
+      - 'assets/**'
+      - '.github/**'
       - 'pubspec.yaml'
       - 'CHANGELOG.md'
       - 'README.md'

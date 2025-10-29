@@ -1,3 +1,8 @@
+## 0.2.4+1
+
+- updated images
+- added github workflows
+
 ## 0.2.4
 
 - Merging PR #1 from @kevmoo
