@@ -46,6 +46,12 @@ class ConnectionPathCache {
         oldTheme.connectionStyle != newTheme.connectionStyle ||
         oldTheme.connectionTheme.bezierCurvature !=
             newTheme.connectionTheme.bezierCurvature ||
+        oldTheme.connectionTheme.cornerRadius !=
+            newTheme.connectionTheme.cornerRadius ||
+        oldTheme.connectionTheme.startPoint !=
+            newTheme.connectionTheme.startPoint ||
+        oldTheme.connectionTheme.endPoint !=
+            newTheme.connectionTheme.endPoint ||
         oldTheme.portTheme.size != newTheme.portTheme.size;
 
     if (pathChanged) {
