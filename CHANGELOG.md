@@ -1,6 +1,7 @@
-## 0.2.3
+## 0.2.3 - 0.2.3+1
 
 - Fix for connection rendering when theme changes
+- Updated readme
 
 ## 0.2.2
 
