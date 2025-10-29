@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 class WorkbenchExample extends StatefulWidget {
@@ -57,8 +56,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                 NodeFlowEditor<Map<String, dynamic>>(
                   controller: _store,
                   theme: _nodeFlowTheme,
-                  nodeBuilder: (context, node) =>
-                      _buildCustomNode(context, node),
+                  nodeBuilder: _buildCustomNode,
                   scrollToZoom: _scrollToZoom,
                   onConnectionCreated: (connection) {
                     _showSnackBar(
@@ -319,7 +317,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                     _buildGridButton(
                       'Toggle Minimap',
                       Icons.map,
-                      () => _toggleMinimap(),
+                      _toggleMinimap,
                     ),
                   ]),
                   _buildGridSection('Viewport Controls', [
@@ -924,10 +922,12 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                     selected: _nodeFlowTheme.connectionStyle == style,
                     onSelected: (selected) {
                       if (selected) {
-                        _updateTheme(_nodeFlowTheme.copyWith(
-                          connectionStyle: style,
-                          temporaryConnectionStyle: style,
-                        ));
+                        _updateTheme(
+                          _nodeFlowTheme.copyWith(
+                            connectionStyle: style,
+                            temporaryConnectionStyle: style,
+                          ),
+                        );
                       }
                     },
                   );
@@ -1068,7 +1068,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                                     dashPattern: [dashValue, currentGap],
                                   ),
                             );
-                                  });
+                          });
                         }
                       },
                     ),
@@ -1112,7 +1112,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                                     dashPattern: [currentDash, gapValue],
                                   ),
                             );
-                                  });
+                          });
                         }
                       },
                     ),
@@ -1220,9 +1220,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                     selected: _nodeFlowTheme.gridStyle == style,
                     onSelected: (selected) {
                       if (selected) {
-                        _updateTheme(_nodeFlowTheme.copyWith(
-                            gridStyle: style,
-                          ));
+                        _updateTheme(_nodeFlowTheme.copyWith(gridStyle: style));
                       }
                     },
                   );

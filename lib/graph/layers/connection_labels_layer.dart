@@ -13,10 +13,7 @@ import '../node_flow_theme.dart';
 /// Layer that renders connection labels independently from connection lines
 /// This allows for optimized repainting when only labels change
 class ConnectionLabelsLayer<T> extends StatelessWidget {
-  const ConnectionLabelsLayer({
-    super.key,
-    required this.controller,
-  });
+  const ConnectionLabelsLayer({super.key, required this.controller});
 
   final NodeFlowController<T> controller;
 
@@ -101,7 +98,8 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
         }
 
         // Get theme from context - this ensures automatic rebuilds when theme changes
-        final currentTheme = Theme.of(context).extension<NodeFlowTheme>() ?? NodeFlowTheme.light;
+        final currentTheme =
+            Theme.of(context).extension<NodeFlowTheme>() ?? NodeFlowTheme.light;
 
         // Calculate all label positions using convenience method
         final labelPositions =
@@ -128,7 +126,10 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
     );
   }
 
-  Widget _buildLabelWidgets(LabelPositionData positions, NodeFlowTheme currentTheme) {
+  Widget _buildLabelWidgets(
+    LabelPositionData positions,
+    NodeFlowTheme currentTheme,
+  ) {
     final labelWidgets = <Widget>[];
     final labelTheme = currentTheme.labelTheme;
 

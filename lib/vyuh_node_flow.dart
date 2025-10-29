@@ -20,7 +20,7 @@ export 'graph/graph.dart'; // Needed for examples and serialization
 export 'graph/node_flow_config.dart';
 export 'graph/node_flow_controller.dart';
 export 'graph/node_flow_editor.dart'
-    hide SelectionRectanglePainter, HitTestResult, HitType;
+    hide HitTestResult, HitType, SelectionRectanglePainter;
 export 'graph/node_flow_minimap.dart';
 export 'graph/node_flow_theme.dart';
 export 'graph/node_flow_viewer.dart';

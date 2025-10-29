@@ -91,7 +91,7 @@ class AnnotationController<T> {
               .toList();
           final maxZIndex = existingAnnotations
               .map((a) => a.zIndex.value)
-              .fold(-1, (max, zIndex) => math.max(max, zIndex));
+              .fold(-1, math.max);
           annotation.setZIndex(maxZIndex + 1);
         } else {
           // First annotation gets z-index 0
@@ -844,7 +844,7 @@ class AnnotationController<T> {
     if (annotation != null) {
       final maxZIndex = _annotations.values
           .map((a) => a.zIndex.value)
-          .fold(0, (max, zIndex) => math.max(max, zIndex));
+          .fold(0, math.max);
       annotation.setZIndex(maxZIndex + 1);
     }
   }
@@ -854,7 +854,7 @@ class AnnotationController<T> {
     if (annotation != null) {
       final minZIndex = _annotations.values
           .map((a) => a.zIndex.value)
-          .fold(0, (min, zIndex) => math.min(min, zIndex));
+          .fold(0, math.min);
       annotation.setZIndex(minZIndex - 1);
     }
   }

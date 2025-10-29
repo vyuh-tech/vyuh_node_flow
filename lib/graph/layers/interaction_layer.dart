@@ -8,10 +8,7 @@ import '../node_flow_theme.dart';
 
 /// Interaction layer widget that renders temporary connections and selection rectangles
 class InteractionLayer<T> extends StatelessWidget {
-  const InteractionLayer({
-    super.key,
-    required this.controller,
-  });
+  const InteractionLayer({super.key, required this.controller});
 
   final NodeFlowController<T> controller;
 
@@ -34,7 +31,9 @@ class InteractionLayer<T> extends StatelessWidget {
               }
 
               // Get theme from context - this ensures automatic rebuilds when theme changes
-              final theme = Theme.of(builderContext).extension<NodeFlowTheme>() ?? NodeFlowTheme.light;
+              final theme =
+                  Theme.of(builderContext).extension<NodeFlowTheme>() ??
+                  NodeFlowTheme.light;
 
               return CustomPaint(
                 painter: InteractionLayerPainter<T>(

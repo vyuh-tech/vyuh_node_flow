@@ -95,8 +95,7 @@ class NodeFlowController<T> {
   Computed<bool> get _hasSelection => Computed(
     () => _selectedNodeIds.isNotEmpty || _selectedConnectionIds.isNotEmpty,
   );
-  Computed<List<Node<T>>> get _sortedNodes =>
-      Computed(() => _computeSortedNodes());
+  Computed<List<Node<T>>> get _sortedNodes => Computed(_computeSortedNodes);
 
   // Public API - only what external consumers need
   List<Connection> get connections => _connections;

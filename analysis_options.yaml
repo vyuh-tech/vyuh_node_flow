@@ -1,0 +1,41 @@
+# This file configures the analyzer, which statically analyzes Dart code to
+# check for errors, warnings, and lints.
+#
+# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
+# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
+# invoked from the command line by running `flutter analyze`.
+
+# The following line activates a set of recommended lints for Flutter apps,
+# packages, and plugins designed to encourage good coding practices.
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # consistency
+    - combinators_ordering
+    - directives_ordering
+    #- lines_longer_than_80_chars
+    #- omit_local_variable_types
+    - prefer_asserts_in_initializer_lists
+    #- prefer_const_constructors
+    - prefer_relative_imports
+    - prefer_single_quotes
+    - sort_pub_dependencies
+    - unnecessary_lambdas
+    - unnecessary_library_directive
+    - unnecessary_parenthesis
+    - unnecessary_statements
+    - use_is_even_rather_than_modulo
+
+    # correctness
+    - always_declare_return_types
+    - avoid_catching_errors
+    #- avoid_dynamic_calls
+    - comment_references
+    - conditional_uri_does_not_exist
+    - only_throw_errors
+    - test_types_in_equals
+    - throw_in_finally
+    - type_annotate_public_apis
+    - unawaited_futures
+    - unreachable_from_main

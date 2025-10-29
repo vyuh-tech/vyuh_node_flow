@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:vyuh_node_flow_example/annotation_example.dart';
-import 'package:vyuh_node_flow_example/connection_validation_example.dart';
-import 'package:vyuh_node_flow_example/port_combinations_demo.dart';
-import 'package:vyuh_node_flow_example/viewer_example.dart';
-import 'package:vyuh_node_flow_example/workbench_example.dart';
-import 'launch_page.dart';
+
+import 'src/annotation_example.dart';
+import 'src/connection_validation_example.dart';
+import 'src/launch_page.dart';
+import 'src/port_combinations_demo.dart';
+import 'src/viewer_example.dart';
+import 'src/workbench_example.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,10 +15,7 @@ void main() {
 final _router = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const LaunchPage(),
-    ),
+    GoRoute(path: '/', builder: (context, state) => const LaunchPage()),
     GoRoute(
       path: '/workbench',
       builder: (context, state) => const WorkbenchExample(),

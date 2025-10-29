@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
+import '../graph/node_flow_theme.dart';
+import '../nodes/node.dart';
+import '../ports/port.dart';
+import '../ports/port_theme.dart';
+import 'connection.dart';
+import 'connection_endpoint.dart';
 import 'connection_path_cache.dart';
+import 'connection_path_calculator.dart';
+import 'connection_theme.dart';
 import 'endpoint_painter.dart';
+import 'endpoint_position_calculator.dart';
 
 class ConnectionPainter {
   ConnectionPainter({required NodeFlowTheme theme})
