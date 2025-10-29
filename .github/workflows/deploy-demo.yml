@@ -1,0 +1,41 @@
+name: Deploy Demo to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'example/**'
+      - 'lib/**'
+      - 'wrangler.toml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: |
+          flutter pub get
+          cd example
+          flutter pub get
+
+      - name: Build Flutter web app
+        run: |
+          cd example
+          flutter build web --release
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy example/build/web --project-name=vyuh-node-flow
