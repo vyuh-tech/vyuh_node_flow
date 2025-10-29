@@ -1,3 +1,7 @@
+## 0.2.3
+
+- Fix for connection rendering when theme changes
+
 ## 0.2.2
 
 - Updated pubspec for better scores on pub.dev
