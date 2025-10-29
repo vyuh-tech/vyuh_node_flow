@@ -1,3 +1,8 @@
+## 0.2.4
+
+- Merging PR #1 from @kevmoo
+- Updated deps to latest in example
+
 ## 0.2.3 - 0.2.3+1
 
 - Fix for connection rendering when theme changes

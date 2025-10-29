@@ -6,26 +6,6 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Port Combinations Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const PortCombinationsDemo(),
-    );
-  }
-}
-
 class PortCombinationsDemo extends StatefulWidget {
   const PortCombinationsDemo({super.key});
 
@@ -237,10 +217,7 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
 
     // React to animation changes
     _disposers.add(
-      reaction(
-        (_) => _themeControl._isRotating.value,
-        (isRotating) => _handleAnimationToggle(isRotating),
-      ),
+      reaction((_) => _themeControl._isRotating.value, _handleAnimationToggle),
     );
 
     // React to grid style changes
@@ -674,7 +651,7 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
-                      onTap: () => _showColorPicker(),
+                      onTap: _showColorPicker,
                     ),
                   ),
 

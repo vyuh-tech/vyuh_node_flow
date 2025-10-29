@@ -56,8 +56,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                 NodeFlowEditor<Map<String, dynamic>>(
                   controller: _store,
                   theme: _nodeFlowTheme,
-                  nodeBuilder: (context, node) =>
-                      _buildCustomNode(context, node),
+                  nodeBuilder: _buildCustomNode,
                   scrollToZoom: _scrollToZoom,
                   onConnectionCreated: (connection) {
                     _showSnackBar(
@@ -318,7 +317,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                     _buildGridButton(
                       'Toggle Minimap',
                       Icons.map,
-                      () => _toggleMinimap(),
+                      _toggleMinimap,
                     ),
                   ]),
                   _buildGridSection('Viewport Controls', [
