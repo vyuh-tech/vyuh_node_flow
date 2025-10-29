@@ -37,7 +37,7 @@ class NodeFlowViewer<T> extends StatelessWidget {
 
   /// Optional builder for customizing the node container
   final Widget Function(BuildContext context, Node<T> node, Widget content)?
-      nodeContainerBuilder;
+  nodeContainerBuilder;
 
   /// Theme configuration for visual styling
   final NodeFlowTheme theme;
@@ -105,7 +105,7 @@ class NodeFlowViewer<T> extends StatelessWidget {
     required List<Connection> connections,
     NodeFlowConfig? config,
     Widget Function(BuildContext context, Node<T> node, Widget content)?
-        nodeContainerBuilder,
+    nodeContainerBuilder,
     bool enablePanning = true,
     bool enableZooming = true,
     bool scrollToZoom = true,

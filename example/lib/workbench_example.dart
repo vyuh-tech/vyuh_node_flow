@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 class WorkbenchExample extends StatefulWidget {
@@ -924,10 +923,12 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                     selected: _nodeFlowTheme.connectionStyle == style,
                     onSelected: (selected) {
                       if (selected) {
-                        _updateTheme(_nodeFlowTheme.copyWith(
-                          connectionStyle: style,
-                          temporaryConnectionStyle: style,
-                        ));
+                        _updateTheme(
+                          _nodeFlowTheme.copyWith(
+                            connectionStyle: style,
+                            temporaryConnectionStyle: style,
+                          ),
+                        );
                       }
                     },
                   );
@@ -1068,7 +1069,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                                     dashPattern: [dashValue, currentGap],
                                   ),
                             );
-                                  });
+                          });
                         }
                       },
                     ),
@@ -1112,7 +1113,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                                     dashPattern: [currentDash, gapValue],
                                   ),
                             );
-                                  });
+                          });
                         }
                       },
                     ),
@@ -1220,9 +1221,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                     selected: _nodeFlowTheme.gridStyle == style,
                     onSelected: (selected) {
                       if (selected) {
-                        _updateTheme(_nodeFlowTheme.copyWith(
-                            gridStyle: style,
-                          ));
+                        _updateTheme(_nodeFlowTheme.copyWith(gridStyle: style));
                       }
                     },
                   );

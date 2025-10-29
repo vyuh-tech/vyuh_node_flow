@@ -7,10 +7,7 @@ import '../node_flow_theme.dart';
 
 /// Connections layer widget that renders all connections between nodes
 class ConnectionsLayer<T> extends StatelessWidget {
-  const ConnectionsLayer({
-    super.key,
-    required this.controller,
-  });
+  const ConnectionsLayer({super.key, required this.controller});
 
   final NodeFlowController<T> controller;
 
@@ -30,7 +27,9 @@ class ConnectionsLayer<T> extends StatelessWidget {
             }
 
             // Get theme from context - this ensures automatic rebuilds when theme changes
-            final theme = Theme.of(context).extension<NodeFlowTheme>() ?? NodeFlowTheme.light;
+            final theme =
+                Theme.of(context).extension<NodeFlowTheme>() ??
+                NodeFlowTheme.light;
 
             return CustomPaint(
               painter: ConnectionsCanvas<T>(

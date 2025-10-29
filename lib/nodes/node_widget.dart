@@ -159,7 +159,9 @@ class NodeWidget<T> extends StatelessWidget {
 
   Color _getNodeBorderColor(NodeTheme nodeTheme, bool isSelected) {
     if (isSelected) {
-      return selectedBorderColor ?? borderColor ?? nodeTheme.selectedBorderColor;
+      return selectedBorderColor ??
+          borderColor ??
+          nodeTheme.selectedBorderColor;
     } else {
       return borderColor ?? nodeTheme.borderColor;
     }
@@ -167,7 +169,9 @@ class NodeWidget<T> extends StatelessWidget {
 
   double _getNodeBorderWidth(NodeTheme nodeTheme, bool isSelected) {
     if (isSelected) {
-      return selectedBorderWidth ?? borderWidth ?? nodeTheme.selectedBorderWidth;
+      return selectedBorderWidth ??
+          borderWidth ??
+          nodeTheme.selectedBorderWidth;
     } else {
       return borderWidth ?? nodeTheme.borderWidth;
     }

@@ -24,7 +24,7 @@ class NodesLayer<T> extends StatelessWidget {
   /// Optional builder for customizing the node container.
   /// When not provided, uses the default NodeWidget implementation.
   final Widget Function(BuildContext context, Node<T> node, Widget content)?
-      nodeContainerBuilder;
+  nodeContainerBuilder;
 
   final List<Connection> connections;
   final void Function(Node<T> node) onNodeTap;
@@ -42,7 +42,8 @@ class NodesLayer<T> extends StatelessWidget {
             return Stack(
               clipBehavior: Clip.none,
               children: [
-                for (final node in nodesList) _buildNodeContainer(context, node),
+                for (final node in nodesList)
+                  _buildNodeContainer(context, node),
               ],
             );
           },

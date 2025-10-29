@@ -5,6 +5,7 @@ import 'package:vyuh_node_flow_example/connection_validation_example.dart';
 import 'package:vyuh_node_flow_example/port_combinations_demo.dart';
 import 'package:vyuh_node_flow_example/viewer_example.dart';
 import 'package:vyuh_node_flow_example/workbench_example.dart';
+
 import 'launch_page.dart';
 
 void main() {
@@ -14,10 +15,7 @@ void main() {
 final _router = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const LaunchPage(),
-    ),
+    GoRoute(path: '/', builder: (context, state) => const LaunchPage()),
     GoRoute(
       path: '/workbench',
       builder: (context, state) => const WorkbenchExample(),

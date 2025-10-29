@@ -44,7 +44,8 @@ class ConnectionPathCache {
     // Invalidate cache only if path-affecting properties changed
     final pathChanged =
         oldTheme.connectionStyle != newTheme.connectionStyle ||
-        oldTheme.connectionTheme.bezierCurvature != newTheme.connectionTheme.bezierCurvature ||
+        oldTheme.connectionTheme.bezierCurvature !=
+            newTheme.connectionTheme.bezierCurvature ||
         oldTheme.portTheme.size != newTheme.portTheme.size;
 
     if (pathChanged) {

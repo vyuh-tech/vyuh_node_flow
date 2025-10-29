@@ -14,12 +14,14 @@ void main() {
     final controller = NodeFlowController<String>();
 
     // Add a simple node
-    controller.addNode(Node<String>(
-      id: 'test-node',
-      type: 'test',
-      position: const Offset(100, 100),
-      data: 'Test Node',
-    ));
+    controller.addNode(
+      Node<String>(
+        id: 'test-node',
+        type: 'test',
+        position: const Offset(100, 100),
+        data: 'Test Node',
+      ),
+    );
 
     // Verify node was added
     expect(controller.nodes.length, 1);
