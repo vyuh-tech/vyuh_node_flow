@@ -37,26 +37,6 @@ class ConnectionPainter {
     bool isSelected = false,
     bool isAnimated = false,
   }) {
-    // Paint connection lines and endpoints only
-    // Labels are now rendered as separate positioned widgets
-    paintConnectionOnly(
-      canvas,
-      connection,
-      sourceNode,
-      targetNode,
-      isSelected: isSelected,
-      isAnimated: isAnimated,
-    );
-  }
-
-  void paintConnectionOnly(
-    Canvas canvas,
-    Connection connection,
-    Node sourceNode, // Can be either Node or ObservableNode
-    Node targetNode, { // Can be either Node or ObservableNode
-    bool isSelected = false,
-    bool isAnimated = false,
-  }) {
     // Get effective style from connection instance or theme
     final effectiveStyle = connection.getEffectiveStyle(theme.connectionStyle);
 

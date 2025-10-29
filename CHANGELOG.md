@@ -1,3 +1,7 @@
+## 0.2.5
+
+- Added API docs for `NodeFlowEditor` and `NodeFlowController`
+
 ## 0.2.4+1
 
 - updated images

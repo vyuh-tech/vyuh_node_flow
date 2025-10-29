@@ -26,7 +26,31 @@ import 'layers/nodes_layer.dart';
 
 part 'node_flow_controller_extensions.dart';
 
-/// Node flow editor using MobX for reactive state management
+/// Node flow editor widget using MobX for reactive state management.
+///
+/// This is the main widget for displaying and interacting with a node-based graph.
+/// It provides a highly interactive canvas with support for:
+/// - Node rendering with custom builders
+/// - Connection creation and management
+/// - Multiple selection modes
+/// - Viewport panning and zooming
+/// - Annotations (sticky notes, markers, groups)
+/// - Keyboard shortcuts
+/// - Touch and mouse interactions
+///
+/// Example:
+/// ```dart
+/// NodeFlowEditor<MyData>(
+///   controller: controller,
+///   theme: NodeFlowTheme.defaultTheme,
+///   nodeBuilder: (context, node) {
+///     return MyCustomNodeWidget(node: node);
+///   },
+///   onNodeSelected: (node) {
+///     print('Selected: ${node?.id}');
+///   },
+/// )
+/// ```
 class NodeFlowEditor<T> extends StatefulWidget {
   const NodeFlowEditor({
     super.key,
@@ -59,61 +83,192 @@ class NodeFlowEditor<T> extends StatefulWidget {
     this.showAnnotations = true,
   });
 
+  /// The controller that manages the graph state.
+  ///
+  /// This controller holds all nodes, connections, annotations, viewport state,
+  /// and provides methods for manipulating the graph.
   final NodeFlowController<T> controller;
+
+  /// Builder function for rendering node content.
+  ///
+  /// This function is called for each node in the graph to create its visual
+  /// representation. The returned widget is automatically wrapped in a NodeWidget
+  /// unless you provide a custom [nodeContainerBuilder].
+  ///
+  /// Example:
+  /// ```dart
+  /// nodeBuilder: (context, node) {
+  ///   return Container(
+  ///     padding: EdgeInsets.all(16),
+  ///     child: Text(node.data.toString()),
+  ///   );
+  /// }
+  /// ```
   final Widget Function(BuildContext context, Node<T> node) nodeBuilder;
 
   /// Optional builder for customizing the node container.
-  /// Receives the node content (from nodeBuilder) and the node itself.
-  /// By default, returns a NodeWidget with standard functionality.
-  /// Can be used to:
+  ///
+  /// Receives the node content (from `nodeBuilder`) and the node itself.
+  /// By default, nodes are wrapped in a NodeWidget with standard functionality.
+  ///
+  /// You can use this to:
   /// - Return NodeWidget with custom appearance parameters
   /// - Wrap NodeWidget with additional decorations
   /// - Create completely custom node containers
+  ///
+  /// Example:
+  /// ```dart
+  /// nodeContainerBuilder: (context, node, content) {
+  ///   return Container(
+  ///     decoration: BoxDecoration(
+  ///       border: Border.all(color: Colors.blue, width: 2),
+  ///     ),
+  ///     child: NodeWidget(node: node, child: content),
+  ///   );
+  /// }
+  /// ```
   final Widget Function(BuildContext context, Node<T> node, Widget content)?
   nodeContainerBuilder;
 
+  /// The theme configuration for styling the editor.
+  ///
+  /// Controls colors, sizes, and visual appearance of nodes, connections,
+  /// ports, and other UI elements.
   final NodeFlowTheme theme;
+
+  /// Called when a node's selection state changes.
+  ///
+  /// Receives the selected node, or `null` if selection was cleared.
   final ValueChanged<Node<T>?>? onNodeSelected;
+
+  /// Called when a node is tapped.
   final ValueChanged<Node<T>>? onNodeTap;
+
+  /// Called when a node is double-tapped.
   final ValueChanged<Node<T>>? onNodeDoubleTap;
+
+  /// Called when a node is created and added to the graph.
   final ValueChanged<Node<T>>? onNodeCreated;
+
+  /// Called when a node is deleted from the graph.
   final ValueChanged<Node<T>>? onNodeDeleted;
+
+  /// Called when a connection's selection state changes.
+  ///
+  /// Receives the selected connection, or `null` if selection was cleared.
   final ValueChanged<Connection?>? onConnectionSelected;
+
+  /// Called when a connection is tapped.
   final ValueChanged<Connection>? onConnectionTap;
+
+  /// Called when a connection is double-tapped.
   final ValueChanged<Connection>? onConnectionDoubleTap;
+
+  /// Called when a connection is created.
   final ValueChanged<Connection>? onConnectionCreated;
+
+  /// Called when a connection is deleted.
   final ValueChanged<Connection>? onConnectionDeleted;
+
+  /// Called when an annotation's selection state changes.
+  ///
+  /// Receives the selected annotation, or `null` if selection was cleared.
   final ValueChanged<Annotation?>? onAnnotationSelected;
+
+  /// Called when an annotation is tapped.
   final ValueChanged<Annotation>? onAnnotationTap;
+
+  /// Called when an annotation is created.
   final ValueChanged<Annotation>? onAnnotationCreated;
+
+  /// Called when an annotation is deleted.
   final ValueChanged<Annotation>? onAnnotationDeleted;
 
-  /// Called before starting a connection from a port
-  /// Return false to prevent the connection from starting
+  /// Validation callback called before starting a connection from a port.
+  ///
+  /// Return a `ConnectionValidationResult` to control whether the connection
+  /// can be started. Set `allowed: false` to prevent the connection.
+  ///
+  /// Example:
+  /// ```dart
+  /// onBeforeStartConnection: (context) {
+  ///   // Don't allow connections from ports that already have connections
+  ///   if (context.existingConnections.isNotEmpty && !context.sourcePort.multiConnections) {
+  ///     return ConnectionValidationResult(
+  ///       allowed: false,
+  ///       message: 'Port already has a connection',
+  ///     );
+  ///   }
+  ///   return ConnectionValidationResult(allowed: true);
+  /// }
+  /// ```
   final ConnectionValidationResult Function(ConnectionStartContext<T> context)?
   onBeforeStartConnection;
 
-  /// Called before completing a connection to a port
-  /// Return false to prevent the connection from being created
+  /// Validation callback called before completing a connection to a target port.
+  ///
+  /// Return a `ConnectionValidationResult` to control whether the connection
+  /// can be created. Set `allowed: false` to prevent the connection.
+  ///
+  /// Use this to implement custom connection rules, type checking, or
+  /// prevent cycles in the graph.
+  ///
+  /// Example:
+  /// ```dart
+  /// onBeforeCompleteConnection: (context) {
+  ///   // Check if connection would create a cycle
+  ///   if (wouldCreateCycle(context.sourceNode, context.targetNode)) {
+  ///     return ConnectionValidationResult(
+  ///       allowed: false,
+  ///       message: 'This would create a cycle',
+  ///     );
+  ///   }
+  ///   return ConnectionValidationResult(allowed: true);
+  /// }
+  /// ```
   final ConnectionValidationResult Function(
     ConnectionCompleteContext<T> context,
   )?
   onBeforeCompleteConnection;
 
+  /// Whether to enable viewport panning with mouse/trackpad drag.
+  ///
+  /// When `true`, dragging on empty canvas will pan the viewport.
+  /// Defaults to `true`.
   final bool enablePanning;
+
+  /// Whether to enable zoom controls (pinch-to-zoom, scroll wheel zoom).
+  ///
+  /// Defaults to `true`.
   final bool enableZooming;
+
+  /// Whether to enable selection operations (shift+drag selection rectangle).
+  ///
+  /// Defaults to `true`.
   final bool enableSelection;
+
+  /// Whether to enable dragging nodes with the mouse.
+  ///
+  /// When `false`, nodes cannot be moved but can still be selected.
+  /// Defaults to `true`.
   final bool enableNodeDragging;
+
+  /// Whether to enable creating connections by dragging from ports.
+  ///
+  /// Defaults to `true`.
   final bool enableConnectionCreation;
 
   /// Whether trackpad scroll gestures should cause zooming.
-  /// When true, scrolling on a trackpad will zoom in/out.
-  /// When false, trackpad scroll will be treated as pan gestures.
-  /// Defaults to true.
+  ///
+  /// When `true`, scrolling on a trackpad will zoom in/out.
+  /// When `false`, trackpad scroll will be treated as pan gestures.
+  /// Defaults to `true`.
   final bool scrollToZoom;
 
-  /// Whether to show the annotation layers.
-  /// Defaults to true.
+  /// Whether to show the annotation layers (sticky notes, markers, groups).
+  ///
+  /// When `false`, annotations are not rendered but remain in the graph data.
+  /// Defaults to `true`.
   final bool showAnnotations;
 
   @override

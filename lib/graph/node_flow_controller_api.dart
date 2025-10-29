@@ -2,6 +2,24 @@ part of 'node_flow_controller.dart';
 
 extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   // Node operations
+
+  /// Adds a new node to the graph.
+  ///
+  /// The node's position will be automatically snapped to the grid if snap-to-grid
+  /// is enabled in the controller's configuration.
+  ///
+  /// Triggers the `onNodeCreated` callback after successful addition.
+  ///
+  /// Example:
+  /// ```dart
+  /// final node = Node<MyData>(
+  ///   id: 'node1',
+  ///   type: 'process',
+  ///   position: Offset(100, 100),
+  ///   data: MyData(),
+  /// );
+  /// controller.addNode(node);
+  /// ```
   void addNode(Node<T> node) {
     runInAction(() {
       _nodes[node.id] = node;
@@ -12,6 +30,13 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     callbacks.onNodeCreated?.call(node);
   }
 
+  /// Adds an input port to an existing node.
+  ///
+  /// Does nothing if the node with [nodeId] doesn't exist.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to add the port to
+  /// - [port]: The port to add
   void addInputPort(String nodeId, Port port) {
     final node = _nodes[nodeId];
     if (node == null) return;
@@ -19,6 +44,13 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     node.addInputPort(port);
   }
 
+  /// Adds an output port to an existing node.
+  ///
+  /// Does nothing if the node with [nodeId] doesn't exist.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to add the port to
+  /// - [port]: The port to add
   void addOutputPort(String nodeId, Port port) {
     final node = _nodes[nodeId];
     if (node == null) return;
@@ -26,6 +58,17 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     node.addOutputPort(port);
   }
 
+  /// Removes a port from a node and all connections involving that port.
+  ///
+  /// This method will:
+  /// 1. Remove all connections where this port is the source or target
+  /// 2. Remove the port from the node
+  ///
+  /// Does nothing if the node with [nodeId] doesn't exist.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node containing the port
+  /// - [portId]: The ID of the port to remove
   void removePort(String nodeId, String portId) {
     final node = _nodes[nodeId];
     if (node == null) return;
@@ -43,6 +86,26 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Updates the input and/or output ports of a node.
+  ///
+  /// This replaces the existing ports with the provided lists. Pass `null` to
+  /// leave a port type unchanged.
+  ///
+  /// Does nothing if the node with [nodeId] doesn't exist.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to update
+  /// - [inputPorts]: New list of input ports (optional)
+  /// - [outputPorts]: New list of output ports (optional)
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.updateNodePorts(
+  ///   'node1',
+  ///   inputPorts: [Port(id: 'in1', label: 'Input')],
+  ///   outputPorts: [Port(id: 'out1', label: 'Output')],
+  /// );
+  /// ```
   void updateNodePorts(
     String nodeId, {
     List<Port>? inputPorts,
@@ -66,6 +129,19 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Removes a node from the graph along with all its connections.
+  ///
+  /// This method will:
+  /// 1. Remove the node from the graph
+  /// 2. Remove it from the selection if selected
+  /// 3. Remove all connections involving this node
+  /// 4. Remove the node from any group annotations
+  /// 5. Delete empty group annotations that no longer contain any nodes
+  ///
+  /// Triggers the `onNodeDeleted` callback after successful removal.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to remove
   void removeNode(String nodeId) {
     final nodeToDelete = _nodes[nodeId]; // Capture before deletion
     runInAction(() {
@@ -103,6 +179,16 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     }
   }
 
+  /// Moves a node by the specified delta.
+  ///
+  /// The node's new position will be automatically snapped to the grid if
+  /// snap-to-grid is enabled in the controller's configuration.
+  ///
+  /// Does nothing if the node doesn't exist.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to move
+  /// - [delta]: The offset to move the node by
   void moveNode(String nodeId, Offset delta) {
     final node = _nodes[nodeId];
     if (node != null) {
@@ -115,6 +201,15 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     }
   }
 
+  /// Moves all selected nodes by the specified delta.
+  ///
+  /// The nodes' new positions will be automatically snapped to the grid if
+  /// snap-to-grid is enabled in the controller's configuration.
+  ///
+  /// Does nothing if no nodes are selected.
+  ///
+  /// Parameters:
+  /// - [delta]: The offset to move the selected nodes by
   void moveSelectedNodes(Offset delta) {
     final nodeIds = _selectedNodeIds.toList();
     if (nodeIds.isEmpty) return;
@@ -134,6 +229,27 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   }
 
   // Selection operations
+
+  /// Selects a node in the graph.
+  ///
+  /// Automatically clears selections of other element types (connections, annotations).
+  /// Requests canvas focus if not already focused.
+  ///
+  /// Triggers the `onNodeSelected` callback after selection changes.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to select
+  /// - [toggle]: If `true`, toggles the node's selection state. If `false` (default),
+  ///   clears other node selections and selects only this node.
+  ///
+  /// Example:
+  /// ```dart
+  /// // Select single node
+  /// controller.selectNode('node1');
+  ///
+  /// // Toggle node selection (for multi-select)
+  /// controller.selectNode('node2', toggle: true);
+  /// ```
   void selectNode(String nodeId, {bool toggle = false}) {
     runInAction(() {
       // Clear other element types' selections
@@ -178,6 +294,24 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     }
   }
 
+  /// Selects multiple nodes in the graph.
+  ///
+  /// Automatically clears selections of other element types (connections, annotations).
+  /// Requests canvas focus if not already focused.
+  ///
+  /// Parameters:
+  /// - [nodeIds]: List of node IDs to select
+  /// - [toggle]: If `true`, toggles each node's selection state. If `false` (default),
+  ///   replaces current selection with the provided nodes.
+  ///
+  /// Example:
+  /// ```dart
+  /// // Replace selection with multiple nodes
+  /// controller.selectNodes(['node1', 'node2', 'node3']);
+  ///
+  /// // Toggle multiple nodes (for multi-select)
+  /// controller.selectNodes(['node4', 'node5'], toggle: true);
+  /// ```
   void selectNodes(List<String> nodeIds, {bool toggle = false}) {
     runInAction(() {
       // Clear other element types' selections
@@ -220,6 +354,17 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     }
   }
 
+  /// Selects a connection in the graph.
+  ///
+  /// Automatically clears selections of other element types (nodes, annotations).
+  /// Requests canvas focus if not already focused.
+  ///
+  /// Triggers the `onConnectionSelected` callback after selection changes.
+  ///
+  /// Parameters:
+  /// - [connectionId]: The ID of the connection to select
+  /// - [toggle]: If `true`, toggles the connection's selection state. If `false`
+  ///   (default), clears other connection selections and selects only this connection.
   void selectConnection(String connectionId, {bool toggle = false}) {
     runInAction(() {
       // Clear other element types' selections
@@ -258,6 +403,11 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     }
   }
 
+  /// Clears all node selections.
+  ///
+  /// Triggers the `onNodeSelected` callback with `null` to indicate no selection.
+  ///
+  /// Does nothing if no nodes are currently selected.
   void clearNodeSelection() {
     if (_selectedNodeIds.isEmpty) return;
 
@@ -274,6 +424,11 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     callbacks.onNodeSelected?.call(null);
   }
 
+  /// Clears all connection selections.
+  ///
+  /// Triggers the `onConnectionSelected` callback with `null` to indicate no selection.
+  ///
+  /// Does nothing if no connections are currently selected.
   void clearConnectionSelection() {
     if (_selectedConnectionIds.isEmpty) return;
 
@@ -292,6 +447,12 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     callbacks.onConnectionSelected?.call(null);
   }
 
+  /// Clears all selections (nodes, connections, and annotations).
+  ///
+  /// This is a convenience method that calls `clearNodeSelection`,
+  /// `clearConnectionSelection`, and `clearAnnotationSelection`.
+  ///
+  /// Does nothing if there are no active selections.
   void clearSelection() {
     if (_selectedNodeIds.isEmpty &&
         _selectedConnectionIds.isEmpty &&
@@ -307,6 +468,31 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   }
 
   // Graph loading with annotation support
+
+  /// Loads a complete graph into the controller.
+  ///
+  /// This method:
+  /// 1. Clears the existing graph state
+  /// 2. Bulk loads all nodes, connections, and annotations
+  /// 3. Sets the viewport to match the saved state
+  /// 4. Sets up visual positioning and hit-testing infrastructure
+  ///
+  /// This is the preferred method for loading saved graphs as it performs
+  /// efficient bulk loading rather than individual additions.
+  ///
+  /// Parameters:
+  /// - `graph`: The graph to load containing nodes, connections, annotations, and viewport state
+  ///
+  /// Example:
+  /// ```dart
+  /// final graph = NodeGraph<MyData>(
+  ///   nodes: savedNodes,
+  ///   connections: savedConnections,
+  ///   annotations: savedAnnotations,
+  ///   viewport: savedViewport,
+  /// );
+  /// controller.loadGraph(graph);
+  /// ```
   void loadGraph(NodeGraph<T> graph) {
     runInAction(() {
       // Clear existing state
@@ -342,6 +528,22 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   }
 
   // Export graph with annotations
+
+  /// Exports the current graph state including all nodes, connections, annotations, and viewport.
+  ///
+  /// This creates a snapshot of the entire graph that can be serialized and saved.
+  /// Use `loadGraph` to restore the graph from the exported data.
+  ///
+  /// Returns a [NodeGraph] containing all current graph data.
+  ///
+  /// Example:
+  /// ```dart
+  /// // Export the graph
+  /// final graph = controller.exportGraph();
+  ///
+  /// // Save to JSON
+  /// final json = graph.toJson();
+  /// ```
   NodeGraph<T> exportGraph() {
     return NodeGraph<T>(
       nodes: _nodes.values.toList(),
@@ -352,6 +554,25 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   }
 
   // Connection operations
+
+  /// Adds a connection between two ports.
+  ///
+  /// Triggers the `onConnectionCreated` callback after successful addition.
+  ///
+  /// Parameters:
+  /// - [connection]: The connection to add
+  ///
+  /// Example:
+  /// ```dart
+  /// final connection = Connection(
+  ///   id: 'conn1',
+  ///   sourceNodeId: 'node1',
+  ///   sourcePortId: 'out1',
+  ///   targetNodeId: 'node2',
+  ///   targetPortId: 'in1',
+  /// );
+  /// controller.addConnection(connection);
+  /// ```
   void addConnection(Connection connection) {
     runInAction(() {
       _connections.add(connection);
@@ -360,6 +581,16 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     callbacks.onConnectionCreated?.call(connection);
   }
 
+  /// Removes a connection from the graph.
+  ///
+  /// Also removes the connection from the selection set if it was selected.
+  ///
+  /// Triggers the `onConnectionDeleted` callback after successful removal.
+  ///
+  /// Parameters:
+  /// - [connectionId]: The ID of the connection to remove
+  ///
+  /// Throws [ArgumentError] if the connection doesn't exist.
   void removeConnection(String connectionId) {
     final connectionToDelete = _connections.firstWhere(
       (c) => c.id == connectionId,
@@ -374,6 +605,18 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   }
 
   // Viewport operations
+
+  /// Sets the viewport to a specific position and zoom level.
+  ///
+  /// This method provides immediate viewport updates for real-time panning responsiveness.
+  ///
+  /// Parameters:
+  /// - [viewport]: The new viewport state with x, y position and zoom level
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.setViewport(GraphViewport(x: 100, y: 50, zoom: 1.5));
+  /// ```
   void setViewport(GraphViewport viewport) {
     // Immediate viewport updates for real-time panning responsiveness
     runInAction(() {
@@ -381,13 +624,32 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Sets the screen size used for viewport calculations.
+  ///
+  /// This is typically called internally by the editor widget when the layout changes.
+  /// You generally should not call this manually.
+  ///
+  /// Parameters:
+  /// - [size]: The new screen size
   void setScreenSize(Size size) {
     runInAction(() {
       _screenSize.value = size;
     });
   }
 
-  /// Zoom while maintaining the viewport center as the focal point
+  /// Zoom the viewport by a delta value while maintaining the viewport center as the focal point.
+  ///
+  /// The zoom level is clamped to the min/max zoom values configured in `NodeFlowConfig`.
+  /// The viewport automatically adjusts to keep the center point fixed during zoom.
+  ///
+  /// Parameters:
+  /// - [delta]: The amount to change the zoom by (positive to zoom in, negative to zoom out)
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.zoomBy(0.1); // Zoom in by 10%
+  /// controller.zoomBy(-0.1); // Zoom out by 10%
+  /// ```
   void zoomBy(double delta) {
     final currentVp = _viewport.value;
     final newZoom = (currentVp.zoom + delta).clamp(
@@ -413,6 +675,16 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     setViewport(GraphViewport(x: newPanX, y: newPanY, zoom: newZoom));
   }
 
+  /// Pans the viewport by a delta offset.
+  ///
+  /// Parameters:
+  /// - [delta]: The offset to pan the viewport by
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.panBy(Offset(50, 0)); // Pan right by 50 pixels
+  /// controller.panBy(Offset(0, -50)); // Pan up by 50 pixels
+  /// ```
   void panBy(Offset delta) {
     runInAction(() {
       _viewport.value = _viewport.value.copyWith(
@@ -425,17 +697,53 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   // Internal methods moved to main controller class
 
   // Query methods
+
+  /// Gets a node by its ID.
+  ///
+  /// Returns `null` if the node doesn't exist.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to retrieve
+  ///
+  /// Returns the node if found, otherwise `null`.
   Node<T>? getNode(String nodeId) => _nodes[nodeId];
 
+  /// Checks if a node is currently selected.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to check
+  ///
+  /// Returns `true` if the node is selected, otherwise `false`.
   bool isNodeSelected(String nodeId) => _selectedNodeIds.contains(nodeId);
 
   // Annotation methods
+
+  /// Adds an annotation to the graph.
+  ///
+  /// Annotations are visual elements like sticky notes, markers, or group containers
+  /// that provide additional context to the graph.
+  ///
+  /// Triggers the `onAnnotationCreated` callback after successful addition.
+  ///
+  /// Parameters:
+  /// - `annotation`: The annotation to add
+  ///
+  /// See also:
+  /// - `createStickyNote` for creating sticky note annotations
+  /// - `createGroupAnnotation` for creating group annotations
+  /// - `createMarker` for creating marker annotations
   void addAnnotation(Annotation annotation) {
     annotations.addAnnotation(annotation);
     // Fire callback after successful addition
     callbacks.onAnnotationCreated?.call(annotation);
   }
 
+  /// Removes an annotation from the graph.
+  ///
+  /// Triggers the `onAnnotationDeleted` callback after successful removal.
+  ///
+  /// Parameters:
+  /// - [annotationId]: The ID of the annotation to remove
   void removeAnnotation(String annotationId) {
     final annotationToDelete = annotations.getAnnotation(annotationId);
     annotations.removeAnnotation(annotationId);
@@ -445,10 +753,30 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     }
   }
 
+  /// Gets an annotation by its ID.
+  ///
+  /// Returns `null` if the annotation doesn't exist.
+  ///
+  /// Parameters:
+  /// - [annotationId]: The ID of the annotation to retrieve
+  ///
+  /// Returns the annotation if found, otherwise `null`.
   Annotation? getAnnotation(String annotationId) =>
       annotations.getAnnotation(annotationId);
 
   // Public API for selecting annotations
+
+  /// Selects an annotation in the graph.
+  ///
+  /// Automatically clears selections of other element types (nodes, connections).
+  /// Requests canvas focus.
+  ///
+  /// Triggers the `onAnnotationSelected` callback after selection changes.
+  ///
+  /// Parameters:
+  /// - [annotationId]: The ID of the annotation to select
+  /// - [toggle]: If `true`, toggles the annotation's selection state. If `false`
+  ///   (default), clears other selections and selects only this annotation.
   void selectAnnotation(String annotationId, {bool toggle = false}) {
     runInAction(() {
       // Clear other element types' selections
@@ -467,6 +795,9 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     canvasFocusNode.requestFocus();
   }
 
+  /// Clears all annotation selections.
+  ///
+  /// Triggers the `onAnnotationSelected` callback with `null` if there was a selection.
   void clearAnnotationSelection() {
     final hadSelection = annotations.hasAnnotationSelection;
     annotations.clearAnnotationSelection();
@@ -477,10 +808,40 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     }
   }
 
+  /// Checks if an annotation is currently selected.
+  ///
+  /// Parameters:
+  /// - [annotationId]: The ID of the annotation to check
+  ///
+  /// Returns `true` if the annotation is selected, otherwise `false`.
   bool isAnnotationSelected(String annotationId) =>
       annotations.isAnnotationSelected(annotationId);
 
   // Annotation factory methods for convenience
+
+  /// Creates and adds a sticky note annotation to the graph.
+  ///
+  /// Sticky notes are floating text annotations that can be placed anywhere on the canvas.
+  ///
+  /// Parameters:
+  /// - [position]: Position in graph coordinates
+  /// - [text]: The text content of the sticky note
+  /// - [id]: Optional custom ID (auto-generated if not provided)
+  /// - [width]: Width of the sticky note (default: 200.0)
+  /// - [height]: Height of the sticky note (default: 100.0)
+  /// - [color]: Background color (default: light yellow)
+  /// - [offset]: Optional offset for positioning (default: Offset.zero)
+  ///
+  /// Returns the created [StickyAnnotation].
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.createStickyNote(
+  ///   position: Offset(100, 100),
+  ///   text: 'Important note here',
+  ///   color: Colors.yellow,
+  /// );
+  /// ```
   StickyAnnotation createStickyNote({
     required Offset position,
     required String text,
@@ -503,6 +864,28 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     return annotation;
   }
 
+  /// Creates and adds a group annotation that visually groups multiple nodes.
+  ///
+  /// Group annotations automatically resize to encompass their contained nodes.
+  /// They appear as colored rectangles behind the nodes with a title.
+  ///
+  /// Parameters:
+  /// - [title]: Title displayed at the top of the group
+  /// - [nodeIds]: Set of node IDs to include in the group
+  /// - [id]: Optional custom ID (auto-generated if not provided)
+  /// - [padding]: Padding around the grouped nodes (default: 20.0 on all sides)
+  /// - [color]: Background color of the group (default: blue)
+  ///
+  /// Returns the created [GroupAnnotation].
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.createGroupAnnotation(
+  ///   title: 'Input Processing',
+  ///   nodeIds: {'node1', 'node2', 'node3'},
+  ///   color: Colors.blue.withOpacity(0.2),
+  /// );
+  /// ```
   GroupAnnotation createGroupAnnotation({
     required String title,
     required Set<String> nodeIds,
@@ -522,6 +905,31 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     return annotation;
   }
 
+  /// Creates and adds a marker annotation to the graph.
+  ///
+  /// Markers are small icons that can be used to highlight specific locations
+  /// or draw attention to important points.
+  ///
+  /// Parameters:
+  /// - [position]: Position in graph coordinates
+  /// - [markerType]: Type of marker (info, warning, error, success, etc.)
+  /// - [id]: Optional custom ID (auto-generated if not provided)
+  /// - [size]: Size of the marker icon (default: 24.0)
+  /// - [color]: Color of the marker (default: red)
+  /// - [tooltip]: Optional tooltip text shown on hover
+  /// - [offset]: Optional offset for positioning (default: Offset.zero)
+  ///
+  /// Returns the created [MarkerAnnotation].
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.createMarker(
+  ///   position: Offset(200, 150),
+  ///   markerType: MarkerType.warning,
+  ///   tooltip: 'Check this connection',
+  ///   color: Colors.orange,
+  /// );
+  /// ```
   MarkerAnnotation createMarker({
     required Offset position,
     MarkerType markerType = MarkerType.info,
@@ -545,16 +953,30 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   }
 
   // Annotation bulk operations
+
+  /// Deletes all currently selected annotations.
+  ///
+  /// This is a convenience method for batch deletion.
   void deleteSelectedAnnotations() => annotations.deleteSelectedAnnotations();
 
+  /// Hides all annotations in the graph.
+  ///
+  /// Hidden annotations are not rendered but remain in the graph data.
   void hideAllAnnotations() => annotations.hideAllAnnotations();
 
+  /// Shows all annotations in the graph.
+  ///
+  /// This makes all previously hidden annotations visible again.
   void showAllAnnotations() => annotations.showAllAnnotations();
 
   // Viewport extent methods
 
-  /// Gets the viewport extent as a Rect in world coordinates
-  /// This represents the visible area of the graph in world space
+  /// Gets the viewport extent as a Rect in world coordinates.
+  ///
+  /// This represents the visible area of the graph in world space. Use this
+  /// to determine which nodes or elements are currently visible.
+  ///
+  /// Returns a [Rect] representing the visible portion of the graph in world coordinates.
   Rect get viewportExtent {
     final vp = _viewport.value;
     final size = _screenSize.value;
@@ -568,14 +990,32 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     return Rect.fromLTRB(left, top, right, bottom);
   }
 
-  /// Gets the viewport extent as a Rect in screen coordinates
-  /// This represents the screen area that displays the graph
+  /// Gets the viewport extent as a Rect in screen coordinates.
+  ///
+  /// This represents the screen area that displays the graph. Typically this
+  /// is the full size of the canvas/widget.
+  ///
+  /// Returns a [Rect] representing the screen bounds of the viewport.
   Rect get viewportScreenBounds {
     final size = _screenSize.value;
     return Rect.fromLTWH(0, 0, size.width, size.height);
   }
 
-  /// Converts a world coordinate point to screen coordinates
+  /// Converts a world coordinate point to screen coordinates.
+  ///
+  /// Use this to transform positions in graph space to screen space, taking into
+  /// account the current viewport position and zoom level.
+  ///
+  /// Parameters:
+  /// - [worldPoint]: The point in world/graph coordinates
+  ///
+  /// Returns the corresponding point in screen coordinates.
+  ///
+  /// Example:
+  /// ```dart
+  /// final nodePos = Offset(100, 100); // Position in graph
+  /// final screenPos = controller.worldToScreen(nodePos); // Position on screen
+  /// ```
   Offset worldToScreen(Offset worldPoint) {
     final vp = _viewport.value;
     return Offset(
@@ -584,7 +1024,21 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     );
   }
 
-  /// Converts a screen coordinate point to world coordinates
+  /// Converts a screen coordinate point to world coordinates.
+  ///
+  /// Use this to transform mouse/touch positions or screen coordinates back to
+  /// graph space, taking into account the current viewport position and zoom level.
+  ///
+  /// Parameters:
+  /// - [screenPoint]: The point in screen coordinates
+  ///
+  /// Returns the corresponding point in world/graph coordinates.
+  ///
+  /// Example:
+  /// ```dart
+  /// final mousePos = event.localPosition; // Mouse position on screen
+  /// final graphPos = controller.screenToWorld(mousePos); // Position in graph
+  /// ```
   Offset screenToWorld(Offset screenPoint) {
     final vp = _viewport.value;
     return Offset(
@@ -593,17 +1047,36 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     );
   }
 
-  /// Checks if a world coordinate point is visible in the current viewport
+  /// Checks if a world coordinate point is visible in the current viewport.
+  ///
+  /// Parameters:
+  /// - [worldPoint]: The point to check in world/graph coordinates
+  ///
+  /// Returns `true` if the point is within the visible viewport, `false` otherwise.
   bool isPointVisible(Offset worldPoint) {
     return viewportExtent.contains(worldPoint);
   }
 
-  /// Checks if a world coordinate rectangle intersects with the viewport
+  /// Checks if a world coordinate rectangle intersects with the viewport.
+  ///
+  /// Use this for visibility culling to determine if a node or element should be rendered.
+  ///
+  /// Parameters:
+  /// - [worldRect]: The rectangle to check in world/graph coordinates
+  ///
+  /// Returns `true` if any part of the rectangle overlaps the viewport, `false` otherwise.
   bool isRectVisible(Rect worldRect) {
     return viewportExtent.overlaps(worldRect);
   }
 
-  /// Gets the bounds of selected nodes in world coordinates
+  /// Gets the bounding rectangle that encompasses all selected nodes in world coordinates.
+  ///
+  /// Returns `null` if no nodes are selected.
+  ///
+  /// This is useful for operations like "fit selected nodes to view" or calculating
+  /// the area occupied by the selection.
+  ///
+  /// Returns a [Rect] containing all selected nodes, or `null` if nothing is selected.
   Rect? get selectedNodesBounds {
     if (_selectedNodeIds.isEmpty) return null;
 
@@ -639,6 +1112,20 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   }
 
   // High-level viewport control methods
+
+  /// Sets the viewport zoom to a specific value.
+  ///
+  /// The zoom is clamped to the min/max zoom values configured in `NodeFlowConfig`.
+  /// Unlike `zoomBy`, this sets an absolute zoom level rather than a relative change.
+  ///
+  /// Parameters:
+  /// - [zoom]: The target zoom level (1.0 = 100%, 2.0 = 200%, etc.)
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.zoomTo(1.5); // Set zoom to 150%
+  /// controller.zoomTo(1.0); // Reset zoom to 100%
+  /// ```
   void zoomTo(double zoom) {
     final clampedZoom = zoom.clamp(
       _config.minZoom.value,
@@ -650,6 +1137,19 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     );
   }
 
+  /// Adjusts the viewport to fit all nodes in the view with padding.
+  ///
+  /// Calculates the optimal zoom level and pan position to show all nodes
+  /// in the graph with 50 pixels of padding on all sides.
+  ///
+  /// Does nothing if there are no nodes or if the screen size is zero.
+  ///
+  /// Example:
+  /// ```dart
+  /// // After loading a graph, fit it to view
+  /// controller.loadGraph(savedGraph);
+  /// controller.fitToView();
+  /// ```
   void fitToView() {
     if (_nodes.isEmpty || _screenSize.value == Size.zero) return;
 
@@ -679,6 +1179,18 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     );
   }
 
+  /// Adjusts the viewport to fit all selected nodes in the view with padding.
+  ///
+  /// Calculates the optimal zoom level and pan position to show only the
+  /// selected nodes with 50 pixels of padding on all sides.
+  ///
+  /// Does nothing if no nodes are selected or if the screen size is zero.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.selectNodes(['node1', 'node2']);
+  /// controller.fitSelectedNodes();
+  /// ```
   void fitSelectedNodes() {
     if (_selectedNodeIds.isEmpty || _screenSize.value == Size.zero) return;
 
@@ -708,6 +1220,17 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     );
   }
 
+  /// Centers the viewport on a specific node without changing the zoom level.
+  ///
+  /// Does nothing if the node doesn't exist or if the screen size is zero.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to center on
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.centerOnNode('node1');
+  /// ```
   void centerOnNode(String nodeId) {
     final node = _nodes[nodeId];
     if (node == null || _screenSize.value == Size.zero) return;
@@ -728,6 +1251,18 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     );
   }
 
+  /// Centers the viewport on the center point of all selected nodes without changing zoom.
+  ///
+  /// Calculates the geometric center of all selected nodes and pans the viewport
+  /// to that point.
+  ///
+  /// Does nothing if no nodes are selected or if the screen size is zero.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.selectNodes(['node1', 'node2', 'node3']);
+  /// controller.centerOnSelection();
+  /// ```
   void centerOnSelection() {
     if (_selectedNodeIds.isEmpty || _screenSize.value == Size.zero) return;
 
@@ -762,6 +1297,15 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     );
   }
 
+  /// Resets the viewport to zoom 1.0 and centers on all nodes in the graph.
+  ///
+  /// If there are no nodes, resets to origin (0, 0) with zoom 1.0.
+  /// If there are nodes, centers the viewport on their geometric center.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.resetViewport(); // Reset to default view
+  /// ```
   void resetViewport() {
     const zoom = 1.0;
 
@@ -792,6 +1336,24 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   }
 
   // Node management
+
+  /// Creates a duplicate of a node and adds it to the graph.
+  ///
+  /// The duplicated node:
+  /// - Has a new auto-generated ID
+  /// - Is positioned 50 pixels down and right from the original
+  /// - Has a cloned copy of the data if it implements [NodeData]
+  /// - Has the same type, size, and ports as the original
+  ///
+  /// Does nothing if the node doesn't exist.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to duplicate
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.duplicateNode('node1');
+  /// ```
   void duplicateNode(String nodeId) {
     final node = _nodes[nodeId];
     if (node == null) return;
@@ -815,6 +1377,22 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   }
 
   // Graph operations
+
+  /// Clears the entire graph, removing all nodes, connections, annotations, and selections.
+  ///
+  /// This operation:
+  /// - Removes all nodes
+  /// - Removes all connections
+  /// - Clears all selections
+  /// - Removes all annotations
+  /// - Clears the connection painter cache
+  ///
+  /// Does nothing if the graph is already empty.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.clearGraph();
+  /// ```
   void clearGraph() {
     if (_nodes.isEmpty && _connections.isEmpty) return;
 
@@ -831,6 +1409,15 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     _connectionPainter?.clearAllCachedPaths();
   }
 
+  /// Selects all nodes in the graph.
+  ///
+  /// This is a convenience method for selecting everything. Use Cmd+A / Ctrl+A
+  /// keyboard shortcut to trigger this.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.selectAllNodes();
+  /// ```
   void selectAllNodes() {
     runInAction(() {
       _selectedNodeIds.clear();
@@ -841,6 +1428,12 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Selects all connections in the graph.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.selectAllConnections();
+  /// ```
   void selectAllConnections() {
     runInAction(() {
       _selectedConnectionIds.clear();
@@ -848,6 +1441,17 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Selects all nodes of a specific type.
+  ///
+  /// This clears the current selection and selects only nodes matching the given type.
+  ///
+  /// Parameters:
+  /// - [type]: The node type to select (matches the `node.type` property)
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.selectNodesByType('process');
+  /// ```
   void selectNodesByType(String type) {
     runInAction(() {
       for (final node in _nodes.values) {
@@ -864,6 +1468,15 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Inverts the current node selection.
+  ///
+  /// All currently selected nodes become deselected, and all deselected nodes
+  /// become selected.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.invertSelection();
+  /// ```
   void invertSelection() {
     runInAction(() {
       final currentlySelected = Set.from(_selectedNodeIds);
@@ -881,6 +1494,19 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   }
 
   // Layout methods
+
+  /// Arranges all nodes in a grid layout.
+  ///
+  /// Calculates an optimal grid size based on the square root of the number of nodes
+  /// and positions them in rows and columns with the specified spacing.
+  ///
+  /// Parameters:
+  /// - [spacing]: The distance between nodes in pixels (default: 150.0)
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.arrangeNodesInGrid(spacing: 200.0);
+  /// ```
   void arrangeNodesInGrid({double spacing = 150.0}) {
     final nodeList = _nodes.values.toList();
     final gridSize = math.sqrt(nodeList.length.toDouble()).ceil();
@@ -894,6 +1520,15 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Arranges nodes hierarchically by type.
+  ///
+  /// Groups nodes by their type property and arranges each type group in rows,
+  /// with 200 pixels horizontal spacing and 150 pixels vertical spacing between groups.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.arrangeNodesHierarchically();
+  /// ```
   void arrangeNodesHierarchically() {
     // Simple implementation - arrange by type
     final nodesByType = <String, List<Node<T>>>{};
@@ -915,6 +1550,19 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   }
 
   // Query methods
+
+  /// Gets all nodes that have no connections.
+  ///
+  /// Returns a list of nodes that are neither sources nor targets of any connections.
+  /// Useful for identifying isolated or unused nodes in the graph.
+  ///
+  /// Returns a list of orphan nodes (may be empty).
+  ///
+  /// Example:
+  /// ```dart
+  /// final orphans = controller.getOrphanNodes();
+  /// print('Found ${orphans.length} orphan nodes');
+  /// ```
   List<Node<T>> getOrphanNodes() {
     final connectedNodeIds = <String>{};
     for (final connection in _connections) {
@@ -927,6 +1575,19 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   }
 
   // Advanced operations
+
+  /// Deletes multiple nodes from the graph.
+  ///
+  /// This is a convenience method for batch deletion. Each node removal also
+  /// removes its associated connections.
+  ///
+  /// Parameters:
+  /// - [nodeIds]: List of node IDs to delete
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.deleteNodes(['node1', 'node2', 'node3']);
+  /// ```
   void deleteNodes(List<String> nodeIds) {
     runInAction(() {
       for (final nodeId in nodeIds) {
@@ -935,6 +1596,17 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Brings a node to the front of the z-order (renders on top of all other nodes).
+  ///
+  /// Sets the node's z-index to be higher than all other nodes.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to bring to front
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.bringNodeToFront('node1');
+  /// ```
   void bringNodeToFront(String nodeId) {
     final node = _nodes[nodeId];
     if (node != null) {
@@ -948,6 +1620,17 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     }
   }
 
+  /// Sends a node to the back of the z-order (renders behind all other nodes).
+  ///
+  /// Sets the node's z-index to be lower than all other nodes.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to send to back
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.sendNodeToBack('node1');
+  /// ```
   void sendNodeToBack(String nodeId) {
     final node = _nodes[nodeId];
     if (node != null) {
@@ -961,6 +1644,18 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     }
   }
 
+  /// Moves a node one step forward in the z-order.
+  ///
+  /// Swaps the z-index with the next higher node in the visual stack.
+  /// Does nothing if the node is already at the front.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to move forward
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.bringNodeForward('node1');
+  /// ```
   void bringNodeForward(String nodeId) {
     final node = _nodes[nodeId];
     if (node == null) return;
@@ -998,6 +1693,18 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Moves a node one step backward in the z-order.
+  ///
+  /// Swaps the z-index with the next lower node in the visual stack.
+  /// Does nothing if the node is already at the back.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to move backward
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.sendNodeBackward('node1');
+  /// ```
   void sendNodeBackward(String nodeId) {
     final node = _nodes[nodeId];
     if (node == null) return;
@@ -1035,6 +1742,24 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Aligns multiple nodes according to the specified alignment option.
+  ///
+  /// Requires at least 2 nodes. Calculates alignment based on the bounds
+  /// of all specified nodes.
+  ///
+  /// Parameters:
+  /// - `nodeIds`: List of node IDs to align (must contain at least 2 nodes)
+  /// - `alignment`: The alignment type (top, right, bottom, left, center, horizontalCenter, verticalCenter)
+  ///
+  /// Does nothing if fewer than 2 valid nodes are provided.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.alignNodes(
+  ///   ['node1', 'node2', 'node3'],
+  ///   NodeAlignment.left,
+  /// );
+  /// ```
   void alignNodes(List<String> nodeIds, NodeAlignment alignment) {
     if (nodeIds.length < 2) return;
 
@@ -1102,6 +1827,20 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Distributes nodes evenly along the horizontal axis.
+  ///
+  /// Requires at least 3 nodes. Sorts nodes by X position, keeps the leftmost
+  /// and rightmost nodes in place, and distributes the middle nodes evenly.
+  ///
+  /// Parameters:
+  /// - [nodeIds]: List of node IDs to distribute (must contain at least 3 nodes)
+  ///
+  /// Does nothing if fewer than 3 valid nodes are provided.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.distributeNodesHorizontally(['node1', 'node2', 'node3', 'node4']);
+  /// ```
   void distributeNodesHorizontally(List<String> nodeIds) {
     if (nodeIds.length < 3) return;
 
@@ -1123,6 +1862,20 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Distributes nodes evenly along the vertical axis.
+  ///
+  /// Requires at least 3 nodes. Sorts nodes by Y position, keeps the topmost
+  /// and bottommost nodes in place, and distributes the middle nodes evenly.
+  ///
+  /// Parameters:
+  /// - [nodeIds]: List of node IDs to distribute (must contain at least 3 nodes)
+  ///
+  /// Does nothing if fewer than 3 valid nodes are provided.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.distributeNodesVertically(['node1', 'node2', 'node3', 'node4']);
+  /// ```
   void distributeNodesVertically(List<String> nodeIds) {
     if (nodeIds.length < 3) return;
 
@@ -1144,6 +1897,17 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Selects only the specified nodes, clearing any existing selection.
+  ///
+  /// This is similar to `selectNodes` but always clears the existing selection first.
+  ///
+  /// Parameters:
+  /// - [nodeIds]: List of node IDs to select
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.selectSpecificNodes(['node1', 'node2']);
+  /// ```
   void selectSpecificNodes(List<String> nodeIds) {
     runInAction(() {
       // Clear current selection
@@ -1163,6 +1927,18 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Deletes all connections associated with a node.
+  ///
+  /// Removes all connections where the node is either the source or target.
+  /// The node itself is not deleted.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node whose connections should be removed
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.deleteAllConnectionsForNode('node1');
+  /// ```
   void deleteAllConnectionsForNode(String nodeId) {
     final connectionsToRemove = _connections
         .where(
@@ -1177,6 +1953,26 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Creates a connection between two ports.
+  ///
+  /// This is a convenience method that creates a Connection object with an
+  /// auto-generated ID and adds it to the graph.
+  ///
+  /// Parameters:
+  /// - [sourceNodeId]: The ID of the source node
+  /// - [sourcePortId]: The ID of the output port on the source node
+  /// - [targetNodeId]: The ID of the target node
+  /// - [targetPortId]: The ID of the input port on the target node
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.createConnection(
+  ///   'node1',
+  ///   'output1',
+  ///   'node2',
+  ///   'input1',
+  /// );
+  /// ```
   void createConnection(
     String sourceNodeId,
     String sourcePortId,
@@ -1193,6 +1989,21 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     addConnection(connection);
   }
 
+  /// Sets a node's position to an absolute position.
+  ///
+  /// The position will be automatically snapped to the grid if snap-to-grid
+  /// is enabled in the controller's configuration.
+  ///
+  /// Does nothing if the node doesn't exist.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to reposition
+  /// - [position]: The new absolute position in graph coordinates
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.setNodePosition('node1', Offset(200, 150));
+  /// ```
   void setNodePosition(String nodeId, Offset position) {
     final node = _nodes[nodeId];
     if (node != null) {
@@ -1204,6 +2015,20 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     }
   }
 
+  /// Gets all connections associated with a node.
+  ///
+  /// Returns connections where the node is either the source or target.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to get connections for
+  ///
+  /// Returns a list of connections (may be empty).
+  ///
+  /// Example:
+  /// ```dart
+  /// final connections = controller.getConnectionsForNode('node1');
+  /// print('Node has ${connections.length} connections');
+  /// ```
   List<Connection> getConnectionsForNode(String nodeId) {
     return _connections
         .where(
@@ -1213,6 +2038,19 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   }
 
   // Computed properties
+
+  /// Gets the bounding rectangle that encompasses all nodes in the graph.
+  ///
+  /// Calculates the minimal rectangle that contains all nodes based on their
+  /// positions and sizes.
+  ///
+  /// Returns `Rect.zero` if there are no nodes.
+  ///
+  /// Example:
+  /// ```dart
+  /// final bounds = controller.nodesBounds;
+  /// print('Graph size: ${bounds.width} x ${bounds.height}');
+  /// ```
   Rect get nodesBounds {
     if (_nodes.isEmpty) return Rect.zero;
 
@@ -1233,12 +2071,35 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     return Rect.fromLTRB(minX, minY, maxX, maxY);
   }
 
+  /// Gets the current zoom level of the viewport.
+  ///
+  /// Returns the current zoom level (1.0 = 100%, 2.0 = 200%, etc.).
   double get currentZoom => _viewport.value.zoom;
+
+  /// Gets the current pan position of the viewport.
+  ///
+  /// Returns the viewport's translation as an Offset.
   Offset get currentPan => Offset(_viewport.value.x, _viewport.value.y);
 
   // Analysis methods
-  /// Test if a point hits any connection
-  /// Returns the connection ID if hit, null otherwise
+
+  /// Tests if a point hits any connection.
+  ///
+  /// Uses the connection painter's hit-testing to determine if the given
+  /// graph position intersects with any connection path.
+  ///
+  /// Parameters:
+  /// - [graphPosition]: The position to test in graph/world coordinates
+  ///
+  /// Returns the connection ID if hit, `null` otherwise.
+  ///
+  /// Example:
+  /// ```dart
+  /// final hitConnectionId = controller.hitTestConnections(Offset(100, 100));
+  /// if (hitConnectionId != null) {
+  ///   print('Clicked on connection: $hitConnectionId');
+  /// }
+  /// ```
   String? hitTestConnections(Offset graphPosition) {
     // Use the controller's connection painter for hit-testing
     final painter = connectionPainter;
@@ -1262,6 +2123,24 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     return null;
   }
 
+  /// Detects cycles in the graph using depth-first search.
+  ///
+  /// A cycle exists when you can follow connections from a node and eventually
+  /// return to the same node.
+  ///
+  /// Returns a list of cycles, where each cycle is represented as a list of node IDs
+  /// forming the cycle. Returns an empty list if no cycles are found.
+  ///
+  /// Example:
+  /// ```dart
+  /// final cycles = controller.detectCycles();
+  /// if (cycles.isNotEmpty) {
+  ///   print('Found ${cycles.length} cycles in the graph');
+  ///   for (final cycle in cycles) {
+  ///     print('Cycle: ${cycle.join(' -> ')}');
+  ///   }
+  /// }
+  /// ```
   List<List<String>> detectCycles() {
     // Simple cycle detection implementation
     final cycles = <List<String>>[];
@@ -1305,10 +2184,18 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     return cycles;
   }
 
-  /// Show the keyboard shortcuts dialog
+  /// Shows the keyboard shortcuts dialog.
   ///
   /// Displays a comprehensive dialog showing all available keyboard shortcuts
   /// organized by category for easy reference.
+  ///
+  /// Parameters:
+  /// - [context]: The BuildContext for showing the dialog
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.showShortcutsDialog(context);
+  /// ```
   void showShortcutsDialog(BuildContext context) {
     // Import will be added at the top when used
     showDialog(

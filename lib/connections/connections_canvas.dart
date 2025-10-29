@@ -50,7 +50,7 @@ class ConnectionsCanvas<T> extends CustomPainter {
       final isAnimated = connection.animated;
 
       // Paint connection without labels using cached painter
-      connectionPainter.paintConnectionOnly(
+      connectionPainter.paintConnection(
         canvas,
         connection,
         sourceNode,
