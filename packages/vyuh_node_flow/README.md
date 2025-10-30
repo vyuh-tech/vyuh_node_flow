@@ -42,9 +42,15 @@ minimap, and more.
 ## Screenshots
 
 <div align="center">
-  <img src="https://github.com/vyuh-tech/vyuh_node_flow/raw/main/packages/vyuh_node_flow/assets/image-1.png" alt="Node Flow Editor Screenshot 1" width="800"/>
-  <img src="https://github.com/vyuh-tech/vyuh_node_flow/raw/main/packages/vyuh_node_flow/assets/image-2.png" alt="Node Flow Editor Screenshot 2" width="800"/>
-  <img src="https://github.com/vyuh-tech/vyuh_node_flow/raw/main/packages/vyuh_node_flow/_screenshots/in-action.gif" alt="Animation of NodeFlowEditor" height="480"/>
+  <p>
+    <img src="https://github.com/vyuh-tech/vyuh_node_flow/raw/main/packages/vyuh_node_flow/assets/image-1.png" alt="Node Flow Editor Screenshot 1" width="800"/>
+  </p>
+  <p>
+    <img src="https://github.com/vyuh-tech/vyuh_node_flow/raw/main/packages/vyuh_node_flow/assets/image-2.png" alt="Node Flow Editor Screenshot 2" width="800"/>
+  </p>
+  <p>
+    <img src="https://github.com/vyuh-tech/vyuh_node_flow/raw/main/packages/vyuh_node_flow/_screenshots/in-action.gif" alt="Animation of NodeFlowEditor" width="auto" height="480"/>
+  </p>
 </div>
 
 ## Installation
