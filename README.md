@@ -17,7 +17,6 @@ contains the core library and demo application.
   </a>
 </p>
 
----
 
 ## 📦 Packages
 
@@ -63,7 +62,6 @@ A comprehensive demo application showcasing all features of the Vyuh Node Flow e
 
 **Try it online:** [🚀 Live Demo](https://flow.demo.vyuh.tech)
 
----
 
 ## 🚀 Getting Started
 
@@ -98,7 +96,6 @@ This project uses [Melos](https://melos.invertase.dev/) for workspace management
    flutter run -d chrome
    ```
 
----
 
 ## Documentation
 
@@ -106,7 +103,6 @@ This project uses [Melos](https://melos.invertase.dev/) for workspace management
 - [API Reference](https://pub.dev/documentation/vyuh_node_flow/latest/)
 - [Live Demo](https://flow.demo.vyuh.tech)
 
----
 
 ## 🤝 Contributing
 
@@ -118,7 +114,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
----
 
 ## License
 
