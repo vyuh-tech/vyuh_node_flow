@@ -723,20 +723,26 @@ Port(
 id: 'new-output',
 name: 'New Output',
 position: PortPosition.right,
-));
+),
+);
 
 // Remove a port
 node.removePort('port-id');
 
 // Update a port
-node.updatePort('port-id', Port(
+node.updatePort(
+'port-id',
+Port(
 id: 'port-id',
 name: 'Updated Name',
 position: PortPosition.right,
-));
+),
+);
 
 // Find a port
-final port = node.findPort('port-id
+final port = node.findPort(
+'
+port-id
 '
 );
 ```
@@ -753,7 +759,6 @@ Users create connections by dragging from one port to another. You can also
 create them programmatically:
 
 ```dart
-
 final connection = Connection(
   id: 'conn-1',
   sourceNodeId: 'node-1',
@@ -1026,7 +1031,6 @@ Make annotations follow nodes automatically:
 <summary><strong>Node-Following Annotation</strong></summary>
 
 ```dart
-
 final annotation = StickyAnnotation(
   id: 'label-1',
   position: const Offset(100, 100),
@@ -1097,6 +1101,29 @@ onConnectionDeleted: (connection) {
 print('Connection deleted: ${connection.id}');
 },
 
+// Connection validation callbacks
+onBeforeStartConnection: (context) {
+// Validate before starting a connection from a port
+if (context.existingConnections.isNotEmpty &&
+!context.sourcePort.multiConnections) {
+return ConnectionValidationResult(
+allowed: false,
+message: 'Port already has a connection',
+);
+}
+return ConnectionValidationResult.valid();
+},
+onBeforeCompleteConnection: (context) {
+// Validate before completing a connection to a target port
+if (_wouldCreateCycle(context.sourceNode, context.targetNode)) {
+return ConnectionValidationResult(
+allowed: false,
+message: 'This would create a cycle',
+);
+}
+return ConnectionValidationResult.valid();
+},
+
 // Annotation events
 onAnnotationSelected: (annotation) {
 print('Annotation selected: ${annotation?.id}');
@@ -1119,19 +1146,56 @@ print('Annotation deleted: ${annotation.id}');
 
 Built-in keyboard shortcuts are available:
 
+#### Selection
+
+| Shortcut       | Action                 |
+|----------------|------------------------|
+| `Cmd/Ctrl + A` | Select all nodes       |
+| `Cmd/Ctrl + I` | Invert selection       |
+| `Escape`       | Clear selection/cancel |
+
+#### Editing
 | Shortcut               | Action                            |
-| ---------------------- | --------------------------------- |
+|------------------------|-----------------------------------|
 | `Delete` / `Backspace` | Delete selected nodes/connections |
-| `Cmd/Ctrl + A`         | Select all nodes                  |
-| `Cmd/Ctrl + C`         | Copy selected nodes               |
-| `Cmd/Ctrl + V`         | Paste nodes                       |
 | `Cmd/Ctrl + D`         | Duplicate selected nodes          |
-| `Cmd/Ctrl + Z`         | Undo                              |
-| `Cmd/Ctrl + Shift + Z` | Redo                              |
-| `Space + Drag`         | Pan canvas                        |
-| `+` / `-`              | Zoom in/out                       |
-| `0`                    | Reset zoom to 100%                |
-| `F`                    | Fit view to all nodes             |
+| `N`                    | Toggle grid snapping              |
+
+#### Navigation
+
+| Shortcut       | Action                |
+|----------------|-----------------------|
+| `F`            | Fit all nodes to view |
+| `H`            | Fit selected to view  |
+| `Cmd/Ctrl + 0` | Reset zoom to 100%    |
+| `Cmd/Ctrl + =` | Zoom in               |
+| `Cmd/Ctrl + -` | Zoom out              |
+| `M`            | Toggle minimap        |
+
+#### Arrangement
+
+| Shortcut       | Action                 |
+|----------------|------------------------|
+| `[`            | Send to back           |
+| `]`            | Bring to front         |
+| `Cmd/Ctrl + [` | Send backward one step |
+| `Cmd/Ctrl + ]` | Bring forward one step |
+
+#### Alignment (requires 2+ selected nodes)
+
+| Shortcut               | Action       |
+|------------------------|--------------|
+| `Cmd/Ctrl + Shift + ↑` | Align top    |
+| `Cmd/Ctrl + Shift + ↓` | Align bottom |
+| `Cmd/Ctrl + Shift + ←` | Align left   |
+| `Cmd/Ctrl + Shift + →` | Align right  |
+
+#### Grouping
+
+| Shortcut               | Action       |
+|------------------------|--------------|
+| `Cmd/Ctrl + G`         | Create group |
+| `Cmd/Ctrl + Shift + G` | Ungroup      |
 
 <details>
 <summary><strong>Custom Keyboard Shortcuts</strong></summary>
@@ -1204,7 +1268,7 @@ NodeFlowEditor<T>
 controller: controller,
 theme: theme,
 nodeBuilder: _buildNode,
-)
+);
 ```
 
 You can also toggle the minimap at runtime:
@@ -1244,7 +1308,7 @@ enableZooming: true,
 scrollToZoom:
 true
 ,
-)
+);
 ```
 
 The viewer supports panning and zooming but prevents editing, making it perfect
@@ -1319,7 +1383,6 @@ graph
 <summary><strong>Grid Configuration</strong></summary>
 
 ```dart
-
 final config = NodeFlowConfig(
   snapToGrid: true, // Snap nodes to grid
   snapAnnotationsToGrid: true, // Snap annotations to grid
@@ -1342,7 +1405,6 @@ config.toggleSnapping
 <summary><strong>Auto-Pan Configuration</strong></summary>
 
 ```dart
-
 final config = NodeFlowConfig(
   autoPanMargin: 50.0, // Pixels from edge to trigger auto-pan
   autoPanSpeed: 0.3, // Pan speed (0.0 to 1.0)
@@ -1357,7 +1419,6 @@ automatically pans.
 ### Zoom Limits
 
 ```dart
-
 final config = NodeFlowConfig(
   minZoom: 0.25, // Minimum zoom level (25%)
   maxZoom: 3.0, // Maximum zoom level (300%)
