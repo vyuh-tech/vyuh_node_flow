@@ -27,7 +27,9 @@ jobs:
       - name: Setup pub credentials
         run: |
           mkdir -p $HOME/.pub-cache
-          echo '${{ secrets.PUB_DEV_CREDENTIALS }}' > $HOME/.pub-cache/credentials.json
+          cat <<EOF > $HOME/.pub-cache/credentials.json
+          ${{ secrets.PUB_DEV_CREDENTIALS }}
+          EOF
 
       - name: Get workspace dependencies
         run: dart pub get
@@ -38,5 +40,9 @@ jobs:
       - name: Analyze code
         run: dart run melos run analyze
 
-      - name: Publish to pub.dev with Melos
-        run: dart run melos publish --no-dry-run --yes
+      - name: Publish to pub.dev
+        env:
+          PUB_CACHE: $HOME/.pub-cache
+        run: |
+          cd packages/vyuh_node_flow
+          dart pub publish --force
