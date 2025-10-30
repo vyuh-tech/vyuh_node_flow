@@ -1,6 +1,6 @@
 # Vyuh Node Flow
 
-![Vyuh Node Flow Banner](https://github.com/vyuh-tech/vyuh_node_flow/raw/main/assets/node-flow-banner.png)
+![Vyuh Node Flow Banner](https://github.com/vyuh-tech/vyuh_node_flow/raw/main/packages/vyuh_node_flow/assets/node-flow-banner.png)
 
 A flexible, high-performance node-based flow editor for Flutter applications,
 inspired by React Flow. Build visual programming interfaces, workflow editors,
@@ -23,8 +23,6 @@ Experience Vyuh Node Flow in action! The live demo showcases all key features,
 including node creation, drag-and-drop connections, custom theming, annotations,
 minimap, and more.
 
----
-
 ## ✨ Key Features
 
 - **High Performance** - Reactive, optimized rendering for smooth interactions
@@ -44,10 +42,10 @@ minimap, and more.
 ## Screenshots
 
 <div align="center">
-  <img src="https://github.com/vyuh-tech/vyuh_node_flow/raw/main/assets/image-1.png" alt="Node Flow Editor Screenshot 1" width="800"/>
+  <img src="https://github.com/vyuh-tech/vyuh_node_flow/raw/main/packages/vyuh_node_flow/assets/image-1.png" alt="Node Flow Editor Screenshot 1" width="800"/>
   <br/>
   <br/>
-  <img src="https://github.com/vyuh-tech/vyuh_node_flow/raw/main/assets/image-2.png" alt="Node Flow Editor Screenshot 2" width="800"/>
+  <img src="https://github.com/vyuh-tech/vyuh_node_flow/raw/main/packages/vyuh_node_flow/assets/image-2.png" alt="Node Flow Editor Screenshot 2" width="800"/>
 </div>
 
 ## Installation
@@ -56,7 +54,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  vyuh_node_flow: ^0.1.0
+  vyuh_node_flow: any
 ```
 
 Then run:
