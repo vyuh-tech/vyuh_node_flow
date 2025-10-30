@@ -1,3 +1,7 @@
+## 0.2.6+4
+
+ - **FIX**: bringing the assets back ... as pub.dev expects it to be inside the archive.
+
 ## 0.2.6+3
 
  - **FIX**: setting proper example.
