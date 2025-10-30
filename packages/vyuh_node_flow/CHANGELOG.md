@@ -1,3 +1,7 @@
+## 0.2.6+3
+
+ - **FIX**: setting proper example.
+
 ## 0.2.6+2
 
  - **FIX**: updated readme with proper code formatting, added assets to pubignore to reduce package size.
