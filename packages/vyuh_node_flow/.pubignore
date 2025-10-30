@@ -6,4 +6,3 @@ devtools_options.yaml
 *.iml
 justfile
 wrangler.toml
-assets
