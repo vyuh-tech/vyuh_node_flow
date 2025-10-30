@@ -15,3 +15,22 @@ melos:
   ide:
     intellij:
       moduleNamePrefix: ''
+
+  scripts:
+    analyze:
+      description: Analyze all packages
+      run: dart analyze
+      exec:
+        concurrency: 1
+
+    test:
+      description: Run tests in all packages
+      run: flutter test
+      exec:
+        concurrency: 1
+
+    format:
+      description: Format all packages
+      run: dart format .
+      exec:
+        concurrency: 1

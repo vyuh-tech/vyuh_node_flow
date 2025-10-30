@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths:
-      - 'example/**'
-      - 'lib/**'
+      - 'packages/demo/**'
+      - 'packages/vyuh_node_flow/lib/**'
       - 'wrangler.toml'
 
 jobs:
@@ -22,15 +22,15 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Get dependencies
-        run: |
-          flutter pub get
-          cd example
-          flutter pub get
+      - name: Get workspace dependencies
+        run: dart pub get
+
+      - name: Bootstrap workspace with Melos
+        run: dart run melos bootstrap
 
       - name: Build Flutter web app
         run: |
-          cd example
+          cd packages/demo
           flutter build web --release
 
       - name: Deploy to Cloudflare Pages
@@ -38,4 +38,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy example/build/web --project-name=vyuh-node-flow
+          command: pages deploy packages/demo/build/web --project-name=vyuh-node-flow

@@ -5,13 +5,13 @@ on:
     branches:
       - main
     paths:
-      - 'lib/**'
-      - 'assets/**'
+      - 'packages/vyuh_node_flow/lib/**'
+      - 'packages/vyuh_node_flow/assets/**'
+      - 'packages/vyuh_node_flow/pubspec.yaml'
+      - 'packages/vyuh_node_flow/CHANGELOG.md'
+      - 'packages/vyuh_node_flow/README.md'
+      - 'packages/vyuh_node_flow/LICENSE'
       - '.github/**'
-      - 'pubspec.yaml'
-      - 'CHANGELOG.md'
-      - 'README.md'
-      - 'LICENSE'
 
 jobs:
   publish:
@@ -26,15 +26,19 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Get dependencies
-        run: flutter pub get
+      - name: Setup pub credentials
+        run: |
+          mkdir -p $HOME/.pub-cache
+          echo '${{ secrets.PUB_DEV_CREDENTIALS }}' > $HOME/.pub-cache/credentials.json
+
+      - name: Get workspace dependencies
+        run: dart pub get
+
+      - name: Bootstrap workspace with Melos
+        run: dart run melos bootstrap
 
       - name: Analyze code
-        run: dart analyze
+        run: dart run melos run analyze
 
-      - name: Publish to pub.dev
-        uses: k-paxian/dart-package-publisher@v1.6
-        with:
-          credentialJson: ${{ secrets.PUB_DEV_CREDENTIALS }}
-          flutter: true
-          skipTests: true
+      - name: Publish to pub.dev with Melos
+        run: dart run melos publish --no-dry-run --yes
