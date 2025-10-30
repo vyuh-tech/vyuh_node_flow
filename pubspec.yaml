@@ -15,6 +15,9 @@ melos:
   ide:
     intellij:
       moduleNamePrefix: ''
+  command:
+    version:
+      workspaceChangelog: false
 
   scripts:
     analyze:
