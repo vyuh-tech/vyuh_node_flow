@@ -1,6 +1,6 @@
 # Vyuh Node Flow
 
-![Vyuh Node Flow Banner](assets/node-flow-banner.png)
+![Vyuh Node Flow Banner](packages/vyuh_node_flow/assets/node-flow-banner.png)
 
 A flexible, high-performance node-based flow editor for Flutter applications, inspired by React Flow. This monorepo
 contains the core library and demo application.
