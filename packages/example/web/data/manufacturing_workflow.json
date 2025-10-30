@@ -1,0 +1,2821 @@
+{
+  "nodes": [
+    {
+      "id": "raw-supplier-steel",
+      "type": "Supplier",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "id": "material-out",
+          "name": "Steel Sheets",
+          "dataType": "material",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "cert-out",
+          "name": "Quality Cert",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "Steel Supplier",
+        "material": "Steel Sheets",
+        "capacity": "5000 tons/month",
+        "location": "Pittsburgh, PA",
+        "certifications": ["ISO 9001", "ISO 14001"]
+      },
+      "position": {
+        "x": 100,
+        "y": 100
+      },
+      "zIndex": 1
+    },
+    {
+      "id": "raw-supplier-aluminum",
+      "type": "Supplier",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "id": "material-out",
+          "name": "Aluminum",
+          "dataType": "material",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "cert-out",
+          "name": "Quality Cert",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "Aluminum Works",
+        "material": "Aluminum Ingots",
+        "capacity": "3000 tons/month",
+        "location": "Detroit, MI",
+        "certifications": ["ISO 9001", "AS9100"]
+      },
+      "position": {
+        "x": 100,
+        "y": 300
+      },
+      "zIndex": 1
+    },
+    {
+      "id": "raw-supplier-plastic",
+      "type": "Supplier",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "id": "material-out",
+          "name": "Plastics",
+          "dataType": "material",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "cert-out",
+          "name": "Safety Cert",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "Polymer Industries",
+        "material": "Engineering Plastics",
+        "capacity": "2000 tons/month",
+        "location": "Houston, TX",
+        "certifications": ["ISO 9001", "FDA Approved"]
+      },
+      "position": {
+        "x": 100,
+        "y": 500
+      },
+      "zIndex": 1
+    },
+    {
+      "id": "raw-supplier-electronics",
+      "type": "Supplier",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "id": "component-out",
+          "name": "Electronics",
+          "dataType": "component",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "spec-out",
+          "name": "Specifications",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "TechComponents Ltd",
+        "material": "Electronic Components",
+        "capacity": "10M units/month",
+        "location": "San Jose, CA",
+        "certifications": ["ISO 9001", "RoHS", "REACH"]
+      },
+      "position": {
+        "x": 100,
+        "y": 700
+      },
+      "zIndex": 1
+    },
+    {
+      "id": "warehouse-raw-materials",
+      "type": "Warehouse",
+      "size": {
+        "width": 160,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "steel-in",
+          "name": "Steel Input",
+          "dataType": "material",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 20
+          }
+        },
+        {
+          "id": "aluminum-in",
+          "name": "Aluminum Input",
+          "dataType": "material",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        },
+        {
+          "id": "plastic-in",
+          "name": "Plastic Input",
+          "dataType": "material",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        },
+        {
+          "id": "electronics-in",
+          "name": "Electronics Input",
+          "dataType": "component",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 110
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "material-out",
+          "name": "Materials",
+          "dataType": "material",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        },
+        {
+          "id": "inventory-data",
+          "name": "Inventory",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 80,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Central Raw Materials Warehouse",
+        "capacity": "50,000 sq ft",
+        "inventory_system": "SAP S/4HANA",
+        "climate_controlled": true,
+        "security_level": "High"
+      },
+      "position": {
+        "x": 350,
+        "y": 400
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "quality-inspection-raw",
+      "type": "QualityControl",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "material-in",
+          "name": "Raw Materials",
+          "dataType": "material",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "cert-in",
+          "name": "Certificates",
+          "dataType": "document",
+          "position": "top",
+          "offset": {
+            "x": 70,
+            "y": 0
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "approved-out",
+          "name": "Approved",
+          "dataType": "material",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "rejected-out",
+          "name": "Rejected",
+          "dataType": "material",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "report-out",
+          "name": "QC Report",
+          "dataType": "document",
+          "position": "bottom",
+          "offset": {
+            "x": 70,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Incoming Material QC",
+        "inspection_type": "Statistical Sampling",
+        "acceptance_rate": "98.5%",
+        "equipment": ["Spectrometer", "Hardness Tester", "3D Scanner"]
+      },
+      "position": {
+        "x": 600,
+        "y": 400
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "production-line-1",
+      "type": "Production",
+      "size": {
+        "width": 180,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "material-in",
+          "name": "Materials",
+          "dataType": "material",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "components-in",
+          "name": "Components",
+          "dataType": "component",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        },
+        {
+          "id": "schedule-in",
+          "name": "Schedule",
+          "dataType": "data",
+          "position": "top",
+          "offset": {
+            "x": 90,
+            "y": 0
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "product-out",
+          "name": "Body Assembly",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "waste-out",
+          "name": "Waste",
+          "dataType": "waste",
+          "position": "bottom",
+          "offset": {
+            "x": 60,
+            "y": 0
+          }
+        },
+        {
+          "id": "metrics-out",
+          "name": "Metrics",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 120,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Body Assembly Line",
+        "type": "Automated Assembly",
+        "capacity": "500 units/day",
+        "robots": 25,
+        "workers": 10,
+        "efficiency": "94%",
+        "oee": "87%"
+      },
+      "position": {
+        "x": 850,
+        "y": 100
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "production-line-2",
+      "type": "Production",
+      "size": {
+        "width": 180,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "material-in",
+          "name": "Materials",
+          "dataType": "material",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "components-in",
+          "name": "Components",
+          "dataType": "component",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        },
+        {
+          "id": "schedule-in",
+          "name": "Schedule",
+          "dataType": "data",
+          "position": "top",
+          "offset": {
+            "x": 90,
+            "y": 0
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "product-out",
+          "name": "Powertrain",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "waste-out",
+          "name": "Waste",
+          "dataType": "waste",
+          "position": "bottom",
+          "offset": {
+            "x": 60,
+            "y": 0
+          }
+        },
+        {
+          "id": "metrics-out",
+          "name": "Metrics",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 120,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Powertrain Assembly",
+        "type": "Precision Assembly",
+        "capacity": "600 units/day",
+        "robots": 30,
+        "workers": 15,
+        "efficiency": "96%",
+        "oee": "89%"
+      },
+      "position": {
+        "x": 850,
+        "y": 300
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "production-line-3",
+      "type": "Production",
+      "size": {
+        "width": 180,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "material-in",
+          "name": "Materials",
+          "dataType": "material",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "components-in",
+          "name": "Components",
+          "dataType": "component",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        },
+        {
+          "id": "schedule-in",
+          "name": "Schedule",
+          "dataType": "data",
+          "position": "top",
+          "offset": {
+            "x": 90,
+            "y": 0
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "product-out",
+          "name": "Interior",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "waste-out",
+          "name": "Waste",
+          "dataType": "waste",
+          "position": "bottom",
+          "offset": {
+            "x": 60,
+            "y": 0
+          }
+        },
+        {
+          "id": "metrics-out",
+          "name": "Metrics",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 120,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Interior Assembly",
+        "type": "Mixed Assembly",
+        "capacity": "550 units/day",
+        "robots": 15,
+        "workers": 25,
+        "efficiency": "92%",
+        "oee": "85%"
+      },
+      "position": {
+        "x": 850,
+        "y": 500
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "production-line-4",
+      "type": "Production",
+      "size": {
+        "width": 180,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "material-in",
+          "name": "Materials",
+          "dataType": "material",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "components-in",
+          "name": "Components",
+          "dataType": "component",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        },
+        {
+          "id": "schedule-in",
+          "name": "Schedule",
+          "dataType": "data",
+          "position": "top",
+          "offset": {
+            "x": 90,
+            "y": 0
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "product-out",
+          "name": "Electronics",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "waste-out",
+          "name": "E-Waste",
+          "dataType": "waste",
+          "position": "bottom",
+          "offset": {
+            "x": 60,
+            "y": 0
+          }
+        },
+        {
+          "id": "metrics-out",
+          "name": "Metrics",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 120,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Electronics Integration",
+        "type": "Precision Electronics",
+        "capacity": "700 units/day",
+        "robots": 10,
+        "workers": 20,
+        "efficiency": "98%",
+        "oee": "91%"
+      },
+      "position": {
+        "x": 850,
+        "y": 700
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "final-assembly",
+      "type": "Assembly",
+      "size": {
+        "width": 200,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "body-in",
+          "name": "Body",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "powertrain-in",
+          "name": "Powertrain",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "interior-in",
+          "name": "Interior",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        },
+        {
+          "id": "electronics-in",
+          "name": "Electronics",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 120
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "vehicle-out",
+          "name": "Complete Vehicle",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 75
+          }
+        },
+        {
+          "id": "defects-out",
+          "name": "Defects",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 100,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Final Vehicle Assembly",
+        "type": "Synchronized Assembly",
+        "capacity": "450 vehicles/day",
+        "takt_time": "90 seconds",
+        "stations": 35,
+        "workers": 150
+      },
+      "position": {
+        "x": 1150,
+        "y": 400
+      },
+      "zIndex": 4
+    },
+    {
+      "id": "quality-testing-final",
+      "type": "QualityControl",
+      "size": {
+        "width": 160,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "vehicle-in",
+          "name": "Vehicles",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        },
+        {
+          "id": "standards-in",
+          "name": "Standards",
+          "dataType": "document",
+          "position": "top",
+          "offset": {
+            "x": 80,
+            "y": 0
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "passed-out",
+          "name": "Passed",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "failed-out",
+          "name": "Failed",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        },
+        {
+          "id": "report-out",
+          "name": "Test Report",
+          "dataType": "document",
+          "position": "bottom",
+          "offset": {
+            "x": 80,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Final Quality Testing",
+        "tests": ["Road Test", "Emissions", "Safety", "Water Leak", "NVH"],
+        "pass_rate": "97.8%",
+        "average_test_time": "45 minutes"
+      },
+      "position": {
+        "x": 1450,
+        "y": 400
+      },
+      "zIndex": 4
+    },
+    {
+      "id": "paint-shop",
+      "type": "Processing",
+      "size": {
+        "width": 160,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "body-in",
+          "name": "Body Shell",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        },
+        {
+          "id": "color-spec",
+          "name": "Color Spec",
+          "dataType": "data",
+          "position": "top",
+          "offset": {
+            "x": 80,
+            "y": 0
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "painted-out",
+          "name": "Painted Body",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        },
+        {
+          "id": "voc-out",
+          "name": "VOC Emissions",
+          "dataType": "waste",
+          "position": "bottom",
+          "offset": {
+            "x": 80,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Paint Shop",
+        "process": "Electrostatic Spray",
+        "booths": 8,
+        "colors_available": 24,
+        "drying_ovens": 4,
+        "voc_recovery": "95%"
+      },
+      "position": {
+        "x": 1150,
+        "y": 100
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "warehouse-finished",
+      "type": "Warehouse",
+      "size": {
+        "width": 160,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "vehicle-in",
+          "name": "Finished Vehicles",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        },
+        {
+          "id": "docs-in",
+          "name": "Documentation",
+          "dataType": "document",
+          "position": "top",
+          "offset": {
+            "x": 80,
+            "y": 0
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "vehicle-out",
+          "name": "To Shipping",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        },
+        {
+          "id": "inventory-out",
+          "name": "Inventory",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 80,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Finished Goods Warehouse",
+        "capacity": "2,500 vehicles",
+        "average_dwell_time": "3.5 days",
+        "loading_bays": 20,
+        "security": "24/7 Surveillance"
+      },
+      "position": {
+        "x": 1750,
+        "y": 400
+      },
+      "zIndex": 5
+    },
+    {
+      "id": "shipping-domestic",
+      "type": "Shipping",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "vehicle-in",
+          "name": "Vehicles",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "orders-in",
+          "name": "Orders",
+          "dataType": "data",
+          "position": "top",
+          "offset": {
+            "x": 70,
+            "y": 0
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "shipped-out",
+          "name": "Shipped",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "tracking-out",
+          "name": "Tracking",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 70,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Domestic Shipping",
+        "carriers": ["Rail", "Truck"],
+        "destinations": 150,
+        "average_transit": "3-5 days",
+        "tracking_system": "GPS + RFID"
+      },
+      "position": {
+        "x": 2000,
+        "y": 300
+      },
+      "zIndex": 5
+    },
+    {
+      "id": "shipping-export",
+      "type": "Shipping",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "vehicle-in",
+          "name": "Vehicles",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "export-docs",
+          "name": "Export Docs",
+          "dataType": "document",
+          "position": "top",
+          "offset": {
+            "x": 70,
+            "y": 0
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "shipped-out",
+          "name": "Exported",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "customs-out",
+          "name": "Customs",
+          "dataType": "document",
+          "position": "bottom",
+          "offset": {
+            "x": 70,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Export Shipping",
+        "ports": ["Los Angeles", "New York", "Miami"],
+        "countries": 45,
+        "average_transit": "15-30 days",
+        "compliance": "ISO, EPA, EU Standards"
+      },
+      "position": {
+        "x": 2000,
+        "y": 500
+      },
+      "zIndex": 5
+    },
+    {
+      "id": "dealer-network",
+      "type": "Distribution",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "vehicle-in",
+          "name": "Vehicles",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "allocation-in",
+          "name": "Allocation",
+          "dataType": "data",
+          "position": "top",
+          "offset": {
+            "x": 70,
+            "y": 0
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "sales-out",
+          "name": "Sales Data",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "Dealer Network",
+        "dealers": 1250,
+        "regions": ["North", "South", "East", "West"],
+        "average_inventory": "60 days",
+        "customer_satisfaction": "4.5/5"
+      },
+      "position": {
+        "x": 2250,
+        "y": 400
+      },
+      "zIndex": 6
+    },
+    {
+      "id": "erp-system",
+      "type": "System",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "data-in",
+          "name": "All Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "reports-out",
+          "name": "Reports",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "analytics-out",
+          "name": "Analytics",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "alerts-out",
+          "name": "Alerts",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "SAP S/4HANA",
+        "modules": ["Production", "Supply Chain", "Finance", "HR"],
+        "users": 5000,
+        "integration_points": 127,
+        "uptime": "99.9%"
+      },
+      "position": {
+        "x": 1450,
+        "y": 700
+      },
+      "zIndex": 7
+    },
+    {
+      "id": "mes-system",
+      "type": "System",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "production-data",
+          "name": "Production Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "real-time-out",
+          "name": "Real-time Data",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "oee-out",
+          "name": "OEE Metrics",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "schedule-out",
+          "name": "Schedules",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "Manufacturing Execution System",
+        "vendor": "Siemens Opcenter",
+        "connected_equipment": 450,
+        "data_points": "10,000/second",
+        "dashboards": 75
+      },
+      "position": {
+        "x": 1450,
+        "y": 900
+      },
+      "zIndex": 7
+    },
+    {
+      "id": "scada-system",
+      "type": "System",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "sensor-data",
+          "name": "Sensor Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "control-out",
+          "name": "Control Signals",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "alarms-out",
+          "name": "Alarms",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "historian-out",
+          "name": "Historical Data",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "SCADA Control System",
+        "plc_count": 250,
+        "hmi_stations": 50,
+        "response_time": "<100ms",
+        "redundancy": "N+1"
+      },
+      "position": {
+        "x": 1450,
+        "y": 1100
+      },
+      "zIndex": 7
+    },
+    {
+      "id": "waste-management",
+      "type": "WasteManagement",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "solid-waste",
+          "name": "Solid Waste",
+          "dataType": "waste",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "liquid-waste",
+          "name": "Liquid Waste",
+          "dataType": "waste",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "hazmat-waste",
+          "name": "Hazardous",
+          "dataType": "waste",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "recycled-out",
+          "name": "Recycled",
+          "dataType": "material",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "disposal-out",
+          "name": "Disposal",
+          "dataType": "waste",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Waste Processing Center",
+        "recycling_rate": "87%",
+        "landfill_diversion": "92%",
+        "treatment_methods": ["Incineration", "Chemical", "Biological"],
+        "certifications": ["ISO 14001", "R2"]
+      },
+      "position": {
+        "x": 850,
+        "y": 900
+      },
+      "zIndex": 6
+    },
+    {
+      "id": "energy-management",
+      "type": "Utility",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "grid-power",
+          "name": "Grid Power",
+          "dataType": "energy",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "solar-power",
+          "name": "Solar",
+          "dataType": "energy",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "demand-data",
+          "name": "Demand",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "power-out",
+          "name": "Distributed Power",
+          "dataType": "energy",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "metrics-out",
+          "name": "Energy Metrics",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Energy Management System",
+        "total_capacity": "50 MW",
+        "solar_capacity": "10 MW",
+        "battery_storage": "5 MWh",
+        "peak_shaving": "15%",
+        "renewable_percentage": "20%"
+      },
+      "position": {
+        "x": 850,
+        "y": 1100
+      },
+      "zIndex": 6
+    },
+    {
+      "id": "water-treatment",
+      "type": "Utility",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "water-in",
+          "name": "Raw Water",
+          "dataType": "water",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "wastewater-in",
+          "name": "Wastewater",
+          "dataType": "waste",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "process-water",
+          "name": "Process Water",
+          "dataType": "water",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "treated-water",
+          "name": "Treated Water",
+          "dataType": "water",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Water Treatment Plant",
+        "capacity": "2 million gallons/day",
+        "recovery_rate": "75%",
+        "treatment_stages": 5,
+        "quality_standard": "EPA Compliant"
+      },
+      "position": {
+        "x": 850,
+        "y": 1300
+      },
+      "zIndex": 6
+    },
+    {
+      "id": "research-development",
+      "type": "R&D",
+      "size": {
+        "width": 160,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "market-data",
+          "name": "Market Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "feedback-in",
+          "name": "Customer Feedback",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "regulations-in",
+          "name": "Regulations",
+          "dataType": "document",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "designs-out",
+          "name": "New Designs",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "prototypes-out",
+          "name": "Prototypes",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "R&D Center",
+        "engineers": 250,
+        "labs": 15,
+        "patents_filed": 127,
+        "active_projects": 45,
+        "budget": "$50M/year"
+      },
+      "position": {
+        "x": 100,
+        "y": 900
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "supplier-portal",
+      "type": "System",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "orders-in",
+          "name": "Purchase Orders",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "confirmations-out",
+          "name": "Confirmations",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "invoices-out",
+          "name": "Invoices",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "performance-out",
+          "name": "Performance",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "Supplier Collaboration Portal",
+        "active_suppliers": 350,
+        "transactions_per_day": 5000,
+        "integration": "EDI, API, Web",
+        "languages": 15
+      },
+      "position": {
+        "x": 100,
+        "y": 1100
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "customer-portal",
+      "type": "System",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "orders-in",
+          "name": "Customer Orders",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "status-out",
+          "name": "Order Status",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "tracking-out",
+          "name": "Tracking Info",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "support-out",
+          "name": "Support Tickets",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "Customer Experience Portal",
+        "registered_users": "2.5M",
+        "daily_active_users": "150K",
+        "features": ["Configure", "Order", "Track", "Service"],
+        "mobile_app": true
+      },
+      "position": {
+        "x": 2250,
+        "y": 700
+      },
+      "zIndex": 6
+    },
+    {
+      "id": "training-center",
+      "type": "HumanResources",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "staff-in",
+          "name": "New Staff",
+          "dataType": "human",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "curriculum-in",
+          "name": "Training Plans",
+          "dataType": "document",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "certified-out",
+          "name": "Certified Staff",
+          "dataType": "human",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "skills-out",
+          "name": "Skills Matrix",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Technical Training Center",
+        "capacity": "500 trainees/month",
+        "programs": 45,
+        "simulators": 12,
+        "vr_stations": 8,
+        "certification_rate": "94%"
+      },
+      "position": {
+        "x": 350,
+        "y": 900
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "maintenance-depot",
+      "type": "Maintenance",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "equipment-in",
+          "name": "Equipment",
+          "dataType": "equipment",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "schedule-in",
+          "name": "Maint Schedule",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "serviced-out",
+          "name": "Serviced",
+          "dataType": "equipment",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "reports-out",
+          "name": "Maint Reports",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Central Maintenance",
+        "technicians": 75,
+        "bays": 20,
+        "predictive_maintenance": true,
+        "mtbf": "2500 hours",
+        "availability": "98.5%"
+      },
+      "position": {
+        "x": 350,
+        "y": 1100
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "tool-crib",
+      "type": "Storage",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "tools-in",
+          "name": "New Tools",
+          "dataType": "equipment",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "tools-out",
+          "name": "Tools",
+          "dataType": "equipment",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "inventory-out",
+          "name": "Tool Inventory",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Central Tool Crib",
+        "tool_types": 2500,
+        "total_tools": 15000,
+        "vending_machines": 25,
+        "rfid_tracking": true,
+        "utilization": "87%"
+      },
+      "position": {
+        "x": 350,
+        "y": 1300
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "cafeteria",
+      "type": "Facility",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "supplies-in",
+          "name": "Food Supplies",
+          "dataType": "material",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "meals-out",
+          "name": "Meals Served",
+          "dataType": "service",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "data": {
+        "name": "Employee Cafeteria",
+        "capacity": 1000,
+        "meals_per_day": 4500,
+        "menu_options": 25,
+        "dietary_options": ["Vegan", "Halal", "Kosher", "Gluten-free"],
+        "satisfaction": "4.2/5"
+      },
+      "position": {
+        "x": 600,
+        "y": 900
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "medical-center",
+      "type": "Facility",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "patients-in",
+          "name": "Employees",
+          "dataType": "human",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "treated-out",
+          "name": "Treated",
+          "dataType": "human",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "records-out",
+          "name": "Medical Records",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "On-site Medical Center",
+        "doctors": 3,
+        "nurses": 8,
+        "beds": 20,
+        "services": ["Emergency", "Occupational Health", "Wellness"],
+        "response_time": "<5 minutes"
+      },
+      "position": {
+        "x": 600,
+        "y": 1100
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "security-office",
+      "type": "Facility",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "alerts-in",
+          "name": "Security Alerts",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "clearance-out",
+          "name": "Clearances",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "reports-out",
+          "name": "Incident Reports",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Security Operations Center",
+        "personnel": 50,
+        "cameras": 500,
+        "access_points": 75,
+        "monitoring": "24/7",
+        "incident_response": "<2 minutes"
+      },
+      "position": {
+        "x": 600,
+        "y": 1300
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "it-datacenter",
+      "type": "System",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "data-in",
+          "name": "Data Streams",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "compute-out",
+          "name": "Computing",
+          "dataType": "service",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "storage-out",
+          "name": "Storage",
+          "dataType": "service",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "backup-out",
+          "name": "Backups",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "IT Data Center",
+        "servers": 500,
+        "storage": "5 PB",
+        "network": "100 Gbps",
+        "cooling": "N+1 Redundant",
+        "uptime": "99.99%"
+      },
+      "position": {
+        "x": 1750,
+        "y": 900
+      },
+      "zIndex": 7
+    },
+    {
+      "id": "ai-analytics",
+      "type": "System",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "bigdata-in",
+          "name": "Big Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "predictions-out",
+          "name": "Predictions",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "insights-out",
+          "name": "Insights",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "optimization-out",
+          "name": "Optimization",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "AI & Analytics Platform",
+        "models": 150,
+        "accuracy": "94%",
+        "processing": "Real-time",
+        "ml_frameworks": ["TensorFlow", "PyTorch", "Scikit-learn"],
+        "use_cases": ["Quality", "Predictive Maintenance", "Demand Forecast"]
+      },
+      "position": {
+        "x": 1750,
+        "y": 1100
+      },
+      "zIndex": 7
+    },
+    {
+      "id": "sustainability-office",
+      "type": "Management",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "metrics-in",
+          "name": "Env Metrics",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "reports-out",
+          "name": "ESG Reports",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "targets-out",
+          "name": "Targets",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "data": {
+        "name": "Sustainability Office",
+        "carbon_reduction": "25% by 2025",
+        "renewable_energy": "30%",
+        "water_recycling": "75%",
+        "zero_landfill": true,
+        "certifications": ["Carbon Neutral", "LEED Platinum"]
+      },
+      "position": {
+        "x": 1150,
+        "y": 1300
+      },
+      "zIndex": 5
+    },
+    {
+      "id": "finance-office",
+      "type": "Management",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "transactions-in",
+          "name": "Transactions",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "reports-out",
+          "name": "Financial Reports",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "budgets-out",
+          "name": "Budgets",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "forecasts-out",
+          "name": "Forecasts",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "Finance Department",
+        "annual_revenue": "$5B",
+        "cost_centers": 150,
+        "audit_rating": "Clean",
+        "payment_terms": "Net 30",
+        "roi": "15.2%"
+      },
+      "position": {
+        "x": 2000,
+        "y": 900
+      },
+      "zIndex": 6
+    },
+    {
+      "id": "hr-office",
+      "type": "Management",
+      "size": {
+        "width": 140,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "applications-in",
+          "name": "Applications",
+          "dataType": "document",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "hires-out",
+          "name": "New Hires",
+          "dataType": "human",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 30
+          }
+        },
+        {
+          "id": "policies-out",
+          "name": "HR Policies",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "benefits-out",
+          "name": "Benefits",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "data": {
+        "name": "Human Resources",
+        "employees": 15000,
+        "contractors": 2000,
+        "turnover_rate": "8%",
+        "satisfaction": "4.3/5",
+        "diversity_index": "0.75"
+      },
+      "position": {
+        "x": 2000,
+        "y": 1100
+      },
+      "zIndex": 6
+    },
+    {
+      "id": "executive-dashboard",
+      "type": "System",
+      "size": {
+        "width": 160,
+        "height": 150
+      },
+      "inputPorts": [
+        {
+          "id": "kpi-in",
+          "name": "All KPIs",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 50
+          }
+        },
+        {
+          "id": "alerts-in",
+          "name": "Critical Alerts",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 90
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "decisions-out",
+          "name": "Decisions",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 70
+          }
+        }
+      ],
+      "data": {
+        "name": "Executive Command Center",
+        "displays": 20,
+        "kpis_tracked": 250,
+        "update_frequency": "Real-time",
+        "ai_insights": true,
+        "what_if_scenarios": true
+      },
+      "position": {
+        "x": 2250,
+        "y": 1000
+      },
+      "zIndex": 8
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "sourceNodeId": "raw-supplier-steel",
+      "sourcePortId": "material-out",
+      "targetNodeId": "warehouse-raw-materials",
+      "targetPortId": "steel-in"
+    },
+    {
+      "id": "conn-2",
+      "sourceNodeId": "raw-supplier-aluminum",
+      "sourcePortId": "material-out",
+      "targetNodeId": "warehouse-raw-materials",
+      "targetPortId": "aluminum-in"
+    },
+    {
+      "id": "conn-3",
+      "sourceNodeId": "raw-supplier-plastic",
+      "sourcePortId": "material-out",
+      "targetNodeId": "warehouse-raw-materials",
+      "targetPortId": "plastic-in"
+    },
+    {
+      "id": "conn-4",
+      "sourceNodeId": "raw-supplier-electronics",
+      "sourcePortId": "component-out",
+      "targetNodeId": "warehouse-raw-materials",
+      "targetPortId": "electronics-in"
+    },
+    {
+      "id": "conn-5",
+      "sourceNodeId": "warehouse-raw-materials",
+      "sourcePortId": "material-out",
+      "targetNodeId": "quality-inspection-raw",
+      "targetPortId": "material-in"
+    },
+    {
+      "id": "conn-6",
+      "sourceNodeId": "quality-inspection-raw",
+      "sourcePortId": "approved-out",
+      "targetNodeId": "production-line-1",
+      "targetPortId": "material-in"
+    },
+    {
+      "id": "conn-7",
+      "sourceNodeId": "quality-inspection-raw",
+      "sourcePortId": "approved-out",
+      "targetNodeId": "production-line-2",
+      "targetPortId": "material-in"
+    },
+    {
+      "id": "conn-8",
+      "sourceNodeId": "quality-inspection-raw",
+      "sourcePortId": "approved-out",
+      "targetNodeId": "production-line-3",
+      "targetPortId": "material-in"
+    },
+    {
+      "id": "conn-9",
+      "sourceNodeId": "quality-inspection-raw",
+      "sourcePortId": "approved-out",
+      "targetNodeId": "production-line-4",
+      "targetPortId": "components-in"
+    },
+    {
+      "id": "conn-10",
+      "sourceNodeId": "production-line-1",
+      "sourcePortId": "product-out",
+      "targetNodeId": "paint-shop",
+      "targetPortId": "body-in"
+    },
+    {
+      "id": "conn-11",
+      "sourceNodeId": "paint-shop",
+      "sourcePortId": "painted-out",
+      "targetNodeId": "final-assembly",
+      "targetPortId": "body-in"
+    },
+    {
+      "id": "conn-12",
+      "sourceNodeId": "production-line-2",
+      "sourcePortId": "product-out",
+      "targetNodeId": "final-assembly",
+      "targetPortId": "powertrain-in"
+    },
+    {
+      "id": "conn-13",
+      "sourceNodeId": "production-line-3",
+      "sourcePortId": "product-out",
+      "targetNodeId": "final-assembly",
+      "targetPortId": "interior-in"
+    },
+    {
+      "id": "conn-14",
+      "sourceNodeId": "production-line-4",
+      "sourcePortId": "product-out",
+      "targetNodeId": "final-assembly",
+      "targetPortId": "electronics-in"
+    },
+    {
+      "id": "conn-15",
+      "sourceNodeId": "final-assembly",
+      "sourcePortId": "vehicle-out",
+      "targetNodeId": "quality-testing-final",
+      "targetPortId": "vehicle-in"
+    },
+    {
+      "id": "conn-16",
+      "sourceNodeId": "quality-testing-final",
+      "sourcePortId": "passed-out",
+      "targetNodeId": "warehouse-finished",
+      "targetPortId": "vehicle-in"
+    },
+    {
+      "id": "conn-17",
+      "sourceNodeId": "warehouse-finished",
+      "sourcePortId": "vehicle-out",
+      "targetNodeId": "shipping-domestic",
+      "targetPortId": "vehicle-in"
+    },
+    {
+      "id": "conn-18",
+      "sourceNodeId": "warehouse-finished",
+      "sourcePortId": "vehicle-out",
+      "targetNodeId": "shipping-export",
+      "targetPortId": "vehicle-in"
+    },
+    {
+      "id": "conn-19",
+      "sourceNodeId": "shipping-domestic",
+      "sourcePortId": "shipped-out",
+      "targetNodeId": "dealer-network",
+      "targetPortId": "vehicle-in"
+    },
+    {
+      "id": "conn-20",
+      "sourceNodeId": "production-line-1",
+      "sourcePortId": "waste-out",
+      "targetNodeId": "waste-management",
+      "targetPortId": "solid-waste"
+    },
+    {
+      "id": "conn-21",
+      "sourceNodeId": "production-line-2",
+      "sourcePortId": "waste-out",
+      "targetNodeId": "waste-management",
+      "targetPortId": "solid-waste"
+    },
+    {
+      "id": "conn-22",
+      "sourceNodeId": "production-line-3",
+      "sourcePortId": "waste-out",
+      "targetNodeId": "waste-management",
+      "targetPortId": "solid-waste"
+    },
+    {
+      "id": "conn-23",
+      "sourceNodeId": "production-line-4",
+      "sourcePortId": "waste-out",
+      "targetNodeId": "waste-management",
+      "targetPortId": "hazmat-waste"
+    },
+    {
+      "id": "conn-24",
+      "sourceNodeId": "paint-shop",
+      "sourcePortId": "voc-out",
+      "targetNodeId": "waste-management",
+      "targetPortId": "liquid-waste"
+    },
+    {
+      "id": "conn-25",
+      "sourceNodeId": "production-line-1",
+      "sourcePortId": "metrics-out",
+      "targetNodeId": "mes-system",
+      "targetPortId": "production-data"
+    },
+    {
+      "id": "conn-26",
+      "sourceNodeId": "production-line-2",
+      "sourcePortId": "metrics-out",
+      "targetNodeId": "mes-system",
+      "targetPortId": "production-data"
+    },
+    {
+      "id": "conn-27",
+      "sourceNodeId": "production-line-3",
+      "sourcePortId": "metrics-out",
+      "targetNodeId": "mes-system",
+      "targetPortId": "production-data"
+    },
+    {
+      "id": "conn-28",
+      "sourceNodeId": "production-line-4",
+      "sourcePortId": "metrics-out",
+      "targetNodeId": "mes-system",
+      "targetPortId": "production-data"
+    },
+    {
+      "id": "conn-29",
+      "sourceNodeId": "mes-system",
+      "sourcePortId": "real-time-out",
+      "targetNodeId": "scada-system",
+      "targetPortId": "sensor-data"
+    },
+    {
+      "id": "conn-30",
+      "sourceNodeId": "mes-system",
+      "sourcePortId": "oee-out",
+      "targetNodeId": "erp-system",
+      "targetPortId": "data-in"
+    },
+    {
+      "id": "conn-31",
+      "sourceNodeId": "warehouse-raw-materials",
+      "sourcePortId": "inventory-data",
+      "targetNodeId": "erp-system",
+      "targetPortId": "data-in"
+    },
+    {
+      "id": "conn-32",
+      "sourceNodeId": "warehouse-finished",
+      "sourcePortId": "inventory-out",
+      "targetNodeId": "erp-system",
+      "targetPortId": "data-in"
+    },
+    {
+      "id": "conn-33",
+      "sourceNodeId": "dealer-network",
+      "sourcePortId": "sales-out",
+      "targetNodeId": "erp-system",
+      "targetPortId": "data-in"
+    },
+    {
+      "id": "conn-34",
+      "sourceNodeId": "erp-system",
+      "sourcePortId": "analytics-out",
+      "targetNodeId": "ai-analytics",
+      "targetPortId": "bigdata-in"
+    },
+    {
+      "id": "conn-35",
+      "sourceNodeId": "scada-system",
+      "sourcePortId": "historian-out",
+      "targetNodeId": "ai-analytics",
+      "targetPortId": "bigdata-in"
+    },
+    {
+      "id": "conn-36",
+      "sourceNodeId": "ai-analytics",
+      "sourcePortId": "insights-out",
+      "targetNodeId": "executive-dashboard",
+      "targetPortId": "kpi-in"
+    },
+    {
+      "id": "conn-37",
+      "sourceNodeId": "scada-system",
+      "sourcePortId": "alarms-out",
+      "targetNodeId": "executive-dashboard",
+      "targetPortId": "alerts-in"
+    },
+    {
+      "id": "conn-38",
+      "sourceNodeId": "erp-system",
+      "sourcePortId": "reports-out",
+      "targetNodeId": "finance-office",
+      "targetPortId": "transactions-in"
+    },
+    {
+      "id": "conn-39",
+      "sourceNodeId": "customer-portal",
+      "sourcePortId": "support-out",
+      "targetNodeId": "erp-system",
+      "targetPortId": "data-in"
+    },
+    {
+      "id": "conn-40",
+      "sourceNodeId": "supplier-portal",
+      "sourcePortId": "performance-out",
+      "targetNodeId": "erp-system",
+      "targetPortId": "data-in"
+    },
+    {
+      "id": "conn-41",
+      "sourceNodeId": "energy-management",
+      "sourcePortId": "metrics-out",
+      "targetNodeId": "sustainability-office",
+      "targetPortId": "metrics-in"
+    },
+    {
+      "id": "conn-42",
+      "sourceNodeId": "waste-management",
+      "sourcePortId": "recycled-out",
+      "targetNodeId": "sustainability-office",
+      "targetPortId": "metrics-in"
+    },
+    {
+      "id": "conn-43",
+      "sourceNodeId": "water-treatment",
+      "sourcePortId": "treated-water",
+      "targetNodeId": "sustainability-office",
+      "targetPortId": "metrics-in"
+    },
+    {
+      "id": "conn-44",
+      "sourceNodeId": "mes-system",
+      "sourcePortId": "schedule-out",
+      "targetNodeId": "production-line-1",
+      "targetPortId": "schedule-in"
+    },
+    {
+      "id": "conn-45",
+      "sourceNodeId": "mes-system",
+      "sourcePortId": "schedule-out",
+      "targetNodeId": "production-line-2",
+      "targetPortId": "schedule-in"
+    },
+    {
+      "id": "conn-46",
+      "sourceNodeId": "mes-system",
+      "sourcePortId": "schedule-out",
+      "targetNodeId": "production-line-3",
+      "targetPortId": "schedule-in"
+    },
+    {
+      "id": "conn-47",
+      "sourceNodeId": "mes-system",
+      "sourcePortId": "schedule-out",
+      "targetNodeId": "production-line-4",
+      "targetPortId": "schedule-in"
+    },
+    {
+      "id": "conn-48",
+      "sourceNodeId": "training-center",
+      "sourcePortId": "certified-out",
+      "targetNodeId": "hr-office",
+      "targetPortId": "applications-in"
+    },
+    {
+      "id": "conn-49",
+      "sourceNodeId": "quality-inspection-raw",
+      "sourcePortId": "report-out",
+      "targetNodeId": "erp-system",
+      "targetPortId": "data-in"
+    },
+    {
+      "id": "conn-50",
+      "sourceNodeId": "quality-testing-final",
+      "sourcePortId": "report-out",
+      "targetNodeId": "erp-system",
+      "targetPortId": "data-in"
+    }
+  ],
+  "viewport": {
+    "x": -100,
+    "y": -50,
+    "zoom": 0.5
+  }
+}
