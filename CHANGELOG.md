@@ -1,3 +1,28 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## 2025-10-30
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`vyuh_node_flow` - `v0.2.5+1`](#vyuh_node_flow---v0251)
+
+---
+
+#### `vyuh_node_flow` - `v0.2.5+1`
+
+ - **FIX**: align horizontal, align vertical, distribute horizontal, distribute vertical. grid layout and hierarchical layout were not working properly because the visual positions were not being set.
+
 ## 0.2.5
 
 - Added API docs for `NodeFlowEditor` and `NodeFlowController`
