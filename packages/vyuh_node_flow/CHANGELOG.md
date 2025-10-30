@@ -1,3 +1,7 @@
+## 0.2.6
+
+ - Fixed alignment and distribution of nodes
+
 ## 0.2.5+1
 
  - **FIX**: align horizontal, align vertical, distribute horizontal, distribute vertical. grid layout and hierarchical layout were not working properly because the visual positions were not being set.

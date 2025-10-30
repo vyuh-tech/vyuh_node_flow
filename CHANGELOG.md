@@ -15,6 +15,27 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`vyuh_node_flow` - `v0.2.6`](#vyuh_node_flow---v026)
+
+---
+
+#### `vyuh_node_flow` - `v0.2.6`
+
+ - Fixed alignment and distribution of nodes
+
+
+## 2025-10-30
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`vyuh_node_flow` - `v0.2.5+1`](#vyuh_node_flow---v0251)
 
 ---
