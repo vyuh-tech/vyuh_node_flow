@@ -5,12 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'packages/vyuh_node_flow/lib/**'
-      - '../../assets/**'
-      - 'packages/vyuh_node_flow/pubspec.yaml'
-      - 'packages/vyuh_node_flow/CHANGELOG.md'
-      - 'packages/vyuh_node_flow/README.md'
-      - 'packages/vyuh_node_flow/LICENSE'
+      - 'packages/vyuh_node_flow/**'
       - '.github/**'
 
 jobs:
