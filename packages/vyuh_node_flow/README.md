@@ -28,6 +28,7 @@ minimap, and more.
 ## ✨ Key Features
 
 - **High Performance** - Reactive, optimized rendering for smooth interactions
+- **Type-Safe Node Data** - Generic type support for strongly-typed node data
 - **Fully Customizable** - Comprehensive theming system for nodes, connections,
   and ports
 - **Flexible Ports** - Multiple port shapes, positions, and connection
