@@ -1,3 +1,7 @@
+## 0.2.6+1
+
+ - **FIX**: add example and update image links in readme.
+
 ## 0.2.6
 
  - Fixed alignment and distribution of nodes
