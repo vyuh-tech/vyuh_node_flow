@@ -1516,7 +1516,10 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       for (int i = 0; i < nodeList.length; i++) {
         final row = i ~/ gridSize;
         final col = i % gridSize;
-        nodeList[i].position.value = Offset(col * spacing, row * spacing);
+        final newPosition = Offset(col * spacing, row * spacing);
+        nodeList[i].position.value = newPosition;
+        // Update visual position with snapping
+        nodeList[i].setVisualPosition(_config.snapToGridIfEnabled(newPosition));
       }
     });
   }
@@ -1542,7 +1545,10 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       for (final entry in nodesByType.entries) {
         double x = 0;
         for (final node in entry.value) {
-          node.position.value = Offset(x, y);
+          final newPosition = Offset(x, y);
+          node.position.value = newPosition;
+          // Update visual position with snapping
+          node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
           x += 200;
         }
         y += 150;
@@ -1858,7 +1864,10 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     runInAction(() {
       for (int i = 1; i < nodes.length - 1; i++) {
         final targetX = leftmost + spacing * i;
-        nodes[i].position.value = Offset(targetX, nodes[i].position.value.dy);
+        final newPosition = Offset(targetX, nodes[i].position.value.dy);
+        nodes[i].position.value = newPosition;
+        // Update visual position with snapping
+        nodes[i].setVisualPosition(_config.snapToGridIfEnabled(newPosition));
       }
     });
   }
@@ -1893,7 +1902,10 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     runInAction(() {
       for (int i = 1; i < nodes.length - 1; i++) {
         final targetY = topmost + spacing * i;
-        nodes[i].position.value = Offset(nodes[i].position.value.dx, targetY);
+        final newPosition = Offset(nodes[i].position.value.dx, targetY);
+        nodes[i].position.value = newPosition;
+        // Update visual position with snapping
+        nodes[i].setVisualPosition(_config.snapToGridIfEnabled(newPosition));
       }
     });
   }

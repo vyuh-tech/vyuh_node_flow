@@ -6,7 +6,12 @@ environment:
 
 workspace:
   - packages/vyuh_node_flow
-  - packages/example
+  - packages/demo
 
 dev_dependencies:
   melos: ^7.3.0
+
+melos:
+  ide:
+    intellij:
+      moduleNamePrefix: ''

@@ -537,33 +537,33 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                       _showSnackBar('Arranged nodes hierarchically');
                     }),
                     Observer(
-                      name: 'AlignHorizontalButton',
+                      name: 'AlignYButton',
                       builder: (context) => _buildGridButton(
-                        'Align Horizontal',
-                        Icons.horizontal_rule,
+                        'Align Y',
+                        Icons.align_vertical_center,
                         _store.selectedNodeIds.length >= 2
                             ? () {
                                 _store.alignNodes(
                                   _store.selectedNodeIds.toList(),
-                                  NodeAlignment.center,
+                                  NodeAlignment.verticalCenter,
                                 );
-                                _showSnackBar('Aligned nodes horizontally');
+                                _showSnackBar('Aligned nodes on Y axis');
                               }
                             : null,
                       ),
                     ),
                     Observer(
-                      name: 'AlignVerticalButton',
+                      name: 'AlignXButton',
                       builder: (context) => _buildGridButton(
-                        'Align Vertical',
-                        Icons.vertical_align_center,
+                        'Align X',
+                        Icons.align_horizontal_center,
                         _store.selectedNodeIds.length >= 2
                             ? () {
                                 _store.alignNodes(
                                   _store.selectedNodeIds.toList(),
-                                  NodeAlignment.center,
+                                  NodeAlignment.horizontalCenter,
                                 );
-                                _showSnackBar('Aligned nodes vertically');
+                                _showSnackBar('Aligned nodes on X axis');
                               }
                             : null,
                       ),
@@ -572,7 +572,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                       name: 'DistributeHorizontalButton',
                       builder: (context) => _buildGridButton(
                         'Distribute H',
-                        Icons.more_horiz,
+                        Icons.view_column,
                         _store.selectedNodeIds.length >= 3
                             ? () {
                                 _store.distributeNodesHorizontally(
@@ -1495,43 +1495,6 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                 },
               ),
               const SizedBox(height: 16),
-
-              // Minimum Size
-              const Text(
-                'Minimum Size',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              _buildSlider(
-                'Width',
-                _nodeFlowTheme.nodeTheme.minWidth,
-                50.0,
-                300.0,
-                (value) {
-                  setState(() {
-                    _nodeFlowTheme = _nodeFlowTheme.copyWith(
-                      nodeTheme: _nodeFlowTheme.nodeTheme.copyWith(
-                        minWidth: value,
-                      ),
-                    );
-                  });
-                },
-              ),
-              _buildSlider(
-                'Height',
-                _nodeFlowTheme.nodeTheme.minHeight,
-                50.0,
-                200.0,
-                (value) {
-                  setState(() {
-                    _nodeFlowTheme = _nodeFlowTheme.copyWith(
-                      nodeTheme: _nodeFlowTheme.nodeTheme.copyWith(
-                        minHeight: value,
-                      ),
-                    );
-                  });
-                },
-              ),
             ],
           ),
         ),
