@@ -40,9 +40,9 @@ final class GraphViewport {
 
   factory GraphViewport.fromJson(Map<String, dynamic> json) {
     return GraphViewport(
-      x: json['x'] as double? ?? 0.0,
-      y: json['y'] as double? ?? 0.0,
-      zoom: json['zoom'] as double? ?? 1.0,
+      x: (json['x'] as num?)?.toDouble() ?? 0.0,
+      y: (json['y'] as num?)?.toDouble() ?? 0.0,
+      zoom: (json['zoom'] as num?)?.toDouble() ?? 1.0,
     );
   }
 

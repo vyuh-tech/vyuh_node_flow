@@ -316,7 +316,10 @@ class StickyAnnotation extends Annotation {
   factory StickyAnnotation.fromJsonMap(Map<String, dynamic> json) {
     return StickyAnnotation(
       id: json['id'] as String,
-      position: Offset(json['x'] as double, json['y'] as double),
+      position: Offset(
+        (json['x'] as num).toDouble(),
+        (json['y'] as num).toDouble(),
+      ),
       text: json['text'] as String? ?? '',
       width: (json['width'] as num?)?.toDouble() ?? 200.0,
       height: (json['height'] as num?)?.toDouble() ?? 100.0,
@@ -327,7 +330,10 @@ class StickyAnnotation extends Annotation {
       dependencies:
           (json['dependencies'] as List?)?.cast<String>().toSet() ?? {},
       offset: json['offsetX'] != null && json['offsetY'] != null
-          ? Offset(json['offsetX'] as double, json['offsetY'] as double)
+          ? Offset(
+              (json['offsetX'] as num).toDouble(),
+              (json['offsetY'] as num).toDouble(),
+            )
           : Offset.zero,
       metadata: json['metadata'] as Map<String, dynamic>? ?? {},
     );
@@ -354,7 +360,10 @@ class StickyAnnotation extends Annotation {
 
   @override
   void fromJson(Map<String, dynamic> json) {
-    final newPosition = Offset(json['x'] as double, json['y'] as double);
+    final newPosition = Offset(
+      (json['x'] as num).toDouble(),
+      (json['y'] as num).toDouble(),
+    );
     setPosition(newPosition);
     // Visual position will be set by controller with snapping
     setZIndex(json['zIndex'] as int? ?? 0);
@@ -504,7 +513,10 @@ class GroupAnnotation extends Annotation {
   factory GroupAnnotation.fromJsonMap(Map<String, dynamic> json) {
     final annotation = GroupAnnotation(
       id: json['id'] as String,
-      position: Offset(json['x'] as double, json['y'] as double),
+      position: Offset(
+        (json['x'] as num).toDouble(),
+        (json['y'] as num).toDouble(),
+      ),
       title: json['title'] as String? ?? '',
       padding: json['padding'] != null
           ? EdgeInsets.fromLTRB(
@@ -548,7 +560,10 @@ class GroupAnnotation extends Annotation {
 
   @override
   void fromJson(Map<String, dynamic> json) {
-    final newPosition = Offset(json['x'] as double, json['y'] as double);
+    final newPosition = Offset(
+      (json['x'] as num).toDouble(),
+      (json['y'] as num).toDouble(),
+    );
     setPosition(newPosition);
     setVisualPosition(newPosition); // Initialize visual position to match
     setZIndex(json['zIndex'] as int? ?? -1);
@@ -678,7 +693,10 @@ class MarkerAnnotation extends Annotation {
 
     final annotation = MarkerAnnotation(
       id: json['id'] as String,
-      position: Offset(json['x'] as double, json['y'] as double),
+      position: Offset(
+        (json['x'] as num).toDouble(),
+        (json['y'] as num).toDouble(),
+      ),
       markerType: markerType,
       markerSize: (json['markerSize'] as num?)?.toDouble() ?? 24.0,
       color: Color(json['color'] as int? ?? Colors.red.toARGB32()),
@@ -712,7 +730,10 @@ class MarkerAnnotation extends Annotation {
 
   @override
   void fromJson(Map<String, dynamic> json) {
-    final newPosition = Offset(json['x'] as double, json['y'] as double);
+    final newPosition = Offset(
+      (json['x'] as num).toDouble(),
+      (json['y'] as num).toDouble(),
+    );
     setPosition(newPosition);
     // Visual position will be set by controller with snapping
     setZIndex(json['zIndex'] as int? ?? 0);

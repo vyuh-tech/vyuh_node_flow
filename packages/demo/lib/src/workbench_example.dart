@@ -140,7 +140,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
     String filename,
   ) async {
     try {
-      return await NodeGraph.fromUrl('data/$filename');
+      return await NodeGraph.fromAssetMap('assets/data/$filename');
     } catch (e) {
       // Return empty graph if asset loading fails
       return _createFallbackGraph();

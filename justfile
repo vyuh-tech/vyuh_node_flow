@@ -1,13 +1,15 @@
+#!/usr/bin/env just --justfile
+
 set shell := ["fish", "-c"]
 
 # Build the Flutter web example
 build:
-    cd example && flutter build web --release --no-wasm-dry-run
+    cd packages/demo && flutter build web --release --wasm --no-wasm-dry-run
 
 # Deploy to Cloudflare Pages using Wrangler
 deploy: build
-    wrangler pages deploy example/build/web --project-name=vyuh-node-flow
+    wrangler pages deploy packages/demo/build/web --project-name=vyuh-node-flow
 
 preview:
-    cd example/build/web
-    serve -s .
+    cd packages/demo/build/web && \
+    serve . -s
