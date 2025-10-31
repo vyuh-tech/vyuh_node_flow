@@ -30,7 +30,7 @@ jobs:
       - name: Build Flutter web app
         run: |
           cd packages/demo
-          flutter build web --release
+          flutter build web --release --wasm
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
