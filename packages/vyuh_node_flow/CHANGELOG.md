@@ -1,3 +1,7 @@
+## 0.2.7
+
+ - **FEAT**: making it work with wasm, moving json files into assets, fixing number deserialization on macos.
+
 ## 0.2.6+4
 
  - **FIX**: bringing the assets back ... as pub.dev expects it to be inside the archive.
