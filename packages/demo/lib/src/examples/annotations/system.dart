@@ -1,5 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
+
+import '../../shared/ui_widgets.dart';
 
 /// Example showing how to use the annotation system
 class AnnotationExample extends StatefulWidget {
@@ -11,10 +15,12 @@ class AnnotationExample extends StatefulWidget {
 
 class _AnnotationExampleState extends State<AnnotationExample> {
   late final NodeFlowController<Map<String, dynamic>> controller;
+  late final NodeFlowTheme _theme;
 
   @override
   void initState() {
     super.initState();
+    _theme = NodeFlowTheme.light;
     controller = NodeFlowController<Map<String, dynamic>>(
       config: NodeFlowConfig.defaultConfig.copyWith(
         snapToGrid: true,
@@ -199,72 +205,112 @@ class _AnnotationExampleState extends State<AnnotationExample> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Node Flow Annotations Example'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_comment),
-            onPressed: _addRandomStickyNote,
-            tooltip: 'Add Sticky Note',
-          ),
-          IconButton(
-            icon: const Icon(Icons.place),
-            onPressed: _addRandomMarker,
-            tooltip: 'Add Marker',
-          ),
-          IconButton(
-            icon: const Icon(Icons.group_work),
-            onPressed: _createRandomGroup,
-            tooltip: 'Group Selected Nodes',
-          ),
-          IconButton(
-            icon: const Icon(Icons.visibility_off),
-            onPressed: () => controller.hideAllAnnotations(),
-            tooltip: 'Hide Annotations',
-          ),
-          IconButton(
-            icon: const Icon(Icons.visibility),
-            onPressed: () => controller.showAllAnnotations(),
-            tooltip: 'Show Annotations',
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          // Use the actual NodeFlowEditor which handles all interactions properly
-          NodeFlowEditor<Map<String, dynamic>>(
-            controller: controller,
-            theme: NodeFlowTheme.light,
-            nodeBuilder: (context, node) {
-              // Simple node builder
-              return Container(
-                width: node.size.width,
-                height: node.size.height,
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade300,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.shade700, width: 2),
-                ),
-                child: Center(
-                  child: Text(
-                    node.data['title'] as String? ?? '',
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                ),
-              );
-            },
-          ),
+    return Row(
+      children: [
+        // Main Editor
+        Expanded(
+          child: Stack(
+            children: [
+              // Use the actual NodeFlowEditor which handles all interactions properly
+              NodeFlowEditor<Map<String, dynamic>>(
+                controller: controller,
+                theme: _theme,
+                nodeBuilder: (context, node) {
+                  // Calculate inner border radius
+                  final outerBorderRadius = _theme.nodeTheme.borderRadius;
+                  final borderWidth = _theme.nodeTheme.borderWidth;
+                  final outerRadius = outerBorderRadius.topLeft.x;
+                  final innerRadius = math.max(0.0, outerRadius - borderWidth);
 
-          // Instructions overlay
-          _buildInstructions(),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _clearAllAnnotations,
-        tooltip: 'Clear All Annotations',
-        child: const Icon(Icons.clear),
-      ),
+                  final theme = Theme.of(context);
+                  final isDark = theme.brightness == Brightness.dark;
+
+                  // Soft sky blue
+                  final nodeColor = isDark
+                      ? const Color(0xFF2D3E52)
+                      : const Color(0xFFD4E7F7);
+                  final iconColor = isDark
+                      ? const Color(0xFF88B8E6)
+                      : const Color(0xFF1B4D7A);
+
+                  return Container(
+                    width: node.size.value.width,
+                    height: node.size.value.height,
+                    decoration: BoxDecoration(
+                      color: nodeColor,
+                      borderRadius: BorderRadius.circular(innerRadius),
+                    ),
+                    child: Center(
+                      child: Text(
+                        node.data['title'] as String? ?? '',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: iconColor,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              // Instructions overlay
+              _buildInstructions(),
+            ],
+          ),
+        ),
+        // Control Panel on the right
+        ControlPanel(
+          title: 'Annotation Controls',
+          children: [
+            const InfoCard(
+              title: 'Instructions',
+              content:
+                  'Drag sticky notes and markers around. Group annotations follow their nodes. Select nodes and create groups.',
+            ),
+            const SizedBox(height: 24),
+            const SectionTitle('Add Annotations'),
+            const SizedBox(height: 8),
+            ControlButton(
+              label: 'Add Sticky Note',
+              icon: Icons.add_comment,
+              onPressed: _addRandomStickyNote,
+            ),
+            const SizedBox(height: 8),
+            ControlButton(
+              label: 'Add Marker',
+              icon: Icons.place,
+              onPressed: _addRandomMarker,
+            ),
+            const SizedBox(height: 8),
+            ControlButton(
+              label: 'Group Selected Nodes',
+              icon: Icons.group_work,
+              onPressed: _createRandomGroup,
+            ),
+            const SizedBox(height: 24),
+            const SectionTitle('Visibility'),
+            const SizedBox(height: 8),
+            ControlButton(
+              label: 'Hide All Annotations',
+              icon: Icons.visibility_off,
+              onPressed: () => controller.hideAllAnnotations(),
+            ),
+            const SizedBox(height: 8),
+            ControlButton(
+              label: 'Show All Annotations',
+              icon: Icons.visibility,
+              onPressed: () => controller.showAllAnnotations(),
+            ),
+            const SizedBox(height: 24),
+            const SectionTitle('Actions'),
+            const SizedBox(height: 8),
+            ControlButton(
+              label: 'Clear All Annotations',
+              icon: Icons.clear,
+              onPressed: _clearAllAnnotations,
+            ),
+          ],
+        ),
+      ],
     );
   }
 

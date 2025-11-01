@@ -5,7 +5,7 @@
       "type": "DataSource",
       "size": {
         "width": 120,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -36,7 +36,7 @@
       "type": "Filter",
       "size": {
         "width": 120,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -77,7 +77,7 @@
       "type": "Transform",
       "size": {
         "width": 120,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -118,7 +118,7 @@
       "type": "Aggregate",
       "size": {
         "width": 120,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -160,7 +160,7 @@
       "type": "Output",
       "size": {
         "width": 120,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {

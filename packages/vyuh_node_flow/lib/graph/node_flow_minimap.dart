@@ -272,8 +272,8 @@ class MinimapPainter<T> extends CustomPainter {
       final rect = Rect.fromLTWH(
         node.position.value.dx,
         node.position.value.dy,
-        node.size.width,
-        node.size.height,
+        node.size.value.width,
+        node.size.value.height,
       );
 
       canvas.drawRRect(

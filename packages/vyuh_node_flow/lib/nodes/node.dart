@@ -16,7 +16,7 @@ class Node<T> {
     List<Port> inputPorts = const [],
     List<Port> outputPorts = const [],
     int initialZIndex = 0,
-  }) : size = size ?? const Size(150, 100),
+  }) : size = Observable(size ?? const Size(150, 100)),
        position = Observable(position),
        visualPosition = Observable(position),
        // Initialize with same position
@@ -29,7 +29,7 @@ class Node<T> {
   final String id;
   final String type;
 
-  final Size size;
+  final Observable<Size> size;
   final ObservableList<Port> inputPorts;
   final ObservableList<Port> outputPorts;
   final T data;
@@ -90,7 +90,7 @@ class Node<T> {
       case PortPosition.right:
         // Right edge: port protrudes halfway out from right edge
         return Offset(
-          size.width -
+          size.value.width -
               portSize +
               port.offset.dx, // Right edge of padded container minus port size
           port.offset.dy, // Centered vertically with offset
@@ -105,7 +105,9 @@ class Node<T> {
         // Bottom edge: port protrudes halfway out from bottom edge
         return Offset(
           port.offset.dx, // Centered horizontally with offset
-          size.height - portSize + port.offset.dy, // Bottom edge of container
+          size.value.height -
+              portSize +
+              port.offset.dy, // Bottom edge of container
         );
     }
   }
@@ -240,8 +242,8 @@ class Node<T> {
     return Rect.fromLTWH(
       position.value.dx,
       position.value.dy,
-      size.width,
-      size.height,
+      size.value.width,
+      size.value.height,
     ).contains(point);
   }
 
@@ -252,8 +254,8 @@ class Node<T> {
     return Rect.fromLTWH(
       position.value.dx,
       position.value.dy,
-      size.width,
-      size.height,
+      size.value.width,
+      size.value.height,
     );
   }
 
@@ -305,7 +307,7 @@ class Node<T> {
   Map<String, dynamic> toJson(Object? Function(T value) toJsonT) => {
     'id': id,
     'type': type,
-    'size': const SizeConverter().toJson(size),
+    'size': const SizeConverter().toJson(size.value),
     'inputPorts': inputPorts.map((e) => e.toJson()).toList(),
     'outputPorts': outputPorts.map((e) => e.toJson()).toList(),
     'data': toJsonT(data),

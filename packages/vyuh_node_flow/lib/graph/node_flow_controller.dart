@@ -106,6 +106,20 @@ class NodeFlowController<T> {
   /// ```
   FocusNode get canvasFocusNode => _canvasFocusNode;
 
+  // UI interaction flags
+  final Observable<bool> _enableNodeDeletion = Observable(true);
+
+  /// Whether node deletion via keyboard shortcuts is enabled.
+  ///
+  /// When `false`, the Delete/Backspace keyboard shortcuts will not delete nodes.
+  /// Programmatic deletion via `removeNode()` is still possible regardless of this setting.
+  bool get enableNodeDeletion => _enableNodeDeletion.value;
+
+  /// Sets whether node deletion via keyboard shortcuts is enabled.
+  void setNodeDeletion(bool value) {
+    runInAction(() => _enableNodeDeletion.value = value);
+  }
+
   // Core data structures
   final ObservableMap<String, Node<T>> _nodes =
       ObservableMap<String, Node<T>>();

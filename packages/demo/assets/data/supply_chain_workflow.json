@@ -5,7 +5,7 @@
       "type": "Supplier",
       "size": {
         "width": 120,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -47,7 +47,7 @@
       "type": "Supplier",
       "size": {
         "width": 120,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -89,7 +89,7 @@
       "type": "Supplier",
       "size": {
         "width": 120,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -131,7 +131,7 @@
       "type": "Transport",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -185,7 +185,7 @@
       "type": "Transport",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -239,7 +239,7 @@
       "type": "Transport",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -293,7 +293,7 @@
       "type": "Regulatory",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -357,7 +357,7 @@
       "type": "Warehouse",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -431,7 +431,7 @@
       "type": "System",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -505,7 +505,7 @@
       "type": "System",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -553,7 +553,11 @@
       ],
       "data": {
         "name": "Order Management System",
-        "channels": ["B2B", "B2C", "Marketplace"],
+        "channels": [
+          "B2B",
+          "B2C",
+          "Marketplace"
+        ],
         "daily_orders": "50,000",
         "sla": "Same day ship",
         "accuracy": "99.8%"
@@ -569,7 +573,7 @@
       "type": "Delivery",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -607,8 +611,17 @@
       ],
       "data": {
         "name": "Last Mile Delivery",
-        "partners": ["FedEx", "UPS", "USPS", "Amazon"],
-        "delivery_options": ["Standard", "Express", "Same Day"],
+        "partners": [
+          "FedEx",
+          "UPS",
+          "USPS",
+          "Amazon"
+        ],
+        "delivery_options": [
+          "Standard",
+          "Express",
+          "Same Day"
+        ],
         "coverage": "98% US zip codes"
       },
       "position": {
@@ -622,7 +635,7 @@
       "type": "Customer",
       "size": {
         "width": 120,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -650,7 +663,11 @@
       ],
       "data": {
         "name": "End Customer",
-        "segments": ["Retail", "Business", "Government"],
+        "segments": [
+          "Retail",
+          "Business",
+          "Government"
+        ],
         "satisfaction": "4.5/5",
         "return_rate": "3%"
       },
@@ -665,7 +682,7 @@
       "type": "Returns",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -729,7 +746,7 @@
       "type": "Analytics",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {

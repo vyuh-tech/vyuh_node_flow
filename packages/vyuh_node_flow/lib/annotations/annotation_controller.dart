@@ -286,8 +286,8 @@ class AnnotationController<T> {
     final nodeRect = Rect.fromLTWH(
       node.visualPosition.value.dx,
       node.visualPosition.value.dy,
-      node.size.width,
-      node.size.height,
+      node.size.value.width,
+      node.size.value.height,
     );
 
     for (final annotation in _annotations.values) {
@@ -524,7 +524,7 @@ class AnnotationController<T> {
     for (final node in dependentNodes) {
       // Use visual position (what's actually rendered) not logical position!
       final pos = node.visualPosition.value;
-      final size = node.size;
+      final size = node.size.value;
 
       minX = math.min(minX, pos.dx);
       minY = math.min(minY, pos.dy);
@@ -574,7 +574,7 @@ class AnnotationController<T> {
     for (final node in dependentNodes) {
       // Use visual position (what's actually rendered) not logical position!
       final pos = node.visualPosition.value;
-      final size = node.size;
+      final size = node.size.value;
       totalX += pos.dx + size.width / 2;
       totalY += pos.dy + size.height / 2;
       count++;
@@ -668,7 +668,7 @@ class AnnotationController<T> {
       for (final node in dependentNodes) {
         // Use visual position (what's actually rendered) not logical position!
         final pos = node.visualPosition.value;
-        final size = node.size;
+        final size = node.size.value;
 
         minX = math.min(minX, pos.dx);
         minY = math.min(minY, pos.dy);
@@ -757,7 +757,7 @@ class AnnotationController<T> {
               final node = _parentController.nodes[nodeId];
               if (node != null) {
                 nodePositions[nodeId] = node.visualPosition.value;
-                nodeSizes[nodeId] = node.size;
+                nodeSizes[nodeId] = node.size.value;
               }
             }
           }

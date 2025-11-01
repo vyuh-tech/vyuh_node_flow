@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'src/annotation_example.dart';
-import 'src/connection_validation_example.dart';
-import 'src/launch_page.dart';
-import 'src/port_combinations_demo.dart';
-import 'src/viewer_example.dart';
-import 'src/workbench_example.dart';
+import 'src/example_browser.dart';
+import 'src/example_not_found.dart';
+import 'src/example_registry.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,28 +12,38 @@ void main() {
 final _router = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(path: '/', builder: (context, state) => const LaunchPage()),
     GoRoute(
-      path: '/workbench',
-      builder: (context, state) => const WorkbenchExample(),
+      path: '/',
+      redirect: (context, state) {
+        // Redirect to first example
+        final (categoryId, exampleId) = ExampleRegistry.firstExample;
+        if (categoryId != null && exampleId != null) {
+          return '/$categoryId/$exampleId';
+        }
+        return null;
+      },
     ),
     GoRoute(
-      path: '/annotations',
-      builder: (context, state) => const AnnotationExample(),
-    ),
-    GoRoute(
-      path: '/validation',
-      builder: (context, state) => const ConnectionValidationExample(),
-    ),
-    GoRoute(
-      path: '/viewer',
-      builder: (context, state) => const ViewerExample(),
-    ),
-    GoRoute(
-      path: '/port-combinations',
-      builder: (context, state) => const PortCombinationsDemo(),
+      path: '/:categoryId/:exampleId',
+      builder: (context, state) {
+        final categoryId = state.pathParameters['categoryId']!;
+        final exampleId = state.pathParameters['exampleId']!;
+
+        // Validate that the category and example exist
+        final example = ExampleRegistry.findExample(categoryId, exampleId);
+        if (example == null) {
+          return ExampleNotFound(categoryId: categoryId, exampleId: exampleId);
+        }
+
+        return ExampleBrowser(
+          categories: ExampleRegistry.all,
+          categoryId: categoryId,
+          exampleId: exampleId,
+        );
+      },
     ),
   ],
+  errorBuilder: (context, state) => const ExampleNotFound(),
 );
 
 class MyApp extends StatelessWidget {
@@ -48,7 +55,10 @@ class MyApp extends StatelessWidget {
       title: 'Vyuh Node Flow Examples',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.indigo,
+          dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+        ),
         useMaterial3: true,
       ),
       routerConfig: _router,

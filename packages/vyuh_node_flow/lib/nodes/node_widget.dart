@@ -99,7 +99,7 @@ class NodeWidget<T> extends StatelessWidget {
         // Use visual position for rendering
         final position = node.visualPosition.value;
         final isSelected = node.isSelected;
-        final size = node.size;
+        final size = node.size.value;
 
         return Positioned(
           left: position.dx,

@@ -5,7 +5,7 @@
       "type": "Intake",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -46,7 +46,7 @@
       "type": "Inspection",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -95,7 +95,11 @@
       "data": {
         "name": "Visual Inspection",
         "inspectors": 5,
-        "criteria": ["Surface Defects", "Color Consistency", "Dimensions"],
+        "criteria": [
+          "Surface Defects",
+          "Color Consistency",
+          "Dimensions"
+        ],
         "pass_rate": "95%"
       },
       "position": {
@@ -109,7 +113,7 @@
       "type": "Measurement",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -158,8 +162,13 @@
       "data": {
         "name": "3D Measurement",
         "equipment": "CMM Machine",
-        "tolerance": "±0.01mm",
-        "parameters": ["Length", "Width", "Height", "Angles"]
+        "tolerance": "\u00b10.01mm",
+        "parameters": [
+          "Length",
+          "Width",
+          "Height",
+          "Angles"
+        ]
       },
       "position": {
         "x": 600,
@@ -172,7 +181,7 @@
       "type": "Testing",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -220,7 +229,12 @@
       ],
       "data": {
         "name": "Functional Testing",
-        "tests": ["Performance", "Durability", "Safety", "Electrical"],
+        "tests": [
+          "Performance",
+          "Durability",
+          "Safety",
+          "Electrical"
+        ],
         "duration": "15 minutes",
         "stations": 8
       },
@@ -235,7 +249,7 @@
       "type": "Analysis",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -284,8 +298,15 @@
       "data": {
         "name": "Chemical Analysis",
         "method": "Spectroscopy",
-        "parameters": ["Composition", "Purity", "Contaminants"],
-        "standards": ["ISO", "ASTM"]
+        "parameters": [
+          "Composition",
+          "Purity",
+          "Contaminants"
+        ],
+        "standards": [
+          "ISO",
+          "ASTM"
+        ]
       },
       "position": {
         "x": 600,
@@ -298,7 +319,7 @@
       "type": "Testing",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -346,7 +367,12 @@
       ],
       "data": {
         "name": "Stress Testing",
-        "tests": ["Tension", "Compression", "Fatigue", "Impact"],
+        "tests": [
+          "Tension",
+          "Compression",
+          "Fatigue",
+          "Impact"
+        ],
         "equipment": "Universal Testing Machine",
         "cycles": "10,000"
       },
@@ -361,7 +387,7 @@
       "type": "Inspection",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -444,7 +470,7 @@
       "type": "Packaging",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -487,7 +513,7 @@
       "type": "Rework",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -564,7 +590,7 @@
       "type": "Analytics",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -632,8 +658,15 @@
       ],
       "data": {
         "name": "QC Analytics Platform",
-        "metrics": ["Defect Rate", "First Pass Yield", "Cost of Quality"],
-        "ml_models": ["Defect Prediction", "Process Optimization"],
+        "metrics": [
+          "Defect Rate",
+          "First Pass Yield",
+          "Cost of Quality"
+        ],
+        "ml_models": [
+          "Defect Prediction",
+          "Process Optimization"
+        ],
         "reporting": "Real-time"
       },
       "position": {
@@ -647,7 +680,7 @@
       "type": "Calibration",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -687,7 +720,11 @@
         "name": "Calibration Lab",
         "standards": "NIST Traceable",
         "frequency": "Monthly",
-        "equipment_types": ["Gauges", "Scales", "Testers"]
+        "equipment_types": [
+          "Gauges",
+          "Scales",
+          "Testers"
+        ]
       },
       "position": {
         "x": 100,
@@ -700,7 +737,7 @@
       "type": "Storage",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {

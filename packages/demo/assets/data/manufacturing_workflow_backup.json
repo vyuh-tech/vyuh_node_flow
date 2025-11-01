@@ -5,7 +5,7 @@
       "type": "Supplier",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -70,7 +70,7 @@
       "type": "Supplier",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -135,7 +135,7 @@
       "type": "QualityControl",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -249,7 +249,7 @@
       "data": {
         "label": "Incoming QC",
         "stage": "receiving",
-        "tolerance": "±0.1mm"
+        "tolerance": "\u00b10.1mm"
       },
       "position": {
         "x": 129.4786894182296,
@@ -264,7 +264,7 @@
       "type": "Warehouse",
       "size": {
         "width": 150,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -351,7 +351,7 @@
       "type": "ProductionPlanner",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -459,7 +459,7 @@
       "type": "CuttingMachine",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -552,7 +552,7 @@
       "data": {
         "label": "Laser Cutter",
         "power": "3000W",
-        "precision": "±0.05mm"
+        "precision": "\u00b10.05mm"
       },
       "position": {
         "x": 739.6235014390581,
@@ -567,7 +567,7 @@
       "type": "CuttingMachine",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -675,7 +675,7 @@
       "type": "FormingMachine",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -762,7 +762,7 @@
       "type": "FormingMachine",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -849,7 +849,7 @@
       "type": "WeldingStation",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -978,7 +978,7 @@
       "type": "WeldingStation",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1065,7 +1065,7 @@
       "type": "MachiningCenter",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1194,7 +1194,7 @@
       "type": "MachiningCenter",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1281,7 +1281,7 @@
       "type": "AssemblyLine",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1389,7 +1389,7 @@
       "type": "CoatingStation",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1482,7 +1482,7 @@
       "data": {
         "label": "Powder Coating",
         "type": "Electrostatic",
-        "cure_temp": "180°C"
+        "cure_temp": "180\u00b0C"
       },
       "position": {
         "x": 2920.4580446004297,
@@ -1497,7 +1497,7 @@
       "type": "QualityControl",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1605,7 +1605,7 @@
       "type": "PackagingLine",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1692,7 +1692,7 @@
       "type": "ShippingDock",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1758,7 +1758,7 @@
       "type": "WasteProcessor",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1845,7 +1845,7 @@
       "type": "MaintenanceCenter",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -1910,7 +1910,7 @@
       "type": "ToolCrib",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1976,7 +1976,7 @@
       "type": "ERPSystem",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -2041,7 +2041,7 @@
       "type": "Supplier",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -2106,7 +2106,7 @@
       "type": "Supplier",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -2171,7 +2171,7 @@
       "type": "Supplier",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -2236,7 +2236,7 @@
       "type": "AdditiveManufacturing",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -2344,7 +2344,7 @@
       "type": "MachiningCenter",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -2458,7 +2458,7 @@
       "data": {
         "label": "EDM Machine",
         "type": "Wire EDM",
-        "precision": "±0.002mm"
+        "precision": "\u00b10.002mm"
       },
       "position": {
         "x": 1162.5703125,
@@ -2473,7 +2473,7 @@
       "type": "QualityControl",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -2586,7 +2586,7 @@
       ],
       "data": {
         "label": "CMM Machine",
-        "accuracy": "±0.001mm",
+        "accuracy": "\u00b10.001mm",
         "volume": "1000x800x600mm"
       },
       "position": {
@@ -2602,7 +2602,7 @@
       "type": "QualityControl",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -2695,7 +2695,7 @@
       "data": {
         "label": "X-ray Inspection",
         "voltage": "160kV",
-        "resolution": "5μm"
+        "resolution": "5\u03bcm"
       },
       "position": {
         "x": 2576.7967381694652,
@@ -2710,7 +2710,7 @@
       "type": "MaterialHandling",
       "size": {
         "width": 200,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -2776,7 +2776,7 @@
       "type": "MaterialHandling",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -2884,7 +2884,7 @@
       "type": "MaterialHandling",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -2950,7 +2950,7 @@
       "type": "Environmental",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -3058,7 +3058,7 @@
       "type": "Environmental",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -3145,7 +3145,7 @@
       "type": "Utilities",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -3232,7 +3232,7 @@
       "type": "Automation",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -3340,7 +3340,7 @@
       "type": "Automation",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -3448,7 +3448,7 @@
       "type": "Testing",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -3556,7 +3556,7 @@
       "type": "Logistics",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -3643,7 +3643,7 @@
       "type": "Logistics",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -3709,7 +3709,7 @@
       "type": "SupportService",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -3796,7 +3796,7 @@
       "type": "SupportService",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -3883,7 +3883,7 @@
       "type": "MachiningCenter",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -3975,7 +3975,7 @@
       ],
       "data": {
         "label": "Grinding Station",
-        "precision": "±0.001mm",
+        "precision": "\u00b10.001mm",
         "wheel_speed": "3000 RPM"
       },
       "position": {
@@ -3991,7 +3991,7 @@
       "type": "ProcessingStation",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -4083,7 +4083,7 @@
       ],
       "data": {
         "label": "Heat Treatment",
-        "max_temp": "1200°C",
+        "max_temp": "1200\u00b0C",
         "atmosphere": "Controlled"
       },
       "position": {
@@ -4099,7 +4099,7 @@
       "type": "QualityControl",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -4212,7 +4212,7 @@
       ],
       "data": {
         "label": "Leak Testing",
-        "sensitivity": "1x10^-9 mbar·l/s",
+        "sensitivity": "1x10^-9 mbar\u00b7l/s",
         "method": "Helium Mass Spec"
       },
       "position": {
@@ -4228,7 +4228,7 @@
       "type": "MaterialHandling",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -4294,7 +4294,7 @@
       "type": "Utilities",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -4381,7 +4381,7 @@
       "type": "Utilities",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -4489,7 +4489,7 @@
       "type": "Testing",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -4581,7 +4581,7 @@
       ],
       "data": {
         "label": "Environmental Chamber",
-        "temp_range": "-70°C to +180°C",
+        "temp_range": "-70\u00b0C to +180\u00b0C",
         "humidity": "10% to 95% RH"
       },
       "position": {
@@ -4597,7 +4597,7 @@
       "type": "SupportService",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -4684,7 +4684,7 @@
       "type": "AllPorts",
       "size": {
         "width": 150,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -4874,7 +4874,7 @@
       "type": "AllPorts",
       "size": {
         "width": 150,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -5310,7 +5310,7 @@
       "sourceMarker": null,
       "targetMarker": null,
       "middleMarkers": [],
-      "label": "Final QC ✓",
+      "label": "Final QC \u2713",
       "startLabel": null,
       "endLabel": null,
       "strokeWidth": 2,

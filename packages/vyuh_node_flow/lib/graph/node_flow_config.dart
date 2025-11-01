@@ -7,8 +7,8 @@ enum MinimapPosition { topLeft, topRight, bottomLeft, bottomRight }
 /// Reactive configuration class for NodeFlow properties
 class NodeFlowConfig {
   NodeFlowConfig({
-    bool snapToGrid = true,
-    bool snapAnnotationsToGrid = true,
+    bool snapToGrid = false,
+    bool snapAnnotationsToGrid = false,
     double gridSize = 20.0,
     double portSnapDistance = 10.0,
     double autoPanMargin = 50.0,
@@ -36,10 +36,10 @@ class NodeFlowConfig {
   }
 
   /// Whether to snap node positions to grid
-  final snapToGrid = Observable<bool>(true);
+  final snapToGrid = Observable<bool>(false);
 
   /// Whether to snap annotation positions to grid
-  final snapAnnotationsToGrid = Observable<bool>(true);
+  final snapAnnotationsToGrid = Observable<bool>(false);
 
   /// Grid size for snapping calculations
   final gridSize = Observable<double>(20.0);

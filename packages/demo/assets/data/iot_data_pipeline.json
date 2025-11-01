@@ -5,7 +5,7 @@
       "type": "Sensor",
       "size": {
         "width": 120,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -24,7 +24,7 @@
         "name": "Temperature Sensor",
         "location": "Building A - Floor 1",
         "frequency": "1Hz",
-        "range": "-40°C to 125°C"
+        "range": "-40\u00b0C to 125\u00b0C"
       },
       "position": {
         "x": 100,
@@ -37,7 +37,7 @@
       "type": "Sensor",
       "size": {
         "width": 120,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -69,7 +69,7 @@
       "type": "Sensor",
       "size": {
         "width": 120,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -88,7 +88,7 @@
         "name": "PIR Motion Sensor",
         "location": "Building A - Entrance",
         "detection_range": "10m",
-        "angle": "120°"
+        "angle": "120\u00b0"
       },
       "position": {
         "x": 100,
@@ -101,7 +101,7 @@
       "type": "Sensor",
       "size": {
         "width": 120,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -120,7 +120,7 @@
         "name": "Smart Energy Meter",
         "location": "Building A - Main",
         "phases": 3,
-        "accuracy": "±0.5%"
+        "accuracy": "\u00b10.5%"
       },
       "position": {
         "x": 100,
@@ -133,7 +133,7 @@
       "type": "Gateway",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -217,7 +217,7 @@
       "type": "MessageBroker",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -265,7 +265,11 @@
       ],
       "data": {
         "name": "MQTT Message Broker",
-        "qos_levels": [0, 1, 2],
+        "qos_levels": [
+          0,
+          1,
+          2
+        ],
         "topics": 50,
         "connections": 10000,
         "throughput": "100k msg/sec"
@@ -281,7 +285,7 @@
       "type": "StreamProcessing",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -342,7 +346,12 @@
         "partitions": 12,
         "replication": 3,
         "window": "5 minutes",
-        "operations": ["Filter", "Aggregate", "Join", "Window"]
+        "operations": [
+          "Filter",
+          "Aggregate",
+          "Join",
+          "Window"
+        ]
       },
       "position": {
         "x": 800,
@@ -355,7 +364,7 @@
       "type": "Database",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -419,7 +428,7 @@
       "type": "MLProcessing",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -496,7 +505,7 @@
       "type": "Visualization",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -560,7 +569,7 @@
       "type": "AlertSystem",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -630,7 +639,12 @@
         "name": "Alert Management",
         "rules": 45,
         "escalation": "3 levels",
-        "channels": ["Email", "SMS", "Slack", "PagerDuty"],
+        "channels": [
+          "Email",
+          "SMS",
+          "Slack",
+          "PagerDuty"
+        ],
         "deduplication": true
       },
       "position": {
@@ -644,7 +658,7 @@
       "type": "Automation",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -683,7 +697,12 @@
       "data": {
         "name": "Automation Controller",
         "workflows": 25,
-        "actions": ["HVAC Control", "Lighting", "Security", "Maintenance"],
+        "actions": [
+          "HVAC Control",
+          "Lighting",
+          "Security",
+          "Maintenance"
+        ],
         "response_time": "<100ms"
       },
       "position": {

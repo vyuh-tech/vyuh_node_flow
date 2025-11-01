@@ -86,7 +86,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
-  /// Updates the input and/or output ports of a node.
+  /// Sets the input and/or output ports of a node.
   ///
   /// This replaces the existing ports with the provided lists. Pass `null` to
   /// leave a port type unchanged.
@@ -100,13 +100,13 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   ///
   /// Example:
   /// ```dart
-  /// controller.updateNodePorts(
+  /// controller.setNodePorts(
   ///   'node1',
   ///   inputPorts: [Port(id: 'in1', label: 'Input')],
   ///   outputPorts: [Port(id: 'out1', label: 'Output')],
   /// );
   /// ```
-  void updateNodePorts(
+  void setNodePorts(
     String nodeId, {
     List<Port>? inputPorts,
     List<Port>? outputPorts,
@@ -126,6 +126,30 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
         node.outputPorts.clear();
         node.outputPorts.addAll(outputPorts);
       }
+    });
+  }
+
+  /// Sets the size of a node.
+  ///
+  /// Updates the node's size which will trigger reactive updates in the UI
+  /// and automatically adjust port positions and connections.
+  ///
+  /// Does nothing if the node with [nodeId] doesn't exist.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to resize
+  /// - [size]: The new size for the node
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.setNodeSize('node1', Size(200, 150));
+  /// ```
+  void setNodeSize(String nodeId, Size size) {
+    final node = _nodes[nodeId];
+    if (node == null) return;
+
+    runInAction(() {
+      node.size.value = size;
     });
   }
 
@@ -1100,7 +1124,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
 
     for (final node in nodes) {
       final pos = node.position.value;
-      final size = node.size;
+      final size = node.size.value;
       minX = minX < pos.dx ? minX : pos.dx;
       minY = minY < pos.dy ? minY : pos.dy;
       maxX = maxX > pos.dx + size.width ? maxX : pos.dx + size.width;
@@ -1237,7 +1261,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     if (node == null || _screenSize.value == Size.zero) return;
 
     final pos = node.position.value;
-    final size = node.size;
+    final size = node.size.value;
     final currentVp = _viewport.value;
 
     final nodeCenterX = pos.dx + size.width / 2;
@@ -1276,7 +1300,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       final node = _nodes[nodeId];
       if (node != null) {
         final pos = node.position.value;
-        final size = node.size;
+        final size = node.size.value;
         totalX += pos.dx + size.width / 2;
         totalY += pos.dy + size.height / 2;
         count++;
@@ -1369,7 +1393,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       type: node.type,
       position: node.position.value + const Offset(50, 50),
       data: clonedData,
-      size: node.size,
+      size: node.size.value,
       inputPorts: node.inputPorts,
       outputPorts: node.outputPorts,
     );
@@ -1799,7 +1823,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
             break;
           case NodeAlignment.right:
             // Align right edges - position.dx + width should equal rightmost
-            newX = rightmost - node.size.width;
+            newX = rightmost - node.size.value.width;
             break;
           case NodeAlignment.top:
             // Align top edges - position.dy should equal topmost
@@ -1807,21 +1831,21 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
             break;
           case NodeAlignment.bottom:
             // Align bottom edges - position.dy + height should equal bottommost
-            newY = bottommost - node.size.height;
+            newY = bottommost - node.size.value.height;
             break;
           case NodeAlignment.center:
             // Align center points on both axes
-            newX = centerX - node.size.width / 2;
-            newY = centerY - node.size.height / 2;
+            newX = centerX - node.size.value.width / 2;
+            newY = centerY - node.size.value.height / 2;
             break;
           case NodeAlignment.horizontalCenter:
             // Align center points horizontally only
-            newX = centerX - node.size.width / 2;
+            newX = centerX - node.size.value.width / 2;
             // Keep original Y position
             break;
           case NodeAlignment.verticalCenter:
             // Align center points vertically only
-            newY = centerY - node.size.height / 2;
+            newY = centerY - node.size.value.height / 2;
             // Keep original X position
             break;
         }
@@ -2074,7 +2098,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
 
     for (final node in _nodes.values) {
       final pos = node.position.value;
-      final size = node.size;
+      final size = node.size.value;
       minX = math.min(minX, pos.dx);
       minY = math.min(minY, pos.dy);
       maxX = math.max(maxX, pos.dx + size.width);

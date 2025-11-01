@@ -4,7 +4,8 @@ set shell := ["fish", "-c"]
 
 # Build the Flutter web example
 build:
-    cd packages/demo && flutter build web --release --wasm --no-wasm-dry-run
+    cd packages/demo && \
+    flutter build web --release --wasm --no-wasm-dry-run
 
 # Deploy to Cloudflare Pages using Wrangler
 deploy: build

@@ -403,6 +403,11 @@ class _DeleteSelectedAction<T> extends NodeFlowAction<T> {
 
   @override
   bool execute(NodeFlowController<T> controller, BuildContext? context) {
+    // Check if deletion is enabled
+    if (!controller.enableNodeDeletion) {
+      return false;
+    }
+
     // Delete selected nodes
     for (final nodeId in controller.selectedNodeIds.toList()) {
       controller.removeNode(nodeId);
@@ -421,8 +426,9 @@ class _DeleteSelectedAction<T> extends NodeFlowAction<T> {
 
   @override
   bool canExecute(NodeFlowController<T> controller) {
-    return controller.hasSelection ||
-        controller.annotations.selectedAnnotationIds.isNotEmpty;
+    return controller.enableNodeDeletion &&
+        (controller.hasSelection ||
+            controller.annotations.selectedAnnotationIds.isNotEmpty);
   }
 }
 

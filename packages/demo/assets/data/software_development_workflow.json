@@ -5,7 +5,7 @@
       "type": "Repository",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -43,7 +43,11 @@
       ],
       "data": {
         "name": "GitHub Repository",
-        "branches": ["main", "develop", "feature/*"],
+        "branches": [
+          "main",
+          "develop",
+          "feature/*"
+        ],
         "language": "TypeScript",
         "size": "250 MB"
       },
@@ -58,7 +62,7 @@
       "type": "CI",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -126,7 +130,12 @@
       ],
       "data": {
         "name": "Jenkins CI",
-        "stages": ["Checkout", "Build", "Test", "Package"],
+        "stages": [
+          "Checkout",
+          "Build",
+          "Test",
+          "Package"
+        ],
         "parallel_jobs": 4,
         "duration": "~15 min"
       },
@@ -141,7 +150,7 @@
       "type": "Testing",
       "size": {
         "width": 120,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -194,7 +203,7 @@
       "type": "Analysis",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -243,8 +252,17 @@
       "data": {
         "name": "SonarQube",
         "rules": 450,
-        "languages": ["TS", "JS", "CSS", "HTML"],
-        "quality_gates": ["Security", "Reliability", "Maintainability"]
+        "languages": [
+          "TS",
+          "JS",
+          "CSS",
+          "HTML"
+        ],
+        "quality_gates": [
+          "Security",
+          "Reliability",
+          "Maintainability"
+        ]
       },
       "position": {
         "x": 600,
@@ -257,7 +275,7 @@
       "type": "Security",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -305,7 +323,11 @@
       ],
       "data": {
         "name": "Security Scanner",
-        "tools": ["OWASP", "Snyk", "Dependabot"],
+        "tools": [
+          "OWASP",
+          "Snyk",
+          "Dependabot"
+        ],
         "scan_type": "SAST + SCA",
         "severity_threshold": "High"
       },
@@ -320,7 +342,7 @@
       "type": "Registry",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -373,7 +395,7 @@
       "type": "Deployment",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -447,7 +469,7 @@
       "type": "Testing",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -501,7 +523,7 @@
       "type": "Testing",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -555,7 +577,7 @@
       "type": "Deployment",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -614,7 +636,11 @@
       "data": {
         "name": "Production Deploy",
         "strategy": "Blue-Green",
-        "regions": ["us-east-1", "eu-west-1", "ap-south-1"],
+        "regions": [
+          "us-east-1",
+          "eu-west-1",
+          "ap-south-1"
+        ],
         "cdn": "CloudFront",
         "rollback": "Automatic"
       },
@@ -629,7 +655,7 @@
       "type": "Monitoring",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -687,7 +713,12 @@
       ],
       "data": {
         "name": "Observability Stack",
-        "tools": ["Prometheus", "Grafana", "ELK", "Jaeger"],
+        "tools": [
+          "Prometheus",
+          "Grafana",
+          "ELK",
+          "Jaeger"
+        ],
         "retention": "30 days",
         "alerts": 45,
         "sla": "99.9%"
@@ -703,7 +734,7 @@
       "type": "Analytics",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -761,7 +792,7 @@
       "type": "Recovery",
       "size": {
         "width": 120,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {

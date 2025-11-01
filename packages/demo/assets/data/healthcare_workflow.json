@@ -5,7 +5,7 @@
       "type": "Registration",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -32,7 +32,11 @@
       ],
       "data": {
         "name": "Patient Registration",
-        "channels": ["Walk-in", "Online", "Phone"],
+        "channels": [
+          "Walk-in",
+          "Online",
+          "Phone"
+        ],
         "verification": "ID + Insurance",
         "time": "5-10 minutes"
       },
@@ -47,7 +51,7 @@
       "type": "Assessment",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -110,7 +114,7 @@
       "type": "Treatment",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -160,7 +164,11 @@
         "name": "Emergency Department",
         "beds": 20,
         "doctors": 5,
-        "equipment": ["CT", "X-Ray", "Ultrasound"],
+        "equipment": [
+          "CT",
+          "X-Ray",
+          "Ultrasound"
+        ],
         "avg_stay": "4 hours"
       },
       "position": {
@@ -174,7 +182,7 @@
       "type": "Consultation",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -232,7 +240,11 @@
       ],
       "data": {
         "name": "Doctor Consultation",
-        "specialties": ["General", "Internal", "Pediatrics"],
+        "specialties": [
+          "General",
+          "Internal",
+          "Pediatrics"
+        ],
         "appointment_slots": 30,
         "duration": "15-30 min"
       },
@@ -247,7 +259,7 @@
       "type": "Diagnostic",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -295,7 +307,12 @@
       ],
       "data": {
         "name": "Clinical Laboratory",
-        "tests": ["Blood", "Urine", "Culture", "Pathology"],
+        "tests": [
+          "Blood",
+          "Urine",
+          "Culture",
+          "Pathology"
+        ],
         "machines": 15,
         "turnaround": "2-24 hours",
         "accreditation": "CAP/CLIA"
@@ -311,7 +328,7 @@
       "type": "Imaging",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -359,7 +376,12 @@
       ],
       "data": {
         "name": "Radiology Department",
-        "modalities": ["X-Ray", "CT", "MRI", "Ultrasound"],
+        "modalities": [
+          "X-Ray",
+          "CT",
+          "MRI",
+          "Ultrasound"
+        ],
         "radiologists": 8,
         "pacs_system": true,
         "ai_assisted": true
@@ -375,7 +397,7 @@
       "type": "Pharmacy",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -439,7 +461,7 @@
       "type": "Care",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -513,7 +535,7 @@
       "type": "Discharge",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -587,7 +609,7 @@
       "type": "Financial",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -650,7 +672,7 @@
       "type": "System",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -699,7 +721,11 @@
       "data": {
         "name": "Electronic Health Records",
         "vendor": "Epic",
-        "modules": ["Clinical", "Revenue", "Analytics"],
+        "modules": [
+          "Clinical",
+          "Revenue",
+          "Analytics"
+        ],
         "interoperability": "HL7 FHIR",
         "users": 5000
       },

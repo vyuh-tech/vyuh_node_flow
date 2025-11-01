@@ -1,0 +1,140 @@
+import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+import 'package:vyuh_node_flow/vyuh_node_flow.dart';
+
+class SimpleNodeAdditionExample extends StatefulWidget {
+  const SimpleNodeAdditionExample({super.key});
+
+  @override
+  State<SimpleNodeAdditionExample> createState() =>
+      _SimpleNodeAdditionExampleState();
+}
+
+class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
+  late final NodeFlowController<Map<String, dynamic>> _controller;
+  late final NodeFlowTheme _theme;
+  int _nodeCounter = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _theme = NodeFlowTheme.light;
+    _controller = NodeFlowController<Map<String, dynamic>>(
+      config: NodeFlowConfig(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _addNode() {
+    final node = Node<Map<String, dynamic>>(
+      id: 'node-$_nodeCounter',
+      type: 'simple',
+      position: Offset(
+        100 + (_nodeCounter * 50.0),
+        100 + (_nodeCounter * 50.0),
+      ),
+      data: {'label': 'Node $_nodeCounter'},
+      size: const Size(150, 100),
+      inputPorts: const [
+        Port(
+          id: 'input',
+          name: 'In',
+          position: PortPosition.left,
+          offset: Offset(0, 50),
+        ),
+      ],
+      outputPorts: const [
+        Port(
+          id: 'output',
+          name: 'Out',
+          position: PortPosition.right,
+          offset: Offset(0, 50),
+        ),
+      ],
+    );
+
+    _controller.addNode(node);
+    _nodeCounter++;
+  }
+
+  Widget _buildNode(BuildContext context, Node<Map<String, dynamic>> node) {
+    // Calculate inner border radius by subtracting border width from outer radius
+    final outerBorderRadius = _theme.nodeTheme.borderRadius;
+    final borderWidth = _theme.nodeTheme.borderWidth;
+    final outerRadius = outerBorderRadius.topLeft.x;
+    final innerRadius = math.max(0.0, outerRadius - borderWidth);
+
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Soft mint green
+    final nodeColor = isDark
+        ? const Color(0xFF2D4A3E)
+        : const Color(0xFFD4F1E8);
+    final iconColor = isDark
+        ? const Color(0xFF88D5B3)
+        : const Color(0xFF1B5E3F);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: nodeColor,
+        borderRadius: BorderRadius.circular(innerRadius),
+      ),
+      child: Center(
+        child: Text(
+          node.data['label'] ?? '',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: iconColor,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: Row(
+            children: [
+              ElevatedButton.icon(
+                onPressed: _addNode,
+                icon: const Icon(Icons.add),
+                label: const Text('Add Node'),
+              ),
+              const SizedBox(width: 16),
+              ElevatedButton.icon(
+                onPressed: () => _controller.clearGraph(),
+                icon: const Icon(Icons.clear),
+                label: const Text('Clear All'),
+              ),
+              const Spacer(),
+              Text(
+                'Add nodes and connect them by dragging from output to input ports',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: NodeFlowEditor<Map<String, dynamic>>(
+            controller: _controller,
+            nodeBuilder: _buildNode,
+            theme: _theme,
+          ),
+        ),
+      ],
+    );
+  }
+}

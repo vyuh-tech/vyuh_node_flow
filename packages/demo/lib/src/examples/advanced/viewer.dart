@@ -7,36 +7,7 @@ class ViewerExample extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Node Flow Viewer Example'),
-        backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
-      ),
-      body: Column(
-        children: [
-          // Instructions
-          Container(
-            padding: const EdgeInsets.all(16),
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.blue.shade50,
-              border: Border(bottom: BorderSide(color: Colors.blue.shade200)),
-            ),
-            child: Text(
-              'This is a read-only node flow viewer. You can pan and zoom, but cannot edit nodes or connections.',
-              style: TextStyle(
-                color: Colors.blue.shade800,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-
-          // Viewer
-          Expanded(child: _buildViewer()),
-        ],
-      ),
-    );
+    return _buildViewer();
   }
 
   Widget _buildViewer() {

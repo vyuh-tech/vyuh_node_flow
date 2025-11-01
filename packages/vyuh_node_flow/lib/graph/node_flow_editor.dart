@@ -79,6 +79,7 @@ class NodeFlowEditor<T> extends StatefulWidget {
     this.enableSelection = true,
     this.enableNodeDragging = true,
     this.enableConnectionCreation = true,
+    this.enableNodeDeletion = true,
     this.scrollToZoom = true,
     this.showAnnotations = true,
   });
@@ -258,6 +259,13 @@ class NodeFlowEditor<T> extends StatefulWidget {
   /// Defaults to `true`.
   final bool enableConnectionCreation;
 
+  /// Whether to enable node deletion via keyboard shortcuts (Delete/Backspace) and API.
+  ///
+  /// When `false`, nodes cannot be deleted through keyboard shortcuts.
+  /// Programmatic deletion via controller.removeNode() is still possible.
+  /// Defaults to `true`.
+  final bool enableNodeDeletion;
+
   /// Whether trackpad scroll gestures should cause zooming.
   ///
   /// When `true`, scrolling on a trackpad will zoom in/out.
@@ -293,6 +301,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     super.initState();
 
     // Note: Controller only needs config, theme is handled by editor
+
+    // Set UI interaction flags
+    widget.controller.setNodeDeletion(widget.enableNodeDeletion);
 
     _transformationController = TransformationController();
 
@@ -453,6 +464,11 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   void didUpdateWidget(NodeFlowEditor<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Theme is handled by editor, config is immutable in controller
+
+    // Update UI interaction flags if they changed
+    if (oldWidget.enableNodeDeletion != widget.enableNodeDeletion) {
+      widget.controller.setNodeDeletion(widget.enableNodeDeletion);
+    }
 
     // Update callbacks if they changed
     _updateCallbacks();
@@ -953,7 +969,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     if (rect.width >= 1 && rect.height >= 1) {
       for (final node in widget.controller.nodes.values) {
         final nodePos = node.position.value;
-        final nodeSize = node.size;
+        final nodeSize = node.size.value;
 
         // Simple bounds check - much faster than getBounds() and overlaps()
         if (nodePos.dx < rect.right &&
@@ -1060,7 +1076,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
           final result = widget.onBeforeCompleteConnection!(context);
           if (!result.allowed) {
             widget.controller._cancelConnection();
-            // TODO: Show message if result.showMessage is true
             return;
           }
         }
@@ -1142,7 +1157,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       if (widget.onBeforeStartConnection != null) {
         final result = widget.onBeforeStartConnection!(context);
         if (!result.allowed) {
-          // TODO: Show message if result.showMessage is true
           return;
         }
       }

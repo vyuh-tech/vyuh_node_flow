@@ -5,7 +5,7 @@
       "type": "Supplier",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -35,7 +35,10 @@
         "material": "Steel Sheets",
         "capacity": "5000 tons/month",
         "location": "Pittsburgh, PA",
-        "certifications": ["ISO 9001", "ISO 14001"]
+        "certifications": [
+          "ISO 9001",
+          "ISO 14001"
+        ]
       },
       "position": {
         "x": 100,
@@ -48,7 +51,7 @@
       "type": "Supplier",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -78,7 +81,10 @@
         "material": "Aluminum Ingots",
         "capacity": "3000 tons/month",
         "location": "Detroit, MI",
-        "certifications": ["ISO 9001", "AS9100"]
+        "certifications": [
+          "ISO 9001",
+          "AS9100"
+        ]
       },
       "position": {
         "x": 100,
@@ -91,7 +97,7 @@
       "type": "Supplier",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -121,7 +127,10 @@
         "material": "Engineering Plastics",
         "capacity": "2000 tons/month",
         "location": "Houston, TX",
-        "certifications": ["ISO 9001", "FDA Approved"]
+        "certifications": [
+          "ISO 9001",
+          "FDA Approved"
+        ]
       },
       "position": {
         "x": 100,
@@ -134,7 +143,7 @@
       "type": "Supplier",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [],
       "outputPorts": [
@@ -164,7 +173,11 @@
         "material": "Electronic Components",
         "capacity": "10M units/month",
         "location": "San Jose, CA",
-        "certifications": ["ISO 9001", "RoHS", "REACH"]
+        "certifications": [
+          "ISO 9001",
+          "RoHS",
+          "REACH"
+        ]
       },
       "position": {
         "x": 100,
@@ -177,7 +190,7 @@
       "type": "Warehouse",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -261,7 +274,7 @@
       "type": "QualityControl",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -321,7 +334,11 @@
         "name": "Incoming Material QC",
         "inspection_type": "Statistical Sampling",
         "acceptance_rate": "98.5%",
-        "equipment": ["Spectrometer", "Hardness Tester", "3D Scanner"]
+        "equipment": [
+          "Spectrometer",
+          "Hardness Tester",
+          "3D Scanner"
+        ]
       },
       "position": {
         "x": 600,
@@ -334,7 +351,7 @@
       "type": "Production",
       "size": {
         "width": 180,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -420,7 +437,7 @@
       "type": "Production",
       "size": {
         "width": 180,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -506,7 +523,7 @@
       "type": "Production",
       "size": {
         "width": 180,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -592,7 +609,7 @@
       "type": "Production",
       "size": {
         "width": 180,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -678,7 +695,7 @@
       "type": "Assembly",
       "size": {
         "width": 200,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -763,7 +780,7 @@
       "type": "QualityControl",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -821,7 +838,13 @@
       ],
       "data": {
         "name": "Final Quality Testing",
-        "tests": ["Road Test", "Emissions", "Safety", "Water Leak", "NVH"],
+        "tests": [
+          "Road Test",
+          "Emissions",
+          "Safety",
+          "Water Leak",
+          "NVH"
+        ],
         "pass_rate": "97.8%",
         "average_test_time": "45 minutes"
       },
@@ -836,7 +859,7 @@
       "type": "Processing",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -901,7 +924,7 @@
       "type": "Warehouse",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -965,7 +988,7 @@
       "type": "Shipping",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1013,7 +1036,10 @@
       ],
       "data": {
         "name": "Domestic Shipping",
-        "carriers": ["Rail", "Truck"],
+        "carriers": [
+          "Rail",
+          "Truck"
+        ],
         "destinations": 150,
         "average_transit": "3-5 days",
         "tracking_system": "GPS + RFID"
@@ -1029,7 +1055,7 @@
       "type": "Shipping",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1077,7 +1103,11 @@
       ],
       "data": {
         "name": "Export Shipping",
-        "ports": ["Los Angeles", "New York", "Miami"],
+        "ports": [
+          "Los Angeles",
+          "New York",
+          "Miami"
+        ],
         "countries": 45,
         "average_transit": "15-30 days",
         "compliance": "ISO, EPA, EU Standards"
@@ -1093,7 +1123,7 @@
       "type": "Distribution",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1132,7 +1162,12 @@
       "data": {
         "name": "Dealer Network",
         "dealers": 1250,
-        "regions": ["North", "South", "East", "West"],
+        "regions": [
+          "North",
+          "South",
+          "East",
+          "West"
+        ],
         "average_inventory": "60 days",
         "customer_satisfaction": "4.5/5"
       },
@@ -1147,7 +1182,7 @@
       "type": "System",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1195,7 +1230,12 @@
       ],
       "data": {
         "name": "SAP S/4HANA",
-        "modules": ["Production", "Supply Chain", "Finance", "HR"],
+        "modules": [
+          "Production",
+          "Supply Chain",
+          "Finance",
+          "HR"
+        ],
         "users": 5000,
         "integration_points": 127,
         "uptime": "99.9%"
@@ -1211,7 +1251,7 @@
       "type": "System",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1275,7 +1315,7 @@
       "type": "System",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1339,7 +1379,7 @@
       "type": "WasteManagement",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1399,8 +1439,15 @@
         "name": "Waste Processing Center",
         "recycling_rate": "87%",
         "landfill_diversion": "92%",
-        "treatment_methods": ["Incineration", "Chemical", "Biological"],
-        "certifications": ["ISO 14001", "R2"]
+        "treatment_methods": [
+          "Incineration",
+          "Chemical",
+          "Biological"
+        ],
+        "certifications": [
+          "ISO 14001",
+          "R2"
+        ]
       },
       "position": {
         "x": 850,
@@ -1413,7 +1460,7 @@
       "type": "Utility",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1488,7 +1535,7 @@
       "type": "Utility",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1552,7 +1599,7 @@
       "type": "R&D",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1627,7 +1674,7 @@
       "type": "System",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1691,7 +1738,7 @@
       "type": "System",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1741,7 +1788,12 @@
         "name": "Customer Experience Portal",
         "registered_users": "2.5M",
         "daily_active_users": "150K",
-        "features": ["Configure", "Order", "Track", "Service"],
+        "features": [
+          "Configure",
+          "Order",
+          "Track",
+          "Service"
+        ],
         "mobile_app": true
       },
       "position": {
@@ -1755,7 +1807,7 @@
       "type": "HumanResources",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1820,7 +1872,7 @@
       "type": "Maintenance",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1885,7 +1937,7 @@
       "type": "Storage",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1940,7 +1992,7 @@
       "type": "Facility",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -1971,7 +2023,12 @@
         "capacity": 1000,
         "meals_per_day": 4500,
         "menu_options": 25,
-        "dietary_options": ["Vegan", "Halal", "Kosher", "Gluten-free"],
+        "dietary_options": [
+          "Vegan",
+          "Halal",
+          "Kosher",
+          "Gluten-free"
+        ],
         "satisfaction": "4.2/5"
       },
       "position": {
@@ -1985,7 +2042,7 @@
       "type": "Facility",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -2026,7 +2083,11 @@
         "doctors": 3,
         "nurses": 8,
         "beds": 20,
-        "services": ["Emergency", "Occupational Health", "Wellness"],
+        "services": [
+          "Emergency",
+          "Occupational Health",
+          "Wellness"
+        ],
         "response_time": "<5 minutes"
       },
       "position": {
@@ -2040,7 +2101,7 @@
       "type": "Facility",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -2095,7 +2156,7 @@
       "type": "System",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -2160,7 +2221,7 @@
       "type": "System",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -2211,8 +2272,16 @@
         "models": 150,
         "accuracy": "94%",
         "processing": "Real-time",
-        "ml_frameworks": ["TensorFlow", "PyTorch", "Scikit-learn"],
-        "use_cases": ["Quality", "Predictive Maintenance", "Demand Forecast"]
+        "ml_frameworks": [
+          "TensorFlow",
+          "PyTorch",
+          "Scikit-learn"
+        ],
+        "use_cases": [
+          "Quality",
+          "Predictive Maintenance",
+          "Demand Forecast"
+        ]
       },
       "position": {
         "x": 1750,
@@ -2225,7 +2294,7 @@
       "type": "Management",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -2267,7 +2336,10 @@
         "renewable_energy": "30%",
         "water_recycling": "75%",
         "zero_landfill": true,
-        "certifications": ["Carbon Neutral", "LEED Platinum"]
+        "certifications": [
+          "Carbon Neutral",
+          "LEED Platinum"
+        ]
       },
       "position": {
         "x": 1150,
@@ -2280,7 +2352,7 @@
       "type": "Management",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -2345,7 +2417,7 @@
       "type": "Management",
       "size": {
         "width": 140,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
@@ -2410,7 +2482,7 @@
       "type": "System",
       "size": {
         "width": 160,
-        "height": 150
+        "height": 170
       },
       "inputPorts": [
         {
