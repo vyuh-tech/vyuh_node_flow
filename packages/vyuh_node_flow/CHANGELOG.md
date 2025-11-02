@@ -1,3 +1,7 @@
+## 0.2.11
+
+ - **FEAT**: adding shape support.
+
 ## 0.2.10+1
 
  - **FIX**: analysis issues.
