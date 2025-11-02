@@ -1,3 +1,7 @@
+## 0.2.10
+
+ - **FEAT**: better keyboard handling.
+
 ## 0.2.9+1
 
  - **FIX**: adding docs for the library and rearranging files.
