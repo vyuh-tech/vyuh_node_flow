@@ -1,3 +1,9 @@
+## 0.2.9
+
+ - **FIX**: removing screenshots from publishing.
+ - **FEAT**: making node size observable.
+ - **FEAT**: added support to control deletion of nodes.
+
 ## 0.2.8
 
  - **FEAT**: making node size observable.
