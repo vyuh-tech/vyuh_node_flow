@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'example_model.dart';
 // Advanced examples
+import 'examples/advanced/shortcuts.dart';
 import 'examples/advanced/theming.dart';
 import 'examples/advanced/viewer.dart';
 // Annotations examples
@@ -76,6 +77,14 @@ class ExampleRegistry {
           'Advanced capabilities including layouts, annotations, themes, and more',
       icon: Icons.science,
       examples: [
+        Example(
+          id: 'shortcuts',
+          title: 'Keyboard Shortcuts',
+          description:
+              'Comprehensive showcase of all keyboard shortcuts, custom actions, and the shortcuts viewer',
+          icon: Icons.keyboard,
+          builder: (_) => const ShortcutsExample(),
+        ),
         Example(
           id: 'alignment',
           title: 'Alignment & Distribution',
