@@ -1,3 +1,7 @@
+## 0.2.10+1
+
+ - **FIX**: analysis issues.
+
 ## 0.2.10
 
  - **FEAT**: better keyboard handling.
