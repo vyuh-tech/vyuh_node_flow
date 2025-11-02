@@ -10,7 +10,6 @@
 /// - Drag optimization mode for ultra-fast updates
 /// - Multi-tier performance strategy based on object count
 /// - Generic interface that can be adapted for any 2D objects
-library;
 
 export 'node_spatial_adapter.dart';
 export 'spatial_index.dart';

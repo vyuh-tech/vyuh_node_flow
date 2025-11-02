@@ -11,21 +11,62 @@ import '../connections/label_theme.dart';
 import '../nodes/node_theme.dart';
 import '../ports/port_theme.dart';
 
-/// Defines different grid visual styles
+/// Defines different grid visual styles for the canvas background.
+///
+/// The grid provides visual reference for positioning and alignment of nodes.
 enum GridStyle {
-  /// Traditional line-based grid
+  /// Traditional line-based grid with evenly spaced vertical and horizontal lines.
   lines,
 
-  /// Dot-based grid (points at intersections)
+  /// Dot-based grid showing points at line intersections.
+  ///
+  /// More subtle than lines, reduces visual clutter while maintaining reference.
   dots,
 
-  /// Hierarchical grid with major and minor lines
+  /// Hierarchical grid with major and minor lines at different intervals.
+  ///
+  /// Major lines appear bolder and at larger intervals (e.g., every 5 grid cells),
+  /// providing multi-level visual reference.
   hierarchical,
 
-  /// No grid visible
+  /// No grid visible.
+  ///
+  /// Provides a clean canvas with no background pattern.
   none,
 }
 
+/// Theme configuration for the node flow editor.
+///
+/// Defines the visual appearance and styling for all elements in the node flow
+/// editor including nodes, connections, ports, grid, and interaction feedback.
+///
+/// The theme uses Flutter's [ThemeExtension] pattern, allowing it to be
+/// integrated with Flutter's theming system and accessed via `Theme.of(context)`.
+///
+/// Two built-in themes are provided:
+/// - [NodeFlowTheme.light]: Light color scheme suitable for bright backgrounds
+/// - [NodeFlowTheme.dark]: Dark color scheme suitable for dark backgrounds
+///
+/// Example usage:
+/// ```dart
+/// // Use a built-in theme
+/// NodeFlowEditor(
+///   theme: NodeFlowTheme.light,
+///   // ...
+/// );
+///
+/// // Customize a theme
+/// final customTheme = NodeFlowTheme.light.copyWith(
+///   backgroundColor: Colors.grey[100],
+///   gridStyle: GridStyle.hierarchical,
+///   nodeTheme: NodeTheme.light.copyWith(
+///     defaultColor: Colors.blue,
+///   ),
+/// );
+///
+/// // Access theme from context (when using Theme widget)
+/// final theme = Theme.of(context).extension<NodeFlowTheme>()!;
+/// ```
 class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   const NodeFlowTheme({
     required this.nodeTheme,
@@ -53,28 +94,89 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     this.debugMode = false,
   });
 
+  /// Theme for node appearance (colors, borders, shadows, etc.).
   final NodeTheme nodeTheme;
+
+  /// The connection line style used for established connections.
+  ///
+  /// See [ConnectionStyles] for available styles (bezier, smoothstep, straight, etc.).
   final ConnectionStyle connectionStyle;
+
+  /// The connection line style used for temporary connections during creation.
+  ///
+  /// Often uses a dashed or distinct style to differentiate from established connections.
   final ConnectionStyle temporaryConnectionStyle;
+
+  /// Theme for established connection appearance (colors, stroke width, etc.).
   final ConnectionTheme connectionTheme;
+
+  /// Theme for temporary connection appearance during connection creation.
   final ConnectionTheme temporaryConnectionTheme;
+
+  /// Theme for port appearance (size, colors, shapes).
   final PortTheme portTheme;
+
+  /// Theme for connection label styling (font, background, positioning).
   final LabelTheme labelTheme;
+
+  /// Background color of the canvas.
   final Color backgroundColor;
+
+  /// Color of the grid lines or dots.
   final Color gridColor;
+
+  /// Spacing between grid lines in pixels.
+  ///
+  /// Default is 20.0. Applies to both horizontal and vertical spacing.
   final double gridSize;
+
+  /// Thickness of grid lines in pixels.
+  ///
+  /// Default is 0.5. For dot style, this affects dot radius.
   final double gridThickness;
+
+  /// Visual style of the background grid.
   final GridStyle gridStyle;
+
+  /// Fill color for the selection rectangle.
+  ///
+  /// Used when dragging to select multiple nodes. Typically semi-transparent.
   final Color selectionColor;
+
+  /// Border color for the selection rectangle.
   final Color selectionBorderColor;
+
+  /// Border width for the selection rectangle in pixels.
   final double selectionBorderWidth;
+
+  /// Duration for hover and interaction animations.
+  ///
+  /// Controls how quickly visual feedback responds to mouse hover.
   final Duration hoverEffectDuration;
+
+  /// Whether to enable animations throughout the editor.
+  ///
+  /// When false, all animations are skipped for immediate visual updates.
   final bool enableAnimations;
+
+  /// Default mouse cursor style for the canvas.
   final SystemMouseCursor cursorStyle;
+
+  /// Mouse cursor style when dragging nodes or panning.
   final SystemMouseCursor dragCursorStyle;
+
+  /// Mouse cursor style when resizing elements.
   final SystemMouseCursor resizeCursorStyle;
+
+  /// Mouse cursor style when hovering over nodes.
   final SystemMouseCursor nodeCursorStyle;
+
+  /// Mouse cursor style when hovering over ports or creating connections.
   final SystemMouseCursor portCursorStyle;
+
+  /// Whether to enable debug visualization.
+  ///
+  /// When true, may show additional overlays like bounds, hit areas, etc.
   final bool debugMode;
 
   @override
@@ -178,6 +280,13 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     );
   }
 
+  /// Built-in light theme with bright colors and subtle grid.
+  ///
+  /// Suitable for applications with light backgrounds. Features:
+  /// - White background
+  /// - Light grey dot grid
+  /// - Blue selection and highlights
+  /// - Black text and borders
   static const light = NodeFlowTheme(
     nodeTheme: NodeTheme.light,
     connectionStyle: ConnectionStyles.smoothstep,
@@ -221,6 +330,13 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     portCursorStyle: SystemMouseCursors.precise,
   );
 
+  /// Built-in dark theme with muted colors and visible grid.
+  ///
+  /// Suitable for applications with dark backgrounds. Features:
+  /// - Dark grey background
+  /// - Medium grey dot grid
+  /// - Light blue selection and highlights
+  /// - Light text and borders
   static final dark = NodeFlowTheme(
     nodeTheme: NodeTheme.dark,
     connectionStyle: ConnectionStyles.smoothstep,

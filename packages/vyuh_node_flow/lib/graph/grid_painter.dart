@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../graph/node_flow_theme.dart';
 import '../graph/viewport.dart';
-import '../shared/grid_calculator.dart';
+import 'grid_calculator.dart';
 
 class GridPainter extends CustomPainter {
   const GridPainter({required this.theme, required this.viewport});

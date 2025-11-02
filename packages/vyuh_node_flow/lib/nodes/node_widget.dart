@@ -8,13 +8,66 @@ import '../nodes/node_theme.dart';
 import '../ports/port.dart';
 import '../ports/port_widget.dart';
 
-/// A unified node widget that handles positioning, core node functionality (ports, theming, interactions)
-/// while allowing custom content to be provided as a child.
-/// Works with Node\<T\> using MobX observables for reactive updates with optimized positioning.
+/// A unified node widget that handles positioning, rendering, and interactions.
 ///
-/// Appearance can be customized per-node by providing optional appearance parameters.
-/// If not provided, values from the theme will be used.
+/// This widget is the primary UI component for rendering nodes in the flow graph.
+/// It handles:
+/// * Positioning and sizing based on [Node] state
+/// * Rendering ports at appropriate positions
+/// * Applying theme-based or custom styling
+/// * Managing user interactions (taps, hovers)
+/// * Reactive updates via MobX observables
+///
+/// The widget supports two usage patterns:
+/// 1. **Custom content**: Provide a [child] widget for complete control over node appearance
+/// 2. **Default style**: Use [NodeWidget.defaultStyle] for standard node rendering
+///
+/// Appearance can be customized per-node by providing optional appearance parameters
+/// which will override values from the theme.
+///
+/// Example with custom content:
+/// ```dart
+/// NodeWidget<MyData>(
+///   node: myNode,
+///   child: MyCustomNodeContent(data: myNode.data),
+///   onNodeTap: (nodeId) => print('Tapped: $nodeId'),
+///   backgroundColor: Colors.blue.shade50,
+/// )
+/// ```
+///
+/// Example with default style:
+/// ```dart
+/// NodeWidget<MyData>.defaultStyle(
+///   node: myNode,
+///   connections: connections,
+///   onPortTap: handlePortTap,
+/// )
+/// ```
+///
+/// See also:
+/// * [Node], the data model for nodes
+/// * [NodeTheme], which defines default styling
+/// * [PortWidget], which renders individual ports
 class NodeWidget<T> extends StatelessWidget {
+  /// Creates a node widget with optional custom content.
+  ///
+  /// Parameters:
+  /// * [node] - The node data model to render
+  /// * [child] - Optional custom widget to display as node content
+  /// * [connections] - List of connections for determining port connection state
+  /// * [onPortTap] - Callback when a port is tapped
+  /// * [onPortHover] - Callback when a port is hovered
+  /// * [onNodeTap] - Callback when the node is tapped
+  /// * [onNodeDoubleTap] - Callback when the node is double-tapped
+  /// * [hoveredPortInfo] - Information about the currently hovered port
+  /// * [backgroundColor] - Custom background color (overrides theme)
+  /// * [selectedBackgroundColor] - Custom selected background color (overrides theme)
+  /// * [borderColor] - Custom border color (overrides theme)
+  /// * [selectedBorderColor] - Custom selected border color (overrides theme)
+  /// * [borderWidth] - Custom border width (overrides theme)
+  /// * [selectedBorderWidth] - Custom selected border width (overrides theme)
+  /// * [borderRadius] - Custom border radius (overrides theme)
+  /// * [padding] - Custom padding (overrides theme)
   const NodeWidget({
     super.key,
     required this.node,
@@ -35,7 +88,13 @@ class NodeWidget<T> extends StatelessWidget {
     this.padding,
   });
 
-  /// Creates a default node widget with standard content layout
+  /// Creates a node widget with default content layout.
+  ///
+  /// This constructor uses the standard node rendering which displays
+  /// the node type as a title and node ID as content.
+  ///
+  /// Parameters are the same as the default constructor, except [child]
+  /// is always null.
   const NodeWidget.defaultStyle({
     super.key,
     required this.node,
@@ -55,37 +114,80 @@ class NodeWidget<T> extends StatelessWidget {
     this.padding,
   }) : child = null;
 
+  /// The node data model to render.
   final Node<T> node;
+
+  /// Optional custom widget to display as node content.
+  ///
+  /// When null, default content (type and ID) is displayed.
   final Widget? child;
+
+  /// List of connections for determining which ports are connected.
   final List<Connection> connections;
+
+  /// Callback invoked when a port is tapped.
+  ///
+  /// Parameters: (nodeId, portId, isOutput)
   final void Function(String nodeId, String portId, bool isOutput)? onPortTap;
+
+  /// Callback invoked when a port hover state changes.
+  ///
+  /// Parameters: (nodeId, portId, isHover)
   final void Function(String nodeId, String portId, bool isHover)? onPortHover;
+
+  /// Callback invoked when the node is tapped.
+  ///
+  /// Parameters: (nodeId)
   final void Function(String nodeId)? onNodeTap;
+
+  /// Callback invoked when the node is double-tapped.
+  ///
+  /// Parameters: (nodeId)
   final void Function(String nodeId)? onNodeDoubleTap;
+
+  /// Information about the currently hovered port.
+  ///
+  /// Used for highlighting ports during connection creation.
   final ({String nodeId, String portId, bool isOutput})? hoveredPortInfo;
 
-  /// Custom background color (overrides theme default)
+  /// Custom background color.
+  ///
+  /// Overrides the theme's default background color when provided.
   final Color? backgroundColor;
 
-  /// Custom background color when selected (overrides theme default)
+  /// Custom background color for selected state.
+  ///
+  /// Overrides the theme's selected background color when provided.
   final Color? selectedBackgroundColor;
 
-  /// Custom border color (overrides theme default)
+  /// Custom border color.
+  ///
+  /// Overrides the theme's default border color when provided.
   final Color? borderColor;
 
-  /// Custom border color when selected (overrides theme default)
+  /// Custom border color for selected state.
+  ///
+  /// Overrides the theme's selected border color when provided.
   final Color? selectedBorderColor;
 
-  /// Custom border width (overrides theme default)
+  /// Custom border width.
+  ///
+  /// Overrides the theme's default border width when provided.
   final double? borderWidth;
 
-  /// Custom border width when selected (overrides theme default)
+  /// Custom border width for selected state.
+  ///
+  /// Overrides the theme's selected border width when provided.
   final double? selectedBorderWidth;
 
-  /// Custom border radius (overrides theme default)
+  /// Custom border radius.
+  ///
+  /// Overrides the theme's border radius when provided.
   final BorderRadius? borderRadius;
 
-  /// Custom padding (overrides theme default)
+  /// Custom padding inside the node.
+  ///
+  /// Overrides the theme's padding when provided.
   final EdgeInsets? padding;
 
   @override
@@ -243,7 +345,13 @@ class NodeWidget<T> extends StatelessWidget {
     );
   }
 
-  /// Checks if a port is connected by examining the connections list
+  /// Checks if a port is connected by examining the connections list.
+  ///
+  /// Parameters:
+  /// * [portId] - The ID of the port to check
+  /// * [isOutput] - Whether the port is an output port
+  ///
+  /// Returns true if the port is connected to any other port.
   bool _isPortConnected(String portId, bool isOutput) {
     return connections.any((connection) {
       if (isOutput) {
@@ -258,7 +366,14 @@ class NodeWidget<T> extends StatelessWidget {
     });
   }
 
-  /// Checks if a port is highlighted (being hovered during connection drag)
+  /// Checks if a port is highlighted (being hovered during connection drag).
+  ///
+  /// Parameters:
+  /// * [portId] - The ID of the port to check
+  /// * [isOutput] - Whether the port is an output port
+  ///
+  /// Returns true if this port is currently being hovered as a potential
+  /// connection target during a connection drag operation.
   bool _isPortHighlighted(String portId, bool isOutput) {
     return hoveredPortInfo?.nodeId == node.id &&
         hoveredPortInfo?.portId == portId &&

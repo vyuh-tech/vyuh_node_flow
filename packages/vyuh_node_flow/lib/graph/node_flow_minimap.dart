@@ -5,6 +5,33 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../graph/node_flow_controller.dart';
 
+/// A minimap widget that provides an overview of the entire node flow graph.
+///
+/// The minimap shows a bird's-eye view of all nodes in the graph along with
+/// a viewport indicator showing the currently visible area. Users can interact
+/// with the minimap to navigate the graph by clicking or dragging.
+///
+/// Features:
+/// - Displays all nodes as simplified rectangles
+/// - Shows current viewport bounds as a highlighted region
+/// - Interactive navigation: click to jump, drag to pan
+/// - Customizable appearance (colors, size, border radius)
+/// - Reactive updates via MobX when graph changes
+///
+/// Example:
+/// ```dart
+/// NodeFlowMinimap<MyData>(
+///   controller: controller,
+///   size: Size(200, 150),
+///   backgroundColor: Colors.white,
+///   nodeColor: Colors.blue,
+///   viewportColor: Colors.green,
+///   interactive: true,
+/// )
+/// ```
+///
+/// The minimap is typically placed in a corner of the editor as an overlay.
+/// See [MinimapOverlay] for automatic positioning.
 class NodeFlowMinimap<T> extends StatefulWidget {
   const NodeFlowMinimap({
     super.key,
@@ -19,14 +46,57 @@ class NodeFlowMinimap<T> extends StatefulWidget {
     this.interactive = true,
   });
 
+  /// The controller managing the node flow graph.
+  ///
+  /// The minimap observes this controller to reactively update when nodes,
+  /// connections, or viewport change.
   final NodeFlowController<T> controller;
+
+  /// The size of the minimap widget in pixels.
+  ///
+  /// Defaults to 200x150. Larger sizes provide more detail but take more
+  /// screen space.
   final Size size;
+
+  /// Background color of the minimap.
+  ///
+  /// If null, uses the theme's surface color.
   final Color? backgroundColor;
+
+  /// Color used to draw nodes in the minimap.
+  ///
+  /// If null, uses the theme's primary color. Nodes are drawn as small
+  /// filled rectangles.
   final Color? nodeColor;
+
+  /// Color used for the viewport indicator.
+  ///
+  /// If null, uses the theme's primary color. The viewport is drawn as a
+  /// semi-transparent rectangle with a border.
   final Color? viewportColor;
+
+  /// Border radius for the minimap widget corners.
+  ///
+  /// Defaults to 4.0. Applied to both the minimap container and viewport
+  /// indicator for visual consistency.
   final double borderRadius;
+
+  /// Internal padding between minimap edge and content.
+  ///
+  /// Defaults to EdgeInsets.all(4.0). Provides spacing between the border
+  /// and the graph visualization.
   final EdgeInsets padding;
+
+  /// Whether to show the viewport indicator rectangle.
+  ///
+  /// When true, displays a highlighted region showing the currently visible
+  /// portion of the graph. Defaults to true.
   final bool showViewport;
+
+  /// Whether the minimap responds to user interaction.
+  ///
+  /// When true, users can click to jump to a location or drag to pan the
+  /// viewport. When false, the minimap is display-only. Defaults to true.
   final bool interactive;
 
   @override
@@ -216,6 +286,14 @@ class _NodeFlowMinimapState<T> extends State<NodeFlowMinimap<T>> {
   }
 }
 
+/// Custom painter for rendering the minimap visualization.
+///
+/// Paints a scaled-down representation of the entire graph, showing:
+/// - All nodes as simplified rectangles
+/// - Current viewport as a highlighted region
+///
+/// The painter automatically scales and centers the graph to fit within
+/// the minimap bounds while maintaining aspect ratio.
 class MinimapPainter<T> extends CustomPainter {
   const MinimapPainter({
     required this.controller,
@@ -225,10 +303,19 @@ class MinimapPainter<T> extends CustomPainter {
     this.showViewport = true,
   });
 
+  /// The controller providing access to graph data.
   final NodeFlowController<T> controller;
+
+  /// Color to use when drawing node rectangles.
   final Color nodeColor;
+
+  /// Color to use when drawing the viewport indicator.
   final Color viewportColor;
+
+  /// Border radius for the viewport indicator rectangle.
   final double borderRadius;
+
+  /// Whether to render the viewport indicator.
   final bool showViewport;
 
   @override
@@ -353,8 +440,25 @@ class MinimapPainter<T> extends CustomPainter {
   }
 }
 
-// Extension to add minimap functionality to NodeFlowController
+/// Extension adding minimap navigation functionality to [NodeFlowController].
+///
+/// Provides methods for panning the viewport to specific graph positions,
+/// used by the minimap for click-to-navigate and drag-to-pan interactions.
 extension MinimapControllerExtension<T> on NodeFlowController<T> {
+  /// Pans the viewport to center on the specified graph position.
+  ///
+  /// Maintains the current zoom level while adjusting pan offset to center
+  /// the given position in the viewport. Used when clicking on the minimap
+  /// to jump to a location.
+  ///
+  /// Parameters:
+  /// - [graphPosition]: The position in graph coordinates to center on
+  ///
+  /// Example:
+  /// ```dart
+  /// // Center viewport on graph position (100, 100)
+  /// controller.panToPosition(Offset(100, 100));
+  /// ```
   void panToPosition(Offset graphPosition) {
     final screenSize = this.screenSize;
     if (screenSize == Size.zero) return;

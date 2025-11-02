@@ -1,9 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../graph/node_flow_controller.dart';
+import 'node_flow_controller.dart';
 
-/// Represents a single action that can be triggered in the node flow editor
+/// Base class for actions that can be triggered in the node flow editor.
+///
+/// An action represents a user operation that can be executed via keyboard
+/// shortcuts, menu items, or programmatically. Actions encapsulate both the
+/// operation logic and metadata for UI presentation.
+///
+/// Each action has:
+/// - Unique [id] for identification and mapping to shortcuts
+/// - Human-readable [label] for menus and command palettes
+/// - Optional [description] for tooltips
+/// - [category] for grouping in menus
+/// - [execute] method that performs the operation
+/// - [canExecute] method for conditional enabling
+///
+/// Example implementation:
+/// ```dart
+/// class MyCustomAction<T> extends NodeFlowAction<T> {
+///   const MyCustomAction()
+///     : super(
+///         id: 'my_custom_action',
+///         label: 'My Custom Action',
+///         description: 'Does something custom',
+///         category: 'Custom',
+///       );
+///
+///   @override
+///   bool execute(NodeFlowController<T> controller, BuildContext? context) {
+///     // Perform the action
+///     controller.selectAllNodes();
+///     return true; // Return true if action succeeded
+///   }
+///
+///   @override
+///   bool canExecute(NodeFlowController<T> controller) {
+///     return controller.nodes.isNotEmpty;
+///   }
+/// }
+/// ```
 abstract class NodeFlowAction<T> {
   const NodeFlowAction({
     required this.id,
@@ -12,34 +49,123 @@ abstract class NodeFlowAction<T> {
     this.category = 'General',
   });
 
-  /// Unique identifier for this action
+  /// Unique identifier for this action.
+  ///
+  /// Used to map keyboard shortcuts to actions and for programmatic execution.
+  /// Should be lowercase with underscores (e.g., 'select_all_nodes').
   final String id;
 
-  /// Human-readable label for menus/palettes
+  /// Human-readable label for UI presentation.
+  ///
+  /// Displayed in menus, command palettes, and keyboard shortcut dialogs.
+  /// Should be concise and action-oriented (e.g., 'Select All').
   final String label;
 
-  /// Optional description for tooltips
+  /// Optional description providing additional context.
+  ///
+  /// Used in tooltips and help documentation to explain what the action does.
   final String? description;
 
-  /// Category for grouping in menus
+  /// Category for organizing actions in menus.
+  ///
+  /// Groups related actions together (e.g., 'Selection', 'Editing', 'Navigation').
   final String category;
 
-  /// Execute the action with the given controller and context
+  /// Executes the action's operation.
+  ///
+  /// Called when the action is triggered via keyboard shortcut, menu, or
+  /// programmatically. Should perform the intended operation and return
+  /// whether it succeeded.
+  ///
+  /// Parameters:
+  /// - [controller]: The node flow controller to operate on
+  /// - [context]: Optional build context for showing dialogs/snackbars
+  ///
+  /// Returns: `true` if the action was successfully executed, `false` otherwise
   bool execute(NodeFlowController<T> controller, BuildContext? context);
 
-  /// Check if this action can be executed in the current state
+  /// Checks if this action can be executed in the current state.
+  ///
+  /// Used to enable/disable menu items and prevent invalid operations.
+  /// The default implementation returns `true` (always enabled).
+  ///
+  /// Parameters:
+  /// - [controller]: The node flow controller to check state against
+  ///
+  /// Returns: `true` if the action can currently be executed
+  ///
+  /// Example:
+  /// ```dart
+  /// @override
+  /// bool canExecute(NodeFlowController<T> controller) {
+  ///   // Only allow if at least 2 nodes are selected
+  ///   return controller.selectedNodeIds.length >= 2;
+  /// }
+  /// ```
   bool canExecute(NodeFlowController<T> controller) => true;
 }
 
-/// Manages keyboard shortcuts and their mappings to actions
+/// Manages keyboard shortcuts and action execution.
+///
+/// The shortcut manager maintains:
+/// - Registered actions that can be executed
+/// - Keyboard shortcut mappings to action IDs
+/// - Methods for handling keyboard events
+/// - Action search and categorization
+///
+/// Built-in shortcuts follow platform conventions:
+/// - Cmd/Ctrl for primary modifier
+/// - Shift for variations
+/// - Common key bindings (Cmd+A for select all, Delete for delete, etc.)
+///
+/// Example usage:
+/// ```dart
+/// // Create manager and register actions
+/// final manager = NodeFlowShortcutManager<MyData>();
+/// manager.registerActions(DefaultNodeFlowActions.createDefaultActions());
+///
+/// // Handle keyboard events
+/// KeyboardListener(
+///   onKeyEvent: (event) {
+///     manager.handleKeyEvent(event, controller, context);
+///   },
+///   child: ...,
+/// );
+///
+/// // Custom shortcut
+/// manager.setShortcut(
+///   LogicalKeySet(LogicalKeyboardKey.keyQ, LogicalKeyboardKey.meta),
+///   'my_custom_action',
+/// );
+///
+/// // Search actions
+/// final results = manager.searchActions('select');
+/// ```
 class NodeFlowShortcutManager<T> {
+  /// Creates a shortcut manager with optional custom shortcuts.
+  ///
+  /// Parameters:
+  /// - [customShortcuts]: Optional map of keyboard shortcuts to action IDs
+  ///   that will be added to or override default shortcuts
+  ///
+  /// Example:
+  /// ```dart
+  /// final manager = NodeFlowShortcutManager(
+  ///   customShortcuts: {
+  ///     LogicalKeySet(LogicalKeyboardKey.keyQ, LogicalKeyboardKey.meta): 'quit',
+  ///   },
+  /// );
+  /// ```
   NodeFlowShortcutManager({Map<LogicalKeySet, String>? customShortcuts})
     : _shortcuts = {..._defaultShortcuts, ...?customShortcuts};
 
   final Map<LogicalKeySet, String> _shortcuts;
   final Map<String, NodeFlowAction<T>> _actions = {};
 
-  /// Default keyboard shortcuts
+  /// Default keyboard shortcuts for common operations.
+  ///
+  /// Supports both Mac (Cmd) and Windows/Linux (Ctrl) conventions by
+  /// registering both variants for most shortcuts.
   static final Map<LogicalKeySet, String> _defaultShortcuts = {
     // Selection
     LogicalKeySet(LogicalKeyboardKey.keyA, LogicalKeyboardKey.meta):
@@ -160,19 +286,48 @@ class NodeFlowShortcutManager<T> {
     LogicalKeySet(LogicalKeyboardKey.keyN): 'toggle_snapping',
   };
 
-  /// Register a new action
+  /// Registers a single action.
+  ///
+  /// Adds the action to the manager, making it available for execution.
+  /// If an action with the same ID already exists, it will be replaced.
+  ///
+  /// Parameters:
+  /// - [action]: The action to register
   void registerAction(NodeFlowAction<T> action) {
     _actions[action.id] = action;
   }
 
-  /// Register multiple actions at once
+  /// Registers multiple actions at once.
+  ///
+  /// Convenience method for bulk registration. Commonly used with
+  /// [DefaultNodeFlowActions.createDefaultActions].
+  ///
+  /// Parameters:
+  /// - [actions]: List of actions to register
+  ///
+  /// Example:
+  /// ```dart
+  /// manager.registerActions(DefaultNodeFlowActions.createDefaultActions());
+  /// ```
   void registerActions(List<NodeFlowAction<T>> actions) {
     for (final action in actions) {
       registerAction(action);
     }
   }
 
-  /// Get all registered actions grouped by category
+  /// Gets all registered actions grouped by category.
+  ///
+  /// Useful for building categorized menus or command palettes.
+  ///
+  /// Returns: Map where keys are category names and values are lists of actions
+  ///
+  /// Example:
+  /// ```dart
+  /// final byCategory = manager.getActionsByCategory();
+  /// for (final entry in byCategory.entries) {
+  ///   print('${entry.key}: ${entry.value.length} actions');
+  /// }
+  /// ```
   Map<String, List<NodeFlowAction<T>>> getActionsByCategory() {
     final result = <String, List<NodeFlowAction<T>>>{};
     for (final action in _actions.values) {
@@ -181,10 +336,29 @@ class NodeFlowShortcutManager<T> {
     return result;
   }
 
-  /// Find action by its ID
+  /// Finds an action by its ID.
+  ///
+  /// Parameters:
+  /// - [actionId]: The unique identifier of the action to find
+  ///
+  /// Returns: The action if found, `null` otherwise
   NodeFlowAction<T>? getAction(String actionId) => _actions[actionId];
 
-  /// Find actions that match a search query
+  /// Searches for actions matching a query string.
+  ///
+  /// Searches action labels, descriptions, and IDs (case-insensitive).
+  /// Useful for implementing command palettes or search interfaces.
+  ///
+  /// Parameters:
+  /// - [query]: The search query string
+  ///
+  /// Returns: List of actions matching the query
+  ///
+  /// Example:
+  /// ```dart
+  /// final results = manager.searchActions('align');
+  /// // Returns all alignment-related actions
+  /// ```
   List<NodeFlowAction<T>> searchActions(String query) {
     final lowerQuery = query.toLowerCase();
     return _actions.values
@@ -197,7 +371,12 @@ class NodeFlowShortcutManager<T> {
         .toList();
   }
 
-  /// Get the keyboard shortcut for an action (if any)
+  /// Gets the keyboard shortcut for an action.
+  ///
+  /// Parameters:
+  /// - [actionId]: The action ID to look up
+  ///
+  /// Returns: The [LogicalKeySet] for the action, or `null` if no shortcut exists
   LogicalKeySet? getShortcutForAction(String actionId) {
     for (final entry in _shortcuts.entries) {
       if (entry.value == actionId) {
@@ -207,7 +386,30 @@ class NodeFlowShortcutManager<T> {
     return null;
   }
 
-  /// Handle a keyboard event and execute the corresponding action if found
+  /// Handles keyboard events and executes matching actions.
+  ///
+  /// Call this from your keyboard event handler to process shortcuts.
+  /// Only responds to [KeyDownEvent] to prevent duplicate executions.
+  ///
+  /// Parameters:
+  /// - [event]: The keyboard event to handle
+  /// - [controller]: The node flow controller to pass to actions
+  /// - [context]: Optional build context for actions that need it
+  ///
+  /// Returns: `true` if an action was found and executed, `false` otherwise
+  ///
+  /// Example:
+  /// ```dart
+  /// Focus(
+  ///   onKeyEvent: (node, event) {
+  ///     if (manager.handleKeyEvent(event, controller, context)) {
+  ///       return KeyEventResult.handled;
+  ///     }
+  ///     return KeyEventResult.ignored;
+  ///   },
+  ///   child: ...,
+  /// );
+  /// ```
   bool handleKeyEvent(
     KeyEvent event,
     NodeFlowController<T> controller,
@@ -263,28 +465,72 @@ class NodeFlowShortcutManager<T> {
     return normalized;
   }
 
-  /// Add or update a keyboard shortcut
+  /// Sets or updates a keyboard shortcut.
+  ///
+  /// Maps a key combination to an action ID. If the shortcut already exists,
+  /// it will be reassigned to the new action.
+  ///
+  /// Parameters:
+  /// - [keySet]: The key combination (e.g., Cmd+S)
+  /// - [actionId]: The ID of the action to execute
+  ///
+  /// Example:
+  /// ```dart
+  /// manager.setShortcut(
+  ///   LogicalKeySet(LogicalKeyboardKey.keyS, LogicalKeyboardKey.meta),
+  ///   'save_graph',
+  /// );
+  /// ```
   void setShortcut(LogicalKeySet keySet, String actionId) {
     _shortcuts[keySet] = actionId;
   }
 
-  /// Remove a keyboard shortcut
+  /// Removes a keyboard shortcut.
+  ///
+  /// Parameters:
+  /// - [keySet]: The key combination to remove
   void removeShortcut(LogicalKeySet keySet) {
     _shortcuts.remove(keySet);
   }
 
-  /// Get all current shortcuts
+  /// Gets all current keyboard shortcuts.
+  ///
+  /// Returns an unmodifiable map of shortcuts to action IDs.
   Map<LogicalKeySet, String> get shortcuts => Map.unmodifiable(_shortcuts);
 
-  /// Get the shortcuts key map for dialog display
+  /// Gets the shortcuts map for UI display.
+  ///
+  /// Returns an unmodifiable map of shortcuts. Same as [shortcuts].
   Map<LogicalKeySet, String> get keyMap => Map.unmodifiable(_shortcuts);
 
-  /// Get all registered actions for dialog display
+  /// Gets all registered actions for UI display.
+  ///
+  /// Returns an unmodifiable map of action IDs to actions.
   Map<String, NodeFlowAction<T>> get actions => Map.unmodifiable(_actions);
 }
 
-/// Concrete implementation of common node flow actions
+/// Factory for creating default node flow actions.
+///
+/// Provides a complete set of built-in actions covering common operations
+/// like selection, editing, navigation, alignment, and arrangement.
+///
+/// Use [createDefaultActions] to get all default actions for registration.
 class DefaultNodeFlowActions<T> {
+  /// Creates a list of all default actions.
+  ///
+  /// Returns a comprehensive set of actions including:
+  /// - **Selection**: Select all, invert selection, clear selection
+  /// - **Editing**: Delete, duplicate, cut, copy, paste
+  /// - **Navigation**: Fit to view, fit selected, zoom controls
+  /// - **Arrangement**: Bring forward, send backward, to front/back
+  /// - **Alignment**: Align top/bottom/left/right, center horizontally/vertically
+  /// - **General**: Cancel operation, toggle minimap/snapping
+  ///
+  /// Example:
+  /// ```dart
+  /// final manager = NodeFlowShortcutManager<MyData>();
+  /// manager.registerActions(DefaultNodeFlowActions.createDefaultActions());
+  /// ```
   static List<NodeFlowAction<T>> createDefaultActions<T>() {
     return [
       // Selection actions

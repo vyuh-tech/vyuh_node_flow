@@ -4,12 +4,71 @@ import '../ports/port.dart';
 import 'connection_style_base.dart';
 import 'connection_styles.dart';
 
+/// Utility class for creating connection paths from style definitions.
+///
+/// This calculator serves as a facade for the polymorphic [ConnectionStyle]
+/// system, providing a simple static method to create paths while handling
+/// backward compatibility and style resolution.
+///
+/// ## Design Pattern
+/// This class uses the Strategy pattern, delegating path creation to the
+/// appropriate [ConnectionStyle] implementation based on the provided style
+/// parameter.
+///
+/// ## Usage Example
+/// ```dart
+/// final path = ConnectionPathCalculator.createConnectionPath(
+///   style: ConnectionStyles.smoothstep,
+///   start: Offset(10, 20),
+///   end: Offset(100, 80),
+///   curvature: 0.5,
+///   sourcePort: outputPort,
+///   targetPort: inputPort,
+/// );
+/// ```
+///
+/// See also:
+/// - [ConnectionStyle] for the base style interface
+/// - [ConnectionStyles] for built-in style constants
+/// - [PathParameters] for path creation parameters
 class ConnectionPathCalculator {
-  /// Creates a connection path based on the connection style and parameters
+  /// Creates a connection path based on the connection style and parameters.
   ///
-  /// This method now delegates to the polymorphic connection style classes
-  /// instead of using switch statements. This allows for better extensibility
-  /// and custom connection styles.
+  /// This method delegates to the polymorphic connection style classes
+  /// instead of using switch statements, allowing for better extensibility
+  /// and support for custom connection styles.
+  ///
+  /// Parameters:
+  /// - [style]: The connection style (can be [ConnectionStyle] instance or string ID)
+  /// - [start]: Start point of the connection in logical pixels
+  /// - [end]: End point of the connection in logical pixels
+  /// - [curvature]: Curvature factor for bezier-style connections (0.0 to 1.0)
+  /// - [sourcePort]: Optional source port for position-aware path creation
+  /// - [targetPort]: Optional target port for position-aware path creation
+  /// - [cornerRadius]: Radius for rounded corners in step-style connections
+  /// - [offset]: Offset distance from ports in logical pixels
+  ///
+  /// Returns: A [Path] object representing the connection geometry
+  ///
+  /// Example:
+  /// ```dart
+  /// // Using a built-in style constant
+  /// final bezierPath = ConnectionPathCalculator.createConnectionPath(
+  ///   style: ConnectionStyles.bezier,
+  ///   start: Offset(0, 0),
+  ///   end: Offset(100, 100),
+  ///   curvature: 0.5,
+  /// );
+  ///
+  /// // Using a style ID string
+  /// final stepPath = ConnectionPathCalculator.createConnectionPath(
+  ///   style: 'step',
+  ///   start: Offset(0, 0),
+  ///   end: Offset(100, 100),
+  ///   curvature: 0.3,
+  ///   cornerRadius: 8.0,
+  /// );
+  /// ```
   static Path createConnectionPath({
     required dynamic style, // Accept both old enum and new class instances
     required Offset start,
@@ -38,11 +97,17 @@ class ConnectionPathCalculator {
     return connectionStyle.createPath(params);
   }
 
-  /// Resolve the connection style parameter to a ConnectionStyle instance
+  /// Resolves a connection style parameter to a [ConnectionStyle] instance.
   ///
   /// This method handles backward compatibility by accepting both legacy enum
-  /// values and new ConnectionStyle instances. It converts enum values to
-  /// their corresponding style instances.
+  /// values, string IDs, and new [ConnectionStyle] instances. It converts
+  /// string IDs to their corresponding style instances.
+  ///
+  /// Parameters:
+  /// - [style]: Can be a [ConnectionStyle] instance or a string ID
+  ///
+  /// Returns: A [ConnectionStyle] instance, defaulting to [ConnectionStyles.smoothstep]
+  /// if the style cannot be resolved
   static ConnectionStyle _resolveConnectionStyle(dynamic style) {
     // If it's already a ConnectionStyle instance, return it directly
     if (style is ConnectionStyle) {

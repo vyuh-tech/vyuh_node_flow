@@ -3,63 +3,155 @@ import 'package:mobx/mobx.dart';
 
 import '../connections/temporary_connection.dart';
 
-/// Contains all interaction-related state for the node flow editor
-/// Encapsulates drag operations, connection creation, selection, and UI state
+/// Contains all interaction-related state for the node flow editor.
+///
+/// This class manages the state for various user interactions including:
+/// * Node dragging
+/// * Connection creation
+/// * Multi-node selection
+/// * Mouse cursor state
+/// * Pan/zoom control
+///
+/// All state is managed using MobX observables for reactive updates.
+/// The class provides both low-level observables and high-level convenience
+/// getters for accessing state.
+///
+/// Example usage:
+/// ```dart
+/// final state = InteractionState();
+///
+/// // Check if user is dragging a node
+/// if (state.currentDraggedNodeId != null) {
+///   // Handle drag
+/// }
+///
+/// // Start a connection
+/// state.update(
+///   temporaryConnection: TemporaryConnection(
+///     sourceNodeId: 'node-1',
+///     sourcePortId: 'port-1',
+///   ),
+/// );
+/// ```
+///
+/// See also:
+/// * [TemporaryConnection], which represents an in-progress connection
 class InteractionState {
-  // Drag and pointer state
+  /// Observable ID of the node currently being dragged.
+  ///
+  /// Null when no node is being dragged.
   final Observable<String?> draggedNodeId = Observable<String?>(null);
+
+  /// Observable position of the last pointer event.
+  ///
+  /// Used for tracking cursor movement during interactions.
   final Observable<Offset?> lastPointerPosition = Observable<Offset?>(null);
 
-  // Connection interaction state
+  /// Observable temporary connection being created.
+  ///
+  /// Non-null when the user is dragging from a port to create a connection.
   final Observable<TemporaryConnection?> temporaryConnection =
       Observable<TemporaryConnection?>(null);
 
-  // Selection rectangle state
+  /// Observable starting point of a selection rectangle.
+  ///
+  /// Non-null when the user has initiated a drag selection.
   final Observable<Offset?> selectionStartPoint = Observable<Offset?>(null);
+
+  /// Observable selection rectangle bounds.
+  ///
+  /// Non-null during active selection drag operations.
   final Observable<Rect?> selectionRectangle = Observable<Rect?>(null);
 
-  // Track previously intersecting nodes to prevent flickering during toggle
+  /// Tracks nodes that were previously intersecting the selection rectangle.
+  ///
+  /// Used to prevent flickering during toggle selection mode.
   Set<String> _previouslyIntersecting = <String>{};
 
-  // UI state
+  /// Observable current mouse cursor.
+  ///
+  /// Changes based on the current interaction state (e.g., dragging, resizing).
   final Observable<MouseCursor> currentCursor = Observable(
     SystemMouseCursors.basic,
   );
+
+  /// Observable flag for whether panning is enabled.
+  ///
+  /// When false, pan gestures are disabled (e.g., during node dragging).
   final Observable<bool> panEnabled = Observable(true);
 
-  // Public getters
+  /// Gets the ID of the currently dragged node.
+  ///
+  /// Returns null if no node is being dragged.
   String? get currentDraggedNodeId => draggedNodeId.value;
 
+  /// Gets the current pointer position.
+  ///
+  /// Returns null if no pointer position has been recorded.
   Offset? get currentPointerPosition => lastPointerPosition.value;
 
+  /// Checks if a connection is currently being created.
+  ///
+  /// Returns true when the user is dragging from a port to create a connection.
   bool get isCreatingConnection => temporaryConnection.value != null;
 
+  /// Gets the source node ID of the temporary connection.
+  ///
+  /// Returns null if no connection is being created.
   String? get connectionSourceNodeId => temporaryConnection.value?.sourceNodeId;
 
+  /// Gets the source port ID of the temporary connection.
+  ///
+  /// Returns null if no connection is being created.
   String? get connectionSourcePortId => temporaryConnection.value?.sourcePortId;
 
-  // Computed: isDrawingSelection is true when we have a selection rectangle
+  /// Checks if a selection rectangle is being drawn.
+  ///
+  /// Returns true when the user is actively drag-selecting nodes.
   bool get isDrawingSelection => selectionRectangle.value != null;
 
+  /// Gets the starting point of the selection rectangle.
+  ///
+  /// Returns null if no selection is active.
   Offset? get selectionStart => selectionStartPoint.value;
 
+  /// Gets the current mouse cursor.
   MouseCursor get cursor => currentCursor.value;
 
+  /// Gets whether panning is enabled.
+  ///
+  /// Returns false during interactions that should disable panning.
   bool get isPanEnabled => panEnabled.value;
 
-  // State modification methods
+  /// Sets the currently dragged node.
+  ///
+  /// Parameters:
+  /// * [nodeId] - The ID of the node being dragged, or null to clear
   void setDraggedNode(String? nodeId) {
     runInAction(() {
       draggedNodeId.value = nodeId;
     });
   }
 
+  /// Sets the current pointer position.
+  ///
+  /// Parameters:
+  /// * [position] - The current pointer position, or null to clear
   void setPointerPosition(Offset? position) {
     runInAction(() {
       lastPointerPosition.value = position;
     });
   }
 
+  /// Updates multiple state properties atomically.
+  ///
+  /// Only non-null parameters will be updated. This is useful for updating
+  /// multiple related state properties in a single action.
+  ///
+  /// Parameters:
+  /// * [cursor] - New mouse cursor to set
+  /// * [panEnabled] - Whether panning should be enabled
+  /// * [temporaryConnection] - New temporary connection state
   void update({
     MouseCursor? cursor,
     bool? panEnabled,
@@ -74,6 +166,22 @@ class InteractionState {
     });
   }
 
+  /// Updates selection rectangle state and handles node selection.
+  ///
+  /// This method manages the selection rectangle during drag-selection operations
+  /// and calls the [selectNodes] callback with nodes that intersect the rectangle.
+  ///
+  /// The method supports two selection modes:
+  /// * Normal mode: Replaces the current selection with intersecting nodes
+  /// * Toggle mode: Toggles the selection state of intersecting nodes while
+  ///   preventing flicker by only toggling nodes whose intersection state changed
+  ///
+  /// Parameters:
+  /// * [startPoint] - Starting point of the selection rectangle
+  /// * [rectangle] - Current bounds of the selection rectangle
+  /// * [intersectingNodes] - List of node IDs that intersect the rectangle
+  /// * [toggle] - Whether to toggle selection instead of replacing
+  /// * [selectNodes] - Callback to select/deselect nodes
   void updateSelection({
     Offset? startPoint,
     Rect? rectangle,
@@ -117,6 +225,11 @@ class InteractionState {
     });
   }
 
+  /// Finishes the current selection operation.
+  ///
+  /// Clears the selection rectangle and resets tracking state.
+  /// Should be called when the user releases the mouse button after
+  /// drag-selecting nodes.
   void finishSelection() {
     runInAction(() {
       selectionStartPoint.value = null;
@@ -125,12 +238,21 @@ class InteractionState {
     });
   }
 
+  /// Cancels the current connection creation.
+  ///
+  /// Clears the temporary connection state. Should be called when the user
+  /// cancels a connection drag operation (e.g., by pressing Escape or
+  /// releasing outside a valid target port).
   void cancelConnection() {
     runInAction(() {
       temporaryConnection.value = null;
     });
   }
 
+  /// Resets all interaction state to default values.
+  ///
+  /// Clears all ongoing interactions and resets the cursor and pan state.
+  /// This is useful when canceling all interactions or resetting the editor.
   void resetState() {
     runInAction(() {
       draggedNodeId.value = null;

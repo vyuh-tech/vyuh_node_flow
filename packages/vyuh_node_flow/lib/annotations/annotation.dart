@@ -86,14 +86,33 @@ abstract class Annotation {
     _dependencies = ObservableSet.of(initialDependencies);
   }
 
+  /// Unique identifier for this annotation.
+  ///
+  /// This ID is used for selection, hit testing, and referencing the annotation
+  /// throughout the node flow system.
   final String id;
+
+  /// The type of annotation (e.g., 'sticky', 'group', 'marker').
+  ///
+  /// This type is used for serialization and deserialization, allowing the framework
+  /// to recreate the correct annotation subclass from JSON.
   final String type;
+
+  /// Additional metadata for custom data storage.
+  ///
+  /// Use this map to store any custom data associated with the annotation.
+  /// This metadata is automatically serialized and deserialized with the annotation.
   final Map<String, dynamic> metadata;
 
-  // Offset from dependent node (for following annotations)
+  /// Offset from dependent node position (for following annotations).
+  ///
+  /// When an annotation follows a node (via dependencies), this offset determines
+  /// how far from the node's center the annotation should be positioned.
+  /// Default is [Offset.zero] for centered positioning.
   final Offset offset;
 
-  // Observable properties for reactivity
+  // Observable properties for reactivity - these are observed by the framework
+  // for automatic UI updates when properties change
   late final Observable<Offset> _position;
   late final Observable<Offset> _visualPosition;
   late final Observable<int> _zIndex;
@@ -101,42 +120,118 @@ abstract class Annotation {
   late final Observable<bool> _selected;
   late final ObservableSet<String> _dependencies;
 
-  // Getters for reactive access
+  /// Reactive observable for the annotation's logical position.
+  ///
+  /// This is the "true" position of the annotation before any grid snapping.
+  /// The framework observes this for automatic UI updates.
   Observable<Offset> get position => _position;
 
+  /// Reactive observable for the annotation's visual position.
+  ///
+  /// This is the snapped position that's actually rendered on screen.
+  /// When grid snapping is enabled, this may differ from [position].
   Observable<Offset> get visualPosition => _visualPosition;
 
+  /// Reactive observable for the annotation's z-index (rendering order).
+  ///
+  /// Lower values are rendered first (behind), higher values are rendered last (in front).
+  /// Group annotations typically have negative z-index to appear behind nodes.
   Observable<int> get zIndex => _zIndex;
 
+  /// Reactive observable for the annotation's visibility state.
+  ///
+  /// When false, the annotation is hidden from the canvas.
   Observable<bool> get isVisible => _isVisible;
 
+  /// Reactive observable for the annotation's selection state.
+  ///
+  /// When true, the annotation displays selection feedback (border/highlight).
   Observable<bool> get selected => _selected;
 
+  /// Reactive observable set of node IDs this annotation depends on.
+  ///
+  /// For group annotations, these are the nodes contained within the group.
+  /// For following annotations, these are the nodes the annotation tracks.
   ObservableSet<String> get dependencies => _dependencies;
 
-  // Current values
+  /// The current logical position value (non-reactive).
+  ///
+  /// Use this for calculations where you don't need reactive updates.
+  /// For reactive access, use [position] instead.
   Offset get currentPosition => _position.value;
 
+  /// The current visual (snapped) position value (non-reactive).
+  ///
+  /// This is what's actually rendered on screen after grid snapping.
+  /// For reactive access, use [visualPosition] instead.
   Offset get currentVisualPosition => _visualPosition.value;
 
+  /// The current z-index value (non-reactive).
+  ///
+  /// For reactive access, use [zIndex] instead.
   int get currentZIndex => _zIndex.value;
 
+  /// The current visibility state (non-reactive).
+  ///
+  /// For reactive access, use [isVisible] instead.
   bool get currentIsVisible => _isVisible.value;
 
+  /// The current selection state (non-reactive).
+  ///
+  /// For reactive access, use [selected] instead.
   bool get currentSelected => _selected.value;
 
+  /// Whether this annotation responds to user interactions.
+  ///
+  /// When false, the annotation cannot be selected, dragged, or clicked.
+  /// Useful for purely decorative or informational annotations.
   final bool isInteractive;
 
-  /// Abstract methods that subclasses must implement
+  /// The dimensions of the annotation for automatic hit testing.
   ///
-  /// [size] - The dimensions of the annotation for automatic hit testing
-  /// [buildWidget] - The visual representation of the annotation
+  /// This size is used by the framework to:
+  /// - Calculate the bounding box for hit testing (see [containsPoint])
+  /// - Position selection highlights and borders
+  /// - Compute layout and rendering bounds
+  ///
+  /// Subclasses must implement this to return the annotation's current size.
   Size get size;
 
+  /// Builds the visual representation of the annotation.
+  ///
+  /// This method is called by the framework to render the annotation's content.
+  /// Implement this to define how your custom annotation appears on the canvas.
+  ///
+  /// The framework automatically wraps your widget with:
+  /// - Positioning logic (using [visualPosition])
+  /// - Selection visual feedback
+  /// - Theme-consistent borders and highlights
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// @override
+  /// Widget buildWidget(BuildContext context) {
+  ///   return Container(
+  ///     width: size.width,
+  ///     height: size.height,
+  ///     decoration: BoxDecoration(
+  ///       color: Colors.blue,
+  ///       borderRadius: BorderRadius.circular(8),
+  ///     ),
+  ///     child: Center(child: Text('My Annotation')),
+  ///   );
+  /// }
+  /// ```
   Widget buildWidget(BuildContext context);
 
-  /// Automatically calculated bounding rectangle for hit testing
-  /// Based on current visual position and size - you don't need to override this
+  /// Automatically calculated bounding rectangle for hit testing.
+  ///
+  /// Based on [currentVisualPosition] and [size]. The framework uses this
+  /// for automatic hit testing in [containsPoint].
+  ///
+  /// You typically don't need to override this unless you have a custom shape
+  /// that requires non-rectangular hit testing.
   Rect get bounds => Rect.fromLTWH(
     currentVisualPosition.dx,
     currentVisualPosition.dy,
@@ -144,70 +239,158 @@ abstract class Annotation {
     size.height,
   );
 
-  // Position and visibility management
+  /// Sets the annotation's logical position.
+  ///
+  /// This is the "true" position before grid snapping. The framework will
+  /// automatically update [visualPosition] with the snapped value.
+  ///
+  /// Use this when programmatically positioning annotations.
   void setPosition(Offset newPosition) {
     runInAction(() {
       _position.value = newPosition;
     });
   }
 
-  /// Updates the visual position (used for rendering with snapping)
-  /// This should match the node behavior exactly
+  /// Updates the visual position (used for rendering with grid snapping).
+  ///
+  /// This is called by the framework to set the snapped position that's
+  /// actually rendered on screen. This should match node behavior exactly
+  /// for consistent grid alignment.
+  ///
+  /// Generally, you don't need to call this directly - the framework handles
+  /// it automatically when you call [setPosition].
   void setVisualPosition(Offset snappedPosition) {
     runInAction(() {
       _visualPosition.value = snappedPosition;
     });
   }
 
+  /// Sets the annotation's z-index (rendering order).
+  ///
+  /// Lower values are rendered first (behind), higher values last (in front).
+  /// Group annotations typically use negative z-index (e.g., -1) to appear
+  /// behind nodes.
   void setZIndex(int newZIndex) {
     runInAction(() {
       _zIndex.value = newZIndex;
     });
   }
 
+  /// Sets the annotation's visibility state.
+  ///
+  /// When set to false, the annotation is hidden from the canvas but remains
+  /// in the controller's annotation collection.
   void setVisible(bool visible) {
     runInAction(() {
       _isVisible.value = visible;
     });
   }
 
+  /// Sets the annotation's selection state.
+  ///
+  /// When true, the annotation displays selection visual feedback (border/highlight).
+  /// This is typically managed by the framework, but can be called directly for
+  /// custom selection logic.
   void setSelected(bool selected) {
     runInAction(() {
       _selected.value = selected;
     });
   }
 
-  // Dependency management
+  /// Adds a node dependency to this annotation.
+  ///
+  /// For group annotations, the node will be contained within the group.
+  /// For following annotations, the annotation will track the node's position.
   void addDependency(String nodeId) {
     _dependencies.add(nodeId);
   }
 
+  /// Removes a node dependency from this annotation.
+  ///
+  /// The annotation will no longer track or contain the specified node.
   void removeDependency(String nodeId) {
     _dependencies.remove(nodeId);
   }
 
+  /// Clears all node dependencies from this annotation.
+  ///
+  /// The annotation becomes independent and will not track any nodes.
   void clearDependencies() {
     _dependencies.clear();
   }
 
+  /// Checks if this annotation depends on a specific node.
+  ///
+  /// Returns true if the node ID is in the annotation's dependencies.
   bool hasDependency(String nodeId) {
     return _dependencies.contains(nodeId);
   }
 
+  /// Whether this annotation has any node dependencies.
+  ///
+  /// Returns true if the annotation depends on at least one node.
   bool get hasAnyDependencies => _dependencies.isNotEmpty;
 
-  /// Automatic hit testing based on position and size
+  /// Automatic hit testing based on position and size.
+  ///
+  /// Returns true if the given point intersects with this annotation's [bounds].
+  ///
   /// Override this only if you need custom hit testing for complex shapes
+  /// (e.g., circular annotations, irregular polygons).
+  ///
+  /// ## Example of custom hit testing for a circular annotation:
+  ///
+  /// ```dart
+  /// @override
+  /// bool containsPoint(Offset point) {
+  ///   final center = Offset(
+  ///     currentVisualPosition.dx + size.width / 2,
+  ///     currentVisualPosition.dy + size.height / 2,
+  ///   );
+  ///   final radius = size.width / 2;
+  ///   return (point - center).distance <= radius;
+  /// }
+  /// ```
   bool containsPoint(Offset point) {
     return bounds.contains(point);
   }
 
-  // Serialization support
+  /// Serializes this annotation to JSON.
+  ///
+  /// Implement this to define how your custom annotation is persisted.
+  /// Include all properties needed to recreate the annotation.
+  ///
+  /// The JSON should include at minimum:
+  /// - 'id': The annotation's unique identifier
+  /// - 'type': The annotation type string
+  /// - 'x', 'y': Position coordinates
+  /// - Any custom properties specific to your annotation
   Map<String, dynamic> toJson();
 
+  /// Deserializes JSON data into this annotation.
+  ///
+  /// Implement this to update the annotation's properties from persisted data.
+  /// This is called when loading saved workflows.
+  ///
+  /// You typically update position, visibility, z-index, and any custom properties.
   void fromJson(Map<String, dynamic> json);
 
-  // Factory method for creating annotations from JSON
+  /// Factory method for creating annotations from JSON based on type.
+  ///
+  /// This is used by the framework when deserializing saved workflows.
+  /// It reads the 'type' field and creates the appropriate annotation subclass.
+  ///
+  /// To support custom annotation types, you'll need to extend this method
+  /// or provide your own deserialization logic.
+  ///
+  /// ## Parameters
+  /// - [json]: The JSON map containing the annotation data
+  ///
+  /// ## Returns
+  /// An [Annotation] instance of the appropriate subclass
+  ///
+  /// ## Throws
+  /// - [ArgumentError] if the annotation type is unknown
   static Annotation fromJsonByType(Map<String, dynamic> json) {
     final type = json['type'] as String;
     switch (type) {
@@ -226,7 +409,28 @@ abstract class Annotation {
   }
 }
 
-/// Sticky note annotation - can be placed anywhere and moved freely
+/// A sticky note annotation that can be placed anywhere on the canvas.
+///
+/// Sticky notes are free-floating annotations that can be used for comments,
+/// notes, or explanations within your node flow. They support:
+/// - Custom text content
+/// - Configurable size and color
+/// - Free movement and positioning
+/// - Optional node dependencies for tracking
+///
+/// ## Example
+///
+/// ```dart
+/// final sticky = StickyAnnotation(
+///   id: 'note-1',
+///   position: Offset(100, 100),
+///   text: 'This is a reminder',
+///   width: 200,
+///   height: 150,
+///   color: Colors.yellow,
+/// );
+/// controller.annotations.addAnnotation(sticky);
+/// ```
 class StickyAnnotation extends Annotation {
   StickyAnnotation({
     required super.id,
@@ -250,9 +454,16 @@ class StickyAnnotation extends Annotation {
          initialDependencies: dependencies,
        );
 
+  /// The text content displayed in the sticky note.
   final String text;
+
+  /// The width of the sticky note in pixels.
   final double width;
+
+  /// The height of the sticky note in pixels.
   final double height;
+
+  /// The background color of the sticky note.
   final Color color;
 
   @override
@@ -283,6 +494,10 @@ class StickyAnnotation extends Annotation {
     );
   }
 
+  /// Creates a copy of this sticky annotation with optional property overrides.
+  ///
+  /// This is useful for creating variations of an existing sticky note or
+  /// for implementing undo/redo functionality.
   StickyAnnotation copyWith({
     String? id,
     Offset? position,
@@ -313,6 +528,10 @@ class StickyAnnotation extends Annotation {
     );
   }
 
+  /// Creates a [StickyAnnotation] from a JSON map.
+  ///
+  /// This factory method is used during workflow deserialization to recreate
+  /// sticky annotations from saved data.
   factory StickyAnnotation.fromJsonMap(Map<String, dynamic> json) {
     return StickyAnnotation(
       id: json['id'] as String,
@@ -373,7 +592,32 @@ class StickyAnnotation extends Annotation {
   }
 }
 
-/// Group annotation - automatically surrounds a set of nodes
+/// A group annotation that automatically surrounds and contains a set of nodes.
+///
+/// Group annotations create visual boundaries around related nodes, making it
+/// easier to organize complex workflows. They feature:
+/// - Automatic sizing based on contained nodes
+/// - Customizable title and color
+/// - Automatic position updates when nodes move
+/// - Support for moving all contained nodes together
+/// - Typically rendered behind nodes (negative z-index)
+///
+/// Groups maintain node dependencies and automatically recalculate their bounds
+/// when dependent nodes are moved, resized, or added/removed.
+///
+/// ## Example
+///
+/// ```dart
+/// final group = controller.annotations.createGroupAnnotation(
+///   id: 'group-1',
+///   title: 'Data Processing',
+///   nodeIds: {'node1', 'node2', 'node3'},
+///   nodes: controller.nodes,
+///   color: Colors.blue,
+///   padding: EdgeInsets.all(20),
+/// );
+/// controller.annotations.addAnnotation(group);
+/// ```
 class GroupAnnotation extends Annotation {
   GroupAnnotation({
     required super.id,
@@ -400,6 +644,10 @@ class GroupAnnotation extends Annotation {
     _observableColor = Observable(color);
   }
 
+  /// The padding around contained nodes.
+  ///
+  /// This space is added around the bounding box of all dependent nodes to
+  /// provide visual separation between the group boundary and the nodes.
   final EdgeInsets padding;
 
   late final Observable<String> _observableTitle;
@@ -407,31 +655,52 @@ class GroupAnnotation extends Annotation {
 
   late final Observable<Size> _calculatedSize;
 
-  // Getters for observable properties
+  /// Reactive observable for the group's title.
+  ///
+  /// The title is displayed in the group's header bar and updates automatically
+  /// when changed via [updateTitle].
   Observable<String> get observableTitle => _observableTitle;
 
+  /// Reactive observable for the group's color.
+  ///
+  /// The color affects the group's header bar and background tint.
   Observable<Color> get observableColor => _observableColor;
 
-  // Current values for easy access
+  /// The current title value (non-reactive).
+  ///
+  /// For reactive access, use [observableTitle] instead.
   String get currentTitle => _observableTitle.value;
 
+  /// The current color value (non-reactive).
+  ///
+  /// For reactive access, use [observableColor] instead.
   Color get currentColor => _observableColor.value;
 
   @override
   Size get size => _calculatedSize.value;
 
+  /// Updates the group's calculated size.
+  ///
+  /// This is called by the framework when the group's bounds change due to
+  /// node movement, addition, or removal. You typically don't need to call
+  /// this directly.
   void updateCalculatedSize(Size newSize) {
     runInAction(() => _calculatedSize.value = newSize);
   }
 
-  /// Update the group title
+  /// Updates the group's title.
+  ///
+  /// The title appears in the group's header bar and is automatically saved
+  /// when serializing the workflow.
   void updateTitle(String newTitle) {
     runInAction(() {
       _observableTitle.value = newTitle;
     });
   }
 
-  /// Update the group color
+  /// Updates the group's color.
+  ///
+  /// The color affects both the header bar (solid) and background (translucent).
   void updateColor(Color newColor) {
     runInAction(() {
       _observableColor.value = newColor;
@@ -485,6 +754,10 @@ class GroupAnnotation extends Annotation {
     );
   }
 
+  /// Creates a copy of this group annotation with optional property overrides.
+  ///
+  /// This is useful for creating variations of an existing group or
+  /// for implementing undo/redo functionality.
   GroupAnnotation copyWith({
     String? id,
     String? title,
@@ -510,6 +783,10 @@ class GroupAnnotation extends Annotation {
     );
   }
 
+  /// Creates a [GroupAnnotation] from a JSON map.
+  ///
+  /// This factory method is used during workflow deserialization to recreate
+  /// group annotations from saved data.
   factory GroupAnnotation.fromJsonMap(Map<String, dynamic> json) {
     final annotation = GroupAnnotation(
       id: json['id'] as String,
@@ -575,29 +852,87 @@ class GroupAnnotation extends Annotation {
   }
 }
 
+/// Predefined marker types for BPMN-style workflow annotations.
+///
+/// Each marker type has an associated icon and label for common workflow
+/// elements and indicators. Use these to annotate nodes with additional
+/// semantic information.
 enum MarkerType {
+  /// Error or exception indicator
   error(Icons.error, 'Error'),
+
+  /// Warning or caution indicator
   warning(Icons.warning, 'Warning'),
+
+  /// Informational marker
   info(Icons.info, 'Information'),
+
+  /// Timer or time-based event
   timer(Icons.timer, 'Timer'),
+
+  /// Message or communication indicator
   message(Icons.message, 'Message'),
+
+  /// User task requiring human interaction
   user(Icons.person, 'User Task'),
+
+  /// Automated script task
   script(Icons.code, 'Script Task'),
+
+  /// Service or system task
   service(Icons.settings, 'Service Task'),
+
+  /// Manual task performed outside the system
   manual(Icons.pan_tool, 'Manual Task'),
+
+  /// Decision or branching point
   decision(Icons.help_outline, 'Decision Point'),
+
+  /// Sub-process or nested workflow
   subprocess(Icons.call_made, 'Sub-process'),
+
+  /// Milestone or checkpoint
   milestone(Icons.flag, 'Milestone'),
+
+  /// Risk indicator
   risk(Icons.report_problem, 'Risk'),
+
+  /// Compliance or regulatory requirement
   compliance(Icons.verified_user, 'Compliance');
 
   const MarkerType(this.iconData, this.label);
 
+  /// The icon used to represent this marker type
   final IconData iconData;
+
+  /// The human-readable label for this marker type
   final String label;
 }
 
-/// Marker annotation - small visual indicators for BPMN workflow elements
+/// A small visual indicator for workflow elements (BPMN-style markers).
+///
+/// Markers are compact annotations that attach semantic meaning to nodes
+/// or positions in the workflow. They're rendered as circular badges with
+/// icons and optional tooltips.
+///
+/// Common use cases include:
+/// - Indicating task types (user, script, service)
+/// - Showing status (error, warning, info)
+/// - Marking special workflow points (decision, milestone)
+/// - Highlighting compliance or risk areas
+///
+/// ## Example
+///
+/// ```dart
+/// final errorMarker = MarkerAnnotation(
+///   id: 'marker-1',
+///   position: Offset(150, 200),
+///   markerType: MarkerType.error,
+///   color: Colors.red,
+///   tooltip: 'Validation failed',
+/// );
+/// controller.annotations.addAnnotation(errorMarker);
+/// ```
 class MarkerAnnotation extends Annotation {
   MarkerAnnotation({
     required super.id,
@@ -621,10 +956,19 @@ class MarkerAnnotation extends Annotation {
          initialDependencies: dependencies,
        );
 
+  /// The type of marker, determining its icon and semantic meaning.
   final MarkerType markerType;
 
+  /// The size of the marker in pixels (both width and height).
   final double markerSize;
+
+  /// The color of the marker icon.
   final Color color;
+
+  /// Optional tooltip text shown on hover.
+  ///
+  /// When null, no tooltip is displayed. When provided, hovering over the
+  /// marker shows this text for additional context.
   final String? tooltip;
 
   @override
@@ -656,6 +1000,10 @@ class MarkerAnnotation extends Annotation {
     return widget;
   }
 
+  /// Creates a copy of this marker annotation with optional property overrides.
+  ///
+  /// This is useful for creating variations of an existing marker or
+  /// for implementing undo/redo functionality.
   MarkerAnnotation copyWith({
     String? id,
     Offset? position,
@@ -684,6 +1032,10 @@ class MarkerAnnotation extends Annotation {
     );
   }
 
+  /// Creates a [MarkerAnnotation] from a JSON map.
+  ///
+  /// This factory method is used during workflow deserialization to recreate
+  /// marker annotations from saved data.
   factory MarkerAnnotation.fromJsonMap(Map<String, dynamic> json) {
     final markerTypeName = json['markerType'] as String? ?? 'info';
     final markerType = MarkerType.values.firstWhere(
@@ -743,27 +1095,69 @@ class MarkerAnnotation extends Annotation {
   }
 }
 
-/// Annotation dependency types for different update behaviors
+/// Defines how an annotation responds to changes in dependent nodes.
+///
+/// Different dependency types enable different behaviors for annotations
+/// that track or relate to nodes in the workflow.
 enum AnnotationDependencyType {
-  /// Annotation follows node movements
+  /// Annotation follows node movements.
+  ///
+  /// The annotation automatically updates its position to track the center
+  /// of its dependent nodes. Useful for badges, labels, or indicators that
+  /// should stay with specific nodes.
   follow,
 
-  /// Annotation surrounds/encompasses nodes
+  /// Annotation surrounds/encompasses nodes.
+  ///
+  /// The annotation's bounds automatically expand to contain all dependent
+  /// nodes. This is used by [GroupAnnotation] to create visual boundaries
+  /// around node sets.
   surround,
 
-  /// Annotation is linked but doesn't move automatically
+  /// Annotation is linked but doesn't move automatically.
+  ///
+  /// The annotation maintains a relationship with nodes but doesn't update
+  /// its position. Useful for connections or references that should persist
+  /// but remain stationary.
   linked,
 }
 
-/// Represents a dependency relationship between an annotation and nodes
+/// Represents a dependency relationship between an annotation and a node.
+///
+/// This class encapsulates the details of how an annotation relates to a
+/// specific node, including the dependency type and optional metadata.
+///
+/// ## Example
+///
+/// ```dart
+/// final dependency = AnnotationDependency(
+///   nodeId: 'node-1',
+///   type: AnnotationDependencyType.follow,
+///   metadata: {'offset': Offset(10, -20)},
+/// );
+/// ```
 class AnnotationDependency {
+  /// Creates an annotation dependency.
+  ///
+  /// ## Parameters
+  /// - [nodeId]: The ID of the node this dependency references
+  /// - [type]: The type of dependency behavior
+  /// - [metadata]: Optional custom data for this dependency
   const AnnotationDependency({
     required this.nodeId,
     required this.type,
     this.metadata = const {},
   });
 
+  /// The ID of the node this dependency references.
   final String nodeId;
+
+  /// The type of dependency behavior (follow, surround, or linked).
   final AnnotationDependencyType type;
+
+  /// Optional custom metadata for this dependency.
+  ///
+  /// Use this to store additional data specific to this node relationship,
+  /// such as custom offsets, priority, or behavioral flags.
   final Map<String, dynamic> metadata;
 }

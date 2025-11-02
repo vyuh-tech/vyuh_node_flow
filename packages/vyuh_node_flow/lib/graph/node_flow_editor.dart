@@ -1296,7 +1296,11 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   }
 }
 
-/// Optimized CustomPainter for ultra-smooth selection rectangle at 60fps
+/// Optimized painter for selection rectangle rendering.
+///
+/// Renders the selection rectangle shown when the user drags to select
+/// multiple nodes. Uses pre-calculated paint objects for maximum performance
+/// to maintain 60fps during selection operations.
 class SelectionRectanglePainter extends CustomPainter {
   SelectionRectanglePainter({
     required this.selectionRectangle,
@@ -1309,11 +1313,20 @@ class SelectionRectanglePainter extends CustomPainter {
          ..strokeWidth = theme.selectionBorderWidth
          ..style = PaintingStyle.stroke;
 
+  /// The bounds of the selection rectangle in graph coordinates.
   final Rect selectionRectangle;
+
+  /// The theme configuration for styling the selection rectangle.
   final NodeFlowTheme theme;
 
-  // Pre-calculated paint objects for maximum performance
+  /// Pre-calculated paint for the rectangle fill.
+  ///
+  /// Computed once in constructor for maximum performance.
   final Paint _fillPaint;
+
+  /// Pre-calculated paint for the rectangle border.
+  ///
+  /// Computed once in constructor for maximum performance.
   final Paint _borderPaint;
 
   @override
@@ -1330,10 +1343,31 @@ class SelectionRectanglePainter extends CustomPainter {
   }
 }
 
-/// Hit test result types for different UI elements
-enum HitType { canvas, node, port, connection, annotation }
+/// Hit test result types for different UI elements.
+///
+/// Used to determine what element the user is interacting with at a specific
+/// position on the canvas.
+enum HitType {
+  /// Empty canvas area (no elements hit)
+  canvas,
 
-/// Result of hit testing at a specific position
+  /// A node element
+  node,
+
+  /// A port on a node
+  port,
+
+  /// A connection between nodes
+  connection,
+
+  /// An annotation (sticky note, marker, or group)
+  annotation
+}
+
+/// Result of hit testing at a specific position on the canvas.
+///
+/// Contains information about what element was hit and its properties.
+/// Used for cursor updates, interaction handling, and event routing.
 class HitTestResult {
   const HitTestResult({
     this.nodeId,
@@ -1345,26 +1379,53 @@ class HitTestResult {
     this.hitType = HitType.canvas,
   });
 
+  /// The ID of the node that was hit, if any.
   final String? nodeId;
+
+  /// The ID of the port that was hit, if any.
   final String? portId;
+
+  /// The ID of the connection that was hit, if any.
   final String? connectionId;
+
+  /// The ID of the annotation that was hit, if any.
   final String? annotationId;
+
+  /// Whether the hit port is an output port.
+  ///
+  /// `true` for output ports, `false` for input ports, `null` if not a port.
   final bool? isOutput;
+
+  /// The position where the hit occurred in graph coordinates.
   final Offset? position;
+
+  /// The type of element that was hit.
   final HitType hitType;
 
+  /// Returns `true` if a port was hit.
   bool get isPort => hitType == HitType.port;
 
+  /// Returns `true` if a node was hit.
   bool get isNode => hitType == HitType.node;
 
+  /// Returns `true` if a connection was hit.
   bool get isConnection => hitType == HitType.connection;
 
+  /// Returns `true` if an annotation was hit.
   bool get isAnnotation => hitType == HitType.annotation;
 
+  /// Returns `true` if empty canvas was hit (no elements).
   bool get isCanvas => hitType == HitType.canvas;
 }
 
-/// Combined painter for interactive elements (selection rectangle and temporary connection)
+/// Painter for interactive elements (selection rectangle and temporary connection).
+///
+/// This painter renders transient UI elements that appear during user interactions:
+/// - Selection rectangle when dragging to select multiple nodes
+/// - Temporary connection line when creating connections between ports
+///
+/// These elements are repainted frequently during interactions and are kept
+/// separate from static elements for performance optimization.
 class InteractionLayerPainter<T> extends CustomPainter {
   InteractionLayerPainter({
     required this.controller,
@@ -1373,9 +1434,16 @@ class InteractionLayerPainter<T> extends CustomPainter {
     this.temporaryConnection,
   });
 
+  /// The controller managing the graph state.
   final NodeFlowController<T> controller;
+
+  /// The theme configuration for styling.
   final NodeFlowTheme theme;
+
+  /// The current selection rectangle bounds, if user is selecting.
   final Rect? selectionRectangle;
+
+  /// The temporary connection being created, if user is connecting ports.
   final TemporaryConnection? temporaryConnection;
 
   @override

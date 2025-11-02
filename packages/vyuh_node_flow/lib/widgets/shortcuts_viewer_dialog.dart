@@ -2,18 +2,58 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../shared/node_flow_actions.dart';
+import '../graph/node_flow_actions.dart';
 
 /// A comprehensive shortcuts viewer dialog that displays all available
-/// keyboard shortcuts organized by category
+/// keyboard shortcuts organized by category.
+///
+/// This dialog presents keyboard shortcuts in a user-friendly format with:
+/// - Categorized shortcuts (General, Selection, Navigation, etc.)
+/// - Platform-specific key symbols (⌘ on macOS, Ctrl on Windows/Linux)
+/// - Action descriptions alongside each shortcut
+/// - Searchable and scrollable interface
+///
+/// The dialog automatically formats shortcuts based on the current platform,
+/// showing appropriate symbols for modifier keys (Command, Control, Alt, Shift).
+///
+/// Example usage:
+/// ```dart
+/// void showShortcuts(BuildContext context) {
+///   showDialog(
+///     context: context,
+///     builder: (context) => ShortcutsViewerDialog(
+///       shortcuts: controller.shortcuts.shortcuts,
+///       actions: controller.shortcuts.getAllActions(),
+///     ),
+///   );
+/// }
+/// ```
+///
+/// See also:
+/// - [NodeFlowAction], which provides action metadata like label and description
+/// - [LogicalKeySet], used to define keyboard shortcuts
 class ShortcutsViewerDialog extends StatelessWidget {
+  /// Creates a shortcuts viewer dialog.
+  ///
+  /// Parameters:
+  /// - [shortcuts]: A map of keyboard shortcuts to action IDs
+  /// - [actions]: A map of action IDs to [NodeFlowAction] objects for metadata
   const ShortcutsViewerDialog({
     super.key,
     required this.shortcuts,
     this.actions = const {},
   });
 
+  /// The map of keyboard shortcuts to action IDs.
+  ///
+  /// Each key is a [LogicalKeySet] representing a keyboard combination,
+  /// and each value is the ID of the action triggered by that shortcut.
   final Map<LogicalKeySet, String> shortcuts;
+
+  /// The map of action IDs to [NodeFlowAction] objects.
+  ///
+  /// This provides metadata about each action including its label, description,
+  /// and category for organizing the display.
   final Map<String, NodeFlowAction> actions;
 
   @override
@@ -78,6 +118,14 @@ class ShortcutsViewerDialog extends StatelessWidget {
     );
   }
 
+  /// Organizes shortcuts into categories based on their action metadata.
+  ///
+  /// This method groups shortcuts by their action's category property and sorts
+  /// them alphabetically within each category. The "General" category is always
+  /// shown first if it exists.
+  ///
+  /// Returns a map where keys are category names and values are lists of
+  /// shortcuts in that category, sorted by action label.
   Map<String, List<_ShortcutInfo>> _categorizeShortcuts() {
     final categorized = <String, List<_ShortcutInfo>>{};
 
@@ -107,10 +155,17 @@ class ShortcutsViewerDialog extends StatelessWidget {
   }
 }
 
+/// A widget that displays a category section in the shortcuts viewer.
+///
+/// This internal widget renders a category header and all shortcuts within that
+/// category. Categories are visually separated and labeled for easy navigation.
 class _ShortcutCategory extends StatelessWidget {
   const _ShortcutCategory({required this.category, required this.shortcuts});
 
+  /// The name of this category (e.g., "General", "Selection", "Navigation").
   final String category;
+
+  /// The list of shortcuts in this category.
   final List<_ShortcutInfo> shortcuts;
 
   @override
@@ -150,9 +205,16 @@ class _ShortcutCategory extends StatelessWidget {
   }
 }
 
+/// A widget that displays a single shortcut entry in the viewer.
+///
+/// This internal widget renders:
+/// - The keyboard combination (e.g., "Cmd + C" or "Ctrl + Shift + Z")
+/// - The action label and description
+/// - Platform-specific key symbols and formatting
 class _ShortcutRow extends StatelessWidget {
   const _ShortcutRow({required this.shortcut});
 
+  /// The shortcut information to display.
   final _ShortcutInfo shortcut;
 
   @override
@@ -211,6 +273,12 @@ class _ShortcutRow extends StatelessWidget {
     );
   }
 
+  /// Builds a list of widgets representing the keys in a shortcut.
+  ///
+  /// This method creates [_KeyWidget] instances for each key in the set,
+  /// with modifiers (Ctrl, Cmd, Alt, Shift) appearing first, separated by " + ".
+  ///
+  /// Returns a list of widgets that visually represent the keyboard combination.
   List<Widget> _buildKeyWidgets(LogicalKeySet keySet) {
     final widgets = <Widget>[];
     final keys = keySet.keys.toList();
@@ -234,6 +302,9 @@ class _ShortcutRow extends StatelessWidget {
     return widgets;
   }
 
+  /// Checks if a key is a modifier key (Cmd, Ctrl, Alt, Shift).
+  ///
+  /// Returns true for any variant of modifier keys (left, right, or generic).
   bool _isModifier(LogicalKeyboardKey key) {
     return key == LogicalKeyboardKey.meta ||
         key == LogicalKeyboardKey.metaLeft ||
@@ -250,9 +321,17 @@ class _ShortcutRow extends StatelessWidget {
   }
 }
 
+/// A widget that renders a single keyboard key with platform-specific styling.
+///
+/// This internal widget displays a key in a keyboard-like appearance with:
+/// - Platform-specific symbols (⌘ for Cmd on macOS, Ctrl on Windows/Linux)
+/// - Arrow symbols for arrow keys (↑ ↓ ← →)
+/// - Monospace font for consistency
+/// - Shadow and border styling to mimic a physical key
 class _KeyWidget extends StatelessWidget {
   const _KeyWidget({required this.logicalKey});
 
+  /// The keyboard key to display.
   final LogicalKeyboardKey logicalKey;
 
   @override
@@ -288,10 +367,23 @@ class _KeyWidget extends StatelessWidget {
     );
   }
 
+  /// Returns true if the current platform is macOS.
+  ///
+  /// This is used to determine whether to show macOS-style symbols (⌘)
+  /// or Windows/Linux-style labels (Ctrl, Win).
   bool get _isMacOS {
     return defaultTargetPlatform == TargetPlatform.macOS;
   }
 
+  /// Converts a [LogicalKeyboardKey] to a display label.
+  ///
+  /// This method returns platform-appropriate labels for keys:
+  /// - Modifier keys show symbols on macOS (⌘ ⌃ ⌥ ⇧) or text on Windows/Linux
+  /// - Arrow keys show arrow symbols (↑ ↓ ← →)
+  /// - Special keys show abbreviated names (Esc, Del, etc.)
+  /// - Letter and number keys show uppercase letters or digits
+  ///
+  /// Returns a string suitable for display in the shortcuts viewer.
   String _getKeyLabel(LogicalKeyboardKey key) {
     // Handle modifier keys with platform-specific labels
     if (key == LogicalKeyboardKey.meta ||
@@ -362,9 +454,19 @@ class _KeyWidget extends StatelessWidget {
   }
 }
 
+/// Internal data class that pairs a keyboard shortcut with its action.
+///
+/// This class is used internally by [ShortcutsViewerDialog] to organize
+/// shortcuts for display. It combines the keyboard combination with the
+/// action metadata needed for rendering.
 class _ShortcutInfo {
   const _ShortcutInfo({required this.keySet, required this.action});
 
+  /// The keyboard combination that triggers this action.
   final LogicalKeySet keySet;
+
+  /// The action that is triggered by this keyboard shortcut.
+  ///
+  /// Contains metadata like label, description, and category.
   final NodeFlowAction action;
 }

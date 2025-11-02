@@ -9,17 +9,97 @@ import '../shared/label_position_calculator.dart';
 import 'connection_path_calculator.dart';
 import 'endpoint_position_calculator.dart';
 
+/// Contains the calculated rectangular bounds for connection labels.
+///
+/// Each connection can have up to three labels:
+/// - [centerRect]: Label positioned at the midpoint of the connection
+/// - [startRect]: Label positioned near the source endpoint
+/// - [endRect]: Label positioned near the target endpoint
+///
+/// Null values indicate that the corresponding label is not present.
 class LabelPositionData {
-  final Rect? centerRect;
-  final Rect? startRect;
-  final Rect? endRect;
-
+  /// Creates label position data with optional label rectangles.
   const LabelPositionData({this.centerRect, this.startRect, this.endRect});
+
+  /// Rectangular bounds for the center label.
+  ///
+  /// Positioned at t=0.5 (midpoint) of the connection path.
+  final Rect? centerRect;
+
+  /// Rectangular bounds for the start label.
+  ///
+  /// Positioned near the source endpoint, offset based on port position
+  /// and [LabelTheme] settings.
+  final Rect? startRect;
+
+  /// Rectangular bounds for the end label.
+  ///
+  /// Positioned near the target endpoint, offset based on port position
+  /// and [LabelTheme] settings.
+  final Rect? endRect;
 }
 
+/// Utility class for calculating connection label positions.
+///
+/// This calculator determines the exact rectangular bounds for all three types
+/// of connection labels (center, start, and end), taking into account:
+/// - Connection path geometry
+/// - Port positions and orientations
+/// - Endpoint marker sizes
+/// - Label text sizes
+/// - Theme-defined offsets
+///
+/// ## Label Types
+/// 1. **Center Label**: Positioned at the exact midpoint (t=0.5) of the connection path
+/// 2. **Start Label**: Positioned near the source endpoint, offset by [LabelTheme.horizontalOffset]
+///    or [LabelTheme.verticalOffset] depending on port orientation
+/// 3. **End Label**: Positioned near the target endpoint, similarly offset
+///
+/// ## Usage Example
+/// ```dart
+/// final labelData = EdgeLabelPositionCalculator.calculateAllLabelPositions(
+///   connection: myConnection,
+///   sourceNode: sourceNode,
+///   targetNode: targetNode,
+///   connectionStyle: ConnectionStyles.smoothstep,
+///   curvature: 0.5,
+///   portSize: 8.0,
+///   endpointSize: 5.0,
+///   labelTheme: myLabelTheme,
+/// );
+///
+/// if (labelData?.centerRect != null) {
+///   // Draw center label at labelData.centerRect
+/// }
+/// ```
+///
+/// See also:
+/// - [LabelTheme] for label styling and offset configuration
+/// - [Connection] for label text management
 class EdgeLabelPositionCalculator {
-  /// Calculates all label positions for a connection
-  /// Takes a connection and figures out all the positioning internally
+  /// Calculates all label positions for a connection.
+  ///
+  /// This is the main entry point that orchestrates the calculation of all
+  /// three label positions (center, start, and end) for a connection.
+  ///
+  /// Parameters:
+  /// - [connection]: The connection whose labels to position
+  /// - [sourceNode]: The source node of the connection
+  /// - [targetNode]: The target node of the connection
+  /// - [connectionStyle]: The style used to render the connection
+  /// - [curvature]: Curvature factor for the connection (0.0 to 1.0)
+  /// - [portSize]: Size of the ports in logical pixels
+  /// - [endpointSize]: Size of the endpoint markers in logical pixels
+  /// - [labelTheme]: Theme defining label appearance and offsets
+  ///
+  /// Returns: A [LabelPositionData] containing rectangles for all present labels,
+  /// or null if the calculation fails (e.g., ports not found)
+  ///
+  /// The method:
+  /// 1. Finds the source and target ports on their respective nodes
+  /// 2. Calculates port positions and endpoint positions
+  /// 3. Determines label sizes from text and theme
+  /// 4. Computes final label positions based on connection geometry
   static LabelPositionData? calculateAllLabelPositions({
     required Connection connection,
     required Node sourceNode,
@@ -188,7 +268,24 @@ class EdgeLabelPositionCalculator {
     );
   }
 
-  /// Calculates the center position for a connection label
+  /// Calculates the center position for a connection label.
+  ///
+  /// The center position is determined by finding the point at t=0.5
+  /// (the exact midpoint) of the connection path. This ensures the label
+  /// is positioned at the geometric center of the connection regardless
+  /// of the connection style (bezier, step, straight, etc.).
+  ///
+  /// Parameters:
+  /// - [connectionStyle]: The style used to create the connection path
+  /// - [start]: Start point of the connection line (after endpoint marker)
+  /// - [end]: End point of the connection line (before endpoint marker)
+  /// - [curvature]: Curvature factor for bezier-style connections
+  /// - [sourcePort]: Optional source port for position-aware path creation
+  /// - [targetPort]: Optional target port for position-aware path creation
+  ///
+  /// Returns: The offset where the center label should be positioned
+  ///
+  /// If path calculation fails, returns the simple midpoint between start and end.
   static Offset calculateCenterPosition({
     required ConnectionStyle connectionStyle,
     required Offset start,
@@ -222,7 +319,15 @@ class EdgeLabelPositionCalculator {
     }
   }
 
-  /// Calculates the center position of a connection path (t=0.5 point)
+  /// Calculates the center position of a connection path (t=0.5 point).
+  ///
+  /// This internal method computes the exact point at t=0.5 along the
+  /// connection path using Flutter's path metrics API.
+  ///
+  /// Parameters:
+  /// - [connectionPath]: The path to analyze
+  ///
+  /// Returns: The position at t=0.5, or [Offset.zero] if the path is invalid
   static Offset _calculateCenterPositionFromPath(Path connectionPath) {
     final pathMetrics = connectionPath.computeMetrics();
 
@@ -248,7 +353,25 @@ class EdgeLabelPositionCalculator {
     return tangent.position;
   }
 
-  /// Calculates the start label position near the source endpoint
+  /// Calculates the start label position near the source endpoint.
+  ///
+  /// The label is positioned relative to the endpoint marker based on the
+  /// source port's orientation and the [LabelTheme]'s offset settings.
+  ///
+  /// Parameters:
+  /// - [endpointPosition]: Center position of the source endpoint marker
+  /// - [sourcePort]: The source port (null defaults to positioning above)
+  /// - [portSize]: Size of the port in logical pixels
+  /// - [labelTheme]: Theme containing offset settings
+  /// - [labelSize]: Size of the label text (used for centering)
+  ///
+  /// Returns: Top-left corner position for the label rectangle
+  ///
+  /// Positioning rules:
+  /// - Left ports: Label goes LEFT of endpoint by [LabelTheme.horizontalOffset]
+  /// - Right ports: Label goes RIGHT of endpoint by [LabelTheme.horizontalOffset]
+  /// - Top ports: Label goes UP from endpoint by [LabelTheme.verticalOffset]
+  /// - Bottom ports: Label goes DOWN from endpoint by [LabelTheme.verticalOffset]
   static Offset calculateStartPosition(
     Offset endpointPosition,
     Port? sourcePort,
@@ -289,7 +412,25 @@ class EdgeLabelPositionCalculator {
     }
   }
 
-  /// Calculates the end label position near the target endpoint
+  /// Calculates the end label position near the target endpoint.
+  ///
+  /// The label is positioned relative to the endpoint marker based on the
+  /// target port's orientation and the [LabelTheme]'s offset settings.
+  ///
+  /// Parameters:
+  /// - [endpointPosition]: Center position of the target endpoint marker
+  /// - [targetPort]: The target port (null defaults to positioning above)
+  /// - [portSize]: Size of the port in logical pixels
+  /// - [labelTheme]: Theme containing offset settings
+  /// - [labelSize]: Size of the label text (used for centering)
+  ///
+  /// Returns: Top-left corner position for the label rectangle
+  ///
+  /// Positioning rules:
+  /// - Left ports: Label goes LEFT of endpoint by [LabelTheme.horizontalOffset]
+  /// - Right ports: Label goes RIGHT of endpoint by [LabelTheme.horizontalOffset]
+  /// - Top ports: Label goes UP from endpoint by [LabelTheme.verticalOffset]
+  /// - Bottom ports: Label goes DOWN from endpoint by [LabelTheme.verticalOffset]
   static Offset calculateEndPosition(
     Offset endpointPosition,
     Port? targetPort,

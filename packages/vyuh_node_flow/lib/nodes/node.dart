@@ -6,7 +6,47 @@ import '../ports/capsule_half.dart';
 import '../ports/port.dart';
 import '../shared/json_converters.dart';
 
+/// Represents a single node in the flow graph.
+///
+/// A node is a visual element that can be connected to other nodes via [Port]s.
+/// Each node has a position, size, and custom data of type [T]. Nodes can be
+/// dragged, selected, and connected to create complex flow diagrams.
+///
+/// The node system uses MobX observables for reactive updates, ensuring that
+/// any changes to node properties automatically trigger UI updates.
+///
+/// Example usage:
+/// ```dart
+/// final node = Node<MyData>(
+///   id: 'node-1',
+///   type: 'processor',
+///   position: Offset(100, 100),
+///   data: MyData(value: 'example'),
+///   inputPorts: [
+///     Port(id: 'in-1', position: PortPosition.left),
+///   ],
+///   outputPorts: [
+///     Port(id: 'out-1', position: PortPosition.right),
+///   ],
+/// );
+/// ```
+///
+/// See also:
+/// * [Port], which defines connection points on nodes
+/// * [NodeWidget], which renders nodes in the UI
+/// * [NodeData], the interface for node data objects
 class Node<T> {
+  /// Creates a new node with the specified properties.
+  ///
+  /// Parameters:
+  /// * [id] - Unique identifier for this node
+  /// * [type] - Type classification for the node (e.g., 'input', 'processor', 'output')
+  /// * [position] - Initial position in the graph coordinate space
+  /// * [data] - Custom data associated with this node
+  /// * [size] - Optional size, defaults to 150x100 if not specified
+  /// * [inputPorts] - List of input ports for incoming connections
+  /// * [outputPorts] - List of output ports for outgoing connections
+  /// * [initialZIndex] - Initial stacking order, higher values appear on top
   Node({
     required this.id,
     required this.type,
@@ -26,50 +66,129 @@ class Node<T> {
        inputPorts = ObservableList.of(inputPorts),
        outputPorts = ObservableList.of(outputPorts);
 
+  /// Unique identifier for this node.
+  ///
+  /// Used to reference the node in connections and operations.
   final String id;
+
+  /// Type classification for this node.
+  ///
+  /// Typically used to categorize nodes (e.g., 'input', 'processor', 'output')
+  /// and may affect rendering or behavior.
   final String type;
 
+  /// Observable size of the node.
+  ///
+  /// Changes to this value will automatically trigger UI updates.
   final Observable<Size> size;
+
+  /// Observable list of input ports for incoming connections.
+  ///
+  /// Ports define where connections can be attached to receive data.
   final ObservableList<Port> inputPorts;
+
+  /// Observable list of output ports for outgoing connections.
+  ///
+  /// Ports define where connections can originate to send data.
   final ObservableList<Port> outputPorts;
+
+  /// Custom data associated with this node.
+  ///
+  /// The type [T] can be any object that implements [NodeData].
   final T data;
 
-  // Observable properties for reactive updates
+  /// Observable position of the node in graph coordinates.
+  ///
+  /// This is the actual logical position. For rendering, use [visualPosition]
+  /// which may include snap-to-grid adjustments.
   final Observable<Offset> position;
+
+  /// Observable z-index for stacking order.
+  ///
+  /// Higher values appear on top of lower values. Useful for managing
+  /// overlapping nodes.
   final Observable<int> zIndex;
 
+  /// Observable selection state.
+  ///
+  /// When true, the node is selected and may be styled differently.
+  /// Not serialized to JSON.
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Observable<bool> selected;
 
+  /// Observable dragging state.
+  ///
+  /// When true, the node is currently being dragged by the user.
+  /// Not serialized to JSON.
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Observable<bool> dragging;
 
-  // Visual position for rendering (with snap to grid applied)
+  /// Observable visual position for rendering.
+  ///
+  /// This may differ from [position] when snap-to-grid is enabled.
+  /// Use this value for actual rendering in the UI.
+  /// Not serialized to JSON.
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Observable<Offset> visualPosition;
 
+  /// Gets the current z-index value.
+  ///
+  /// This is a convenience getter for accessing the observable's value.
   int get currentZIndex => zIndex.value;
 
+  /// Sets the z-index value in a MobX action.
+  ///
+  /// Updates are wrapped in [runInAction] to ensure proper state management.
   set currentZIndex(int value) => runInAction(() => zIndex.value = value);
 
+  /// Gets the current selection state.
+  ///
+  /// Returns true if the node is currently selected.
   bool get isSelected => selected.value;
 
+  /// Sets the selection state in a MobX action.
+  ///
+  /// Updates are wrapped in [runInAction] to ensure proper state management.
   set isSelected(bool value) => runInAction(() => selected.value = value);
 
+  /// Gets the current dragging state.
+  ///
+  /// Returns true if the node is currently being dragged.
   bool get isDragging => dragging.value;
 
+  /// Sets the dragging state in a MobX action.
+  ///
+  /// Updates are wrapped in [runInAction] to ensure proper state management.
   set isDragging(bool value) => runInAction(() => dragging.value = value);
 
-  /// Updates the visual position based on the actual position and snapping rules
+  /// Updates the visual position based on the actual position and snapping rules.
+  ///
+  /// The visual position may differ from the logical [position] when snap-to-grid
+  /// or other positioning constraints are applied. This method should be called
+  /// by the graph controller when position constraints are updated.
+  ///
+  /// Parameters:
+  /// * [snappedPosition] - The adjusted position to use for rendering
   void setVisualPosition(Offset snappedPosition) {
     runInAction(() {
       visualPosition.value = snappedPosition;
     });
   }
 
-  /// Gets the visual position where a port should be rendered within the node container
-  /// This is used for positioning port widgets within the node's padded container
-  /// The port is centered on this position
+  /// Gets the visual position where a port should be rendered within the node container.
+  ///
+  /// This calculates the local position of a port within the node's coordinate space,
+  /// accounting for the port's edge position and size. The port widget will be
+  /// centered on this position.
+  ///
+  /// Parameters:
+  /// * [portId] - The unique identifier of the port
+  /// * [portSize] - The size of the port widget
+  ///
+  /// Returns the [Offset] where the port should be positioned relative to the node's
+  /// top-left corner.
+  ///
+  /// Throws [ArgumentError] if no port with the given [portId] is found.
   Offset getVisualPortPosition(String portId, {required double portSize}) {
     final port = [
       ...inputPorts,
@@ -112,8 +231,19 @@ class Node<T> {
     }
   }
 
-  /// Gets the connection point for a port where line endpoints should attach
-  /// Connections should align with the flat edge of the capsule halves
+  /// Gets the connection point for a port where line endpoints should attach.
+  ///
+  /// Connections should align with the flat edge of the capsule half shapes
+  /// that represent ports. This method returns absolute coordinates in the
+  /// graph coordinate space.
+  ///
+  /// Parameters:
+  /// * [portId] - The unique identifier of the port
+  /// * [portSize] - The size of the port widget
+  ///
+  /// Returns the absolute [Offset] where connection lines should attach.
+  ///
+  /// Throws [ArgumentError] if no port with the given [portId] is found.
   Offset getPortPosition(String portId, {required double portSize}) {
     final portHalfSize = portSize / 2;
 
@@ -124,7 +254,17 @@ class Node<T> {
         Offset(portHalfSize, portHalfSize);
   }
 
-  /// Gets the capsule flat side orientation for a port
+  /// Gets the capsule flat side orientation for a port.
+  ///
+  /// Ports are rendered as capsule half shapes with one flat edge. This method
+  /// determines which edge should be flat based on the port's position.
+  ///
+  /// Parameters:
+  /// * [portId] - The unique identifier of the port
+  ///
+  /// Returns the [CapsuleFlatSide] orientation for the port.
+  ///
+  /// Throws [ArgumentError] if no port with the given [portId] is found.
   CapsuleFlatSide getPortCapsuleSide(String portId) {
     final port = [
       ...inputPorts,
@@ -147,21 +287,36 @@ class Node<T> {
     }
   }
 
-  /// Adds an input port to the node
+  /// Adds an input port to the node.
+  ///
+  /// The port will be added to the end of the [inputPorts] list.
+  ///
+  /// Parameters:
+  /// * [port] - The port to add
   void addInputPort(Port port) {
     runInAction(() {
       inputPorts.add(port);
     });
   }
 
-  /// Adds an output port to the node
+  /// Adds an output port to the node.
+  ///
+  /// The port will be added to the end of the [outputPorts] list.
+  ///
+  /// Parameters:
+  /// * [port] - The port to add
   void addOutputPort(Port port) {
     runInAction(() {
       outputPorts.add(port);
     });
   }
 
-  /// Removes an input port by ID
+  /// Removes an input port by ID.
+  ///
+  /// Parameters:
+  /// * [portId] - The unique identifier of the port to remove
+  ///
+  /// Returns true if the port was found and removed, false otherwise.
   bool removeInputPort(String portId) {
     return runInAction(() {
       final index = inputPorts.indexWhere((port) => port.id == portId);
@@ -173,7 +328,12 @@ class Node<T> {
     });
   }
 
-  /// Removes an output port by ID
+  /// Removes an output port by ID.
+  ///
+  /// Parameters:
+  /// * [portId] - The unique identifier of the port to remove
+  ///
+  /// Returns true if the port was found and removed, false otherwise.
   bool removeOutputPort(String portId) {
     return runInAction(() {
       final index = outputPorts.indexWhere((port) => port.id == portId);
@@ -185,12 +345,25 @@ class Node<T> {
     });
   }
 
-  /// Removes a port by ID from either input or output ports
+  /// Removes a port by ID from either input or output ports.
+  ///
+  /// This is a convenience method that searches both input and output ports.
+  ///
+  /// Parameters:
+  /// * [portId] - The unique identifier of the port to remove
+  ///
+  /// Returns true if the port was found and removed, false otherwise.
   bool removePort(String portId) {
     return removeInputPort(portId) || removeOutputPort(portId);
   }
 
-  /// Updates an existing input port by ID
+  /// Updates an existing input port by ID.
+  ///
+  /// Parameters:
+  /// * [portId] - The unique identifier of the port to update
+  /// * [updatedPort] - The new port object to replace the existing one
+  ///
+  /// Returns true if the port was found and updated, false otherwise.
   bool updateInputPort(String portId, Port updatedPort) {
     return runInAction(() {
       final index = inputPorts.indexWhere((port) => port.id == portId);
@@ -202,7 +375,13 @@ class Node<T> {
     });
   }
 
-  /// Updates an existing output port by ID
+  /// Updates an existing output port by ID.
+  ///
+  /// Parameters:
+  /// * [portId] - The unique identifier of the port to update
+  /// * [updatedPort] - The new port object to replace the existing one
+  ///
+  /// Returns true if the port was found and updated, false otherwise.
   bool updateOutputPort(String portId, Port updatedPort) {
     return runInAction(() {
       final index = outputPorts.indexWhere((port) => port.id == portId);
@@ -214,16 +393,31 @@ class Node<T> {
     });
   }
 
-  /// Updates a port by ID in either input or output ports
+  /// Updates a port by ID in either input or output ports.
+  ///
+  /// This is a convenience method that searches both input and output ports.
+  ///
+  /// Parameters:
+  /// * [portId] - The unique identifier of the port to update
+  /// * [updatedPort] - The new port object to replace the existing one
+  ///
+  /// Returns true if the port was found and updated, false otherwise.
   bool updatePort(String portId, Port updatedPort) {
     return updateInputPort(portId, updatedPort) ||
         updateOutputPort(portId, updatedPort);
   }
 
-  /// Gets all ports (input and output combined)
+  /// Gets all ports (input and output combined).
+  ///
+  /// Returns a new list containing all input ports followed by all output ports.
   List<Port> get allPorts => [...inputPorts, ...outputPorts];
 
-  /// Finds a port by ID in either input or output ports
+  /// Finds a port by ID in either input or output ports.
+  ///
+  /// Parameters:
+  /// * [portId] - The unique identifier of the port to find
+  ///
+  /// Returns the [Port] if found, null otherwise.
   Port? findPort(String portId) {
     try {
       return inputPorts.firstWhere((port) => port.id == portId);
@@ -236,7 +430,16 @@ class Node<T> {
     }
   }
 
-  /// Checks if a point is within the node bounds (excluding port padding)
+  /// Checks if a point is within the node bounds.
+  ///
+  /// This method tests if a given point in graph coordinates falls within
+  /// the node's rectangular area. Port padding is excluded from the bounds.
+  ///
+  /// Parameters:
+  /// * [point] - The point to test in graph coordinates
+  /// * [portSize] - The size of ports (for compatibility, currently unused)
+  ///
+  /// Returns true if the point is inside the node bounds, false otherwise.
   bool containsPoint(Offset point, {double portSize = 11.0}) {
     // Check if point is within the actual node bounds (not including port padding)
     return Rect.fromLTWH(
@@ -247,7 +450,16 @@ class Node<T> {
     ).contains(point);
   }
 
-  /// Gets the node's bounding rectangle (excluding port padding)
+  /// Gets the node's bounding rectangle.
+  ///
+  /// Returns the rectangle that defines the node's area in graph coordinates.
+  /// Port padding is excluded from the bounds. The bounds use the current
+  /// position value.
+  ///
+  /// Parameters:
+  /// * [portSize] - The size of ports (for compatibility, currently unused)
+  ///
+  /// Returns a [Rect] representing the node's bounding box.
   Rect getBounds({double portSize = 11.0}) {
     // Return the actual node bounds without port padding
     // Use visual position for bounds
@@ -259,10 +471,24 @@ class Node<T> {
     );
   }
 
+  /// Disposes of resources used by this node.
+  ///
+  /// Currently, MobX observables don't require manual disposal, so this
+  /// method is a no-op. It's provided for future extensibility.
   void dispose() {
     // MobX observables don't need manual disposal
   }
 
+  /// Creates a node from JSON data.
+  ///
+  /// This factory constructor deserializes a node from a JSON map. The custom
+  /// data type [T] must be deserialized using the provided [fromJsonT] function.
+  ///
+  /// Parameters:
+  /// * [json] - The JSON map containing node data
+  /// * [fromJsonT] - Function to deserialize the custom data of type [T]
+  ///
+  /// Returns a new [Node] instance with data from the JSON.
   factory Node.fromJson(
     Map<String, dynamic> json,
     T Function(Object? json) fromJsonT,
@@ -304,6 +530,15 @@ class Node<T> {
       ..selected.value = (json['selected'] as bool?) ?? false;
   }
 
+  /// Converts the node to a JSON map.
+  ///
+  /// This method serializes the node to a JSON-compatible map. The custom
+  /// data type [T] must be serialized using the provided [toJsonT] function.
+  ///
+  /// Parameters:
+  /// * [toJsonT] - Function to serialize the custom data of type [T]
+  ///
+  /// Returns a JSON-compatible [Map] containing the node's data.
   Map<String, dynamic> toJson(Object? Function(T value) toJsonT) => {
     'id': id,
     'type': type,

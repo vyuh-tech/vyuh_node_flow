@@ -12,12 +12,12 @@ import '../graph/node_flow_callbacks.dart';
 import '../graph/node_flow_config.dart';
 import '../graph/node_flow_theme.dart';
 import '../graph/viewport.dart';
-import '../models/node_data.dart';
 import '../nodes/interaction_state.dart';
 import '../nodes/node.dart';
+import '../nodes/node_data.dart';
 import '../ports/port.dart';
-import '../shared/node_flow_actions.dart';
 import '../widgets/shortcuts_viewer_dialog.dart';
+import 'node_flow_actions.dart';
 
 part '../annotations/annotation_controller.dart';
 part 'node_flow_controller_api.dart';

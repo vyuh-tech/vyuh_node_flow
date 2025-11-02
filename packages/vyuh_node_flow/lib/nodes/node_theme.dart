@@ -1,6 +1,29 @@
 import 'package:flutter/material.dart';
 
+/// Theme configuration for node appearance and styling.
+///
+/// This class defines all visual properties for nodes in different states
+/// (normal, selected, hover, dragging). It includes colors, borders, text
+/// styles, and sizing constraints.
+///
+/// Use [NodeTheme.light] or [NodeTheme.dark] for pre-configured themes,
+/// or create a custom theme with specific values.
+///
+/// Example usage:
+/// ```dart
+/// final customTheme = NodeTheme.light.copyWith(
+///   backgroundColor: Colors.blue.shade50,
+///   selectedBorderColor: Colors.blue,
+/// );
+/// ```
+///
+/// See also:
+/// * [NodeFlowTheme], which includes this as part of the overall theme
+/// * [NodeWidget], which uses this theme for rendering
 class NodeTheme {
+  /// Creates a new node theme with the specified properties.
+  ///
+  /// All parameters are required to ensure complete theme configuration.
   const NodeTheme({
     required this.backgroundColor,
     required this.selectedBackgroundColor,
@@ -23,26 +46,75 @@ class NodeTheme {
     required this.minHeight,
   });
 
+  /// Background color for nodes in normal state.
   final Color backgroundColor;
+
+  /// Background color for selected nodes.
   final Color selectedBackgroundColor;
+
+  /// Background color when the node is being hovered over.
   final Color hoverBackgroundColor;
+
+  /// Background color while the node is being dragged.
   final Color draggingBackgroundColor;
+
+  /// Border color for nodes in normal state.
   final Color borderColor;
+
+  /// Border color for selected nodes.
   final Color selectedBorderColor;
+
+  /// Border color when the node is being hovered over.
   final Color hoverBorderColor;
+
+  /// Border color while the node is being dragged.
   final Color draggingBorderColor;
+
+  /// Border width for nodes in normal state.
   final double borderWidth;
+
+  /// Border width for selected nodes.
   final double selectedBorderWidth;
+
+  /// Border width when the node is being hovered over.
   final double hoverBorderWidth;
+
+  /// Border width while the node is being dragged.
   final double draggingBorderWidth;
+
+  /// Corner radius for node borders.
   final BorderRadius borderRadius;
+
+  /// Padding inside the node container.
   final EdgeInsets padding;
+
+  /// Text style for the node title.
   final TextStyle titleStyle;
+
+  /// Text style for the node content.
   final TextStyle contentStyle;
+
+  /// Duration for node state transition animations.
   final Duration animationDuration;
+
+  /// Minimum width constraint for nodes.
   final double minWidth;
+
+  /// Minimum height constraint for nodes.
   final double minHeight;
 
+  /// Creates a copy of this theme with the specified properties overridden.
+  ///
+  /// Any properties not provided will use the values from the current theme.
+  /// This is useful for creating variations of existing themes.
+  ///
+  /// Example:
+  /// ```dart
+  /// final customTheme = NodeTheme.light.copyWith(
+  ///   selectedBorderColor: Colors.red,
+  ///   selectedBorderWidth: 3.0,
+  /// );
+  /// ```
   NodeTheme copyWith({
     Color? backgroundColor,
     Color? selectedBackgroundColor,
@@ -89,6 +161,10 @@ class NodeTheme {
     );
   }
 
+  /// Pre-configured light theme for nodes.
+  ///
+  /// Features white background, subtle gray borders, and blue accents for
+  /// selected states. Suitable for light mode applications.
   static const light = NodeTheme(
     backgroundColor: Colors.white,
     selectedBackgroundColor: Color(0xFFF5F5F5),
@@ -115,6 +191,10 @@ class NodeTheme {
     minHeight: 100.0,
   );
 
+  /// Pre-configured dark theme for nodes.
+  ///
+  /// Features dark gray background, lighter gray borders, and light blue accents
+  /// for selected states. Suitable for dark mode applications.
   static const dark = NodeTheme(
     backgroundColor: Color(0xFF2D2D2D),
     selectedBackgroundColor: Color(0xFF3D3D3D),
