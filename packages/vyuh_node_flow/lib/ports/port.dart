@@ -35,7 +35,7 @@ enum PortType {
   target,
 
   /// Port can both emit and receive connections
-  both
+  both,
 }
 
 /// Defines the visual shape of a port.
@@ -56,7 +56,7 @@ enum PortShape {
   diamond,
 
   /// Triangle shape
-  triangle
+  triangle,
 }
 
 /// Represents a connection point on a node in the flow editor.
@@ -324,5 +324,5 @@ enum PortPosition {
   top,
 
   /// Port is positioned on the bottom side of the node
-  bottom
+  bottom,
 }

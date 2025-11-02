@@ -483,11 +483,7 @@ class _ThemingExampleState extends State<ThemingExample> {
         const SizedBox(height: 12),
         _buildSlider('Size', _theme.portTheme.size, 6.0, 16.0, (value) {
           _updateTheme(
-            _theme.copyWith(
-              portTheme: _theme.portTheme.copyWith(
-                size: value,
-              ),
-            ),
+            _theme.copyWith(portTheme: _theme.portTheme.copyWith(size: value)),
           );
         }),
       ],

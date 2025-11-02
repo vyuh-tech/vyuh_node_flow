@@ -125,7 +125,7 @@ class _ShortcutsExampleState extends State<ShortcutsExample> {
 
   Widget _buildNode(BuildContext context, Node<Map<String, dynamic>> node) {
     final theme = Theme.of(context);
-    final nodeType = node.data?['name'] ?? node.type;
+    final nodeType = node.data['name'] ?? node.type;
 
     // Get the theme values - using NodeFlowTheme.light
     final nodeFlowTheme = NodeFlowTheme.light;
@@ -166,7 +166,7 @@ class _ShortcutsExampleState extends State<ShortcutsExample> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          if (node.data != null) ...[
+          ...[
             const SizedBox(height: 4),
             Text(
               node.type,

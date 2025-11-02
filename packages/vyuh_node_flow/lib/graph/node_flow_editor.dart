@@ -1361,7 +1361,7 @@ enum HitType {
   connection,
 
   /// An annotation (sticky note, marker, or group)
-  annotation
+  annotation,
 }
 
 /// Result of hit testing at a specific position on the canvas.
