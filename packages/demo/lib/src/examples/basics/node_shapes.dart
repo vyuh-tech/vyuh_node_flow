@@ -31,21 +31,13 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
   }
 
   void _addExampleNodes() {
-    // Rectangle (default) node
+    // Rectangle (default) node - output only
     final rectangleNode = Node<Map<String, dynamic>>(
       id: 'rectangle',
       type: 'Process',
       position: const Offset(100, 100),
       data: {'label': 'Rectangle\n(Default)'},
       size: const Size(150, 100),
-      inputPorts: const [
-        Port(
-          id: 'input',
-          name: 'In',
-          position: PortPosition.left,
-          offset: Offset(0, 50),
-        ),
-      ],
       outputPorts: const [
         Port(
           id: 'output',
@@ -56,7 +48,7 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
       ],
     );
 
-    // Circle node
+    // Circle node - input only, allows multiple connections
     final circleNode = Node<Map<String, dynamic>>(
       id: 'circle',
       type: 'Terminal',
@@ -64,10 +56,12 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
       data: {'label': 'Circle\nStart/End'},
       size: const Size(120, 120),
       inputPorts: const [
-        Port(id: 'input', name: 'In', position: PortPosition.left),
-      ],
-      outputPorts: const [
-        Port(id: 'output', name: 'Out', position: PortPosition.right),
+        Port(
+          id: 'input',
+          name: 'In',
+          position: PortPosition.left,
+          multiConnections: true,
+        ),
       ],
     );
 
@@ -128,20 +122,13 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
       ),
       Connection(
         id: 'conn-2',
-        sourceNodeId: 'circle',
-        sourcePortId: 'output',
-        targetNodeId: 'diamond',
-        targetPortId: 'input',
-      ),
-      Connection(
-        id: 'conn-3',
         sourceNodeId: 'diamond',
         sourcePortId: 'output-yes',
         targetNodeId: 'hexagon',
         targetPortId: 'input',
       ),
       Connection(
-        id: 'conn-4',
+        id: 'conn-3',
         sourceNodeId: 'hexagon',
         sourcePortId: 'output',
         targetNodeId: 'hexagon-vertical',
