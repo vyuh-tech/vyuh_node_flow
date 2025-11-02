@@ -6,6 +6,7 @@ import '../connections/connection_style_base.dart';
 import '../connections/endpoint_position_calculator.dart';
 import '../graph/node_flow_theme.dart';
 import '../nodes/node.dart';
+import '../nodes/node_shape.dart';
 import '../ports/port.dart';
 
 /// Cached path data with hit testing capabilities
@@ -31,11 +32,18 @@ class _CachedConnectionPath {
 /// Manages connection path caching and hit testing
 /// Separates concerns from ConnectionPainter
 class ConnectionPathCache {
-  ConnectionPathCache({required NodeFlowTheme theme}) : _theme = theme;
+  ConnectionPathCache({
+    required NodeFlowTheme theme,
+    this.nodeShape,
+  }) : _theme = theme;
 
   NodeFlowTheme _theme;
 
   NodeFlowTheme get theme => _theme;
+
+  /// Optional function to get the shape for a node.
+  /// Used to calculate correct port positions for shaped nodes.
+  NodeShape? Function(Node node)? nodeShape;
 
   /// Update the theme and intelligently invalidate cache if needed
   void updateTheme(NodeFlowTheme newTheme) {
@@ -158,14 +166,20 @@ class ConnectionPathCache {
     final connectionTheme = theme.connectionTheme;
     final portTheme = theme.portTheme;
 
-    // Calculate port positions
+    // Get shapes for the nodes (if shape builder is available)
+    final sourceShape = nodeShape?.call(sourceNode);
+    final targetShape = nodeShape?.call(targetNode);
+
+    // Calculate port positions with shapes
     final sourcePortPosition = sourceNode.getPortPosition(
       connection.sourcePortId,
       portSize: portTheme.size,
+      shape: sourceShape,
     );
     final targetPortPosition = targetNode.getPortPosition(
       connection.targetPortId,
       portSize: portTheme.size,
+      shape: targetShape,
     );
 
     // Get ports

@@ -10,6 +10,7 @@ import 'examples/annotations/system.dart';
 // Basics examples
 import 'examples/basics/controlling_nodes.dart';
 import 'examples/basics/dynamic_ports.dart';
+import 'examples/basics/node_shapes.dart';
 import 'examples/basics/simple.dart';
 import 'examples/basics/workbench.dart';
 // Connections examples
@@ -41,6 +42,14 @@ class ExampleRegistry {
               'Add different node types, select, move, and delete nodes',
           icon: Icons.control_camera,
           builder: (_) => const ControllingNodesExample(),
+        ),
+        Example(
+          id: 'node-shapes',
+          title: 'Node Shapes',
+          description:
+              'Explore different node shapes: Circle, Diamond, Hexagon, and Rectangle',
+          icon: Icons.category,
+          builder: (_) => const NodeShapesExample(),
         ),
         Example(
           id: 'dynamic-ports',

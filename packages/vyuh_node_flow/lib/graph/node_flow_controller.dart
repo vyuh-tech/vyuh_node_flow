@@ -15,6 +15,7 @@ import '../graph/viewport.dart';
 import '../nodes/interaction_state.dart';
 import '../nodes/node.dart';
 import '../nodes/node_data.dart';
+import '../nodes/node_shape.dart';
 import '../ports/port.dart';
 import '../widgets/shortcuts_viewer_dialog.dart';
 import 'node_flow_actions.dart';
@@ -83,6 +84,44 @@ class NodeFlowController<T> {
   /// Returns `null` if no theme has been set. The theme is typically set
   /// by the editor widget during initialization.
   NodeFlowTheme? get theme => _theme;
+
+  // Node shape builder - determines the shape for each node based on its type/data
+  NodeShape? Function(Node<T> node)? _nodeShapeBuilder;
+
+  /// Gets the node shape builder function.
+  ///
+  /// This function is called to determine the visual shape for each node based
+  /// on its type or data. If `null`, nodes will use the default rectangular shape.
+  NodeShape? Function(Node<T> node)? get nodeShapeBuilder => _nodeShapeBuilder;
+
+  /// Sets the node shape builder function.
+  ///
+  /// This function will be called for each node to determine its visual shape.
+  /// The builder receives the node and should return a [NodeShape] or `null`
+  /// for the default rectangular shape.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.setNodeShapeBuilder((node) {
+  ///   switch (node.type) {
+  ///     case 'Terminal':
+  ///       return CircleShape(fillColor: Colors.blue, strokeColor: Colors.black);
+  ///     case 'Decision':
+  ///       return DiamondShape(fillColor: Colors.yellow, strokeColor: Colors.black);
+  ///     default:
+  ///       return null; // Rectangular node
+  ///   }
+  /// });
+  /// ```
+  void setNodeShapeBuilder(NodeShape? Function(Node<T> node)? builder) {
+    _nodeShapeBuilder = builder;
+
+    // Update the connection painter's node shape getter if it exists
+    // Cast to Node<dynamic> since ConnectionPainter is not generic
+    _connectionPainter?.updateNodeShape(
+      builder != null ? (node) => builder(node as Node<T>) : null,
+    );
+  }
 
   // Callbacks for various events
   NodeFlowCallbacks<T> _callbacks = const NodeFlowCallbacks();

@@ -146,8 +146,15 @@ export 'nodes/interaction_state.dart';
 export 'nodes/node.dart'; // Needed for Node class in examples
 // Models
 export 'nodes/node_data.dart';
+export 'nodes/node_shape.dart';
+export 'nodes/node_shape_clipper.dart';
+export 'nodes/node_shape_painter.dart';
 export 'nodes/node_theme.dart';
 export 'nodes/node_widget.dart';
+// Node Shapes
+export 'nodes/shapes/circle_shape.dart';
+export 'nodes/shapes/diamond_shape.dart';
+export 'nodes/shapes/hexagon_shape.dart';
 // Ports
 export 'ports/port.dart';
 export 'ports/port_theme.dart';

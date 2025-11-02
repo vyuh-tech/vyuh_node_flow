@@ -2251,7 +2251,13 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
 
     // Create painter if it doesn't exist, otherwise update its theme
     if (_connectionPainter == null) {
-      _connectionPainter = ConnectionPainter(theme: theme);
+      _connectionPainter = ConnectionPainter(
+        theme: theme,
+        // Cast to Node<dynamic> since ConnectionPainter is not generic
+        nodeShape: _nodeShapeBuilder != null
+            ? (node) => _nodeShapeBuilder!(node as Node<T>)
+            : null,
+      );
     } else {
       _connectionPainter!.updateTheme(theme);
     }

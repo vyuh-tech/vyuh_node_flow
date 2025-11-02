@@ -4,6 +4,9 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import '../connections/connection.dart';
 import '../graph/node_flow_theme.dart';
 import '../nodes/node.dart';
+import '../nodes/node_shape.dart';
+import '../nodes/node_shape_clipper.dart';
+import '../nodes/node_shape_painter.dart';
 import '../nodes/node_theme.dart';
 import '../ports/port.dart';
 import '../ports/port_widget.dart';
@@ -54,6 +57,7 @@ class NodeWidget<T> extends StatelessWidget {
   /// Parameters:
   /// * [node] - The node data model to render
   /// * [child] - Optional custom widget to display as node content
+  /// * [shape] - Optional shape for the node (renders shaped node instead of rectangle)
   /// * [connections] - List of connections for determining port connection state
   /// * [onPortTap] - Callback when a port is tapped
   /// * [onPortHover] - Callback when a port is hovered
@@ -72,6 +76,7 @@ class NodeWidget<T> extends StatelessWidget {
     super.key,
     required this.node,
     this.child,
+    this.shape,
     this.connections = const [],
     this.onPortTap,
     this.onPortHover,
@@ -98,6 +103,7 @@ class NodeWidget<T> extends StatelessWidget {
   const NodeWidget.defaultStyle({
     super.key,
     required this.node,
+    this.shape,
     this.connections = const [],
     this.onPortTap,
     this.onPortHover,
@@ -121,6 +127,12 @@ class NodeWidget<T> extends StatelessWidget {
   ///
   /// When null, default content (type and ID) is displayed.
   final Widget? child;
+
+  /// Optional shape for the node.
+  ///
+  /// When null, the node is rendered as a rectangle.
+  /// When provided, the node is rendered using the shape's path and visual properties.
+  final NodeShape? shape;
 
   /// List of connections for determining which ports are connected.
   final List<Connection> connections;
@@ -213,22 +225,13 @@ class NodeWidget<T> extends StatelessWidget {
               onTap: () => onNodeTap?.call(node.id),
               onDoubleTap: () => onNodeDoubleTap?.call(node.id),
               child: Stack(
+                clipBehavior: Clip.none, // Allow ports to overflow the bounds
                 children: [
-                  // Main node visual (inset by portHalfSize)
+                  // Main node visual - either shaped or rectangular
                   Positioned.fill(
-                    child: Container(
-                      margin: padding ?? nodeTheme.padding,
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        color: _getNodeBackgroundColor(nodeTheme, isSelected),
-                        border: Border.all(
-                          color: _getNodeBorderColor(nodeTheme, isSelected),
-                          width: _getNodeBorderWidth(nodeTheme, isSelected),
-                        ),
-                        borderRadius: borderRadius ?? nodeTheme.borderRadius,
-                      ),
-                      child: _buildNodeContent(nodeTheme),
-                    ),
+                    child: shape != null
+                        ? _buildShapedNode(nodeTheme, isSelected)
+                        : _buildRectangularNode(nodeTheme, isSelected),
                   ),
 
                   // Input ports (positioned on edges of padded container)
@@ -322,9 +325,12 @@ class NodeWidget<T> extends StatelessWidget {
     final isConnected = _isPortConnected(port.id, isOutput);
 
     // Get the visual position from the Node model
+    // For shaped nodes, pass the padding to account for shape inset
     final visualPosition = node.getVisualPortPosition(
       port.id,
       portSize: portTheme.size,
+      padding: shape != null ? (padding ?? nodeTheme.padding) : EdgeInsets.zero,
+      shape: shape,
     );
 
     return Positioned(
@@ -378,5 +384,58 @@ class NodeWidget<T> extends StatelessWidget {
     return hoveredPortInfo?.nodeId == node.id &&
         hoveredPortInfo?.portId == portId &&
         hoveredPortInfo?.isOutput == isOutput;
+  }
+
+  /// Builds a shaped node using CustomPaint and ClipPath.
+  ///
+  /// This method renders nodes with custom shapes (circle, diamond, etc.)
+  /// by painting the shape background and border, then clipping the content
+  /// to the shape's boundaries.
+  ///
+  /// The shape is inset by the padding amount to leave space around the edges
+  /// for ports to be visible (similar to how rectangular nodes use margin).
+  Widget _buildShapedNode(NodeTheme nodeTheme, bool isSelected) {
+    final nodePadding = padding ?? nodeTheme.padding;
+
+    return CustomPaint(
+      painter: NodeShapePainter(
+        shape: shape!,
+        backgroundColor: _getNodeBackgroundColor(nodeTheme, isSelected),
+        borderColor: _getNodeBorderColor(nodeTheme, isSelected),
+        borderWidth: _getNodeBorderWidth(nodeTheme, isSelected),
+        inset: nodePadding, // Inset the shape to leave room for ports
+        size: node.size.value,
+      ),
+      child: ClipPath(
+        clipper: NodeShapeClipper(
+          shape: shape!,
+          padding: nodePadding, // Clip to the inset shape
+        ),
+        child: Padding(
+          padding: nodePadding,
+          child: Center(child: _buildNodeContent(nodeTheme)),
+        ),
+      ),
+    );
+  }
+
+  /// Builds a rectangular node using a Container.
+  ///
+  /// This is the default node rendering method that uses a Container
+  /// with BoxDecoration for rectangular nodes.
+  Widget _buildRectangularNode(NodeTheme nodeTheme, bool isSelected) {
+    return Container(
+      margin: padding ?? nodeTheme.padding,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: _getNodeBackgroundColor(nodeTheme, isSelected),
+        border: Border.all(
+          color: _getNodeBorderColor(nodeTheme, isSelected),
+          width: _getNodeBorderWidth(nodeTheme, isSelected),
+        ),
+        borderRadius: borderRadius ?? nodeTheme.borderRadius,
+      ),
+      child: _buildNodeContent(nodeTheme),
+    );
   }
 }

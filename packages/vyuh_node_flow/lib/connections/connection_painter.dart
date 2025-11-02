@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../graph/node_flow_theme.dart';
 import '../nodes/node.dart';
+import '../nodes/node_shape.dart';
 import '../ports/port.dart';
 import '../ports/port_theme.dart';
 import 'connection.dart';
@@ -13,9 +14,9 @@ import 'endpoint_painter.dart';
 import 'endpoint_position_calculator.dart';
 
 class ConnectionPainter {
-  ConnectionPainter({required NodeFlowTheme theme})
+  ConnectionPainter({required NodeFlowTheme theme, this.nodeShape})
     : _theme = theme,
-      _pathCache = ConnectionPathCache(theme: theme);
+      _pathCache = ConnectionPathCache(theme: theme, nodeShape: nodeShape);
 
   NodeFlowTheme _theme;
 
@@ -23,11 +24,24 @@ class ConnectionPainter {
 
   final ConnectionPathCache _pathCache;
 
+  /// Optional function to get the shape for a node.
+  /// Used to calculate correct port positions for shaped nodes.
+  NodeShape? Function(Node node)? nodeShape;
+
   /// Update the theme
   /// Cache invalidation is handled by the path cache itself
   void updateTheme(NodeFlowTheme newTheme) {
     _theme = newTheme;
     _pathCache.updateTheme(newTheme);
+  }
+
+  /// Update the node shape getter
+  /// This allows updating how shapes are determined for nodes after painter creation
+  void updateNodeShape(NodeShape? Function(Node node)? getter) {
+    nodeShape = getter;
+    _pathCache.nodeShape = getter;
+    // Invalidate cache since shapes affect port positions
+    _pathCache.invalidateAll();
   }
 
   void paintConnection(
@@ -113,14 +127,20 @@ class ConnectionPainter {
       return;
     }
 
+    // Get shapes for the nodes (if shape builder is available)
+    final sourceShape = nodeShape?.call(sourceNode);
+    final targetShape = nodeShape?.call(targetNode);
+
     // Calculate endpoint positions for drawing
     final sourcePortPosition = sourceNode.getPortPosition(
       connection.sourcePortId,
       portSize: portTheme.size,
+      shape: sourceShape,
     );
     final targetPortPosition = targetNode.getPortPosition(
       connection.targetPortId,
       portSize: portTheme.size,
+      shape: targetShape,
     );
 
     final source = EndpointPositionCalculator.calculatePortConnectionPoints(

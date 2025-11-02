@@ -7,7 +7,10 @@ import '../node_flow_theme.dart';
 
 /// Connections layer widget that renders all connections between nodes
 class ConnectionsLayer<T> extends StatelessWidget {
-  const ConnectionsLayer({super.key, required this.controller});
+  const ConnectionsLayer({
+    super.key,
+    required this.controller,
+  });
 
   final NodeFlowController<T> controller;
 

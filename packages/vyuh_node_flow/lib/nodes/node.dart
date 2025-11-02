@@ -5,6 +5,7 @@ import 'package:mobx/mobx.dart';
 import '../ports/capsule_half.dart';
 import '../ports/port.dart';
 import '../shared/json_converters.dart';
+import 'node_shape.dart';
 
 /// Represents a single node in the flow graph.
 ///
@@ -184,12 +185,21 @@ class Node<T> {
   /// Parameters:
   /// * [portId] - The unique identifier of the port
   /// * [portSize] - The size of the port widget
+  /// * [padding] - Optional padding/inset for shaped nodes (to account for shape inset)
   ///
   /// Returns the [Offset] where the port should be positioned relative to the node's
-  /// top-left corner.
+  /// top-left corner for rectangular nodes.
+  ///
+  /// For shaped nodes, pass the shape parameter to calculate positions based on
+  /// the shape's anchors.
   ///
   /// Throws [ArgumentError] if no port with the given [portId] is found.
-  Offset getVisualPortPosition(String portId, {required double portSize}) {
+  Offset getVisualPortPosition(
+    String portId, {
+    required double portSize,
+    EdgeInsets padding = EdgeInsets.zero,
+    NodeShape? shape,
+  }) {
     final port = [
       ...inputPorts,
       ...outputPorts,
@@ -199,6 +209,31 @@ class Node<T> {
       throw ArgumentError('Port $portId not found');
     }
 
+    // If shape is provided, use shape-defined anchors
+    if (shape != null) {
+      // Calculate inset size (shape is rendered smaller to leave room for ports)
+      final insetSize = Size(
+        size.value.width - padding.left - padding.right,
+        size.value.height - padding.top - padding.bottom,
+      );
+
+      // Get anchors for the inset shape
+      final anchors = shape.getPortAnchors(insetSize);
+      final anchor = anchors.firstWhere(
+        (a) => a.position == port.position,
+        orElse: () => _fallbackAnchor(port.position, insetSize),
+      );
+
+      // Translate anchor position to account for padding offset,
+      // adjust for port size (center the port on the anchor point),
+      // and add any custom port offset
+      return Offset(padding.left, padding.top) +
+          anchor.offset +
+          port.offset -
+          Offset(portSize / 2, portSize / 2);
+    }
+
+    // Use rectangular logic
     switch (port.position) {
       case PortPosition.left:
         // Left edge: port protrudes halfway out from left edge
@@ -231,6 +266,46 @@ class Node<T> {
     }
   }
 
+  /// Creates a fallback anchor for a port position.
+  ///
+  /// Used when a shape doesn't provide an anchor for a specific position.
+  ///
+  /// Parameters:
+  /// * [position] - The port position
+  /// * [shapeSize] - Optional size of the shape (defaults to node size)
+  PortAnchor _fallbackAnchor(PortPosition position, [Size? shapeSize]) {
+    final effectiveSize = shapeSize ?? size.value;
+    final centerX = effectiveSize.width / 2;
+    final centerY = effectiveSize.height / 2;
+
+    switch (position) {
+      case PortPosition.left:
+        return PortAnchor(
+          position: PortPosition.left,
+          offset: Offset(0, centerY),
+          normal: const Offset(-1, 0),
+        );
+      case PortPosition.right:
+        return PortAnchor(
+          position: PortPosition.right,
+          offset: Offset(effectiveSize.width, centerY),
+          normal: const Offset(1, 0),
+        );
+      case PortPosition.top:
+        return PortAnchor(
+          position: PortPosition.top,
+          offset: Offset(centerX, 0),
+          normal: const Offset(0, -1),
+        );
+      case PortPosition.bottom:
+        return PortAnchor(
+          position: PortPosition.bottom,
+          offset: Offset(centerX, effectiveSize.height),
+          normal: const Offset(0, 1),
+        );
+    }
+  }
+
   /// Gets the connection point for a port where line endpoints should attach.
   ///
   /// Connections should align with the flat edge of the capsule half shapes
@@ -240,17 +315,34 @@ class Node<T> {
   /// Parameters:
   /// * [portId] - The unique identifier of the port
   /// * [portSize] - The size of the port widget
+  /// * [padding] - Optional padding for shaped nodes (defaults to standard 4px for shapes)
+  /// * [shape] - Optional shape to use for port position calculation
   ///
   /// Returns the absolute [Offset] where connection lines should attach.
   ///
   /// Throws [ArgumentError] if no port with the given [portId] is found.
-  Offset getPortPosition(String portId, {required double portSize}) {
+  Offset getPortPosition(
+    String portId, {
+    required double portSize,
+    EdgeInsets? padding,
+    NodeShape? shape,
+  }) {
     final portHalfSize = portSize / 2;
+
+    // For shaped nodes, use padding (default to standard 4px if not provided)
+    final effectivePadding = shape != null
+        ? (padding ?? const EdgeInsets.all(4.0))
+        : EdgeInsets.zero;
 
     // Convert from node coordinates to absolute graph coordinates
     // Use visual position for consistent rendering
     return visualPosition.value +
-        getVisualPortPosition(portId, portSize: portSize) +
+        getVisualPortPosition(
+          portId,
+          portSize: portSize,
+          padding: effectivePadding,
+          shape: shape,
+        ) +
         Offset(portHalfSize, portHalfSize);
   }
 
@@ -430,10 +522,12 @@ class Node<T> {
     }
   }
 
-  /// Checks if a point is within the node bounds.
+  /// Checks if a point is within the node's rectangular bounds.
   ///
   /// This method tests if a given point in graph coordinates falls within
-  /// the node's rectangular area. Port padding is excluded from the bounds.
+  /// the node's bounding rectangle.
+  ///
+  /// For shaped nodes, hit testing is handled by the NodeShapePainter's hitTest method.
   ///
   /// Parameters:
   /// * [point] - The point to test in graph coordinates

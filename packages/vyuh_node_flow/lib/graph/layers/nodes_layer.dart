@@ -62,10 +62,14 @@ class NodesLayer<T> extends StatelessWidget {
       return nodeContainerBuilder!(context, node, content);
     }
 
+    // Get the shape for this node (if any) from the controller
+    final shape = controller.nodeShapeBuilder?.call(node);
+
     // Default implementation: NodeWidget with standard functionality
     return NodeWidget<T>(
       key: ValueKey(node.id),
       node: node,
+      shape: shape,
       connections: connections,
       onNodeTap: (nodeId) => onNodeTap(node),
       onNodeDoubleTap: (nodeId) => onNodeDoubleTap(node),

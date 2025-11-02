@@ -15,6 +15,7 @@ import '../graph/node_flow_controller.dart';
 import '../graph/node_flow_theme.dart';
 import '../graph/viewport.dart';
 import '../nodes/node.dart';
+import '../nodes/node_shape.dart';
 import '../ports/port.dart';
 import '../shared/flutter_actions_integration.dart';
 import 'layers/connection_labels_layer.dart';
@@ -57,6 +58,7 @@ class NodeFlowEditor<T> extends StatefulWidget {
     required this.controller,
     required this.nodeBuilder,
     required this.theme,
+    this.nodeShapeBuilder,
     this.nodeContainerBuilder,
     this.onNodeSelected,
     this.onNodeTap,
@@ -106,6 +108,31 @@ class NodeFlowEditor<T> extends StatefulWidget {
   /// }
   /// ```
   final Widget Function(BuildContext context, Node<T> node) nodeBuilder;
+
+  /// Optional builder for determining the shape of a node.
+  ///
+  /// This function is called to determine what shape (if any) should be used
+  /// for rendering a node. Return null for rectangular nodes.
+  ///
+  /// The shape is used by:
+  /// - The default nodeContainerBuilder to render shaped nodes
+  /// - Connection drawing to calculate correct port positions
+  ///
+  /// Example:
+  /// ```dart
+  /// nodeShapeBuilder: (context, node) {
+  ///   if (node.type == 'Terminal') {
+  ///     return CircleShape(
+  ///       fillColor: Colors.green,
+  ///       strokeColor: Colors.darkGreen,
+  ///       strokeWidth: 2.0,
+  ///     );
+  ///   }
+  ///   return null; // Rectangular node
+  /// }
+  /// ```
+  final NodeShape? Function(BuildContext context, Node<T> node)?
+  nodeShapeBuilder;
 
   /// Optional builder for customizing the node container.
   ///
@@ -320,7 +347,30 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Initialize pan state based on widget properties
     _updatePanState();
 
+    // Set up node shape builder BEFORE theme (so ConnectionPainter gets the shape builder)
+    _updateNodeShapeBuilder();
+
     // Set up callbacks for the controller
+    _updateCallbacks();
+    widget.controller.setTheme(widget.theme);
+  }
+
+  @override
+  void didUpdateWidget(NodeFlowEditor<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Theme is handled by editor, config is immutable in controller
+
+    // Update UI interaction flags if they changed
+    if (oldWidget.enableNodeDeletion != widget.enableNodeDeletion) {
+      widget.controller.setNodeDeletion(widget.enableNodeDeletion);
+    }
+
+    // Update node shape builder if it changed
+    if (oldWidget.nodeShapeBuilder != widget.nodeShapeBuilder) {
+      _updateNodeShapeBuilder();
+    }
+
+    // Update callbacks if they changed
     _updateCallbacks();
     widget.controller.setTheme(widget.theme);
   }
@@ -402,6 +452,18 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Note: Snap-to-grid behavior is handled by controller config
   }
 
+  void _updateNodeShapeBuilder() {
+    // Create a closure that captures the current context
+    // The State's context is stable throughout its lifetime
+    if (widget.nodeShapeBuilder != null) {
+      widget.controller.setNodeShapeBuilder(
+        (node) => widget.nodeShapeBuilder!(context, node),
+      );
+    } else {
+      widget.controller.setNodeShapeBuilder(null);
+    }
+  }
+
   void _updatePanState() {
     final newPanEnabled =
         widget.enablePanning &&
@@ -458,21 +520,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
     // Call the user's callback
     widget.onNodeDoubleTap?.call(node);
-  }
-
-  @override
-  void didUpdateWidget(NodeFlowEditor<T> oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Theme is handled by editor, config is immutable in controller
-
-    // Update UI interaction flags if they changed
-    if (oldWidget.enableNodeDeletion != widget.enableNodeDeletion) {
-      widget.controller.setNodeDeletion(widget.enableNodeDeletion);
-    }
-
-    // Update callbacks if they changed
-    _updateCallbacks();
-    widget.controller.setTheme(widget.theme);
   }
 
   Widget _buildCanvas(BoxConstraints constraints, NodeFlowTheme theme) {
@@ -1173,9 +1220,11 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       }
 
       final theme = widget.theme;
+      final shape = widget.controller.nodeShapeBuilder?.call(node);
       final portPosition = node.getPortPosition(
         hitResult.portId!,
         portSize: theme.portTheme.size,
+        shape: shape,
       );
 
       widget.controller._setTemporaryConnection(
@@ -1211,9 +1260,11 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       final targetNode = widget.controller.getNode(hitResult.nodeId!);
       if (targetNode != null) {
         final theme = widget.theme;
+        final shape = widget.controller.nodeShapeBuilder?.call(targetNode);
         finalPosition = targetNode.getPortPosition(
           hitResult.portId!,
           portSize: theme.portTheme.size,
+          shape: shape,
         );
       }
     }
@@ -1237,8 +1288,15 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
     // 1. Check ports first (highest priority)
     for (final node in sortedNodes) {
+      // Get the shape for this node (if any) for shape-aware port positions
+      final shape = widget.controller.nodeShapeBuilder?.call(node);
+
       for (final port in [...node.inputPorts, ...node.outputPorts]) {
-        final portPosition = node.getPortPosition(port.id, portSize: portSize);
+        final portPosition = node.getPortPosition(
+          port.id,
+          portSize: portSize,
+          shape: shape,
+        );
         final distance = (graphPosition - portPosition).distance;
 
         // Is the cursor within the port's hit area?
@@ -1253,10 +1311,27 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       }
     }
 
-    // 2. Check nodes
+    // 2. Check nodes (use shape-aware hit testing)
     for (final node in sortedNodes) {
-      if (node.containsPoint(graphPosition)) {
-        return HitTestResult(nodeId: node.id, hitType: HitType.node);
+      // Get the shape for this node (if any)
+      final shape = widget.controller.nodeShapeBuilder?.call(node);
+
+      if (shape != null) {
+        // Use shape-aware hit testing with full node size
+        // Calculate position relative to node
+        final relativePosition = graphPosition - node.position.value;
+
+        // Use full node size for hit testing (not inset)
+        // The shape might be rendered smaller due to padding, but we want
+        // the entire node area to be clickable
+        if (shape.containsPoint(relativePosition, node.size.value)) {
+          return HitTestResult(nodeId: node.id, hitType: HitType.node);
+        }
+      } else {
+        // Rectangular node - use simple bounds check
+        if (node.containsPoint(graphPosition)) {
+          return HitTestResult(nodeId: node.id, hitType: HitType.node);
+        }
       }
     }
 
