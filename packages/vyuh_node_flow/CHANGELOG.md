@@ -1,3 +1,8 @@
+## 0.2.8
+
+ - **FEAT**: making node size observable.
+ - **FEAT**: added support to control deletion of nodes.
+
 ## 0.2.7
 
  - **FEAT**: making it work with wasm, moving json files into assets, fixing number deserialization on macos.
