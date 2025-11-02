@@ -1,3 +1,7 @@
+## 0.2.9+1
+
+ - **FIX**: adding docs for the library and rearranging files.
+
 ## 0.2.9
 
  - **FIX**: removing screenshots from publishing.
