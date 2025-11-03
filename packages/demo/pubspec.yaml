@@ -33,7 +33,6 @@ flutter:
 
   assets:
     - assets/data/
-    - assets/node-flow-banner.png
 
 flutter_launcher_icons:
   web:

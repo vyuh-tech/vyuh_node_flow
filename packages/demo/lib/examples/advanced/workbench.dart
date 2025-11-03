@@ -27,7 +27,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
     {'file': 'quality_control_workflow.json', 'name': 'Quality Control'},
     {'file': 'supply_chain_workflow.json', 'name': 'Supply Chain'},
     {'file': 'software_development_workflow.json', 'name': 'Software CI/CD'},
-    {'file': 'healthcare_workflow.json', 'name': 'Healthcare Process'},
+    {'file': 'database_schema.json', 'name': 'E-Commerce Database'},
     {'file': 'iot_data_pipeline.json', 'name': 'IoT Data Pipeline'},
   ];
 
@@ -516,6 +516,11 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    // Handle Table type specially
+    if (node.type == 'Table') {
+      return _buildTableNode(context, node, theme, isDark);
+    }
+
     Color nodeColor;
     Color iconColor;
 
@@ -602,6 +607,80 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                   ),
                 ),
                 const Spacer(),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTableNode(
+    BuildContext context,
+    Node<Map<String, dynamic>> node,
+    ThemeData theme,
+    bool isDark,
+  ) {
+    final data = node.data;
+    final tableName = data['name'] ?? 'Table';
+    final columns = data['columns'] as List<dynamic>? ?? [];
+
+    // Soft blue for database tables
+    final headerColor = isDark
+        ? const Color(0xFF2D3E52)
+        : const Color(0xFFD4E7F7);
+    final iconColor = isDark
+        ? const Color(0xFF88B8E6)
+        : const Color(0xFF1B4D7A);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Header with table name
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+          decoration: BoxDecoration(color: headerColor),
+          child: Row(
+            children: [
+              Icon(Icons.table_chart, size: 14, color: iconColor),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  tableName,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: iconColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Content - columns list
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final column in columns)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Text(
+                      column.toString(),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontSize: 10,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
               ],
             ),
           ),

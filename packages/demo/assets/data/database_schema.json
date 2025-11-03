@@ -1,0 +1,1054 @@
+{
+  "nodes": [
+    {
+      "id": "users",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 266
+      },
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "id": "user-pk",
+          "name": "user_id (PK)",
+          "dataType": "relation",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "data": {
+        "name": "Users",
+        "columns": [
+          "user_id (PK)",
+          "email",
+          "password_hash",
+          "first_name",
+          "last_name",
+          "phone",
+          "created_at",
+          "updated_at"
+        ],
+        "indexes": [
+          "email",
+          "created_at"
+        ],
+        "constraints": [
+          "UNIQUE(email)"
+        ]
+      },
+      "position": {
+        "x": 100,
+        "y": 100
+      },
+      "zIndex": 1
+    },
+    {
+      "id": "addresses",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 294
+      },
+      "inputPorts": [
+        {
+          "id": "user-fk",
+          "name": "user_id (FK)",
+          "dataType": "relation",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "address-pk",
+          "name": "address_id (PK)",
+          "dataType": "relation",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "data": {
+        "name": "Addresses",
+        "columns": [
+          "address_id (PK)",
+          "user_id (FK)",
+          "address_line1",
+          "address_line2",
+          "city",
+          "state",
+          "postal_code",
+          "country",
+          "is_default"
+        ],
+        "indexes": [
+          "user_id"
+        ],
+        "constraints": [
+          "FK user_id -> users.user_id"
+        ]
+      },
+      "position": {
+        "x": 400,
+        "y": 50
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "categories",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 238
+      },
+      "inputPorts": [
+        {
+          "id": "parent-fk",
+          "name": "parent_id (FK)",
+          "dataType": "relation",
+          "position": "top",
+          "offset": {
+            "x": 60,
+            "y": 0
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "category-pk",
+          "name": "category_id (PK)",
+          "dataType": "relation",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        },
+        {
+          "id": "parent-ref",
+          "name": "parent_id",
+          "dataType": "relation",
+          "position": "bottom",
+          "offset": {
+            "x": 60,
+            "y": 0
+          }
+        }
+      ],
+      "data": {
+        "name": "Categories",
+        "columns": [
+          "category_id (PK)",
+          "parent_id (FK)",
+          "name",
+          "slug",
+          "description",
+          "image_url",
+          "display_order"
+        ],
+        "indexes": [
+          "slug",
+          "parent_id"
+        ],
+        "constraints": [
+          "FK parent_id -> categories.category_id"
+        ]
+      },
+      "position": {
+        "x": 100,
+        "y": 400
+      },
+      "zIndex": 1
+    },
+    {
+      "id": "products",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 322
+      },
+      "inputPorts": [
+        {
+          "id": "category-fk",
+          "name": "category_id (FK)",
+          "dataType": "relation",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "product-pk",
+          "name": "product_id (PK)",
+          "dataType": "relation",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "data": {
+        "name": "Products",
+        "columns": [
+          "product_id (PK)",
+          "category_id (FK)",
+          "name",
+          "slug",
+          "description",
+          "price",
+          "cost",
+          "sku",
+          "is_active",
+          "created_at"
+        ],
+        "indexes": [
+          "slug",
+          "category_id",
+          "sku"
+        ],
+        "constraints": [
+          "FK category_id -> categories.category_id"
+        ]
+      },
+      "position": {
+        "x": 400,
+        "y": 400
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "product_images",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 210
+      },
+      "inputPorts": [
+        {
+          "id": "product-fk",
+          "name": "product_id (FK)",
+          "dataType": "relation",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [],
+      "data": {
+        "name": "Product Images",
+        "columns": [
+          "image_id (PK)",
+          "product_id (FK)",
+          "url",
+          "alt_text",
+          "display_order",
+          "is_primary"
+        ],
+        "indexes": [
+          "product_id"
+        ],
+        "constraints": [
+          "FK product_id -> products.product_id"
+        ]
+      },
+      "position": {
+        "x": 700,
+        "y": 350
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "inventory",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 210
+      },
+      "inputPorts": [
+        {
+          "id": "product-fk-inv",
+          "name": "product_id (FK)",
+          "dataType": "relation",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [],
+      "data": {
+        "name": "Inventory",
+        "columns": [
+          "inventory_id (PK)",
+          "product_id (FK)",
+          "quantity",
+          "reserved_qty",
+          "warehouse_location",
+          "last_updated"
+        ],
+        "indexes": [
+          "product_id"
+        ],
+        "constraints": [
+          "FK product_id -> products.product_id"
+        ]
+      },
+      "position": {
+        "x": 700,
+        "y": 550
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "suppliers",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 238
+      },
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "id": "supplier-pk",
+          "name": "supplier_id (PK)",
+          "dataType": "relation",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "data": {
+        "name": "Suppliers",
+        "columns": [
+          "supplier_id (PK)",
+          "company_name",
+          "contact_name",
+          "email",
+          "phone",
+          "address",
+          "rating"
+        ],
+        "indexes": [
+          "email"
+        ],
+        "constraints": []
+      },
+      "position": {
+        "x": 100,
+        "y": 700
+      },
+      "zIndex": 1
+    },
+    {
+      "id": "product_suppliers",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 210
+      },
+      "inputPorts": [
+        {
+          "id": "product-fk-sup",
+          "name": "product_id (FK)",
+          "dataType": "relation",
+          "position": "top",
+          "offset": {
+            "x": 60,
+            "y": 0
+          }
+        },
+        {
+          "id": "supplier-fk",
+          "name": "supplier_id (FK)",
+          "dataType": "relation",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [],
+      "data": {
+        "name": "Product Suppliers",
+        "columns": [
+          "id (PK)",
+          "product_id (FK)",
+          "supplier_id (FK)",
+          "supply_price",
+          "lead_time_days",
+          "is_preferred"
+        ],
+        "indexes": [
+          "product_id",
+          "supplier_id"
+        ],
+        "constraints": [
+          "FK product_id -> products.product_id",
+          "FK supplier_id -> suppliers.supplier_id"
+        ]
+      },
+      "position": {
+        "x": 400,
+        "y": 700
+      },
+      "zIndex": 2
+    },
+    {
+      "id": "orders",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 322
+      },
+      "inputPorts": [
+        {
+          "id": "user-fk-order",
+          "name": "user_id (FK)",
+          "dataType": "relation",
+          "position": "top",
+          "offset": {
+            "x": 60,
+            "y": 0
+          }
+        },
+        {
+          "id": "address-fk-shipping",
+          "name": "shipping_address_id",
+          "dataType": "relation",
+          "position": "top",
+          "offset": {
+            "x": 100,
+            "y": 0
+          }
+        }
+      ],
+      "outputPorts": [
+        {
+          "id": "order-pk",
+          "name": "order_id (PK)",
+          "dataType": "relation",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "data": {
+        "name": "Orders",
+        "columns": [
+          "order_id (PK)",
+          "user_id (FK)",
+          "shipping_address_id (FK)",
+          "order_number",
+          "status",
+          "subtotal",
+          "tax",
+          "shipping_cost",
+          "total",
+          "created_at"
+        ],
+        "indexes": [
+          "user_id",
+          "order_number",
+          "status"
+        ],
+        "constraints": [
+          "FK user_id -> users.user_id",
+          "FK shipping_address_id -> addresses.address_id"
+        ]
+      },
+      "position": {
+        "x": 1000,
+        "y": 100
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "order_items",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 238
+      },
+      "inputPorts": [
+        {
+          "id": "order-fk",
+          "name": "order_id (FK)",
+          "dataType": "relation",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        },
+        {
+          "id": "product-fk-item",
+          "name": "product_id (FK)",
+          "dataType": "relation",
+          "position": "top",
+          "offset": {
+            "x": 60,
+            "y": 0
+          }
+        }
+      ],
+      "outputPorts": [],
+      "data": {
+        "name": "Order Items",
+        "columns": [
+          "order_item_id (PK)",
+          "order_id (FK)",
+          "product_id (FK)",
+          "quantity",
+          "unit_price",
+          "discount",
+          "subtotal"
+        ],
+        "indexes": [
+          "order_id",
+          "product_id"
+        ],
+        "constraints": [
+          "FK order_id -> orders.order_id",
+          "FK product_id -> products.product_id"
+        ]
+      },
+      "position": {
+        "x": 1300,
+        "y": 100
+      },
+      "zIndex": 4
+    },
+    {
+      "id": "payments",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 238
+      },
+      "inputPorts": [
+        {
+          "id": "order-fk-payment",
+          "name": "order_id (FK)",
+          "dataType": "relation",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [],
+      "data": {
+        "name": "Payments",
+        "columns": [
+          "payment_id (PK)",
+          "order_id (FK)",
+          "payment_method",
+          "amount",
+          "status",
+          "transaction_id",
+          "processed_at"
+        ],
+        "indexes": [
+          "order_id",
+          "transaction_id"
+        ],
+        "constraints": [
+          "FK order_id -> orders.order_id"
+        ]
+      },
+      "position": {
+        "x": 1300,
+        "y": 350
+      },
+      "zIndex": 4
+    },
+    {
+      "id": "shipments",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 238
+      },
+      "inputPorts": [
+        {
+          "id": "order-fk-shipment",
+          "name": "order_id (FK)",
+          "dataType": "relation",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [],
+      "data": {
+        "name": "Shipments",
+        "columns": [
+          "shipment_id (PK)",
+          "order_id (FK)",
+          "carrier",
+          "tracking_number",
+          "status",
+          "shipped_at",
+          "delivered_at"
+        ],
+        "indexes": [
+          "order_id",
+          "tracking_number"
+        ],
+        "constraints": [
+          "FK order_id -> orders.order_id"
+        ]
+      },
+      "position": {
+        "x": 1300,
+        "y": 580
+      },
+      "zIndex": 4
+    },
+    {
+      "id": "shopping_cart",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 182
+      },
+      "inputPorts": [
+        {
+          "id": "user-fk-cart",
+          "name": "user_id (FK)",
+          "dataType": "relation",
+          "position": "top",
+          "offset": {
+            "x": 60,
+            "y": 0
+          }
+        },
+        {
+          "id": "product-fk-cart",
+          "name": "product_id (FK)",
+          "dataType": "relation",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [],
+      "data": {
+        "name": "Shopping Cart",
+        "columns": [
+          "cart_id (PK)",
+          "user_id (FK)",
+          "product_id (FK)",
+          "quantity",
+          "added_at"
+        ],
+        "indexes": [
+          "user_id",
+          "product_id"
+        ],
+        "constraints": [
+          "FK user_id -> users.user_id",
+          "FK product_id -> products.product_id"
+        ]
+      },
+      "position": {
+        "x": 700,
+        "y": 100
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "wishlists",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 182
+      },
+      "inputPorts": [
+        {
+          "id": "user-fk-wish",
+          "name": "user_id (FK)",
+          "dataType": "relation",
+          "position": "top",
+          "offset": {
+            "x": 60,
+            "y": 0
+          }
+        },
+        {
+          "id": "product-fk-wish",
+          "name": "product_id (FK)",
+          "dataType": "relation",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [],
+      "data": {
+        "name": "Wishlists",
+        "columns": [
+          "wishlist_id (PK)",
+          "user_id (FK)",
+          "product_id (FK)",
+          "added_at",
+          "notes"
+        ],
+        "indexes": [
+          "user_id",
+          "product_id"
+        ],
+        "constraints": [
+          "FK user_id -> users.user_id",
+          "FK product_id -> products.product_id"
+        ]
+      },
+      "position": {
+        "x": 700,
+        "y": 900
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "reviews",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 266
+      },
+      "inputPorts": [
+        {
+          "id": "user-fk-review",
+          "name": "user_id (FK)",
+          "dataType": "relation",
+          "position": "top",
+          "offset": {
+            "x": 60,
+            "y": 0
+          }
+        },
+        {
+          "id": "product-fk-review",
+          "name": "product_id (FK)",
+          "dataType": "relation",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 80
+          }
+        }
+      ],
+      "outputPorts": [],
+      "data": {
+        "name": "Reviews",
+        "columns": [
+          "review_id (PK)",
+          "user_id (FK)",
+          "product_id (FK)",
+          "rating",
+          "title",
+          "comment",
+          "verified_purchase",
+          "created_at"
+        ],
+        "indexes": [
+          "user_id",
+          "product_id",
+          "rating"
+        ],
+        "constraints": [
+          "FK user_id -> users.user_id",
+          "FK product_id -> products.product_id"
+        ]
+      },
+      "position": {
+        "x": 1000,
+        "y": 600
+      },
+      "zIndex": 4
+    },
+    {
+      "id": "promotions",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 294
+      },
+      "inputPorts": [],
+      "outputPorts": [
+        {
+          "id": "promo-pk",
+          "name": "promotion_id (PK)",
+          "dataType": "relation",
+          "position": "right",
+          "offset": {
+            "x": 0,
+            "y": 40
+          }
+        }
+      ],
+      "data": {
+        "name": "Promotions",
+        "columns": [
+          "promotion_id (PK)",
+          "code",
+          "description",
+          "discount_type",
+          "discount_value",
+          "start_date",
+          "end_date",
+          "max_uses",
+          "current_uses"
+        ],
+        "indexes": [
+          "code",
+          "start_date",
+          "end_date"
+        ],
+        "constraints": [
+          "UNIQUE(code)"
+        ]
+      },
+      "position": {
+        "x": 1000,
+        "y": 900
+      },
+      "zIndex": 3
+    },
+    {
+      "id": "order_promotions",
+      "type": "Table",
+      "size": {
+        "width": 160,
+        "height": 154
+      },
+      "inputPorts": [
+        {
+          "id": "order-fk-promo",
+          "name": "order_id (FK)",
+          "dataType": "relation",
+          "position": "top",
+          "offset": {
+            "x": 60,
+            "y": 0
+          }
+        },
+        {
+          "id": "promo-fk",
+          "name": "promotion_id (FK)",
+          "dataType": "relation",
+          "position": "left",
+          "offset": {
+            "x": 0,
+            "y": 60
+          }
+        }
+      ],
+      "outputPorts": [],
+      "data": {
+        "name": "Order Promotions",
+        "columns": [
+          "id (PK)",
+          "order_id (FK)",
+          "promotion_id (FK)",
+          "discount_applied"
+        ],
+        "indexes": [
+          "order_id",
+          "promotion_id"
+        ],
+        "constraints": [
+          "FK order_id -> orders.order_id",
+          "FK promotion_id -> promotions.promotion_id"
+        ]
+      },
+      "position": {
+        "x": 1300,
+        "y": 900
+      },
+      "zIndex": 4
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "sourceNodeId": "users",
+      "sourcePortId": "user-pk",
+      "targetNodeId": "addresses",
+      "targetPortId": "user-fk"
+    },
+    {
+      "id": "conn-2",
+      "sourceNodeId": "categories",
+      "sourcePortId": "category-pk",
+      "targetNodeId": "products",
+      "targetPortId": "category-fk"
+    },
+    {
+      "id": "conn-3",
+      "sourceNodeId": "categories",
+      "sourcePortId": "parent-ref",
+      "targetNodeId": "categories",
+      "targetPortId": "parent-fk"
+    },
+    {
+      "id": "conn-4",
+      "sourceNodeId": "products",
+      "sourcePortId": "product-pk",
+      "targetNodeId": "product_images",
+      "targetPortId": "product-fk"
+    },
+    {
+      "id": "conn-5",
+      "sourceNodeId": "products",
+      "sourcePortId": "product-pk",
+      "targetNodeId": "inventory",
+      "targetPortId": "product-fk-inv"
+    },
+    {
+      "id": "conn-6",
+      "sourceNodeId": "products",
+      "sourcePortId": "product-pk",
+      "targetNodeId": "product_suppliers",
+      "targetPortId": "product-fk-sup"
+    },
+    {
+      "id": "conn-7",
+      "sourceNodeId": "suppliers",
+      "sourcePortId": "supplier-pk",
+      "targetNodeId": "product_suppliers",
+      "targetPortId": "supplier-fk"
+    },
+    {
+      "id": "conn-8",
+      "sourceNodeId": "users",
+      "sourcePortId": "user-pk",
+      "targetNodeId": "orders",
+      "targetPortId": "user-fk-order"
+    },
+    {
+      "id": "conn-9",
+      "sourceNodeId": "addresses",
+      "sourcePortId": "address-pk",
+      "targetNodeId": "orders",
+      "targetPortId": "address-fk-shipping"
+    },
+    {
+      "id": "conn-10",
+      "sourceNodeId": "orders",
+      "sourcePortId": "order-pk",
+      "targetNodeId": "order_items",
+      "targetPortId": "order-fk"
+    },
+    {
+      "id": "conn-11",
+      "sourceNodeId": "products",
+      "sourcePortId": "product-pk",
+      "targetNodeId": "order_items",
+      "targetPortId": "product-fk-item"
+    },
+    {
+      "id": "conn-12",
+      "sourceNodeId": "orders",
+      "sourcePortId": "order-pk",
+      "targetNodeId": "payments",
+      "targetPortId": "order-fk-payment"
+    },
+    {
+      "id": "conn-13",
+      "sourceNodeId": "orders",
+      "sourcePortId": "order-pk",
+      "targetNodeId": "shipments",
+      "targetPortId": "order-fk-shipment"
+    },
+    {
+      "id": "conn-14",
+      "sourceNodeId": "users",
+      "sourcePortId": "user-pk",
+      "targetNodeId": "shopping_cart",
+      "targetPortId": "user-fk-cart"
+    },
+    {
+      "id": "conn-15",
+      "sourceNodeId": "products",
+      "sourcePortId": "product-pk",
+      "targetNodeId": "shopping_cart",
+      "targetPortId": "product-fk-cart"
+    },
+    {
+      "id": "conn-16",
+      "sourceNodeId": "users",
+      "sourcePortId": "user-pk",
+      "targetNodeId": "wishlists",
+      "targetPortId": "user-fk-wish"
+    },
+    {
+      "id": "conn-17",
+      "sourceNodeId": "products",
+      "sourcePortId": "product-pk",
+      "targetNodeId": "wishlists",
+      "targetPortId": "product-fk-wish"
+    },
+    {
+      "id": "conn-18",
+      "sourceNodeId": "users",
+      "sourcePortId": "user-pk",
+      "targetNodeId": "reviews",
+      "targetPortId": "user-fk-review"
+    },
+    {
+      "id": "conn-19",
+      "sourceNodeId": "products",
+      "sourcePortId": "product-pk",
+      "targetNodeId": "reviews",
+      "targetPortId": "product-fk-review"
+    },
+    {
+      "id": "conn-20",
+      "sourceNodeId": "orders",
+      "sourcePortId": "order-pk",
+      "targetNodeId": "order_promotions",
+      "targetPortId": "order-fk-promo"
+    },
+    {
+      "id": "conn-21",
+      "sourceNodeId": "promotions",
+      "sourcePortId": "promo-pk",
+      "targetNodeId": "order_promotions",
+      "targetPortId": "promo-fk"
+    }
+  ],
+  "viewport": {
+    "x": -50,
+    "y": -50,
+    "zoom": 0.6
+  }
+}
