@@ -34,14 +34,20 @@ class _ExampleNavigationState extends State<ExampleNavigation> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isInDrawer = Scaffold.maybeOf(context)?.hasDrawer ?? false;
 
     return Container(
-      width: 320,
+      width: isInDrawer ? null : 320,
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLow,
-        border: Border(
-          right: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
-        ),
+        border: isInDrawer
+            ? null
+            : Border(
+                right: BorderSide(
+                  color: theme.colorScheme.outlineVariant,
+                  width: 1,
+                ),
+              ),
       ),
       child: Column(
         children: [

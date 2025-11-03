@@ -318,160 +318,153 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return ResponsiveControlPanel(
+      title: 'Node Controls',
+      width: 320,
+      child: NodeFlowEditor<Map<String, dynamic>>(
+        controller: _controller,
+        nodeBuilder: _buildNode,
+        theme: _theme,
+      ),
       children: [
-        // Main Editor
-        Expanded(
-          child: NodeFlowEditor<Map<String, dynamic>>(
-            controller: _controller,
-            nodeBuilder: _buildNode,
-            theme: _theme,
-          ),
+        // Instructions
+        const InfoCard(
+          title: 'Instructions',
+          content:
+              'Click buttons to add nodes. Click to select, drag to move. Cmd-click or Shift-drag to select multiple nodes.',
         ),
-        // Control Panel on the right
-        ControlPanel(
-          title: 'Node Controls',
-          children: [
-            // Instructions
-            const InfoCard(
-              title: 'Instructions',
-              content:
-                  'Click buttons to add nodes. Click to select, drag to move. Cmd-click or Shift-drag to select multiple nodes.',
-            ),
-            const SizedBox(height: 24),
+        const SizedBox(height: 24),
 
-            // Add Nodes section
-            const SectionTitle('Add Nodes'),
-            const SizedBox(height: 8),
-            Grid2x2(
-              buttons: [
-                GridButton(
-                  label: 'Input',
-                  icon: Icons.input,
-                  onPressed: () => _addNode('input'),
-                ),
-                GridButton(
-                  label: 'Process',
-                  icon: Icons.settings,
-                  onPressed: () => _addNode('process'),
-                ),
-                GridButton(
-                  label: 'Decision',
-                  icon: Icons.call_split,
-                  onPressed: () => _addNode('decision'),
-                ),
-                GridButton(
-                  label: 'Output',
-                  icon: Icons.output,
-                  onPressed: () => _addNode('output'),
-                ),
-              ],
+        // Add Nodes section
+        const SectionTitle('Add Nodes'),
+        const SizedBox(height: 8),
+        Grid2x2(
+          buttons: [
+            GridButton(
+              label: 'Input',
+              icon: Icons.input,
+              onPressed: () => _addNode('input'),
             ),
-            const SizedBox(height: 24),
-
-            // Node Actions section
-            const SectionTitle('Node Actions'),
-            const SizedBox(height: 8),
-            Observer(
-              builder: (_) {
-                final hasSelection = _controller.selectedNodeIds.isNotEmpty;
-                return ControlButton(
-                  label: 'Delete Selected',
-                  icon: Icons.delete,
-                  onPressed: hasSelection ? _deleteSelectedNodes : null,
-                );
-              },
+            GridButton(
+              label: 'Process',
+              icon: Icons.settings,
+              onPressed: () => _addNode('process'),
             ),
-            const SizedBox(height: 8),
-            Observer(
-              builder: (_) {
-                final hasSelection = _controller.selectedNodeIds.isNotEmpty;
-                return ControlButton(
-                  label: 'Duplicate Node',
-                  icon: Icons.content_copy,
-                  onPressed: hasSelection ? _duplicateNode : null,
-                );
-              },
+            GridButton(
+              label: 'Decision',
+              icon: Icons.call_split,
+              onPressed: () => _addNode('decision'),
             ),
-            const SizedBox(height: 8),
-            ControlButton(
-              label: 'Clear All',
-              icon: Icons.clear_all,
-              onPressed: _clearAll,
-            ),
-            const SizedBox(height: 24),
-
-            // Node Movement section
-            const SectionTitle('Move Nodes'),
-            const SizedBox(height: 8),
-            Observer(
-              builder: (_) {
-                final hasSelection = _controller.selectedNodeIds.isNotEmpty;
-                return Grid2x2(
-                  buttons: [
-                    GridButton(
-                      label: 'Left',
-                      icon: Icons.arrow_back,
-                      onPressed: hasSelection ? _moveNodeLeft : null,
-                    ),
-                    GridButton(
-                      label: 'Right',
-                      icon: Icons.arrow_forward,
-                      onPressed: hasSelection ? _moveNodeRight : null,
-                    ),
-                    GridButton(
-                      label: 'Up',
-                      icon: Icons.arrow_upward,
-                      onPressed: hasSelection ? _moveNodeUp : null,
-                    ),
-                    GridButton(
-                      label: 'Down',
-                      icon: Icons.arrow_downward,
-                      onPressed: hasSelection ? _moveNodeDown : null,
-                    ),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 24),
-
-            // Selection section
-            const SectionTitle('Selection'),
-            const SizedBox(height: 8),
-            ControlButton(
-              label: 'Select All',
-              icon: Icons.select_all,
-              onPressed: _selectAllNodes,
-            ),
-            const SizedBox(height: 8),
-            ControlButton(
-              label: 'Invert Selection',
-              icon: Icons.flip,
-              onPressed: _invertSelection,
-            ),
-            const SizedBox(height: 8),
-            ControlButton(
-              label: 'Clear Selection',
-              icon: Icons.deselect,
-              onPressed: _clearSelection,
-            ),
-            const SizedBox(height: 24),
-
-            // Selection Info section
-            const SectionTitle('Selection Info'),
-            const SizedBox(height: 8),
-            Observer(
-              builder: (_) {
-                final selectedCount = _controller.selectedNodeIds.length;
-                final totalNodes = _controller.nodes.length;
-
-                return InfoCard(
-                  title: 'Graph Stats',
-                  content: 'Total Nodes: $totalNodes\nSelected: $selectedCount',
-                );
-              },
+            GridButton(
+              label: 'Output',
+              icon: Icons.output,
+              onPressed: () => _addNode('output'),
             ),
           ],
+        ),
+        const SizedBox(height: 24),
+
+        // Node Actions section
+        const SectionTitle('Node Actions'),
+        const SizedBox(height: 8),
+        Observer(
+          builder: (_) {
+            final hasSelection = _controller.selectedNodeIds.isNotEmpty;
+            return ControlButton(
+              label: 'Delete Selected',
+              icon: Icons.delete,
+              onPressed: hasSelection ? _deleteSelectedNodes : null,
+            );
+          },
+        ),
+        const SizedBox(height: 8),
+        Observer(
+          builder: (_) {
+            final hasSelection = _controller.selectedNodeIds.isNotEmpty;
+            return ControlButton(
+              label: 'Duplicate Node',
+              icon: Icons.content_copy,
+              onPressed: hasSelection ? _duplicateNode : null,
+            );
+          },
+        ),
+        const SizedBox(height: 8),
+        ControlButton(
+          label: 'Clear All',
+          icon: Icons.clear_all,
+          onPressed: _clearAll,
+        ),
+        const SizedBox(height: 24),
+
+        // Node Movement section
+        const SectionTitle('Move Nodes'),
+        const SizedBox(height: 8),
+        Observer(
+          builder: (_) {
+            final hasSelection = _controller.selectedNodeIds.isNotEmpty;
+            return Grid2x2(
+              buttons: [
+                GridButton(
+                  label: 'Left',
+                  icon: Icons.arrow_back,
+                  onPressed: hasSelection ? _moveNodeLeft : null,
+                ),
+                GridButton(
+                  label: 'Right',
+                  icon: Icons.arrow_forward,
+                  onPressed: hasSelection ? _moveNodeRight : null,
+                ),
+                GridButton(
+                  label: 'Up',
+                  icon: Icons.arrow_upward,
+                  onPressed: hasSelection ? _moveNodeUp : null,
+                ),
+                GridButton(
+                  label: 'Down',
+                  icon: Icons.arrow_downward,
+                  onPressed: hasSelection ? _moveNodeDown : null,
+                ),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 24),
+
+        // Selection section
+        const SectionTitle('Selection'),
+        const SizedBox(height: 8),
+        ControlButton(
+          label: 'Select All',
+          icon: Icons.select_all,
+          onPressed: _selectAllNodes,
+        ),
+        const SizedBox(height: 8),
+        ControlButton(
+          label: 'Invert Selection',
+          icon: Icons.flip,
+          onPressed: _invertSelection,
+        ),
+        const SizedBox(height: 8),
+        ControlButton(
+          label: 'Clear Selection',
+          icon: Icons.deselect,
+          onPressed: _clearSelection,
+        ),
+        const SizedBox(height: 24),
+
+        // Selection Info section
+        const SectionTitle('Selection Info'),
+        const SizedBox(height: 8),
+        Observer(
+          builder: (_) {
+            final selectedCount = _controller.selectedNodeIds.length;
+            final totalNodes = _controller.nodes.length;
+
+            return InfoCard(
+              title: 'Graph Stats',
+              content: 'Total Nodes: $totalNodes\nSelected: $selectedCount',
+            );
+          },
         ),
       ],
     );

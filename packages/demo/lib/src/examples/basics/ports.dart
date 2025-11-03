@@ -48,38 +48,34 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        // Node Flow Canvas
-        Expanded(
-          child: NodeFlowEditor(
-            controller: _controller,
-            theme: _currentTheme,
-            nodeBuilder: (context, node) {
-              return Container(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      node.type,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(node.id, style: const TextStyle(fontSize: 10)),
-                  ],
+    return ResponsiveControlPanel(
+      title: 'Port Combinations',
+      width: 320,
+      child: NodeFlowEditor(
+        controller: _controller,
+        theme: _currentTheme,
+        nodeBuilder: (context, node) {
+          return Container(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  node.type,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 ),
-              );
-            },
-          ),
-        ),
-        // Control Panel (moved to right)
-        _buildControlPanel(),
-      ],
+                const SizedBox(height: 4),
+                Text(node.id, style: const TextStyle(fontSize: 10)),
+              ],
+            ),
+          );
+        },
+      ),
+      children: _buildControlPanelChildren(),
     );
   }
 
@@ -350,332 +346,330 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
     return '$prefix-${position.name}';
   }
 
-  Widget _buildControlPanel() {
-    return ControlPanel(
-      title: 'Port Combinations',
-      width: 320,
-      children: [
-        // Port Selection Section
-        const SectionTitle('Port Selection'),
-        const SizedBox(height: 8),
-        const Text('Source Port:', style: TextStyle(fontSize: 13)),
-        const SizedBox(height: 8),
-        Observer(
-          builder: (context) => Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: PortPosition.values
-                .map(
-                  (port) => ChoiceChip(
-                    label: Text(port.name.toUpperCase()),
-                    selected: _themeControl._selectedSourcePort.value == port,
-                    onSelected: (selected) {
-                      if (selected) {
-                        _themeControl.selectedSourcePort = port;
-                      }
-                    },
-                  ),
-                )
-                .toList(),
-          ),
-        ),
-        const SizedBox(height: 16),
-        const Text('Target Port:', style: TextStyle(fontSize: 13)),
-        const SizedBox(height: 8),
-        Observer(
-          builder: (context) => Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: PortPosition.values
-                .map(
-                  (port) => ChoiceChip(
-                    label: Text(port.name.toUpperCase()),
-                    selected: _themeControl._selectedTargetPort.value == port,
-                    onSelected: (selected) {
-                      if (selected) {
-                        _themeControl.selectedTargetPort = port;
-                      }
-                    },
-                  ),
-                )
-                .toList(),
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        // Animation Section
-        const SectionTitle('Animation'),
-        const SizedBox(height: 8),
-        Observer(
-          builder: (context) => SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text(
-              'Orbit Target Node',
-              style: TextStyle(fontSize: 13),
-            ),
-            subtitle: const Text(
-              'Target node orbits around source node',
-              style: TextStyle(fontSize: 11),
-            ),
-            value: _themeControl._isRotating.value,
-            onChanged: (value) {
-              _themeControl.isRotating = value;
-            },
-          ),
-        ),
-        Observer(
-          builder: (context) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Orbit Speed: ${_themeControl._rotationSpeed.value.toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 13),
-              ),
-              Slider(
-                value: _themeControl._rotationSpeed.value,
-                min: 0.1,
-                max: 2.0,
-                divisions: 19,
-                label: _themeControl._rotationSpeed.value.toStringAsFixed(2),
-                onChanged: (value) {
-                  _themeControl.rotationSpeed = value;
-                },
-              ),
-            ],
-          ),
-        ),
-        Observer(
-          builder: (context) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Orbit Radius: ${_themeControl._orbitRadius.value.toStringAsFixed(0)}',
-                style: const TextStyle(fontSize: 13),
-              ),
-              Slider(
-                value: _themeControl._orbitRadius.value,
-                min: 50,
-                max: 400,
-                divisions: 35,
-                label: _themeControl._orbitRadius.value.toStringAsFixed(0),
-                onChanged: (value) {
-                  _themeControl.orbitRadius = value;
-                },
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        // Connection Style Section
-        const SectionTitle('Connection Style'),
-        const SizedBox(height: 8),
-        Observer(
-          builder: (context) => DropdownButtonFormField<ConnectionStyle>(
-            decoration: const InputDecoration(
-              labelText: 'Style',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
-            initialValue: _themeControl._connectionStyle.value,
-            items: ConnectionStyles.all.map((style) {
-              return DropdownMenuItem(
-                value: style,
-                child: Text(
-                  style.displayName,
-                  style: const TextStyle(fontSize: 13),
+  List<Widget> _buildControlPanelChildren() {
+    return [
+      // Port Selection Section
+      const SectionTitle('Port Selection'),
+      const SizedBox(height: 8),
+      const Text('Source Port:', style: TextStyle(fontSize: 13)),
+      const SizedBox(height: 8),
+      Observer(
+        builder: (context) => Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: PortPosition.values
+              .map(
+                (port) => ChoiceChip(
+                  label: Text(port.name.toUpperCase()),
+                  selected: _themeControl._selectedSourcePort.value == port,
+                  onSelected: (selected) {
+                    if (selected) {
+                      _themeControl.selectedSourcePort = port;
+                    }
+                  },
                 ),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                _themeControl.connectionStyle = value;
-              }
-            },
-          ),
+              )
+              .toList(),
         ),
+      ),
+      const SizedBox(height: 16),
+      const Text('Target Port:', style: TextStyle(fontSize: 13)),
+      const SizedBox(height: 8),
+      Observer(
+        builder: (context) => Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: PortPosition.values
+              .map(
+                (port) => ChoiceChip(
+                  label: Text(port.name.toUpperCase()),
+                  selected: _themeControl._selectedTargetPort.value == port,
+                  onSelected: (selected) {
+                    if (selected) {
+                      _themeControl.selectedTargetPort = port;
+                    }
+                  },
+                ),
+              )
+              .toList(),
+        ),
+      ),
+      const SizedBox(height: 16),
 
-        Observer(
-          builder: (context) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Offset: ${_themeControl._offset.value.toStringAsFixed(1)}',
-                style: const TextStyle(fontSize: 13),
-              ),
-              Slider(
-                value: _themeControl._offset.value,
-                min: 5,
-                max: 50,
-                divisions: 45,
-                label: _themeControl._offset.value.toStringAsFixed(1),
-                onChanged: (value) {
-                  _themeControl.offset = value;
-                },
-              ),
-            ],
+      // Animation Section
+      const SectionTitle('Animation'),
+      const SizedBox(height: 8),
+      Observer(
+        builder: (context) => SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text(
+            'Orbit Target Node',
+            style: TextStyle(fontSize: 13),
           ),
-        ),
-        Observer(
-          builder: (context) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Corner Radius: ${_themeControl._cornerRadius.value.toStringAsFixed(1)}',
-                style: const TextStyle(fontSize: 13),
-              ),
-              Slider(
-                value: _themeControl._cornerRadius.value,
-                min: 0,
-                max: 20,
-                divisions: 20,
-                label: _themeControl._cornerRadius.value.toStringAsFixed(1),
-                onChanged: (value) {
-                  _themeControl.cornerRadius = value;
-                },
-              ),
-            ],
+          subtitle: const Text(
+            'Target node orbits around source node',
+            style: TextStyle(fontSize: 11),
           ),
+          value: _themeControl._isRotating.value,
+          onChanged: (value) {
+            _themeControl.isRotating = value;
+          },
         ),
-        Observer(
-          builder: (context) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Stroke Width: ${_themeControl._strokeWidth.value.toStringAsFixed(1)}',
-                style: const TextStyle(fontSize: 13),
-              ),
-              Slider(
-                value: _themeControl._strokeWidth.value,
-                min: 1,
-                max: 10,
-                divisions: 18,
-                label: _themeControl._strokeWidth.value.toStringAsFixed(1),
-                onChanged: (value) {
-                  _themeControl.strokeWidth = value;
-                },
-              ),
-            ],
-          ),
-        ),
-        Observer(
-          builder: (context) =>
-              _themeControl._connectionStyle.value == ConnectionStyles.bezier ||
-                  _themeControl._connectionStyle.value ==
-                      ConnectionStyles.customBezier
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Curvature: ${_themeControl._curvature.value.toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                    Slider(
-                      value: _themeControl._curvature.value,
-                      min: 0.0,
-                      max: 1.0,
-                      divisions: 20,
-                      label: _themeControl._curvature.value.toStringAsFixed(2),
-                      onChanged: (value) {
-                        _themeControl.curvature = value;
-                      },
-                    ),
-                  ],
-                )
-              : const SizedBox.shrink(),
-        ),
-        Observer(
-          builder: (context) => ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text(
-              'Connection Color',
-              style: TextStyle(fontSize: 13),
+      ),
+      Observer(
+        builder: (context) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Orbit Speed: ${_themeControl._rotationSpeed.value.toStringAsFixed(2)}',
+              style: const TextStyle(fontSize: 13),
             ),
-            trailing: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: _themeControl._connectionColor.value,
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(4),
-              ),
+            Slider(
+              value: _themeControl._rotationSpeed.value,
+              min: 0.1,
+              max: 2.0,
+              divisions: 19,
+              label: _themeControl._rotationSpeed.value.toStringAsFixed(2),
+              onChanged: (value) {
+                _themeControl.rotationSpeed = value;
+              },
             ),
-            onTap: _showColorPicker,
-          ),
+          ],
         ),
-        Observer(
-          builder: (context) => SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Dashed Line', style: TextStyle(fontSize: 13)),
-            value: _themeControl._useDashedLine.value,
-            onChanged: (value) {
-              _themeControl.useDashedLine = value;
-            },
-          ),
+      ),
+      Observer(
+        builder: (context) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Orbit Radius: ${_themeControl._orbitRadius.value.toStringAsFixed(0)}',
+              style: const TextStyle(fontSize: 13),
+            ),
+            Slider(
+              value: _themeControl._orbitRadius.value,
+              min: 50,
+              max: 400,
+              divisions: 35,
+              label: _themeControl._orbitRadius.value.toStringAsFixed(0),
+              onChanged: (value) {
+                _themeControl.orbitRadius = value;
+              },
+            ),
+          ],
         ),
-        const SizedBox(height: 24),
+      ),
+      const SizedBox(height: 24),
 
-        // Grid Settings Section
-        const SectionTitle('Grid Settings'),
-        const SizedBox(height: 8),
-        Observer(
-          builder: (context) => DropdownButtonFormField<GridStyle>(
-            decoration: const InputDecoration(
-              labelText: 'Grid Style',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
-            initialValue: _themeControl._gridStyle.value,
-            items: GridStyle.values.map((style) {
-              return DropdownMenuItem(
-                value: style,
-                child: Text(style.name, style: const TextStyle(fontSize: 13)),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                _themeControl.gridStyle = value;
-              }
-            },
+      // Connection Style Section
+      const SectionTitle('Connection Style'),
+      const SizedBox(height: 8),
+      Observer(
+        builder: (context) => DropdownButtonFormField<ConnectionStyle>(
+          decoration: const InputDecoration(
+            labelText: 'Style',
+            border: OutlineInputBorder(),
+            isDense: true,
           ),
-        ),
-        Observer(
-          builder: (context) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Grid Size: ${_themeControl._gridSize.value.toStringAsFixed(0)}px',
+          initialValue: _themeControl._connectionStyle.value,
+          items: ConnectionStyles.all.map((style) {
+            return DropdownMenuItem(
+              value: style,
+              child: Text(
+                style.displayName,
                 style: const TextStyle(fontSize: 13),
               ),
-              Slider(
-                value: _themeControl._gridSize.value,
-                min: 5,
-                max: 50,
-                divisions: 45,
-                label: _themeControl._gridSize.value.toStringAsFixed(0),
-                onChanged: (value) {
-                  _themeControl.gridSize = value;
-                },
-              ),
-            ],
-          ),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) {
+              _themeControl.connectionStyle = value;
+            }
+          },
         ),
-        Observer(
-          builder: (context) => SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Snap to Grid', style: TextStyle(fontSize: 13)),
-            subtitle: const Text(
-              'Align nodes to grid points when moving',
-              style: TextStyle(fontSize: 11),
+      ),
+
+      SizedBox(height: 16),
+
+      Observer(
+        builder: (context) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Offset: ${_themeControl._offset.value.toStringAsFixed(1)}',
+              style: const TextStyle(fontSize: 13),
             ),
-            value: _themeControl._snapToGrid.value,
-            onChanged: (value) {
-              _themeControl.snapToGrid = value;
-            },
-          ),
+            Slider(
+              value: _themeControl._offset.value,
+              min: 5,
+              max: 50,
+              divisions: 45,
+              label: _themeControl._offset.value.toStringAsFixed(1),
+              onChanged: (value) {
+                _themeControl.offset = value;
+              },
+            ),
+          ],
         ),
-      ],
-    );
+      ),
+      Observer(
+        builder: (context) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Corner Radius: ${_themeControl._cornerRadius.value.toStringAsFixed(1)}',
+              style: const TextStyle(fontSize: 13),
+            ),
+            Slider(
+              value: _themeControl._cornerRadius.value,
+              min: 0,
+              max: 20,
+              divisions: 20,
+              label: _themeControl._cornerRadius.value.toStringAsFixed(1),
+              onChanged: (value) {
+                _themeControl.cornerRadius = value;
+              },
+            ),
+          ],
+        ),
+      ),
+      Observer(
+        builder: (context) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Stroke Width: ${_themeControl._strokeWidth.value.toStringAsFixed(1)}',
+              style: const TextStyle(fontSize: 13),
+            ),
+            Slider(
+              value: _themeControl._strokeWidth.value,
+              min: 1,
+              max: 10,
+              divisions: 18,
+              label: _themeControl._strokeWidth.value.toStringAsFixed(1),
+              onChanged: (value) {
+                _themeControl.strokeWidth = value;
+              },
+            ),
+          ],
+        ),
+      ),
+      Observer(
+        builder: (context) =>
+            _themeControl._connectionStyle.value == ConnectionStyles.bezier ||
+                _themeControl._connectionStyle.value ==
+                    ConnectionStyles.customBezier
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Curvature: ${_themeControl._curvature.value.toStringAsFixed(2)}',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  Slider(
+                    value: _themeControl._curvature.value,
+                    min: 0.0,
+                    max: 1.0,
+                    divisions: 20,
+                    label: _themeControl._curvature.value.toStringAsFixed(2),
+                    onChanged: (value) {
+                      _themeControl.curvature = value;
+                    },
+                  ),
+                ],
+              )
+            : const SizedBox.shrink(),
+      ),
+      Observer(
+        builder: (context) => ListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Connection Color', style: TextStyle(fontSize: 13)),
+          trailing: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: _themeControl._connectionColor.value,
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          onTap: _showColorPicker,
+        ),
+      ),
+      Observer(
+        builder: (context) => SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Dashed Line', style: TextStyle(fontSize: 13)),
+          value: _themeControl._useDashedLine.value,
+          onChanged: (value) {
+            _themeControl.useDashedLine = value;
+          },
+        ),
+      ),
+      const SizedBox(height: 24),
+
+      // Grid Settings Section
+      const SectionTitle('Grid Settings'),
+      const SizedBox(height: 8),
+      Observer(
+        builder: (context) => DropdownButtonFormField<GridStyle>(
+          decoration: const InputDecoration(
+            labelText: 'Grid Style',
+            border: OutlineInputBorder(),
+            isDense: true,
+          ),
+          initialValue: _themeControl._gridStyle.value,
+          items: GridStyle.values.map((style) {
+            return DropdownMenuItem(
+              value: style,
+              child: Text(style.name, style: const TextStyle(fontSize: 13)),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) {
+              _themeControl.gridStyle = value;
+            }
+          },
+        ),
+      ),
+
+      SizedBox(height: 16),
+
+      Observer(
+        builder: (context) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Grid Size: ${_themeControl._gridSize.value.toStringAsFixed(0)}px',
+              style: const TextStyle(fontSize: 13),
+            ),
+            Slider(
+              value: _themeControl._gridSize.value,
+              min: 5,
+              max: 50,
+              divisions: 45,
+              label: _themeControl._gridSize.value.toStringAsFixed(0),
+              onChanged: (value) {
+                _themeControl.gridSize = value;
+              },
+            ),
+          ],
+        ),
+      ),
+      Observer(
+        builder: (context) => SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Snap to Grid', style: TextStyle(fontSize: 13)),
+          subtitle: const Text(
+            'Align nodes to grid points when moving',
+            style: TextStyle(fontSize: 11),
+          ),
+          value: _themeControl._snapToGrid.value,
+          onChanged: (value) {
+            _themeControl.snapToGrid = value;
+          },
+        ),
+      ),
+    ];
   }
 
   void _showColorPicker() {

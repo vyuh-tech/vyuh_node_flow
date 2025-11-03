@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
+import '../../shared/ui_widgets.dart';
+
 /// A comprehensive example showcasing keyboard shortcuts and the Actions/Shortcuts system.
 ///
 /// This example demonstrates:
@@ -100,26 +102,19 @@ class _ShortcutsExampleState extends State<ShortcutsExample> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Row(
-      children: [
-        // Main Editor
-        Expanded(
-          child: NodeFlowEditor<Map<String, dynamic>>(
-            controller: _controller,
-            theme: NodeFlowTheme.light,
-            nodeBuilder: _buildNode,
-          ),
-        ),
-
-        // Side Panel with shortcuts info
-        _buildSidePanel(theme),
-      ],
+    return ResponsiveControlPanel(
+      title: 'Keyboard Shortcuts',
+      width: 320,
+      child: NodeFlowEditor<Map<String, dynamic>>(
+        controller: _controller,
+        theme: NodeFlowTheme.light,
+        nodeBuilder: _buildNode,
+      ),
+      children: _buildSidePanelChildren(),
     );
   }
 
@@ -180,129 +175,77 @@ class _ShortcutsExampleState extends State<ShortcutsExample> {
     );
   }
 
-  Widget _buildSidePanel(ThemeData theme) {
-    return Container(
-      width: 300,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(left: BorderSide(color: theme.colorScheme.outline)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
-              border: Border(
-                bottom: BorderSide(color: theme.colorScheme.outline),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.keyboard, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Keyboard Shortcuts',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+  List<Widget> _buildSidePanelChildren() {
+    final theme = Theme.of(context);
 
-          // Quick reference
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _buildShortcutCategory('Selection', [
-                  _buildShortcutRow('Cmd/Ctrl + A', 'Select all nodes'),
-                  _buildShortcutRow('Cmd/Ctrl + I', 'Invert selection'),
-                  _buildShortcutRow('Escape', 'Clear selection'),
-                  _buildShortcutRow('Shift + Drag', 'Multi-select'),
-                ]),
-                const SizedBox(height: 16),
-                _buildShortcutCategory('Editing', [
-                  _buildShortcutRow('Delete/Backspace', 'Delete selected'),
-                  _buildShortcutRow('Cmd/Ctrl + D', 'Duplicate'),
-                  _buildShortcutRow('Cmd/Ctrl + C', 'Copy'),
-                  _buildShortcutRow('Cmd/Ctrl + V', 'Paste'),
-                ]),
-                const SizedBox(height: 16),
-                _buildShortcutCategory('Navigation', [
-                  _buildShortcutRow('F', 'Fit to view'),
-                  _buildShortcutRow('H', 'Fit selected'),
-                  _buildShortcutRow('Cmd/Ctrl + 0', 'Reset zoom'),
-                  _buildShortcutRow('Cmd/Ctrl + =', 'Zoom in'),
-                  _buildShortcutRow('Cmd/Ctrl + -', 'Zoom out'),
-                ]),
-                const SizedBox(height: 16),
-                _buildShortcutCategory('Custom', [
-                  _buildShortcutRow(
-                    'Cmd/Ctrl + S',
-                    'Save workflow',
-                    custom: true,
-                  ),
-                  _buildShortcutRow(
-                    'Cmd/Ctrl + E',
-                    'Export graph',
-                    custom: true,
-                  ),
-                ]),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: _showShortcutsDialog,
-                  icon: const Icon(Icons.keyboard),
-                  label: const Text('View All Shortcuts'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 48),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Stats
-          Observer(
-            builder: (_) => Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
-                border: Border(
-                  top: BorderSide(color: theme.colorScheme.outline),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Graph Stats',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildStatRow('Nodes', _controller.nodes.length.toString()),
-                  _buildStatRow(
-                    'Connections',
-                    _controller.connections.length.toString(),
-                  ),
-                  _buildStatRow(
-                    'Selected',
-                    _controller.selectedNodeIds.length.toString(),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+    return [
+      _buildShortcutCategory('Selection', [
+        _buildShortcutRow('Cmd/Ctrl + A', 'Select all nodes'),
+        _buildShortcutRow('Cmd/Ctrl + I', 'Invert selection'),
+        _buildShortcutRow('Escape', 'Clear selection'),
+        _buildShortcutRow('Shift + Drag', 'Multi-select'),
+      ]),
+      const SizedBox(height: 16),
+      _buildShortcutCategory('Editing', [
+        _buildShortcutRow('Delete/Backspace', 'Delete selected'),
+        _buildShortcutRow('Cmd/Ctrl + D', 'Duplicate'),
+        _buildShortcutRow('Cmd/Ctrl + C', 'Copy'),
+        _buildShortcutRow('Cmd/Ctrl + V', 'Paste'),
+      ]),
+      const SizedBox(height: 16),
+      _buildShortcutCategory('Navigation', [
+        _buildShortcutRow('F', 'Fit to view'),
+        _buildShortcutRow('H', 'Fit selected'),
+        _buildShortcutRow('Cmd/Ctrl + 0', 'Reset zoom'),
+        _buildShortcutRow('Cmd/Ctrl + =', 'Zoom in'),
+        _buildShortcutRow('Cmd/Ctrl + -', 'Zoom out'),
+      ]),
+      const SizedBox(height: 16),
+      _buildShortcutCategory('Custom', [
+        _buildShortcutRow('Cmd/Ctrl + S', 'Save workflow', custom: true),
+        _buildShortcutRow('Cmd/Ctrl + E', 'Export graph', custom: true),
+      ]),
+      const SizedBox(height: 24),
+      ElevatedButton.icon(
+        onPressed: _showShortcutsDialog,
+        icon: const Icon(Icons.keyboard),
+        label: const Text('View All Shortcuts'),
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(double.infinity, 48),
+        ),
       ),
-    );
+      const SizedBox(height: 16),
+      Observer(
+        builder: (_) => Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Graph Stats',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildStatRow('Nodes', _controller.nodes.length.toString()),
+              _buildStatRow(
+                'Connections',
+                _controller.connections.length.toString(),
+              ),
+              _buildStatRow(
+                'Selected',
+                _controller.selectedNodeIds.length.toString(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ];
   }
 
   Widget _buildShortcutCategory(String title, List<Widget> shortcuts) {

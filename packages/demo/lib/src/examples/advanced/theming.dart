@@ -188,54 +188,46 @@ class _ThemingExampleState extends State<ThemingExample> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return ResponsiveControlPanel(
+      title: 'Theme Editor',
+      width: 320,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh, size: 20),
+          onPressed: () {
+            _updateTheme(NodeFlowTheme.light);
+          },
+          tooltip: 'Reset to Light Theme',
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+      ],
+      child: NodeFlowEditor<Map<String, dynamic>>(
+        controller: _controller,
+        nodeBuilder: _buildNode,
+        theme: _theme,
+      ),
       children: [
-        // Main Editor
-        Expanded(
-          child: NodeFlowEditor<Map<String, dynamic>>(
-            controller: _controller,
-            nodeBuilder: _buildNode,
-            theme: _theme,
-          ),
-        ),
-        // Theme Control Panel
-        ControlPanel(
-          title: 'Theme Editor',
-          width: 320,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh, size: 20),
-              onPressed: () {
-                _updateTheme(NodeFlowTheme.light);
-              },
-              tooltip: 'Reset to Light Theme',
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
-          ],
-          children: [
-            _buildThemePresets(),
-            const SizedBox(height: 24),
-            _buildConnectionStyleSection(),
-            const SizedBox(height: 24),
-            _buildConnectionColorsSection(),
-            const SizedBox(height: 24),
-            _buildStrokeWidthSection(),
-            const SizedBox(height: 24),
-            _buildPortSizeSection(),
-            const SizedBox(height: 24),
-            _buildGridSection(),
-            const SizedBox(height: 24),
-            _buildNodeBorderSection(),
-          ],
-        ),
+        _buildThemePresets(),
+        const SizedBox(height: 24),
+        _buildConnectionStyleSection(),
+        const SizedBox(height: 24),
+        _buildConnectionColorsSection(),
+        const SizedBox(height: 24),
+        _buildStrokeWidthSection(),
+        const SizedBox(height: 24),
+        _buildPortSizeSection(),
+        const SizedBox(height: 24),
+        _buildGridSection(),
+        const SizedBox(height: 24),
+        _buildNodeBorderSection(),
       ],
     );
   }
 
   Widget _buildThemePresets() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Theme Presets'),
         const SizedBox(height: 12),
@@ -262,7 +254,7 @@ class _ThemingExampleState extends State<ThemingExample> {
 
   Widget _buildConnectionStyleSection() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Connection Style'),
         const SizedBox(height: 12),
@@ -298,7 +290,7 @@ class _ThemingExampleState extends State<ThemingExample> {
 
   Widget _buildConnectionColorsSection() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Connection Colors'),
         const SizedBox(height: 12),
@@ -441,7 +433,7 @@ class _ThemingExampleState extends State<ThemingExample> {
 
   Widget _buildStrokeWidthSection() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Stroke Width'),
         const SizedBox(height: 12),
@@ -477,7 +469,7 @@ class _ThemingExampleState extends State<ThemingExample> {
 
   Widget _buildPortSizeSection() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Port Size'),
         const SizedBox(height: 12),
@@ -527,7 +519,7 @@ class _ThemingExampleState extends State<ThemingExample> {
 
   Widget _buildGridSection() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Grid'),
         const SizedBox(height: 12),
@@ -565,7 +557,7 @@ class _ThemingExampleState extends State<ThemingExample> {
 
   Widget _buildNodeBorderSection() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Node Border'),
         const SizedBox(height: 12),

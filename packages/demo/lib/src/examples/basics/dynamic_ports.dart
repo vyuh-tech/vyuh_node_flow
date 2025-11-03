@@ -236,21 +236,15 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return ResponsiveControlPanel(
+      title: 'Port Controls',
+      width: 320,
+      child: NodeFlowEditor<Map<String, dynamic>>(
+        controller: _controller,
+        nodeBuilder: _buildNode,
+        theme: _theme,
+      ),
       children: [
-        // Main Editor
-        Expanded(
-          child: NodeFlowEditor<Map<String, dynamic>>(
-            controller: _controller,
-            nodeBuilder: _buildNode,
-            theme: _theme,
-          ),
-        ),
-        // Control Panel on the right
-        ControlPanel(
-          title: 'Port Controls',
-          width: 280,
-          children: [
             const InfoCard(
               title: 'Instructions',
               content:
@@ -381,8 +375,6 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
               },
             ),
           ],
-        ),
-      ],
     );
   }
 }

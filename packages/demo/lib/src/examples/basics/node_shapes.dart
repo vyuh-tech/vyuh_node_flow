@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
+import '../../shared/ui_widgets.dart';
+
 class NodeShapesExample extends StatefulWidget {
   const NodeShapesExample({super.key});
 
@@ -206,45 +208,31 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return ResponsiveControlPanel(
+      title: 'Node Shapes',
+      width: 320,
+      child: NodeFlowEditor<Map<String, dynamic>>(
+        controller: _controller,
+        nodeBuilder: _buildNode,
+        nodeShapeBuilder: _buildNodeShape,
+        theme: _theme,
+      ),
       children: [
-        Expanded(
-          child: NodeFlowEditor<Map<String, dynamic>>(
-            controller: _controller,
-            nodeBuilder: _buildNode,
-            nodeShapeBuilder: _buildNodeShape,
-            theme: _theme,
-          ),
+        const InfoCard(
+          title: 'About',
+          content:
+              'Demonstrates different node shapes including Rectangle (default), Circle, Diamond, and Hexagon (horizontal & vertical)',
         ),
-        Container(
-          width: 250,
-          padding: const EdgeInsets.all(16),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Node Shapes',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Demonstrates different node shapes including Rectangle (default), Circle, Diamond, and Hexagon (horizontal & vertical)',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: () {
-                  _controller.clearGraph();
-                  _addExampleNodes();
-                },
-                icon: const Icon(Icons.refresh),
-                label: const Text('Reset'),
-              ),
-            ],
-          ),
+        const SizedBox(height: 16),
+        const SectionTitle('Actions'),
+        const SizedBox(height: 12),
+        ControlButton(
+          label: 'Reset',
+          icon: Icons.refresh,
+          onPressed: () {
+            _controller.clearGraph();
+            _addExampleNodes();
+          },
         ),
       ],
     );

@@ -55,10 +55,11 @@ class ExampleDetailView extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context, Example example) {
     final theme = Theme.of(context);
+    final isCompact = MediaQuery.of(context).size.width < 600;
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      height: 75,
+      padding: EdgeInsets.all(isCompact ? 12 : 16),
+      constraints: BoxConstraints(minHeight: isCompact ? 60 : 75),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
@@ -69,18 +70,18 @@ class ExampleDetailView extends StatelessWidget {
         children: [
           if (example.icon != null) ...[
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(isCompact ? 6 : 8),
               decoration: BoxDecoration(
                 color: theme.colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 example.icon,
-                size: 20,
+                size: isCompact ? 16 : 20,
                 color: theme.colorScheme.onPrimaryContainer,
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: isCompact ? 8 : 12),
           ],
           Expanded(
             child: Column(
@@ -89,10 +90,16 @@ class ExampleDetailView extends StatelessWidget {
               children: [
                 Text(
                   example.title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
-                  ),
+                  style:
+                      (isCompact
+                              ? theme.textTheme.titleSmall
+                              : theme.textTheme.titleMedium)
+                          ?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -100,6 +107,8 @@ class ExampleDetailView extends StatelessWidget {
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.onSurface,
                   ),
+                  maxLines: isCompact ? 1 : 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

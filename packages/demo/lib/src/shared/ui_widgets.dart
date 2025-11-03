@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'responsive.dart';
+
 /// Reusable UI components for demo examples
 
 /// Section title text (grey, small, uppercase-style)
@@ -11,12 +13,20 @@ class SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Text(
-      title,
-      style: theme.textTheme.labelMedium?.copyWith(
-        fontWeight: FontWeight.w600,
-        color: theme.colorScheme.onSurfaceVariant,
-        letterSpacing: 0.5,
+    return Container(
+      padding: const EdgeInsets.only(bottom: 4),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+        ),
+      ),
+      child: Text(
+        title,
+        style: theme.textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onSurfaceVariant,
+          letterSpacing: 0.5,
+        ),
       ),
     );
   }
@@ -64,7 +74,7 @@ class InfoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: theme.dividerColor),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,7 +208,9 @@ class ControlPanel extends StatelessWidget {
       width: width,
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHigh,
-        border: Border(left: BorderSide(color: theme.dividerColor, width: 1)),
+        border: Border(
+          left: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -209,7 +221,10 @@ class ControlPanel extends StatelessWidget {
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerHighest,
               border: Border(
-                bottom: BorderSide(color: theme.dividerColor, width: 1),
+                bottom: BorderSide(
+                  color: theme.colorScheme.outlineVariant,
+                  width: 1,
+                ),
               ),
             ),
             child: Row(
@@ -220,6 +235,8 @@ class ControlPanel extends StatelessWidget {
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (actions != null) ...actions!,
@@ -234,6 +251,77 @@ class ControlPanel extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Responsive control panel that adapts to screen size
+/// On mobile: Shows a FAB that opens a drawer from the right
+/// On tablet/desktop: Shows the panel always visible on the right
+class ResponsiveControlPanel extends StatefulWidget {
+  final String title;
+  final List<Widget> children;
+  final double width;
+  final List<Widget>? actions;
+  final Widget child;
+
+  const ResponsiveControlPanel({
+    super.key,
+    required this.title,
+    required this.children,
+    required this.child,
+    this.width = 320,
+    this.actions,
+  });
+
+  @override
+  State<ResponsiveControlPanel> createState() => _ResponsiveControlPanelState();
+}
+
+class _ResponsiveControlPanelState extends State<ResponsiveControlPanel> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+
+    if (isMobile) {
+      return Scaffold(
+        key: _scaffoldKey,
+        body: widget.child,
+        endDrawer: Drawer(
+          width: widget.width,
+          child: ControlPanel(
+            title: widget.title,
+            width: widget.width,
+            actions: widget.actions,
+            children: widget.children,
+          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            _scaffoldKey.currentState?.openEndDrawer();
+          },
+          tooltip: 'Controls',
+          child: const Icon(Icons.tune),
+        ),
+      );
+    }
+
+    // Tablet/Desktop: Always show panel on the right
+    return Row(
+      children: [
+        // Main content
+        Expanded(child: widget.child),
+
+        // Always visible panel
+        ControlPanel(
+          title: widget.title,
+          width: widget.width,
+          actions: widget.actions,
+          children: widget.children,
+        ),
+      ],
     );
   }
 }

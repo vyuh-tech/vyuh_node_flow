@@ -205,110 +205,103 @@ class _AnnotationExampleState extends State<AnnotationExample> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        // Main Editor
-        Expanded(
-          child: Stack(
-            children: [
-              // Use the actual NodeFlowEditor which handles all interactions properly
-              NodeFlowEditor<Map<String, dynamic>>(
-                controller: controller,
-                theme: _theme,
-                nodeBuilder: (context, node) {
-                  // Calculate inner border radius
-                  final outerBorderRadius = _theme.nodeTheme.borderRadius;
-                  final borderWidth = _theme.nodeTheme.borderWidth;
-                  final outerRadius = outerBorderRadius.topLeft.x;
-                  final innerRadius = math.max(0.0, outerRadius - borderWidth);
+    return ResponsiveControlPanel(
+      title: 'Annotation Controls',
+      width: 320,
+      child: Stack(
+        children: [
+          // Use the actual NodeFlowEditor which handles all interactions properly
+          NodeFlowEditor<Map<String, dynamic>>(
+            controller: controller,
+            theme: _theme,
+            nodeBuilder: (context, node) {
+              // Calculate inner border radius
+              final outerBorderRadius = _theme.nodeTheme.borderRadius;
+              final borderWidth = _theme.nodeTheme.borderWidth;
+              final outerRadius = outerBorderRadius.topLeft.x;
+              final innerRadius = math.max(0.0, outerRadius - borderWidth);
 
-                  final theme = Theme.of(context);
-                  final isDark = theme.brightness == Brightness.dark;
+              final theme = Theme.of(context);
+              final isDark = theme.brightness == Brightness.dark;
 
-                  // Soft sky blue
-                  final nodeColor = isDark
-                      ? const Color(0xFF2D3E52)
-                      : const Color(0xFFD4E7F7);
-                  final iconColor = isDark
-                      ? const Color(0xFF88B8E6)
-                      : const Color(0xFF1B4D7A);
+              // Soft sky blue
+              final nodeColor = isDark
+                  ? const Color(0xFF2D3E52)
+                  : const Color(0xFFD4E7F7);
+              final iconColor = isDark
+                  ? const Color(0xFF88B8E6)
+                  : const Color(0xFF1B4D7A);
 
-                  return Container(
-                    width: node.size.value.width,
-                    height: node.size.value.height,
-                    decoration: BoxDecoration(
-                      color: nodeColor,
-                      borderRadius: BorderRadius.circular(innerRadius),
+              return Container(
+                width: node.size.value.width,
+                height: node.size.value.height,
+                decoration: BoxDecoration(
+                  color: nodeColor,
+                  borderRadius: BorderRadius.circular(innerRadius),
+                ),
+                child: Center(
+                  child: Text(
+                    node.data['title'] as String? ?? '',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: iconColor,
                     ),
-                    child: Center(
-                      child: Text(
-                        node.data['title'] as String? ?? '',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: iconColor,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-
-              // Instructions overlay
-              _buildInstructions(),
-            ],
+                  ),
+                ),
+              );
+            },
           ),
+
+          // Instructions overlay
+          _buildInstructions(),
+        ],
+      ),
+      children: [
+        const InfoCard(
+          title: 'Instructions',
+          content:
+              'Drag sticky notes and markers around. Group annotations follow their nodes. Select nodes and create groups.',
         ),
-        // Control Panel on the right
-        ControlPanel(
-          title: 'Annotation Controls',
-          children: [
-            const InfoCard(
-              title: 'Instructions',
-              content:
-                  'Drag sticky notes and markers around. Group annotations follow their nodes. Select nodes and create groups.',
-            ),
-            const SizedBox(height: 24),
-            const SectionTitle('Add Annotations'),
-            const SizedBox(height: 8),
-            ControlButton(
-              label: 'Add Sticky Note',
-              icon: Icons.add_comment,
-              onPressed: _addRandomStickyNote,
-            ),
-            const SizedBox(height: 8),
-            ControlButton(
-              label: 'Add Marker',
-              icon: Icons.place,
-              onPressed: _addRandomMarker,
-            ),
-            const SizedBox(height: 8),
-            ControlButton(
-              label: 'Group Selected Nodes',
-              icon: Icons.group_work,
-              onPressed: _createRandomGroup,
-            ),
-            const SizedBox(height: 24),
-            const SectionTitle('Visibility'),
-            const SizedBox(height: 8),
-            ControlButton(
-              label: 'Hide All Annotations',
-              icon: Icons.visibility_off,
-              onPressed: () => controller.hideAllAnnotations(),
-            ),
-            const SizedBox(height: 8),
-            ControlButton(
-              label: 'Show All Annotations',
-              icon: Icons.visibility,
-              onPressed: () => controller.showAllAnnotations(),
-            ),
-            const SizedBox(height: 24),
-            const SectionTitle('Actions'),
-            const SizedBox(height: 8),
-            ControlButton(
-              label: 'Clear All Annotations',
-              icon: Icons.clear,
-              onPressed: _clearAllAnnotations,
-            ),
-          ],
+        const SizedBox(height: 24),
+        const SectionTitle('Add Annotations'),
+        const SizedBox(height: 8),
+        ControlButton(
+          label: 'Add Sticky Note',
+          icon: Icons.add_comment,
+          onPressed: _addRandomStickyNote,
+        ),
+        const SizedBox(height: 8),
+        ControlButton(
+          label: 'Add Marker',
+          icon: Icons.place,
+          onPressed: _addRandomMarker,
+        ),
+        const SizedBox(height: 8),
+        ControlButton(
+          label: 'Group Selected Nodes',
+          icon: Icons.group_work,
+          onPressed: _createRandomGroup,
+        ),
+        const SizedBox(height: 24),
+        const SectionTitle('Visibility'),
+        const SizedBox(height: 8),
+        ControlButton(
+          label: 'Hide All Annotations',
+          icon: Icons.visibility_off,
+          onPressed: () => controller.hideAllAnnotations(),
+        ),
+        const SizedBox(height: 8),
+        ControlButton(
+          label: 'Show All Annotations',
+          icon: Icons.visibility,
+          onPressed: () => controller.showAllAnnotations(),
+        ),
+        const SizedBox(height: 24),
+        const SectionTitle('Actions'),
+        const SizedBox(height: 8),
+        ControlButton(
+          label: 'Clear All Annotations',
+          icon: Icons.clear,
+          onPressed: _clearAllAnnotations,
         ),
       ],
     );

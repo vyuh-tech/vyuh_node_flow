@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 
 import 'example_model.dart';
+// Layout examples
+import 'examples/advanced/alignment.dart';
 // Advanced examples
 import 'examples/advanced/shortcuts.dart';
-import 'examples/advanced/theming.dart';
-import 'examples/advanced/viewer.dart';
 // Annotations examples
-import 'examples/annotations/system.dart';
+import 'examples/advanced/system.dart';
+import 'examples/advanced/theming.dart';
+import 'examples/advanced/validation.dart';
+import 'examples/advanced/viewer.dart';
+import 'examples/advanced/workbench.dart';
 // Basics examples
 import 'examples/basics/controlling_nodes.dart';
 import 'examples/basics/dynamic_ports.dart';
 import 'examples/basics/node_shapes.dart';
-import 'examples/basics/simple.dart';
-import 'examples/basics/workbench.dart';
 // Connections examples
-import 'examples/connections/ports.dart';
-import 'examples/connections/validation.dart';
-// Layout examples
-import 'examples/layout/alignment.dart';
+import 'examples/basics/ports.dart';
+import 'examples/basics/simple.dart';
 
 class ExampleRegistry {
   static List<ExampleCategory> get all => [
@@ -67,14 +67,6 @@ class ExampleRegistry {
           icon: Icons.settings_ethernet,
           builder: (_) => const PortCombinationsDemo(),
         ),
-        Example(
-          id: 'validation',
-          title: 'Connection Validation',
-          description:
-              'Custom validation rules, type checking, and connection limits',
-          icon: Icons.verified_user,
-          builder: (_) => const ConnectionValidationExample(),
-        ),
       ],
     ),
 
@@ -123,6 +115,14 @@ class ExampleRegistry {
           description: 'Display graphs in read-only mode without editing',
           icon: Icons.visibility,
           builder: (_) => const ViewerExample(),
+        ),
+        Example(
+          id: 'validation',
+          title: 'Connection Validation',
+          description:
+              'Custom validation rules, type checking, and connection limits',
+          icon: Icons.verified_user,
+          builder: (_) => const ConnectionValidationExample(),
         ),
         Example(
           id: 'workbench',

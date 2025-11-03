@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
+import '../../shared/ui_widgets.dart';
+
 class SimpleNodeAdditionExample extends StatefulWidget {
   const SimpleNodeAdditionExample({super.key});
 
@@ -101,38 +103,29 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return ResponsiveControlPanel(
+      title: 'Controls',
+      width: 320,
+      child: NodeFlowEditor<Map<String, dynamic>>(
+        controller: _controller,
+        nodeBuilder: _buildNode,
+        theme: _theme,
+      ),
       children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: Row(
-            children: [
-              ElevatedButton.icon(
-                onPressed: _addNode,
-                icon: const Icon(Icons.add),
-                label: const Text('Add Node'),
-              ),
-              const SizedBox(width: 16),
-              ElevatedButton.icon(
-                onPressed: () => _controller.clearGraph(),
-                icon: const Icon(Icons.clear),
-                label: const Text('Clear All'),
-              ),
-              const Spacer(),
-              Text(
-                'Add nodes and connect them by dragging from output to input ports',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
-          ),
+        const SectionTitle('Actions'),
+        const SizedBox(height: 12),
+        ControlButton(label: 'Add Node', icon: Icons.add, onPressed: _addNode),
+        const SizedBox(height: 8),
+        ControlButton(
+          label: 'Clear All',
+          icon: Icons.clear,
+          onPressed: () => _controller.clearGraph(),
         ),
-        Expanded(
-          child: NodeFlowEditor<Map<String, dynamic>>(
-            controller: _controller,
-            nodeBuilder: _buildNode,
-            theme: _theme,
-          ),
+        const SizedBox(height: 16),
+        const InfoCard(
+          title: 'Instructions',
+          content:
+              'Add nodes and connect them by dragging from output to input ports',
         ),
       ],
     );

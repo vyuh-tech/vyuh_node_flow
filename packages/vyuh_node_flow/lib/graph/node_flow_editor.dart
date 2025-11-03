@@ -18,6 +18,7 @@ import '../nodes/node.dart';
 import '../nodes/node_shape.dart';
 import '../ports/port.dart';
 import '../shared/flutter_actions_integration.dart';
+import 'layers/attribution_overlay.dart';
 import 'layers/connection_labels_layer.dart';
 import 'layers/connections_layer.dart';
 import 'layers/grid_layer.dart';
@@ -412,6 +413,11 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                     theme: theme,
                     transformationController: _transformationController,
                     canvasSize: constraints.biggest,
+                  ),
+
+                  // Attribution overlay - bottom center
+                  AttributionOverlay(
+                    show: widget.controller.config.showAttribution,
                   ),
                 ],
               ),

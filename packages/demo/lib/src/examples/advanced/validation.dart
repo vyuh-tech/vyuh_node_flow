@@ -246,56 +246,48 @@ class _ConnectionValidationExampleState
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return ResponsiveControlPanel(
+      title: 'Validation Rules',
+      width: 320,
+      child: NodeFlowEditor<String>(
+        controller: _controller,
+        theme: _theme,
+        nodeBuilder: (context, node) => _buildNode(node),
+        onBeforeStartConnection: _onBeforeStartConnection,
+        onBeforeCompleteConnection: _onBeforeCompleteConnection,
+        onConnectionCreated: (connection) {
+          _showMessage('Connection created: ${connection.id}');
+        },
+        onConnectionDeleted: (connection) {
+          _showMessage('Connection deleted: ${connection.id}');
+        },
+        enableNodeDeletion: false,
+      ),
       children: [
-        // Node flow editor
-        Expanded(
-          child: NodeFlowEditor<String>(
-            controller: _controller,
-            theme: _theme,
-            nodeBuilder: (context, node) => _buildNode(node),
-            onBeforeStartConnection: _onBeforeStartConnection,
-            onBeforeCompleteConnection: _onBeforeCompleteConnection,
-            onConnectionCreated: (connection) {
-              _showMessage('Connection created: ${connection.id}');
-            },
-            onConnectionDeleted: (connection) {
-              _showMessage('Connection deleted: ${connection.id}');
-            },
-            enableNodeDeletion: false,
+        const SectionTitle('Connection Rules'),
+        const SizedBox(height: 8),
+        const InfoCard(
+          title: 'Validation Logic',
+          content:
+              '• Locked nodes (gray) cannot create or receive connections\n'
+              '• Input nodes cannot connect directly to output nodes\n'
+              '• Input nodes can have at most 2 output connections\n'
+              '• Special ports can only connect to other special ports',
+        ),
+        const SizedBox(height: 24),
+        const SectionTitle('Last Action'),
+        const SizedBox(height: 8),
+        if (_lastMessage.isNotEmpty)
+          InfoCard(title: 'Status', content: _lastMessage)
+        else
+          const InfoCard(
+            title: 'Status',
+            content: 'No actions yet. Try creating connections!',
           ),
-        ),
-        // Control Panel on the right
-        ControlPanel(
-          title: 'Validation Rules',
-          width: 320,
-          children: [
-            const SectionTitle('Connection Rules'),
-            const SizedBox(height: 8),
-            const InfoCard(
-              title: 'Validation Logic',
-              content:
-                  '• Locked nodes (gray) cannot create or receive connections\n'
-                  '• Input nodes cannot connect directly to output nodes\n'
-                  '• Input nodes can have at most 2 output connections\n'
-                  '• Special ports can only connect to other special ports',
-            ),
-            const SizedBox(height: 24),
-            const SectionTitle('Last Action'),
-            const SizedBox(height: 8),
-            if (_lastMessage.isNotEmpty)
-              InfoCard(title: 'Status', content: _lastMessage)
-            else
-              const InfoCard(
-                title: 'Status',
-                content: 'No actions yet. Try creating connections!',
-              ),
-            const SizedBox(height: 24),
-            const SectionTitle('Node Types'),
-            const SizedBox(height: 8),
-            _buildLegend(),
-          ],
-        ),
+        const SizedBox(height: 24),
+        const SectionTitle('Node Types'),
+        const SizedBox(height: 8),
+        _buildLegend(),
       ],
     );
   }
@@ -405,7 +397,7 @@ class _ConnectionValidationExampleState
           decoration: BoxDecoration(
             color: theme.colorScheme.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: theme.dividerColor),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

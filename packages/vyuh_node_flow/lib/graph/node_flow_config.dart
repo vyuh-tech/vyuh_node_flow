@@ -19,6 +19,7 @@ class NodeFlowConfig {
     bool isMinimapInteractive = true,
     MinimapPosition minimapPosition = MinimapPosition.bottomRight,
     Size minimapSize = const Size(200, 150),
+    this.showAttribution = true,
   }) {
     runInAction(() {
       this.snapToGrid.value = snapToGrid;
@@ -70,6 +71,9 @@ class NodeFlowConfig {
 
   /// Size of the minimap
   final minimapSize = Observable<Size>(const Size(200, 150));
+
+  /// Whether to show attribution label
+  final bool showAttribution;
 
   /// Toggle grid snapping for both nodes and annotations
   void toggleSnapping() {
@@ -190,6 +194,7 @@ class NodeFlowConfig {
     bool? isMinimapInteractive,
     MinimapPosition? minimapPosition,
     Size? minimapSize,
+    bool? showAttribution,
   }) {
     return NodeFlowConfig(
       snapToGrid: snapToGrid ?? this.snapToGrid.value,
@@ -206,6 +211,7 @@ class NodeFlowConfig {
           isMinimapInteractive ?? this.isMinimapInteractive.value,
       minimapPosition: minimapPosition ?? this.minimapPosition.value,
       minimapSize: minimapSize ?? this.minimapSize.value,
+      showAttribution: showAttribution ?? this.showAttribution,
     );
   }
 }
