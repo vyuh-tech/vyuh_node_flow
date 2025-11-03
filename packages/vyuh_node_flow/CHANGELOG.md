@@ -1,3 +1,7 @@
+## 0.2.12+1
+
+ - **FIX**: analysis issues resolved.
+
 ## 0.2.12
 
  - **FEAT**: adding attribution and fixing demos for mobile viewports.
