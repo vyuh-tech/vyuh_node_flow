@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'src/example_browser.dart';
-import 'src/example_not_found.dart';
-import 'src/example_registry.dart';
+import 'example_browser.dart';
+import 'example_not_found.dart';
+import 'example_registry.dart';
 
 void main() {
   runApp(const MyApp());

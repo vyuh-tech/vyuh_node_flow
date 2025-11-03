@@ -255,11 +255,7 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
         // Add Node section
         const SectionTitle('Add Node'),
         const SizedBox(height: 8),
-        ControlButton(
-          label: 'Add Node',
-          icon: Icons.add_box,
-          onPressed: _addNode,
-        ),
+        ControlButton(label: 'Add Node', icon: Icons.add, onPressed: _addNode),
         const SizedBox(height: 24),
 
         // Add Ports section
@@ -270,7 +266,7 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
             final hasSelection = _controller.selectedNodeIds.isNotEmpty;
             return Column(
               children: [
-                Grid2x2(
+                Grid2Cols(
                   buttons: [
                     GridButton(
                       label: 'Left',

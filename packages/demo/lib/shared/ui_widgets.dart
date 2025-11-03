@@ -167,10 +167,10 @@ class GridButton extends StatelessWidget {
 }
 
 /// Helper to create a 2-column grid of buttons
-class Grid2x2 extends StatelessWidget {
+class Grid2Cols extends StatelessWidget {
   final List<Widget> buttons;
 
-  const Grid2x2({super.key, required this.buttons});
+  const Grid2Cols({super.key, required this.buttons});
 
   @override
   Widget build(BuildContext context) {
@@ -180,7 +180,7 @@ class Grid2x2 extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 8,
       crossAxisSpacing: 8,
-      childAspectRatio: 1.5,
+      childAspectRatio: 2.5,
       children: buttons,
     );
   }

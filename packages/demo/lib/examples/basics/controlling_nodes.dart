@@ -273,28 +273,28 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
     switch (colorType) {
       case 'primary':
         // Soft sky blue for input nodes
-        nodeColor = isDark ? const Color(0xFF2D3E52) : const Color(0xFFD4E7F7);
-        iconColor = isDark ? const Color(0xFF88B8E6) : const Color(0xFF1B4D7A);
+        nodeColor = const Color(0xFFCDEFFF);
+        iconColor = const Color(0xFF1B4D7A);
         break;
       case 'primaryContainer':
         // Soft mint green for process nodes
-        nodeColor = isDark ? const Color(0xFF2D4A3E) : const Color(0xFFD4F1E8);
-        iconColor = isDark ? const Color(0xFF88D5B3) : const Color(0xFF1B5E3F);
+        nodeColor = const Color(0xFFD4F1E8);
+        iconColor = const Color(0xFF1B5E3F);
         break;
       case 'secondaryContainer':
         // Soft peach for decision nodes
-        nodeColor = isDark ? const Color(0xFF4A3D32) : const Color(0xFFFFE5D4);
-        iconColor = isDark ? const Color(0xFFFFB088) : const Color(0xFF8B4513);
+        nodeColor = const Color(0xFFFFE5D4);
+        iconColor = const Color(0xFF8B4513);
         break;
       case 'tertiaryContainer':
         // Soft lavender for output nodes
-        nodeColor = isDark ? const Color(0xFF3E3247) : const Color(0xFFE8D4F1);
-        iconColor = isDark ? const Color(0xFFC088D5) : const Color(0xFF6B2D8B);
+        nodeColor = const Color(0xFFE8D4F1);
+        iconColor = const Color(0xFF6B2D8B);
         break;
       default:
         // Soft coral for default
-        nodeColor = isDark ? const Color(0xFF4A3239) : const Color(0xFFFFD4DD);
-        iconColor = isDark ? const Color(0xFFFF88AA) : const Color(0xFF8B2D47);
+        nodeColor = const Color(0xFFFFD4DD);
+        iconColor = const Color(0xFF8B2D47);
     }
 
     return Container(
@@ -338,7 +338,7 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
         // Add Nodes section
         const SectionTitle('Add Nodes'),
         const SizedBox(height: 8),
-        Grid2x2(
+        Grid2Cols(
           buttons: [
             GridButton(
               label: 'Input',
@@ -402,7 +402,7 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
         Observer(
           builder: (_) {
             final hasSelection = _controller.selectedNodeIds.isNotEmpty;
-            return Grid2x2(
+            return Grid2Cols(
               buttons: [
                 GridButton(
                   label: 'Left',

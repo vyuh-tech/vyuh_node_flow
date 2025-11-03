@@ -73,15 +73,10 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
     final innerRadius = math.max(0.0, outerRadius - borderWidth);
 
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     // Soft mint green
-    final nodeColor = isDark
-        ? const Color(0xFF2D4A3E)
-        : const Color(0xFFD4F1E8);
-    final iconColor = isDark
-        ? const Color(0xFF88D5B3)
-        : const Color(0xFF1B5E3F);
+    final nodeColor = Colors.indigo.shade100;
+    final iconColor = Colors.indigo;
 
     return Container(
       padding: const EdgeInsets.all(16),
