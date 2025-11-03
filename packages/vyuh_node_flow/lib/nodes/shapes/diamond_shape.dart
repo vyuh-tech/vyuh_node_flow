@@ -28,11 +28,7 @@ class DiamondShape extends NodeShape {
   /// * [fillColor] - The fill color for the diamond background
   /// * [strokeColor] - The stroke color for the diamond outline
   /// * [strokeWidth] - The stroke width for the diamond outline
-  const DiamondShape({
-    super.fillColor,
-    super.strokeColor,
-    super.strokeWidth,
-  });
+  const DiamondShape({super.fillColor, super.strokeColor, super.strokeWidth});
 
   @override
   Path buildPath(Size size) {

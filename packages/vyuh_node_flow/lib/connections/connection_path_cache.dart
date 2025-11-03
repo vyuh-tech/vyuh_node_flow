@@ -32,10 +32,8 @@ class _CachedConnectionPath {
 /// Manages connection path caching and hit testing
 /// Separates concerns from ConnectionPainter
 class ConnectionPathCache {
-  ConnectionPathCache({
-    required NodeFlowTheme theme,
-    this.nodeShape,
-  }) : _theme = theme;
+  ConnectionPathCache({required NodeFlowTheme theme, this.nodeShape})
+    : _theme = theme;
 
   NodeFlowTheme _theme;
 

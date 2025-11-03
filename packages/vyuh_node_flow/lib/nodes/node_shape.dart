@@ -31,11 +31,7 @@ import '../ports/port.dart';
 /// }
 /// ```
 abstract class NodeShape {
-  const NodeShape({
-    this.fillColor,
-    this.strokeColor,
-    this.strokeWidth,
-  });
+  const NodeShape({this.fillColor, this.strokeColor, this.strokeWidth});
 
   /// The fill color for the shape background.
   ///

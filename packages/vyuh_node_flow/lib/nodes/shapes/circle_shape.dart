@@ -28,11 +28,7 @@ class CircleShape extends NodeShape {
   /// * [fillColor] - The fill color for the circle background
   /// * [strokeColor] - The stroke color for the circle outline
   /// * [strokeWidth] - The stroke width for the circle outline
-  const CircleShape({
-    super.fillColor,
-    super.strokeColor,
-    super.strokeWidth,
-  });
+  const CircleShape({super.fillColor, super.strokeColor, super.strokeWidth});
 
   @override
   Path buildPath(Size size) {

@@ -245,136 +245,133 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
         theme: _theme,
       ),
       children: [
-            const InfoCard(
-              title: 'Instructions',
-              content:
-                  'Add a node, then select it to add ports. The node will automatically resize to fit all ports.',
-            ),
-            const SizedBox(height: 24),
+        const InfoCard(
+          title: 'Instructions',
+          content:
+              'Add a node, then select it to add ports. The node will automatically resize to fit all ports.',
+        ),
+        const SizedBox(height: 24),
 
-            // Add Node section
-            const SectionTitle('Add Node'),
-            const SizedBox(height: 8),
-            ControlButton(
-              label: 'Add Node',
-              icon: Icons.add_box,
-              onPressed: _addNode,
-            ),
-            const SizedBox(height: 24),
+        // Add Node section
+        const SectionTitle('Add Node'),
+        const SizedBox(height: 8),
+        ControlButton(
+          label: 'Add Node',
+          icon: Icons.add_box,
+          onPressed: _addNode,
+        ),
+        const SizedBox(height: 24),
 
-            // Add Ports section
-            const SectionTitle('Add Ports'),
-            const SizedBox(height: 8),
-            Observer(
-              builder: (_) {
-                final hasSelection = _controller.selectedNodeIds.isNotEmpty;
-                return Column(
-                  children: [
-                    Grid2x2(
-                      buttons: [
-                        GridButton(
-                          label: 'Left',
-                          icon: Icons.arrow_back,
-                          onPressed: hasSelection
-                              ? () => _addPort(PortPosition.left)
-                              : null,
-                        ),
-                        GridButton(
-                          label: 'Right',
-                          icon: Icons.arrow_forward,
-                          onPressed: hasSelection
-                              ? () => _addPort(PortPosition.right)
-                              : null,
-                        ),
-                        GridButton(
-                          label: 'Top',
-                          icon: Icons.arrow_upward,
-                          onPressed: hasSelection
-                              ? () => _addPort(PortPosition.top)
-                              : null,
-                        ),
-                        GridButton(
-                          label: 'Bottom',
-                          icon: Icons.arrow_downward,
-                          onPressed: hasSelection
-                              ? () => _addPort(PortPosition.bottom)
-                              : null,
-                        ),
-                      ],
+        // Add Ports section
+        const SectionTitle('Add Ports'),
+        const SizedBox(height: 8),
+        Observer(
+          builder: (_) {
+            final hasSelection = _controller.selectedNodeIds.isNotEmpty;
+            return Column(
+              children: [
+                Grid2x2(
+                  buttons: [
+                    GridButton(
+                      label: 'Left',
+                      icon: Icons.arrow_back,
+                      onPressed: hasSelection
+                          ? () => _addPort(PortPosition.left)
+                          : null,
                     ),
-                    if (!hasSelection) ...[
-                      const SizedBox(height: 8),
-                      Builder(
-                        builder: (context) {
-                          final theme = Theme.of(context);
-                          return Text(
-                            'Select a node to add ports',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+                    GridButton(
+                      label: 'Right',
+                      icon: Icons.arrow_forward,
+                      onPressed: hasSelection
+                          ? () => _addPort(PortPosition.right)
+                          : null,
+                    ),
+                    GridButton(
+                      label: 'Top',
+                      icon: Icons.arrow_upward,
+                      onPressed: hasSelection
+                          ? () => _addPort(PortPosition.top)
+                          : null,
+                    ),
+                    GridButton(
+                      label: 'Bottom',
+                      icon: Icons.arrow_downward,
+                      onPressed: hasSelection
+                          ? () => _addPort(PortPosition.bottom)
+                          : null,
+                    ),
                   ],
-                );
-              },
-            ),
-            const SizedBox(height: 24),
+                ),
+                if (!hasSelection) ...[
+                  const SizedBox(height: 8),
+                  Builder(
+                    builder: (context) {
+                      final theme = Theme.of(context);
+                      return Text(
+                        'Select a node to add ports',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 24),
 
-            // Node Info section
-            const SectionTitle('Selected Node'),
-            const SizedBox(height: 8),
-            Observer(
-              builder: (_) {
-                final selectedIds = _controller.selectedNodeIds.toList();
-                if (selectedIds.isEmpty) {
-                  return const InfoCard(
-                    title: 'No Selection',
-                    content: 'Click a node to select it',
-                  );
-                }
+        // Node Info section
+        const SectionTitle('Selected Node'),
+        const SizedBox(height: 8),
+        Observer(
+          builder: (_) {
+            final selectedIds = _controller.selectedNodeIds.toList();
+            if (selectedIds.isEmpty) {
+              return const InfoCard(
+                title: 'No Selection',
+                content: 'Click a node to select it',
+              );
+            }
 
-                final node = _controller.getNode(selectedIds.first);
-                if (node == null) {
-                  return const InfoCard(
-                    title: 'Error',
-                    content: 'Node not found',
-                  );
-                }
+            final node = _controller.getNode(selectedIds.first);
+            if (node == null) {
+              return const InfoCard(title: 'Error', content: 'Node not found');
+            }
 
-                final leftPorts = node.inputPorts
-                    .where((p) => p.position == PortPosition.left)
-                    .length;
-                final rightPorts = node.outputPorts
-                    .where((p) => p.position == PortPosition.right)
-                    .length;
-                final topPorts =
-                    (node.inputPorts
-                        .where((p) => p.position == PortPosition.top)
-                        .length +
-                    node.outputPorts
-                        .where((p) => p.position == PortPosition.top)
-                        .length);
-                final bottomPorts =
-                    (node.inputPorts
-                        .where((p) => p.position == PortPosition.bottom)
-                        .length +
-                    node.outputPorts
-                        .where((p) => p.position == PortPosition.bottom)
-                        .length);
+            final leftPorts = node.inputPorts
+                .where((p) => p.position == PortPosition.left)
+                .length;
+            final rightPorts = node.outputPorts
+                .where((p) => p.position == PortPosition.right)
+                .length;
+            final topPorts =
+                (node.inputPorts
+                    .where((p) => p.position == PortPosition.top)
+                    .length +
+                node.outputPorts
+                    .where((p) => p.position == PortPosition.top)
+                    .length);
+            final bottomPorts =
+                (node.inputPorts
+                    .where((p) => p.position == PortPosition.bottom)
+                    .length +
+                node.outputPorts
+                    .where((p) => p.position == PortPosition.bottom)
+                    .length);
 
-                return InfoCard(
-                  title: node.data['label'] ?? 'Unknown',
-                  content:
-                      'Size: ${node.size.value.width.toInt()} × ${node.size.value.height.toInt()}\n'
-                      'Left: $leftPorts | Right: $rightPorts\n'
-                      'Top: $topPorts | Bottom: $bottomPorts',
-                );
-              },
-            ),
-          ],
+            return InfoCard(
+              title: node.data['label'] ?? 'Unknown',
+              content:
+                  'Size: ${node.size.value.width.toInt()} × ${node.size.value.height.toInt()}\n'
+                  'Left: $leftPorts | Right: $rightPorts\n'
+                  'Top: $topPorts | Bottom: $bottomPorts',
+            );
+          },
+        ),
+      ],
     );
   }
 }
