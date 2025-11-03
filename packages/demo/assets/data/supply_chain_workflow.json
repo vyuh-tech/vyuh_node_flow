@@ -4,7 +4,7 @@
       "id": "supplier-1",
       "type": "Supplier",
       "size": {
-        "width": 120,
+        "width": 150,
         "height": 170
       },
       "inputPorts": [],
@@ -46,7 +46,7 @@
       "id": "supplier-2",
       "type": "Supplier",
       "size": {
-        "width": 120,
+        "width": 150,
         "height": 170
       },
       "inputPorts": [],
@@ -88,7 +88,7 @@
       "id": "supplier-3",
       "type": "Supplier",
       "size": {
-        "width": 120,
+        "width": 150,
         "height": 170
       },
       "inputPorts": [],
@@ -130,7 +130,7 @@
       "id": "ocean-freight",
       "type": "Transport",
       "size": {
-        "width": 140,
+        "width": 150,
         "height": 170
       },
       "inputPorts": [
@@ -184,7 +184,7 @@
       "id": "air-freight",
       "type": "Transport",
       "size": {
-        "width": 140,
+        "width": 150,
         "height": 170
       },
       "inputPorts": [
@@ -238,7 +238,7 @@
       "id": "truck-transport",
       "type": "Transport",
       "size": {
-        "width": 140,
+        "width": 150,
         "height": 170
       },
       "inputPorts": [
@@ -292,7 +292,7 @@
       "id": "customs-clearance",
       "type": "Regulatory",
       "size": {
-        "width": 140,
+        "width": 150,
         "height": 170
       },
       "inputPorts": [
@@ -356,7 +356,7 @@
       "id": "distribution-center",
       "type": "Warehouse",
       "size": {
-        "width": 160,
+        "width": 150,
         "height": 170
       },
       "inputPorts": [
@@ -430,7 +430,7 @@
       "id": "inventory-management",
       "type": "System",
       "size": {
-        "width": 140,
+        "width": 150,
         "height": 170
       },
       "inputPorts": [
@@ -504,7 +504,7 @@
       "id": "order-management",
       "type": "System",
       "size": {
-        "width": 140,
+        "width": 150,
         "height": 170
       },
       "inputPorts": [
@@ -572,7 +572,7 @@
       "id": "last-mile-delivery",
       "type": "Delivery",
       "size": {
-        "width": 140,
+        "width": 150,
         "height": 170
       },
       "inputPorts": [
@@ -634,7 +634,7 @@
       "id": "customer",
       "type": "Customer",
       "size": {
-        "width": 120,
+        "width": 150,
         "height": 170
       },
       "inputPorts": [
@@ -681,7 +681,7 @@
       "id": "returns-processing",
       "type": "Returns",
       "size": {
-        "width": 140,
+        "width": 150,
         "height": 170
       },
       "inputPorts": [
@@ -745,7 +745,7 @@
       "id": "supply-chain-analytics",
       "type": "Analytics",
       "size": {
-        "width": 160,
+        "width": 150,
         "height": 170
       },
       "inputPorts": [

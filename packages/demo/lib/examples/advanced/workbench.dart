@@ -20,7 +20,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
   final bool _scrollToZoom = true;
 
   // Workflow dropdown
-  String _selectedWorkflow = 'manufacturing_workflow.json';
+  String _selectedWorkflow = 'simple_workflow.json';
   final List<Map<String, String>> _availableWorkflows = [
     {'file': 'simple_workflow.json', 'name': 'Simple Data Pipeline'},
     {'file': 'manufacturing_workflow.json', 'name': 'Manufacturing Process'},

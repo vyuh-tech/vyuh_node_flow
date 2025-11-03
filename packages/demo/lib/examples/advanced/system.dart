@@ -185,7 +185,7 @@ class _AnnotationExampleState extends State<AnnotationExample> {
     final linkedSticky = controller.createStickyNote(
       position: const Offset(250, 350),
       text: 'Linked to Process C\nMoves with the node!',
-      width: 160,
+      width: 180,
       height: 80,
       color: Colors.green.shade200,
       offset: Offset(50, 100),

@@ -2,6 +2,12 @@
 
 set shell := ["fish", "-c"]
 
+# Generate app icons and splash screen for demo
+icons:
+    cd packages/demo && \
+    dart run flutter_launcher_icons && \
+    dart run flutter_native_splash:create
+
 # Build the Flutter web example
 build:
     cd packages/demo && \

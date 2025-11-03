@@ -23,6 +23,8 @@ dependencies:
 
 dev_dependencies:
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.2
+  flutter_native_splash: ^2.4.3
   flutter_test:
     sdk: flutter
 
@@ -31,3 +33,17 @@ flutter:
 
   assets:
     - assets/data/
+    - assets/node-flow-banner.png
+
+flutter_launcher_icons:
+  web:
+    generate: true
+    image_path: "assets/node-flow-banner.png"
+    background_color: "#ffffff"
+
+flutter_native_splash:
+  color: "#ffffff"
+  image: assets/node-flow-banner.png
+  web: true
+  android: false
+  ios: false
