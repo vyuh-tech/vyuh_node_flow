@@ -69,6 +69,19 @@ class ParticleEffect implements ConnectionAnimationEffect {
 
   @override
   void paint(Canvas canvas, Path path, Paint basePaint, double animationValue) {
+    // Draw the static path first (underneath the particles) with configured opacity
+    if (connectionOpacity > 0) {
+      final pathPaint = Paint()
+        ..color = basePaint.color.withValues(alpha: connectionOpacity)
+        ..strokeWidth = basePaint.strokeWidth
+        ..style = PaintingStyle.stroke
+        ..strokeCap = basePaint.strokeCap
+        ..strokeJoin = basePaint.strokeJoin;
+
+      canvas.drawPath(path, pathPaint);
+    }
+
+    // Draw particles on top
     final pathMetrics = path.computeMetrics();
 
     for (final metric in pathMetrics) {
@@ -90,18 +103,6 @@ class ParticleEffect implements ConnectionAnimationEffect {
         // Draw particle using the custom painter
         particlePainter.paint(canvas, tangent.position, tangent, basePaint);
       }
-    }
-
-    // Draw the static path underneath the particles with configured opacity
-    if (connectionOpacity > 0) {
-      final pathPaint = Paint()
-        ..color = basePaint.color.withValues(alpha: connectionOpacity)
-        ..strokeWidth = basePaint.strokeWidth
-        ..style = PaintingStyle.stroke
-        ..strokeCap = basePaint.strokeCap
-        ..strokeJoin = basePaint.strokeJoin;
-
-      canvas.drawPath(path, pathPaint);
     }
   }
 }

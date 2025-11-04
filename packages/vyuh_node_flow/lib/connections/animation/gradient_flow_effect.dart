@@ -119,25 +119,7 @@ class GradientFlowEffect implements ConnectionAnimationEffect {
         (i) => i / (gradientColors.length - 1),
       );
 
-      // Create linear gradient shader along the path segment
-      final shader = Gradient.linear(
-        startTangent.position,
-        endTangent.position,
-        gradientColors,
-        colorStops,
-      );
-
-      // Draw the gradient segment
-      final gradientPaint = Paint()
-        ..shader = shader
-        ..strokeWidth = basePaint.strokeWidth
-        ..style = PaintingStyle.stroke
-        ..strokeCap = basePaint.strokeCap
-        ..strokeJoin = basePaint.strokeJoin;
-
-      canvas.drawPath(gradientPath, gradientPaint);
-
-      // Draw the rest of the path with configured opacity
+      // Draw the rest of the path first (underneath) with configured opacity
       if (connectionOpacity > 0) {
         final basePaintWithOpacity = Paint()
           ..color = basePaint.color.withValues(alpha: connectionOpacity)
@@ -156,6 +138,24 @@ class GradientFlowEffect implements ConnectionAnimationEffect {
           canvas.drawPath(afterPath, basePaintWithOpacity);
         }
       }
+
+      // Create linear gradient shader along the path segment
+      final shader = Gradient.linear(
+        startTangent.position,
+        endTangent.position,
+        gradientColors,
+        colorStops,
+      );
+
+      // Draw the gradient segment on top
+      final gradientPaint = Paint()
+        ..shader = shader
+        ..strokeWidth = basePaint.strokeWidth
+        ..style = PaintingStyle.stroke
+        ..strokeCap = basePaint.strokeCap
+        ..strokeJoin = basePaint.strokeJoin;
+
+      canvas.drawPath(gradientPath, gradientPaint);
     }
   }
 }

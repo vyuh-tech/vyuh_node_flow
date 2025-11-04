@@ -96,7 +96,7 @@ class AnimationDemoStore {
   set particleType(String value) =>
       runInAction(() => _particleType.value = value);
 
-  final Observable<String> _particleCharacter = Observable('●');
+  final Observable<String> _particleCharacter = Observable('📦');
 
   String get particleCharacter => _particleCharacter.value;
 
