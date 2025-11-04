@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'example_model.dart';
 // Layout examples
 import 'examples/advanced/alignment.dart';
+// Animated connections examples
+import 'examples/advanced/animated_connections.dart';
 // Annotations examples
 import 'examples/advanced/annotations.dart';
 // Advanced examples
@@ -100,6 +102,14 @@ class ExampleRegistry {
           description: 'Sticky notes, groups, markers, and linked annotations',
           icon: Icons.sticky_note_2,
           builder: (_) => const AnnotationExample(),
+        ),
+        Example(
+          id: 'animated-connections',
+          title: 'Animated Connections',
+          description:
+              'Interactive demo of all animation effects: flowing dashes, particles, gradients, and pulse',
+          icon: Icons.animation,
+          builder: (_) => const AnimatedConnectionsExample(),
         ),
         Example(
           id: 'theming',

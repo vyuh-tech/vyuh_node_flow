@@ -316,6 +316,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   late final TransformationController _transformationController;
   final List<ReactionDisposer> _disposers = [];
 
+  // Animation controller for animated connections
+  AnimationController? _connectionAnimationController;
+
   // Track initial pointer position for tap detection
   Offset? _initialPointerPosition;
 
@@ -334,6 +337,12 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     widget.controller.setNodeDeletion(widget.enableNodeDeletion);
 
     _transformationController = TransformationController();
+
+    // Initialize animation controller for animated connections
+    _connectionAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    );
 
     // Initialize transformation controller with current viewport
     final viewport = widget.controller.viewport;
@@ -455,6 +464,23 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       ),
     );
 
+    // Start/stop animation controller based on whether any connections are animated
+    _disposers.add(
+      reaction(
+        (_) => widget.controller.connections.any(
+          (connection) => connection.animationEffect != null,
+        ),
+        (hasAnimatedConnections) {
+          if (hasAnimatedConnections) {
+            _connectionAnimationController?.repeat();
+          } else {
+            _connectionAnimationController?.stop();
+          }
+        },
+        fireImmediately: true,
+      ),
+    );
+
     // Note: Snap-to-grid behavior is handled by controller config
   }
 
@@ -501,6 +527,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       disposer();
     }
     _transformationController.dispose();
+    _connectionAnimationController?.dispose();
 
     // Note: Controller disposal is handled by whoever created the controller,
     // not by this widget
@@ -576,7 +603,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                     AnnotationLayer.background(widget.controller),
 
                   // Connections - uses specialized observable layer
-                  ConnectionsLayer<T>(controller: widget.controller),
+                  ConnectionsLayer<T>(
+                    controller: widget.controller,
+                    animation: _connectionAnimationController,
+                  ),
 
                   // Connection labels - rendered separately for optimized repainting
                   ConnectionLabelsLayer<T>(controller: widget.controller),

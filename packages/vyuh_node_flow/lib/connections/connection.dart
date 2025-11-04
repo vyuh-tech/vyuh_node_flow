@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:mobx/mobx.dart';
 
+import 'animation/connection_animation_effect.dart';
 import 'connection_endpoint.dart';
 import 'connection_style_base.dart';
 import 'connection_styles.dart';
@@ -75,6 +76,7 @@ class Connection {
   /// - [endLabel]: Optional label text near the target endpoint
   /// - [startPoint]: Optional custom start endpoint marker (defaults to theme if null)
   /// - [endPoint]: Optional custom end endpoint marker (defaults to theme if null)
+  /// - [animationEffect]: Optional animation effect to apply (overrides animated flag)
   Connection({
     required this.id,
     required this.sourceNodeId,
@@ -90,11 +92,13 @@ class Connection {
     String? endLabel,
     this.startPoint,
     this.endPoint,
+    ConnectionAnimationEffect? animationEffect,
   }) : _animated = Observable(animated),
        _selected = Observable(selected),
        _label = Observable(label),
        _startLabel = Observable(startLabel),
-       _endLabel = Observable(endLabel);
+       _endLabel = Observable(endLabel),
+       _animationEffect = Observable(animationEffect);
 
   /// Unique identifier for this connection.
   final String id;
@@ -116,6 +120,7 @@ class Connection {
   final Observable<String?> _label;
   final Observable<String?> _startLabel;
   final Observable<String?> _endLabel;
+  final Observable<ConnectionAnimationEffect?> _animationEffect;
 
   /// Optional arbitrary data to attach to the connection.
   ///
@@ -144,13 +149,38 @@ class Connection {
 
   /// Whether the connection shows flowing animation.
   ///
-  /// When true, the connection will display an animated effect (typically
-  /// flowing dashes or particles) along the connection path.
+  /// When true, the connection will display an animated effect. This is
+  /// automatically true when [animationEffect] is set, or can be set
+  /// manually for backward compatibility.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  bool get animated => _animated.value;
+  bool get animated => _animationEffect.value != null || _animated.value;
 
   /// Sets whether the connection shows flowing animation.
+  ///
+  /// Note: Setting [animationEffect] is the preferred way to enable animations.
+  /// This setter is kept for backward compatibility.
   set animated(bool value) => runInAction(() => _animated.value = value);
+
+  /// The animation effect to apply to this connection.
+  ///
+  /// When set to a [ConnectionAnimationEffect] instance, the connection will
+  /// be animated using that effect's rendering logic. Set to null to disable
+  /// animation.
+  ///
+  /// Example:
+  /// ```dart
+  /// connection.animationEffect = FlowingDashEffect(
+  ///   speed: 2.0,
+  ///   dashLength: 10.0,
+  ///   gapLength: 5.0,
+  /// );
+  /// ```
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  ConnectionAnimationEffect? get animationEffect => _animationEffect.value;
+
+  /// Sets the animation effect for this connection.
+  set animationEffect(ConnectionAnimationEffect? value) =>
+      runInAction(() => _animationEffect.value = value);
 
   /// Whether the connection is currently selected.
   ///

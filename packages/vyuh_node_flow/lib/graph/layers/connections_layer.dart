@@ -7,9 +7,14 @@ import '../node_flow_theme.dart';
 
 /// Connections layer widget that renders all connections between nodes
 class ConnectionsLayer<T> extends StatelessWidget {
-  const ConnectionsLayer({super.key, required this.controller});
+  const ConnectionsLayer({
+    super.key,
+    required this.controller,
+    this.animation,
+  });
 
   final NodeFlowController<T> controller;
+  final Animation<double>? animation;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +31,11 @@ class ConnectionsLayer<T> extends StatelessWidget {
               node.position.value; // Trigger observation
             }
 
+            // Force tracking of animation effects on connections
+            for (final connection in controller.connections) {
+              connection.animationEffect; // Trigger observation
+            }
+
             // Get theme from context - this ensures automatic rebuilds when theme changes
             final theme =
                 Theme.of(context).extension<NodeFlowTheme>() ??
@@ -36,7 +46,7 @@ class ConnectionsLayer<T> extends StatelessWidget {
                 store: controller,
                 theme: theme,
                 connectionPainter: controller.connectionPainter,
-                snapGuides: const [],
+                animation: animation,
               ),
               size: Size.infinite,
             );

@@ -17,4 +17,10 @@ and interactive diagrams.
 # Always Note
 
 - The Web Server or App is always running in the background
-- We are using Melos workspace so use its commands to bootstrap and update projects
+- We are using Melos workspace so use its commands to bootstrap and update
+  projects
+- Do not use the buildXXX methods for building Flutter UI trees; instead, create
+  semantic widgets for better composability and readability.
+- Use semantic naming conventions for variables, functions, and classes to
+  improve code readability and maintainability.
+-

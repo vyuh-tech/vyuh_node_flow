@@ -51,6 +51,7 @@ class ConnectionPainter {
     Node targetNode, { // Can be either Node or ObservableNode
     bool isSelected = false,
     bool isAnimated = false,
+    double? animationValue,
   }) {
     // Get effective style from connection instance or theme
     final effectiveStyle = connection.getEffectiveStyle(theme.connectionStyle);
@@ -76,6 +77,7 @@ class ConnectionPainter {
       targetNode,
       isSelected: isSelected,
       isAnimated: isAnimated,
+      animationValue: animationValue,
     );
 
     // Draw debug visualization if enabled
@@ -93,6 +95,7 @@ class ConnectionPainter {
     Node targetNode, {
     bool isSelected = false,
     bool isAnimated = false,
+    double? animationValue,
   }) {
     final connectionTheme = theme.connectionTheme;
     final portTheme = theme.portTheme;
@@ -167,18 +170,29 @@ class ConnectionPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    // Apply dash pattern if specified
-    Path? dashPath;
-    if (connectionTheme.dashPattern != null) {
-      dashPath = _createDashedPath(
+    // Check if connection has an animation effect
+    if (connection.animationEffect != null && animationValue != null) {
+      // Use animation effect to render the connection
+      connection.animationEffect!.paint(
+        canvas,
         connectionPath,
-        connectionTheme.dashPattern!,
+        paint,
+        animationValue,
       );
-    }
+    } else {
+      // Apply dash pattern if specified
+      Path? dashPath;
+      if (connectionTheme.dashPattern != null) {
+        dashPath = _createDashedPath(
+          connectionPath,
+          connectionTheme.dashPattern!,
+        );
+      }
 
-    // Draw connection line using path
-    final pathToDraw = dashPath ?? connectionPath;
-    canvas.drawPath(pathToDraw, paint);
+      // Draw connection line using path (static rendering)
+      final pathToDraw = dashPath ?? connectionPath;
+      canvas.drawPath(pathToDraw, paint);
+    }
 
     // Draw endpoints
     _drawEndpoints(
