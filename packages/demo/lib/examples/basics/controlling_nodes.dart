@@ -17,7 +17,7 @@ class ControllingNodesExample extends StatefulWidget {
 class _ControllingNodesExampleState extends State<ControllingNodesExample> {
   late final NodeFlowController<Map<String, dynamic>> _controller;
   late final NodeFlowTheme _theme;
-  int _nodeCounter = 0;
+  int _nodeCounter = 4; // Start from 4 since we have 3 initial nodes
 
   @override
   void initState() {
@@ -26,6 +26,30 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
     _controller = NodeFlowController<Map<String, dynamic>>(
       config: NodeFlowConfig(),
     );
+
+    // Add initial nodes after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _addInitialNodes();
+    });
+  }
+
+  void _addInitialNodes() {
+    final initialNodes = [
+      _createNode('input', 1, const Offset(100, 150)),
+      _createNode('process', 2, const Offset(300, 150)),
+      _createNode('output', 3, const Offset(500, 150)),
+    ];
+
+    for (final node in initialNodes) {
+      _controller.addNode(node);
+    }
+
+    // Fit view to show all nodes centered
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _controller.fitToView();
+      }
+    });
   }
 
   @override
@@ -40,10 +64,14 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
     _controller.addNode(node);
   }
 
-  Node<Map<String, dynamic>> _createNode(String nodeType, int counter) {
-    final random = math.Random();
-    final randomX = 100.0 + random.nextDouble() * 400;
-    final randomY = 100.0 + random.nextDouble() * 300;
+  Node<Map<String, dynamic>> _createNode(String nodeType, int counter,
+      [Offset? position]) {
+    // Use provided position or generate random position
+    final nodePosition = position ??
+        Offset(
+          100.0 + math.Random().nextDouble() * 400,
+          100.0 + math.Random().nextDouble() * 300,
+        );
 
     // Different node configurations based on type
     final config = _getNodeConfig(nodeType);
@@ -51,7 +79,7 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
     return Node<Map<String, dynamic>>(
       id: 'node-$counter',
       type: nodeType,
-      position: Offset(randomX, randomY),
+      position: nodePosition,
       data: {
         'label': '${config['label']} $counter',
         'colorType': config['colorType'],

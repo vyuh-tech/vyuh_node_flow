@@ -139,6 +139,10 @@ class _ConnectionValidationExampleState
         targetPortId: 'in1',
       ),
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.fitToView();
+    });
   }
 
   void _showMessage(String message) {

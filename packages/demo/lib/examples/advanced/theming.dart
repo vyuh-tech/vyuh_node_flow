@@ -126,6 +126,10 @@ class _ThemingExampleState extends State<ThemingExample> {
         targetPortId: 'in1',
       ),
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.fitToView();
+    });
   }
 
   void _updateTheme(NodeFlowTheme newTheme) {

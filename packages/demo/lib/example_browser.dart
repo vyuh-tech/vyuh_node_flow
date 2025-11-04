@@ -97,7 +97,43 @@ class _ExampleBrowserState extends State<ExampleBrowser> {
     final theme = Theme.of(context);
 
     return AppBar(
-      title: _buildExampleDropdown(),
+      title: _selectedExample != null
+          ? Row(
+              children: [
+                if (_selectedExample!.icon != null) ...[
+                  Icon(_selectedExample!.icon, size: 20),
+                  const SizedBox(width: 8),
+                ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _selectedExample!.title,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (_selectedExample!.description.isNotEmpty)
+                        Text(
+                          _selectedExample!.description,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.7,
+                            ),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            )
+          : const Text('Examples'),
       leading: IconButton(
         icon: const Icon(Icons.menu),
         onPressed: () {
@@ -110,104 +146,6 @@ class _ExampleBrowserState extends State<ExampleBrowser> {
         preferredSize: const Size.fromHeight(1),
         child: Divider(height: 1, color: theme.colorScheme.outlineVariant),
       ),
-    );
-  }
-
-  Widget _buildExampleDropdown() {
-    final theme = Theme.of(context);
-
-    // Build a list that includes both category headers and examples
-    final List<Map<String, dynamic>> allItems = [];
-
-    for (final category in widget.categories) {
-      // Add category header
-      allItems.add({'type': 'category', 'category': category});
-
-      // Add examples under this category
-      for (final example in category.examples) {
-        allItems.add({
-          'type': 'example',
-          'category': category,
-          'example': example,
-        });
-      }
-    }
-
-    // Find current index based on selected example
-    final currentIndex = allItems.indexWhere(
-      (item) =>
-          item['type'] == 'example' &&
-          item['example'] == _selectedExample &&
-          (item['category'] as ExampleCategory).id == _selectedCategoryId,
-    );
-
-    return DropdownButton<int>(
-      value: currentIndex >= 0 ? currentIndex : null,
-      isExpanded: true,
-      underline: const SizedBox(),
-      dropdownColor: theme.colorScheme.surfaceContainerHigh,
-      style: theme.textTheme.titleSmall?.copyWith(
-        color: theme.colorScheme.onSurface,
-        fontWeight: FontWeight.w600,
-      ),
-      items: allItems.asMap().entries.map((entry) {
-        final item = entry.value;
-
-        if (item['type'] == 'category') {
-          // Category header - disabled
-          final category = item['category'] as ExampleCategory;
-          return DropdownMenuItem<int>(
-            value: entry.key,
-            enabled: false,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 8, bottom: 4),
-              child: Text(
-                category.title.toUpperCase(),
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
-          );
-        } else {
-          // Regular example item
-          final example = item['example'] as Example;
-          return DropdownMenuItem<int>(
-            value: entry.key,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: Row(
-                children: [
-                  if (example.icon != null) ...[
-                    Icon(example.icon, size: 16),
-                    const SizedBox(width: 8),
-                  ],
-                  Expanded(
-                    child: Text(
-                      example.title,
-                      style: theme.textTheme.bodyMedium,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-      }).toList(),
-      onChanged: (index) {
-        if (index != null) {
-          final item = allItems[index];
-          // Only handle example selections (categories are disabled)
-          if (item['type'] == 'example') {
-            final category = item['category'] as ExampleCategory;
-            final example = item['example'] as Example;
-            _onExampleSelected(example, category.id);
-          }
-        }
-      },
     );
   }
 

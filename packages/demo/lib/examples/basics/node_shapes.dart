@@ -149,8 +149,12 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
     }
 
     // Fit the view to show all nodes
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _controller.fitToView();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          _controller.fitToView();
+        }
+      });
     });
   }
 

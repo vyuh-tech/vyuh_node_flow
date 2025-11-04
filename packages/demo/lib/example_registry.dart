@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'example_model.dart';
 // Layout examples
 import 'examples/advanced/alignment.dart';
+// Annotations examples
+import 'examples/advanced/annotations.dart';
 // Advanced examples
 import 'examples/advanced/shortcuts.dart';
-// Annotations examples
-import 'examples/advanced/system.dart';
 import 'examples/advanced/theming.dart';
 import 'examples/advanced/validation.dart';
 import 'examples/advanced/viewer.dart';

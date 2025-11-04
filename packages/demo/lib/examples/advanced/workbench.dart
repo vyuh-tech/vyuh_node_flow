@@ -13,7 +13,7 @@ class WorkbenchExample extends StatefulWidget {
 }
 
 class _WorkbenchExampleState extends State<WorkbenchExample> {
-  late NodeFlowController<Map<String, dynamic>> _store;
+  late NodeFlowController<Map<String, dynamic>> _controller;
   late NodeFlowTheme _nodeFlowTheme;
   late NodeFlowConfig _nodeFlowConfig;
   bool _isLoading = true;
@@ -36,8 +36,10 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
     super.initState();
     _nodeFlowTheme = _buildInitialTheme();
     _nodeFlowConfig = _buildInitialConfig();
-    _store = NodeFlowController<Map<String, dynamic>>(config: _nodeFlowConfig);
-    _store.setTheme(_nodeFlowTheme); // Set initial theme in controller
+    _controller = NodeFlowController<Map<String, dynamic>>(
+      config: _nodeFlowConfig,
+    );
+    _controller.setTheme(_nodeFlowTheme); // Set initial theme in controller
     _loadInitialWorkflow();
   }
 
@@ -49,7 +51,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
       child: Stack(
         children: [
           NodeFlowEditor<Map<String, dynamic>>(
-            controller: _store,
+            controller: _controller,
             theme: _nodeFlowTheme,
             nodeBuilder: _buildCustomNode,
             scrollToZoom: _scrollToZoom,
@@ -73,15 +75,19 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
       final graph = await _loadGraphFromJson(_selectedWorkflow);
       if (mounted) {
         setState(() {
-          _store.loadGraph(graph);
+          _controller.loadGraph(graph);
           _isLoading = false;
+        });
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _controller.fitToView();
         });
       }
     } catch (e) {
       // Fallback initialization
       if (mounted) {
         setState(() {
-          _store.loadGraph(_createFallbackGraph());
+          _controller.loadGraph(_createFallbackGraph());
           _isLoading = false;
         });
       }
@@ -96,7 +102,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
     try {
       final graph = await _loadGraphFromJson(workflowFile);
       setState(() {
-        _store.loadGraph(graph);
+        _controller.loadGraph(graph);
         _selectedWorkflow = workflowFile;
         _isLoading = false;
       });
@@ -270,7 +276,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
       ),
       _buildGridSection('Graph Serialization', [
         _buildGridButton('Export JSON', Icons.download, () async {
-          final graph = _store.exportGraph();
+          final graph = _controller.exportGraph();
           final jsonString = graph.toJsonString(indent: true);
           await Clipboard.setData(ClipboardData(text: jsonString));
           _showSnackBar(
@@ -278,43 +284,51 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
           );
         }),
         _buildGridButton('Clear Graph', Icons.clear_all, () {
-          _store.clearGraph();
+          _controller.clearGraph();
           _showSnackBar('Cleared all nodes');
         }),
       ]),
       _buildGridSection('UI Tools', [
         _buildGridButton('Shortcuts', Icons.keyboard, () {
-          _store.showShortcutsDialog(context);
+          _controller.showShortcutsDialog(context);
         }),
         _buildGridButton('Toggle Minimap', Icons.map, _toggleMinimap),
       ]),
       _buildGridSection('Viewport Controls', [
-        _buildGridButton('Zoom In', Icons.zoom_in, () => _store.zoomBy(0.2)),
-        _buildGridButton('Zoom Out', Icons.zoom_out, () => _store.zoomBy(-0.2)),
+        _buildGridButton(
+          'Zoom In',
+          Icons.zoom_in,
+          () => _controller.zoomBy(0.2),
+        ),
+        _buildGridButton(
+          'Zoom Out',
+          Icons.zoom_out,
+          () => _controller.zoomBy(-0.2),
+        ),
         _buildGridButton(
           'Reset Zoom',
           Icons.center_focus_strong,
-          () => _store.zoomTo(1.0),
+          () => _controller.zoomTo(1.0),
         ),
         _buildGridButton(
           'Fit to View',
           Icons.fit_screen,
-          () => _store.fitToView(),
+          () => _controller.fitToView(),
         ),
         Observer(
           name: 'FitSelectedButton',
           builder: (context) => _buildGridButton(
             'Fit Selected',
             Icons.crop_free,
-            _store.selectedNodeIds.isNotEmpty
-                ? () => _store.fitSelectedNodes()
+            _controller.selectedNodeIds.isNotEmpty
+                ? () => _controller.fitSelectedNodes()
                 : null,
           ),
         ),
         _buildGridButton(
           'Reset Viewport',
           Icons.home,
-          () => _store.resetViewport(),
+          () => _controller.resetViewport(),
         ),
       ]),
       _buildGridSection('Navigation', [
@@ -323,8 +337,10 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
           builder: (context) => _buildGridButton(
             'Center Selected',
             Icons.my_location,
-            _store.selectedNodeIds.isNotEmpty
-                ? () => _store.centerOnNode(_store.selectedNodeIds.first)
+            _controller.selectedNodeIds.isNotEmpty
+                ? () => _controller.centerOnNode(
+                    _controller.selectedNodeIds.first,
+                  )
                 : null,
           ),
         ),
@@ -333,42 +349,42 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
           builder: (context) => _buildGridButton(
             'Center Selection',
             Icons.center_focus_weak,
-            _store.selectedNodeIds.isNotEmpty
-                ? () => _store.centerOnSelection()
+            _controller.selectedNodeIds.isNotEmpty
+                ? () => _controller.centerOnSelection()
                 : null,
           ),
         ),
         _buildGridButton(
           'Pan Right',
           Icons.arrow_forward,
-          () => _store.panBy(const Offset(50, 0)),
+          () => _controller.panBy(const Offset(50, 0)),
         ),
         _buildGridButton(
           'Pan Down',
           Icons.arrow_downward,
-          () => _store.panBy(const Offset(0, 50)),
+          () => _controller.panBy(const Offset(0, 50)),
         ),
         _buildGridButton(
           'Pan Left',
           Icons.arrow_back,
-          () => _store.panBy(const Offset(-50, 0)),
+          () => _controller.panBy(const Offset(-50, 0)),
         ),
         _buildGridButton(
           'Pan Up',
           Icons.arrow_upward,
-          () => _store.panBy(const Offset(0, -50)),
+          () => _controller.panBy(const Offset(0, -50)),
         ),
       ]),
       _buildGridSection('Analysis', [
         _buildGridButton('Find Orphans', Icons.search, () {
-          final orphans = _store.getOrphanNodes();
+          final orphans = _controller.getOrphanNodes();
           _showSnackBar('Found ${orphans.length} orphan nodes');
           if (orphans.isNotEmpty) {
-            _store.selectSpecificNodes(orphans.map((n) => n.id).toList());
+            _controller.selectSpecificNodes(orphans.map((n) => n.id).toList());
           }
         }),
         _buildGridButton('Detect Cycles', Icons.loop, () {
-          final cycles = _store.detectCycles();
+          final cycles = _controller.detectCycles();
           _showSnackBar('Found ${cycles.length} cycles');
         }),
       ]),
@@ -399,24 +415,24 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
             rows: [
               _buildDataRow(
                 'Selected Nodes',
-                '${_store.selectedNodeIds.length}',
+                '${_controller.selectedNodeIds.length}',
               ),
-              _buildDataRow('Total Nodes', '${_store.nodes.length}'),
+              _buildDataRow('Total Nodes', '${_controller.nodes.length}'),
               _buildDataRow(
                 'Total Connections',
-                '${_store.connections.length}',
+                '${_controller.connections.length}',
               ),
               _buildDataRow(
                 'Zoom Level',
-                '${_store.currentZoom.toStringAsFixed(2)}x',
+                '${_controller.currentZoom.toStringAsFixed(2)}x',
               ),
               _buildDataRow(
                 'Pan Offset',
-                '(${_store.currentPan.dx.toInt()}, ${_store.currentPan.dy.toInt()})',
+                '(${_controller.currentPan.dx.toInt()}, ${_controller.currentPan.dy.toInt()})',
               ),
               _buildDataRow(
                 'Bounds',
-                '${_store.nodesBounds.size.width.toInt()} × ${_store.nodesBounds.size.height.toInt()}',
+                '${_controller.nodesBounds.size.width.toInt()} × ${_controller.nodesBounds.size.height.toInt()}',
               ),
             ],
           ),
@@ -707,9 +723,11 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
   }
 
   void _toggleMinimap() {
-    _store.config.toggleMinimap();
+    _controller.config.toggleMinimap();
     _showSnackBar(
-      _store.config.showMinimap.value ? 'Minimap enabled' : 'Minimap disabled',
+      _controller.config.showMinimap.value
+          ? 'Minimap enabled'
+          : 'Minimap disabled',
     );
   }
 

@@ -29,7 +29,14 @@ class _AnnotationExampleState extends State<AnnotationExample> {
     );
     _setupExampleGraph();
 
-    controller.resetViewport();
+    // Fit view to show all content after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          controller.fitToView();
+        }
+      });
+    });
   }
 
   void _setupExampleGraph() {
@@ -250,9 +257,6 @@ class _AnnotationExampleState extends State<AnnotationExample> {
               );
             },
           ),
-
-          // Instructions overlay
-          _buildInstructions(),
         ],
       ),
       children: [
@@ -304,42 +308,6 @@ class _AnnotationExampleState extends State<AnnotationExample> {
           onPressed: _clearAllAnnotations,
         ),
       ],
-    );
-  }
-
-  Widget _buildInstructions() {
-    return Positioned(
-      top: 16,
-      left: 16,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.black87,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Annotation System Demo',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              '• Drag sticky notes and markers around\n'
-              '• Group annotations follow their nodes\n'
-              '• Green sticky follows Process C\n'
-              '• Use toolbar buttons to add more',
-              style: TextStyle(color: Colors.white, fontSize: 12),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

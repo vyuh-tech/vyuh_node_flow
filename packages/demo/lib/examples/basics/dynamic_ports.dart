@@ -16,8 +16,8 @@ class DynamicPortsExample extends StatefulWidget {
 class _DynamicPortsExampleState extends State<DynamicPortsExample> {
   late final NodeFlowController<Map<String, dynamic>> _controller;
   late final NodeFlowTheme _theme;
-  int _nodeCounter = 0;
-  int _portCounter = 0;
+  int _nodeCounter = 2; // Start from 2 since we have 2 initial nodes
+  int _portCounter = 4; // Start from 4 since initial nodes have 4 ports total
 
   @override
   void initState() {
@@ -26,6 +26,77 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
     _controller = NodeFlowController<Map<String, dynamic>>(
       config: NodeFlowConfig(),
     );
+
+    // Add initial nodes after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _addInitialNodes();
+    });
+  }
+
+  void _addInitialNodes() {
+    // Node 1: Horizontal layout (left/right ports)
+    final node1 = Node<Map<String, dynamic>>(
+      id: 'node-1',
+      type: 'custom',
+      position: const Offset(150, 150),
+      size: const Size(120, 100),
+      data: {'label': 'Horizontal'},
+      inputPorts: [
+        const Port(
+          id: 'port-1',
+          name: 'Input',
+          position: PortPosition.left,
+          offset: Offset(0, 50),
+          type: PortType.target,
+        ),
+      ],
+      outputPorts: [
+        const Port(
+          id: 'port-2',
+          name: 'Output',
+          position: PortPosition.right,
+          offset: Offset(0, 50),
+          type: PortType.source,
+        ),
+      ],
+    );
+
+    // Node 2: Vertical layout (top/bottom ports)
+    final node2 = Node<Map<String, dynamic>>(
+      id: 'node-2',
+      type: 'custom',
+      position: const Offset(400, 150),
+      size: const Size(120, 100),
+      data: {'label': 'Vertical'},
+      inputPorts: [
+        const Port(
+          id: 'port-3',
+          name: 'Input',
+          position: PortPosition.top,
+          offset: Offset(60, 0),
+          type: PortType.target,
+        ),
+      ],
+      outputPorts: [
+        const Port(
+          id: 'port-4',
+          name: 'Output',
+          position: PortPosition.bottom,
+          offset: Offset(60, 0),
+          type: PortType.source,
+        ),
+      ],
+    );
+
+    _controller.addNode(node1);
+    _controller.addNode(node2);
+
+    // Fit view to show all nodes centered
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _controller.fitToView();
+      }
+    });
   }
 
   @override

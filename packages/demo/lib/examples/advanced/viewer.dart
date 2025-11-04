@@ -2,16 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 /// Example demonstrating the NodeFlowViewer widget
-class ViewerExample extends StatelessWidget {
+class ViewerExample extends StatefulWidget {
   const ViewerExample({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return _buildViewer();
-  }
+  State<ViewerExample> createState() => _ViewerExampleState();
+}
 
-  Widget _buildViewer() {
-    final controller = NodeFlowController<String>();
+class _ViewerExampleState extends State<ViewerExample> {
+  late final NodeFlowController<String> _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = NodeFlowController<String>();
 
     // Load sample data
     final nodes = _createSampleNodes();
@@ -19,16 +23,34 @@ class ViewerExample extends StatelessWidget {
 
     // Add nodes to controller
     for (final node in nodes.values) {
-      controller.addNode(node);
+      _controller.addNode(node);
     }
 
     // Add connections to controller
     for (final connection in connections) {
-      controller.addConnection(connection);
+      _controller.addConnection(connection);
     }
 
+    // Fit view to show all nodes centered after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          _controller.fitToView();
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return NodeFlowViewer<String>(
-      controller: controller,
+      controller: _controller,
       nodeBuilder: _buildNode,
       theme: NodeFlowTheme.light,
       enablePanning: true,

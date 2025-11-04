@@ -16,7 +16,7 @@ class SimpleNodeAdditionExample extends StatefulWidget {
 class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
   late final NodeFlowController<Map<String, dynamic>> _controller;
   late final NodeFlowTheme _theme;
-  int _nodeCounter = 1;
+  int _nodeCounter = 4; // Start from 4 since we have 3 initial nodes
 
   @override
   void initState() {
@@ -25,6 +25,96 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
     _controller = NodeFlowController<Map<String, dynamic>>(
       config: NodeFlowConfig(),
     );
+
+    // Add initial nodes after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _addInitialNodes();
+    });
+  }
+
+  void _addInitialNodes() {
+    final initialNodes = [
+      Node<Map<String, dynamic>>(
+        id: 'node-1',
+        type: 'simple',
+        position: const Offset(100, 150),
+        data: {'label': 'Node 1'},
+        size: const Size(150, 100),
+        inputPorts: const [
+          Port(
+            id: 'input',
+            name: 'In',
+            position: PortPosition.left,
+            offset: Offset(0, 50),
+          ),
+        ],
+        outputPorts: const [
+          Port(
+            id: 'output',
+            name: 'Out',
+            position: PortPosition.right,
+            offset: Offset(0, 50),
+          ),
+        ],
+      ),
+      Node<Map<String, dynamic>>(
+        id: 'node-2',
+        type: 'simple',
+        position: const Offset(350, 100),
+        data: {'label': 'Node 2'},
+        size: const Size(150, 100),
+        inputPorts: const [
+          Port(
+            id: 'input',
+            name: 'In',
+            position: PortPosition.left,
+            offset: Offset(0, 50),
+          ),
+        ],
+        outputPorts: const [
+          Port(
+            id: 'output',
+            name: 'Out',
+            position: PortPosition.right,
+            offset: Offset(0, 50),
+          ),
+        ],
+      ),
+      Node<Map<String, dynamic>>(
+        id: 'node-3',
+        type: 'simple',
+        position: const Offset(350, 250),
+        data: {'label': 'Node 3'},
+        size: const Size(150, 100),
+        inputPorts: const [
+          Port(
+            id: 'input',
+            name: 'In',
+            position: PortPosition.left,
+            offset: Offset(0, 50),
+          ),
+        ],
+        outputPorts: const [
+          Port(
+            id: 'output',
+            name: 'Out',
+            position: PortPosition.right,
+            offset: Offset(0, 50),
+          ),
+        ],
+      ),
+    ];
+
+    for (final node in initialNodes) {
+      _controller.addNode(node);
+    }
+
+    // Fit view to show all nodes centered
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _controller.fitToView();
+      }
+    });
   }
 
   @override
@@ -74,7 +164,7 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
 
     final theme = Theme.of(context);
 
-    // Soft mint green
+    // Soft indigo
     final nodeColor = Colors.indigo.shade100;
     final iconColor = Colors.indigo;
 

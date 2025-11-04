@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'example_model.dart';
+import 'shared/responsive.dart';
 
 class ExampleDetailView extends StatelessWidget {
   final Example? example;
@@ -13,10 +14,13 @@ class ExampleDetailView extends StatelessWidget {
       return _buildEmptyState(context);
     }
 
+    final isMobile = Responsive.isMobile(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildHeader(context, example!),
+        // Skip header in mobile mode as title is shown in AppBar
+        if (!isMobile) _buildHeader(context, example!),
         Expanded(child: example!.builder(context)),
       ],
     );
