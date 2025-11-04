@@ -1,3 +1,7 @@
+## 0.2.13
+
+ - **FEAT**: connection effects.
+
 ## 0.2.12+1
 
  - **FIX**: analysis issues resolved.
