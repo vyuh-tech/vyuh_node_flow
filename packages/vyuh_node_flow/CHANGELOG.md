@@ -1,3 +1,7 @@
+## 0.2.14
+
+ - **FEAT**: better effects with particle painter, glowing gradients.
+
 ## 0.2.13+1
 
  - **FIX**: analysis issues.
