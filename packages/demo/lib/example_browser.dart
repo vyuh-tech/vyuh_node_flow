@@ -26,7 +26,6 @@ class ExampleBrowser extends StatefulWidget {
 class _ExampleBrowserState extends State<ExampleBrowser> {
   late final ExampleNavigationState _navState;
   Example? _selectedExample;
-  String? _selectedCategoryId;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -50,7 +49,6 @@ class _ExampleBrowserState extends State<ExampleBrowser> {
     if (example != null) {
       setState(() {
         _selectedExample = example;
-        _selectedCategoryId = categoryId;
       });
       _navState.selectExample(exampleId);
     }

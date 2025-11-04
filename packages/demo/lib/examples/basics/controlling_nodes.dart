@@ -64,10 +64,14 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
     _controller.addNode(node);
   }
 
-  Node<Map<String, dynamic>> _createNode(String nodeType, int counter,
-      [Offset? position]) {
+  Node<Map<String, dynamic>> _createNode(
+    String nodeType,
+    int counter, [
+    Offset? position,
+  ]) {
     // Use provided position or generate random position
-    final nodePosition = position ??
+    final nodePosition =
+        position ??
         Offset(
           100.0 + math.Random().nextDouble() * 400,
           100.0 + math.Random().nextDouble() * 300,
@@ -291,7 +295,6 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
     final innerRadius = math.max(0.0, outerRadius - borderWidth);
 
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final colorType =
         node.data['colorType'] as String? ?? 'surfaceContainerHighest';
 
