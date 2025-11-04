@@ -1,3 +1,7 @@
+## 0.2.15
+
+ - **FEAT**: for some effects the paths were drawn on top of the effect, fixed now.
+
 ## 0.2.14
 
  - **FEAT**: better effects with particle painter, glowing gradients.
