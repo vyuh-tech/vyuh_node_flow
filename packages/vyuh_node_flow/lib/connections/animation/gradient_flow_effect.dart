@@ -14,7 +14,7 @@ import 'connection_animation_effect.dart';
 ///   speed: 1.0,
 /// );
 /// ```
-class GradientFlowEffect extends ConnectionAnimationEffect {
+class GradientFlowEffect implements ConnectionAnimationEffect {
   /// Creates a gradient flow animation effect.
   ///
   /// Parameters:
@@ -113,12 +113,18 @@ class GradientFlowEffect extends ConnectionAnimationEffect {
             basePaint.color.withValues(alpha: 0.0),
           ];
 
+      // Generate color stops evenly distributed based on number of colors
+      final colorStops = List.generate(
+        gradientColors.length,
+        (i) => i / (gradientColors.length - 1),
+      );
+
       // Create linear gradient shader along the path segment
       final shader = Gradient.linear(
         startTangent.position,
         endTangent.position,
         gradientColors,
-        [0.0, 0.5, 1.0], // Color stops for 3 colors
+        colorStops,
       );
 
       // Draw the gradient segment

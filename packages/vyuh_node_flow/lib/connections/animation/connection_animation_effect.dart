@@ -1,14 +1,13 @@
 import 'dart:ui';
 
-/// Abstract base class for connection animation effects.
+/// Abstract interface for connection animation effects.
 ///
-/// Custom animation effects can be created by extending this class and
-/// implementing the [paint] method. Each effect encapsulates its own
-/// configuration and rendering logic.
+/// Custom animation effects can be created by implementing this interface.
+/// Each effect encapsulates its own configuration and rendering logic.
 ///
 /// Example:
 /// ```dart
-/// class MyCustomEffect extends ConnectionAnimationEffect {
+/// class MyCustomEffect implements ConnectionAnimationEffect {
 ///   MyCustomEffect({required this.customParam});
 ///
 ///   final double customParam;
@@ -19,7 +18,7 @@ import 'dart:ui';
 ///   }
 /// }
 /// ```
-abstract class ConnectionAnimationEffect {
+abstract interface class ConnectionAnimationEffect {
   /// Paints the animated connection effect on the canvas.
   ///
   /// Parameters:

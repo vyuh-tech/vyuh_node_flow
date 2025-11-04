@@ -15,7 +15,7 @@ import 'connection_animation_effect.dart';
 ///   gapLength: 5.0,
 /// );
 /// ```
-class FlowingDashEffect extends ConnectionAnimationEffect {
+class FlowingDashEffect implements ConnectionAnimationEffect {
   /// Creates a flowing dash animation effect.
   ///
   /// Parameters:

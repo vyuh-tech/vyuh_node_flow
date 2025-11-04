@@ -62,4 +62,8 @@ export 'connection_animation_effect.dart';
 export 'flowing_dash_effect.dart';
 export 'gradient_flow_effect.dart';
 export 'particle_effect.dart';
+export 'particle_painter.dart';
+export 'particles/arrow_particle.dart';
+export 'particles/character_particle.dart';
+export 'particles/circle_particle.dart';
 export 'pulse_effect.dart';

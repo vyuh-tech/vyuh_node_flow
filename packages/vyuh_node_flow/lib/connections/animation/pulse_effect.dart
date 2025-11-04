@@ -17,7 +17,7 @@ import 'connection_animation_effect.dart';
 ///   widthVariation: 1.5,
 /// );
 /// ```
-class PulseEffect extends ConnectionAnimationEffect {
+class PulseEffect implements ConnectionAnimationEffect {
   /// Creates a pulse animation effect.
   ///
   /// Parameters:

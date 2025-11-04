@@ -8,10 +8,15 @@ import '../../shared/ui_widgets.dart';
 
 // Gradient color presets
 const Map<String, List<Color>> gradientPresets = {
-  'red_white': [Colors.red, Colors.white, Colors.red],
-  'purple_white': [Colors.purple, Colors.white, Colors.purple],
-  'indigo_white': [Colors.indigo, Colors.white, Colors.indigo],
-  'orange_yellow': [Colors.orange, Colors.yellow, Colors.orange],
+  // Transparent to color gradients (glow trail effect)
+  'transparent_red': [Color(0x00FF0000), Colors.red],
+  'transparent_orange': [Color(0x00FF9800), Colors.orange],
+  'transparent_magenta': [Color(0x00FF00FF), Color(0xFFFF00FF)],
+  'transparent_cyan': [Color(0x0000FFFF), Colors.cyan],
+  // Color to color gradients
+  'yellow_red': [Colors.yellow, Colors.red],
+  'lime_green': [Colors.lime, Colors.green],
+  'cyan_purple': [Colors.cyan, Colors.purple],
 };
 
 // MobX Store for animation demo state
@@ -26,6 +31,8 @@ class AnimationDemoStore {
         gapLength,
         particleCount,
         particleSize,
+        particleType,
+        particleCharacter,
         gradientLength,
         connectionOpacity,
         selectedGradientPreset,
@@ -82,6 +89,20 @@ class AnimationDemoStore {
 
   set particleSize(int value) => runInAction(() => _particleSize.value = value);
 
+  final Observable<String> _particleType = Observable('circle');
+
+  String get particleType => _particleType.value;
+
+  set particleType(String value) =>
+      runInAction(() => _particleType.value = value);
+
+  final Observable<String> _particleCharacter = Observable('●');
+
+  String get particleCharacter => _particleCharacter.value;
+
+  set particleCharacter(String value) =>
+      runInAction(() => _particleCharacter.value = value);
+
   final Observable<double> _minOpacity = Observable(0.4);
 
   double get minOpacity => _minOpacity.value;
@@ -115,7 +136,9 @@ class AnimationDemoStore {
   set connectionOpacity(double value) =>
       runInAction(() => _connectionOpacity.value = value);
 
-  final Observable<String> _selectedGradientPreset = Observable('red_white');
+  final Observable<String> _selectedGradientPreset = Observable(
+    'transparent_cyan',
+  );
 
   String get selectedGradientPreset => _selectedGradientPreset.value;
 
@@ -143,10 +166,32 @@ class AnimationDemoStore {
         );
         break;
       case 'particle':
+        ParticlePainter particlePainter;
+        switch (particleType) {
+          case 'circle':
+            particlePainter = CircleParticle(radius: particleSize.toDouble());
+            break;
+          case 'arrow':
+            particlePainter = ArrowParticle(
+              length: particleSize.toDouble() * 3,
+              width: particleSize.toDouble() * 2,
+            );
+            break;
+          case 'character':
+            particlePainter = CharacterParticle(
+              character: particleCharacter,
+              fontSize: particleSize.toDouble() * 3,
+            );
+            break;
+          default:
+            particlePainter = CircleParticle(radius: particleSize.toDouble());
+        }
+
         effect = ParticleEffect(
+          particlePainter: particlePainter,
           particleCount: particleCount,
-          particleSize: particleSize,
           speed: speed,
+          connectionOpacity: connectionOpacity,
         );
         break;
       case 'gradient':
@@ -211,31 +256,32 @@ class _AnimatedConnectionsExampleState
 
   void _createExampleGraph() {
     // Create a sample graph with multiple connections to demonstrate animation effects
-    // Layout: Data Source (left) -> 3 Processors (middle) -> Data Sync (right)
+    // Layout: Data Source (left) -> Processor (middle) -> Data Sync (right)
+    // Plus: Vertical connections via top and bottom processors
     final node1 = Node<Map<String, dynamic>>(
       id: 'node1',
       type: 'source',
-      position: const Offset(50, 150),
-      size: const Size(150, 140),
+      position: const Offset(50, 180),
+      size: const Size(150, 80),
       data: {'label': 'Data Source'},
       outputPorts: const [
         Port(
-          id: 'out1',
-          name: 'Stream A',
+          id: 'out_right',
+          name: 'Output',
           position: PortPosition.right,
-          offset: Offset(0, 35),
+          offset: Offset(0, 40),
         ),
         Port(
-          id: 'out2',
-          name: 'Stream B',
-          position: PortPosition.right,
-          offset: Offset(0, 70),
+          id: 'out_top',
+          name: 'Top',
+          position: PortPosition.top,
+          offset: Offset(75, 0),
         ),
         Port(
-          id: 'out3',
-          name: 'Stream C',
-          position: PortPosition.right,
-          offset: Offset(0, 105),
+          id: 'out_bottom',
+          name: 'Bottom',
+          position: PortPosition.bottom,
+          offset: Offset(75, 0),
         ),
       ],
     );
@@ -243,36 +289,12 @@ class _AnimatedConnectionsExampleState
     final node2 = Node<Map<String, dynamic>>(
       id: 'node2',
       type: 'processor',
-      position: const Offset(350, 0),
-      size: const Size(150, 80),
-      data: {'label': 'Processor 1'},
-      inputPorts: const [
-        Port(
-          id: 'in1',
-          name: 'Input',
-          position: PortPosition.left,
-          offset: Offset(0, 40),
-        ),
-      ],
-      outputPorts: const [
-        Port(
-          id: 'out1',
-          name: 'Output',
-          position: PortPosition.right,
-          offset: Offset(0, 40),
-        ),
-      ],
-    );
-
-    final node3 = Node<Map<String, dynamic>>(
-      id: 'node3',
-      type: 'processor',
       position: const Offset(350, 180),
       size: const Size(150, 80),
-      data: {'label': 'Processor 2'},
+      data: {'label': 'Processor Middle'},
       inputPorts: const [
         Port(
-          id: 'in1',
+          id: 'in_left',
           name: 'Input',
           position: PortPosition.left,
           offset: Offset(0, 40),
@@ -280,31 +302,7 @@ class _AnimatedConnectionsExampleState
       ],
       outputPorts: const [
         Port(
-          id: 'out1',
-          name: 'Output',
-          position: PortPosition.right,
-          offset: Offset(0, 40),
-        ),
-      ],
-    );
-
-    final node4 = Node<Map<String, dynamic>>(
-      id: 'node4',
-      type: 'processor',
-      position: const Offset(350, 360),
-      size: const Size(150, 80),
-      data: {'label': 'Processor 3'},
-      inputPorts: const [
-        Port(
-          id: 'in1',
-          name: 'Input',
-          position: PortPosition.left,
-          offset: Offset(0, 40),
-        ),
-      ],
-      outputPorts: const [
-        Port(
-          id: 'out1',
+          id: 'out_right',
           name: 'Output',
           position: PortPosition.right,
           offset: Offset(0, 40),
@@ -315,114 +313,184 @@ class _AnimatedConnectionsExampleState
     final node5 = Node<Map<String, dynamic>>(
       id: 'node5',
       type: 'sync',
-      position: const Offset(650, 150),
-      size: const Size(150, 140),
+      position: const Offset(650, 180),
+      size: const Size(150, 80),
       data: {'label': 'Data Sync'},
       inputPorts: const [
         Port(
-          id: 'in1',
-          name: 'Input 1',
+          id: 'in_left',
+          name: 'Input',
           position: PortPosition.left,
-          offset: Offset(0, 35),
+          offset: Offset(0, 40),
         ),
         Port(
-          id: 'in2',
-          name: 'Input 2',
-          position: PortPosition.left,
-          offset: Offset(0, 70),
+          id: 'in_top',
+          name: 'Top',
+          position: PortPosition.top,
+          offset: Offset(75, 0),
         ),
         Port(
-          id: 'in3',
-          name: 'Input 3',
-          position: PortPosition.left,
-          offset: Offset(0, 105),
+          id: 'in_bottom',
+          name: 'Bottom',
+          position: PortPosition.bottom,
+          offset: Offset(75, 0),
+        ),
+      ],
+    );
+
+    // Create two additional processor nodes for vertical connections
+    final node6 = Node<Map<String, dynamic>>(
+      id: 'node6',
+      type: 'processor',
+      position: const Offset(350, 30),
+      size: const Size(150, 80),
+      data: {'label': 'Processor Top'},
+      inputPorts: const [
+        Port(
+          id: 'in_bottom',
+          name: 'Input',
+          position: PortPosition.bottom,
+          offset: Offset(75, 0),
+        ),
+      ],
+      outputPorts: const [
+        Port(
+          id: 'out_top',
+          name: 'Output',
+          position: PortPosition.top,
+          offset: Offset(75, 0),
+        ),
+      ],
+    );
+
+    final node7 = Node<Map<String, dynamic>>(
+      id: 'node7',
+      type: 'processor',
+      position: const Offset(350, 330),
+      size: const Size(150, 80),
+      data: {'label': 'Processor Bottom'},
+      inputPorts: const [
+        Port(
+          id: 'in_top',
+          name: 'Input',
+          position: PortPosition.top,
+          offset: Offset(75, 0),
+        ),
+      ],
+      outputPorts: const [
+        Port(
+          id: 'out_bottom',
+          name: 'Output',
+          position: PortPosition.bottom,
+          offset: Offset(75, 0),
         ),
       ],
     );
 
     _controller.addNode(node1);
     _controller.addNode(node2);
-    _controller.addNode(node3);
-    _controller.addNode(node4);
     _controller.addNode(node5);
+    _controller.addNode(node6);
+    _controller.addNode(node7);
 
-    // Create connections with different default effects
+    // Create horizontal connection: Data Source -> Processor Middle -> Data Sync
     final conn1 = Connection(
       id: 'conn1',
       sourceNodeId: 'node1',
-      sourcePortId: 'out1',
+      sourcePortId: 'out_right',
       targetNodeId: 'node2',
-      targetPortId: 'in1',
+      targetPortId: 'in_left',
       animationEffect: FlowingDashEffect(
-        speed: 2,
-        dashLength: 12,
-        gapLength: 6,
+        speed: 1, // Store default
+        dashLength: 10, // Store default
+        gapLength: 5, // Store default
       ),
     );
 
     final conn2 = Connection(
       id: 'conn2',
-      sourceNodeId: 'node1',
-      sourcePortId: 'out2',
-      targetNodeId: 'node3',
-      targetPortId: 'in1',
-      animationEffect: ParticleEffect(
-        particleCount: 4,
-        particleSize: 4,
-        speed: 1,
-      ),
-    );
-
-    final conn3 = Connection(
-      id: 'conn3',
-      sourceNodeId: 'node1',
-      sourcePortId: 'out3',
-      targetNodeId: 'node4',
-      targetPortId: 'in1',
-      animationEffect: GradientFlowEffect(
-        colors: gradientPresets['red_white'],
-        speed: 1,
-      ),
-    );
-
-    final conn4 = Connection(
-      id: 'conn4',
       sourceNodeId: 'node2',
-      sourcePortId: 'out1',
+      sourcePortId: 'out_right',
       targetNodeId: 'node5',
-      targetPortId: 'in1',
-      animationEffect: PulseEffect(
-        pulseSpeed: 1,
-        minOpacity: 0.3,
-        maxOpacity: 1.0,
-        widthVariation: 1.5,
+      targetPortId: 'in_left',
+      animationEffect: ParticleEffect(
+        particlePainter: const CircleParticle(radius: 3.0),
+        // Store default: particleSize = 3
+        particleCount: 3,
+        // Store default
+        speed: 1,
+        // Store default
+        connectionOpacity: 1.0, // Store default
       ),
     );
 
-    final conn5 = Connection(
-      id: 'conn5',
-      sourceNodeId: 'node3',
-      sourcePortId: 'out1',
-      targetNodeId: 'node5',
-      targetPortId: 'in2',
-      // No animation effect - static connection
+    // Create vertical connections (using store defaults)
+    // Top path: Data Source -> Processor Top -> Data Sync
+    final conn7 = Connection(
+      id: 'conn7',
+      sourceNodeId: 'node1',
+      sourcePortId: 'out_top',
+      targetNodeId: 'node6',
+      targetPortId: 'in_bottom',
+      animationEffect: GradientFlowEffect(
+        colors: gradientPresets['transparent_cyan'], // Store default
+        speed: 1, // Store default
+        gradientLength: 0.25, // Store default
+        connectionOpacity: 1.0, // Store default
+      ),
     );
 
-    final conn6 = Connection(
-      id: 'conn6',
-      sourceNodeId: 'node4',
-      sourcePortId: 'out1',
+    final conn8 = Connection(
+      id: 'conn8',
+      sourceNodeId: 'node6',
+      sourcePortId: 'out_top',
       targetNodeId: 'node5',
-      targetPortId: 'in3',
-      // No animation effect - static connection
+      targetPortId: 'in_top',
+      animationEffect: PulseEffect(
+        pulseSpeed: 1, // Store default
+        minOpacity: 0.4, // Store default
+        maxOpacity: 1.0, // Store default
+        widthVariation: 1.0, // Store default
+      ),
+    );
+
+    // Bottom path: Data Source -> Processor Bottom -> Data Sync
+    final conn9 = Connection(
+      id: 'conn9',
+      sourceNodeId: 'node1',
+      sourcePortId: 'out_bottom',
+      targetNodeId: 'node7',
+      targetPortId: 'in_top',
+      animationEffect: FlowingDashEffect(
+        speed: 1, // Store default
+        dashLength: 10, // Store default
+        gapLength: 5, // Store default
+      ),
+    );
+
+    final conn10 = Connection(
+      id: 'conn10',
+      sourceNodeId: 'node7',
+      sourcePortId: 'out_bottom',
+      targetNodeId: 'node5',
+      targetPortId: 'in_bottom',
+      animationEffect: ParticleEffect(
+        particlePainter: const CircleParticle(radius: 3.0),
+        // Store default: particleSize = 3
+        particleCount: 3,
+        // Store default
+        speed: 1,
+        // Store default
+        connectionOpacity: 1.0, // Store default
+      ),
     );
 
     _controller.addConnection(conn1);
     _controller.addConnection(conn2);
-    _controller.addConnection(conn3);
-    _controller.addConnection(conn4);
-    _controller.addConnection(conn5);
-    _controller.addConnection(conn6);
+    _controller.addConnection(conn7);
+    _controller.addConnection(conn8);
+    _controller.addConnection(conn9);
+    _controller.addConnection(conn10);
   }
 
   Widget _buildNode(BuildContext context, Node<Map<String, dynamic>> node) {
@@ -484,7 +552,7 @@ class _AnimatedConnectionsExampleState
                 _store.selectedEffectType = 'particle';
                 _store.speed = effect.speed;
                 _store.particleCount = effect.particleCount;
-                _store.particleSize = effect.particleSize;
+                // Note: particleSize is now part of the particlePainter, not the effect itself
               } else if (effect is GradientFlowEffect) {
                 _store.selectedEffectType = 'gradient';
                 _store.speed = effect.speed;
@@ -616,6 +684,8 @@ class _AnimatedConnectionsExampleState
                         gapLength: _store.gapLength.toDouble(),
                         particleCount: _store.particleCount,
                         particleSize: _store.particleSize.toDouble(),
+                        particleType: _store.particleType,
+                        particleCharacter: _store.particleCharacter,
                         gradientLength: _store.gradientLength,
                         connectionOpacity: _store.connectionOpacity,
                         selectedGradientPreset: _store.selectedGradientPreset,
@@ -631,6 +701,10 @@ class _AnimatedConnectionsExampleState
                             _store.particleCount = value,
                         onParticleSizeChanged: (value) =>
                             _store.particleSize = value.round(),
+                        onParticleTypeChanged: (value) =>
+                            _store.particleType = value,
+                        onParticleCharacterChanged: (value) =>
+                            _store.particleCharacter = value,
                         onGradientLengthChanged: (value) =>
                             _store.gradientLength = value,
                         onConnectionOpacityChanged: (value) =>
@@ -740,6 +814,8 @@ class EffectControlsPanel extends StatelessWidget {
     required this.gapLength,
     required this.particleCount,
     required this.particleSize,
+    required this.particleType,
+    required this.particleCharacter,
     required this.gradientLength,
     required this.connectionOpacity,
     required this.selectedGradientPreset,
@@ -751,6 +827,8 @@ class EffectControlsPanel extends StatelessWidget {
     required this.onGapLengthChanged,
     required this.onParticleCountChanged,
     required this.onParticleSizeChanged,
+    required this.onParticleTypeChanged,
+    required this.onParticleCharacterChanged,
     required this.onGradientLengthChanged,
     required this.onConnectionOpacityChanged,
     required this.onGradientPresetChanged,
@@ -765,6 +843,8 @@ class EffectControlsPanel extends StatelessWidget {
   final double gapLength;
   final int particleCount;
   final double particleSize;
+  final String particleType;
+  final String particleCharacter;
   final double gradientLength;
   final double connectionOpacity;
   final String selectedGradientPreset;
@@ -776,6 +856,8 @@ class EffectControlsPanel extends StatelessWidget {
   final ValueChanged<double> onGapLengthChanged;
   final ValueChanged<int> onParticleCountChanged;
   final ValueChanged<double> onParticleSizeChanged;
+  final ValueChanged<String> onParticleTypeChanged;
+  final ValueChanged<String> onParticleCharacterChanged;
   final ValueChanged<double> onGradientLengthChanged;
   final ValueChanged<double> onConnectionOpacityChanged;
   final ValueChanged<String> onGradientPresetChanged;
@@ -800,9 +882,15 @@ class EffectControlsPanel extends StatelessWidget {
           speed: speed,
           particleCount: particleCount,
           particleSize: particleSize,
+          particleType: particleType,
+          particleCharacter: particleCharacter,
+          connectionOpacity: connectionOpacity,
           onSpeedChanged: onSpeedChanged,
           onParticleCountChanged: onParticleCountChanged,
           onParticleSizeChanged: onParticleSizeChanged,
+          onParticleTypeChanged: onParticleTypeChanged,
+          onParticleCharacterChanged: onParticleCharacterChanged,
+          onConnectionOpacityChanged: onConnectionOpacityChanged,
         );
       case 'gradient':
         return GradientControls(
@@ -860,8 +948,9 @@ class FlowingDashControls extends StatelessWidget {
         SliderControl(
           label: 'Speed',
           value: speed,
-          min: 0.1,
+          min: 1.0,
           max: 5.0,
+          divisions: 4,
           onChanged: onSpeedChanged,
         ),
         SliderControl(
@@ -869,6 +958,7 @@ class FlowingDashControls extends StatelessWidget {
           value: dashLength,
           min: 2.0,
           max: 30.0,
+          divisions: 28,
           onChanged: onDashLengthChanged,
         ),
         SliderControl(
@@ -876,6 +966,7 @@ class FlowingDashControls extends StatelessWidget {
           value: gapLength,
           min: 1.0,
           max: 20.0,
+          divisions: 19,
           onChanged: onGapLengthChanged,
         ),
       ],
@@ -889,17 +980,29 @@ class ParticleControls extends StatelessWidget {
     required this.speed,
     required this.particleCount,
     required this.particleSize,
+    required this.particleType,
+    required this.particleCharacter,
+    required this.connectionOpacity,
     required this.onSpeedChanged,
     required this.onParticleCountChanged,
     required this.onParticleSizeChanged,
+    required this.onParticleTypeChanged,
+    required this.onParticleCharacterChanged,
+    required this.onConnectionOpacityChanged,
   });
 
   final double speed;
   final int particleCount;
   final double particleSize;
+  final String particleType;
+  final String particleCharacter;
+  final double connectionOpacity;
   final ValueChanged<double> onSpeedChanged;
   final ValueChanged<int> onParticleCountChanged;
   final ValueChanged<double> onParticleSizeChanged;
+  final ValueChanged<String> onParticleTypeChanged;
+  final ValueChanged<String> onParticleCharacterChanged;
+  final ValueChanged<double> onConnectionOpacityChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -908,11 +1011,50 @@ class ParticleControls extends StatelessWidget {
       children: [
         const SectionTitle('Particle Settings'),
         const SizedBox(height: 12),
+        // Particle Type Selector
+        const Text('Particle Type', style: TextStyle(fontSize: 12)),
+        const SizedBox(height: 8),
+        DropdownButton<String>(
+          value: particleType,
+          isExpanded: true,
+          items: const [
+            DropdownMenuItem(value: 'circle', child: Text('Circle')),
+            DropdownMenuItem(value: 'arrow', child: Text('Arrow')),
+            DropdownMenuItem(
+              value: 'character',
+              child: Text('Character/Emoji'),
+            ),
+          ],
+          onChanged: (value) {
+            if (value != null) onParticleTypeChanged(value);
+          },
+        ),
+        const SizedBox(height: 12),
+        // Character input (shown only for character type)
+        if (particleType == 'character') ...[
+          const Text('Character', style: TextStyle(fontSize: 12)),
+          const SizedBox(height: 8),
+          TextField(
+            controller: TextEditingController(text: particleCharacter)
+              ..selection = TextSelection.fromPosition(
+                TextPosition(offset: particleCharacter.length),
+              ),
+            maxLength: 2,
+            decoration: const InputDecoration(
+              hintText: 'Enter emoji or character',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            ),
+            onChanged: onParticleCharacterChanged,
+          ),
+          const SizedBox(height: 12),
+        ],
         SliderControl(
           label: 'Speed',
           value: speed,
-          min: 0.1,
+          min: 1.0,
           max: 5.0,
+          divisions: 4,
           onChanged: onSpeedChanged,
         ),
         SliderControl(
@@ -928,7 +1070,15 @@ class ParticleControls extends StatelessWidget {
           value: particleSize,
           min: 1.0,
           max: 10.0,
+          divisions: 9,
           onChanged: onParticleSizeChanged,
+        ),
+        SliderControl(
+          label: 'Connection Opacity',
+          value: connectionOpacity,
+          min: 0.0,
+          max: 1.0,
+          onChanged: onConnectionOpacityChanged,
         ),
       ],
     );
@@ -1001,8 +1151,9 @@ class GradientControls extends StatelessWidget {
         SliderControl(
           label: 'Speed',
           value: speed,
-          min: 0.1,
+          min: 1.0,
           max: 5.0,
+          divisions: 4,
           onChanged: onSpeedChanged,
         ),
         SliderControl(

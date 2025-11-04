@@ -1,48 +1,71 @@
 import 'dart:ui';
 
 import 'connection_animation_effect.dart';
+import 'particle_painter.dart';
+import 'particles/circle_particle.dart';
 
 /// An animation effect that shows particles moving along the connection path.
 ///
-/// Creates a visual flow effect where multiple particles (dots) travel
-/// along the connection, useful for showing data flow or direction.
+/// Creates a visual flow effect where multiple particles travel along the
+/// connection, useful for showing data flow or direction. Particles can be
+/// customized using different [ParticlePainter] implementations.
 ///
 /// Example:
 /// ```dart
+/// // Circle particles
 /// connection.animationEffect = ParticleEffect(
+///   particlePainter: CircleParticle(radius: 4.0),
 ///   particleCount: 5,
-///   particleSize: 4.0,
-///   speed: 1.5,
+///   speed: 2,
+/// );
+///
+/// // Arrow particles
+/// connection.animationEffect = ParticleEffect(
+///   particlePainter: ArrowParticle(length: 12.0),
+///   particleCount: 3,
+///   speed: 1,
+/// );
+///
+/// // Emoji particles
+/// connection.animationEffect = ParticleEffect(
+///   particlePainter: CharacterParticle(character: '🚀', fontSize: 16.0),
+///   particleCount: 3,
+///   speed: 1,
 /// );
 /// ```
-class ParticleEffect extends ConnectionAnimationEffect {
+class ParticleEffect implements ConnectionAnimationEffect {
   /// Creates a particle animation effect.
   ///
   /// Parameters:
+  /// - [particlePainter]: The painter to use for rendering particles. If null, defaults to CircleParticle.
   /// - [particleCount]: Number of particles traveling along the path. Default: 3
-  /// - [particleSize]: Radius of each particle in pixels. Default: 3
   /// - [speed]: Number of complete cycles per animation period. Default: 1
-  /// - [particleColor]: Optional color override for particles. If null, uses basePaint color.
+  /// - [connectionOpacity]: Opacity of the base connection (0.0-1.0). Default: 0.3
   ParticleEffect({
+    ParticlePainter? particlePainter,
     this.particleCount = 3,
-    this.particleSize = 3,
     this.speed = 1,
-    this.particleColor,
-  }) : assert(particleCount > 0, 'Particle count must be positive'),
-       assert(particleSize > 0, 'Particle size must be positive'),
-       assert(speed > 0, 'Speed must be positive');
+    this.connectionOpacity = 0.3,
+  }) : particlePainter = particlePainter ?? const CircleParticle(),
+       assert(particleCount > 0, 'Particle count must be positive'),
+       assert(speed > 0, 'Speed must be positive'),
+       assert(
+         connectionOpacity >= 0 && connectionOpacity <= 1.0,
+         'Connection opacity must be between 0 and 1',
+       );
+
+  /// The painter used to render each particle
+  final ParticlePainter particlePainter;
 
   /// Number of particles traveling along the path
   final int particleCount;
 
-  /// Radius of each particle in pixels
-  final int particleSize;
-
   /// Number of complete cycles per animation period (integer for seamless looping)
   final int speed;
 
-  /// Optional color override for particles (null = use connection color)
-  final Color? particleColor;
+  /// Opacity of the base connection underneath particles (0.0 to 1.0)
+  /// 0.0 = invisible, 1.0 = full opacity
+  final double connectionOpacity;
 
   @override
   void paint(Canvas canvas, Path path, Paint basePaint, double animationValue) {
@@ -64,27 +87,21 @@ class ParticleEffect extends ConnectionAnimationEffect {
         final tangent = metric.getTangentForOffset(distance);
         if (tangent == null) continue;
 
-        // Draw particle at the calculated position
-        final particlePaint = Paint()
-          ..color = particleColor ?? basePaint.color
-          ..style = PaintingStyle.fill;
-
-        canvas.drawCircle(
-          tangent.position,
-          particleSize.toDouble(),
-          particlePaint,
-        );
+        // Draw particle using the custom painter
+        particlePainter.paint(canvas, tangent.position, tangent, basePaint);
       }
     }
 
-    // Draw the static path underneath the particles
-    final pathPaint = Paint()
-      ..color = basePaint.color.withValues(alpha: 0.3)
-      ..strokeWidth = basePaint.strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = basePaint.strokeCap
-      ..strokeJoin = basePaint.strokeJoin;
+    // Draw the static path underneath the particles with configured opacity
+    if (connectionOpacity > 0) {
+      final pathPaint = Paint()
+        ..color = basePaint.color.withValues(alpha: connectionOpacity)
+        ..strokeWidth = basePaint.strokeWidth
+        ..style = PaintingStyle.stroke
+        ..strokeCap = basePaint.strokeCap
+        ..strokeJoin = basePaint.strokeJoin;
 
-    canvas.drawPath(path, pathPaint);
+      canvas.drawPath(path, pathPaint);
+    }
   }
 }
