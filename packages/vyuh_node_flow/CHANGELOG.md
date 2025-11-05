@@ -1,3 +1,7 @@
+## 0.3.1
+
+ - **FEAT**: renaming pulseSpeed => speed for consistency.
+
 ## 0.3.0
 
 - **FEAT**: BREAKING CHANGE: `connectionStyle` moved from `NodeFlowTheme` to
