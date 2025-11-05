@@ -1,3 +1,7 @@
+## 0.3.2
+
+ - **FEAT**: adding connection effects to readme.
+
 ## 0.3.1
 
  - **FEAT**: renaming pulseSpeed => speed for consistency.
