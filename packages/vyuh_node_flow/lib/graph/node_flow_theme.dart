@@ -71,6 +71,7 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     required this.nodeTheme,
     required this.connectionTheme,
     required this.temporaryConnectionTheme,
+    this.connectionAnimationDuration = const Duration(seconds: 2),
     required this.portTheme,
     required this.labelTheme,
     this.backgroundColor = Colors.white,
@@ -81,11 +82,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     this.selectionColor = const Color(0x3300BCD4),
     this.selectionBorderColor = const Color(0xFF00BCD4),
     this.selectionBorderWidth = 1.0,
-    this.hoverEffectDuration = const Duration(milliseconds: 200),
-    this.enableAnimations = true,
     this.cursorStyle = SystemMouseCursors.basic,
     this.dragCursorStyle = SystemMouseCursors.grabbing,
-    this.resizeCursorStyle = SystemMouseCursors.resizeUpDown,
     this.nodeCursorStyle = SystemMouseCursors.click,
     this.portCursorStyle = SystemMouseCursors.precise,
     this.debugMode = false,
@@ -99,6 +97,13 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
 
   /// Theme for temporary connection appearance during connection creation.
   final ConnectionTheme temporaryConnectionTheme;
+
+  /// Duration for the connection animation controller cycle.
+  ///
+  /// This controls how long a full cycle of connection animation effects takes.
+  /// Effects like flowing dashes, particles, and gradients will complete one
+  /// full cycle in this duration. Default is 2 seconds.
+  final Duration connectionAnimationDuration;
 
   /// Theme for port appearance (size, colors, shapes).
   final PortTheme portTheme;
@@ -136,24 +141,11 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   /// Border width for the selection rectangle in pixels.
   final double selectionBorderWidth;
 
-  /// Duration for hover and interaction animations.
-  ///
-  /// Controls how quickly visual feedback responds to mouse hover.
-  final Duration hoverEffectDuration;
-
-  /// Whether to enable animations throughout the editor.
-  ///
-  /// When false, all animations are skipped for immediate visual updates.
-  final bool enableAnimations;
-
   /// Default mouse cursor style for the canvas.
   final SystemMouseCursor cursorStyle;
 
   /// Mouse cursor style when dragging nodes or panning.
   final SystemMouseCursor dragCursorStyle;
-
-  /// Mouse cursor style when resizing elements.
-  final SystemMouseCursor resizeCursorStyle;
 
   /// Mouse cursor style when hovering over nodes.
   final SystemMouseCursor nodeCursorStyle;
@@ -171,6 +163,7 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     NodeTheme? nodeTheme,
     ConnectionTheme? connectionTheme,
     ConnectionTheme? temporaryConnectionTheme,
+    Duration? connectionAnimationDuration,
     PortTheme? portTheme,
     LabelTheme? labelTheme,
     Color? backgroundColor,
@@ -181,11 +174,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     Color? selectionColor,
     Color? selectionBorderColor,
     double? selectionBorderWidth,
-    Duration? hoverEffectDuration,
-    bool? enableAnimations,
     SystemMouseCursor? cursorStyle,
     SystemMouseCursor? dragCursorStyle,
-    SystemMouseCursor? resizeCursorStyle,
     SystemMouseCursor? nodeCursorStyle,
     SystemMouseCursor? portCursorStyle,
     bool? debugMode,
@@ -195,6 +185,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
       connectionTheme: connectionTheme ?? this.connectionTheme,
       temporaryConnectionTheme:
           temporaryConnectionTheme ?? this.temporaryConnectionTheme,
+      connectionAnimationDuration:
+          connectionAnimationDuration ?? this.connectionAnimationDuration,
       portTheme: portTheme ?? this.portTheme,
       labelTheme: labelTheme ?? this.labelTheme,
       backgroundColor: backgroundColor ?? this.backgroundColor,
@@ -205,11 +197,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
       selectionColor: selectionColor ?? this.selectionColor,
       selectionBorderColor: selectionBorderColor ?? this.selectionBorderColor,
       selectionBorderWidth: selectionBorderWidth ?? this.selectionBorderWidth,
-      hoverEffectDuration: hoverEffectDuration ?? this.hoverEffectDuration,
-      enableAnimations: enableAnimations ?? this.enableAnimations,
       cursorStyle: cursorStyle ?? this.cursorStyle,
       dragCursorStyle: dragCursorStyle ?? this.dragCursorStyle,
-      resizeCursorStyle: resizeCursorStyle ?? this.resizeCursorStyle,
       nodeCursorStyle: nodeCursorStyle ?? this.nodeCursorStyle,
       portCursorStyle: portCursorStyle ?? this.portCursorStyle,
       debugMode: debugMode ?? this.debugMode,
@@ -227,6 +216,9 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
       // ConnectionTheme doesn't support lerp
       temporaryConnectionTheme: temporaryConnectionTheme,
       // ConnectionTheme doesn't support lerp
+      connectionAnimationDuration: t < 0.5
+          ? connectionAnimationDuration
+          : other.connectionAnimationDuration,
       portTheme: portTheme,
       // PortTheme doesn't support lerp
       labelTheme: t < 0.5 ? labelTheme : other.labelTheme,
@@ -246,15 +238,11 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
       selectionBorderWidth:
           lerpDouble(selectionBorderWidth, other.selectionBorderWidth, t) ??
           selectionBorderWidth,
-      hoverEffectDuration: t < 0.5
-          ? hoverEffectDuration
-          : other.hoverEffectDuration,
-      enableAnimations: t < 0.5 ? enableAnimations : other.enableAnimations,
       cursorStyle: t < 0.5 ? cursorStyle : other.cursorStyle,
       dragCursorStyle: t < 0.5 ? dragCursorStyle : other.dragCursorStyle,
-      resizeCursorStyle: t < 0.5 ? resizeCursorStyle : other.resizeCursorStyle,
       nodeCursorStyle: t < 0.5 ? nodeCursorStyle : other.nodeCursorStyle,
       portCursorStyle: t < 0.5 ? portCursorStyle : other.portCursorStyle,
+      debugMode: t < 0.5 ? debugMode : other.debugMode,
     );
   }
 
@@ -298,11 +286,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     selectionColor: Color(0x3300BCD4),
     selectionBorderColor: Color(0xFF00BCD4),
     selectionBorderWidth: 1.0,
-    hoverEffectDuration: Duration(milliseconds: 200),
-    enableAnimations: true,
     cursorStyle: SystemMouseCursors.grab,
     dragCursorStyle: SystemMouseCursors.grabbing,
-    resizeCursorStyle: SystemMouseCursors.resizeUpDown,
     nodeCursorStyle: SystemMouseCursors.click,
     portCursorStyle: SystemMouseCursors.precise,
   );
@@ -347,11 +332,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     selectionColor: const Color(0x3364B5F6),
     selectionBorderColor: const Color(0xFF64B5F6),
     selectionBorderWidth: 1.0,
-    hoverEffectDuration: const Duration(milliseconds: 200),
-    enableAnimations: true,
     cursorStyle: SystemMouseCursors.grab,
     dragCursorStyle: SystemMouseCursors.grabbing,
-    resizeCursorStyle: SystemMouseCursors.resizeUpDown,
     nodeCursorStyle: SystemMouseCursors.click,
     portCursorStyle: SystemMouseCursors.precise,
   );

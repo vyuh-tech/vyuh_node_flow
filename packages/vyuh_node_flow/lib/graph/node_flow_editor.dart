@@ -341,7 +341,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Initialize animation controller for animated connections
     _connectionAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: widget.theme.connectionAnimationDuration,
     );
 
     // Initialize transformation controller with current viewport
@@ -383,6 +383,13 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Update callbacks if they changed
     _updateCallbacks();
     widget.controller.setTheme(widget.theme);
+
+    // Update animation controller duration if it changed
+    if (oldWidget.theme.connectionAnimationDuration !=
+        widget.theme.connectionAnimationDuration) {
+      _connectionAnimationController?.duration =
+          widget.theme.connectionAnimationDuration;
+    }
 
     // Check if animation should be updated due to theme change
     if (oldWidget.theme.connectionTheme.animationEffect !=

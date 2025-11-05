@@ -75,7 +75,6 @@ class ConnectionTheme {
   /// - [startPoint]: Endpoint marker for the connection start
   /// - [endPoint]: Endpoint marker for the connection end
   /// - [animationEffect]: Optional default animation effect for connections
-  /// - [animationDuration]: Duration for connection animations
   /// - [bezierCurvature]: Curvature factor for bezier-style connections (0.0 to 1.0)
   /// - [cornerRadius]: Radius for rounded corners in step-style connections
   /// - [hitTolerance]: Distance tolerance for hit testing in logical pixels
@@ -89,7 +88,6 @@ class ConnectionTheme {
     this.startPoint = ConnectionEndPoint.none,
     this.endPoint = ConnectionEndPoint.capsuleHalf,
     this.animationEffect,
-    this.animationDuration = const Duration(milliseconds: 300),
     this.bezierCurvature = 0.3,
     this.cornerRadius = 4.0,
     this.hitTolerance = 8.0,
@@ -139,9 +137,6 @@ class ConnectionTheme {
   /// - [PulseEffect]: Pulsing/glowing effect
   final ConnectionAnimationEffect? animationEffect;
 
-  /// Duration for connection animations (e.g., selection, appearance).
-  final Duration animationDuration;
-
   /// Curvature factor for bezier-style connections.
   ///
   /// Valid range is typically 0.0 to 1.0:
@@ -178,7 +173,6 @@ class ConnectionTheme {
     ConnectionEndPoint? startPoint,
     ConnectionEndPoint? endPoint,
     ConnectionAnimationEffect? animationEffect,
-    Duration? animationDuration,
     double? bezierCurvature,
     double? cornerRadius,
     double? hitTolerance,
@@ -193,7 +187,6 @@ class ConnectionTheme {
       startPoint: startPoint ?? this.startPoint,
       endPoint: endPoint ?? this.endPoint,
       animationEffect: animationEffect,
-      animationDuration: animationDuration ?? this.animationDuration,
       bezierCurvature: bezierCurvature ?? this.bezierCurvature,
       cornerRadius: cornerRadius ?? this.cornerRadius,
       hitTolerance: hitTolerance ?? this.hitTolerance,
