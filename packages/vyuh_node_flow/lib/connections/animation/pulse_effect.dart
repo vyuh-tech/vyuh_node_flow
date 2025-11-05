@@ -11,7 +11,7 @@ import 'connection_animation_effect.dart';
 /// Example:
 /// ```dart
 /// connection.animationEffect = PulseEffect(
-///   pulseSpeed: 1.0,
+///   speed: 1,
 ///   minOpacity: 0.3,
 ///   maxOpacity: 1.0,
 ///   widthVariation: 1.5,
@@ -21,16 +21,16 @@ class PulseEffect implements ConnectionAnimationEffect {
   /// Creates a pulse animation effect.
   ///
   /// Parameters:
-  /// - [pulseSpeed]: Number of complete pulse cycles per animation period. Default: 1
+  /// - [speed]: Number of complete pulse cycles per animation period. Default: 1
   /// - [minOpacity]: Minimum opacity during pulse cycle. Default: 0.4
   /// - [maxOpacity]: Maximum opacity during pulse cycle. Default: 1.0
   /// - [widthVariation]: Width multiplier at peak of pulse (1.0 = no variation). Default: 1.0
   PulseEffect({
-    this.pulseSpeed = 1,
+    this.speed = 1,
     this.minOpacity = 0.4,
     this.maxOpacity = 1.0,
     this.widthVariation = 1.0,
-  }) : assert(pulseSpeed > 0, 'Pulse speed must be positive'),
+  }) : assert(speed > 0, 'Speed must be positive'),
        assert(
          minOpacity >= 0 && minOpacity <= 1,
          'Min opacity must be between 0 and 1',
@@ -43,7 +43,7 @@ class PulseEffect implements ConnectionAnimationEffect {
        assert(widthVariation >= 1.0, 'Width variation must be >= 1.0');
 
   /// Number of complete pulse cycles per animation period (integer for seamless looping)
-  final int pulseSpeed;
+  final int speed;
 
   /// Minimum opacity during the pulse cycle
   final double minOpacity;
@@ -58,7 +58,7 @@ class PulseEffect implements ConnectionAnimationEffect {
   void paint(Canvas canvas, Path path, Paint basePaint, double animationValue) {
     // Use sine wave for smooth pulsing (0 to 1 and back)
     final pulseProgress =
-        (math.sin((animationValue * pulseSpeed) * 2 * math.pi) + 1) / 2;
+        (math.sin((animationValue * speed) * 2 * math.pi) + 1) / 2;
 
     // Calculate animated opacity
     final opacity = minOpacity + (maxOpacity - minOpacity) * pulseProgress;

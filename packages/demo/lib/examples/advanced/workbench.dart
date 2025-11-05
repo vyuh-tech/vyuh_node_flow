@@ -31,6 +31,16 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
     {'file': 'iot_data_pipeline.json', 'name': 'IoT Data Pipeline'},
   ];
 
+  // Connection effect dropdown
+  String _selectedEffect = 'none';
+  final List<Map<String, String>> _availableEffects = [
+    {'value': 'none', 'name': 'None'},
+    {'value': 'flowing_dash', 'name': 'Flowing Dash'},
+    {'value': 'particle', 'name': 'Particle'},
+    {'value': 'gradient_flow', 'name': 'Gradient Flow'},
+    {'value': 'pulse', 'name': 'Pulse'},
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -196,10 +206,11 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
   NodeFlowTheme _buildInitialTheme() {
     return NodeFlowTheme.light.copyWith(
       connectionTheme: ConnectionTheme.light.copyWith(
-        animationEffect: FlowingDashEffect(speed: 3),
+        style: ConnectionStyles.step,
       ),
       temporaryConnectionTheme: NodeFlowTheme.light.temporaryConnectionTheme
           .copyWith(
+            style: ConnectionStyles.step,
             dashPattern: [5, 5],
             strokeWidth: 2.0,
             bezierCurvature: 0.5,
@@ -209,6 +220,42 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
         borderWidth: 1.0, // Add border for better visibility
       ),
     );
+  }
+
+  ConnectionAnimationEffect? _createAnimationEffect(String effectType) {
+    switch (effectType) {
+      case 'flowing_dash':
+        return FlowingDashEffect(speed: 2, dashLength: 10, gapLength: 5);
+      case 'particle':
+        return ParticleEffect(particleCount: 3, speed: 1);
+      case 'gradient_flow':
+        return GradientFlowEffect(
+          colors: [Colors.transparent, Colors.deepOrange],
+          gradientLength: 0.25,
+          speed: 1,
+        );
+      case 'pulse':
+        return PulseEffect(
+          speed: 1,
+          minOpacity: 0.25,
+          maxOpacity: 1.0,
+          widthVariation: 1.25,
+        );
+      case 'none':
+      default:
+        return null;
+    }
+  }
+
+  void _updateConnectionEffect(String effectType) {
+    setState(() {
+      _selectedEffect = effectType;
+      _nodeFlowTheme = _nodeFlowTheme.copyWith(
+        connectionTheme: _nodeFlowTheme.connectionTheme.copyWith(
+          animationEffect: _createAnimationEffect(effectType),
+        ),
+      );
+    });
   }
 
   NodeFlowConfig _buildInitialConfig() {
@@ -273,6 +320,51 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
           ),
         ),
       ),
+
+      // Connection Effect Selection Dropdown
+      Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Connection Effect',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                initialValue: _selectedEffect,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                items: _availableEffects.map((effect) {
+                  return DropdownMenuItem<String>(
+                    value: effect['value']!,
+                    child: Text(
+                      effect['name']!,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  if (newValue != null && newValue != _selectedEffect) {
+                    _updateConnectionEffect(newValue);
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+
       _buildGridSection('Graph Serialization', [
         _buildGridButton('Export JSON', Icons.download, () async {
           final graph = _controller.exportGraph();

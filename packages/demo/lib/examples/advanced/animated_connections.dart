@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
-import 'package:vyuh_node_flow/connections/animation/animation_effects.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../shared/ui_widgets.dart';
@@ -204,7 +203,7 @@ class AnimationDemoStore {
         break;
       case 'pulse':
         effect = PulseEffect(
-          pulseSpeed: speed,
+          speed: speed,
           minOpacity: minOpacity,
           maxOpacity: maxOpacity,
           widthVariation: widthVariation,
@@ -447,7 +446,7 @@ class _AnimatedConnectionsExampleState
       targetNodeId: 'node5',
       targetPortId: 'in_top',
       animationEffect: PulseEffect(
-        pulseSpeed: 1, // Store default
+        speed: 1, // Store default
         minOpacity: 0.4, // Store default
         maxOpacity: 1.0, // Store default
         widthVariation: 1.0, // Store default
@@ -559,7 +558,7 @@ class _AnimatedConnectionsExampleState
                 _store.gradientLength = effect.gradientLength;
               } else if (effect is PulseEffect) {
                 _store.selectedEffectType = 'pulse';
-                _store.speed = effect.pulseSpeed;
+                _store.speed = effect.speed;
                 _store.minOpacity = effect.minOpacity;
                 _store.maxOpacity = effect.maxOpacity;
                 _store.widthVariation = effect.widthVariation;
