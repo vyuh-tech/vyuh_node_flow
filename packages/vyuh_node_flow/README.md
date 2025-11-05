@@ -26,16 +26,19 @@ minimap, and more.
 ## ✨ Key Features
 
 - **High Performance** - Reactive, optimized rendering for smooth interactions
+  on an infinite canvas
 - **Type-Safe Node Data** - Generic type support for strongly-typed node data
 - **Fully Customizable** - Comprehensive theming system for nodes, connections,
-  and ports
+  and ports and backgrounds
 - **Flexible Ports** - Multiple port shapes, positions, and connection
   validation
+- **Connection Animation Effects** - Flowing dashes, particles, gradients, and
+  pulse effects to visualize data flow
+- **Connection Styles** - Multiple connection path styles (bezier, smoothstep,
+  straight)
 - **Annotations** - Add labels, notes, and custom overlays to your flow
 - **Minimap** - Built-in minimap for navigation in complex flows
 - **Keyboard Shortcuts** - Full keyboard support for power users
-- **Connection Styles** - Multiple connection path styles (bezier, smoothstep,
-  straight)
 - **Read-Only Viewer** - Display flows without editing capabilities
 - **Serialization** - Save and load flows from JSON
 
@@ -138,7 +141,6 @@ class _SimpleFlowEditorState extends State<SimpleFlowEditor> {
 The `NodeFlowController` is the central piece that manages all state:
 
 ```dart
-
 final controller = NodeFlowController<T>(
   config: NodeFlowConfig(
     snapToGrid: true,
@@ -162,9 +164,7 @@ final controller = NodeFlowController<T>(
 
 ```dart
 // Add a node
-controller.addNode
-(
-node);
+controller.addNode(node);
 
 // Remove a node
 controller.removeNode(nodeId);
@@ -185,31 +185,20 @@ controller.clearSelection();
 
 ```dart
 // Add a connection
-controller.addConnection
-(
-connection);
+controller.addConnection(connection);
 
 // Remove a connection
 controller.removeConnection(connectionId);
 
 // Get connections for a node
-final connections
-=
-controller
-.
-getConnectionsForNode
-(
-nodeId
-);
+final connections = controller.getConnectionsForNode(nodeId);
 ```
 
 #### Viewport Control
 
 ```dart
 // Pan and zoom
-controller.setViewport
-(
-GraphViewport(x: 100, y: 100, zoom: 1.5));
+controller.setViewport(GraphViewport(x: 100, y: 100, zoom: 1.5));
 controller.zoomBy(0.1); // Zoom in
 controller.zoomBy(-0.1); // Zoom out
 controller.zoomTo(1.5); // Set specific zoom level
@@ -222,17 +211,10 @@ controller.centerOnNode(nodeId); // Center on specific node
 ```dart
 // Load/save graph
 final graph = controller.exportGraph();
-controller.loadGraph
-(
-graph
-);
+controller.loadGraph(graph);
 
 // Clear everything
-controller
-.
-clearGraph
-(
-);
+controller.clearGraph();
 ```
 
 </details>
@@ -245,13 +227,10 @@ clearGraph
 
 ```dart
 // Light theme
-controller.setTheme
-(
-NodeFlowTheme.light);
+controller.setTheme(NodeFlowTheme.light);
 
 // Dark theme
-controller.setTheme(NodeFlowTheme.dark
-);
+controller.setTheme(NodeFlowTheme.dark);
 ```
 
 ### Creating Custom Themes
@@ -260,7 +239,6 @@ controller.setTheme(NodeFlowTheme.dark
 <summary><strong>Complete Custom Theme Example</strong></summary>
 
 ```dart
-
 final customTheme = NodeFlowTheme(
   // Node appearance
   nodeTheme: NodeTheme(
@@ -284,29 +262,35 @@ final customTheme = NodeFlowTheme(
   ),
 
   // Connection appearance
-  connectionStyle: ConnectionStyles.smoothstep,
   connectionTheme: ConnectionTheme(
+    style: ConnectionStyles.smoothstep, // Connection path style
     color: Colors.blue.shade300,
     selectedColor: Colors.blue.shade700,
     strokeWidth: 2.0,
     selectedStrokeWidth: 3.0,
     startPoint: ConnectionEndPoint.none,
     endPoint: ConnectionEndPoint.arrow,
+    // Optional: Add animation effect
+    animationEffect: ParticleEffect(particleCount: 3, speed: 1),
   ),
 
   // Temporary connection (while dragging)
   temporaryConnectionTheme: ConnectionTheme(
+    style: ConnectionStyles.smoothstep,
     color: Colors.grey.shade400,
     strokeWidth: 2.0,
     dashPattern: [5, 5], // Dashed line
   ),
+
+  // Animation timing
+  connectionAnimationDuration: const Duration(seconds: 2),
 
   // Port appearance
   portTheme: PortTheme(
     size: 10.0,
     color: Colors.blue.shade400,
     connectedColor: Colors.blue.shade700,
-    hoverColor: Colors.blue.shade800,
+    snappingColor: Colors.blue.shade800,
     borderColor: Colors.white,
     borderWidth: 2.0,
   ),
@@ -323,10 +307,7 @@ final customTheme = NodeFlowTheme(
   selectionBorderWidth: 1.0,
 );
 
-controller.setTheme
-(
-customTheme
-);
+controller.setTheme(customTheme);
 ```
 
 </details>
@@ -343,13 +324,12 @@ customTheme
 The simplest way to display nodes is using the default `NodeWidget`:
 
 ```dart
-NodeFlowEditor<String>
-(
-controller: controller,
-theme: theme,
-nodeBuilder: (context, node) {
-return NodeWidget.defaultStyle(node: node);
-},
+NodeFlowEditor<String>(
+  controller: controller,
+  theme: theme,
+  nodeBuilder: (context, node) {
+    return NodeWidget.defaultStyle(node: node);
+  },
 )
 ```
 
@@ -409,22 +389,21 @@ For complete control over node appearance:
 <summary><strong>Custom Node Container Example</strong></summary>
 
 ```dart
-NodeFlowEditor<MyData>
-(
-controller: controller,
-theme: theme,
-nodeBuilder: (context, node) => _buildNodeContent(node),
-nodeContainerBuilder: (context, node, content) {
-// Return NodeWidget with custom styling
-return NodeWidget<MyData>(
-node: node,
-child: content,
-backgroundColor: _getNodeColor(node),
-borderColor: node.isSelected ? Colors.blue : Colors.grey,
-borderWidth: node.isSelected ? 3.0 : 1.0,
-borderRadius: BorderRadius.circular(12),
-);
-},
+NodeFlowEditor<MyData>(
+  controller: controller,
+  theme: theme,
+  nodeBuilder: (context, node) => _buildNodeContent(node),
+  nodeContainerBuilder: (context, node, content) {
+    // Return NodeWidget with custom styling
+    return NodeWidget<MyData>(
+      node: node,
+      child: content,
+      backgroundColor: _getNodeColor(node),
+      borderColor: node.isSelected ? Colors.blue : Colors.grey,
+      borderWidth: node.isSelected ? 3.0 : 1.0,
+      borderRadius: BorderRadius.circular(12),
+    );
+  },
 )
 ```
 
@@ -594,29 +573,26 @@ Ports are connection points on nodes:
 
 ```dart
 // Input port (left side)
-const Port
-(
-id: 'input-1',
-name: 'Input',
-position: PortPosition.left,
-type: PortType.target, // Can only receive connections
+const Port(
+  id: 'input-1',
+  name: 'Input',
+  position: PortPosition.left,
+  type: PortType.target, // Can only receive connections
 )
 
 // Output port (right side)
 const Port(
-id: 'output-1',
-name: 'Output',
-position: PortPosition.right,
-type: PortType.source, // Can only create connections
+  id: 'output-1',
+  name: 'Output',
+  position: PortPosition.right,
+  type: PortType.source, // Can only create connections
 )
 
 // Bidirectional port
 const Port(
-id: 'bidirectional',
-name: 'Data',
-type: PortType.
-both
-, // Can both send and receive
+  id: 'bidirectional',
+  name: 'Data',
+  type: PortType.both, // Can both send and receive
 )
 ```
 
@@ -628,38 +604,34 @@ both
 ```dart
 // Left-side ports with vertical offsets
 inputPorts: [
-Port
-(
-id: 'in-1',
-name: 'Input 1',
-position: PortPosition.left,
-offset: Offset(0, 20), // 20px from top
-),
-Port(
-id: 'in-2',
-name: 'Input 2',
-position: PortPosition.left,
-offset: Offset(0, 60), // 60px from top
-),
+  Port(
+    id: 'in-1',
+    name: 'Input 1',
+    position: PortPosition.left,
+    offset: Offset(0, 20), // 20px from top
+  ),
+  Port(
+    id: 'in-2',
+    name: 'Input 2',
+    position: PortPosition.left,
+    offset: Offset(0, 60), // 60px from top
+  ),
 ]
 
 // Top-side ports with horizontal offsets
 inputPorts: [
-Port(
-id: 'in-1',
-name: 'Input 1',
-position: PortPosition.top,
-offset: Offset(40, 0), // 40px from left
-),
-Port(
-id: 'in-2',
-name: 'Input 2',
-position: PortPosition.top,
-offset: Offset(120, 0
-)
-, // 120px from left
-)
-,
+  Port(
+    id: 'in-1',
+    name: 'Input 1',
+    position: PortPosition.top,
+    offset: Offset(40, 0), // 40px from left
+  ),
+  Port(
+    id: 'in-2',
+    name: 'Input 2',
+    position: PortPosition.top,
+    offset: Offset(120, 0), // 120px from left
+  ),
 ]
 ```
 
@@ -668,16 +640,10 @@ offset: Offset(120, 0
 ### Port Shapes
 
 ```dart
-const Port
-(
-id: 'port-1',
-name: 'Data',
-shape
-:
-PortShape
-.
-capsuleHalf
-, // Default, oriented shape
+const Port(
+  id: 'port-1',
+  name: 'Data',
+  shape: PortShape.capsuleHalf, // Default, oriented shape
 )
 
 // Available shapes:
@@ -695,19 +661,18 @@ capsuleHalf
 
 ```dart
 // Allow unlimited connections
-const Port
-(
-id: 'output',
-name: 'Broadcast',
-multiConnections: true,
+const Port(
+  id: 'output',
+  name: 'Broadcast',
+  multiConnections: true,
 )
 
 // Limit to specific number
 const Port(
-id: 'output',
-name: 'Limited',
-multiConnections: true,
-maxConnections: 3,
+  id: 'output',
+  name: 'Limited',
+  multiConnections: true,
+  maxConnections: 3,
 )
 ```
 
@@ -722,13 +687,12 @@ Add or remove ports at runtime:
 
 ```dart
 // Add a port
-node.addOutputPort
-(
-Port(
-id: 'new-output',
-name: 'New Output',
-position: PortPosition.right,
-),
+node.addOutputPort(
+  Port(
+    id: 'new-output',
+    name: 'New Output',
+    position: PortPosition.right,
+  ),
 );
 
 // Remove a port
@@ -736,20 +700,16 @@ node.removePort('port-id');
 
 // Update a port
 node.updatePort(
-'port-id',
-Port(
-id: 'port-id',
-name: 'Updated Name',
-position: PortPosition.right,
-),
+  'port-id',
+  Port(
+    id: 'port-id',
+    name: 'Updated Name',
+    position: PortPosition.right,
+  ),
 );
 
 // Find a port
-final port = node.findPort(
-'
-port-id
-'
-);
+final port = node.findPort('port-id');
 ```
 
 </details>
@@ -772,10 +732,7 @@ final connection = Connection(
   targetPortId: 'input',
 );
 
-controller.addConnection
-(
-connection
-);
+controller.addConnection(connection);
 ```
 
 ### Connection Validation
@@ -786,48 +743,47 @@ Validate connections before they're created:
 <summary><strong>Connection Validation Example</strong></summary>
 
 ```dart
-NodeFlowEditor<MyData>
-(
-controller: controller,
-theme: theme,
-nodeBuilder: _buildNode,
+NodeFlowEditor<MyData>(
+  controller: controller,
+  theme: theme,
+  nodeBuilder: _buildNode,
 
-// Validate when starting a connection
-onBeforeStartConnection: (context) {
-// Don't allow connections from disabled nodes
-if (context.sourceNode.data.isDisabled) {
-return ConnectionValidationResult.invalid(
-reason: 'Cannot connect from disabled node',
-);
-}
-return ConnectionValidationResult.valid();
-},
+  // Validate when starting a connection
+  onBeforeStartConnection: (context) {
+    // Don't allow connections from disabled nodes
+    if (context.sourceNode.data.isDisabled) {
+      return ConnectionValidationResult.invalid(
+        reason: 'Cannot connect from disabled node',
+      );
+    }
+    return ConnectionValidationResult.valid();
+  },
 
-// Validate when completing a connection
-onBeforeCompleteConnection: (context) {
-// Don't allow self-connections
-if (context.sourceNode.id == context.targetNode.id) {
-return ConnectionValidationResult.invalid(
-reason: 'Cannot connect node to itself',
-);
-}
+  // Validate when completing a connection
+  onBeforeCompleteConnection: (context) {
+    // Don't allow self-connections
+    if (context.sourceNode.id == context.targetNode.id) {
+      return ConnectionValidationResult.invalid(
+        reason: 'Cannot connect node to itself',
+      );
+    }
 
-// Check for circular dependencies
-if (_wouldCreateCycle(context)) {
-return ConnectionValidationResult.invalid(
-reason: 'Would create circular dependency',
-);
-}
+    // Check for circular dependencies
+    if (_wouldCreateCycle(context)) {
+      return ConnectionValidationResult.invalid(
+        reason: 'Would create circular dependency',
+      );
+    }
 
-// Check port compatibility
-if (!_arePortsCompatible(context.sourcePort, context.targetPort)) {
-return ConnectionValidationResult.invalid(
-reason: 'Incompatible port types',
-);
-}
+    // Check port compatibility
+    if (!_arePortsCompatible(context.sourcePort, context.targetPort)) {
+      return ConnectionValidationResult.invalid(
+        reason: 'Incompatible port types',
+      );
+    }
 
-return ConnectionValidationResult.valid();
-},
+    return ConnectionValidationResult.valid();
+  },
 )
 ```
 
@@ -839,16 +795,235 @@ Choose from multiple connection path styles:
 
 ```dart
 // Smooth step (default, clean right-angle paths)
-connectionStyle: ConnectionStyles.smoothstep
+connectionTheme: ConnectionTheme(
+  style: ConnectionStyles.smoothstep,
+  // ...
+)
 
 // Bezier curves (smooth, flowing curves)
-connectionStyle: ConnectionStyles.bezier
+connectionTheme: ConnectionTheme(
+  style: ConnectionStyles.bezier,
+  // ...
+)
 
 // Straight lines (direct connections)
-connectionStyle: ConnectionStyles.straight
+connectionTheme: ConnectionTheme(
+  style: ConnectionStyles.straight,
+  // ...
+)
 
 // Step lines (right-angle paths)
-connectionStyle: ConnectionStyles.step
+connectionTheme: ConnectionTheme(
+  style: ConnectionStyles.step,
+  // ...
+)
+```
+
+### Connection Animation Effects
+
+Add visual effects to connections to show flow direction, data movement, or
+simply to enhance the visual appeal of your diagrams. Effects can be applied at
+the theme level (affecting all connections) or per-connection for fine-grained
+control.
+
+#### Available Effects
+
+<details>
+<summary><strong>FlowingDashEffect - Animated dashed lines</strong></summary>
+
+Creates a flowing dash pattern along the connection, similar to the classic
+"marching ants" effect.
+
+```dart
+FlowingDashEffect(
+  speed: 2,          // Complete cycles per animation period
+  dashLength: 10,    // Length of each dash (pixels)
+  gapLength: 5,      // Length of gap between dashes (pixels)
+)
+```
+
+</details>
+
+<details>
+<summary><strong>ParticleEffect - Moving particles</strong></summary>
+
+Shows particles traveling along the connection path, useful for visualizing data
+flow or direction.
+
+```dart
+ParticleEffect(
+  particleCount: 5,         // Number of particles
+  speed: 1,                 // Complete cycles per animation period
+  connectionOpacity: 0.3,   // Opacity of base connection (0.0-1.0)
+  particlePainter: CircleParticle(radius: 4.0), // Particle appearance
+)
+
+// Available particle painters:
+// - CircleParticle(radius: double)
+// - ArrowParticle(length: double, width: double)
+// - CharacterParticle(character: String, fontSize: double)
+```
+
+</details>
+
+<details>
+<summary><strong>GradientFlowEffect - Flowing gradient</strong></summary>
+
+Creates a smoothly flowing gradient along the connection path.
+
+```dart
+GradientFlowEffect(
+  colors: [
+    Colors.blue.withValues(alpha: 0.0),
+    Colors.blue,
+    Colors.blue.withValues(alpha: 0.0),
+  ],
+  speed: 1,                  // Complete cycles per animation period
+  gradientLength: 0.25,      // Length as fraction of path (< 1) or pixels (>= 1)
+  connectionOpacity: 1.0,    // Opacity of base connection (0.0-1.0)
+)
+```
+
+</details>
+
+<details>
+<summary><strong>PulseEffect - Pulsing/breathing effect</strong></summary>
+
+Creates a pulsing or breathing effect by animating the connection's opacity and
+optionally its width.
+
+```dart
+PulseEffect(
+  speed: 1,              // Complete pulse cycles per animation period
+  minOpacity: 0.4,       // Minimum opacity during pulse
+  maxOpacity: 1.0,       // Maximum opacity during pulse
+  widthVariation: 1.5,   // Width multiplier at peak (1.0 = no variation)
+)
+```
+
+</details>
+
+#### Applying Effects at Theme Level
+
+Set a default animation effect for all connections in your theme:
+
+```dart
+final theme = NodeFlowTheme(
+  // ... other theme properties
+  connectionTheme: ConnectionTheme(
+    style: ConnectionStyles.smoothstep,
+    color: Colors.grey,
+    strokeWidth: 2.0,
+    // Default animation effect for all connections
+    animationEffect: FlowingDashEffect(
+      speed: 2,
+      dashLength: 10,
+      gapLength: 5,
+    ),
+  ),
+  // Control animation cycle duration
+  connectionAnimationDuration: const Duration(seconds: 2),
+);
+```
+
+#### Applying Effects Per Connection
+
+Override the theme's default effect on individual connections:
+
+```dart
+final connection = Connection(
+  id: 'conn-1',
+  sourceNodeId: 'node-1',
+  sourcePortId: 'output',
+  targetNodeId: 'node-2',
+  targetPortId: 'input',
+  // This connection will use ParticleEffect, overriding theme default
+  animationEffect: ParticleEffect(
+    particleCount: 3,
+    speed: 1,
+    connectionOpacity: 0.3,
+  ),
+);
+
+// Or create a connection with no effect (overriding theme)
+final staticConnection = Connection(
+  id: 'conn-2',
+  sourceNodeId: 'node-2',
+  sourcePortId: 'output',
+  targetNodeId: 'node-3',
+  targetPortId: 'input',
+  animationEffect: null, // Explicitly no effect
+);
+```
+
+#### Animation Duration
+
+Control how fast animations cycle using `connectionAnimationDuration` in your
+theme:
+
+```dart
+final theme = NodeFlowTheme(
+  // ... other properties
+  connectionAnimationDuration: const Duration(seconds: 3), // Slower cycle
+);
+
+// Or for faster animations:
+final fastTheme = NodeFlowTheme(
+  // ... other properties
+  connectionAnimationDuration: const Duration(milliseconds: 1500), // Faster cycle
+);
+```
+
+The animation duration controls how long one complete cycle takes. Effects with
+a `speed` parameter of 1 will complete one full cycle in this duration. Higher
+speed values cause multiple cycles within the duration.
+
+#### Example: Mixed Effects
+
+```dart
+// Theme with default particle effect
+final theme = NodeFlowTheme(
+  connectionTheme: ConnectionTheme(
+    animationEffect: ParticleEffect(particleCount: 3, speed: 1),
+  ),
+  connectionAnimationDuration: const Duration(seconds: 2),
+);
+
+// Most connections use the theme's particle effect
+controller.addConnection(Connection(
+  id: 'conn-1',
+  sourceNodeId: 'node-1',
+  sourcePortId: 'out',
+  targetNodeId: 'node-2',
+  targetPortId: 'in',
+  // Uses theme's ParticleEffect
+));
+
+// But we can override for specific connections
+controller.addConnection(Connection(
+  id: 'conn-critical',
+  sourceNodeId: 'node-2',
+  sourcePortId: 'out',
+  targetNodeId: 'node-3',
+  targetPortId: 'in',
+  // Critical connection gets a pulse effect
+  animationEffect: PulseEffect(
+    speed: 2,
+    minOpacity: 0.5,
+    maxOpacity: 1.0,
+    widthVariation: 1.3,
+  ),
+));
+
+// And we can explicitly disable effects on some connections
+controller.addConnection(Connection(
+  id: 'conn-static',
+  sourceNodeId: 'node-3',
+  sourcePortId: 'out',
+  targetNodeId: 'node-4',
+  targetPortId: 'in',
+  animationEffect: null, // No animation
+));
 ```
 
 ### Connection Endpoints
@@ -859,19 +1034,18 @@ Customize connection line endpoints:
 <summary><strong>Connection Endpoint Styles</strong></summary>
 
 ```dart
-connectionTheme: ConnectionTheme
-(
-// Start endpoint (source port)
-startPoint: ConnectionEndPoint.none,
+connectionTheme: ConnectionTheme(
+  // Start endpoint (source port)
+  startPoint: ConnectionEndPoint.none,
 
-// End endpoint (target port)
-endPoint: ConnectionEndPoint.arrow,
+  // End endpoint (target port)
+  endPoint: ConnectionEndPoint.arrow,
 
-// Other endpoint options:
-// - ConnectionEndPoint.none
-// - ConnectionEndPoint.arrow
-// - ConnectionEndPoint.circle
-// - ConnectionEndPoint.capsuleHalf (matches port shape)
+  // Other endpoint options:
+  // - ConnectionEndPoint.none
+  // - ConnectionEndPoint.arrow
+  // - ConnectionEndPoint.circle
+  // - ConnectionEndPoint.capsuleHalf (matches port shape)
 )
 ```
 
@@ -885,7 +1059,6 @@ Add labels to connections:
 <summary><strong>Connection Label Example</strong></summary>
 
 ```dart
-
 final connection = Connection(
   id: 'conn-1',
   sourceNodeId: 'node-1',
@@ -896,16 +1069,15 @@ final connection = Connection(
 );
 
 // Customize label appearance in theme
-labelTheme: LabelTheme
-(
-color: Colors.black87,
-fontSize: 11.0,
-fontWeight: FontWeight.w500,
-backgroundColor: Colors.white,
-borderColor: Colors.grey.shade300,
-borderWidth: 1.0,
-horizontalOffset: 8.0,
-verticalOffset: 8.0,
+labelTheme: LabelTheme(
+  color: Colors.black87,
+  fontSize: 11.0,
+  fontWeight: FontWeight.w500,
+  backgroundColor: Colors.white,
+  borderColor: Colors.grey.shade300,
+  borderWidth: 1.0,
+  horizontalOffset: 8.0,
+  verticalOffset: 8.0,
 )
 ```
 
@@ -925,24 +1097,21 @@ notes, or custom visualizations.
 
 ```dart
 // Add a sticky note annotation
-controller.addAnnotation
-(
-StickyAnnotation(
-id: 'note-1',
-position: const Offset(100, 100),
-text: 'This is a note',
-width: 200,
-height: 100,
-color: Colors.yellow.shade100,
-),
+controller.addAnnotation(
+  StickyAnnotation(
+    id: 'note-1',
+    position: const Offset(100, 100),
+    text: 'This is a note',
+    width: 200,
+    height: 100,
+    color: Colors.yellow.shade100,
+  ),
 );
 
 // Or use the convenience method
 controller.createStickyNote(
-position: const Offset(100, 100),
-text: 'This is a note
-'
-,
+  position: const Offset(100, 100),
+  text: 'This is a note',
 );
 ```
 
@@ -1013,16 +1182,12 @@ class ImageAnnotation extends Annotation {
 }
 
 // Use the custom annotation
-controller.addAnnotation
-(
-ImageAnnotation(
-id: 'img-1',
-position: const Offset(200, 200),
-imageUrl: 'https://example.com/image.jpg
-'
-,
-)
-,
+controller.addAnnotation(
+  ImageAnnotation(
+    id: 'img-1',
+    position: const Offset(200, 200),
+    imageUrl: 'https://example.com/image.jpg',
+  ),
 );
 ```
 
@@ -1046,10 +1211,7 @@ final annotation = StickyAnnotation(
   offset: const Offset(0, -50), // 50px above the node
 );
 
-controller.addAnnotation
-(
-annotation
-);
+controller.addAnnotation(annotation);
 ```
 
 </details>
@@ -1064,84 +1226,83 @@ annotation
 <summary><strong>All Available Callbacks</strong></summary>
 
 ```dart
-NodeFlowEditor<MyData>
-(
-controller: controller,
-theme: theme,
-nodeBuilder: _buildNode,
+NodeFlowEditor<MyData>(
+  controller: controller,
+  theme: theme,
+  nodeBuilder: _buildNode,
 
-// Node events
-onNodeSelected: (node) {
-print('Node selected: ${node?.id}');
-},
-onNodeTap: (node) {
-print('Node tapped: ${node.id}');
-},
-onNodeDoubleTap: (node) {
-print('Node double-tapped: ${node.id}');
-_showNodeEditor(node);
-},
-onNodeCreated: (node) {
-print('Node created: ${node.id}');
-},
-onNodeDeleted: (node) {
-print('Node deleted: ${node.id}');
-},
+  // Node events
+  onNodeSelected: (node) {
+    print('Node selected: ${node?.id}');
+  },
+  onNodeTap: (node) {
+    print('Node tapped: ${node.id}');
+  },
+  onNodeDoubleTap: (node) {
+    print('Node double-tapped: ${node.id}');
+    _showNodeEditor(node);
+  },
+  onNodeCreated: (node) {
+    print('Node created: ${node.id}');
+  },
+  onNodeDeleted: (node) {
+    print('Node deleted: ${node.id}');
+  },
 
-// Connection events
-onConnectionSelected: (connection) {
-print('Connection selected: ${connection?.id}');
-},
-onConnectionTap: (connection) {
-print('Connection tapped: ${connection.id}');
-},
-onConnectionDoubleTap: (connection) {
-print('Connection double-tapped: ${connection.id}');
-},
-onConnectionCreated: (connection) {
-print('Connection created: ${connection.id}');
-_notifyConnectionChange();
-},
-onConnectionDeleted: (connection) {
-print('Connection deleted: ${connection.id}');
-},
+  // Connection events
+  onConnectionSelected: (connection) {
+    print('Connection selected: ${connection?.id}');
+  },
+  onConnectionTap: (connection) {
+    print('Connection tapped: ${connection.id}');
+  },
+  onConnectionDoubleTap: (connection) {
+    print('Connection double-tapped: ${connection.id}');
+  },
+  onConnectionCreated: (connection) {
+    print('Connection created: ${connection.id}');
+    _notifyConnectionChange();
+  },
+  onConnectionDeleted: (connection) {
+    print('Connection deleted: ${connection.id}');
+  },
 
-// Connection validation callbacks
-onBeforeStartConnection: (context) {
-// Validate before starting a connection from a port
-if (context.existingConnections.isNotEmpty &&
-!context.sourcePort.multiConnections) {
-return ConnectionValidationResult(
-allowed: false,
-message: 'Port already has a connection',
-);
-}
-return ConnectionValidationResult.valid();
-},
-onBeforeCompleteConnection: (context) {
-// Validate before completing a connection to a target port
-if (_wouldCreateCycle(context.sourceNode, context.targetNode)) {
-return ConnectionValidationResult(
-allowed: false,
-message: 'This would create a cycle',
-);
-}
-return ConnectionValidationResult.valid();
-},
+  // Connection validation callbacks
+  onBeforeStartConnection: (context) {
+    // Validate before starting a connection from a port
+    if (context.existingConnections.isNotEmpty &&
+        !context.sourcePort.multiConnections) {
+      return ConnectionValidationResult(
+        allowed: false,
+        message: 'Port already has a connection',
+      );
+    }
+    return ConnectionValidationResult.valid();
+  },
+  onBeforeCompleteConnection: (context) {
+    // Validate before completing a connection to a target port
+    if (_wouldCreateCycle(context.sourceNode, context.targetNode)) {
+      return ConnectionValidationResult(
+        allowed: false,
+        message: 'This would create a cycle',
+      );
+    }
+    return ConnectionValidationResult.valid();
+  },
 
-// Annotation events
-onAnnotationSelected: (annotation) {
-print('Annotation selected: ${annotation?.id}');
-},
-onAnnotationTap: (annotation) {
-print('Annotation tapped: ${annotation.id}');
-},
-onAnnotationCreated: (annotation) {
-print('Annotation created: ${annotation.id}');
-},
-onAnnotationDeleted: (annotation) {
-print('Annotation deleted: ${annotation.id}');
-},
+  // Annotation events
+  onAnnotationSelected: (annotation) {
+    print('Annotation selected: ${annotation?.id}');
+  },
+  onAnnotationTap: (annotation) {
+    print('Annotation tapped: ${annotation.id}');
+  },
+  onAnnotationCreated: (annotation) {
+    print('Annotation created: ${annotation.id}');
+  },
+  onAnnotationDeleted: (annotation) {
+    print('Annotation deleted: ${annotation.id}');
+  },
 )
 ```
 
@@ -1154,14 +1315,15 @@ Built-in keyboard shortcuts are available:
 #### Selection
 
 | Shortcut       | Action                 |
-|----------------|------------------------|
+| -------------- | ---------------------- |
 | `Cmd/Ctrl + A` | Select all nodes       |
 | `Cmd/Ctrl + I` | Invert selection       |
 | `Escape`       | Clear selection/cancel |
 
 #### Editing
+
 | Shortcut               | Action                            |
-|------------------------|-----------------------------------|
+| ---------------------- | --------------------------------- |
 | `Delete` / `Backspace` | Delete selected nodes/connections |
 | `Cmd/Ctrl + D`         | Duplicate selected nodes          |
 | `N`                    | Toggle grid snapping              |
@@ -1169,7 +1331,7 @@ Built-in keyboard shortcuts are available:
 #### Navigation
 
 | Shortcut       | Action                |
-|----------------|-----------------------|
+| -------------- | --------------------- |
 | `F`            | Fit all nodes to view |
 | `H`            | Fit selected to view  |
 | `Cmd/Ctrl + 0` | Reset zoom to 100%    |
@@ -1180,7 +1342,7 @@ Built-in keyboard shortcuts are available:
 #### Arrangement
 
 | Shortcut       | Action                 |
-|----------------|------------------------|
+| -------------- | ---------------------- |
 | `[`            | Send to back           |
 | `]`            | Bring to front         |
 | `Cmd/Ctrl + [` | Send backward one step |
@@ -1189,7 +1351,7 @@ Built-in keyboard shortcuts are available:
 #### Alignment (requires 2+ selected nodes)
 
 | Shortcut               | Action       |
-|------------------------|--------------|
+| ---------------------- | ------------ |
 | `Cmd/Ctrl + Shift + ↑` | Align top    |
 | `Cmd/Ctrl + Shift + ↓` | Align bottom |
 | `Cmd/Ctrl + Shift + ←` | Align left   |
@@ -1198,7 +1360,7 @@ Built-in keyboard shortcuts are available:
 #### Grouping
 
 | Shortcut               | Action       |
-|------------------------|--------------|
+| ---------------------- | ------------ |
 | `Cmd/Ctrl + G`         | Create group |
 | `Cmd/Ctrl + Shift + G` | Ungroup      |
 
@@ -1207,20 +1369,19 @@ Built-in keyboard shortcuts are available:
 
 ```dart
 // Register custom actions
-controller.shortcuts.registerAction
-(
-NodeFlowAction(
-id: 'custom-action',
-label: 'Custom Action',
-shortcut: SingleActivator(
-LogicalKeyboardKey.keyK,
-control: true,
-),
-execute: (controller) {
-// Your custom logic
-print('Custom action executed!');
-},
-),
+controller.shortcuts.registerAction(
+  NodeFlowAction(
+    id: 'custom-action',
+    label: 'Custom Action',
+    shortcut: SingleActivator(
+      LogicalKeyboardKey.keyK,
+      control: true,
+    ),
+    execute: (controller) {
+      // Your custom logic
+      print('Custom action executed!');
+    },
+  ),
 );
 
 // Show shortcuts dialog
@@ -1234,19 +1395,18 @@ controller.showShortcutsDialog(context);
 Control which interactions are enabled:
 
 ```dart
-NodeFlowEditor<T>
-(
-controller: controller,
-theme: theme,
-nodeBuilder: _buildNode,
+NodeFlowEditor<T>(
+  controller: controller,
+  theme: theme,
+  nodeBuilder: _buildNode,
 
-enablePanning: true, // Pan with space+drag or right-click
-enableZooming: true, // Zoom with mouse wheel
-enableSelection: true, // Select nodes and connections
-enableNodeDragging: true, // Drag nodes to reposition
-enableConnectionCreation: true, // Create connections by dragging
-scrollToZoom: true, // Zoom with trackpad scroll
-showAnnotations: true, // Display annotation layer
+  enablePanning: true, // Pan with space+drag or right-click
+  enableZooming: true, // Zoom with mouse wheel
+  enableSelection: true, // Select nodes and connections
+  enableNodeDragging: true, // Drag nodes to reposition
+  enableConnectionCreation: true, // Create connections by dragging
+  scrollToZoom: true, // Zoom with trackpad scroll
+  showAnnotations: true, // Display annotation layer
 )
 ```
 
@@ -1268,11 +1428,10 @@ final controller = NodeFlowController<T>(
 );
 
 // Use with editor - minimap appears automatically
-NodeFlowEditor<T>
-(
-controller: controller,
-theme: theme,
-nodeBuilder: _buildNode,
+NodeFlowEditor<T>(
+  controller: controller,
+  theme: theme,
+  nodeBuilder: _buildNode,
 );
 ```
 
@@ -1280,16 +1439,10 @@ You can also toggle the minimap at runtime:
 
 ```dart
 // Toggle minimap visibility
-controller.config.toggleMinimap
-();
+controller.config.toggleMinimap();
 
 // Change minimap position
-controller.config.setMinimapPosition
-(
-MinimapPosition
-.
-topLeft
-);
+controller.config.setMinimapPosition(MinimapPosition.topLeft);
 ```
 
 > [!TIP] The minimap automatically updates as you pan, zoom, and modify the
@@ -1303,16 +1456,13 @@ topLeft
 Display flows without editing capabilities:
 
 ```dart
-NodeFlowViewer<T>
-(
-controller: controller,
-theme: theme,
-nodeBuilder: _buildNode,
-enablePanning: true,
-enableZooming: true,
-scrollToZoom:
-true
-,
+NodeFlowViewer<T>(
+  controller: controller,
+  theme: theme,
+  nodeBuilder: _buildNode,
+  enablePanning: true,
+  enableZooming: true,
+  scrollToZoom: true,
 );
 ```
 
@@ -1335,11 +1485,7 @@ final json = graph.toJson((data) => data.toJson());
 final jsonString = jsonEncode(json);
 
 // Save to file
-await File
-('my_flow.json
-'
-)
-.writeAsString(jsonString);
+await File('my_flow.json').writeAsString(jsonString);
 
 // Load from file
 final loadedJson = await File('my_flow.json').readAsString();
@@ -1347,15 +1493,11 @@ final decoded = jsonDecode(loadedJson);
 
 // Import graph
 final loadedGraph = NodeGraph.fromJson(
-decoded,
-(json) => MyData.fromJson(json),
+  decoded,
+  (json) => MyData.fromJson(json),
 );
 
-controller.
-loadGraph
-(
-loadedGraph
-);
+controller.loadGraph(loadedGraph);
 ```
 
 </details>
@@ -1364,18 +1506,11 @@ loadedGraph
 
 ```dart
 // Load graph from a URL (web/assets)
-final graph = await
-NodeGraph.fromUrl<MyData>
-('assets/workflows/my_flow.json
-'
-,
+final graph = await NodeGraph.fromUrl<MyData>(
+  'assets/workflows/my_flow.json',
 );
 
-controller.
-loadGraph
-(
-graph
-);
+controller.loadGraph(graph);
 ```
 
 ---
@@ -1396,10 +1531,9 @@ final config = NodeFlowConfig(
 );
 
 // Toggle snapping at runtime
-config.toggleSnapping
-();config.toggleNodeSnapping
-();config.toggleAnnotationSnapping
-();
+config.toggleSnapping();
+config.toggleNodeSnapping();
+config.toggleAnnotationSnapping();
 ```
 
 </details>
@@ -1682,7 +1816,9 @@ class _WorkflowBuilderState extends State<WorkflowBuilder> {
 
   NodeFlowTheme _createWorkflowTheme() {
     return NodeFlowTheme.light.copyWith(
-      connectionStyle: ConnectionStyles.smoothstep,
+      connectionTheme: NodeFlowTheme.light.connectionTheme.copyWith(
+        style: ConnectionStyles.smoothstep,
+      ),
       gridStyle: GridStyle.dots,
     );
   }
