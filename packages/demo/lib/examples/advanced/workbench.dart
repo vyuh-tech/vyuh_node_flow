@@ -194,17 +194,16 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
   }
 
   NodeFlowTheme _buildInitialTheme() {
-    final connectionStyle = ConnectionStyles.step;
-
     return NodeFlowTheme.light.copyWith(
+      connectionTheme: ConnectionTheme.light.copyWith(
+        animationEffect: FlowingDashEffect(speed: 3),
+      ),
       temporaryConnectionTheme: NodeFlowTheme.light.temporaryConnectionTheme
           .copyWith(
             dashPattern: [5, 5],
             strokeWidth: 2.0,
             bezierCurvature: 0.5,
           ),
-      connectionStyle: connectionStyle,
-      temporaryConnectionStyle: connectionStyle,
       portTheme: NodeFlowTheme.light.portTheme.copyWith(
         size: 12.0, // Increased from default 9.0 for better visibility
         borderWidth: 1.0, // Add border for better visibility

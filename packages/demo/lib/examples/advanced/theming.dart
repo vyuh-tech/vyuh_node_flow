@@ -274,13 +274,16 @@ class _ThemingExampleState extends State<ThemingExample> {
                 style.displayName,
                 style: const TextStyle(fontSize: 11),
               ),
-              selected: _theme.connectionStyle == style,
+              selected: _theme.connectionTheme.style == style,
               onSelected: (selected) {
                 if (selected) {
                   _updateTheme(
                     _theme.copyWith(
-                      connectionStyle: style,
-                      temporaryConnectionStyle: style,
+                      connectionTheme: _theme.connectionTheme.copyWith(
+                        style: style,
+                      ),
+                      temporaryConnectionTheme: _theme.temporaryConnectionTheme
+                          .copyWith(style: style),
                     ),
                   );
                 }

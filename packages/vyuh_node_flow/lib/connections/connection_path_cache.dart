@@ -50,7 +50,7 @@ class ConnectionPathCache {
 
     // Invalidate cache only if path-affecting properties changed
     final pathChanged =
-        oldTheme.connectionStyle != newTheme.connectionStyle ||
+        oldTheme.connectionTheme.style != newTheme.connectionTheme.style ||
         oldTheme.connectionTheme.bezierCurvature !=
             newTheme.connectionTheme.bezierCurvature ||
         oldTheme.connectionTheme.cornerRadius !=
@@ -110,7 +110,7 @@ class ConnectionPathCache {
       final customHitPath = _createHitTestPath(
         cachedPath.originalPath,
         hitTolerance,
-        connectionStyle: theme.connectionStyle,
+        connectionStyle: theme.connectionTheme.style,
       );
       return customHitPath.contains(testPoint);
     }

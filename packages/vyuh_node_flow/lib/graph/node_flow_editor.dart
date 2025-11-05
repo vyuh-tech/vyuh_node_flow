@@ -383,6 +383,12 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Update callbacks if they changed
     _updateCallbacks();
     widget.controller.setTheme(widget.theme);
+
+    // Check if animation should be updated due to theme change
+    if (oldWidget.theme.connectionTheme.animationEffect !=
+        widget.theme.connectionTheme.animationEffect) {
+      _updateAnimationController();
+    }
   }
 
   @override
@@ -467,16 +473,11 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Start/stop animation controller based on whether any connections are animated
     _disposers.add(
       reaction(
-        (_) => widget.controller.connections.any(
-          (connection) => connection.animationEffect != null,
+        (_) => (
+          widget.theme.connectionTheme.animationEffect,
+          widget.controller.connections.any((c) => c.animationEffect != null),
         ),
-        (hasAnimatedConnections) {
-          if (hasAnimatedConnections) {
-            _connectionAnimationController?.repeat();
-          } else {
-            _connectionAnimationController?.stop();
-          }
-        },
+        (_) => _updateAnimationController(),
         fireImmediately: true,
       ),
     );
@@ -504,6 +505,28 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         !widget.controller.isDrawingSelection;
 
     widget.controller._updateInteractionState(panEnabled: newPanEnabled);
+  }
+
+  /// Updates the animation controller based on theme and connection animation effects.
+  ///
+  /// Starts the animation controller if either the theme has a default animation effect
+  /// or any connection has an individual animation effect. Stops it otherwise.
+  void _updateAnimationController() {
+    // Check if theme has default animation effect
+    final themeHasEffect = widget.theme.connectionTheme.animationEffect != null;
+
+    // Check if any connection has an animation effect
+    final connectionHasEffect = widget.controller.connections.any(
+      (connection) => connection.animationEffect != null,
+    );
+
+    final hasAnimations = themeHasEffect || connectionHasEffect;
+
+    if (hasAnimations) {
+      _connectionAnimationController?.repeat();
+    } else {
+      _connectionAnimationController?.stop();
+    }
   }
 
   void _updateCallbacks() {

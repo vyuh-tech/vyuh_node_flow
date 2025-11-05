@@ -117,6 +117,7 @@ library;
 export 'annotations/annotation.dart';
 export 'annotations/annotation_layer.dart';
 export 'annotations/annotation_widget.dart';
+export 'connections/animation/animation_effects.dart';
 // Connections
 export 'connections/connection.dart';
 export 'connections/connection_endpoint.dart';
@@ -130,6 +131,7 @@ export 'connections/edge_label_position_calculator.dart';
 export 'connections/endpoint_position_calculator.dart';
 export 'connections/label_theme.dart';
 export 'connections/temporary_connection.dart';
+// Core
 export 'graph/graph.dart'; // Needed for examples and serialization
 export 'graph/grid_calculator.dart';
 export 'graph/node_flow_actions.dart';

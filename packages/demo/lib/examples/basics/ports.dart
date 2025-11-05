@@ -239,6 +239,7 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
       final useDashed = _themeControl._useDashedLine.value;
 
       final newConnectionTheme = currentTheme.connectionTheme.copyWith(
+        style: _themeControl._connectionStyle.value,
         color: _themeControl._connectionColor.value,
         strokeWidth: _themeControl._strokeWidth.value,
         cornerRadius: _themeControl._cornerRadius.value,
@@ -247,7 +248,6 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
       );
 
       final newTheme = currentTheme.copyWith(
-        connectionStyle: _themeControl._connectionStyle.value,
         connectionTheme: newConnectionTheme,
       );
 

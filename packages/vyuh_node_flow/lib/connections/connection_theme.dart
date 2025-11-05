@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'animation/connection_animation_effect.dart';
 import 'connection_endpoint.dart';
+import 'connection_style_base.dart';
+import 'connection_styles.dart';
 
 /// Defines the available shapes for connection endpoint markers.
 ///
@@ -63,6 +66,7 @@ class ConnectionTheme {
   /// Creates a connection theme with the specified visual properties.
   ///
   /// Parameters:
+  /// - [style]: The connection line style (bezier, smoothstep, straight, etc.)
   /// - [color]: Default color for unselected connections
   /// - [selectedColor]: Color for selected connections
   /// - [strokeWidth]: Stroke width for unselected connections in logical pixels
@@ -70,11 +74,13 @@ class ConnectionTheme {
   /// - [dashPattern]: Optional dash pattern for dashed lines (e.g., [5, 3] for 5px dash, 3px gap)
   /// - [startPoint]: Endpoint marker for the connection start
   /// - [endPoint]: Endpoint marker for the connection end
+  /// - [animationEffect]: Optional default animation effect for connections
   /// - [animationDuration]: Duration for connection animations
   /// - [bezierCurvature]: Curvature factor for bezier-style connections (0.0 to 1.0)
   /// - [cornerRadius]: Radius for rounded corners in step-style connections
   /// - [hitTolerance]: Distance tolerance for hit testing in logical pixels
   const ConnectionTheme({
+    this.style = ConnectionStyles.smoothstep,
     this.color = Colors.grey,
     this.selectedColor = Colors.blue,
     this.strokeWidth = 2.0,
@@ -82,11 +88,18 @@ class ConnectionTheme {
     this.dashPattern,
     this.startPoint = ConnectionEndPoint.none,
     this.endPoint = ConnectionEndPoint.capsuleHalf,
+    this.animationEffect,
     this.animationDuration = const Duration(milliseconds: 300),
     this.bezierCurvature = 0.3,
     this.cornerRadius = 4.0,
     this.hitTolerance = 8.0,
   });
+
+  /// The connection line style (bezier, smoothstep, straight, etc.).
+  ///
+  /// Defines how the connection path is rendered between nodes.
+  /// See [ConnectionStyles] for available built-in styles.
+  final ConnectionStyle style;
 
   /// Default color for unselected connections.
   final Color color;
@@ -112,6 +125,19 @@ class ConnectionTheme {
 
   /// Endpoint marker for the connection end (target).
   final ConnectionEndPoint endPoint;
+
+  /// Optional default animation effect for all connections.
+  ///
+  /// If specified, this effect will be used for all connections unless
+  /// overridden by the individual connection's [animationEffect] property.
+  /// If null, connections will have no animation effect by default.
+  ///
+  /// Common effects include:
+  /// - [FlowingDashEffect]: Flowing dashed line animation
+  /// - [ParticleEffect]: Particles moving along the connection
+  /// - [GradientFlowEffect]: Animated gradient flowing along the path
+  /// - [PulseEffect]: Pulsing/glowing effect
+  final ConnectionAnimationEffect? animationEffect;
 
   /// Duration for connection animations (e.g., selection, appearance).
   final Duration animationDuration;
@@ -141,8 +167,9 @@ class ConnectionTheme {
   ///
   /// Any parameter that is not provided will retain its current value.
   ///
-  /// Note: Passing null for [dashPattern] will set it to null (solid line).
+  /// Note: Passing null for [dashPattern] or [animationEffect] will set them to null.
   ConnectionTheme copyWith({
+    ConnectionStyle? style,
     Color? color,
     Color? selectedColor,
     double? strokeWidth,
@@ -150,12 +177,14 @@ class ConnectionTheme {
     List<double>? dashPattern,
     ConnectionEndPoint? startPoint,
     ConnectionEndPoint? endPoint,
+    ConnectionAnimationEffect? animationEffect,
     Duration? animationDuration,
     double? bezierCurvature,
     double? cornerRadius,
     double? hitTolerance,
   }) {
     return ConnectionTheme(
+      style: style ?? this.style,
       color: color ?? this.color,
       selectedColor: selectedColor ?? this.selectedColor,
       strokeWidth: strokeWidth ?? this.strokeWidth,
@@ -163,6 +192,7 @@ class ConnectionTheme {
       dashPattern: dashPattern,
       startPoint: startPoint ?? this.startPoint,
       endPoint: endPoint ?? this.endPoint,
+      animationEffect: animationEffect,
       animationDuration: animationDuration ?? this.animationDuration,
       bezierCurvature: bezierCurvature ?? this.bezierCurvature,
       cornerRadius: cornerRadius ?? this.cornerRadius,
@@ -173,11 +203,13 @@ class ConnectionTheme {
   /// Predefined light theme optimized for light backgrounds.
   ///
   /// Features:
+  /// - Smoothstep connection style
   /// - Dark gray connections (0xFF666666) for good contrast
   /// - Blue selection color (Material blue 500)
   /// - No start marker, capsule-half end marker
   /// - Moderate curvature (0.5)
   static const light = ConnectionTheme(
+    style: ConnectionStyles.smoothstep,
     color: Color(0xFF666666),
     selectedColor: Color(0xFF2196F3),
     strokeWidth: 2.0,
@@ -192,11 +224,13 @@ class ConnectionTheme {
   /// Predefined dark theme optimized for dark backgrounds.
   ///
   /// Features:
+  /// - Smoothstep connection style
   /// - Light gray connections (0xFF999999) for good contrast
   /// - Light blue selection color (Material blue 300)
   /// - No start marker, capsule-half end marker
   /// - Moderate curvature (0.5)
   static const dark = ConnectionTheme(
+    style: ConnectionStyles.smoothstep,
     color: Color(0xFF999999),
     selectedColor: Color(0xFF64B5F6),
     strokeWidth: 2.0,

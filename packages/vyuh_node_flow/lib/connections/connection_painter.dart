@@ -54,7 +54,9 @@ class ConnectionPainter {
     double? animationValue,
   }) {
     // Get effective style from connection instance or theme
-    final effectiveStyle = connection.getEffectiveStyle(theme.connectionStyle);
+    final effectiveStyle = connection.getEffectiveStyle(
+      theme.connectionTheme.style,
+    );
 
     // Get or create path using the cache with connection style
     final path = _pathCache.getOrCreatePath(
@@ -170,10 +172,15 @@ class ConnectionPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
+    // Get effective animation effect (from connection or theme fallback)
+    final effectiveAnimationEffect = connection.getEffectiveAnimationEffect(
+      connectionTheme.animationEffect,
+    );
+
     // Check if connection has an animation effect
-    if (connection.animationEffect != null && animationValue != null) {
+    if (effectiveAnimationEffect != null && animationValue != null) {
       // Use animation effect to render the connection
-      connection.animationEffect!.paint(
+      effectiveAnimationEffect.paint(
         canvas,
         connectionPath,
         paint,
@@ -311,12 +318,10 @@ class ConnectionPainter {
     bool drawTargetEndpoint = true,
   }) {
     // Get theme components based on connection type
-    final connectionStyle = isTemporary
-        ? theme.temporaryConnectionStyle
-        : theme.connectionStyle;
     final connectionTheme = isTemporary
         ? theme.temporaryConnectionTheme
         : theme.connectionTheme;
+    final connectionStyle = connectionTheme.style;
     final portTheme = theme.portTheme;
     // Create connection path
     final connectionPath = ConnectionPathCalculator.createConnectionPath(

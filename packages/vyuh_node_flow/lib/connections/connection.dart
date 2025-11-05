@@ -364,6 +364,21 @@ class Connection {
     return endPoint ?? themeEndPoint;
   }
 
+  /// Gets the effective animation effect for rendering.
+  ///
+  /// Returns the instance-specific [animationEffect] if set, otherwise falls
+  /// back to the provided [themeAnimationEffect] from the theme.
+  ///
+  /// Parameters:
+  /// - [themeAnimationEffect]: The default animation effect from the theme
+  ///
+  /// Returns: The animation effect to use for rendering this connection, or null if none
+  ConnectionAnimationEffect? getEffectiveAnimationEffect(
+    ConnectionAnimationEffect? themeAnimationEffect,
+  ) {
+    return animationEffect ?? themeAnimationEffect;
+  }
+
   /// Disposes resources used by this connection.
   ///
   /// Note: MobX observables don't require manual disposal, so this method

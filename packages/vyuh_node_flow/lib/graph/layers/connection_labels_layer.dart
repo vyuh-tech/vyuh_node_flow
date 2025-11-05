@@ -107,7 +107,7 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
               connection: connection,
               sourceNode: sourceNode,
               targetNode: targetNode,
-              connectionStyle: currentTheme.connectionStyle,
+              connectionStyle: currentTheme.connectionTheme.style,
               curvature: currentTheme.connectionTheme.bezierCurvature,
               portSize: currentTheme.portTheme.size,
               endpointSize: math.max(

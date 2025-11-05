@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../connections/connection_endpoint.dart';
-import '../connections/connection_style_base.dart';
 import '../connections/connection_styles.dart';
 import '../connections/connection_theme.dart';
 import '../connections/label_theme.dart';
@@ -70,8 +69,6 @@ enum GridStyle {
 class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   const NodeFlowTheme({
     required this.nodeTheme,
-    this.connectionStyle = ConnectionStyles.smoothstep,
-    this.temporaryConnectionStyle = ConnectionStyles.smoothstep,
     required this.connectionTheme,
     required this.temporaryConnectionTheme,
     required this.portTheme,
@@ -97,17 +94,7 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   /// Theme for node appearance (colors, borders, shadows, etc.).
   final NodeTheme nodeTheme;
 
-  /// The connection line style used for established connections.
-  ///
-  /// See [ConnectionStyles] for available styles (bezier, smoothstep, straight, etc.).
-  final ConnectionStyle connectionStyle;
-
-  /// The connection line style used for temporary connections during creation.
-  ///
-  /// Often uses a dashed or distinct style to differentiate from established connections.
-  final ConnectionStyle temporaryConnectionStyle;
-
-  /// Theme for established connection appearance (colors, stroke width, etc.).
+  /// Theme for established connection appearance (colors, stroke width, style, etc.).
   final ConnectionTheme connectionTheme;
 
   /// Theme for temporary connection appearance during connection creation.
@@ -182,8 +169,6 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   @override
   NodeFlowTheme copyWith({
     NodeTheme? nodeTheme,
-    ConnectionStyle? connectionStyle,
-    ConnectionStyle? temporaryConnectionStyle,
     ConnectionTheme? connectionTheme,
     ConnectionTheme? temporaryConnectionTheme,
     PortTheme? portTheme,
@@ -207,9 +192,6 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   }) {
     return NodeFlowTheme(
       nodeTheme: nodeTheme ?? this.nodeTheme,
-      connectionStyle: connectionStyle ?? this.connectionStyle,
-      temporaryConnectionStyle:
-          temporaryConnectionStyle ?? this.temporaryConnectionStyle,
       connectionTheme: connectionTheme ?? this.connectionTheme,
       temporaryConnectionTheme:
           temporaryConnectionTheme ?? this.temporaryConnectionTheme,
@@ -241,10 +223,6 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     return NodeFlowTheme(
       nodeTheme: nodeTheme,
       // NodeTheme doesn't support lerp
-      connectionStyle: t < 0.5 ? connectionStyle : other.connectionStyle,
-      temporaryConnectionStyle: t < 0.5
-          ? temporaryConnectionStyle
-          : other.temporaryConnectionStyle,
       connectionTheme: connectionTheme,
       // ConnectionTheme doesn't support lerp
       temporaryConnectionTheme: temporaryConnectionTheme,
@@ -289,10 +267,9 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   /// - Black text and borders
   static const light = NodeFlowTheme(
     nodeTheme: NodeTheme.light,
-    connectionStyle: ConnectionStyles.smoothstep,
-    temporaryConnectionStyle: ConnectionStyles.smoothstep,
     connectionTheme: ConnectionTheme.light,
     temporaryConnectionTheme: ConnectionTheme(
+      style: ConnectionStyles.smoothstep,
       color: Color(0xFF666666),
       selectedColor: Color(0xFF2196F3),
       strokeWidth: 2.0,
@@ -339,10 +316,9 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   /// - Light text and borders
   static final dark = NodeFlowTheme(
     nodeTheme: NodeTheme.dark,
-    connectionStyle: ConnectionStyles.smoothstep,
-    temporaryConnectionStyle: ConnectionStyles.smoothstep,
     connectionTheme: ConnectionTheme.dark,
     temporaryConnectionTheme: ConnectionTheme(
+      style: ConnectionStyles.smoothstep,
       color: Color(0xFF999999),
       selectedColor: Color(0xFF64B5F6),
       strokeWidth: 2.0,
