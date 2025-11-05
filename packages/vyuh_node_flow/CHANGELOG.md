@@ -1,3 +1,5 @@
+## 0.3.0
+
 ## 0.2.15
 
  - **FEAT**: for some effects the paths were drawn on top of the effect, fixed now.
