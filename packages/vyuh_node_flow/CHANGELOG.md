@@ -1,3 +1,7 @@
+## 0.3.2+1
+
+ - **FIX**: adding connection effects gif and fixing a typo.
+
 ## 0.3.2
 
  - **FEAT**: adding connection effects to readme.
