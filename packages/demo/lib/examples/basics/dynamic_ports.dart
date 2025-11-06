@@ -48,6 +48,7 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
           position: PortPosition.left,
           offset: Offset(0, 50),
           type: PortType.target,
+          multiConnections: true,
         ),
       ],
       outputPorts: [
@@ -75,6 +76,7 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
           position: PortPosition.top,
           offset: Offset(60, 0),
           type: PortType.target,
+          multiConnections: true,
         ),
       ],
       outputPorts: [
@@ -152,6 +154,7 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
       position: position,
       offset: offset,
       type: isOutput ? PortType.source : PortType.target,
+      multiConnections: isOutput ? false : true,
     );
 
     // Add port to appropriate list
