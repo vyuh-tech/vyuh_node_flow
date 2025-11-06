@@ -29,7 +29,7 @@ minimap, and more.
   on an infinite canvas
 - **Type-Safe Node Data** - Generic type support for strongly-typed node data
 - **Fully Customizable** - Comprehensive theming system for nodes, connections,
-  and ports and backgrounds
+  ports and backgrounds
 - **Flexible Ports** - Multiple port shapes, positions, and connection
   validation
 - **Connection Animation Effects** - Flowing dashes, particles, gradients, and
@@ -53,6 +53,9 @@ minimap, and more.
   </p>
   <p>
     <img src="https://github.com/vyuh-tech/vyuh_node_flow/raw/main/packages/vyuh_node_flow/_screenshots/in-action.gif" alt="Animation of NodeFlowEditor" width="auto" height="480"/>
+  </p>
+  <p>
+    <img src="https://github.com/vyuh-tech/vyuh_node_flow/raw/main/packages/vyuh_node_flow/_screenshots/connection-effects.gif" alt="Connection Effects in NodeFlowEditor" width="auto" height="480"/>
   </p>
 </div>
 
