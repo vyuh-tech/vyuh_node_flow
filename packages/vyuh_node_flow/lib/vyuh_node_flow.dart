@@ -121,14 +121,15 @@ export 'connections/animation/animation_effects.dart';
 // Connections
 export 'connections/connection.dart';
 export 'connections/connection_endpoint.dart';
+export 'connections/connection_label.dart';
 export 'connections/connection_path_calculator.dart';
 export 'connections/connection_style_base.dart';
 export 'connections/connection_styles.dart';
 export 'connections/connection_theme.dart';
 export 'connections/connection_validation.dart';
 export 'connections/connections_canvas.dart';
-export 'connections/edge_label_position_calculator.dart';
 export 'connections/endpoint_position_calculator.dart';
+export 'connections/label_calculator.dart';
 export 'connections/label_theme.dart';
 export 'connections/temporary_connection.dart';
 // Core
@@ -163,6 +164,5 @@ export 'ports/port_theme.dart';
 // Shared Utilities
 export 'shared/flutter_actions_integration.dart';
 export 'shared/json_converters.dart';
-export 'shared/label_position_calculator.dart';
 // Widgets
 export 'widgets/shortcuts_viewer_dialog.dart';

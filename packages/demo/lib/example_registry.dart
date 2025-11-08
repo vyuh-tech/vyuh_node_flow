@@ -7,6 +7,8 @@ import 'examples/advanced/alignment.dart';
 import 'examples/advanced/animated_connections.dart';
 // Annotations examples
 import 'examples/advanced/annotations.dart';
+// Connection labels examples
+import 'examples/advanced/connection_labels.dart';
 // Advanced examples
 import 'examples/advanced/shortcuts.dart';
 import 'examples/advanced/theming.dart';
@@ -110,6 +112,14 @@ class ExampleRegistry {
               'Interactive demo of all animation effects: flowing dashes, particles, gradients, and pulse',
           icon: Icons.animation,
           builder: (_) => const AnimatedConnectionsExample(),
+        ),
+        Example(
+          id: 'connection-labels',
+          title: 'Connection Labels',
+          description:
+              'Add, edit, and position labels dynamically on connections with anchor points and offsets',
+          icon: Icons.label,
+          builder: (_) => const ConnectionLabelsExample(),
         ),
         Example(
           id: 'theming',

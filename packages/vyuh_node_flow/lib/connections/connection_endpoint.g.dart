@@ -6,10 +6,11 @@ part of 'connection_endpoint.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-ConnectionEndPoint _$ConnectionEndPointFromJson(Map json) => ConnectionEndPoint(
-  shape: $enumDecode(_$EndpointShapeEnumMap, json['shape']),
-  size: (json['size'] as num).toDouble(),
-);
+ConnectionEndPoint _$ConnectionEndPointFromJson(Map<String, dynamic> json) =>
+    ConnectionEndPoint(
+      shape: $enumDecode(_$EndpointShapeEnumMap, json['shape']),
+      size: (json['size'] as num).toDouble(),
+    );
 
 Map<String, dynamic> _$ConnectionEndPointToJson(ConnectionEndPoint instance) =>
     <String, dynamic>{

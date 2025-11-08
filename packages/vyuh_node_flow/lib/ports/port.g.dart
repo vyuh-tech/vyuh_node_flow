@@ -6,7 +6,7 @@ part of 'port.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Port _$PortFromJson(Map json) => Port(
+Port _$PortFromJson(Map<String, dynamic> json) => Port(
   id: json['id'] as String,
   name: json['name'] as String,
   multiConnections: json['multiConnections'] as bool? ?? false,

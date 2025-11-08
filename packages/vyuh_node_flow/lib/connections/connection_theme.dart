@@ -77,6 +77,7 @@ class ConnectionTheme {
   /// - [animationEffect]: Optional default animation effect for connections
   /// - [bezierCurvature]: Curvature factor for bezier-style connections (0.0 to 1.0)
   /// - [cornerRadius]: Radius for rounded corners in step-style connections
+  /// - [portExtension]: Distance connections extend straight from ports before curving
   /// - [hitTolerance]: Distance tolerance for hit testing in logical pixels
   const ConnectionTheme({
     this.style = ConnectionStyles.smoothstep,
@@ -90,6 +91,7 @@ class ConnectionTheme {
     this.animationEffect,
     this.bezierCurvature = 0.3,
     this.cornerRadius = 4.0,
+    this.portExtension = 20.0,
     this.hitTolerance = 8.0,
   });
 
@@ -151,6 +153,13 @@ class ConnectionTheme {
   /// rounded the 90-degree turns are.
   final double cornerRadius;
 
+  /// Distance connections extend straight from ports before curving.
+  ///
+  /// This value determines how far the connection path extends in a straight
+  /// line from the port before beginning to curve. Also used as the gap
+  /// distance for label positioning at the start and end of connections.
+  final double portExtension;
+
   /// Distance tolerance for hit testing in logical pixels.
   ///
   /// Determines how close a pointer must be to a connection to register
@@ -175,6 +184,7 @@ class ConnectionTheme {
     ConnectionAnimationEffect? animationEffect,
     double? bezierCurvature,
     double? cornerRadius,
+    double? portExtension,
     double? hitTolerance,
   }) {
     return ConnectionTheme(
@@ -189,6 +199,7 @@ class ConnectionTheme {
       animationEffect: animationEffect,
       bezierCurvature: bezierCurvature ?? this.bezierCurvature,
       cornerRadius: cornerRadius ?? this.cornerRadius,
+      portExtension: portExtension ?? this.portExtension,
       hitTolerance: hitTolerance ?? this.hitTolerance,
     );
   }
@@ -211,6 +222,7 @@ class ConnectionTheme {
     endPoint: ConnectionEndPoint.capsuleHalf,
     bezierCurvature: 0.5,
     cornerRadius: 4.0,
+    portExtension: 20.0,
     hitTolerance: 8.0,
   );
 
@@ -232,6 +244,7 @@ class ConnectionTheme {
     endPoint: ConnectionEndPoint.capsuleHalf,
     bezierCurvature: 0.5,
     cornerRadius: 4.0,
+    portExtension: 20.0,
     hitTolerance: 8.0,
   );
 }

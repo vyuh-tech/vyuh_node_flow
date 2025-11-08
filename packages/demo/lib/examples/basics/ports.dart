@@ -345,8 +345,13 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
         sourcePortId: sourcePortId,
         targetNodeId: targetNodeId,
         targetPortId: targetPortId,
-        label:
-            '${_themeControl.selectedSourcePort.name} → ${_themeControl.selectedTargetPort.name}',
+        labels: [
+          ConnectionLabel(
+            text:
+                '${_themeControl.selectedSourcePort.name} → ${_themeControl.selectedTargetPort.name}',
+            anchor: 0.5,
+          ),
+        ],
       ),
     );
   }

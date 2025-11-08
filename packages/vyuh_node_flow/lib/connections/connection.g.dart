@@ -6,24 +6,20 @@ part of 'connection.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Connection _$ConnectionFromJson(Map json) => Connection(
+Connection _$ConnectionFromJson(Map<String, dynamic> json) => Connection(
   id: json['id'] as String,
   sourceNodeId: json['sourceNodeId'] as String,
   sourcePortId: json['sourcePortId'] as String,
   targetNodeId: json['targetNodeId'] as String,
   targetPortId: json['targetPortId'] as String,
-  data: (json['data'] as Map?)?.map((k, e) => MapEntry(k as String, e)),
+  data: json['data'] as Map<String, dynamic>?,
   style: _connectionStyleFromJson(json['style']),
   startPoint: json['startPoint'] == null
       ? null
-      : ConnectionEndPoint.fromJson(
-          Map<String, dynamic>.from(json['startPoint'] as Map),
-        ),
+      : ConnectionEndPoint.fromJson(json['startPoint'] as Map<String, dynamic>),
   endPoint: json['endPoint'] == null
       ? null
-      : ConnectionEndPoint.fromJson(
-          Map<String, dynamic>.from(json['endPoint'] as Map),
-        ),
+      : ConnectionEndPoint.fromJson(json['endPoint'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$ConnectionToJson(Connection instance) =>
@@ -35,6 +31,6 @@ Map<String, dynamic> _$ConnectionToJson(Connection instance) =>
       'targetPortId': instance.targetPortId,
       'data': instance.data,
       'style': _connectionStyleToJson(instance.style),
-      'startPoint': instance.startPoint?.toJson(),
-      'endPoint': instance.endPoint?.toJson(),
+      'startPoint': instance.startPoint,
+      'endPoint': instance.endPoint,
     };

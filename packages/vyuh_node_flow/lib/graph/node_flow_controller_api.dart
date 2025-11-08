@@ -624,6 +624,10 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       _connections.removeWhere((c) => c.id == connectionId);
       _selectedConnectionIds.remove(connectionId);
     });
+
+    // Remove cached path to prevent stale rendering
+    _connectionPainter?.removeConnectionFromCache(connectionId);
+
     // Fire callback after successful removal
     callbacks.onConnectionDeleted?.call(connectionToDelete);
   }

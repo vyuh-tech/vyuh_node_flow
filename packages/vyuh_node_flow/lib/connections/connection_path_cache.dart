@@ -234,6 +234,7 @@ class ConnectionPathCache {
       sourcePort: sourcePort,
       targetPort: targetPort,
       cornerRadius: connectionTheme.cornerRadius,
+      offset: connectionTheme.portExtension,
     );
 
     // Create hit test path with connection style-specific logic

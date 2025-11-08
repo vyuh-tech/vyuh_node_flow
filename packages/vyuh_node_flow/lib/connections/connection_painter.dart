@@ -332,6 +332,7 @@ class ConnectionPainter {
       sourcePort: sourcePort,
       targetPort: targetPort,
       cornerRadius: connectionTheme.cornerRadius,
+      offset: connectionTheme.portExtension,
     );
 
     // Configure paint for the connection line
