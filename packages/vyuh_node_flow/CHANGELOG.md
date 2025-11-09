@@ -1,3 +1,7 @@
+## 0.3.7
+
+ - **FEAT**: Making PortShape into a class hierarchy and consolidating the end point shape into a PortShape. Also fixed the autopan related properties since they are currently not supported.
+
 ## 0.3.6
 
  - **FEAT**: GridStyle is now an abstract class with subclasses that provide lines, hierarchical, dots, cross and none styles!
