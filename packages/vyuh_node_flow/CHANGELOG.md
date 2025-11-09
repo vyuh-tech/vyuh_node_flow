@@ -1,3 +1,7 @@
+## 0.3.5
+
+ - **FEAT**: using a CustomPainter to ensure the Text Metrics are accurate for the connection labels.
+
 ## 0.3.4
 
  - **FEAT**: leveraging path cache to avoid computing the paths again for connections.
