@@ -9,30 +9,8 @@ import '../connections/connection_theme.dart';
 import '../connections/label_theme.dart';
 import '../nodes/node_theme.dart';
 import '../ports/port_theme.dart';
-
-/// Defines different grid visual styles for the canvas background.
-///
-/// The grid provides visual reference for positioning and alignment of nodes.
-enum GridStyle {
-  /// Traditional line-based grid with evenly spaced vertical and horizontal lines.
-  lines,
-
-  /// Dot-based grid showing points at line intersections.
-  ///
-  /// More subtle than lines, reduces visual clutter while maintaining reference.
-  dots,
-
-  /// Hierarchical grid with major and minor lines at different intervals.
-  ///
-  /// Major lines appear bolder and at larger intervals (e.g., every 5 grid cells),
-  /// providing multi-level visual reference.
-  hierarchical,
-
-  /// No grid visible.
-  ///
-  /// Provides a clean canvas with no background pattern.
-  none,
-}
+import 'grid_styles.dart';
+import 'painters/grid_style.dart';
 
 /// Theme configuration for the node flow editor.
 ///
@@ -57,7 +35,7 @@ enum GridStyle {
 /// // Customize a theme
 /// final customTheme = NodeFlowTheme.light.copyWith(
 ///   backgroundColor: Colors.grey[100],
-///   gridStyle: GridStyle.hierarchical,
+///   gridStyle: GridStyles.hierarchical,
 ///   nodeTheme: NodeTheme.light.copyWith(
 ///     defaultColor: Colors.blue,
 ///   ),
@@ -78,7 +56,7 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     this.gridColor = const Color(0xFF919191),
     this.gridSize = 20.0,
     this.gridThickness = 0.5,
-    this.gridStyle = GridStyle.dots,
+    this.gridStyle = GridStyles.dots,
     this.selectionColor = const Color(0x3300BCD4),
     this.selectionBorderColor = const Color(0xFF00BCD4),
     this.selectionBorderWidth = 1.0,
@@ -127,7 +105,25 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   /// Default is 0.5. For dot style, this affects dot radius.
   final double gridThickness;
 
-  /// Visual style of the background grid.
+  /// The grid style to render on the canvas background.
+  ///
+  /// Use constants from [GridStyles] class or create a custom [GridStyle].
+  /// Use [GridStyles.none] for no grid.
+  ///
+  /// Default is [GridStyles.dots].
+  ///
+  /// Example:
+  /// ```dart
+  /// // Using GridStyles constants
+  /// gridStyle: GridStyles.lines,
+  /// gridStyle: GridStyles.hierarchical,
+  ///
+  /// // Custom grid style
+  /// gridStyle: MyCustomGridStyle(),
+  ///
+  /// // No grid
+  /// gridStyle: GridStyles.none,
+  /// ```
   final GridStyle gridStyle;
 
   /// Fill color for the selection rectangle.
@@ -285,7 +281,7 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     gridColor: Color(0xFFC8C8C8),
     gridSize: 20.0,
     gridThickness: 1,
-    gridStyle: GridStyle.dots,
+    gridStyle: GridStyles.dots,
     selectionColor: Color(0x3300BCD4),
     selectionBorderColor: Color(0xFF00BCD4),
     selectionBorderWidth: 1.0,
@@ -334,7 +330,7 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     gridColor: const Color(0xFF707070),
     gridSize: 20.0,
     gridThickness: 1,
-    gridStyle: GridStyle.dots,
+    gridStyle: GridStyles.dots,
     selectionColor: const Color(0x3364B5F6),
     selectionBorderColor: const Color(0xFF64B5F6),
     selectionBorderWidth: 1.0,

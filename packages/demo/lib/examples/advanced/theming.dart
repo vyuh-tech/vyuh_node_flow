@@ -546,17 +546,25 @@ class _ThemingExampleState extends State<ThemingExample> {
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: GridStyle.values.map((style) {
-            return ChoiceChip(
-              label: Text(style.name, style: const TextStyle(fontSize: 11)),
-              selected: _theme.gridStyle == style,
-              onSelected: (selected) {
-                if (selected) {
-                  _updateTheme(_theme.copyWith(gridStyle: style));
-                }
-              },
-            );
-          }).toList(),
+          children:
+              [
+                ('lines', GridStyles.lines),
+                ('dots', GridStyles.dots),
+                ('hierarchical', GridStyles.hierarchical),
+                ('cross', GridStyles.cross),
+                ('none', GridStyles.none),
+              ].map((entry) {
+                final (name, style) = entry;
+                return ChoiceChip(
+                  label: Text(name, style: const TextStyle(fontSize: 11)),
+                  selected: _theme.gridStyle == style,
+                  onSelected: (selected) {
+                    if (selected) {
+                      _updateTheme(_theme.copyWith(gridStyle: style));
+                    }
+                  },
+                );
+              }).toList(),
         ),
       ],
     );

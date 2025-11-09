@@ -622,24 +622,36 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
       const SectionTitle('Grid Settings'),
       const SizedBox(height: 8),
       Observer(
-        builder: (context) => DropdownButtonFormField<GridStyle>(
+        builder: (context) => InputDecorator(
           decoration: const InputDecoration(
             labelText: 'Grid Style',
             border: OutlineInputBorder(),
             isDense: true,
+            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
-          initialValue: _themeControl._gridStyle.value,
-          items: GridStyle.values.map((style) {
-            return DropdownMenuItem(
-              value: style,
-              child: Text(style.name, style: const TextStyle(fontSize: 13)),
-            );
-          }).toList(),
-          onChanged: (value) {
-            if (value != null) {
-              _themeControl.gridStyle = value;
-            }
-          },
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<GridStyle>(
+              value: _themeControl._gridStyle.value,
+              isDense: true,
+              items:
+                  [
+                    ('Lines', GridStyles.lines),
+                    ('Dots', GridStyles.dots),
+                    ('Hierarchical', GridStyles.hierarchical),
+                    ('Cross', GridStyles.cross),
+                    ('None', GridStyles.none),
+                  ].map((entry) {
+                    final (name, style) = entry;
+                    return DropdownMenuItem(
+                      value: style,
+                      child: Text(name, style: const TextStyle(fontSize: 13)),
+                    );
+                  }).toList(),
+              onChanged: (value) {
+                _themeControl.gridStyle = value!;
+              },
+            ),
+          ),
         ),
       ),
 
@@ -818,7 +830,7 @@ class ThemeControlStore {
   set rotationSpeed(double value) =>
       runInAction(() => _rotationSpeed.value = value);
 
-  final Observable<GridStyle> _gridStyle = Observable(GridStyle.dots);
+  final Observable<GridStyle> _gridStyle = Observable(GridStyles.dots);
 
   GridStyle get gridStyle => _gridStyle.value;
 
