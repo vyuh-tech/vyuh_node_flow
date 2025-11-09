@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../ports/shapes/port_shape.dart';
+
 /// A JSON converter for Flutter's [Offset] class.
 ///
 /// This converter serializes [Offset] objects to JSON as a map with 'x' and 'y'
@@ -195,5 +197,59 @@ class ColorConverter implements JsonConverter<Color, int> {
   @override
   int toJson(Color color) {
     return color.toARGB32();
+  }
+}
+
+/// A JSON converter for [PortShape] class.
+///
+/// This converter serializes [PortShape] objects to JSON using their toJson method,
+/// and deserializes JSON maps back to [PortShape] objects using the factory constructor.
+///
+/// Example JSON representation:
+/// ```json
+/// {
+///   "type": "circle"
+/// }
+/// ```
+///
+/// For shapes with orientation:
+/// ```json
+/// {
+///   "type": "triangle",
+///   "orientation": "right"
+/// }
+/// ```
+///
+/// Usage with json_serializable:
+/// ```dart
+/// @JsonSerializable()
+/// class Port {
+///   @PortShapeConverter()
+///   final PortShape shape;
+///
+///   Port(this.shape);
+/// }
+/// ```
+class PortShapeConverter
+    implements JsonConverter<PortShape, Map<String, dynamic>> {
+  /// Creates a const instance of [PortShapeConverter].
+  const PortShapeConverter();
+
+  /// Converts a JSON map to a [PortShape] object.
+  ///
+  /// Uses the factory constructor PortShape.fromJson to create the appropriate
+  /// subclass based on the 'type' field in the JSON.
+  @override
+  PortShape fromJson(Map<String, dynamic> json) {
+    return PortShape.fromJson(json);
+  }
+
+  /// Converts a [PortShape] object to a JSON map.
+  ///
+  /// Uses the toJson method of the PortShape instance, which returns
+  /// a map with 'type' and any additional properties.
+  @override
+  Map<String, dynamic> toJson(PortShape shape) {
+    return shape.toJson();
   }
 }

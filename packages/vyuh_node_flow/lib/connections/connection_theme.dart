@@ -5,38 +5,6 @@ import 'connection_endpoint.dart';
 import 'connection_style_base.dart';
 import 'connection_styles.dart';
 
-/// Defines the available shapes for connection endpoint markers.
-///
-/// These shapes are used by [ConnectionEndPoint] to create visual markers
-/// at the start and/or end of connections.
-///
-/// Available shapes:
-/// - [capsuleHalf]: Rounded arrow-like half-capsule shape
-/// - [circle]: Simple circular dot
-/// - [square]: Solid square marker
-/// - [diamond]: Diamond (45-degree rotated square)
-/// - [triangle]: Arrow-head triangle pointing in connection direction
-/// - [none]: No visible marker
-enum EndpointShape {
-  /// Rounded arrow-like half-capsule shape.
-  capsuleHalf,
-
-  /// Simple circular dot marker.
-  circle,
-
-  /// Solid square marker.
-  square,
-
-  /// Diamond marker (45-degree rotated square).
-  diamond,
-
-  /// Arrow-head triangle pointing in connection direction.
-  triangle,
-
-  /// No visible endpoint marker.
-  none,
-}
-
 /// Defines the visual styling and behavior of connections in the node flow.
 ///
 /// [ConnectionTheme] centralizes all visual properties for connections including

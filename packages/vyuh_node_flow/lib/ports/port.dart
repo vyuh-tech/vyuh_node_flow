@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../shared/json_converters.dart';
+import 'shapes/capsule_half_port_shape.dart';
+import 'shapes/port_shape.dart';
 
 part 'port.g.dart';
 
@@ -36,27 +38,6 @@ enum PortType {
 
   /// Port can both emit and receive connections
   both,
-}
-
-/// Defines the visual shape of a port.
-///
-/// Different shapes can be used to indicate different types of data or
-/// connection semantics in the flow editor.
-enum PortShape {
-  /// Half-capsule shape, typically oriented based on port position
-  capsuleHalf,
-
-  /// Circular shape
-  circle,
-
-  /// Square shape
-  square,
-
-  /// Diamond shape
-  diamond,
-
-  /// Triangle shape
-  triangle,
 }
 
 /// Represents a connection point on a node in the flow editor.
@@ -129,7 +110,7 @@ class Port extends Equatable {
     this.position = PortPosition.left,
     this.offset = Offset.zero,
     this.type = PortType.both,
-    this.shape = PortShape.capsuleHalf,
+    this.shape = const CapsuleHalfPortShape(),
     this.size = 9.0,
     this.tooltip,
     this.isConnectable = true,
@@ -177,6 +158,7 @@ class Port extends Equatable {
   ///
   /// Different shapes can be used to visually distinguish different types
   /// of ports or data flows.
+  @PortShapeConverter()
   final PortShape shape;
 
   /// The size of the port in logical pixels.

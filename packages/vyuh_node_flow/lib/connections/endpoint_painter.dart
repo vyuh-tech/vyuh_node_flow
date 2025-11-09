@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../connections/connection_theme.dart';
-import '../ports/point_shape_painter.dart';
 import '../ports/port.dart';
+import '../ports/shapes/port_shape.dart';
 
 /// Painter for connection endpoints that can render different shapes
 class EndpointPainter {
@@ -11,45 +10,23 @@ class EndpointPainter {
     required Canvas canvas,
     required Offset position,
     required double size,
-    required EndpointShape shape,
+    required PortShape shape,
     required PortPosition portPosition,
     required Paint fillPaint,
     Paint? borderPaint,
   }) {
-    // Convert EndpointShape to PointShape
-    final pointShape = _endpointShapeToPointShape(shape);
-
-    // Get orientation (endpoints face away from the port they connect to)
+    // Get opposite orientation (endpoints face away from the port they connect to)
     final orientation = _getOppositeOrientation(portPosition);
 
-    // Use the common PointShapePainter
-    PointShapePainter.paint(
-      canvas: canvas,
-      position: position,
-      size: size,
-      shape: pointShape,
+    // Use the PortShape's paint method
+    shape.paint(
+      canvas,
+      position,
+      size,
+      fillPaint,
+      borderPaint,
       orientation: orientation,
-      fillPaint: fillPaint,
-      borderPaint: borderPaint,
     );
-  }
-
-  /// Convert EndpointShape to PointShape
-  static PointShape _endpointShapeToPointShape(EndpointShape shape) {
-    switch (shape) {
-      case EndpointShape.none:
-        return PointShape.none;
-      case EndpointShape.capsuleHalf:
-        return PointShape.capsuleHalf;
-      case EndpointShape.circle:
-        return PointShape.circle;
-      case EndpointShape.square:
-        return PointShape.square;
-      case EndpointShape.diamond:
-        return PointShape.diamond;
-      case EndpointShape.triangle:
-        return PointShape.triangle;
-    }
   }
 
   /// Get the opposite orientation for endpoints

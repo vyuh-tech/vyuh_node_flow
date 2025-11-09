@@ -70,7 +70,6 @@ minimap, and more.
   - [Load from URL](#load-from-url)
 - [Advanced Configuration](#️-advanced-configuration)
   - [Grid Snapping](#grid-snapping)
-  - [Auto-Panning](#auto-panning)
   - [Zoom Limits](#zoom-limits)
 - [Complete Examples](#complete-examples)
 - [API Reference](#-api-reference)
@@ -792,20 +791,31 @@ inputPorts: [
 
 ### Port Shapes
 
+Ports can display different visual shapes to indicate different types of data or
+connection semantics. Port shapes are implemented as an extensible class
+hierarchy, allowing for custom shapes:
+
 ```dart
 const Port(
   id: 'port-1',
   name: 'Data',
-  shape: PortShape.capsuleHalf, // Default, oriented shape
+  shape: PortShape.capsuleHalf, // Default, auto-oriented
 )
 
-// Available shapes:
-// - PortShape.capsuleHalf (recommended, auto-oriented)
-// - PortShape.circle
-// - PortShape.square
-// - PortShape.diamond
-// - PortShape.triangle
+// Available built-in shapes:
+// - PortShape.capsuleHalf (default, oriented based on port position)
+// - PortShape.circle (simple round shape)
+// - PortShape.square (rectangular shape)
+// - PortShape.diamond (45-degree rotated square)
+// - PortShape.triangle (oriented arrow shape)
+// - PortShape.none (invisible port)
 ```
+
+> [!NOTE] **Shape Architecture**: `PortShape` is an abstract class with concrete
+> subclasses for each shape type. Orientation for directional shapes (capsuleHalf,
+> triangle) is determined automatically based on the port's position on the node.
+> This architecture allows you to create custom port shapes by extending the
+> `PortShape` class.
 
 ### Multiple Connections
 
@@ -1823,23 +1833,6 @@ config.toggleSnapping();
 config.toggleNodeSnapping();
 config.toggleAnnotationSnapping();
 ```
-
-</details>
-
-### Auto-Panning
-
-<details>
-<summary><strong>Auto-Pan Configuration</strong></summary>
-
-```dart
-final config = NodeFlowConfig(
-  autoPanMargin: 50.0, // Pixels from edge to trigger auto-pan
-  autoPanSpeed: 0.3, // Pan speed (0.0 to 1.0)
-);
-```
-
-When dragging nodes or connections near the canvas edge, the viewport
-automatically pans.
 
 </details>
 

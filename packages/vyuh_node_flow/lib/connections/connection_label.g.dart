@@ -9,7 +9,7 @@ part of 'connection_label.dart';
 ConnectionLabel _$ConnectionLabelFromJson(Map<String, dynamic> json) =>
     ConnectionLabel(
       text: json['text'] as String,
-      anchor: (json['anchor'] as num?)?.toDouble() ?? 0.5,
+      anchor: (json['anchor'] as num?)?.toDouble() ?? ConnectionAnchor.center,
       offset: (json['offset'] as num?)?.toDouble() ?? 0.0,
       id: json['id'] as String?,
     );

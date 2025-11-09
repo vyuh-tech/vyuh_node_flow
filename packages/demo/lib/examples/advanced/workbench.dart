@@ -264,8 +264,6 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
       maxZoom: 4.0,
       snapToGrid: false,
       gridSize: 20.0,
-      autoPanMargin: 50.0,
-      autoPanSpeed: 0.3,
     );
   }
 

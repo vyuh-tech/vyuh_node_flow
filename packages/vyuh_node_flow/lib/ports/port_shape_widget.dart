@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../ports/point_shape_painter.dart';
-import '../ports/port.dart';
+import 'port.dart';
+import 'shapes/port_shape.dart';
 
 /// A widget that renders different port shapes based on the port's shape configuration
 class PortShapeWidget extends StatelessWidget {
@@ -37,7 +37,7 @@ class PortShapeWidget extends StatelessWidget {
   }
 }
 
-/// Custom painter that uses PointShapePainter for rendering
+/// Custom painter that uses PortShape classes for rendering
 class _PortShapePainter extends CustomPainter {
   const _PortShapePainter({
     required this.shape,
@@ -55,12 +55,6 @@ class _PortShapePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Convert PortShape to PointShape
-    final pointShape = _portShapeToPointShape(shape);
-
-    // Convert PortPosition to ShapeOrientation
-    final orientation = _portPositionToOrientation(position);
-
     // Create paints
     final fillPaint = Paint()
       ..color = color
@@ -73,31 +67,18 @@ class _PortShapePainter extends CustomPainter {
             ..style = PaintingStyle.stroke)
         : null;
 
-    // Use the common PointShapePainter
-    PointShapePainter.paint(
-      canvas: canvas,
-      position: Offset(size.width / 2, size.height / 2),
-      size: size.width,
-      shape: pointShape,
-      orientation: orientation,
-      fillPaint: fillPaint,
-      borderPaint: borderPaint,
-    );
-  }
+    // Convert port position to shape orientation
+    final orientation = _portPositionToOrientation(position);
 
-  PointShape _portShapeToPointShape(PortShape shape) {
-    switch (shape) {
-      case PortShape.capsuleHalf:
-        return PointShape.capsuleHalf;
-      case PortShape.circle:
-        return PointShape.circle;
-      case PortShape.square:
-        return PointShape.square;
-      case PortShape.diamond:
-        return PointShape.diamond;
-      case PortShape.triangle:
-        return PointShape.triangle;
-    }
+    // Use the shape's paint method, passing orientation
+    shape.paint(
+      canvas,
+      Offset(size.width / 2, size.height / 2),
+      size.width,
+      fillPaint,
+      borderPaint,
+      orientation: orientation,
+    );
   }
 
   ShapeOrientation _portPositionToOrientation(PortPosition position) {

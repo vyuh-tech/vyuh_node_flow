@@ -11,8 +11,6 @@ class NodeFlowConfig {
     bool snapAnnotationsToGrid = false,
     double gridSize = 20.0,
     double portSnapDistance = 10.0,
-    double autoPanMargin = 50.0,
-    double autoPanSpeed = 0.3,
     double minZoom = 0.5,
     double maxZoom = 2.0,
     bool showMinimap = false,
@@ -26,8 +24,6 @@ class NodeFlowConfig {
       this.snapAnnotationsToGrid.value = snapAnnotationsToGrid;
       this.gridSize.value = gridSize;
       this.portSnapDistance.value = portSnapDistance;
-      this.autoPanMargin.value = autoPanMargin;
-      this.autoPanSpeed.value = autoPanSpeed;
       this.minZoom.value = minZoom;
       this.maxZoom.value = maxZoom;
       this.showMinimap.value = showMinimap;
@@ -47,12 +43,6 @@ class NodeFlowConfig {
 
   /// Distance threshold for port snapping during connection
   final portSnapDistance = Observable<double>(10.0);
-
-  /// Margin for auto-panning behavior
-  final autoPanMargin = Observable<double>(50.0);
-
-  /// Speed of auto-panning
-  final autoPanSpeed = Observable<double>(0.3);
 
   /// Minimum allowed zoom level
   final minZoom = Observable<double>(0.5);
@@ -125,8 +115,6 @@ class NodeFlowConfig {
     bool? snapAnnotationsToGrid,
     double? gridSize,
     double? portSnapDistance,
-    double? autoPanMargin,
-    double? autoPanSpeed,
     double? minZoom,
     double? maxZoom,
     bool? showMinimap,
@@ -142,8 +130,6 @@ class NodeFlowConfig {
       if (portSnapDistance != null) {
         this.portSnapDistance.value = portSnapDistance;
       }
-      if (autoPanMargin != null) this.autoPanMargin.value = autoPanMargin;
-      if (autoPanSpeed != null) this.autoPanSpeed.value = autoPanSpeed;
       if (minZoom != null) this.minZoom.value = minZoom;
       if (maxZoom != null) this.maxZoom.value = maxZoom;
       if (showMinimap != null) this.showMinimap.value = showMinimap;
@@ -186,8 +172,6 @@ class NodeFlowConfig {
     bool? snapAnnotationsToGrid,
     double? gridSize,
     double? portSnapDistance,
-    double? autoPanMargin,
-    double? autoPanSpeed,
     double? minZoom,
     double? maxZoom,
     bool? showMinimap,
@@ -202,8 +186,6 @@ class NodeFlowConfig {
           snapAnnotationsToGrid ?? this.snapAnnotationsToGrid.value,
       gridSize: gridSize ?? this.gridSize.value,
       portSnapDistance: portSnapDistance ?? this.portSnapDistance.value,
-      autoPanMargin: autoPanMargin ?? this.autoPanMargin.value,
-      autoPanSpeed: autoPanSpeed ?? this.autoPanSpeed.value,
       minZoom: minZoom ?? this.minZoom.value,
       maxZoom: maxZoom ?? this.maxZoom.value,
       showMinimap: showMinimap ?? this.showMinimap.value,
