@@ -1,3 +1,7 @@
+## 0.3.4
+
+ - **FEAT**: leveraging path cache to avoid computing the paths again for connections.
+
 ## 0.3.3
 
  - **FEAT**: multiple connection labels.
