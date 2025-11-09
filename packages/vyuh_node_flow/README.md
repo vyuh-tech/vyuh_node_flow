@@ -23,6 +23,59 @@ Experience Vyuh Node Flow in action! The live demo showcases all key features,
 including node creation, drag-and-drop connections, custom theming, annotations,
 minimap, and more.
 
+## Table of Contents
+
+- [Key Features](#-key-features)
+- [Screenshots](#screenshots)
+- [Installation](#installation)
+- [Quick Start](#-quick-start)
+- [Core Concepts](#core-concepts)
+  - [The Controller](#the-controller)
+- [Theming](#theming)
+  - [Using Built-in Themes](#using-built-in-themes)
+  - [Creating Custom Themes](#creating-custom-themes)
+- [Grid Styles](#grid-styles)
+  - [Available Grid Styles](#available-grid-styles)
+  - [Customizing Grid Appearance](#customizing-grid-appearance)
+- [Building Nodes](#building-nodes)
+  - [Basic Node Widget](#basic-node-widget)
+  - [Custom Node Content](#custom-node-content)
+  - [Using Node Container Builder](#using-node-container-builder)
+  - [Node Types and Data](#node-types-and-data)
+- [Working with Ports](#working-with-ports)
+  - [Port Basics](#port-basics)
+  - [Port Positions and Offsets](#port-positions-and-offsets)
+  - [Port Shapes](#port-shapes)
+  - [Multiple Connections](#multiple-connections)
+  - [Dynamic Ports](#dynamic-ports)
+- [Connections](#connections)
+  - [Creating Connections](#creating-connections)
+  - [Connection Validation](#connection-validation)
+  - [Connection Styles](#connection-styles)
+  - [Connection Animation Effects](#connection-animation-effects)
+  - [Connection Endpoints](#connection-endpoints)
+  - [Connection Labels](#connection-labels)
+- [Annotations](#annotations)
+  - [Built-in Annotation Types](#built-in-annotation-types)
+  - [Custom Annotations](#custom-annotations)
+  - [Following Nodes](#following-nodes)
+- [Interactive Features](#interactive-features)
+  - [Editor Callbacks](#editor-callbacks)
+  - [Keyboard Shortcuts](#keyboard-shortcuts)
+  - [Feature Toggles](#feature-toggles)
+- [Minimap](#minimap)
+- [Read-Only Viewer](#read-only-viewer)
+- [Serialization](#serialization)
+  - [Save and Load Graphs](#save-and-load-graphs)
+  - [Load from URL](#load-from-url)
+- [Advanced Configuration](#️-advanced-configuration)
+  - [Grid Snapping](#grid-snapping)
+  - [Auto-Panning](#auto-panning)
+  - [Zoom Limits](#zoom-limits)
+- [Complete Examples](#complete-examples)
+- [API Reference](#-api-reference)
+- [Tips and Best Practices](#-tips-and-best-practices)
+
 ## ✨ Key Features
 
 - **High Performance** - Reactive, optimized rendering for smooth interactions
@@ -315,8 +368,105 @@ controller.setTheme(customTheme);
 
 </details>
 
-> [!NOTE] Grid styles available: `GridStyle.dots`, `GridStyle.lines`,
-> `GridStyle.hierarchical`, `GridStyle.none`
+> [!NOTE] Grid styles available: `GridStyles.dots`, `GridStyles.lines`,
+> `GridStyles.cross`, `GridStyles.hierarchical`, `GridStyles.none`
+
+---
+
+## Grid Styles
+
+Vyuh Node Flow offers multiple grid style options to customize the background
+pattern of your flow editor canvas.
+
+### Available Grid Styles
+
+<details>
+<summary><strong>Lines Grid Style</strong></summary>
+
+The most common grid style with evenly spaced vertical and horizontal lines,
+providing clear visual reference.
+
+```dart
+final theme = NodeFlowTheme.light.copyWith(
+  gridStyle: GridStyles.lines,
+);
+```
+
+</details>
+
+<details>
+<summary><strong>Dots Grid Style</strong></summary>
+
+A more subtle alternative with dots at grid intersections, reducing visual
+clutter while maintaining reference points.
+
+```dart
+final theme = NodeFlowTheme.light.copyWith(
+  gridStyle: GridStyles.dots,
+);
+```
+
+</details>
+
+<details>
+<summary><strong>Cross Grid Style</strong></summary>
+
+Features small crosses at grid intersections, offering a balance between
+visibility and subtlety.
+
+```dart
+final theme = NodeFlowTheme.light.copyWith(
+  gridStyle: GridStyles.cross,
+);
+```
+
+</details>
+
+<details>
+<summary><strong>Hierarchical Grid Style</strong></summary>
+
+Renders both minor and major grid lines at different intervals, with major lines
+appearing every 5 minor grid cells by default. Useful for complex diagrams
+requiring multiple levels of visual organization.
+
+```dart
+// Use default hierarchical (5x multiplier)
+final theme = NodeFlowTheme.light.copyWith(
+  gridStyle: GridStyles.hierarchical,
+);
+
+// Custom multiplier for major grid lines
+final customTheme = NodeFlowTheme.light.copyWith(
+  gridStyle: HierarchicalGridStyle(majorGridMultiplier: 10),
+);
+```
+
+</details>
+
+<details>
+<summary><strong>None Grid Style</strong></summary>
+
+Provides a clean canvas with no background pattern.
+
+```dart
+final theme = NodeFlowTheme.light.copyWith(
+  gridStyle: GridStyles.none,
+);
+```
+
+</details>
+
+### Customizing Grid Appearance
+
+Control the grid size and color through the theme:
+
+```dart
+final theme = NodeFlowTheme.light.copyWith(
+  gridStyle: GridStyles.lines,
+  gridSize: 20.0,              // Size of each grid cell
+  gridColor: Colors.grey[300], // Grid line/dot color
+);
+```
 
 ---
 
@@ -1056,10 +1206,15 @@ connectionTheme: ConnectionTheme(
 
 ### Connection Labels
 
-Add labels to connections:
+Add informative labels to connections at start, center, or end positions to
+clarify data flow, transformation steps, or relationship types.
+
+#### Basic Label Usage
 
 <details>
-<summary><strong>Connection Label Example</strong></summary>
+<summary><strong>Single Center Label</strong></summary>
+
+The simplest way to add a label is using the center position:
 
 ```dart
 final connection = Connection(
@@ -1068,23 +1223,153 @@ final connection = Connection(
   sourcePortId: 'output',
   targetNodeId: 'node-2',
   targetPortId: 'input',
-  label: 'Data Flow', // Add label
+  label: ConnectionLabel.center(text: 'Data Flow'),
 );
-
-// Customize label appearance in theme
-labelTheme: LabelTheme(
-  color: Colors.black87,
-  fontSize: 11.0,
-  fontWeight: FontWeight.w500,
-  backgroundColor: Colors.white,
-  borderColor: Colors.grey.shade300,
-  borderWidth: 1.0,
-  horizontalOffset: 8.0,
-  verticalOffset: 8.0,
-)
 ```
 
 </details>
+
+#### Multiple Labels Per Connection
+
+<details>
+<summary><strong>Start, Center, and End Labels</strong></summary>
+
+Each connection can have up to three labels at different positions:
+
+```dart
+final connection = Connection(
+  id: 'conn-1',
+  sourceNodeId: 'node-1',
+  sourcePortId: 'output',
+  targetNodeId: 'node-2',
+  targetPortId: 'input',
+
+  // Label at the start (anchor 0.0)
+  startLabel: ConnectionLabel.start(
+    text: 'Start',
+    offset: 10.0,  // 10px perpendicular offset from path
+  ),
+
+  // Label at the center (anchor 0.5)
+  label: ConnectionLabel.center(
+    text: 'Processing',
+    offset: -15.0, // negative offset = other side of path
+  ),
+
+  // Label at the end (anchor 1.0)
+  endLabel: ConnectionLabel.end(
+    text: 'Complete',
+    offset: 10.0,
+  ),
+);
+```
+
+</details>
+
+#### Label Positioning
+
+<details>
+<summary><strong>Understanding Anchor and Offset</strong></summary>
+
+Labels are positioned using two properties:
+
+- **anchor**: Position along the path (0.0 to 1.0)
+  - 0.0 = source/start of connection
+  - 0.5 = center of connection
+  - 1.0 = target/end of connection
+
+- **offset**: Perpendicular distance from the path
+  - Positive values: offset to one side
+  - Negative values: offset to the other side
+  - 0.0: label sits directly on the path
+
+```dart
+// Custom anchor position (0.75 = 75% along the path)
+final label = ConnectionLabel(
+  text: 'Almost there',
+  anchor: 0.75,
+  offset: 20.0,
+);
+```
+
+</details>
+
+#### Dynamic Label Updates
+
+<details>
+<summary><strong>Updating Labels at Runtime</strong></summary>
+
+Labels are reactive and can be updated dynamically:
+
+```dart
+// Update just the text
+connection.label?.updateText('New status');
+
+// Update just the offset
+connection.label?.updateOffset(15.0);
+
+// Update just the anchor position
+connection.label?.updateAnchor(0.7);
+
+// Update multiple properties at once
+connection.label?.update(
+  text: 'Updated',
+  anchor: 0.6,
+  offset: -10.0,
+);
+
+// Add or remove labels
+connection.startLabel = ConnectionLabel.start(text: 'New start label');
+connection.label = null; // Remove center label
+```
+
+</details>
+
+#### Theming Connection Labels
+
+<details>
+<summary><strong>Global Label Styling</strong></summary>
+
+Customize label appearance for all connections using the theme:
+
+```dart
+final theme = NodeFlowTheme.light.copyWith(
+  labelTheme: LabelTheme(
+    // Text styling
+    textStyle: TextStyle(
+      color: Colors.black87,
+      fontSize: 12.0,
+      fontWeight: FontWeight.w500,
+    ),
+
+    // Background and border
+    backgroundColor: Colors.white,
+    border: Border.all(
+      color: Colors.grey.shade300,
+      width: 1.0,
+    ),
+
+    // Size constraints
+    maxWidth: 150.0,  // Maximum label width
+    maxLines: 2,      // Maximum number of text lines
+
+    // Padding
+    padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+  ),
+);
+
+controller.setTheme(theme);
+```
+
+</details>
+
+> [!TIP] Use connection labels to annotate data transformations, display
+> relationship types, show flow conditions, or add any contextual information
+> that helps users understand the connections in your diagram.
+
+> [!NOTE] For a complete interactive example with theme customization, see the
+> [Connection Labels demo](../../demo/lib/examples/advanced/connection_labels.dart)
+> in the demo app.
 
 ---
 

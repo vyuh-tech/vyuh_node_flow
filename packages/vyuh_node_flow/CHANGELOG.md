@@ -1,3 +1,7 @@
+## 0.3.6
+
+ - **FEAT**: GridStyle is now an abstract class with subclasses that provide lines, hierarchical, dots, cross and none styles!
+
 ## 0.3.5
 
  - **FEAT**: using a CustomPainter to ensure the Text Metrics are accurate for the connection labels.
