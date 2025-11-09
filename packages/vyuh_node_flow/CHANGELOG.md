@@ -1,3 +1,7 @@
+## 0.3.3
+
+ - **FEAT**: multiple connection labels.
+
 ## 0.3.2+1
 
  - **FIX**: adding connection effects gif and fixing a typo.
