@@ -19,7 +19,7 @@ part 'connection.g.dart';
 /// - **Port-to-port linking**: Connects specific ports between nodes
 /// - **Reactive state**: Uses MobX observables for animated, selected, and label properties
 /// - **Customizable styling**: Supports custom [ConnectionStyle] and [ConnectionEndPoint]s
-/// - **Multiple labels**: Supports any number of labels with custom anchor points (0.0-1.0) and perpendicular offsets
+/// - **Three label positions**: Supports startLabel (anchor 0.0), label (anchor 0.5), and endLabel (anchor 1.0)
 /// - **Data attachment**: Can carry arbitrary data via the [data] property
 ///
 /// ## Usage Example
@@ -30,23 +30,16 @@ part 'connection.g.dart';
 ///   sourcePortId: 'output-1',
 ///   targetNodeId: 'node-b',
 ///   targetPortId: 'input-1',
-///   labels: [
-///     ConnectionLabel(text: 'Data Flow', anchor: 0.5, offset: 10.0),
-///     ConnectionLabel(text: 'Start', anchor: 0.0, offset: 0.0),
-///     ConnectionLabel(text: 'End', anchor: 1.0, offset: -10.0),
-///   ],
+///   startLabel: ConnectionLabel.start(text: 'Start'),
+///   label: ConnectionLabel.center(text: 'Data Flow'),
+///   endLabel: ConnectionLabel.end(text: 'End', offset: 10.0),
 ///   animated: true,
 ///   style: ConnectionStyles.smoothstep,
 /// );
 ///
-/// // Add labels dynamically
-/// connection.addLabel(ConnectionLabel(text: 'Midpoint', anchor: 0.5));
-///
-/// // Update existing labels by ID
-/// connection.updateLabel('label-id', text: 'Updated Text', offset: 5.0);
-///
-/// // Remove labels
-/// connection.removeLabel('label-id');
+/// // Update labels directly
+/// connection.label = ConnectionLabel.center(text: 'Updated Flow');
+/// connection.startLabel = null; // Remove start label
 ///
 /// // Check node/port involvement
 /// if (connection.involvesNode('node-a')) {
@@ -58,7 +51,9 @@ part 'connection.g.dart';
 /// The following properties are reactive and will trigger UI updates when changed:
 /// - [animated]: Whether the connection has flowing animation
 /// - [selected]: Whether the connection is currently selected
-/// - [labels]: List of labels positioned along the connection path
+/// - [startLabel]: Label at the start of the connection (anchor 0.0)
+/// - [label]: Label at the center of the connection (anchor 0.5)
+/// - [endLabel]: Label at the end of the connection (anchor 1.0)
 ///
 /// See also:
 /// - [ConnectionLabel] for label configuration
@@ -79,7 +74,9 @@ class Connection {
   /// - [selected]: Whether the connection is initially selected (default: false)
   /// - [data]: Optional arbitrary data to attach to the connection
   /// - [style]: Optional custom style override (defaults to theme style if null)
-  /// - [labels]: Optional list of labels positioned along the connection path
+  /// - [startLabel]: Optional label at the start of the connection (anchor 0.0)
+  /// - [label]: Optional label at the center of the connection (anchor 0.5)
+  /// - [endLabel]: Optional label at the end of the connection (anchor 1.0)
   /// - [startPoint]: Optional custom start endpoint marker (defaults to theme if null)
   /// - [endPoint]: Optional custom end endpoint marker (defaults to theme if null)
   /// - [animationEffect]: Optional animation effect to apply (overrides animated flag)
@@ -93,13 +90,17 @@ class Connection {
     bool selected = false,
     this.data,
     this.style,
-    List<ConnectionLabel>? labels,
+    ConnectionLabel? startLabel,
+    ConnectionLabel? label,
+    ConnectionLabel? endLabel,
     this.startPoint,
     this.endPoint,
     ConnectionAnimationEffect? animationEffect,
   }) : _animated = Observable(animated),
        _selected = Observable(selected),
-       _labels = Observable(labels ?? []),
+       _startLabel = Observable(startLabel),
+       _label = Observable(label),
+       _endLabel = Observable(endLabel),
        _animationEffect = Observable(animationEffect);
 
   /// Unique identifier for this connection.
@@ -119,7 +120,9 @@ class Connection {
 
   final Observable<bool> _animated;
   final Observable<bool> _selected;
-  final Observable<List<ConnectionLabel>> _labels;
+  final Observable<ConnectionLabel?> _startLabel;
+  final Observable<ConnectionLabel?> _label;
+  final Observable<ConnectionLabel?> _endLabel;
   final Observable<ConnectionAnimationEffect?> _animationEffect;
 
   /// Optional arbitrary data to attach to the connection.
@@ -193,19 +196,47 @@ class Connection {
   /// Sets whether the connection is currently selected.
   set selected(bool value) => runInAction(() => _selected.value = value);
 
-  /// The list of labels displayed along the connection path.
+  /// The label at the start of the connection (anchor 0.0).
   ///
-  /// Each label has an anchor position (0.0-1.0) along the path and a perpendicular offset.
-  /// All label properties are observable and will trigger UI updates when changed.
+  /// This label appears at the source port. Set to null to remove the start label.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  List<ConnectionLabel> get labels => _labels.value;
+  ConnectionLabel? get startLabel => _startLabel.value;
 
-  /// Gets the MobX observable for the labels list.
+  /// Sets the label at the start of the connection.
+  set startLabel(ConnectionLabel? value) =>
+      runInAction(() => _startLabel.value = value);
+
+  /// The label at the center of the connection (anchor 0.5).
   ///
-  /// Use this property when you need to observe label list changes in MobX reactions
-  /// or computed values. For simple access, use [labels] instead.
+  /// This label appears at the midpoint of the connection. Set to null to remove the center label.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  Observable<List<ConnectionLabel>> get labelsObservable => _labels;
+  ConnectionLabel? get label => _label.value;
+
+  /// Sets the label at the center of the connection.
+  set label(ConnectionLabel? value) => runInAction(() => _label.value = value);
+
+  /// The label at the end of the connection (anchor 1.0).
+  ///
+  /// This label appears at the target port. Set to null to remove the end label.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  ConnectionLabel? get endLabel => _endLabel.value;
+
+  /// Sets the label at the end of the connection.
+  set endLabel(ConnectionLabel? value) =>
+      runInAction(() => _endLabel.value = value);
+
+  /// The list of all non-null labels displayed along the connection path.
+  ///
+  /// This getter returns a list containing the non-null labels from [startLabel],
+  /// [label], and [endLabel] in that order. This is used internally for rendering.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  List<ConnectionLabel> get labels {
+    final result = <ConnectionLabel>[];
+    if (_startLabel.value != null) result.add(_startLabel.value!);
+    if (_label.value != null) result.add(_label.value!);
+    if (_endLabel.value != null) result.add(_endLabel.value!);
+    return result;
+  }
 
   /// Checks if this connection involves the given node.
   ///
@@ -232,102 +263,6 @@ class Connection {
   bool involvesPort(String nodeId, String portId) {
     return (sourceNodeId == nodeId && sourcePortId == portId) ||
         (targetNodeId == nodeId && targetPortId == portId);
-  }
-
-  /// Adds a label to the connection.
-  ///
-  /// This is a reactive operation that will trigger UI updates in observers.
-  ///
-  /// Parameters:
-  /// - [label]: The ConnectionLabel to add
-  void addLabel(ConnectionLabel label) {
-    runInAction(() {
-      _labels.value = [..._labels.value, label];
-    });
-  }
-
-  /// Removes a label from the connection by its ID.
-  ///
-  /// This is a reactive operation that will trigger UI updates in observers.
-  ///
-  /// Parameters:
-  /// - [labelId]: The ID of the label to remove
-  ///
-  /// Returns: true if the label was found and removed, false otherwise
-  bool removeLabel(String labelId) {
-    return runInAction(() {
-      final index = _labels.value.indexWhere((l) => l.id == labelId);
-      if (index != -1) {
-        _labels.value = [
-          ..._labels.value.sublist(0, index),
-          ..._labels.value.sublist(index + 1),
-        ];
-        return true;
-      }
-      return false;
-    });
-  }
-
-  /// Updates a label's properties by ID.
-  ///
-  /// This is a reactive operation that will trigger UI updates in observers.
-  ///
-  /// Parameters:
-  /// - [labelId]: The ID of the label to update
-  /// - [text]: Optional new text for the label
-  /// - [anchor]: Optional new anchor position (0.0-1.0)
-  /// - [offset]: Optional new perpendicular offset
-  ///
-  /// Returns: true if the label was found and updated, false otherwise
-  bool updateLabel(
-    String labelId, {
-    String? text,
-    double? anchor,
-    double? offset,
-  }) {
-    final label = _labels.value.firstWhere(
-      (l) => l.id == labelId,
-      orElse: () => throw StateError('Label with id $labelId not found'),
-    );
-
-    try {
-      label.update(text: text, anchor: anchor, offset: offset);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// Replaces all labels with a new list.
-  ///
-  /// This is a reactive operation that will trigger UI updates in observers.
-  ///
-  /// Parameters:
-  /// - [labels]: The new list of labels
-  void setLabels(List<ConnectionLabel> labels) {
-    runInAction(() {
-      _labels.value = [...labels];
-    });
-  }
-
-  /// Clears all labels from the connection.
-  ///
-  /// This is a reactive operation that will trigger UI updates in observers.
-  void clearLabels() {
-    runInAction(() {
-      _labels.value = [];
-    });
-  }
-
-  /// Finds a label by its ID.
-  ///
-  /// Returns the label if found, null otherwise.
-  ConnectionLabel? findLabel(String labelId) {
-    try {
-      return _labels.value.firstWhere((l) => l.id == labelId);
-    } catch (e) {
-      return null;
-    }
   }
 
   /// Gets the effective connection style for rendering.
@@ -400,13 +335,22 @@ class Connection {
   /// initializing all observable properties.
   factory Connection.fromJson(Map<String, dynamic> json) {
     final connection = _$ConnectionFromJson(json);
-    // Initialize observable labels list from JSON
-    final labelsList =
-        (json['labels'] as List?)
-            ?.map((e) => ConnectionLabel.fromJson(e as Map<String, dynamic>))
-            .toList() ??
-        [];
-    connection._labels.value = labelsList;
+    // Initialize observable labels from JSON
+    if (json['startLabel'] != null) {
+      connection._startLabel.value = ConnectionLabel.fromJson(
+        json['startLabel'] as Map<String, dynamic>,
+      );
+    }
+    if (json['label'] != null) {
+      connection._label.value = ConnectionLabel.fromJson(
+        json['label'] as Map<String, dynamic>,
+      );
+    }
+    if (json['endLabel'] != null) {
+      connection._endLabel.value = ConnectionLabel.fromJson(
+        json['endLabel'] as Map<String, dynamic>,
+      );
+    }
     return connection;
   }
 
@@ -417,7 +361,15 @@ class Connection {
   Map<String, dynamic> toJson() {
     final json = _$ConnectionToJson(this);
     // Include observable labels in JSON
-    json['labels'] = _labels.value.map((label) => label.toJson()).toList();
+    if (_startLabel.value != null) {
+      json['startLabel'] = _startLabel.value!.toJson();
+    }
+    if (_label.value != null) {
+      json['label'] = _label.value!.toJson();
+    }
+    if (_endLabel.value != null) {
+      json['endLabel'] = _endLabel.value!.toJson();
+    }
     return json;
   }
 }

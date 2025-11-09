@@ -24,6 +24,10 @@ class ConnectionPainter {
 
   final ConnectionPathCache _pathCache;
 
+  /// Gets the connection path cache
+  /// Used by label calculator to leverage cached paths
+  ConnectionPathCache get pathCache => _pathCache;
+
   /// Optional function to get the shape for a node.
   /// Used to calculate correct port positions for shaped nodes.
   NodeShape? Function(Node node)? nodeShape;

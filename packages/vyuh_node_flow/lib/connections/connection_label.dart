@@ -1,6 +1,8 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:mobx/mobx.dart';
 
+import 'connection_anchor.dart';
+
 part 'connection_label.g.dart';
 
 /// Represents a label that can be positioned on a connection path.
@@ -12,6 +14,17 @@ part 'connection_label.g.dart';
 /// - [id]: Optional identifier for programmatic access
 ///
 /// All properties are observable for reactive UI updates.
+///
+/// ## Usage Example
+/// ```dart
+/// // Using factory constructors (recommended)
+/// final startLabel = ConnectionLabel.start(text: 'Start');
+/// final centerLabel = ConnectionLabel.center(text: 'Processing', offset: 5.0);
+/// final endLabel = ConnectionLabel.end(text: 'Complete');
+///
+/// // Or using the default constructor with explicit anchor
+/// final customLabel = ConnectionLabel(text: 'Custom', anchor: 0.25, offset: -10.0);
+/// ```
 @JsonSerializable()
 class ConnectionLabel {
   /// Observable text content of the label
@@ -35,7 +48,7 @@ class ConnectionLabel {
 
   ConnectionLabel({
     required String text,
-    double anchor = 0.5,
+    double anchor = ConnectionAnchor.center,
     double offset = 0.0,
     String? id,
   }) : assert(
@@ -46,6 +59,42 @@ class ConnectionLabel {
        _anchor = Observable(anchor),
        _offset = Observable(offset),
        id = id ?? _generateId();
+
+  /// Creates a label positioned at the start of the connection (anchor 0.0).
+  factory ConnectionLabel.start({
+    required String text,
+    double offset = 0.0,
+    String? id,
+  }) => ConnectionLabel(
+    text: text,
+    anchor: ConnectionAnchor.start,
+    offset: offset,
+    id: id,
+  );
+
+  /// Creates a label positioned at the center of the connection (anchor 0.5).
+  factory ConnectionLabel.center({
+    required String text,
+    double offset = 0.0,
+    String? id,
+  }) => ConnectionLabel(
+    text: text,
+    anchor: ConnectionAnchor.center,
+    offset: offset,
+    id: id,
+  );
+
+  /// Creates a label positioned at the end of the connection (anchor 1.0).
+  factory ConnectionLabel.end({
+    required String text,
+    double offset = 0.0,
+    String? id,
+  }) => ConnectionLabel(
+    text: text,
+    anchor: ConnectionAnchor.end,
+    offset: offset,
+    id: id,
+  );
 
   /// The text content of the label
   String get text => _text.value;

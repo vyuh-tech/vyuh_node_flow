@@ -5,11 +5,11 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../shared/ui_widgets.dart';
 
-/// Example demonstrating dynamic connection label management.
+/// Example demonstrating connection label management with three fixed positions.
 ///
 /// This example showcases:
-/// - Adding and removing labels dynamically
-/// - Controlling label text, anchor position, and perpendicular offset
+/// - Setting start, center, and end labels on connections
+/// - Controlling label text and perpendicular offset for each position
 /// - Theme-level label styling configuration
 /// - Real-time reactive updates of label properties
 class ConnectionLabelsExample extends StatefulWidget {
@@ -115,7 +115,6 @@ class _ConnectionLabelsStore {
   late final NodeFlowController<Map<String, dynamic>> controller;
 
   final Observable<String?> _selectedConnectionId = Observable(null);
-  final Observable<ConnectionLabel?> _selectedLabel = Observable(null);
 
   // Theme controls
   final Observable<Color> labelColor = Observable(const Color(0xFF333333));
@@ -136,8 +135,6 @@ class _ConnectionLabelsStore {
   }
 
   String? get selectedConnectionId => _selectedConnectionId.value;
-
-  ConnectionLabel? get selectedLabel => _selectedLabel.value;
 
   Connection? get selectedConnection {
     if (_selectedConnectionId.value == null) return null;
@@ -235,14 +232,7 @@ class _ConnectionLabelsStore {
         sourcePortId: 'out-1',
         targetNodeId: 'node-2',
         targetPortId: 'in-1',
-        labels: [
-          ConnectionLabel(
-            text: 'Data Flow',
-            anchor: 0.5,
-            offset: 0.0,
-            id: 'label-1',
-          ),
-        ],
+        label: ConnectionLabel.center(text: 'Data Flow', id: 'label-1'),
       ),
     );
 
@@ -253,26 +243,21 @@ class _ConnectionLabelsStore {
         sourcePortId: 'out-3',
         targetNodeId: 'node-4',
         targetPortId: 'in-4',
-        labels: [
-          ConnectionLabel(
-            text: 'Start',
-            anchor: 0.0,
-            offset: 10.0,
-            id: 'label-2-start',
-          ),
-          ConnectionLabel(
-            text: 'Middle',
-            anchor: 0.5,
-            offset: -15.0,
-            id: 'label-2-mid',
-          ),
-          ConnectionLabel(
-            text: 'End',
-            anchor: 1.0,
-            offset: 10.0,
-            id: 'label-2-end',
-          ),
-        ],
+        startLabel: ConnectionLabel.start(
+          text: 'Start',
+          offset: 10.0,
+          id: 'label-2-start',
+        ),
+        label: ConnectionLabel.center(
+          text: 'Middle',
+          offset: -15.0,
+          id: 'label-2-mid',
+        ),
+        endLabel: ConnectionLabel.end(
+          text: 'End',
+          offset: 10.0,
+          id: 'label-2-end',
+        ),
       ),
     );
   }
@@ -280,59 +265,73 @@ class _ConnectionLabelsStore {
   void onConnectionSelected(Connection? connection) {
     runInAction(() {
       _selectedConnectionId.value = connection?.id;
-      _selectedLabel.value = null;
     });
   }
 
-  void selectLabel(ConnectionLabel? label) {
-    runInAction(() {
-      _selectedLabel.value = label;
-    });
-  }
-
-  void addLabel() {
+  void setStartLabel(String? text) {
     final connection = selectedConnection;
     if (connection == null) return;
 
-    connection.addLabel(
-      ConnectionLabel(text: 'New Label', anchor: 0.5, offset: 0.0),
-    );
+    if (text == null || text.isEmpty) {
+      connection.startLabel = null;
+    } else if (connection.startLabel == null) {
+      // Create new label if it doesn't exist
+      connection.startLabel = ConnectionLabel.start(text: text);
+    } else {
+      // Update existing label
+      connection.startLabel!.updateText(text);
+    }
   }
 
-  void removeLabel() {
-    if (_selectedLabel.value == null) return;
-
+  void setLabel(String? text) {
     final connection = selectedConnection;
     if (connection == null) return;
 
-    connection.removeLabel(_selectedLabel.value!.id);
-    runInAction(() {
-      _selectedLabel.value = null;
-    });
+    if (text == null || text.isEmpty) {
+      connection.label = null;
+    } else if (connection.label == null) {
+      // Create new label if it doesn't exist
+      connection.label = ConnectionLabel.center(text: text);
+    } else {
+      // Update existing label
+      connection.label!.updateText(text);
+    }
   }
 
-  void updateLabelText(String text) {
-    if (_selectedLabel.value == null) return;
+  void setEndLabel(String? text) {
+    final connection = selectedConnection;
+    if (connection == null) return;
 
-    runInAction(() {
-      _selectedLabel.value!.updateText(text);
-    });
+    if (text == null || text.isEmpty) {
+      connection.endLabel = null;
+    } else if (connection.endLabel == null) {
+      // Create new label if it doesn't exist
+      connection.endLabel = ConnectionLabel.end(text: text);
+    } else {
+      // Update existing label
+      connection.endLabel!.updateText(text);
+    }
   }
 
-  void updateLabelAnchor(double anchor) {
-    if (_selectedLabel.value == null) return;
+  void setStartLabelOffset(double offset) {
+    final connection = selectedConnection;
+    if (connection == null || connection.startLabel == null) return;
 
-    runInAction(() {
-      _selectedLabel.value!.updateAnchor(anchor);
-    });
+    connection.startLabel!.updateOffset(offset);
   }
 
-  void updateLabelOffset(double offset) {
-    if (_selectedLabel.value == null) return;
+  void setLabelOffset(double offset) {
+    final connection = selectedConnection;
+    if (connection == null || connection.label == null) return;
 
-    runInAction(() {
-      _selectedLabel.value!.updateOffset(offset);
-    });
+    connection.label!.updateOffset(offset);
+  }
+
+  void setEndLabelOffset(double offset) {
+    final connection = selectedConnection;
+    if (connection == null || connection.endLabel == null) return;
+
+    connection.endLabel!.updateOffset(offset);
   }
 
   void setLabelColor(Color color) {
@@ -396,145 +395,34 @@ class _ConnectionLabelsControlPanel extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text('ID: ${store.selectedConnectionId}'),
                 Text('Labels: ${connection?.labels.length ?? 0}'),
-                const SizedBox(height: 12),
-                ElevatedButton.icon(
-                  onPressed: store.addLabel,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Label'),
+                const SizedBox(height: 24),
+
+                // Start Label
+                _LabelControl(
+                  title: 'Start Label',
+                  label: connection?.startLabel,
+                  onTextChanged: store.setStartLabel,
+                  onOffsetChanged: store.setStartLabelOffset,
                 ),
                 const SizedBox(height: 24),
 
-                // Labels list - wrapped in Observer to react to label changes
-                const SectionTitle('Labels'),
-                const SizedBox(height: 12),
-                Observer(
-                  builder: (_) {
-                    if (connection != null && connection.labels.isNotEmpty) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: connection.labels.map((label) {
-                          final isSelected =
-                              store.selectedLabel?.id == label.id;
-                          return Observer(
-                            builder: (_) => Card(
-                              color: isSelected ? Colors.blue[50] : null,
-                              child: ListTile(
-                                title: Text(label.text),
-                                subtitle: Text(
-                                  'Anchor: ${label.anchor.toStringAsFixed(2)} | Offset: ${label.offset.toStringAsFixed(1)}',
-                                ),
-                                selected: isSelected,
-                                onTap: () => store.selectLabel(label),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.delete, size: 20),
-                                  onPressed: () {
-                                    connection.removeLabel(label.id);
-                                    if (store.selectedLabel?.id == label.id) {
-                                      store.selectLabel(null);
-                                    }
-                                  },
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      );
-                    } else {
-                      return const Text(
-                        'No labels. Click "Add Label" to create one.',
-                        style: TextStyle(color: Colors.grey),
-                      );
-                    }
-                  },
+                // Center Label
+                _LabelControl(
+                  title: 'Center Label',
+                  label: connection?.label,
+                  onTextChanged: store.setLabel,
+                  onOffsetChanged: store.setLabelOffset,
                 ),
                 const SizedBox(height: 24),
 
-                // Label editor - wrapped in Observer to react to label property changes
-                if (store.selectedLabel != null)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SectionTitle('Edit Label'),
-                      const SizedBox(height: 12),
-                      Observer(
-                        builder: (_) => TextField(
-                          decoration: const InputDecoration(
-                            labelText: 'Label Text',
-                            border: OutlineInputBorder(),
-                          ),
-                          controller:
-                              TextEditingController(
-                                  text: store.selectedLabel!.text,
-                                )
-                                ..selection = TextSelection.fromPosition(
-                                  TextPosition(
-                                    offset: store.selectedLabel!.text.length,
-                                  ),
-                                ),
-                          onChanged: store.updateLabelText,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Observer(
-                        builder: (_) => Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              'Anchor: ${store.selectedLabel!.anchor.toStringAsFixed(2)}',
-                            ),
-                            Slider(
-                              value: store.selectedLabel!.anchor,
-                              min: 0.0,
-                              max: 1.0,
-                              divisions: 20,
-                              label: store.selectedLabel!.anchor
-                                  .toStringAsFixed(2),
-                              onChanged: store.updateLabelAnchor,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Text(
-                        '0.0 = Start, 0.5 = Center, 1.0 = End',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                      const SizedBox(height: 16),
-                      Observer(
-                        builder: (_) => Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              'Offset: ${store.selectedLabel!.offset.toStringAsFixed(1)}px',
-                            ),
-                            Slider(
-                              value: store.selectedLabel!.offset,
-                              min: -50.0,
-                              max: 50.0,
-                              divisions: 100,
-                              label: store.selectedLabel!.offset
-                                  .toStringAsFixed(1),
-                              onChanged: store.updateLabelOffset,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Text(
-                        'Perpendicular offset from path',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: store.removeLabel,
-                        icon: const Icon(Icons.delete),
-                        label: const Text('Remove Label'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red[700],
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+                // End Label
+                _LabelControl(
+                  title: 'End Label',
+                  label: connection?.endLabel,
+                  onTextChanged: store.setEndLabel,
+                  onOffsetChanged: store.setEndLabelOffset,
+                ),
+                const SizedBox(height: 24),
               ],
 
               // Theme controls - always visible
@@ -652,6 +540,100 @@ class _ConnectionLabelsControlPanel extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Label control widget for a single label position
+class _LabelControl extends StatefulWidget {
+  const _LabelControl({
+    required this.title,
+    required this.label,
+    required this.onTextChanged,
+    required this.onOffsetChanged,
+  });
+
+  final String title;
+  final ConnectionLabel? label;
+  final ValueChanged<String?> onTextChanged;
+  final ValueChanged<double> onOffsetChanged;
+
+  @override
+  State<_LabelControl> createState() => _LabelControlState();
+}
+
+class _LabelControlState extends State<_LabelControl> {
+  late TextEditingController _textController;
+
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: widget.label?.text ?? '');
+  }
+
+  @override
+  void didUpdateWidget(_LabelControl oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Only update the text controller if the label object changed (not just the text)
+    // This prevents disrupting typing when the text is being edited
+    if (widget.label?.id != oldWidget.label?.id) {
+      _textController.text = widget.label?.text ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SectionTitle(widget.title),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _textController,
+          decoration: InputDecoration(
+            labelText: 'Text',
+            border: const OutlineInputBorder(),
+            suffixIcon: widget.label != null
+                ? IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _textController.clear();
+                      widget.onTextChanged(null);
+                    },
+                  )
+                : null,
+          ),
+          onChanged: widget.onTextChanged,
+        ),
+        const SizedBox(height: 12),
+        if (widget.label != null)
+          Observer(
+            builder: (_) => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Offset: ${widget.label!.offset.toStringAsFixed(1)}px'),
+                Slider(
+                  value: widget.label!.offset,
+                  min: -50.0,
+                  max: 50.0,
+                  divisions: 100,
+                  label: widget.label!.offset.toStringAsFixed(1),
+                  onChanged: widget.onOffsetChanged,
+                ),
+                const Text(
+                  'Perpendicular offset from path',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }

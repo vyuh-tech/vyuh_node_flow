@@ -120,6 +120,7 @@ export 'annotations/annotation_widget.dart';
 export 'connections/animation/animation_effects.dart';
 // Connections
 export 'connections/connection.dart';
+export 'connections/connection_anchor.dart';
 export 'connections/connection_endpoint.dart';
 export 'connections/connection_label.dart';
 export 'connections/connection_path_calculator.dart';

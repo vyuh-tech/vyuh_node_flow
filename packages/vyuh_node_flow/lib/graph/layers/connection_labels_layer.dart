@@ -106,12 +106,17 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
         final currentTheme =
             Theme.of(context).extension<NodeFlowTheme>() ?? NodeFlowTheme.light;
 
-        // Calculate all label positions using convenience method
+        // Get the effective connection style (per-connection override or theme default)
+        final effectiveStyle = connection.getEffectiveStyle(
+          currentTheme.connectionTheme.style,
+        );
+
+        // Calculate all label positions using the cached paths
         final labelRects = LabelCalculator.calculateAllLabelPositions(
           connection: connection,
           sourceNode: sourceNode,
           targetNode: targetNode,
-          connectionStyle: currentTheme.connectionTheme.style,
+          connectionStyle: effectiveStyle,
           curvature: currentTheme.connectionTheme.bezierCurvature,
           portSize: currentTheme.portTheme.size,
           endpointSize: math.max(
@@ -119,6 +124,7 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
             currentTheme.connectionTheme.endPoint.size,
           ),
           labelTheme: currentTheme.labelTheme,
+          pathCache: controller.connectionPainter.pathCache,
           portExtension: currentTheme.connectionTheme.portExtension,
         );
 

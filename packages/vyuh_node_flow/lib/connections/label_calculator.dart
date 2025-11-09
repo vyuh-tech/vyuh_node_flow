@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../connections/connection.dart' show Connection;
 import '../connections/connection_label.dart';
+import '../connections/connection_path_cache.dart';
 import '../connections/connection_style_base.dart';
 import '../connections/label_theme.dart';
 import '../nodes/node.dart';
@@ -61,6 +62,7 @@ class LabelCalculator {
   /// - [portSize]: Size of the ports in logical pixels
   /// - [endpointSize]: Size of the endpoint markers in logical pixels
   /// - [labelTheme]: Theme defining label appearance
+  /// - [pathCache]: Optional path cache to reuse cached connection paths
   ///
   /// Returns: A list of [Rect]s corresponding to each label in connection.labels,
   /// or an empty list if the calculation fails (e.g., ports not found)
@@ -68,7 +70,7 @@ class LabelCalculator {
   /// The method:
   /// 1. Finds the source and target ports on their respective nodes
   /// 2. Calculates port positions and endpoint positions
-  /// 3. Creates the connection path
+  /// 3. Gets or creates the connection path (using cache if provided)
   /// 4. For each label, calculates its position based on anchor and offset
   static List<Rect> calculateAllLabelPositions({
     required Connection connection,
@@ -79,6 +81,7 @@ class LabelCalculator {
     required double portSize,
     required double endpointSize,
     required LabelTheme labelTheme,
+    ConnectionPathCache? pathCache,
     double portExtension = 10.0,
   }) {
     try {
@@ -128,16 +131,28 @@ class LabelCalculator {
         portSize,
       );
 
-      // Create the connection path
-      final connectionPath = ConnectionPathCalculator.createConnectionPath(
-        style: connectionStyle,
-        start: source.linePos,
-        end: target.linePos,
-        curvature: curvature,
-        sourcePort: sourcePort,
-        targetPort: targetPort,
-        offset: portExtension,
-      );
+      // Get or create the connection path
+      // Use cache if provided, otherwise create a new path
+      final connectionPath = pathCache != null
+          ? pathCache.getOrCreatePath(
+              connection: connection,
+              sourceNode: sourceNode,
+              targetNode: targetNode,
+              connectionStyle: connectionStyle,
+            )
+          : ConnectionPathCalculator.createConnectionPath(
+              style: connectionStyle,
+              start: source.linePos,
+              end: target.linePos,
+              curvature: curvature,
+              sourcePort: sourcePort,
+              targetPort: targetPort,
+              offset: portExtension,
+            );
+
+      if (connectionPath == null) {
+        return [];
+      }
 
       // Calculate rect for each label
       final labelRects = <Rect>[];
