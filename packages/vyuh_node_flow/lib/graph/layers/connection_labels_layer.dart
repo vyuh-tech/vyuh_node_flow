@@ -194,29 +194,83 @@ class _TappableLabelWidget extends StatelessWidget {
       onTap: onTap,
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
-        // Constrain outer size to exact calculated visual size for positioning
         child: Container(
+          width: visualSize.width,
+          height: visualSize.height,
           decoration: BoxDecoration(
             color: labelTheme.backgroundColor,
             borderRadius: labelTheme.borderRadius,
             border: labelTheme.border,
           ),
-          // padding: labelTheme.padding,
-          width: visualSize.width,
-          height: visualSize.height,
-          alignment: Alignment.center,
-          // Constrain text to the exact calculated text width
-          child: Text(
-            text,
-            style: labelTheme.textStyle,
-            textAlign: TextAlign.center,
-            maxLines: labelTheme.maxLines,
-            overflow: labelTheme.maxLines != null
-                ? TextOverflow.ellipsis
-                : TextOverflow.clip,
+          child: CustomPaint(
+            painter: _LabelTextPainter(
+              text: text,
+              textStyle: labelTheme.textStyle,
+              padding: labelTheme.padding,
+              maxWidth: labelTheme.maxWidth,
+              maxLines: labelTheme.maxLines,
+            ),
           ),
         ),
       ),
     );
+  }
+}
+
+/// Private CustomPainter that paints label text using TextPainter
+/// This ensures the text is rendered exactly as it was measured in LabelCalculator
+class _LabelTextPainter extends CustomPainter {
+  _LabelTextPainter({
+    required this.text,
+    required this.textStyle,
+    required this.padding,
+    required this.maxWidth,
+    required this.maxLines,
+  });
+
+  final String text;
+  final TextStyle textStyle;
+  final EdgeInsets padding;
+  final double maxWidth;
+  final int? maxLines;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Create TextPainter with same parameters as calculator
+    final textPainter = TextPainter(
+      text: TextSpan(text: text, style: textStyle),
+      textDirection: TextDirection.ltr,
+      maxLines: maxLines,
+      textAlign: TextAlign.center,
+      ellipsis: '...',
+    );
+
+    // Layout with same maxWidth constraint as calculator
+    final maxTextWidth = maxWidth.isFinite ? maxWidth : double.infinity;
+    textPainter.layout(maxWidth: maxTextWidth);
+
+    // Calculate position to center the text within the padded area
+    final textWidth = textPainter.width;
+    final textHeight = textPainter.height;
+
+    // Available space after padding
+    final availableWidth = size.width - padding.horizontal;
+    final availableHeight = size.height - padding.vertical;
+
+    // Center the text
+    final dx = padding.left + (availableWidth - textWidth) / 2;
+    final dy = padding.top + (availableHeight - textHeight) / 2;
+
+    // Paint the text
+    textPainter.paint(canvas, Offset(dx, dy));
+  }
+
+  @override
+  bool shouldRepaint(_LabelTextPainter oldDelegate) {
+    return text != oldDelegate.text ||
+        textStyle != oldDelegate.textStyle ||
+        padding != oldDelegate.padding ||
+        maxWidth != oldDelegate.maxWidth ||
+        maxLines != oldDelegate.maxLines;
   }
 }
