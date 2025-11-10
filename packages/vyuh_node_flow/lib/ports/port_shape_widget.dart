@@ -67,31 +67,15 @@ class _PortShapePainter extends CustomPainter {
             ..style = PaintingStyle.stroke)
         : null;
 
-    // Convert port position to shape orientation
-    final orientation = _portPositionToOrientation(position);
-
-    // Use the shape's paint method, passing orientation
+    // Use the shape's paint method, passing orientation from port position
     shape.paint(
       canvas,
       Offset(size.width / 2, size.height / 2),
       size.width,
       fillPaint,
       borderPaint,
-      orientation: orientation,
+      orientation: position.toOrientation(),
     );
-  }
-
-  ShapeOrientation _portPositionToOrientation(PortPosition position) {
-    switch (position) {
-      case PortPosition.left:
-        return ShapeOrientation.left;
-      case PortPosition.right:
-        return ShapeOrientation.right;
-      case PortPosition.top:
-        return ShapeOrientation.top;
-      case PortPosition.bottom:
-        return ShapeOrientation.bottom;
-    }
   }
 
   @override

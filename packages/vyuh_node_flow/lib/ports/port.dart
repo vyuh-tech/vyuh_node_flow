@@ -308,3 +308,19 @@ enum PortPosition {
   /// Port is positioned on the bottom side of the node
   bottom,
 }
+
+/// Extension on PortPosition to convert to ShapeOrientation
+extension PortPositionExtension on PortPosition {
+  ShapeOrientation toOrientation() {
+    switch (this) {
+      case PortPosition.left:
+        return ShapeOrientation.left;
+      case PortPosition.right:
+        return ShapeOrientation.right;
+      case PortPosition.top:
+        return ShapeOrientation.top;
+      case PortPosition.bottom:
+        return ShapeOrientation.bottom;
+    }
+  }
+}
