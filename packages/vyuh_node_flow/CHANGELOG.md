@@ -1,3 +1,7 @@
+## 0.3.7+1
+
+ - **FIX**: simplified use of shape orientation.
+
 ## 0.3.7
 
  - **FEAT**: Making PortShape into a class hierarchy and consolidating the end point shape into a PortShape. Also fixed the autopan related properties since they are currently not supported.
