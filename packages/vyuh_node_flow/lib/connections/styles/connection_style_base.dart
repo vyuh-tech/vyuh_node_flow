@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../ports/port.dart';
+import '../../ports/port.dart';
 
 /// Parameters for connection path creation
 class PathParameters {

@@ -1,6 +1,6 @@
-/// Animation effects for connections.
+/// Connection effects for animations and visual enhancements.
 ///
-/// This library provides a collection of built-in animation effects that can
+/// This library provides a collection of built-in effects that can
 /// be applied to connections in a node flow diagram.
 ///
 /// ## Available Effects
@@ -13,31 +13,33 @@
 /// ## Usage Example
 ///
 /// ```dart
-/// import 'package:vyuh_node_flow/connections/animation/animation_effects.dart';
+/// import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 ///
-/// // Apply a flowing dash effect
+/// // Use pre-configured effects
+/// connection.animationEffect = ConnectionEffects.flowingDashFast;
+/// connection.animationEffect = ConnectionEffects.particlesRocket;
+/// connection.animationEffect = ConnectionEffects.pulseStrong;
+///
+/// // Or create custom effect instances
 /// connection.animationEffect = FlowingDashEffect(
-///   speed: 2.0,
-///   dashLength: 10.0,
-///   gapLength: 5.0,
+///   speed: 2,
+///   dashLength: 10,
+///   gapLength: 5,
 /// );
 ///
-/// // Apply a particle effect
 /// connection.animationEffect = ParticleEffect(
+///   particlePainter: Particles.arrow,
 ///   particleCount: 5,
-///   particleSize: 4.0,
-///   speed: 1.5,
+///   speed: 2,
 /// );
 ///
-/// // Apply a gradient flow effect
 /// connection.animationEffect = GradientFlowEffect(
 ///   colors: [Colors.blue, Colors.cyan, Colors.blue],
-///   speed: 1.0,
+///   speed: 1,
 /// );
 ///
-/// // Apply a pulse effect
 /// connection.animationEffect = PulseEffect(
-///   pulseSpeed: 1.0,
+///   speed: 1,
 ///   minOpacity: 0.3,
 ///   maxOpacity: 1.0,
 ///   widthVariation: 1.5,
@@ -46,23 +48,25 @@
 ///
 /// ## Custom Effects
 ///
-/// You can create custom animation effects by extending [ConnectionAnimationEffect]:
+/// You can create custom effects by implementing [ConnectionEffect]:
 ///
 /// ```dart
-/// class MyCustomEffect extends ConnectionAnimationEffect {
+/// class MyCustomEffect implements ConnectionEffect {
 ///   @override
 ///   void paint(Canvas canvas, Path path, Paint basePaint, double animationValue) {
-///     // Your custom animation rendering logic
+///     // Your custom effect rendering logic
 ///   }
 /// }
 /// ```
 library;
 
-export 'connection_animation_effect.dart';
+export 'connection_effect.dart';
+export 'connection_effects.dart';
 export 'flowing_dash_effect.dart';
 export 'gradient_flow_effect.dart';
 export 'particle_effect.dart';
 export 'particle_painter.dart';
+export 'particles.dart';
 export 'particles/arrow_particle.dart';
 export 'particles/character_particle.dart';
 export 'particles/circle_particle.dart';

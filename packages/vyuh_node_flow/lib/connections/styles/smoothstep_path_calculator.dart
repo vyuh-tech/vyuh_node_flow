@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-import '../ports/port.dart';
+import '../../ports/port.dart';
 
 class SmoothstepPathCalculator {
   static Path calculatePath({

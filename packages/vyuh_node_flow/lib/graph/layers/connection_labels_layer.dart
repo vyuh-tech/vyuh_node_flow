@@ -6,8 +6,8 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../connections/connection.dart';
 import '../../connections/connection_label.dart';
-import '../../connections/label_calculator.dart';
 import '../../connections/label_theme.dart';
+import '../../connections/styles/label_calculator.dart';
 import '../node_flow_controller.dart';
 import '../node_flow_theme.dart';
 

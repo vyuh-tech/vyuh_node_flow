@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../ports/port.dart';
-import '../connection_style_base.dart';
+import 'connection_style_base.dart';
 
 /// Bezier curve connection style
 ///

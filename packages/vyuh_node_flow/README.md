@@ -326,7 +326,7 @@ final customTheme = NodeFlowTheme(
     startPoint: ConnectionEndPoint.none,
     endPoint: ConnectionEndPoint.arrow,
     // Optional: Add animation effect
-    animationEffect: ParticleEffect(particleCount: 3, speed: 1),
+    animationEffect: ConnectionEffects.particles,
   ),
 
   // Temporary connection (while dragging)
@@ -998,6 +998,12 @@ Creates a flowing dash pattern along the connection, similar to the classic
 "marching ants" effect.
 
 ```dart
+// Using pre-configured effects
+ConnectionEffects.flowingDash      // Default settings
+ConnectionEffects.flowingDashFast  // Faster animation
+ConnectionEffects.flowingDashSlow  // Slower, longer dashes
+
+// Or create custom instances
 FlowingDashEffect(
   speed: 2,          // Complete cycles per animation period
   dashLength: 10,    // Length of each dash (pixels)
@@ -1014,14 +1020,28 @@ Shows particles traveling along the connection path, useful for visualizing data
 flow or direction.
 
 ```dart
+// Using pre-configured effects
+ConnectionEffects.particles       // Circle particles
+ConnectionEffects.particlesArrow  // Arrow particles
+ConnectionEffects.particlesFast   // More particles, faster
+ConnectionEffects.particlesRocket // 🚀 emoji particles
+ConnectionEffects.particlesFire   // 🔥 emoji particles
+
+// Or create custom instances
 ParticleEffect(
   particleCount: 5,         // Number of particles
   speed: 1,                 // Complete cycles per animation period
   connectionOpacity: 0.3,   // Opacity of base connection (0.0-1.0)
-  particlePainter: CircleParticle(radius: 4.0), // Particle appearance
+  particlePainter: Particles.circle,  // Use pre-configured particle
 )
 
 // Available particle painters:
+Particles.circle, circleMedium, circleLarge  // Circle particles
+Particles.arrow, arrowLarge                   // Arrow particles
+Particles.dot, rightArrow                     // Character particles
+Particles.rocket, fire, star, sparkle         // Emoji particles
+
+// Or create custom particle painters:
 // - CircleParticle(radius: double)
 // - ArrowParticle(length: double, width: double)
 // - CharacterParticle(character: String, fontSize: double)
@@ -1035,6 +1055,13 @@ ParticleEffect(
 Creates a smoothly flowing gradient along the connection path.
 
 ```dart
+// Using pre-configured effects
+ConnectionEffects.gradientFlow       // Default gradient
+ConnectionEffects.gradientFlowBlue   // Blue to cyan gradient
+ConnectionEffects.gradientFlowPurple // Purple to pink gradient
+ConnectionEffects.gradientFlowFast   // Faster gradient flow
+
+// Or create custom instances
 GradientFlowEffect(
   colors: [
     Colors.blue.withValues(alpha: 0.0),
@@ -1056,6 +1083,13 @@ Creates a pulsing or breathing effect by animating the connection's opacity and
 optionally its width.
 
 ```dart
+// Using pre-configured effects
+ConnectionEffects.pulse       // Standard pulse
+ConnectionEffects.pulseFast   // Faster pulsing
+ConnectionEffects.pulseSubtle // Subtle variation
+ConnectionEffects.pulseStrong // Strong pulse with glow
+
+// Or create custom instances
 PulseEffect(
   speed: 1,              // Complete pulse cycles per animation period
   minOpacity: 0.4,       // Minimum opacity during pulse
@@ -1078,10 +1112,12 @@ final theme = NodeFlowTheme(
     color: Colors.grey,
     strokeWidth: 2.0,
     // Default animation effect for all connections
-    animationEffect: FlowingDashEffect(
-      speed: 2,
-      dashLength: 10,
-      gapLength: 5,
+    animationEffect: ConnectionEffects.flowingDashFast,
+    // Or use custom settings:
+    // animationEffect: FlowingDashEffect(
+    //   speed: 2,
+    //   dashLength: 10,
+    //   gapLength: 5,
     ),
   ),
   // Control animation cycle duration
@@ -1101,11 +1137,7 @@ final connection = Connection(
   targetNodeId: 'node-2',
   targetPortId: 'input',
   // This connection will use ParticleEffect, overriding theme default
-  animationEffect: ParticleEffect(
-    particleCount: 3,
-    speed: 1,
-    connectionOpacity: 0.3,
-  ),
+  animationEffect: ConnectionEffects.particles,
 );
 
 // Or create a connection with no effect (overriding theme)
@@ -1147,7 +1179,7 @@ speed values cause multiple cycles within the duration.
 // Theme with default particle effect
 final theme = NodeFlowTheme(
   connectionTheme: ConnectionTheme(
-    animationEffect: ParticleEffect(particleCount: 3, speed: 1),
+    animationEffect: ConnectionEffects.particles,
   ),
   connectionAnimationDuration: const Duration(seconds: 2),
 );
@@ -1170,11 +1202,13 @@ controller.addConnection(Connection(
   targetNodeId: 'node-3',
   targetPortId: 'in',
   // Critical connection gets a pulse effect
-  animationEffect: PulseEffect(
-    speed: 2,
-    minOpacity: 0.5,
-    maxOpacity: 1.0,
-    widthVariation: 1.3,
+  animationEffect: ConnectionEffects.pulseFast,
+  // Or use custom settings:
+  // animationEffect: PulseEffect(
+  //   speed: 2,
+  //   minOpacity: 0.5,
+  //   maxOpacity: 1.0,
+  //   widthVariation: 1.3,
   ),
 ));
 

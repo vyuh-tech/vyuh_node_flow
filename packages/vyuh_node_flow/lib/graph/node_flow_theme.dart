@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../connections/connection_endpoint.dart';
-import '../connections/connection_styles.dart';
 import '../connections/connection_theme.dart';
+import '../connections/styles/connection_styles.dart';
 import '../connections/label_theme.dart';
 import '../nodes/node_theme.dart';
 import '../ports/port_theme.dart';

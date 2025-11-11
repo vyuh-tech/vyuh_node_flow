@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../ports/port.dart';
+import '../../ports/port.dart';
 
 /// Utility class for calculating endpoint marker and connection line positions.
 ///

@@ -222,7 +222,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
     );
   }
 
-  ConnectionAnimationEffect? _createAnimationEffect(String effectType) {
+  ConnectionEffect? _createAnimationEffect(String effectType) {
     switch (effectType) {
       case 'flowing_dash':
         return FlowingDashEffect(speed: 2, dashLength: 10, gapLength: 5);

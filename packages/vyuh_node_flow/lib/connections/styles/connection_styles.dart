@@ -1,7 +1,7 @@
+import 'bezier_connection_style.dart';
 import 'connection_style_base.dart';
-import 'styles/bezier_connection_style.dart';
-import 'styles/step_connection_style.dart';
-import 'styles/straight_connection_style.dart';
+import 'step_connection_style.dart';
+import 'straight_connection_style.dart';
 
 /// Built-in connection styles
 ///

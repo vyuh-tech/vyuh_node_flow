@@ -8,10 +8,10 @@ import '../ports/port_theme.dart';
 import 'connection.dart';
 import 'connection_endpoint.dart';
 import 'connection_path_cache.dart';
-import 'connection_path_calculator.dart';
 import 'connection_theme.dart';
 import 'endpoint_painter.dart';
-import 'endpoint_position_calculator.dart';
+import 'styles/connection_path_calculator.dart';
+import 'styles/endpoint_position_calculator.dart';
 
 class ConnectionPainter {
   ConnectionPainter({required NodeFlowTheme theme, this.nodeShape})

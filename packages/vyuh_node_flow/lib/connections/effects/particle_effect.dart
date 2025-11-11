@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'connection_animation_effect.dart';
+import 'connection_effect.dart';
 import 'particle_painter.dart';
 import 'particles/circle_particle.dart';
 
@@ -33,7 +33,7 @@ import 'particles/circle_particle.dart';
 ///   speed: 1,
 /// );
 /// ```
-class ParticleEffect implements ConnectionAnimationEffect {
+class ParticleEffect implements ConnectionEffect {
   /// Creates a particle animation effect.
   ///
   /// Parameters:

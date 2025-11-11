@@ -3,8 +3,8 @@ import 'dart:ui' show PathMetric;
 
 import 'package:flutter/material.dart';
 
-import '../connection_style_base.dart';
-import '../smoothstep_path_calculator.dart';
+import 'connection_style_base.dart';
+import 'smoothstep_path_calculator.dart';
 
 /// Step connection style (90-degree turns without rounded corners)
 ///

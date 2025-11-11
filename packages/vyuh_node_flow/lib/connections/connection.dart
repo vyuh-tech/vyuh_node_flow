@@ -1,11 +1,11 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:mobx/mobx.dart';
 
-import 'animation/connection_animation_effect.dart';
 import 'connection_endpoint.dart';
 import 'connection_label.dart';
-import 'connection_style_base.dart';
-import 'connection_styles.dart';
+import 'effects/connection_effect.dart';
+import 'styles/connection_style_base.dart';
+import 'styles/connection_styles.dart';
 
 part 'connection.g.dart';
 
@@ -95,7 +95,7 @@ class Connection {
     ConnectionLabel? endLabel,
     this.startPoint,
     this.endPoint,
-    ConnectionAnimationEffect? animationEffect,
+    ConnectionEffect? animationEffect,
   }) : _animated = Observable(animated),
        _selected = Observable(selected),
        _startLabel = Observable(startLabel),
@@ -123,7 +123,7 @@ class Connection {
   final Observable<ConnectionLabel?> _startLabel;
   final Observable<ConnectionLabel?> _label;
   final Observable<ConnectionLabel?> _endLabel;
-  final Observable<ConnectionAnimationEffect?> _animationEffect;
+  final Observable<ConnectionEffect?> _animationEffect;
 
   /// Optional arbitrary data to attach to the connection.
   ///
@@ -166,7 +166,7 @@ class Connection {
 
   /// The animation effect to apply to this connection.
   ///
-  /// When set to a [ConnectionAnimationEffect] instance, the connection will
+  /// When set to a [ConnectionEffect] instance, the connection will
   /// be animated using that effect's rendering logic. Set to null to disable
   /// animation.
   ///
@@ -179,10 +179,10 @@ class Connection {
   /// );
   /// ```
   @JsonKey(includeFromJson: false, includeToJson: false)
-  ConnectionAnimationEffect? get animationEffect => _animationEffect.value;
+  ConnectionEffect? get animationEffect => _animationEffect.value;
 
   /// Sets the animation effect for this connection.
-  set animationEffect(ConnectionAnimationEffect? value) =>
+  set animationEffect(ConnectionEffect? value) =>
       runInAction(() => _animationEffect.value = value);
 
   /// Whether the connection is currently selected.
@@ -315,8 +315,8 @@ class Connection {
   /// - [themeAnimationEffect]: The default animation effect from the theme
   ///
   /// Returns: The animation effect to use for rendering this connection, or null if none
-  ConnectionAnimationEffect? getEffectiveAnimationEffect(
-    ConnectionAnimationEffect? themeAnimationEffect,
+  ConnectionEffect? getEffectiveAnimationEffect(
+    ConnectionEffect? themeAnimationEffect,
   ) {
     return animationEffect ?? themeAnimationEffect;
   }

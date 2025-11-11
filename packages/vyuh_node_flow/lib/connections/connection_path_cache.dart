@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../connections/connection.dart' show Connection;
-import '../connections/connection_path_calculator.dart';
-import '../connections/connection_style_base.dart';
-import '../connections/endpoint_position_calculator.dart';
+import '../connections/styles/connection_path_calculator.dart';
+import '../connections/styles/connection_style_base.dart';
+import '../connections/styles/endpoint_position_calculator.dart';
 import '../graph/node_flow_theme.dart';
 import '../nodes/node.dart';
 import '../nodes/node_shape.dart';

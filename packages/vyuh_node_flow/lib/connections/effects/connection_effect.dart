@@ -7,7 +7,7 @@ import 'dart:ui';
 ///
 /// Example:
 /// ```dart
-/// class MyCustomEffect implements ConnectionAnimationEffect {
+/// class MyCustomEffect implements ConnectionEffect {
 ///   MyCustomEffect({required this.customParam});
 ///
 ///   final double customParam;
@@ -18,7 +18,7 @@ import 'dart:ui';
 ///   }
 /// }
 /// ```
-abstract interface class ConnectionAnimationEffect {
+abstract interface class ConnectionEffect {
   /// Paints the animated connection effect on the canvas.
   ///
   /// Parameters:

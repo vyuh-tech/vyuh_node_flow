@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'connection_animation_effect.dart';
+import 'connection_effect.dart';
 
 /// An animation effect that creates a pulsing/glowing effect on the connection.
 ///
@@ -17,7 +17,7 @@ import 'connection_animation_effect.dart';
 ///   widthVariation: 1.5,
 /// );
 /// ```
-class PulseEffect implements ConnectionAnimationEffect {
+class PulseEffect implements ConnectionEffect {
   /// Creates a pulse animation effect.
   ///
   /// Parameters:

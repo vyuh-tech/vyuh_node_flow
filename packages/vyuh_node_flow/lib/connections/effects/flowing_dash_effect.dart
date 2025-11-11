@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'connection_animation_effect.dart';
+import 'connection_effect.dart';
 
 /// An animation effect that creates a flowing dash pattern along the connection.
 ///
@@ -15,7 +15,7 @@ import 'connection_animation_effect.dart';
 ///   gapLength: 5.0,
 /// );
 /// ```
-class FlowingDashEffect implements ConnectionAnimationEffect {
+class FlowingDashEffect implements ConnectionEffect {
   /// Creates a flowing dash animation effect.
   ///
   /// Parameters:

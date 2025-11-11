@@ -154,7 +154,7 @@ class AnimationDemoStore {
   void applyAnimationEffect() {
     if (selectedConnection == null) return;
 
-    ConnectionAnimationEffect? effect;
+    ConnectionEffect? effect;
 
     switch (selectedEffectType) {
       case 'flowing_dash':
@@ -399,11 +399,7 @@ class _AnimatedConnectionsExampleState
       sourcePortId: 'out_right',
       targetNodeId: 'node2',
       targetPortId: 'in_left',
-      animationEffect: FlowingDashEffect(
-        speed: 1, // Store default
-        dashLength: 10, // Store default
-        gapLength: 5, // Store default
-      ),
+      animationEffect: ConnectionEffects.flowingDash,
     );
 
     final conn2 = Connection(
@@ -413,7 +409,7 @@ class _AnimatedConnectionsExampleState
       targetNodeId: 'node5',
       targetPortId: 'in_left',
       animationEffect: ParticleEffect(
-        particlePainter: const CircleParticle(radius: 3.0),
+        particlePainter: Particles.circle,
         // Store default: particleSize = 3
         particleCount: 3,
         // Store default
@@ -431,11 +427,12 @@ class _AnimatedConnectionsExampleState
       sourcePortId: 'out_top',
       targetNodeId: 'node6',
       targetPortId: 'in_bottom',
+      // Note: Using default gradient with custom colors
       animationEffect: GradientFlowEffect(
-        colors: gradientPresets['transparent_cyan'], // Store default
-        speed: 1, // Store default
-        gradientLength: 0.25, // Store default
-        connectionOpacity: 1.0, // Store default
+        colors: gradientPresets['transparent_cyan'],
+        speed: 1,
+        gradientLength: 0.25,
+        connectionOpacity: 1.0,
       ),
     );
 
@@ -445,12 +442,7 @@ class _AnimatedConnectionsExampleState
       sourcePortId: 'out_top',
       targetNodeId: 'node5',
       targetPortId: 'in_top',
-      animationEffect: PulseEffect(
-        speed: 1, // Store default
-        minOpacity: 0.4, // Store default
-        maxOpacity: 1.0, // Store default
-        widthVariation: 1.0, // Store default
-      ),
+      animationEffect: ConnectionEffects.pulse,
     );
 
     // Bottom path: Data Source -> Processor Bottom -> Data Sync
@@ -460,11 +452,7 @@ class _AnimatedConnectionsExampleState
       sourcePortId: 'out_bottom',
       targetNodeId: 'node7',
       targetPortId: 'in_top',
-      animationEffect: FlowingDashEffect(
-        speed: 1, // Store default
-        dashLength: 10, // Store default
-        gapLength: 5, // Store default
-      ),
+      animationEffect: ConnectionEffects.flowingDash,
     );
 
     final conn10 = Connection(
@@ -474,7 +462,7 @@ class _AnimatedConnectionsExampleState
       targetNodeId: 'node5',
       targetPortId: 'in_bottom',
       animationEffect: ParticleEffect(
-        particlePainter: const CircleParticle(radius: 3.0),
+        particlePainter: Particles.circle,
         // Store default: particleSize = 3
         particleCount: 3,
         // Store default

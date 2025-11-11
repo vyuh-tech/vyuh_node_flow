@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'connection_animation_effect.dart';
+import 'connection_effect.dart';
 
 /// An animation effect that creates a flowing gradient along the connection.
 ///
@@ -14,7 +14,7 @@ import 'connection_animation_effect.dart';
 ///   speed: 1.0,
 /// );
 /// ```
-class GradientFlowEffect implements ConnectionAnimationEffect {
+class GradientFlowEffect implements ConnectionEffect {
   /// Creates a gradient flow animation effect.
   ///
   /// Parameters:

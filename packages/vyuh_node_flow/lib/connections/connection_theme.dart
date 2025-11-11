@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'animation/connection_animation_effect.dart';
 import 'connection_endpoint.dart';
-import 'connection_style_base.dart';
-import 'connection_styles.dart';
+import 'effects/connection_effect.dart';
+import 'styles/connection_style_base.dart';
+import 'styles/connection_styles.dart';
 
 /// Defines the visual styling and behavior of connections in the node flow.
 ///
@@ -105,7 +105,7 @@ class ConnectionTheme {
   /// - [ParticleEffect]: Particles moving along the connection
   /// - [GradientFlowEffect]: Animated gradient flowing along the path
   /// - [PulseEffect]: Pulsing/glowing effect
-  final ConnectionAnimationEffect? animationEffect;
+  final ConnectionEffect? animationEffect;
 
   /// Curvature factor for bezier-style connections.
   ///
@@ -149,7 +149,7 @@ class ConnectionTheme {
     List<double>? dashPattern,
     ConnectionEndPoint? startPoint,
     ConnectionEndPoint? endPoint,
-    ConnectionAnimationEffect? animationEffect,
+    ConnectionEffect? animationEffect,
     double? bezierCurvature,
     double? cornerRadius,
     double? portExtension,

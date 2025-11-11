@@ -2,13 +2,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../connections/connection.dart' show Connection;
-import '../connections/connection_label.dart';
-import '../connections/connection_path_cache.dart';
-import '../connections/connection_style_base.dart';
-import '../connections/label_theme.dart';
-import '../nodes/node.dart';
-import '../ports/port.dart';
+import '../connection.dart' show Connection;
+import '../connection_label.dart';
+import '../connection_path_cache.dart';
+import '../label_theme.dart';
+import '../../nodes/node.dart';
+import '../../ports/port.dart';
+import 'connection_style_base.dart';
 import 'connection_path_calculator.dart';
 import 'endpoint_position_calculator.dart';
 

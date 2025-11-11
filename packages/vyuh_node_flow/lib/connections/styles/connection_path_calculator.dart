@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../ports/port.dart';
+import '../../ports/port.dart';
 import 'connection_style_base.dart';
 import 'connection_styles.dart';
 
