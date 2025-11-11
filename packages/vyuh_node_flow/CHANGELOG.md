@@ -1,3 +1,7 @@
+## 0.3.8
+
+ - **FEAT**: introduced ConnectionEffects, Particles with static constants for easy usage.
+
 ## 0.3.7+1
 
  - **FIX**: simplified use of shape orientation.
