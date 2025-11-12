@@ -1,3 +1,7 @@
+## 0.3.9
+
+ - **FEAT**: introduced Port Labels, which help in setting labels for ports on the inside of the port. The labels are positioned as per the port position with a customizable label offset, TextStyle and visibility threshold based on the zoom-level of canvas.
+
 ## 0.3.8
 
  - **FEAT**: introduced ConnectionEffects, Particles with static constants for easy usage.
