@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 import '../capsule_half.dart';
 import 'port_shape.dart';
 
-/// Extension to convert ShapeOrientation to CapsuleFlatSide
-extension ShapeOrientationExtension on ShapeOrientation {
+/// Extension to convert ShapeDirection to CapsuleFlatSide
+extension ShapeDirectionExtension on ShapeDirection {
   CapsuleFlatSide toCapsuleFlatSide() {
     switch (this) {
-      case ShapeOrientation.left:
+      case ShapeDirection.left:
         return CapsuleFlatSide.left;
-      case ShapeOrientation.right:
+      case ShapeDirection.right:
         return CapsuleFlatSide.right;
-      case ShapeOrientation.top:
+      case ShapeDirection.top:
         return CapsuleFlatSide.top;
-      case ShapeOrientation.bottom:
+      case ShapeDirection.bottom:
         return CapsuleFlatSide.bottom;
     }
   }
@@ -33,10 +33,10 @@ class CapsuleHalfPortShape extends PortShape {
     double size,
     Paint fillPaint,
     Paint? borderPaint, {
-    ShapeOrientation? orientation,
+    ShapeDirection? orientation,
   }) {
     // Default to right if no orientation provided
-    final effectiveOrientation = orientation ?? ShapeOrientation.right;
+    final effectiveOrientation = orientation ?? ShapeDirection.right;
     final flatSide = effectiveOrientation.toCapsuleFlatSide();
     CapsuleHalfPainter.paint(
       canvas,

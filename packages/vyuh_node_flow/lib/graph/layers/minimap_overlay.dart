@@ -32,30 +32,30 @@ class MinimapOverlay<T> extends StatelessWidget {
         return Positioned(
           top:
               controller.config.minimapPosition.value ==
-                      MinimapPosition.topLeft ||
+                      CornerPosition.topLeft ||
                   controller.config.minimapPosition.value ==
-                      MinimapPosition.topRight
+                      CornerPosition.topRight
               ? 20
               : null,
           bottom:
               controller.config.minimapPosition.value ==
-                      MinimapPosition.bottomLeft ||
+                      CornerPosition.bottomLeft ||
                   controller.config.minimapPosition.value ==
-                      MinimapPosition.bottomRight
+                      CornerPosition.bottomRight
               ? 20
               : null,
           left:
               controller.config.minimapPosition.value ==
-                      MinimapPosition.topLeft ||
+                      CornerPosition.topLeft ||
                   controller.config.minimapPosition.value ==
-                      MinimapPosition.bottomLeft
+                      CornerPosition.bottomLeft
               ? 20
               : null,
           right:
               controller.config.minimapPosition.value ==
-                      MinimapPosition.topRight ||
+                      CornerPosition.topRight ||
                   controller.config.minimapPosition.value ==
-                      MinimapPosition.bottomRight
+                      CornerPosition.bottomRight
               ? 20
               : null,
           child: NodeFlowMinimap<T>(

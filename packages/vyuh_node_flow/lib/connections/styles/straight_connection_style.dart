@@ -19,7 +19,7 @@ class StraightConnectionStyle extends ConnectionStyle {
   String get displayName => 'Straight';
 
   @override
-  Path createPath(PathParameters params) {
+  Path createPath(ConnectionPathParameters params) {
     final path = Path();
     path.moveTo(params.start.dx, params.start.dy);
 

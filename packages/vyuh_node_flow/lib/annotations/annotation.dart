@@ -1099,7 +1099,7 @@ class MarkerAnnotation extends Annotation {
 ///
 /// Different dependency types enable different behaviors for annotations
 /// that track or relate to nodes in the workflow.
-enum AnnotationDependencyType {
+enum AnnotationBehavior {
   /// Annotation follows node movements.
   ///
   /// The annotation automatically updates its position to track the center
@@ -1132,7 +1132,7 @@ enum AnnotationDependencyType {
 /// ```dart
 /// final dependency = AnnotationDependency(
 ///   nodeId: 'node-1',
-///   type: AnnotationDependencyType.follow,
+///   type: AnnotationBehavior.follow,
 ///   metadata: {'offset': Offset(10, -20)},
 /// );
 /// ```
@@ -1153,7 +1153,7 @@ class AnnotationDependency {
   final String nodeId;
 
   /// The type of dependency behavior (follow, surround, or linked).
-  final AnnotationDependencyType type;
+  final AnnotationBehavior type;
 
   /// Optional custom metadata for this dependency.
   ///

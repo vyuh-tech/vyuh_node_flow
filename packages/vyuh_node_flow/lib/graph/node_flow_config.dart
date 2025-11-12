@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
 /// Position options for minimap placement
-enum MinimapPosition { topLeft, topRight, bottomLeft, bottomRight }
+enum CornerPosition { topLeft, topRight, bottomLeft, bottomRight }
 
 /// Reactive configuration class for NodeFlow properties
 class NodeFlowConfig {
@@ -15,7 +15,7 @@ class NodeFlowConfig {
     double maxZoom = 2.0,
     bool showMinimap = false,
     bool isMinimapInteractive = true,
-    MinimapPosition minimapPosition = MinimapPosition.bottomRight,
+    CornerPosition minimapPosition = CornerPosition.bottomRight,
     Size minimapSize = const Size(200, 150),
     this.showAttribution = true,
   }) {
@@ -57,7 +57,7 @@ class NodeFlowConfig {
   final isMinimapInteractive = Observable<bool>(true);
 
   /// Position of the minimap
-  final minimapPosition = Observable<MinimapPosition>(MinimapPosition.topRight);
+  final minimapPosition = Observable<CornerPosition>(CornerPosition.topRight);
 
   /// Size of the minimap
   final minimapSize = Observable<Size>(const Size(200, 150));
@@ -96,7 +96,7 @@ class NodeFlowConfig {
   }
 
   /// Set minimap position
-  void setMinimapPosition(MinimapPosition position) {
+  void setCornerPosition(CornerPosition position) {
     runInAction(() {
       minimapPosition.value = position;
     });
@@ -118,7 +118,7 @@ class NodeFlowConfig {
     double? minZoom,
     double? maxZoom,
     bool? showMinimap,
-    MinimapPosition? minimapPosition,
+    CornerPosition? minimapPosition,
     Size? minimapSize,
   }) {
     runInAction(() {
@@ -176,7 +176,7 @@ class NodeFlowConfig {
     double? maxZoom,
     bool? showMinimap,
     bool? isMinimapInteractive,
-    MinimapPosition? minimapPosition,
+    CornerPosition? minimapPosition,
     Size? minimapSize,
     bool? showAttribution,
   }) {

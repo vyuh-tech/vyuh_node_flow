@@ -321,18 +321,18 @@ enum PortPosition {
   bottom,
 }
 
-/// Extension on PortPosition to convert to ShapeOrientation
+/// Extension on PortPosition to convert to ShapeDirection
 extension PortPositionExtension on PortPosition {
-  ShapeOrientation toOrientation() {
+  ShapeDirection toOrientation() {
     switch (this) {
       case PortPosition.left:
-        return ShapeOrientation.left;
+        return ShapeDirection.left;
       case PortPosition.right:
-        return ShapeOrientation.right;
+        return ShapeDirection.right;
       case PortPosition.top:
-        return ShapeOrientation.top;
+        return ShapeDirection.top;
       case PortPosition.bottom:
-        return ShapeOrientation.bottom;
+        return ShapeDirection.bottom;
     }
   }
 }

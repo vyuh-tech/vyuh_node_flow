@@ -117,7 +117,7 @@ class NodeTheme {
     borderWidth: 2.0,
     selectedBorderWidth: 2.0,
     borderRadius: BorderRadius.all(Radius.circular(8.0)),
-    padding: EdgeInsets.all(4.0),
+    padding: EdgeInsets.all(2.0),
     titleStyle: TextStyle(
       fontSize: 14.0,
       fontWeight: FontWeight.bold,
@@ -138,7 +138,7 @@ class NodeTheme {
     borderWidth: 2.0,
     selectedBorderWidth: 2.0,
     borderRadius: BorderRadius.all(Radius.circular(8.0)),
-    padding: EdgeInsets.all(4.0),
+    padding: EdgeInsets.all(2.0),
     titleStyle: TextStyle(
       fontSize: 14.0,
       fontWeight: FontWeight.bold,

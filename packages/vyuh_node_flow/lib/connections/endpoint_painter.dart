@@ -31,19 +31,19 @@ class EndpointPainter {
 
   /// Get the opposite orientation for endpoints
   /// (endpoints should face away from the port they connect to)
-  static ShapeOrientation _getOppositeOrientation(PortPosition position) {
+  static ShapeDirection _getOppositeOrientation(PortPosition position) {
     switch (position) {
       case PortPosition.left:
-        return ShapeOrientation
+        return ShapeDirection
             .right; // Endpoint faces right when connecting to left port
       case PortPosition.right:
-        return ShapeOrientation
+        return ShapeDirection
             .left; // Endpoint faces left when connecting to right port
       case PortPosition.top:
-        return ShapeOrientation
+        return ShapeDirection
             .bottom; // Endpoint faces down when connecting to top port
       case PortPosition.bottom:
-        return ShapeOrientation
+        return ShapeDirection
             .top; // Endpoint faces up when connecting to bottom port
     }
   }

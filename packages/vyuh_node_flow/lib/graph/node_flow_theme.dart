@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 
 import '../connections/connection_endpoint.dart';
 import '../connections/connection_theme.dart';
-import '../connections/styles/connection_styles.dart';
 import '../connections/label_theme.dart';
 import '../nodes/node_theme.dart';
 import '../ports/port_theme.dart';
@@ -249,34 +248,17 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   /// - Light grey dot grid
   /// - Blue selection and highlights
   /// - Black text and borders
-  static const light = NodeFlowTheme(
+  static final light = NodeFlowTheme(
     nodeTheme: NodeTheme.light,
     connectionTheme: ConnectionTheme.light,
-    temporaryConnectionTheme: ConnectionTheme(
-      style: ConnectionStyles.smoothstep,
+    temporaryConnectionTheme: ConnectionTheme.light.copyWith(
       color: Color(0xFF666666),
-      selectedColor: Color(0xFF2196F3),
-      strokeWidth: 2.0,
-      selectedStrokeWidth: 3.0,
       startPoint: ConnectionEndPoint.none,
       endPoint: ConnectionEndPoint.capsuleHalf,
-      bezierCurvature: 0.5,
       dashPattern: [5, 5],
     ),
     portTheme: PortTheme.light,
-    labelTheme: LabelTheme(
-      textStyle: TextStyle(
-        color: Color(0xFF333333),
-        fontSize: 12.0,
-        fontWeight: FontWeight.w500,
-      ),
-      backgroundColor: Color(0xFFFBFBFB),
-      border: Border.fromBorderSide(
-        BorderSide(color: Color(0xFFDDDDDD), width: 1.0),
-      ),
-      borderRadius: BorderRadius.all(Radius.circular(4.0)),
-      offset: 0.0,
-    ),
+    labelTheme: LabelTheme.light,
     backgroundColor: Colors.white,
     gridColor: Color(0xFFC8C8C8),
     gridSize: 20.0,
@@ -301,31 +283,14 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   static final dark = NodeFlowTheme(
     nodeTheme: NodeTheme.dark,
     connectionTheme: ConnectionTheme.dark,
-    temporaryConnectionTheme: ConnectionTheme(
-      style: ConnectionStyles.smoothstep,
+    temporaryConnectionTheme: ConnectionTheme.dark.copyWith(
       color: Color(0xFF999999),
-      selectedColor: Color(0xFF64B5F6),
-      strokeWidth: 2.0,
-      selectedStrokeWidth: 3.0,
       startPoint: ConnectionEndPoint.none,
       endPoint: ConnectionEndPoint.capsuleHalf,
-      bezierCurvature: 0.5,
       dashPattern: [5, 5],
     ),
     portTheme: PortTheme.dark,
-    labelTheme: LabelTheme(
-      textStyle: TextStyle(
-        color: Color(0xFFE5E5E5),
-        fontSize: 12.0,
-        fontWeight: FontWeight.w500,
-      ),
-      backgroundColor: Color(0xFF404040),
-      border: Border.fromBorderSide(
-        BorderSide(color: Color(0xFF606060), width: 1.0),
-      ),
-      borderRadius: BorderRadius.all(Radius.circular(4.0)),
-      offset: 0.0,
-    ),
+    labelTheme: LabelTheme.dark,
     backgroundColor: const Color(0xFF1A1A1A),
     gridColor: const Color(0xFF707070),
     gridSize: 20.0,

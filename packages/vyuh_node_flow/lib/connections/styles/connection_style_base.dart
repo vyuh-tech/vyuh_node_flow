@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import '../../ports/port.dart';
 
 /// Parameters for connection path creation
-class PathParameters {
-  const PathParameters({
+class ConnectionPathParameters {
+  const ConnectionPathParameters({
     required this.start,
     required this.end,
     required this.curvature,
@@ -46,7 +46,7 @@ class PathParameters {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is PathParameters &&
+      other is ConnectionPathParameters &&
           runtimeType == other.runtimeType &&
           start == other.start &&
           end == other.end &&
@@ -88,7 +88,7 @@ abstract class ConnectionStyle {
 
   /// Creates the geometric path for drawing this connection
   /// This is the main responsibility of each connection style
-  Path createPath(PathParameters params);
+  Path createPath(ConnectionPathParameters params);
 
   // === Hit Testing ===
 
@@ -112,7 +112,7 @@ abstract class ConnectionStyle {
 
   /// Get exact bend points for styles that support it (e.g., step connections)
   /// Returns null if the style doesn't support exact bend point calculation
-  List<Offset>? getExactBendPoints(PathParameters params) => null;
+  List<Offset>? getExactBendPoints(ConnectionPathParameters params) => null;
 
   /// Get bend detection threshold angle in radians
   /// Used for detecting significant direction changes in the path

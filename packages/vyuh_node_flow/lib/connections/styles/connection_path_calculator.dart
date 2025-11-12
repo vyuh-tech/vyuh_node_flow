@@ -30,7 +30,7 @@ import 'connection_styles.dart';
 /// See also:
 /// - [ConnectionStyle] for the base style interface
 /// - [ConnectionStyles] for built-in style constants
-/// - [PathParameters] for path creation parameters
+/// - [ConnectionPathParameters] for path creation parameters
 class ConnectionPathCalculator {
   /// Creates a connection path based on the connection style and parameters.
   ///
@@ -83,7 +83,7 @@ class ConnectionPathCalculator {
     final ConnectionStyle connectionStyle = _resolveConnectionStyle(style);
 
     // Create path parameters
-    final params = PathParameters(
+    final params = ConnectionPathParameters(
       start: start,
       end: end,
       curvature: curvature,

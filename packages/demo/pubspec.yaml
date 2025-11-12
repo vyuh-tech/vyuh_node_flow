@@ -37,7 +37,7 @@ flutter:
 flutter_launcher_icons:
   web:
     generate: true
-    image_path: "assets/node-flow-banner.png"
+    image_path: "assets/logo.png"
     background_color: "#ffffff"
 
 flutter_native_splash:

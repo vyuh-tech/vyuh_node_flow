@@ -8,7 +8,7 @@ import 'square_port_shape.dart';
 import 'triangle_port_shape.dart';
 
 /// Orientation for directional port shapes (capsuleHalf, triangle)
-enum ShapeOrientation { left, right, top, bottom }
+enum ShapeDirection { left, right, top, bottom }
 
 /// Abstract base class for port shapes.
 ///
@@ -38,7 +38,7 @@ abstract class PortShape {
     double size,
     Paint fillPaint,
     Paint? borderPaint, {
-    ShapeOrientation? orientation,
+    ShapeDirection? orientation,
   });
 
   /// Returns the type name of this shape for JSON serialization

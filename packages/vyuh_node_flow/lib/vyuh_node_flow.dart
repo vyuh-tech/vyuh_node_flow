@@ -140,7 +140,7 @@ export 'graph/node_flow_actions.dart';
 export 'graph/node_flow_config.dart';
 export 'graph/node_flow_controller.dart';
 export 'graph/node_flow_editor.dart'
-    hide HitTestResult, HitType, SelectionRectanglePainter;
+    hide HitTestResult, HitTarget, SelectionRectanglePainter;
 export 'graph/node_flow_minimap.dart';
 export 'graph/node_flow_theme.dart';
 export 'graph/node_flow_viewer.dart';

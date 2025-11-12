@@ -16,36 +16,36 @@ class TrianglePortShape extends PortShape {
     double size,
     Paint fillPaint,
     Paint? borderPaint, {
-    ShapeOrientation? orientation,
+    ShapeDirection? orientation,
   }) {
     final path = Path();
     final halfSize = size / 2;
 
     // Default to right if no orientation provided
-    final effectiveOrientation = orientation ?? ShapeOrientation.right;
+    final effectiveOrientation = orientation ?? ShapeDirection.right;
 
     // Orient triangle with flat side outside (away from node)
     // Point faces toward the node (inside)
     switch (effectiveOrientation) {
-      case ShapeOrientation.left:
+      case ShapeDirection.left:
         // Flat side on left (outside), point toward right (inside)
         path.moveTo(center.dx + halfSize, center.dy);
         path.lineTo(center.dx - halfSize, center.dy - halfSize);
         path.lineTo(center.dx - halfSize, center.dy + halfSize);
         break;
-      case ShapeOrientation.right:
+      case ShapeDirection.right:
         // Flat side on right (outside), point toward left (inside)
         path.moveTo(center.dx - halfSize, center.dy);
         path.lineTo(center.dx + halfSize, center.dy - halfSize);
         path.lineTo(center.dx + halfSize, center.dy + halfSize);
         break;
-      case ShapeOrientation.top:
+      case ShapeDirection.top:
         // Flat side on top (outside), point toward bottom (inside)
         path.moveTo(center.dx, center.dy + halfSize);
         path.lineTo(center.dx - halfSize, center.dy - halfSize);
         path.lineTo(center.dx + halfSize, center.dy - halfSize);
         break;
-      case ShapeOrientation.bottom:
+      case ShapeDirection.bottom:
         // Flat side on bottom (outside), point toward top (inside)
         path.moveTo(center.dx, center.dy - halfSize);
         path.lineTo(center.dx - halfSize, center.dy + halfSize);

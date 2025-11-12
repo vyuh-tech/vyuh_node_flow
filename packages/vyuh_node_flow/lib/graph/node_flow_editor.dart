@@ -743,7 +743,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     }
 
     switch (hitResult.hitType) {
-      case HitType.node:
+      case HitTarget.node:
         final isCmd = HardwareKeyboard.instance.isMetaPressed;
         final isCtrl = HardwareKeyboard.instance.isControlPressed;
         final isNodeSelected = widget.controller.isNodeSelected(
@@ -800,7 +800,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         }
         break;
 
-      case HitType.connection:
+      case HitTarget.connection:
         final isCmd = HardwareKeyboard.instance.isMetaPressed;
         final isCtrl = HardwareKeyboard.instance.isControlPressed;
         final toggle = isCmd || isCtrl;
@@ -817,7 +817,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         widget.onConnectionTap?.call(connection);
         break;
 
-      case HitType.annotation:
+      case HitTarget.annotation:
         final isCmd = HardwareKeyboard.instance.isMetaPressed;
         final isCtrl = HardwareKeyboard.instance.isControlPressed;
 
@@ -1381,7 +1381,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
             nodeId: node.id,
             portId: port.id,
             isOutput: node.outputPorts.contains(port),
-            hitType: HitType.port,
+            hitType: HitTarget.port,
           );
         }
       }
@@ -1401,12 +1401,12 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         // The shape might be rendered smaller due to padding, but we want
         // the entire node area to be clickable
         if (shape.containsPoint(relativePosition, node.size.value)) {
-          return HitTestResult(nodeId: node.id, hitType: HitType.node);
+          return HitTestResult(nodeId: node.id, hitType: HitTarget.node);
         }
       } else {
         // Rectangular node - use simple bounds check
         if (node.containsPoint(graphPosition)) {
-          return HitTestResult(nodeId: node.id, hitType: HitType.node);
+          return HitTestResult(nodeId: node.id, hitType: HitTarget.node);
         }
       }
     }
@@ -1416,7 +1416,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     if (hitConnectionId != null) {
       return HitTestResult(
         connectionId: hitConnectionId,
-        hitType: HitType.connection,
+        hitType: HitTarget.connection,
       );
     }
 
@@ -1425,12 +1425,12 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     if (annotation != null) {
       return HitTestResult(
         annotationId: annotation.id,
-        hitType: HitType.annotation,
+        hitType: HitTarget.annotation,
       );
     }
 
     // 5. Canvas (lowest priority)
-    return const HitTestResult(hitType: HitType.canvas);
+    return const HitTestResult(hitType: HitTarget.canvas);
   }
 
   Offset _screenToGraph(Offset screenPosition) {
@@ -1498,7 +1498,7 @@ class SelectionRectanglePainter extends CustomPainter {
 ///
 /// Used to determine what element the user is interacting with at a specific
 /// position on the canvas.
-enum HitType {
+enum HitTarget {
   /// Empty canvas area (no elements hit)
   canvas,
 
@@ -1527,7 +1527,7 @@ class HitTestResult {
     this.annotationId,
     this.isOutput,
     this.position,
-    this.hitType = HitType.canvas,
+    this.hitType = HitTarget.canvas,
   });
 
   /// The ID of the node that was hit, if any.
@@ -1551,22 +1551,22 @@ class HitTestResult {
   final Offset? position;
 
   /// The type of element that was hit.
-  final HitType hitType;
+  final HitTarget hitType;
 
   /// Returns `true` if a port was hit.
-  bool get isPort => hitType == HitType.port;
+  bool get isPort => hitType == HitTarget.port;
 
   /// Returns `true` if a node was hit.
-  bool get isNode => hitType == HitType.node;
+  bool get isNode => hitType == HitTarget.node;
 
   /// Returns `true` if a connection was hit.
-  bool get isConnection => hitType == HitType.connection;
+  bool get isConnection => hitType == HitTarget.connection;
 
   /// Returns `true` if an annotation was hit.
-  bool get isAnnotation => hitType == HitType.annotation;
+  bool get isAnnotation => hitType == HitTarget.annotation;
 
   /// Returns `true` if empty canvas was hit (no elements).
-  bool get isCanvas => hitType == HitType.canvas;
+  bool get isCanvas => hitType == HitTarget.canvas;
 }
 
 /// Painter for interactive elements (selection rectangle and temporary connection).

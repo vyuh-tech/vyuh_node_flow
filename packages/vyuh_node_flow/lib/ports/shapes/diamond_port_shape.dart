@@ -16,7 +16,7 @@ class DiamondPortShape extends PortShape {
     double size,
     Paint fillPaint,
     Paint? borderPaint, {
-    ShapeOrientation? orientation,
+    ShapeDirection? orientation,
   }) {
     final path = Path();
     path.moveTo(center.dx, center.dy - size / 2);

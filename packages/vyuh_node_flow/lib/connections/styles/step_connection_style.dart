@@ -20,7 +20,7 @@ class StepConnectionStyle extends ConnectionStyle {
   String get displayName => 'Step';
 
   @override
-  Path createPath(PathParameters params) {
+  Path createPath(ConnectionPathParameters params) {
     return SmoothstepPathCalculator.calculatePath(
       start: params.start,
       end: params.end,
@@ -38,7 +38,7 @@ class StepConnectionStyle extends ConnectionStyle {
   bool get hasExactBendPoints => true; // Can calculate exact bend points
 
   @override
-  List<Offset>? getExactBendPoints(PathParameters params) {
+  List<Offset>? getExactBendPoints(ConnectionPathParameters params) {
     return SmoothstepPathCalculator.getBendPoints(
       start: params.start,
       end: params.end,
@@ -209,7 +209,7 @@ class SmoothStepConnectionStyle extends StepConnectionStyle {
   String get displayName => 'Smooth Step';
 
   @override
-  Path createPath(PathParameters params) {
+  Path createPath(ConnectionPathParameters params) {
     return SmoothstepPathCalculator.calculatePath(
       start: params.start,
       end: params.end,

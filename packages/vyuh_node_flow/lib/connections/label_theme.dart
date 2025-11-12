@@ -163,22 +163,28 @@ class LabelTheme {
       fontSize: 12.0,
       fontWeight: FontWeight.w500,
     ),
-    backgroundColor: Color(0xFFFFFFFF),
-    border: null,
+    backgroundColor: Color(0xFFFBFBFB),
+    border: Border.fromBorderSide(
+      BorderSide(color: Color(0xFFDDDDDD), width: 1.0),
+    ),
     borderRadius: BorderRadius.all(Radius.circular(4.0)),
     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+    offset: 0.0,
   );
 
   /// Predefined dark theme for labels.
   static const dark = LabelTheme(
     textStyle: TextStyle(
-      color: Color(0xFFEEEEEE),
+      color: Color(0xFFE5E5E5),
       fontSize: 12.0,
       fontWeight: FontWeight.w500,
     ),
-    backgroundColor: Color(0xFF2A2A2A),
-    border: null,
+    backgroundColor: Color(0xFF404040),
+    border: Border.fromBorderSide(
+      BorderSide(color: Color(0xFF606060), width: 1.0),
+    ),
     borderRadius: BorderRadius.all(Radius.circular(4.0)),
     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+    offset: 0.0,
   );
 }

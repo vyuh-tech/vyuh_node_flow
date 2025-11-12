@@ -426,7 +426,6 @@ class NodeWidget<T> extends StatelessWidget {
   Widget _buildRectangularNode(NodeTheme nodeTheme, bool isSelected) {
     return Container(
       margin: padding ?? nodeTheme.padding,
-      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: _getNodeBackgroundColor(nodeTheme, isSelected),
         border: Border.all(

@@ -420,7 +420,7 @@ class AnnotationController<T> {
   void addNodeDependency(
     String annotationId,
     String nodeId, {
-    AnnotationDependencyType type = AnnotationDependencyType.follow,
+    AnnotationBehavior type = AnnotationBehavior.follow,
   }) {
     final annotation = _annotations[annotationId];
     if (annotation != null) {
