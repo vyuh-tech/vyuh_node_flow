@@ -18,6 +18,7 @@ import '../nodes/node.dart';
 import '../nodes/node_shape.dart';
 import '../ports/port.dart';
 import '../shared/flutter_actions_integration.dart';
+import 'canvas_transform_provider.dart';
 import 'layers/attribution_overlay.dart';
 import 'layers/connection_labels_layer.dart';
 import 'layers/connections_layer.dart';
@@ -619,45 +620,54 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
             child: SizedBox(
               width: constraints.maxWidth,
               height: constraints.maxHeight,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  // Background grid - observes only viewport changes
-                  GridLayer(
-                    theme: theme,
-                    transformationController: _transformationController,
-                  ),
+              child: AnimatedBuilder(
+                animation: _transformationController,
+                builder: (context, child) {
+                  return CanvasTransformProvider(
+                    transform: _transformationController.value,
+                    child: child!,
+                  );
+                },
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Background grid - observes only viewport changes
+                    GridLayer(
+                      theme: theme,
+                      transformationController: _transformationController,
+                    ),
 
-                  // Background annotations (groups) - behind nodes
-                  if (widget.showAnnotations)
-                    AnnotationLayer.background(widget.controller),
+                    // Background annotations (groups) - behind nodes
+                    if (widget.showAnnotations)
+                      AnnotationLayer.background(widget.controller),
 
-                  // Connections - uses specialized observable layer
-                  ConnectionsLayer<T>(
-                    controller: widget.controller,
-                    animation: _connectionAnimationController,
-                  ),
+                    // Connections - uses specialized observable layer
+                    ConnectionsLayer<T>(
+                      controller: widget.controller,
+                      animation: _connectionAnimationController,
+                    ),
 
-                  // Connection labels - rendered separately for optimized repainting
-                  ConnectionLabelsLayer<T>(controller: widget.controller),
+                    // Connection labels - rendered separately for optimized repainting
+                    ConnectionLabelsLayer<T>(controller: widget.controller),
 
-                  // Nodes - each node observes only its own state
-                  NodesLayer<T>(
-                    controller: widget.controller,
-                    nodeBuilder: widget.nodeBuilder,
-                    nodeContainerBuilder: widget.nodeContainerBuilder,
-                    connections: widget.controller.connections,
-                    onNodeTap: _handleNodeTap,
-                    onNodeDoubleTap: _handleNodeDoubleTap,
-                  ),
+                    // Nodes - each node observes only its own state
+                    NodesLayer<T>(
+                      controller: widget.controller,
+                      nodeBuilder: widget.nodeBuilder,
+                      nodeContainerBuilder: widget.nodeContainerBuilder,
+                      connections: widget.controller.connections,
+                      onNodeTap: _handleNodeTap,
+                      onNodeDoubleTap: _handleNodeDoubleTap,
+                    ),
 
-                  // Foreground annotations (stickies, markers) - above nodes
-                  if (widget.showAnnotations)
-                    AnnotationLayer.foreground(widget.controller),
+                    // Foreground annotations (stickies, markers) - above nodes
+                    if (widget.showAnnotations)
+                      AnnotationLayer.foreground(widget.controller),
 
-                  // Interaction layer - temporary connection and selection rectangle
-                  InteractionLayer<T>(controller: widget.controller),
-                ],
+                    // Interaction layer - temporary connection and selection rectangle
+                    InteractionLayer<T>(controller: widget.controller),
+                  ],
+                ),
               ),
             ),
           ),

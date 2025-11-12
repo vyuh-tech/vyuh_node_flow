@@ -19,6 +19,7 @@ import 'examples/advanced/workbench.dart';
 import 'examples/basics/controlling_nodes.dart';
 import 'examples/basics/dynamic_ports.dart';
 import 'examples/basics/node_shapes.dart';
+import 'examples/basics/port_labels.dart';
 // Connections examples
 import 'examples/basics/ports.dart';
 import 'examples/basics/simple.dart';
@@ -70,6 +71,14 @@ class ExampleRegistry {
               'Explore all port positions and connection styles with live preview',
           icon: Icons.settings_ethernet,
           builder: (_) => const PortCombinationsDemo(),
+        ),
+        Example(
+          id: 'port-labels',
+          title: 'Port Labels',
+          description:
+              'Display and customize port names with intelligent positioning and zoom-based visibility',
+          icon: Icons.label_outline,
+          builder: (_) => const PortLabelsExample(),
         ),
       ],
     ),

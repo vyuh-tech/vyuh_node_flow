@@ -16,26 +16,12 @@ enum ShapeOrientation { left, right, top, bottom }
 /// for rendering different port shapes. Each shape type is implemented as a
 /// concrete subclass that defines its own painting logic.
 ///
-/// Static constants are provided for common shapes:
-/// - [PortShape.none]
-/// - [PortShape.circle]
-/// - [PortShape.square]
-/// - [PortShape.diamond]
-/// - [PortShape.triangle]
-/// - [PortShape.capsuleHalf]
+/// See [PortShapes] for predefined shape constants.
 ///
 /// Custom shapes can be created by extending this class and implementing
 /// the [paint] method.
 abstract class PortShape {
   const PortShape();
-
-  /// Static constant instances for common shapes
-  static const PortShape none = NonePortShape();
-  static const PortShape circle = CirclePortShape();
-  static const PortShape square = SquarePortShape();
-  static const PortShape diamond = DiamondPortShape();
-  static const PortShape triangle = TrianglePortShape();
-  static const PortShape capsuleHalf = CapsuleHalfPortShape();
 
   /// Paints the port shape on the given canvas.
   ///

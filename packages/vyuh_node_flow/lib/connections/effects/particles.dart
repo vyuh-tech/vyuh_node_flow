@@ -7,7 +7,7 @@ import 'particles/circle_particle.dart';
 ///
 /// This class provides easy access to all the built-in particle painters
 /// that can be used with [ParticleEffect].
-class Particles {
+final class Particles {
   // Private constructor to prevent instantiation
   const Particles._();
 

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../shared/json_converters.dart';
-import 'shapes/capsule_half_port_shape.dart';
 import 'shapes/port_shape.dart';
+import 'shapes/port_shapes.dart';
 
 part 'port.g.dart';
 
@@ -103,6 +103,7 @@ class Port extends Equatable {
   /// - [tooltip]: Optional tooltip text displayed on hover
   /// - [isConnectable]: Whether connections can be made to this port (default: true)
   /// - [maxConnections]: Maximum number of connections allowed (null for unlimited)
+  /// - [showLabel]: Whether to display the port's label (default: false)
   const Port({
     required this.id,
     required this.name,
@@ -110,11 +111,12 @@ class Port extends Equatable {
     this.position = PortPosition.left,
     this.offset = Offset.zero,
     this.type = PortType.both,
-    this.shape = const CapsuleHalfPortShape(),
+    this.shape = PortShapes.capsuleHalf,
     this.size = 9.0,
     this.tooltip,
     this.isConnectable = true,
     this.maxConnections,
+    this.showLabel = false,
   });
 
   /// Unique identifier for this port.
@@ -186,6 +188,13 @@ class Port extends Equatable {
   /// This value is only meaningful when [multiConnections] is true.
   final int? maxConnections;
 
+  /// Whether to display the port's label.
+  ///
+  /// When true, the port's [name] is displayed near the port visual.
+  /// When false, only the port shape is shown.
+  /// Label visibility may also be affected by zoom level based on theme settings.
+  final bool showLabel;
+
   /// Whether this port can act as a source (output) for connections.
   ///
   /// Returns true if the port type is [PortType.source] or [PortType.both].
@@ -231,6 +240,7 @@ class Port extends Equatable {
     String? tooltip,
     bool? isConnectable,
     int? maxConnections,
+    bool? showLabel,
   }) {
     return Port(
       id: id ?? this.id,
@@ -244,6 +254,7 @@ class Port extends Equatable {
       tooltip: tooltip ?? this.tooltip,
       isConnectable: isConnectable ?? this.isConnectable,
       maxConnections: maxConnections ?? this.maxConnections,
+      showLabel: showLabel ?? this.showLabel,
     );
   }
 
@@ -272,6 +283,7 @@ class Port extends Equatable {
     tooltip,
     isConnectable,
     maxConnections,
+    showLabel,
   ];
 }
 

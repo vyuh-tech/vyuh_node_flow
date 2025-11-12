@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
 import '../ports/shapes/port_shape.dart';
+import '../ports/shapes/port_shapes.dart';
 import '../shared/json_converters.dart';
 
 part 'connection_endpoint.g.dart';
@@ -21,7 +22,7 @@ part 'connection_endpoint.g.dart';
 /// ```dart
 /// // Create a custom endpoint
 /// const myEndpoint = ConnectionEndPoint(
-///   shape: PortShape.triangle,
+///   shape: PortShapes.triangle,
 ///   size: 8.0,
 /// );
 ///
@@ -77,31 +78,31 @@ class ConnectionEndPoint {
   /// No endpoint marker (invisible).
   ///
   /// Use this when you want a clean connection line without any decorative markers.
-  static const none = ConnectionEndPoint(shape: PortShape.none, size: 0.0);
+  static const none = ConnectionEndPoint(shape: PortShapes.none, size: 0.0);
 
   /// Half-capsule endpoint marker with default size 5.0.
   ///
   /// This creates a rounded arrow-like appearance.
   static const capsuleHalf = ConnectionEndPoint(
-    shape: PortShape.capsuleHalf,
+    shape: PortShapes.capsuleHalf,
     size: 5.0,
   );
 
   /// Circular endpoint marker with default size 5.0.
   ///
   /// Creates a simple dot at the endpoint.
-  static const circle = ConnectionEndPoint(shape: PortShape.circle, size: 5.0);
+  static const circle = ConnectionEndPoint(shape: PortShapes.circle, size: 5.0);
 
   /// Square endpoint marker with default size 5.0.
   ///
   /// Creates a solid square at the endpoint.
-  static const square = ConnectionEndPoint(shape: PortShape.square, size: 5.0);
+  static const square = ConnectionEndPoint(shape: PortShapes.square, size: 5.0);
 
   /// Diamond endpoint marker with default size 5.0.
   ///
   /// Creates a diamond (45-degree rotated square) at the endpoint.
   static const diamond = ConnectionEndPoint(
-    shape: PortShape.diamond,
+    shape: PortShapes.diamond,
     size: 5.0,
   );
 
@@ -110,7 +111,7 @@ class ConnectionEndPoint {
   /// Creates an arrow-head triangle at the endpoint, pointing in the
   /// direction of the connection.
   static const triangle = ConnectionEndPoint(
-    shape: PortShape.triangle,
+    shape: PortShapes.triangle,
     size: 5.0,
   );
 

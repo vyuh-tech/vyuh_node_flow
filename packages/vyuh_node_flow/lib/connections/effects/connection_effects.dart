@@ -11,7 +11,7 @@ import 'pulse_effect.dart';
 ///
 /// This class provides easy access to all the built-in connection animation
 /// effects that can be applied to connections in a node flow diagram.
-class ConnectionEffects {
+final class ConnectionEffects {
   // Private constructor to prevent instantiation
   const ConnectionEffects._();
 

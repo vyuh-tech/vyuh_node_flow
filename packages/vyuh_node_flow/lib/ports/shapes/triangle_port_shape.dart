@@ -24,31 +24,32 @@ class TrianglePortShape extends PortShape {
     // Default to right if no orientation provided
     final effectiveOrientation = orientation ?? ShapeOrientation.right;
 
-    // Point the triangle based on orientation
+    // Orient triangle with flat side outside (away from node)
+    // Point faces toward the node (inside)
     switch (effectiveOrientation) {
       case ShapeOrientation.left:
-        // Triangle pointing left
-        path.moveTo(center.dx - halfSize, center.dy);
-        path.lineTo(center.dx + halfSize, center.dy - halfSize);
-        path.lineTo(center.dx + halfSize, center.dy + halfSize);
-        break;
-      case ShapeOrientation.right:
-        // Triangle pointing right
+        // Flat side on left (outside), point toward right (inside)
         path.moveTo(center.dx + halfSize, center.dy);
         path.lineTo(center.dx - halfSize, center.dy - halfSize);
         path.lineTo(center.dx - halfSize, center.dy + halfSize);
         break;
-      case ShapeOrientation.top:
-        // Triangle pointing up
-        path.moveTo(center.dx, center.dy - halfSize);
-        path.lineTo(center.dx - halfSize, center.dy + halfSize);
+      case ShapeOrientation.right:
+        // Flat side on right (outside), point toward left (inside)
+        path.moveTo(center.dx - halfSize, center.dy);
+        path.lineTo(center.dx + halfSize, center.dy - halfSize);
         path.lineTo(center.dx + halfSize, center.dy + halfSize);
         break;
-      case ShapeOrientation.bottom:
-        // Triangle pointing down
+      case ShapeOrientation.top:
+        // Flat side on top (outside), point toward bottom (inside)
         path.moveTo(center.dx, center.dy + halfSize);
         path.lineTo(center.dx - halfSize, center.dy - halfSize);
         path.lineTo(center.dx + halfSize, center.dy - halfSize);
+        break;
+      case ShapeOrientation.bottom:
+        // Flat side on bottom (outside), point toward top (inside)
+        path.moveTo(center.dx, center.dy - halfSize);
+        path.lineTo(center.dx - halfSize, center.dy + halfSize);
+        path.lineTo(center.dx + halfSize, center.dy + halfSize);
         break;
     }
     path.close();

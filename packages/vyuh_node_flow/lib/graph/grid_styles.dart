@@ -20,7 +20,7 @@ import 'painters/none_grid_style.dart';
 /// // Use with custom multiplier for hierarchical
 /// final customHierarchical = HierarchicalGridStyle(majorGridMultiplier: 10);
 /// ```
-class GridStyles {
+final class GridStyles {
   // Private constructor to prevent instantiation
   GridStyles._();
 

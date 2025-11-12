@@ -7,7 +7,7 @@ import 'straight_connection_style.dart';
 ///
 /// This class provides easy access to all the built-in connection styles
 /// and handles backward compatibility with the legacy enum system.
-class ConnectionStyles {
+final class ConnectionStyles {
   // Private constructor to prevent instantiation
   const ConnectionStyles._();
 

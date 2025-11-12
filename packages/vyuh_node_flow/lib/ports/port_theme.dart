@@ -39,6 +39,10 @@ class PortTheme {
   /// - [snappingColor]: Color when a connection is being dragged near
   /// - [borderColor]: Color of the port's border
   /// - [borderWidth]: Width of the port's border in logical pixels
+  /// - [showLabel]: Whether to show port labels globally (default: false)
+  /// - [labelTextStyle]: Text style for port labels
+  /// - [labelOffset]: Distance from port center to label (default: 8.0)
+  /// - [labelVisibilityThreshold]: Minimum zoom level to show labels (default: 0.5)
   const PortTheme({
     required this.size,
     required this.color,
@@ -46,6 +50,10 @@ class PortTheme {
     required this.snappingColor,
     required this.borderColor,
     required this.borderWidth,
+    this.showLabel = false,
+    this.labelTextStyle,
+    this.labelOffset = 4.0,
+    this.labelVisibilityThreshold = 0.5,
   });
 
   /// The diameter of the port in logical pixels.
@@ -83,6 +91,32 @@ class PortTheme {
   /// Set to 0.0 for no border. Typical values range from 1.0 to 3.0.
   final double borderWidth;
 
+  /// Whether to show port labels globally for all ports.
+  ///
+  /// When false, labels are hidden for all ports regardless of individual
+  /// port settings. When true, labels are shown based on individual port
+  /// [Port.showLabel] settings. Default is false.
+  final bool showLabel;
+
+  /// The text style for port labels.
+  ///
+  /// If null, a default text style will be used based on the theme.
+  /// This controls font size, color, weight, and other text properties.
+  final TextStyle? labelTextStyle;
+
+  /// The distance from the port center to the label in logical pixels.
+  ///
+  /// This controls how far the label appears from the port visual.
+  /// Default is 8.0 pixels. Increase for more spacing, decrease for less.
+  final double labelOffset;
+
+  /// The minimum zoom level at which port labels become visible.
+  ///
+  /// Labels are hidden when the canvas zoom level is below this threshold
+  /// to prevent visual clutter when zoomed out. Default is 0.5 (50% zoom).
+  /// Set to 0.0 to always show labels regardless of zoom level.
+  final double labelVisibilityThreshold;
+
   /// Creates a copy of this theme with the specified properties replaced.
   ///
   /// All parameters are optional. If a parameter is not provided, the
@@ -105,6 +139,10 @@ class PortTheme {
     Color? snappingColor,
     Color? borderColor,
     double? borderWidth,
+    bool? showLabel,
+    TextStyle? labelTextStyle,
+    double? labelOffset,
+    double? labelVisibilityThreshold,
   }) {
     return PortTheme(
       size: size ?? this.size,
@@ -113,6 +151,11 @@ class PortTheme {
       snappingColor: snappingColor ?? this.snappingColor,
       borderColor: borderColor ?? this.borderColor,
       borderWidth: borderWidth ?? this.borderWidth,
+      showLabel: showLabel ?? this.showLabel,
+      labelTextStyle: labelTextStyle ?? this.labelTextStyle,
+      labelOffset: labelOffset ?? this.labelOffset,
+      labelVisibilityThreshold:
+          labelVisibilityThreshold ?? this.labelVisibilityThreshold,
     );
   }
 
@@ -134,6 +177,14 @@ class PortTheme {
     snappingColor: Color(0xFF1565C0),
     borderColor: Colors.transparent,
     borderWidth: 0.0,
+    showLabel: false,
+    labelTextStyle: TextStyle(
+      fontSize: 10.0,
+      color: Color(0xFF333333),
+      fontWeight: FontWeight.w500,
+    ),
+    labelOffset: 4.0,
+    labelVisibilityThreshold: 0.5,
   );
 
   /// A predefined dark theme for ports.
@@ -154,5 +205,13 @@ class PortTheme {
     snappingColor: Color(0xFF42A5F5),
     borderColor: Colors.transparent,
     borderWidth: 0.0,
+    showLabel: false,
+    labelTextStyle: TextStyle(
+      fontSize: 10.0,
+      color: Color(0xFFE0E0E0),
+      fontWeight: FontWeight.w500,
+    ),
+    labelOffset: 4.0,
+    labelVisibilityThreshold: 0.5,
   );
 }
