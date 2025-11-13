@@ -1,8 +1,13 @@
 ## 0.3.10
 
  - **FIX**: updated icons on demo, adjusted padding in node.
- - **FEAT**: refactoring and renaming across the board for better semantic naming.
- - **FEAT**: using LabelTheme.light/dark directly.
+ - **BREAKING**: renamed types for better semantic clarity:
+   - `HitType` → `HitTarget`
+   - `AnnotationDependencyType` → `AnnotationBehavior`
+   - `MinimapPosition` → `CornerPosition`
+   - `ShapeOrientation` → `ShapeDirection`
+   - `PathParameters` → `ConnectionPathParameters`
+ - **FEAT**: using LabelTheme.light/dark static constants directly in NodeFlowTheme.
 
 ## 0.3.9
 

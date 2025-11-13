@@ -1754,7 +1754,7 @@ final controller = NodeFlowController<T>(
   config: NodeFlowConfig(
     showMinimap: true, // Enable minimap
     isMinimapInteractive: true, // Allow click-to-navigate
-    minimapPosition: MinimapPosition.bottomRight, // Position on screen
+    minimapPosition: CornerPosition.bottomRight, // Position on screen
     minimapSize: const Size(200, 150), // Minimap dimensions
   ),
 );
@@ -1774,7 +1774,7 @@ You can also toggle the minimap at runtime:
 controller.config.toggleMinimap();
 
 // Change minimap position
-controller.config.setMinimapPosition(MinimapPosition.topLeft);
+controller.config.setMinimapPosition(CornerPosition.topLeft);
 ```
 
 > [!TIP] The minimap automatically updates as you pan, zoom, and modify the
