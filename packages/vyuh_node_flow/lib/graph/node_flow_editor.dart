@@ -326,6 +326,13 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   // Track if we should clear selection on pointer up (for empty canvas taps)
   bool _shouldClearSelectionOnTap = false;
 
+  // Double-tap detection
+  DateTime? _lastTapTime;
+  Offset? _lastTapPosition;
+  String? _lastTappedNodeId;
+  static const _doubleTapTimeout = Duration(milliseconds: 300);
+  static const _doubleTapSlop = 20.0;
+
   // Cached connection painter for efficient hit testing
 
   @override
@@ -766,11 +773,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
             // Disable panning to allow Command+drag of nodes over canvas
             widget.controller._updateInteractionState(panEnabled: false);
           }
-
-          final node = widget.controller.getNode(hitResult.nodeId!);
-          if (node != null) {
-            widget.onNodeTap?.call(node);
-          }
         } else if (widget.enableNodeDragging) {
           if (!isNodeSelected) {
             widget.controller.selectNode(hitResult.nodeId!);
@@ -782,21 +784,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
             event.localPosition,
             widget.theme.dragCursorStyle,
           );
-
-          // Always fire callbacks for drag operations
-          final node = widget.controller.getNode(hitResult.nodeId!);
-          if (node != null) {
-            widget.onNodeTap?.call(node);
-          }
         } else {
           // Handle simple node click when dragging is disabled
           widget.controller.selectNode(hitResult.nodeId!);
-
-          // Fire tap callback
-          final node = widget.controller.getNode(hitResult.nodeId!);
-          if (node != null) {
-            widget.onNodeTap?.call(node);
-          }
         }
         break;
 
@@ -1001,8 +991,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       // Controller clearSelection will trigger appropriate callbacks
     }
 
-    // If we weren't dragging, this was a tap - handle node tap callbacks
-    if (!wasDragging && hitResult.isNode) {
+    // If this was a tap (minimal movement), handle node tap callbacks
+    // Note: wasTap takes precedence over wasDragging because draggedNodeId
+    // is set on pointer down even for taps when dragging is enabled
+    if (wasTap && hitResult.isNode) {
       // Ensure canvas has focus after tap (in case it was lost during selection processing)
       if (!widget.controller.canvasFocusNode.hasFocus) {
         widget.controller.canvasFocusNode.requestFocus();
@@ -1010,8 +1002,36 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
       final node = widget.controller.getNode(hitResult.nodeId!);
       if (node != null) {
-        widget.onNodeTap?.call(node);
+        // Check for double-tap
+        final now = DateTime.now();
+        final isDoubleTap =
+            _lastTapTime != null &&
+            _lastTapPosition != null &&
+            _lastTappedNodeId == hitResult.nodeId &&
+            now.difference(_lastTapTime!) < _doubleTapTimeout &&
+            (event.localPosition - _lastTapPosition!).distance < _doubleTapSlop;
+
+        if (isDoubleTap) {
+          // Fire double-tap callback
+          widget.onNodeDoubleTap?.call(node);
+          // Reset tap tracking to prevent triple-tap being detected as another double-tap
+          _lastTapTime = null;
+          _lastTapPosition = null;
+          _lastTappedNodeId = null;
+        } else {
+          // Fire single tap callback
+          widget.onNodeTap?.call(node);
+          // Update tap tracking for potential double-tap
+          _lastTapTime = now;
+          _lastTapPosition = event.localPosition;
+          _lastTappedNodeId = hitResult.nodeId;
+        }
       }
+    } else if (!wasTap) {
+      // Was a drag, reset double-tap tracking
+      _lastTapTime = null;
+      _lastTapPosition = null;
+      _lastTappedNodeId = null;
     }
 
     // Reset tap tracking

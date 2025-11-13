@@ -221,30 +221,26 @@ class NodeWidget<T> extends StatelessWidget {
           child: SizedBox(
             width: size.width,
             height: size.height,
-            child: GestureDetector(
-              onTap: () => onNodeTap?.call(node.id),
-              onDoubleTap: () => onNodeDoubleTap?.call(node.id),
-              child: Stack(
-                clipBehavior: Clip.none, // Allow ports to overflow the bounds
-                children: [
-                  // Main node visual - either shaped or rectangular
-                  Positioned.fill(
-                    child: shape != null
-                        ? _buildShapedNode(nodeTheme, isSelected)
-                        : _buildRectangularNode(nodeTheme, isSelected),
-                  ),
+            child: Stack(
+              clipBehavior: Clip.none, // Allow ports to overflow the bounds
+              children: [
+                // Main node visual - either shaped or rectangular
+                Positioned.fill(
+                  child: shape != null
+                      ? _buildShapedNode(nodeTheme, isSelected)
+                      : _buildRectangularNode(nodeTheme, isSelected),
+                ),
 
-                  // Input ports (positioned on edges of padded container)
-                  ...node.inputPorts.map(
-                    (port) => _buildPort(context, port, false, nodeTheme),
-                  ),
+                // Input ports (positioned on edges of padded container)
+                ...node.inputPorts.map(
+                  (port) => _buildPort(context, port, false, nodeTheme),
+                ),
 
-                  // Output ports (positioned on edges of padded container)
-                  ...node.outputPorts.map(
-                    (port) => _buildPort(context, port, true, nodeTheme),
-                  ),
-                ],
-              ),
+                // Output ports (positioned on edges of padded container)
+                ...node.outputPorts.map(
+                  (port) => _buildPort(context, port, true, nodeTheme),
+                ),
+              ],
             ),
           ),
         );
