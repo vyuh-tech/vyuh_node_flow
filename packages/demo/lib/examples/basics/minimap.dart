@@ -1,0 +1,409 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:mobx/mobx.dart';
+import 'package:vyuh_node_flow/vyuh_node_flow.dart';
+
+import '../../shared/ui_widgets.dart';
+
+/// Example demonstrating the NodeFlowMinimap widget
+class MinimapExample extends StatefulWidget {
+  const MinimapExample({super.key});
+
+  @override
+  State<MinimapExample> createState() => _MinimapExampleState();
+}
+
+class _MinimapExampleState extends State<MinimapExample> {
+  late final NodeFlowController<Map<String, dynamic>> _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = NodeFlowController<Map<String, dynamic>>(
+      config: NodeFlowConfig(
+        showMinimap: true,
+        isMinimapInteractive: true,
+        minimapPosition: CornerPosition.bottomRight,
+        minimapSize: const Size(200, 150),
+      ),
+    );
+
+    _createLargeGraph();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.fitToView();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _createLargeGraph() {
+    // Create a larger graph that requires scrolling/panning
+    final nodes = <Node<Map<String, dynamic>>>[];
+    final connections = <Connection>[];
+
+    // Create a grid of nodes
+    for (int row = 0; row < 5; row++) {
+      for (int col = 0; col < 6; col++) {
+        final id = 'node-$row-$col';
+        nodes.add(
+          Node<Map<String, dynamic>>(
+            id: id,
+            type: _getNodeType(row, col),
+            position: Offset(col * 250.0 + 100, row * 200.0 + 100),
+            size: const Size(150, 80),
+            data: {'label': 'Node $row-$col', 'row': row, 'col': col},
+            inputPorts: col > 0
+                ? [
+                    Port(
+                      id: 'in',
+                      name: 'Input',
+                      position: PortPosition.left,
+                      offset: const Offset(0, 20),
+                    ),
+                  ]
+                : [],
+            outputPorts: col < 5
+                ? [
+                    Port(
+                      id: 'out',
+                      name: 'Output',
+                      position: PortPosition.right,
+                      offset: const Offset(0, 20),
+                    ),
+                  ]
+                : [],
+          ),
+        );
+
+        // Create horizontal connections
+        if (col > 0) {
+          connections.add(
+            Connection(
+              id: 'conn-$row-${col - 1}-$col',
+              sourceNodeId: 'node-$row-${col - 1}',
+              sourcePortId: 'out',
+              targetNodeId: 'node-$row-$col',
+              targetPortId: 'in',
+            ),
+          );
+        }
+      }
+    }
+
+    // Add all nodes and connections
+    for (final node in nodes) {
+      _controller.addNode(node);
+    }
+    for (final connection in connections) {
+      _controller.addConnection(connection);
+    }
+  }
+
+  String _getNodeType(int row, int col) {
+    if (col == 0) return 'input';
+    if (col == 5) return 'output';
+    return 'process';
+  }
+
+  Widget _buildNode(BuildContext context, Node<Map<String, dynamic>> node) {
+    Color color;
+    IconData icon;
+
+    switch (node.type) {
+      case 'input':
+        color = Colors.green.shade100;
+        icon = Icons.input;
+        break;
+      case 'output':
+        color = Colors.orange.shade100;
+        icon = Icons.output;
+        break;
+      default:
+        color = Colors.blue.shade100;
+        icon = Icons.settings;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 24, color: Colors.grey.shade700),
+          const SizedBox(height: 4),
+          Text(
+            node.data['label'] ?? '',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+              color: Colors.grey.shade800,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ResponsiveControlPanel(
+      title: 'Minimap Navigation',
+      width: 320,
+      child: NodeFlowEditor<Map<String, dynamic>>(
+        controller: _controller,
+        nodeBuilder: _buildNode,
+        theme: NodeFlowTheme.light.copyWith(
+          connectionTheme: ConnectionTheme.light.copyWith(
+            style: ConnectionStyles.smoothstep,
+          ),
+        ),
+      ),
+      children: [
+        const Text(
+          'Use the minimap to navigate around the large graph. '
+          'Pan and zoom to explore different areas.',
+          style: TextStyle(fontSize: 12, color: Colors.black54),
+        ),
+        const SizedBox(height: 24),
+        _buildMinimapToggle(),
+        const SizedBox(height: 24),
+        _buildMinimapInteractivity(),
+        const SizedBox(height: 24),
+        _buildMinimapPosition(),
+        const SizedBox(height: 24),
+        _buildMinimapSize(),
+        const SizedBox(height: 24),
+        _buildNavigationButtons(),
+      ],
+    );
+  }
+
+  Widget _buildMinimapToggle() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle('Visibility'),
+        const SizedBox(height: 12),
+        Observer(
+          builder: (_) => Row(
+            children: [
+              const Text('Show Minimap', style: TextStyle(fontSize: 12)),
+              const Spacer(),
+              Switch(
+                value: _controller.config.showMinimap.value,
+                onChanged: (value) {
+                  runInAction(() {
+                    _controller.config.showMinimap.value = value;
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMinimapInteractivity() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle('Interactivity'),
+        const SizedBox(height: 12),
+        Observer(
+          builder: (_) => Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Interactive (click to navigate)',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ),
+              Switch(
+                value: _controller.config.isMinimapInteractive.value,
+                onChanged: _controller.config.showMinimap.value
+                    ? (value) {
+                        runInAction(() {
+                          _controller.config.isMinimapInteractive.value = value;
+                        });
+                      }
+                    : null,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMinimapPosition() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle('Position'),
+        const SizedBox(height: 12),
+        Observer(
+          builder: (_) => Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children:
+                [
+                  ('Top Left', CornerPosition.topLeft),
+                  ('Top Right', CornerPosition.topRight),
+                  ('Bottom Left', CornerPosition.bottomLeft),
+                  ('Bottom Right', CornerPosition.bottomRight),
+                ].map((entry) {
+                  final (name, position) = entry;
+                  return ChoiceChip(
+                    label: Text(name, style: const TextStyle(fontSize: 11)),
+                    selected:
+                        _controller.config.minimapPosition.value == position,
+                    onSelected: _controller.config.showMinimap.value
+                        ? (selected) {
+                            if (selected) {
+                              runInAction(() {
+                                _controller.config.minimapPosition.value =
+                                    position;
+                              });
+                            }
+                          }
+                        : null,
+                  );
+                }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMinimapSize() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle('Size'),
+        const SizedBox(height: 12),
+        Observer(
+          builder: (_) {
+            final minimapSize = _controller.config.minimapSize.value;
+            final showMinimap = _controller.config.showMinimap.value;
+
+            return Column(
+              children: [
+                Row(
+                  children: [
+                    const SizedBox(
+                      width: 50,
+                      child: Text('Width', style: TextStyle(fontSize: 12)),
+                    ),
+                    Expanded(
+                      child: Slider(
+                        value: minimapSize.width,
+                        min: 100,
+                        max: 400,
+                        divisions: 30,
+                        label: minimapSize.width.toStringAsFixed(0),
+                        onChanged: showMinimap
+                            ? (value) {
+                                runInAction(() {
+                                  _controller.config.minimapSize.value = Size(
+                                    value,
+                                    minimapSize.height,
+                                  );
+                                });
+                              }
+                            : null,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 40,
+                      child: Text(
+                        minimapSize.width.toStringAsFixed(0),
+                        style: const TextStyle(fontSize: 11),
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    const SizedBox(
+                      width: 50,
+                      child: Text('Height', style: TextStyle(fontSize: 12)),
+                    ),
+                    Expanded(
+                      child: Slider(
+                        value: minimapSize.height,
+                        min: 75,
+                        max: 300,
+                        divisions: 30,
+                        label: minimapSize.height.toStringAsFixed(0),
+                        onChanged: showMinimap
+                            ? (value) {
+                                runInAction(() {
+                                  _controller.config.minimapSize.value = Size(
+                                    minimapSize.width,
+                                    value,
+                                  );
+                                });
+                              }
+                            : null,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 40,
+                      child: Text(
+                        minimapSize.height.toStringAsFixed(0),
+                        style: const TextStyle(fontSize: 11),
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNavigationButtons() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle('Quick Navigation'),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ElevatedButton.icon(
+              icon: const Icon(Icons.center_focus_strong, size: 16),
+              label: const Text('Fit to View', style: TextStyle(fontSize: 11)),
+              onPressed: () => _controller.fitToView(),
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.zoom_in, size: 16),
+              label: const Text('Zoom In', style: TextStyle(fontSize: 11)),
+              onPressed: () => _controller.zoomBy(0.2),
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.zoom_out, size: 16),
+              label: const Text('Zoom Out', style: TextStyle(fontSize: 11)),
+              onPressed: () => _controller.zoomBy(-0.2),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}

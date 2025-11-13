@@ -10,14 +10,17 @@ import 'examples/advanced/annotations.dart';
 // Connection labels examples
 import 'examples/advanced/connection_labels.dart';
 // Advanced examples
+import 'examples/advanced/serialization.dart';
 import 'examples/advanced/shortcuts.dart';
 import 'examples/advanced/theming.dart';
 import 'examples/advanced/validation.dart';
 import 'examples/advanced/viewer.dart';
 import 'examples/advanced/workbench.dart';
 // Basics examples
+import 'examples/basics/callbacks.dart';
 import 'examples/basics/controlling_nodes.dart';
 import 'examples/basics/dynamic_ports.dart';
+import 'examples/basics/minimap.dart';
 import 'examples/basics/node_shapes.dart';
 import 'examples/basics/port_labels.dart';
 // Connections examples
@@ -80,6 +83,22 @@ class ExampleRegistry {
           icon: Icons.label_outline,
           builder: (_) => const PortLabelsExample(),
         ),
+        Example(
+          id: 'minimap',
+          title: 'Minimap Navigation',
+          description:
+              'Interactive minimap for navigating large graphs with customizable position, size, and interactivity',
+          icon: Icons.map,
+          builder: (_) => const MinimapExample(),
+        ),
+        Example(
+          id: 'callbacks',
+          title: 'Event Callbacks',
+          description:
+              'Real-time event logging for all node, connection, and annotation lifecycle events',
+          icon: Icons.monitor_heart,
+          builder: (_) => const CallbacksExample(),
+        ),
       ],
     ),
 
@@ -98,6 +117,14 @@ class ExampleRegistry {
               'Comprehensive showcase of all keyboard shortcuts, custom actions, and the shortcuts viewer',
           icon: Icons.keyboard,
           builder: (_) => const ShortcutsExample(),
+        ),
+        Example(
+          id: 'serialization',
+          title: 'Save & Load (JSON)',
+          description:
+              'Export graphs to JSON, save workflows, and restore them with full state preservation',
+          icon: Icons.save,
+          builder: (_) => const SerializationExample(),
         ),
         Example(
           id: 'alignment',
