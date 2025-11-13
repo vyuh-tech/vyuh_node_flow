@@ -1,3 +1,7 @@
+## 0.3.12
+
+ - **FEAT**: tap and double tap handling at node editor level with custom hit testing.
+
 ## 0.3.11
 
  - **FIX**: updated readme.
