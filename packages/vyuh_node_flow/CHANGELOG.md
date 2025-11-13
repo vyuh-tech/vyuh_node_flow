@@ -1,3 +1,11 @@
+## 0.3.11
+
+ - **FIX**: updated readme.
+ - **FIX**: updated icons on demo, adjusted padding in node.
+ - **FEAT**: refactoring and renaming across the board for better semantic naming.
+ - **FEAT**: refactoring and renaming across the board for better semantic naming.
+ - **FEAT**: using LabelTheme.light/dark directly.
+
 ## 0.3.10
 
  - **FIX**: updated icons on demo, adjusted padding in node.
