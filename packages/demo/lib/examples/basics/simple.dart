@@ -110,10 +110,8 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
     }
 
     // Fit view to show all nodes centered
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        _controller.fitToView();
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.fitToView();
     });
   }
 

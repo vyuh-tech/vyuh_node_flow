@@ -174,13 +174,9 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
     // Create initial connection
     _updateConnection();
 
-    // Fit view to show all nodes centered after first frame
+    // Fit view to show all nodes centered
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted) {
-          _controller.resetViewport();
-        }
-      });
+      _controller.resetViewport();
     });
   }
 

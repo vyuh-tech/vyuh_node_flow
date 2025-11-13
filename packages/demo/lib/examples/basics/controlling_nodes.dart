@@ -45,10 +45,8 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
     }
 
     // Fit view to show all nodes centered
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        _controller.fitToView();
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.fitToView();
     });
   }
 

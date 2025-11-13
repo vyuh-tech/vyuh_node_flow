@@ -27,10 +27,7 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
       config: NodeFlowConfig(),
     );
 
-    // Add initial nodes after first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _addInitialNodes();
-    });
+    _addInitialNodes();
   }
 
   void _addInitialNodes() {
@@ -94,10 +91,8 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
     _controller.addNode(node2);
 
     // Fit view to show all nodes centered
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        _controller.fitToView();
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.fitToView();
     });
   }
 

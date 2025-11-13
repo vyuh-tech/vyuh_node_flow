@@ -15,6 +15,7 @@ class ThemingExample extends StatefulWidget {
 class _ThemingExampleState extends State<ThemingExample> {
   late final NodeFlowController<Map<String, dynamic>> _controller;
   late NodeFlowTheme _theme;
+  PortShape _selectedPortShape = PortShapes.capsuleHalf;
 
   @override
   void initState() {
@@ -40,18 +41,22 @@ class _ThemingExampleState extends State<ThemingExample> {
       position: const Offset(100, 100),
       size: const Size(150, 100),
       data: {'label': 'Source'},
-      outputPorts: const [
+      outputPorts: [
         Port(
           id: 'out1',
           name: 'Output 1',
           position: PortPosition.right,
-          offset: Offset(0, 30),
+          offset: const Offset(0, 30),
+          shape: _selectedPortShape,
+          showLabel: true,
         ),
         Port(
           id: 'out2',
           name: 'Output 2',
           position: PortPosition.right,
-          offset: Offset(0, 70),
+          offset: const Offset(0, 70),
+          shape: _selectedPortShape,
+          showLabel: true,
         ),
       ],
     );
@@ -62,20 +67,24 @@ class _ThemingExampleState extends State<ThemingExample> {
       position: const Offset(350, 80),
       size: const Size(150, 100),
       data: {'label': 'Transform'},
-      inputPorts: const [
+      inputPorts: [
         Port(
           id: 'in1',
           name: 'Input',
           position: PortPosition.left,
-          offset: Offset(0, 50),
+          offset: const Offset(0, 50),
+          shape: _selectedPortShape,
+          showLabel: true,
         ),
       ],
-      outputPorts: const [
+      outputPorts: [
         Port(
           id: 'out1',
           name: 'Output',
           position: PortPosition.right,
-          offset: Offset(0, 50),
+          offset: const Offset(0, 50),
+          shape: _selectedPortShape,
+          showLabel: true,
         ),
       ],
     );
@@ -86,18 +95,22 @@ class _ThemingExampleState extends State<ThemingExample> {
       position: const Offset(600, 100),
       size: const Size(150, 100),
       data: {'label': 'Sink'},
-      inputPorts: const [
+      inputPorts: [
         Port(
           id: 'in1',
           name: 'Input 1',
           position: PortPosition.left,
-          offset: Offset(0, 30),
+          offset: const Offset(0, 30),
+          shape: _selectedPortShape,
+          showLabel: true,
         ),
         Port(
           id: 'in2',
           name: 'Input 2',
           position: PortPosition.left,
-          offset: Offset(0, 70),
+          offset: const Offset(0, 70),
+          shape: _selectedPortShape,
+          showLabel: true,
         ),
       ],
     );
@@ -136,6 +149,27 @@ class _ThemingExampleState extends State<ThemingExample> {
     setState(() {
       _theme = newTheme;
     });
+  }
+
+  void _resetToLightTheme() {
+    setState(() {
+      _theme = NodeFlowTheme.light;
+      _selectedPortShape = PortShapes.capsuleHalf;
+    });
+
+    // Clear and recreate the graph with default port shapes
+    _controller.clearGraph();
+    _createExampleGraph();
+  }
+
+  void _updatePortShape(PortShape newShape) {
+    setState(() {
+      _selectedPortShape = newShape;
+    });
+
+    // Clear and recreate the graph with new port shapes
+    _controller.clearGraph();
+    _createExampleGraph();
   }
 
   Widget _buildNode(BuildContext context, Node<Map<String, dynamic>> node) {
@@ -198,9 +232,7 @@ class _ThemingExampleState extends State<ThemingExample> {
       actions: [
         IconButton(
           icon: const Icon(Icons.refresh, size: 20),
-          onPressed: () {
-            _updateTheme(NodeFlowTheme.light);
-          },
+          onPressed: _resetToLightTheme,
           tooltip: 'Reset to Light Theme',
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
@@ -215,6 +247,8 @@ class _ThemingExampleState extends State<ThemingExample> {
         _buildThemePresets(),
         const SizedBox(height: 24),
         _buildConnectionStyleSection(),
+        const SizedBox(height: 24),
+        _buildConnectionEffectSection(),
         const SizedBox(height: 24),
         _buildConnectionColorsSection(),
         const SizedBox(height: 24),
@@ -239,14 +273,21 @@ class _ThemingExampleState extends State<ThemingExample> {
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: () => _updateTheme(NodeFlowTheme.light),
+                onPressed: _resetToLightTheme,
                 child: const Text('Light', style: TextStyle(fontSize: 12)),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: ElevatedButton(
-                onPressed: () => _updateTheme(NodeFlowTheme.dark),
+                onPressed: () {
+                  setState(() {
+                    _theme = NodeFlowTheme.dark;
+                    _selectedPortShape = PortShapes.capsuleHalf;
+                  });
+                  _controller.clearGraph();
+                  _createExampleGraph();
+                },
                 child: const Text('Dark', style: TextStyle(fontSize: 12)),
               ),
             ),
@@ -290,6 +331,114 @@ class _ThemingExampleState extends State<ThemingExample> {
               },
             );
           }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildConnectionEffectSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle('Connection Effect'),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children:
+              [
+                ('None', null),
+                ('Flowing Dash', ConnectionEffects.flowingDash),
+                ('Particles', ConnectionEffects.particles),
+                ('Gradient', ConnectionEffects.gradientFlow),
+                ('Pulse', ConnectionEffects.pulse),
+              ].map((entry) {
+                final (name, effect) = entry;
+                return ChoiceChip(
+                  label: Text(name, style: const TextStyle(fontSize: 11)),
+                  selected: _theme.connectionTheme.animationEffect == effect,
+                  onSelected: (selected) {
+                    if (selected) {
+                      _updateTheme(
+                        _theme.copyWith(
+                          connectionTheme: _theme.connectionTheme.copyWith(
+                            animationEffect: effect,
+                          ),
+                          temporaryConnectionTheme: _theme
+                              .temporaryConnectionTheme
+                              .copyWith(animationEffect: effect),
+                        ),
+                      );
+                    }
+                  },
+                );
+              }).toList(),
+        ),
+        const SizedBox(height: 16),
+        const Text('Start Point', style: TextStyle(fontSize: 12)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children:
+              [
+                ('None', ConnectionEndPoint.none),
+                ('Circle', ConnectionEndPoint.circle),
+                ('Square', ConnectionEndPoint.square),
+                ('Diamond', ConnectionEndPoint.diamond),
+                ('Triangle', ConnectionEndPoint.triangle),
+                ('Capsule', ConnectionEndPoint.capsuleHalf),
+              ].map((entry) {
+                final (name, endpoint) = entry;
+                return ChoiceChip(
+                  label: Text(name, style: const TextStyle(fontSize: 11)),
+                  selected: _theme.connectionTheme.startPoint == endpoint,
+                  onSelected: (selected) {
+                    if (selected) {
+                      _updateTheme(
+                        _theme.copyWith(
+                          connectionTheme: _theme.connectionTheme.copyWith(
+                            startPoint: endpoint,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                );
+              }).toList(),
+        ),
+        const SizedBox(height: 12),
+        const Text('End Point', style: TextStyle(fontSize: 12)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children:
+              [
+                ('None', ConnectionEndPoint.none),
+                ('Circle', ConnectionEndPoint.circle),
+                ('Square', ConnectionEndPoint.square),
+                ('Diamond', ConnectionEndPoint.diamond),
+                ('Triangle', ConnectionEndPoint.triangle),
+                ('Capsule', ConnectionEndPoint.capsuleHalf),
+              ].map((entry) {
+                final (name, endpoint) = entry;
+                return ChoiceChip(
+                  label: Text(name, style: const TextStyle(fontSize: 11)),
+                  selected: _theme.connectionTheme.endPoint == endpoint,
+                  onSelected: (selected) {
+                    if (selected) {
+                      _updateTheme(
+                        _theme.copyWith(
+                          connectionTheme: _theme.connectionTheme.copyWith(
+                            endPoint: endpoint,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                );
+              }).toList(),
         ),
       ],
     );
@@ -442,7 +591,7 @@ class _ThemingExampleState extends State<ThemingExample> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionTitle('Stroke Width'),
+        const SectionTitle('Connections'),
         const SizedBox(height: 12),
         _buildSlider('Normal', _theme.connectionTheme.strokeWidth, 1.0, 5.0, (
           value,
@@ -478,13 +627,56 @@ class _ThemingExampleState extends State<ThemingExample> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionTitle('Port Size'),
+        const SectionTitle('Ports'),
         const SizedBox(height: 12),
         _buildSlider('Size', _theme.portTheme.size, 6.0, 16.0, (value) {
           _updateTheme(
             _theme.copyWith(portTheme: _theme.portTheme.copyWith(size: value)),
           );
         }),
+        const SizedBox(height: 12),
+        const Text('Port Shape', style: TextStyle(fontSize: 12)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children:
+              [
+                ('circle', PortShapes.circle),
+                ('square', PortShapes.square),
+                ('diamond', PortShapes.diamond),
+                ('triangle', PortShapes.triangle),
+                ('capsule', PortShapes.capsuleHalf),
+              ].map((entry) {
+                final (name, shape) = entry;
+                return ChoiceChip(
+                  label: Text(name, style: const TextStyle(fontSize: 11)),
+                  selected: _selectedPortShape == shape,
+                  onSelected: (selected) {
+                    if (selected) {
+                      _updatePortShape(shape);
+                    }
+                  },
+                );
+              }).toList(),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            const Text('Show Labels', style: TextStyle(fontSize: 12)),
+            const Spacer(),
+            Switch(
+              value: _theme.portTheme.showLabel,
+              onChanged: (value) {
+                _updateTheme(
+                  _theme.copyWith(
+                    portTheme: _theme.portTheme.copyWith(showLabel: value),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -574,8 +766,19 @@ class _ThemingExampleState extends State<ThemingExample> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionTitle('Node Border'),
+        const SectionTitle('Nodes'),
         const SizedBox(height: 12),
+        _buildSlider('Padding', _theme.nodeTheme.padding.left, 0.0, 24.0, (
+          value,
+        ) {
+          _updateTheme(
+            _theme.copyWith(
+              nodeTheme: _theme.nodeTheme.copyWith(
+                padding: EdgeInsets.all(value),
+              ),
+            ),
+          );
+        }),
         _buildSlider('Border Width', _theme.nodeTheme.borderWidth, 0.0, 5.0, (
           value,
         ) {

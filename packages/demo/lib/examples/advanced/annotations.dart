@@ -31,11 +31,7 @@ class _AnnotationExampleState extends State<AnnotationExample> {
 
     // Fit view to show all content after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted) {
-          controller.fitToView();
-        }
-      });
+      controller.resetViewport();
     });
   }
 

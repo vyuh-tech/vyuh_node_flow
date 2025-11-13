@@ -31,13 +31,9 @@ class _ViewerExampleState extends State<ViewerExample> {
       _controller.addConnection(connection);
     }
 
-    // Fit view to show all nodes centered after first frame
+    // Fit view to show all nodes centered
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted) {
-          _controller.fitToView();
-        }
-      });
+      _controller.fitToView();
     });
   }
 
