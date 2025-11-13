@@ -1,3 +1,9 @@
+## 0.3.10
+
+ - **FIX**: updated icons on demo, adjusted padding in node.
+ - **FEAT**: refactoring and renaming across the board for better semantic naming.
+ - **FEAT**: using LabelTheme.light/dark directly.
+
 ## 0.3.9
 
  - **FEAT**: introduced Port Labels, which help in setting labels for ports on the inside of the port. The labels are positioned as per the port position with a customizable label offset, TextStyle and visibility threshold based on the zoom-level of canvas.
