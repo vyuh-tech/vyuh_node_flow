@@ -48,39 +48,55 @@ class StraightConnectionStyle extends ConnectionStyle {
   double get minBendDistance => double.infinity; // No multiple bends
 
   @override
-  Path createHitTestPath(Path originalPath, double tolerance) {
-    // For straight lines, we can create precise rectangular hit areas
-    final bounds = originalPath.getBounds();
-
-    if (bounds.width <= 0 && bounds.height <= 0) {
-      return Path();
+  Path createHitTestPath(
+    Path originalPath,
+    double tolerance, {
+    ConnectionPathParameters? pathParams,
+  }) {
+    if (pathParams == null) {
+      return Path()..addRect(originalPath.getBounds().inflate(tolerance));
     }
 
-    // Get the path metrics to extract the actual line
-    final metrics = originalPath.computeMetrics().toList();
-    if (metrics.isEmpty) {
-      return Path()..addRect(bounds.inflate(tolerance));
+    // Calculate waypoints: [start, startExtension, endExtension, end]
+    final sourcePosition =
+        pathParams.sourcePort?.position ?? PortPosition.right;
+    final targetPosition = pathParams.targetPort?.position ?? PortPosition.left;
+
+    final startExtension = _calculateExtensionPoint(
+      pathParams.start,
+      sourcePosition,
+      pathParams.offset,
+    );
+    final endExtension = _calculateExtensionPoint(
+      pathParams.end,
+      targetPosition,
+      pathParams.offset,
+    );
+
+    // If extension is too small, skip it and create single rectangle
+    if (pathParams.offset < 5.0) {
+      return _createPreciseHitArea(pathParams.start, pathParams.end, tolerance);
     }
 
-    final combinedHitPath = Path();
+    // Create 3 rectangles: port→ext, ext→ext, ext→port
+    final combinedPath = Path();
 
-    for (final metric in metrics) {
-      if (metric.length == 0) continue;
+    combinedPath.addPath(
+      _createPreciseHitArea(pathParams.start, startExtension, tolerance),
+      Offset.zero,
+    );
 
-      final startTangent = metric.getTangentForOffset(0);
-      final endTangent = metric.getTangentForOffset(metric.length);
+    combinedPath.addPath(
+      _createPreciseHitArea(startExtension, endExtension, tolerance),
+      Offset.zero,
+    );
 
-      if (startTangent != null && endTangent != null) {
-        final segmentHitPath = _createPreciseHitArea(
-          startTangent.position,
-          endTangent.position,
-          tolerance,
-        );
-        combinedHitPath.addPath(segmentHitPath, Offset.zero);
-      }
-    }
+    combinedPath.addPath(
+      _createPreciseHitArea(endExtension, pathParams.end, tolerance),
+      Offset.zero,
+    );
 
-    return combinedHitPath;
+    return combinedPath;
   }
 
   /// Creates the straight line path with extensions

@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' show PathMetric;
 
 import 'package:flutter/material.dart';
 
@@ -61,71 +60,87 @@ class StepConnectionStyle extends ConnectionStyle {
   double get minBendDistance => 6.0; // Larger spacing for predictable turns
 
   @override
-  Path createHitTestPath(Path originalPath, double tolerance) {
-    // Use optimized hit testing with exact bend points when possible
-    final bounds = originalPath.getBounds();
-
-    if (bounds.width <= 0 && bounds.height <= 0) {
-      return Path();
-    }
-
-    // For step connections, we can use the exact bend points for precise hit testing
-    return _createStepHitTestPath(originalPath, tolerance);
-  }
-
-  /// Create optimized hit test path using step characteristics
-  Path _createStepHitTestPath(Path originalPath, double tolerance) {
-    final metrics = originalPath.computeMetrics().toList();
-    if (metrics.isEmpty) {
+  Path createHitTestPath(
+    Path originalPath,
+    double tolerance, {
+    ConnectionPathParameters? pathParams,
+  }) {
+    // Use exact bend points from the path calculator
+    if (pathParams == null) {
+      // This shouldn't happen in normal usage
       return Path()..addRect(originalPath.getBounds().inflate(tolerance));
     }
 
-    final combinedHitPath = Path();
-
-    for (final metric in metrics) {
-      if (metric.length == 0) continue;
-
-      // For step paths, create rectangular segments between bend points
-      final segmentPath = _createStepSegmentHitAreas(metric, tolerance);
-      combinedHitPath.addPath(segmentPath, Offset.zero);
+    final bendPoints = getExactBendPoints(pathParams);
+    if (bendPoints == null || bendPoints.length < 2) {
+      return Path()..addRect(originalPath.getBounds().inflate(tolerance));
     }
 
-    return combinedHitPath;
+    return _createStepHitAreas(bendPoints, tolerance);
   }
 
-  /// Create hit areas for step path segments
-  Path _createStepSegmentHitAreas(PathMetric metric, double tolerance) {
+  /// Create hit areas for step paths
+  /// Creates one rectangle per straight segment, merging collinear segments
+  Path _createStepHitAreas(List<Offset> waypoints, double tolerance) {
+    if (waypoints.length < 2) return Path();
+
     final combinedPath = Path();
 
-    // Sample the path at regular intervals to find horizontal/vertical segments
-    final sampleCount = math.max(4, (metric.length / 20).ceil());
-    final segments = <({Offset start, Offset end})>[];
+    // Merge collinear segments to reduce rectangle count
+    final mergedSegments = _mergeCollinearSegments(waypoints);
 
-    Offset? lastPoint;
-    for (int i = 0; i <= sampleCount; i++) {
-      final offset = (i / sampleCount) * metric.length;
-      final tangent = metric.getTangentForOffset(offset);
-
-      if (tangent != null) {
-        final currentPoint = tangent.position;
-        if (lastPoint != null) {
-          segments.add((start: lastPoint, end: currentPoint));
-        }
-        lastPoint = currentPoint;
-      }
-    }
-
-    // Create hit areas for each segment
-    for (final segment in segments) {
-      final hitArea = _createStepSegmentHitArea(
+    // Create rectangles for each merged segment
+    for (final segment in mergedSegments) {
+      final segmentRect = _createStepSegmentHitArea(
         segment.start,
         segment.end,
         tolerance,
       );
-      combinedPath.addPath(hitArea, Offset.zero);
+      combinedPath.addPath(segmentRect, Offset.zero);
     }
 
     return combinedPath;
+  }
+
+  /// Merge consecutive collinear segments to reduce rectangle count
+  /// For example: [A→B→C] where A, B, C are on same line becomes [A→C]
+  List<({Offset start, Offset end})> _mergeCollinearSegments(
+    List<Offset> waypoints,
+  ) {
+    if (waypoints.length < 2) return [];
+
+    final segments = <({Offset start, Offset end})>[];
+    Offset segmentStart = waypoints[0];
+
+    for (int i = 1; i < waypoints.length; i++) {
+      final current = waypoints[i];
+      bool shouldEndSegment = (i == waypoints.length - 1); // Last point
+
+      if (!shouldEndSegment && i < waypoints.length - 1) {
+        final next = waypoints[i + 1];
+
+        // Check if current segment and next segment are collinear
+        final currentVector = current - segmentStart;
+        final nextVector = next - current;
+
+        final currentIsHorizontal = currentVector.dy.abs() < 0.5;
+        final currentIsVertical = currentVector.dx.abs() < 0.5;
+        final nextIsHorizontal = nextVector.dy.abs() < 0.5;
+        final nextIsVertical = nextVector.dx.abs() < 0.5;
+
+        // If direction changes, end this segment
+        shouldEndSegment =
+            (currentIsHorizontal != nextIsHorizontal) ||
+            (currentIsVertical != nextIsVertical);
+      }
+
+      if (shouldEndSegment) {
+        segments.add((start: segmentStart, end: current));
+        segmentStart = current;
+      }
+    }
+
+    return segments;
   }
 
   /// Create hit area for a single step segment (optimized for horizontal/vertical lines)
@@ -169,8 +184,11 @@ class StepConnectionStyle extends ConnectionStyle {
     }
   }
 
-  /// Create optimized hit test path from exact waypoints
-  Path createOptimizedHitTestPath(List<Offset> waypoints, double tolerance) {
+  /// Create hit test path from exact waypoints
+  Path createHitTestPathFromWaypoints(
+    List<Offset> waypoints,
+    double tolerance,
+  ) {
     if (waypoints.length <= 2) {
       // Simple case: single segment
       return _createStepSegmentHitArea(
@@ -221,100 +239,23 @@ class SmoothStepConnectionStyle extends StepConnectionStyle {
   }
 
   @override
-  Path createHitTestPath(Path originalPath, double tolerance) {
-    // For smooth step, we need slightly different hit testing due to rounded corners
-    return _createSmoothStepHitTestPath(originalPath, tolerance);
-  }
-
-  /// Create hit test path accounting for rounded corners
-  Path _createSmoothStepHitTestPath(Path originalPath, double tolerance) {
-    final bounds = originalPath.getBounds();
-
-    if (bounds.width <= 0 && bounds.height <= 0) {
-      return Path();
+  Path createHitTestPath(
+    Path originalPath,
+    double tolerance, {
+    ConnectionPathParameters? pathParams,
+  }) {
+    // Use exact bend points from the path calculator
+    if (pathParams == null) {
+      // This shouldn't happen in normal usage
+      return Path()..addRect(originalPath.getBounds().inflate(tolerance));
     }
 
-    final metrics = originalPath.computeMetrics().toList();
-    if (metrics.isEmpty) {
-      return Path()..addRect(bounds.inflate(tolerance));
+    final bendPoints = getExactBendPoints(pathParams);
+    if (bendPoints == null || bendPoints.length < 2) {
+      return Path()..addRect(originalPath.getBounds().inflate(tolerance));
     }
 
-    final combinedHitPath = Path();
-
-    for (final metric in metrics) {
-      if (metric.length == 0) continue;
-
-      // For smooth step, we need to account for the curved corners
-      // Use more segments to properly capture the rounded areas
-      final segmentCount = math.max(6, (metric.length / 30).ceil());
-      final segmentLength = metric.length / segmentCount;
-
-      for (int i = 0; i < segmentCount; i++) {
-        final startOffset = i * segmentLength;
-        final endOffset = math.min((i + 1) * segmentLength, metric.length);
-
-        final startTangent = metric.getTangentForOffset(startOffset);
-        final endTangent = metric.getTangentForOffset(endOffset);
-
-        if (startTangent != null && endTangent != null) {
-          final segmentHitArea = _createSmoothStepSegmentHitArea(
-            startTangent.position,
-            endTangent.position,
-            tolerance,
-          );
-          combinedHitPath.addPath(segmentHitArea, Offset.zero);
-        }
-      }
-    }
-
-    return combinedHitPath;
-  }
-
-  /// Create hit area for smooth step segment (handles both straight and curved parts)
-  Path _createSmoothStepSegmentHitArea(
-    Offset start,
-    Offset end,
-    double tolerance,
-  ) {
-    // For smooth step segments, use the same logic as step but with slightly larger tolerance
-    // to account for the rounded corners
-    final adjustedTolerance = tolerance * 1.1;
-
-    final dx = (end.dx - start.dx).abs();
-    final dy = (end.dy - start.dy).abs();
-
-    if (dx < 1.0) {
-      // Vertical segment
-      return Path()..addRect(
-        Rect.fromLTRB(
-          start.dx - adjustedTolerance,
-          math.min(start.dy, end.dy),
-          start.dx + adjustedTolerance,
-          math.max(start.dy, end.dy),
-        ),
-      );
-    } else if (dy < 1.0) {
-      // Horizontal segment
-      return Path()..addRect(
-        Rect.fromLTRB(
-          math.min(start.dx, end.dx),
-          start.dy - adjustedTolerance,
-          math.max(start.dx, end.dx),
-          start.dy + adjustedTolerance,
-        ),
-      );
-    } else {
-      // Curved segment - create more generous hit area
-      final length = math.sqrt(dx * dx + dy * dy);
-      final perpX = -dy / length * adjustedTolerance;
-      final perpY = dx / length * adjustedTolerance;
-
-      return Path()
-        ..moveTo(start.dx + perpX, start.dy + perpY)
-        ..lineTo(end.dx + perpX, end.dy + perpY)
-        ..lineTo(end.dx - perpX, end.dy - perpY)
-        ..lineTo(start.dx - perpX, start.dy - perpY)
-        ..close();
-    }
+    // For smooth step, use slightly larger tolerance to account for rounded corners
+    return _createStepHitAreas(bendPoints, tolerance * 1.2);
   }
 }

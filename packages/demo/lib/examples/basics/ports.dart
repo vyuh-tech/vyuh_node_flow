@@ -32,7 +32,9 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
     super.initState();
 
     _themeControl = ThemeControlStore();
-    _currentTheme = NodeFlowTheme.light;
+    _currentTheme = NodeFlowTheme.light.copyWith(
+      debugMode: _themeControl.debugMode,
+    );
     _controller = NodeFlowController(
       initialViewport: const GraphViewport(x: 0, y: 200, zoom: 1.0),
     );
@@ -224,6 +226,14 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
         (_) => _updateThemeWithGridValues(),
       ),
     );
+
+    // React to debug mode changes
+    _disposers.add(
+      reaction(
+        (_) => _themeControl._debugMode.value,
+        (_) => _updateThemeWithDebugMode(),
+      ),
+    );
   }
 
   void _updateThemeWithValues() {
@@ -265,6 +275,17 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
     // Update controller config for snap to grid
     _controller.config.snapToGrid.value = _themeControl._snapToGrid.value;
     _controller.config.gridSize.value = _themeControl._gridSize.value;
+
+    setState(() {
+      _currentTheme = newTheme;
+    });
+  }
+
+  void _updateThemeWithDebugMode() {
+    final currentTheme = _currentTheme;
+    final newTheme = currentTheme.copyWith(
+      debugMode: _themeControl._debugMode.value,
+    );
 
     setState(() {
       _currentTheme = newTheme;
@@ -612,6 +633,20 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
           },
         ),
       ),
+      Observer(
+        builder: (context) => SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Debug Mode', style: TextStyle(fontSize: 13)),
+          subtitle: const Text(
+            'Show connection hit area segments',
+            style: TextStyle(fontSize: 11),
+          ),
+          value: _themeControl._debugMode.value,
+          onChanged: (value) {
+            _themeControl.debugMode = value;
+          },
+        ),
+      ),
       const SizedBox(height: 24),
 
       // Grid Settings Section
@@ -857,6 +892,12 @@ class ThemeControlStore {
 
   set orbitRadius(double value) =>
       runInAction(() => _orbitRadius.value = value);
+
+  final Observable<bool> _debugMode = Observable(true);
+
+  bool get debugMode => _debugMode.value;
+
+  set debugMode(bool value) => runInAction(() => _debugMode.value = value);
 
   void dispose() {
     // Cleanup if needed

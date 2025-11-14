@@ -98,7 +98,14 @@ abstract class ConnectionStyle {
 
   /// Creates an expanded path for hit testing
   /// The base implementation provides a simple stroke-based expansion
-  Path createHitTestPath(Path originalPath, double tolerance) {
+  ///
+  /// [pathParams] - Optional parameters used to create the original path.
+  /// Some connection styles can use these to create more optimized hit test paths.
+  Path createHitTestPath(
+    Path originalPath,
+    double tolerance, {
+    ConnectionPathParameters? pathParams,
+  }) {
     return _createSimpleStrokeHitTestPath(originalPath, tolerance);
   }
 

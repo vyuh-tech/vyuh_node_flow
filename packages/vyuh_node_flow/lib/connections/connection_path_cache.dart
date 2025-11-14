@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../connections/connection.dart' show Connection;
-import '../connections/styles/connection_path_calculator.dart';
 import '../connections/styles/connection_style_base.dart';
 import '../connections/styles/endpoint_position_calculator.dart';
 import '../graph/node_flow_theme.dart';
@@ -224,10 +223,8 @@ class ConnectionPathCache {
       portTheme.size,
     );
 
-    // Create the original geometric path
-    final originalPath = ConnectionPathCalculator.createConnectionPath(
-      style: connectionStyle,
-      // Use the passed connection style which is already effective
+    // Create path parameters for both original and hit test paths
+    final pathParams = ConnectionPathParameters(
       start: source.linePos,
       end: target.linePos,
       curvature: connectionTheme.bezierCurvature,
@@ -237,13 +234,15 @@ class ConnectionPathCache {
       offset: connectionTheme.portExtension,
     );
 
+    // Create the original geometric path
+    final originalPath = connectionStyle.createPath(pathParams);
+
     // Create hit test path with connection style-specific logic
     final hitTestPath = _createHitTestPath(
       originalPath,
       defaultHitTolerance,
       connectionStyle: connectionStyle,
-      sourcePort: sourcePort,
-      targetPort: targetPort,
+      pathParams: pathParams,
     );
 
     // Cache both paths
@@ -264,11 +263,15 @@ class ConnectionPathCache {
     Path originalPath,
     double tolerance, {
     required ConnectionStyle connectionStyle,
-    Port? sourcePort,
-    Port? targetPort,
+    ConnectionPathParameters? pathParams,
   }) {
     // Delegate to the connection style's own hit test path creation
-    return connectionStyle.createHitTestPath(originalPath, tolerance);
+    // Pass path parameters if available for optimized hit test path creation
+    return connectionStyle.createHitTestPath(
+      originalPath,
+      tolerance,
+      pathParams: pathParams,
+    );
   }
 
   /// Get cached path (read-only)

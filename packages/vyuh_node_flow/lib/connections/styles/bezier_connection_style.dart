@@ -51,7 +51,11 @@ class BezierConnectionStyle extends ConnectionStyle {
   double get minBendDistance => 3.0; // Closer segments for precise curves
 
   @override
-  Path createHitTestPath(Path originalPath, double tolerance) {
+  Path createHitTestPath(
+    Path originalPath,
+    double tolerance, {
+    ConnectionPathParameters? pathParams,
+  }) {
     // For bezier curves, we need to create segmented hit areas
     // because the curve can have varying thickness perception
     return _createBezierHitTestPath(originalPath, tolerance);
