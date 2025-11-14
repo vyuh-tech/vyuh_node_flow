@@ -1,3 +1,7 @@
+## 0.3.13
+
+ - **FEAT**: optimizing step hit area calculation.
+
 ## 0.3.12
 
  - **FEAT**: tap and double tap handling at node editor level with custom hit testing.
