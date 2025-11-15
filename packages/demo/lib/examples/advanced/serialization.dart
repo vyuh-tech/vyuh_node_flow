@@ -483,44 +483,28 @@ class _SerializationExampleState extends State<SerializationExample> {
       children: [
         const SectionTitle('Actions'),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.upload, size: 16),
-                label: const Text('Export', style: TextStyle(fontSize: 11)),
-                onPressed: _exportGraph,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.download, size: 16),
-                label: const Text('Import', style: TextStyle(fontSize: 11)),
-                onPressed: _importGraph,
-              ),
-            ),
-          ],
+        ControlButton(
+          icon: Icons.upload,
+          label: 'Export',
+          onPressed: _exportGraph,
         ),
         const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.clear, size: 16),
-                label: const Text('Clear', style: TextStyle(fontSize: 11)),
-                onPressed: _clearGraph,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.refresh, size: 16),
-                label: const Text('Reset', style: TextStyle(fontSize: 11)),
-                onPressed: _resetToInitial,
-              ),
-            ),
-          ],
+        ControlButton(
+          icon: Icons.download,
+          label: 'Import',
+          onPressed: _importGraph,
+        ),
+        const SizedBox(height: 8),
+        ControlButton(
+          icon: Icons.clear,
+          label: 'Clear',
+          onPressed: _clearGraph,
+        ),
+        const SizedBox(height: 8),
+        ControlButton(
+          icon: Icons.refresh,
+          label: 'Reset',
+          onPressed: _resetToInitial,
         ),
       ],
     );

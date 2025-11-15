@@ -20,6 +20,7 @@ import '../ports/port.dart';
 import '../shared/flutter_actions_integration.dart';
 import 'canvas_transform_provider.dart';
 import 'layers/attribution_overlay.dart';
+import 'layers/connection_control_points_layer.dart';
 import 'layers/connection_labels_layer.dart';
 import 'layers/connections_layer.dart';
 import 'layers/grid_layer.dart';
@@ -656,6 +657,11 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
                     // Connection labels - rendered separately for optimized repainting
                     ConnectionLabelsLayer<T>(controller: widget.controller),
+
+                    // Connection control points - interactive waypoint editing
+                    ConnectionControlPointsLayer<T>(
+                      controller: widget.controller,
+                    ),
 
                     // Nodes - each node observes only its own state
                     NodesLayer<T>(

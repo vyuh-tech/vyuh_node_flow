@@ -14,6 +14,7 @@ class ConnectionPathParameters {
     this.targetPort,
     this.cornerRadius = 4.0,
     this.offset = 10.0,
+    this.controlPoints = const [],
   });
 
   /// Start point of the connection
@@ -37,6 +38,9 @@ class ConnectionPathParameters {
   /// Offset distance from ports
   final double offset;
 
+  /// Control points for editable path connections
+  final List<Offset> controlPoints;
+
   /// Get source port position, defaulting to right if not specified
   PortPosition get sourcePosition => sourcePort?.position ?? PortPosition.right;
 
@@ -54,7 +58,8 @@ class ConnectionPathParameters {
           sourcePort == other.sourcePort &&
           targetPort == other.targetPort &&
           cornerRadius == other.cornerRadius &&
-          offset == other.offset;
+          offset == other.offset &&
+          _listEquals(controlPoints, other.controlPoints);
 
   @override
   int get hashCode => Object.hash(
@@ -65,7 +70,17 @@ class ConnectionPathParameters {
     targetPort,
     cornerRadius,
     offset,
+    Object.hashAll(controlPoints),
   );
+
+  /// Helper to compare two lists
+  bool _listEquals(List<Offset> a, List<Offset> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
 }
 
 /// Abstract base class for connection styles

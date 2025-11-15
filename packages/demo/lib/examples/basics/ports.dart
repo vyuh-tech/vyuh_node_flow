@@ -516,15 +516,18 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
             isDense: true,
           ),
           initialValue: _themeControl._connectionStyle.value,
-          items: ConnectionStyles.all.map((style) {
-            return DropdownMenuItem(
-              value: style,
-              child: Text(
-                style.displayName,
-                style: const TextStyle(fontSize: 13),
-              ),
-            );
-          }).toList(),
+          items: ConnectionStyles.all
+              .where((style) => style.id != 'smoothstep')
+              .map((style) {
+                return DropdownMenuItem(
+                  value: style,
+                  child: Text(
+                    style.displayName,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                );
+              })
+              .toList(),
           onChanged: (value) {
             if (value != null) {
               _themeControl.connectionStyle = value;
@@ -817,7 +820,7 @@ class ThemeControlStore {
       runInAction(() => _selectedTargetPort.value = value);
 
   final Observable<ConnectionStyle> _connectionStyle = Observable(
-    ConnectionStyles.smoothstep,
+    ConnectionStyles.step,
   );
 
   ConnectionStyle get connectionStyle => _connectionStyle.value;

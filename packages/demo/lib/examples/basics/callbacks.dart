@@ -291,9 +291,9 @@ class _CallbacksExampleState extends State<CallbacksExample> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            ElevatedButton.icon(
-              icon: const Icon(Icons.add_circle_outline, size: 14),
-              label: const Text('Add Node', style: TextStyle(fontSize: 10)),
+            ControlButton(
+              icon: Icons.add_circle_outline,
+              label: 'Add Node',
               onPressed: () {
                 final nodeId = 'node-${DateTime.now().millisecondsSinceEpoch}';
                 _controller.addNode(
@@ -326,9 +326,9 @@ class _CallbacksExampleState extends State<CallbacksExample> {
                 );
               },
             ),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.clear, size: 14),
-              label: const Text('Clear Log', style: TextStyle(fontSize: 10)),
+            ControlButton(
+              icon: Icons.clear,
+              label: 'Clear Log',
               onPressed: _clearEvents,
             ),
           ],

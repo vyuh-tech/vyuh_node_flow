@@ -386,19 +386,19 @@ class _MinimapExampleState extends State<MinimapExample> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            ElevatedButton.icon(
-              icon: const Icon(Icons.center_focus_strong, size: 16),
-              label: const Text('Fit to View', style: TextStyle(fontSize: 11)),
+            ControlButton(
+              icon: Icons.center_focus_strong,
+              label: 'Fit to View',
               onPressed: () => _controller.fitToView(),
             ),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.zoom_in, size: 16),
-              label: const Text('Zoom In', style: TextStyle(fontSize: 11)),
+            ControlButton(
+              icon: Icons.zoom_in,
+              label: 'Zoom In',
               onPressed: () => _controller.zoomBy(0.2),
             ),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.zoom_out, size: 16),
-              label: const Text('Zoom Out', style: TextStyle(fontSize: 11)),
+            ControlButton(
+              icon: Icons.zoom_out,
+              label: 'Zoom Out',
               onPressed: () => _controller.zoomBy(-0.2),
             ),
           ],

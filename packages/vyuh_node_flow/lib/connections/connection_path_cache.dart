@@ -232,6 +232,8 @@ class ConnectionPathCache {
       targetPort: targetPort,
       cornerRadius: connectionTheme.cornerRadius,
       offset: connectionTheme.portExtension,
+      controlPoints: connection.controlPoints
+          .toList(), // Convert ObservableList to List
     );
 
     // Create the original geometric path

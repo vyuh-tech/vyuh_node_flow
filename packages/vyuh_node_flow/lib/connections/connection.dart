@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:json_annotation/json_annotation.dart';
 import 'package:mobx/mobx.dart';
 
@@ -80,6 +82,7 @@ class Connection {
   /// - [startPoint]: Optional custom start endpoint marker (defaults to theme if null)
   /// - [endPoint]: Optional custom end endpoint marker (defaults to theme if null)
   /// - [animationEffect]: Optional animation effect to apply (overrides animated flag)
+  /// - [controlPoints]: Optional list of control points for editable path connections
   Connection({
     required this.id,
     required this.sourceNodeId,
@@ -96,12 +99,14 @@ class Connection {
     this.startPoint,
     this.endPoint,
     ConnectionEffect? animationEffect,
+    List<Offset>? controlPoints,
   }) : _animated = Observable(animated),
        _selected = Observable(selected),
        _startLabel = Observable(startLabel),
        _label = Observable(label),
        _endLabel = Observable(endLabel),
-       _animationEffect = Observable(animationEffect);
+       _animationEffect = Observable(animationEffect),
+       _controlPoints = ObservableList.of(controlPoints ?? []);
 
   /// Unique identifier for this connection.
   final String id;
@@ -124,6 +129,7 @@ class Connection {
   final Observable<ConnectionLabel?> _label;
   final Observable<ConnectionLabel?> _endLabel;
   final Observable<ConnectionEffect?> _animationEffect;
+  final ObservableList<Offset> _controlPoints;
 
   /// Optional arbitrary data to attach to the connection.
   ///
@@ -224,6 +230,28 @@ class Connection {
   /// Sets the label at the end of the connection.
   set endLabel(ConnectionLabel? value) =>
       runInAction(() => _endLabel.value = value);
+
+  /// The list of control points for editable path connections.
+  ///
+  /// Control points define intermediate waypoints through which the connection
+  /// path should pass. This is used by editable connection styles to allow
+  /// users to customize the connection path by adding, moving, or removing
+  /// control points.
+  ///
+  /// An empty list indicates the connection uses the default algorithmic path.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  ObservableList<Offset> get controlPoints => _controlPoints;
+
+  /// Sets the list of control points for this connection.
+  ///
+  /// Updating control points will invalidate the cached path and trigger
+  /// a repaint of the connection with the new path through the waypoints.
+  set controlPoints(List<Offset> value) {
+    runInAction(() {
+      _controlPoints.clear();
+      _controlPoints.addAll(value);
+    });
+  }
 
   /// The list of all non-null labels displayed along the connection path.
   ///
@@ -351,6 +379,17 @@ class Connection {
         json['endLabel'] as Map<String, dynamic>,
       );
     }
+    // Initialize control points from JSON
+    if (json['controlPoints'] != null) {
+      final pointsList = json['controlPoints'] as List;
+      connection._controlPoints.clear();
+      connection._controlPoints.addAll(
+        pointsList.map(
+          (p) =>
+              Offset((p['dx'] as num).toDouble(), (p['dy'] as num).toDouble()),
+        ),
+      );
+    }
     return connection;
   }
 
@@ -369,6 +408,12 @@ class Connection {
     }
     if (_endLabel.value != null) {
       json['endLabel'] = _endLabel.value!.toJson();
+    }
+    // Include control points in JSON
+    if (_controlPoints.isNotEmpty) {
+      json['controlPoints'] = _controlPoints
+          .map((offset) => {'dx': offset.dx, 'dy': offset.dy})
+          .toList();
     }
     return json;
   }

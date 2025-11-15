@@ -364,69 +364,85 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
       ),
 
       _buildGridSection('Graph Serialization', [
-        _buildGridButton('Export JSON', Icons.download, () async {
-          final graph = _controller.exportGraph();
-          final jsonString = graph.toJsonString(indent: true);
-          await Clipboard.setData(ClipboardData(text: jsonString));
-          _showSnackBar(
-            'JSON exported and copied to clipboard (${jsonString.length} chars)',
-          );
-        }),
-        _buildGridButton('Clear Graph', Icons.clear_all, () {
-          _controller.clearGraph();
-          _showSnackBar('Cleared all nodes');
-        }),
+        GridButton(
+          label: 'Export JSON',
+          icon: Icons.download,
+          onPressed: () async {
+            final graph = _controller.exportGraph();
+            final jsonString = graph.toJsonString(indent: true);
+            await Clipboard.setData(ClipboardData(text: jsonString));
+            _showSnackBar(
+              'JSON exported and copied to clipboard (${jsonString.length} chars)',
+            );
+          },
+        ),
+        GridButton(
+          label: 'Clear Graph',
+          icon: Icons.clear_all,
+          onPressed: () {
+            _controller.clearGraph();
+            _showSnackBar('Cleared all nodes');
+          },
+        ),
       ]),
       _buildGridSection('UI Tools', [
-        _buildGridButton('Shortcuts', Icons.keyboard, () {
-          _controller.showShortcutsDialog(context);
-        }),
-        _buildGridButton('Toggle Minimap', Icons.map, _toggleMinimap),
+        GridButton(
+          label: 'Shortcuts',
+          icon: Icons.keyboard,
+          onPressed: () {
+            _controller.showShortcutsDialog(context);
+          },
+        ),
+        GridButton(
+          label: 'Toggle Minimap',
+          icon: Icons.map,
+          onPressed: _toggleMinimap,
+        ),
       ]),
       _buildGridSection('Viewport Controls', [
-        _buildGridButton(
-          'Zoom In',
-          Icons.zoom_in,
-          () => _controller.zoomBy(0.2),
+        GridButton(
+          label: 'Zoom In',
+          icon: Icons.zoom_in,
+          onPressed: () => _controller.zoomBy(0.2),
         ),
-        _buildGridButton(
-          'Zoom Out',
-          Icons.zoom_out,
-          () => _controller.zoomBy(-0.2),
+        GridButton(
+          label: 'Zoom Out',
+          icon: Icons.zoom_out,
+          onPressed: () => _controller.zoomBy(-0.2),
         ),
-        _buildGridButton(
-          'Reset Zoom',
-          Icons.center_focus_strong,
-          () => _controller.zoomTo(1.0),
+        GridButton(
+          label: 'Reset Zoom',
+          icon: Icons.center_focus_strong,
+          onPressed: () => _controller.zoomTo(1.0),
         ),
-        _buildGridButton(
-          'Fit to View',
-          Icons.fit_screen,
-          () => _controller.fitToView(),
+        GridButton(
+          label: 'Fit to View',
+          icon: Icons.fit_screen,
+          onPressed: () => _controller.fitToView(),
         ),
         Observer(
           name: 'FitSelectedButton',
-          builder: (context) => _buildGridButton(
-            'Fit Selected',
-            Icons.crop_free,
-            _controller.selectedNodeIds.isNotEmpty
+          builder: (context) => GridButton(
+            label: 'Fit Selected',
+            icon: Icons.crop_free,
+            onPressed: _controller.selectedNodeIds.isNotEmpty
                 ? () => _controller.fitSelectedNodes()
                 : null,
           ),
         ),
-        _buildGridButton(
-          'Reset Viewport',
-          Icons.home,
-          () => _controller.resetViewport(),
+        GridButton(
+          label: 'Reset Viewport',
+          icon: Icons.home,
+          onPressed: () => _controller.resetViewport(),
         ),
       ]),
       _buildGridSection('Navigation', [
         Observer(
           name: 'CenterSelectedButton',
-          builder: (context) => _buildGridButton(
-            'Center Selected',
-            Icons.my_location,
-            _controller.selectedNodeIds.isNotEmpty
+          builder: (context) => GridButton(
+            label: 'Center Selected',
+            icon: Icons.my_location,
+            onPressed: _controller.selectedNodeIds.isNotEmpty
                 ? () => _controller.centerOnNode(
                     _controller.selectedNodeIds.first,
                   )
@@ -435,47 +451,57 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
         ),
         Observer(
           name: 'CenterSelectionButton',
-          builder: (context) => _buildGridButton(
-            'Center Selection',
-            Icons.center_focus_weak,
-            _controller.selectedNodeIds.isNotEmpty
+          builder: (context) => GridButton(
+            label: 'Center Selection',
+            icon: Icons.center_focus_weak,
+            onPressed: _controller.selectedNodeIds.isNotEmpty
                 ? () => _controller.centerOnSelection()
                 : null,
           ),
         ),
-        _buildGridButton(
-          'Pan Right',
-          Icons.arrow_forward,
-          () => _controller.panBy(const Offset(50, 0)),
+        GridButton(
+          label: 'Pan Right',
+          icon: Icons.arrow_forward,
+          onPressed: () => _controller.panBy(const Offset(50, 0)),
         ),
-        _buildGridButton(
-          'Pan Down',
-          Icons.arrow_downward,
-          () => _controller.panBy(const Offset(0, 50)),
+        GridButton(
+          label: 'Pan Down',
+          icon: Icons.arrow_downward,
+          onPressed: () => _controller.panBy(const Offset(0, 50)),
         ),
-        _buildGridButton(
-          'Pan Left',
-          Icons.arrow_back,
-          () => _controller.panBy(const Offset(-50, 0)),
+        GridButton(
+          label: 'Pan Left',
+          icon: Icons.arrow_back,
+          onPressed: () => _controller.panBy(const Offset(-50, 0)),
         ),
-        _buildGridButton(
-          'Pan Up',
-          Icons.arrow_upward,
-          () => _controller.panBy(const Offset(0, -50)),
+        GridButton(
+          label: 'Pan Up',
+          icon: Icons.arrow_upward,
+          onPressed: () => _controller.panBy(const Offset(0, -50)),
         ),
       ]),
       _buildGridSection('Analysis', [
-        _buildGridButton('Find Orphans', Icons.search, () {
-          final orphans = _controller.getOrphanNodes();
-          _showSnackBar('Found ${orphans.length} orphan nodes');
-          if (orphans.isNotEmpty) {
-            _controller.selectSpecificNodes(orphans.map((n) => n.id).toList());
-          }
-        }),
-        _buildGridButton('Detect Cycles', Icons.loop, () {
-          final cycles = _controller.detectCycles();
-          _showSnackBar('Found ${cycles.length} cycles');
-        }),
+        GridButton(
+          label: 'Find Orphans',
+          icon: Icons.search,
+          onPressed: () {
+            final orphans = _controller.getOrphanNodes();
+            _showSnackBar('Found ${orphans.length} orphan nodes');
+            if (orphans.isNotEmpty) {
+              _controller.selectSpecificNodes(
+                orphans.map((n) => n.id).toList(),
+              );
+            }
+          },
+        ),
+        GridButton(
+          label: 'Detect Cycles',
+          icon: Icons.loop,
+          onPressed: () {
+            final cycles = _controller.detectCycles();
+            _showSnackBar('Found ${cycles.length} cycles');
+          },
+        ),
       ]),
 
       // Display Information - Table
@@ -582,34 +608,6 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
         ),
         const SizedBox(height: 16),
       ],
-    );
-  }
-
-  Widget _buildGridButton(
-    String label,
-    IconData icon,
-    VoidCallback? onPressed,
-  ) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 10),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
     );
   }
 

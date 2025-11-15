@@ -126,6 +126,8 @@ export 'connections/connection_label.dart';
 export 'connections/styles/connection_path_calculator.dart';
 export 'connections/styles/connection_style_base.dart';
 export 'connections/styles/connection_styles.dart';
+export 'connections/styles/editable_path_connection_style.dart';
+export 'connections/styles/editable_smooth_step_connection_style.dart';
 export 'connections/connection_theme.dart';
 export 'connections/connection_validation.dart';
 export 'connections/connections_canvas.dart';

@@ -9,6 +9,8 @@ import 'examples/advanced/animated_connections.dart';
 import 'examples/advanced/annotations.dart';
 // Connection labels examples
 import 'examples/advanced/connection_labels.dart';
+// // Editable connections examples
+// import 'examples/advanced/editable_connections.dart';
 // Advanced examples
 import 'examples/advanced/serialization.dart';
 import 'examples/advanced/shortcuts.dart';
@@ -157,6 +159,14 @@ class ExampleRegistry {
           icon: Icons.label,
           builder: (_) => const ConnectionLabelsExample(),
         ),
+        // Example(
+        //   id: 'editable-connections',
+        //   title: 'Editable Connections',
+        //   description:
+        //       'Interactive control points for customizing connection paths with drag-and-drop waypoint editing',
+        //   icon: Icons.edit_road,
+        //   builder: (_) => const EditableConnectionsExample(),
+        // ),
         Example(
           id: 'theming',
           title: 'Theme Customization',

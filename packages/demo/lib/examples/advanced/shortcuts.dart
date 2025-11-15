@@ -206,13 +206,10 @@ class _ShortcutsExampleState extends State<ShortcutsExample> {
         _buildShortcutRow('Cmd/Ctrl + E', 'Export graph', custom: true),
       ]),
       const SizedBox(height: 24),
-      ElevatedButton.icon(
+      ControlButton(
+        icon: Icons.keyboard,
+        label: 'View All Shortcuts',
         onPressed: _showShortcutsDialog,
-        icon: const Icon(Icons.keyboard),
-        label: const Text('View All Shortcuts'),
-        style: ElevatedButton.styleFrom(
-          minimumSize: const Size(double.infinity, 48),
-        ),
       ),
       const SizedBox(height: 16),
       Observer(

@@ -269,29 +269,23 @@ class _ThemingExampleState extends State<ThemingExample> {
       children: [
         const SectionTitle('Theme Presets'),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: _resetToLightTheme,
-                child: const Text('Light', style: TextStyle(fontSize: 12)),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _theme = NodeFlowTheme.dark;
-                    _selectedPortShape = PortShapes.capsuleHalf;
-                  });
-                  _controller.clearGraph();
-                  _createExampleGraph();
-                },
-                child: const Text('Dark', style: TextStyle(fontSize: 12)),
-              ),
-            ),
-          ],
+        ControlButton(
+          icon: Icons.light_mode,
+          label: 'Light',
+          onPressed: _resetToLightTheme,
+        ),
+        const SizedBox(height: 8),
+        ControlButton(
+          icon: Icons.dark_mode,
+          label: 'Dark',
+          onPressed: () {
+            setState(() {
+              _theme = NodeFlowTheme.dark;
+              _selectedPortShape = PortShapes.capsuleHalf;
+            });
+            _controller.clearGraph();
+            _createExampleGraph();
+          },
         ),
       ],
     );

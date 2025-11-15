@@ -5,18 +5,27 @@ import 'package:flutter/material.dart';
 import 'connection_style_base.dart';
 import 'smoothstep_path_calculator.dart';
 
-/// Step connection style (90-degree turns without rounded corners)
+/// Step connection style (90-degree turns with optional rounded corners)
 ///
-/// Creates connections with sharp 90-degree turns that follow a predictable
-/// step pattern based on port positions.
+/// Creates connections with 90-degree turns that follow a predictable
+/// step pattern based on port positions. The corner radius can be configured
+/// to create either sharp corners (0) or smoothly rounded corners (> 0).
 class StepConnectionStyle extends ConnectionStyle {
-  const StepConnectionStyle();
+  /// Creates a step connection style.
+  ///
+  /// [cornerRadius] - The radius for rounding corners (default: 0 for sharp corners)
+  const StepConnectionStyle({this.cornerRadius = 0});
+
+  /// The radius used for rounding corners.
+  /// - 0: Creates sharp 90-degree corners
+  /// - > 0: Creates smoothly rounded corners
+  final double cornerRadius;
 
   @override
-  String get id => 'step';
+  String get id => cornerRadius > 0 ? 'smoothstep' : 'step';
 
   @override
-  String get displayName => 'Step';
+  String get displayName => cornerRadius > 0 ? 'Smooth Step' : 'Step';
 
   @override
   Path createPath(ConnectionPathParameters params) {
@@ -26,7 +35,9 @@ class StepConnectionStyle extends ConnectionStyle {
       sourcePosition: params.sourcePosition,
       targetPosition: params.targetPosition,
       offset: params.offset,
-      cornerRadius: 0, // No corner radius for step style
+      cornerRadius: params.cornerRadius > 0
+          ? params.cornerRadius
+          : cornerRadius,
     );
   }
 
@@ -212,50 +223,14 @@ class StepConnectionStyle extends ConnectionStyle {
 
     return combinedPath;
   }
-}
-
-/// Smooth step connection style (90-degree turns with rounded corners)
-///
-/// Similar to step connections but with rounded corners for a smoother appearance.
-class SmoothStepConnectionStyle extends StepConnectionStyle {
-  const SmoothStepConnectionStyle();
 
   @override
-  String get id => 'smoothstep';
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is StepConnectionStyle &&
+          runtimeType == other.runtimeType &&
+          cornerRadius == other.cornerRadius;
 
   @override
-  String get displayName => 'Smooth Step';
-
-  @override
-  Path createPath(ConnectionPathParameters params) {
-    return SmoothstepPathCalculator.calculatePath(
-      start: params.start,
-      end: params.end,
-      sourcePosition: params.sourcePosition,
-      targetPosition: params.targetPosition,
-      offset: params.offset,
-      cornerRadius: params.cornerRadius,
-    );
-  }
-
-  @override
-  Path createHitTestPath(
-    Path originalPath,
-    double tolerance, {
-    ConnectionPathParameters? pathParams,
-  }) {
-    // Use exact bend points from the path calculator
-    if (pathParams == null) {
-      // This shouldn't happen in normal usage
-      return Path()..addRect(originalPath.getBounds().inflate(tolerance));
-    }
-
-    final bendPoints = getExactBendPoints(pathParams);
-    if (bendPoints == null || bendPoints.length < 2) {
-      return Path()..addRect(originalPath.getBounds().inflate(tolerance));
-    }
-
-    // For smooth step, use slightly larger tolerance to account for rounded corners
-    return _createStepHitAreas(bendPoints, tolerance * 1.2);
-  }
+  int get hashCode => cornerRadius.hashCode;
 }

@@ -27,9 +27,14 @@ class ConnectionsLayer<T> extends StatelessWidget {
               node.position.value; // Trigger observation
             }
 
-            // Force tracking of animation effects on connections
+            // Force tracking of animation effects and control points on connections
             for (final connection in controller.connections) {
               connection.animationEffect; // Trigger observation
+              // Observe control points by accessing each item to track changes
+              for (var i = 0; i < connection.controlPoints.length; i++) {
+                connection
+                    .controlPoints[i]; // Force observation of each control point
+              }
             }
 
             // Get theme from context - this ensures automatic rebuilds when theme changes

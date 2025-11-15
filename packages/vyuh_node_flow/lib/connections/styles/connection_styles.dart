@@ -20,10 +20,12 @@ final class ConnectionStyles {
   static const ConnectionStyle bezier = BezierConnectionStyle();
 
   /// 90-degree step connections without rounded corners
-  static const ConnectionStyle step = StepConnectionStyle();
+  static const ConnectionStyle step = StepConnectionStyle(cornerRadius: 0);
 
   /// 90-degree step connections with rounded corners
-  static const ConnectionStyle smoothstep = SmoothStepConnectionStyle();
+  static const ConnectionStyle smoothstep = StepConnectionStyle(
+    cornerRadius: 8.0,
+  );
 
   /// Custom bezier connections with configurable parameters
   static const ConnectionStyle customBezier = CustomBezierConnectionStyle();
