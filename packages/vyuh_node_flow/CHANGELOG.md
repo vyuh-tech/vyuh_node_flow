@@ -1,3 +1,7 @@
+## 0.3.15+1
+
+ - **FIX**: update examples to indicate the consolidated step styles.
+
 ## 0.3.15
 
  - **FEAT**: consolidating the step and smooth step connection styles.
