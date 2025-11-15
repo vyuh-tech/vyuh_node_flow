@@ -17,6 +17,7 @@ class NonePortShape extends PortShape {
     Paint fillPaint,
     Paint? borderPaint, {
     ShapeDirection? orientation,
+    bool isOutputPort = false,
   }) {
     // Intentionally empty - no shape rendered
   }

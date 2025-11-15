@@ -34,6 +34,7 @@ class CapsuleHalfPortShape extends PortShape {
     Paint fillPaint,
     Paint? borderPaint, {
     ShapeDirection? orientation,
+    bool isOutputPort = false,
   }) {
     // Default to right if no orientation provided
     final effectiveOrientation = orientation ?? ShapeDirection.right;

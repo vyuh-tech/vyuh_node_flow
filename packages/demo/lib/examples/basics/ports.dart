@@ -102,28 +102,36 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
           id: 'source-left',
           position: PortPosition.left,
           name: 'Left',
-
+          type: PortType.target,
+          shape: PortShapes.triangle,
+          size: 12.0,
           offset: const Offset(0, 50),
         ),
         Port(
           id: 'source-top',
           position: PortPosition.top,
           name: 'Top',
-
+          type: PortType.target,
+          shape: PortShapes.triangle,
+          size: 12.0,
           offset: const Offset(50, 0),
         ),
         Port(
           id: 'source-right',
           position: PortPosition.right,
           name: 'Right',
-
+          type: PortType.target,
+          shape: PortShapes.triangle,
+          size: 12.0,
           offset: const Offset(0, 50),
         ),
         Port(
           id: 'source-bottom',
           position: PortPosition.bottom,
           name: 'Bottom',
-
+          type: PortType.target,
+          shape: PortShapes.triangle,
+          size: 12.0,
           offset: const Offset(50, 0),
         ),
       ],
@@ -142,28 +150,36 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
           id: 'target-left',
           position: PortPosition.left,
           name: 'Left',
-
+          type: PortType.source,
+          shape: PortShapes.triangle,
+          size: 12.0,
           offset: const Offset(0, 50),
         ),
         Port(
           id: 'target-top',
           position: PortPosition.top,
           name: 'Top',
-
+          type: PortType.source,
+          shape: PortShapes.triangle,
+          size: 12.0,
           offset: const Offset(50, 0),
         ),
         Port(
           id: 'target-right',
           position: PortPosition.right,
           name: 'Right',
-
+          type: PortType.source,
+          shape: PortShapes.triangle,
+          size: 12.0,
           offset: const Offset(0, 50),
         ),
         Port(
           id: 'target-bottom',
           position: PortPosition.bottom,
           name: 'Bottom',
-
+          type: PortType.source,
+          shape: PortShapes.triangle,
+          size: 12.0,
           offset: const Offset(50, 0),
         ),
       ],
@@ -188,7 +204,7 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
       reaction(
         (_) => [
           _themeControl._connectionStyle.value,
-          _themeControl._offset.value,
+          _themeControl._portExtension.value,
           _themeControl._cornerRadius.value,
           _themeControl._strokeWidth.value,
           _themeControl._curvature.value,
@@ -250,6 +266,7 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
         strokeWidth: _themeControl._strokeWidth.value,
         cornerRadius: _themeControl._cornerRadius.value,
         bezierCurvature: _themeControl._curvature.value,
+        portExtension: _themeControl._portExtension.value,
         dashPattern: useDashed ? [5, 5] : null,
       );
 
@@ -523,17 +540,17 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Offset: ${_themeControl._offset.value.toStringAsFixed(1)}',
+              'Port Extension: ${_themeControl._portExtension.value.toStringAsFixed(1)}',
               style: const TextStyle(fontSize: 13),
             ),
             Slider(
-              value: _themeControl._offset.value,
+              value: _themeControl._portExtension.value,
               min: 5,
               max: 50,
               divisions: 45,
-              label: _themeControl._offset.value.toStringAsFixed(1),
+              label: _themeControl._portExtension.value.toStringAsFixed(1),
               onChanged: (value) {
-                _themeControl.offset = value;
+                _themeControl.portExtension = value;
               },
             ),
           ],
@@ -808,11 +825,12 @@ class ThemeControlStore {
   set connectionStyle(ConnectionStyle value) =>
       runInAction(() => _connectionStyle.value = value);
 
-  final Observable<double> _offset = Observable(20.0);
+  final Observable<double> _portExtension = Observable(20.0);
 
-  double get offset => _offset.value;
+  double get portExtension => _portExtension.value;
 
-  set offset(double value) => runInAction(() => _offset.value = value);
+  set portExtension(double value) =>
+      runInAction(() => _portExtension.value = value);
 
   final Observable<double> _cornerRadius = Observable(8.0);
 

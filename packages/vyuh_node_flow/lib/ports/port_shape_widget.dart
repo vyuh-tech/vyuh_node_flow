@@ -13,6 +13,7 @@ class PortShapeWidget extends StatelessWidget {
     required this.color,
     required this.borderColor,
     required this.borderWidth,
+    this.isOutputPort = false,
   });
 
   final PortShape shape;
@@ -21,6 +22,7 @@ class PortShapeWidget extends StatelessWidget {
   final Color color;
   final Color borderColor;
   final double borderWidth;
+  final bool isOutputPort;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +34,7 @@ class PortShapeWidget extends StatelessWidget {
         color: color,
         borderColor: borderColor,
         borderWidth: borderWidth,
+        isOutputPort: isOutputPort,
       ),
     );
   }
@@ -45,6 +48,7 @@ class _PortShapePainter extends CustomPainter {
     required this.color,
     required this.borderColor,
     required this.borderWidth,
+    required this.isOutputPort,
   });
 
   final PortShape shape;
@@ -52,6 +56,7 @@ class _PortShapePainter extends CustomPainter {
   final Color color;
   final Color borderColor;
   final double borderWidth;
+  final bool isOutputPort;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -75,6 +80,7 @@ class _PortShapePainter extends CustomPainter {
       fillPaint,
       borderPaint,
       orientation: position.toOrientation(),
+      isOutputPort: isOutputPort,
     );
   }
 
@@ -84,6 +90,7 @@ class _PortShapePainter extends CustomPainter {
         position != oldDelegate.position ||
         color != oldDelegate.color ||
         borderColor != oldDelegate.borderColor ||
-        borderWidth != oldDelegate.borderWidth;
+        borderWidth != oldDelegate.borderWidth ||
+        isOutputPort != oldDelegate.isOutputPort;
   }
 }

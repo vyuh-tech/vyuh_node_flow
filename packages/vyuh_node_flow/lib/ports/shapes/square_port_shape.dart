@@ -17,6 +17,7 @@ class SquarePortShape extends PortShape {
     Paint fillPaint,
     Paint? borderPaint, {
     ShapeDirection? orientation,
+    bool isOutputPort = false,
   }) {
     final rect = Rect.fromCenter(center: center, width: size, height: size);
     canvas.drawRect(rect, fillPaint);

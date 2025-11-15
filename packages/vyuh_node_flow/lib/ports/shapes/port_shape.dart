@@ -32,6 +32,7 @@ abstract class PortShape {
   /// - [fillPaint]: Paint to use for filling the shape
   /// - [borderPaint]: Optional paint to use for the border/stroke
   /// - [orientation]: Optional orientation for directional shapes (capsuleHalf, triangle)
+  /// - [isOutputPort]: Whether this is an output port (affects triangle orientation)
   void paint(
     Canvas canvas,
     Offset center,
@@ -39,6 +40,7 @@ abstract class PortShape {
     Paint fillPaint,
     Paint? borderPaint, {
     ShapeDirection? orientation,
+    bool isOutputPort = false,
   });
 
   /// Returns the type name of this shape for JSON serialization

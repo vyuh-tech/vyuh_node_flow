@@ -17,6 +17,7 @@ class CirclePortShape extends PortShape {
     Paint fillPaint,
     Paint? borderPaint, {
     ShapeDirection? orientation,
+    bool isOutputPort = false,
   }) {
     final radius = size / 2;
     canvas.drawCircle(center, radius, fillPaint);

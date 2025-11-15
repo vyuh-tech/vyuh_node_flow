@@ -17,6 +17,7 @@ class TrianglePortShape extends PortShape {
     Paint fillPaint,
     Paint? borderPaint, {
     ShapeDirection? orientation,
+    bool isOutputPort = false,
   }) {
     final path = Path();
     final halfSize = size / 2;
@@ -24,32 +25,61 @@ class TrianglePortShape extends PortShape {
     // Default to right if no orientation provided
     final effectiveOrientation = orientation ?? ShapeDirection.right;
 
-    // Orient triangle with flat side outside (away from node)
-    // Point faces toward the node (inside)
+    // Orient triangle based on port type:
+    // - Input ports (isOutputPort = false): point faces inward, flat side outside
+    // - Output ports (isOutputPort = true): point faces outward, flat side inside
     switch (effectiveOrientation) {
       case ShapeDirection.left:
-        // Flat side on left (outside), point toward right (inside)
-        path.moveTo(center.dx + halfSize, center.dy);
-        path.lineTo(center.dx - halfSize, center.dy - halfSize);
-        path.lineTo(center.dx - halfSize, center.dy + halfSize);
+        if (isOutputPort) {
+          // Point on left (outside), flat side on right (inside)
+          path.moveTo(center.dx - halfSize, center.dy);
+          path.lineTo(center.dx + halfSize, center.dy - halfSize);
+          path.lineTo(center.dx + halfSize, center.dy + halfSize);
+        } else {
+          // Flat side on left (outside), point toward right (inside)
+          path.moveTo(center.dx + halfSize, center.dy);
+          path.lineTo(center.dx - halfSize, center.dy - halfSize);
+          path.lineTo(center.dx - halfSize, center.dy + halfSize);
+        }
         break;
       case ShapeDirection.right:
-        // Flat side on right (outside), point toward left (inside)
-        path.moveTo(center.dx - halfSize, center.dy);
-        path.lineTo(center.dx + halfSize, center.dy - halfSize);
-        path.lineTo(center.dx + halfSize, center.dy + halfSize);
+        if (isOutputPort) {
+          // Point on right (outside), flat side on left (inside)
+          path.moveTo(center.dx + halfSize, center.dy);
+          path.lineTo(center.dx - halfSize, center.dy - halfSize);
+          path.lineTo(center.dx - halfSize, center.dy + halfSize);
+        } else {
+          // Flat side on right (outside), point toward left (inside)
+          path.moveTo(center.dx - halfSize, center.dy);
+          path.lineTo(center.dx + halfSize, center.dy - halfSize);
+          path.lineTo(center.dx + halfSize, center.dy + halfSize);
+        }
         break;
       case ShapeDirection.top:
-        // Flat side on top (outside), point toward bottom (inside)
-        path.moveTo(center.dx, center.dy + halfSize);
-        path.lineTo(center.dx - halfSize, center.dy - halfSize);
-        path.lineTo(center.dx + halfSize, center.dy - halfSize);
+        if (isOutputPort) {
+          // Point on top (outside), flat side on bottom (inside)
+          path.moveTo(center.dx, center.dy - halfSize);
+          path.lineTo(center.dx - halfSize, center.dy + halfSize);
+          path.lineTo(center.dx + halfSize, center.dy + halfSize);
+        } else {
+          // Flat side on top (outside), point toward bottom (inside)
+          path.moveTo(center.dx, center.dy + halfSize);
+          path.lineTo(center.dx - halfSize, center.dy - halfSize);
+          path.lineTo(center.dx + halfSize, center.dy - halfSize);
+        }
         break;
       case ShapeDirection.bottom:
-        // Flat side on bottom (outside), point toward top (inside)
-        path.moveTo(center.dx, center.dy - halfSize);
-        path.lineTo(center.dx - halfSize, center.dy + halfSize);
-        path.lineTo(center.dx + halfSize, center.dy + halfSize);
+        if (isOutputPort) {
+          // Point on bottom (outside), flat side on top (inside)
+          path.moveTo(center.dx, center.dy + halfSize);
+          path.lineTo(center.dx - halfSize, center.dy - halfSize);
+          path.lineTo(center.dx + halfSize, center.dy - halfSize);
+        } else {
+          // Flat side on bottom (outside), point toward top (inside)
+          path.moveTo(center.dx, center.dy - halfSize);
+          path.lineTo(center.dx - halfSize, center.dy + halfSize);
+          path.lineTo(center.dx + halfSize, center.dy + halfSize);
+        }
         break;
     }
     path.close();

@@ -9,6 +9,7 @@ workspace:
   - packages/demo
 
 dev_dependencies:
+  flutter_lints: ^6.0.0
   melos: ^7.3.0
 
 melos:
@@ -24,7 +25,7 @@ melos:
       description: Analyze all packages
       run: dart analyze
       exec:
-        concurrency: 1
+        concurrency: 2
 
     test:
       description: Run tests in all packages
@@ -36,4 +37,4 @@ melos:
       description: Format all packages
       run: dart format .
       exec:
-        concurrency: 1
+        concurrency: 2
