@@ -16,6 +16,7 @@ class _ThemingExampleState extends State<ThemingExample> {
   late final NodeFlowController<Map<String, dynamic>> _controller;
   late NodeFlowTheme _theme;
   PortShape _selectedPortShape = PortShapes.capsuleHalf;
+  bool _scrollToZoom = true;
 
   @override
   void initState() {
@@ -242,6 +243,7 @@ class _ThemingExampleState extends State<ThemingExample> {
         controller: _controller,
         nodeBuilder: _buildNode,
         theme: _theme,
+        scrollToZoom: _scrollToZoom,
       ),
       children: [
         _buildThemePresets(),
@@ -257,6 +259,8 @@ class _ThemingExampleState extends State<ThemingExample> {
         _buildPortSizeSection(),
         const SizedBox(height: 24),
         _buildGridSection(),
+        const SizedBox(height: 24),
+        _buildViewportSection(),
         const SizedBox(height: 24),
         _buildNodeBorderSection(),
       ],
@@ -751,6 +755,30 @@ class _ThemingExampleState extends State<ThemingExample> {
                   },
                 );
               }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildViewportSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle('Viewport'),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            const Text('Scroll to Zoom', style: TextStyle(fontSize: 12)),
+            const Spacer(),
+            Switch(
+              value: _scrollToZoom,
+              onChanged: (value) {
+                setState(() {
+                  _scrollToZoom = value;
+                });
+              },
+            ),
+          ],
         ),
       ],
     );
