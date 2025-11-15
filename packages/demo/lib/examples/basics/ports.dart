@@ -893,7 +893,7 @@ class ThemeControlStore {
   set orbitRadius(double value) =>
       runInAction(() => _orbitRadius.value = value);
 
-  final Observable<bool> _debugMode = Observable(true);
+  final Observable<bool> _debugMode = Observable(false);
 
   bool get debugMode => _debugMode.value;
 
