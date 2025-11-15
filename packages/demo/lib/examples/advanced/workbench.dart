@@ -705,11 +705,15 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  'Z: ${node.zIndex}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                Observer(
+                  builder: (context) {
+                    return Text(
+                      'Z-Index: ${node.zIndex.value}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    );
+                  },
                 ),
                 const Spacer(),
               ],
