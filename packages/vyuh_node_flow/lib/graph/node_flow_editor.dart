@@ -459,6 +459,91 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     );
   }
 
+  Widget _buildCanvas(BoxConstraints constraints, NodeFlowTheme theme) {
+    return Listener(
+      onPointerDown: _handlePointerDown,
+      onPointerMove: _handlePointerMove,
+      onPointerUp: _handlePointerUp,
+      onPointerHover: _handleMouseHover,
+      child: Observer.withBuiltChild(
+        builder: (context, child) {
+          return MouseRegion(
+            cursor: widget.controller.currentCursor,
+            child: InteractiveViewer(
+              transformationController: _transformationController,
+              boundaryMargin: const EdgeInsets.all(double.infinity),
+              constrained: false,
+              minScale: widget.controller.config.minZoom.value,
+              maxScale: widget.controller.config.maxZoom.value,
+              panEnabled: widget.controller.panEnabled,
+              scaleEnabled: widget.enableZooming,
+              trackpadScrollCausesScale: widget.scrollToZoom,
+              onInteractionUpdate: _onInteractionUpdate,
+              onInteractionEnd: _onInteractionEnd,
+              child: child,
+            ),
+          );
+        },
+        child: SizedBox(
+          width: constraints.maxWidth,
+          height: constraints.maxHeight,
+          child: AnimatedBuilder(
+            animation: _transformationController,
+            builder: (context, child) {
+              return CanvasTransformProvider(
+                transform: _transformationController.value,
+                child: child!,
+              );
+            },
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Background grid - observes only viewport changes
+                GridLayer(
+                  theme: theme,
+                  transformationController: _transformationController,
+                ),
+
+                // Background annotations (groups) - behind nodes
+                if (widget.showAnnotations)
+                  AnnotationLayer.background(widget.controller),
+
+                // Connections - uses specialized observable layer
+                ConnectionsLayer<T>(
+                  controller: widget.controller,
+                  animation: _connectionAnimationController,
+                ),
+
+                // Connection labels - rendered separately for optimized repainting
+                ConnectionLabelsLayer<T>(controller: widget.controller),
+
+                // Connection control points - interactive waypoint editing
+                ConnectionControlPointsLayer<T>(controller: widget.controller),
+
+                // Nodes - each node observes only its own state
+                NodesLayer<T>(
+                  controller: widget.controller,
+                  nodeBuilder: widget.nodeBuilder,
+                  nodeContainerBuilder: widget.nodeContainerBuilder,
+                  connections: widget.controller.connections,
+                  onNodeTap: _handleNodeTap,
+                  onNodeDoubleTap: _handleNodeDoubleTap,
+                ),
+
+                // Foreground annotations (stickies, markers) - above nodes
+                if (widget.showAnnotations)
+                  AnnotationLayer.foreground(widget.controller),
+
+                // Interaction layer - temporary connection and selection rectangle
+                InteractionLayer<T>(controller: widget.controller),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   void _setupReactions() {
     // Sync transformation controller with viewport changes - immediate synchronous updates
     _disposers.add(
@@ -592,101 +677,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
     // Call the user's callback
     widget.onNodeDoubleTap?.call(node);
-  }
-
-  Widget _buildCanvas(BoxConstraints constraints, NodeFlowTheme theme) {
-    return Listener(
-      onPointerDown: _handlePointerDown,
-      onPointerMove: _handlePointerMove,
-      onPointerUp: _handlePointerUp,
-      onPointerHover: _handleMouseHover,
-      child: Observer.withBuiltChild(
-        builder: (_, child) {
-          return MouseRegion(
-            cursor: widget.controller.currentCursor,
-            child: child,
-          );
-        },
-        child: Container(
-          color: theme.backgroundColor,
-          child: Observer.withBuiltChild(
-            builder: (context, child) {
-              return InteractiveViewer(
-                transformationController: _transformationController,
-                boundaryMargin: const EdgeInsets.all(double.infinity),
-                constrained: false,
-                minScale: widget.controller.config.minZoom.value,
-                maxScale: widget.controller.config.maxZoom.value,
-                panEnabled: widget.controller.panEnabled,
-                scaleEnabled: widget.enableZooming,
-                trackpadScrollCausesScale: widget.scrollToZoom,
-                onInteractionUpdate: _onInteractionUpdate,
-                onInteractionEnd: _onInteractionEnd,
-                child: child,
-              );
-            },
-            child: SizedBox(
-              width: constraints.maxWidth,
-              height: constraints.maxHeight,
-              child: AnimatedBuilder(
-                animation: _transformationController,
-                builder: (context, child) {
-                  return CanvasTransformProvider(
-                    transform: _transformationController.value,
-                    child: child!,
-                  );
-                },
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    // Background grid - observes only viewport changes
-                    GridLayer(
-                      theme: theme,
-                      transformationController: _transformationController,
-                    ),
-
-                    // Background annotations (groups) - behind nodes
-                    if (widget.showAnnotations)
-                      AnnotationLayer.background(widget.controller),
-
-                    // Connections - uses specialized observable layer
-                    ConnectionsLayer<T>(
-                      controller: widget.controller,
-                      animation: _connectionAnimationController,
-                    ),
-
-                    // Connection labels - rendered separately for optimized repainting
-                    ConnectionLabelsLayer<T>(controller: widget.controller),
-
-                    // Connection control points - interactive waypoint editing
-                    ConnectionControlPointsLayer<T>(
-                      controller: widget.controller,
-                    ),
-
-                    // Nodes - each node observes only its own state
-                    NodesLayer<T>(
-                      controller: widget.controller,
-                      nodeBuilder: widget.nodeBuilder,
-                      nodeContainerBuilder: widget.nodeContainerBuilder,
-                      connections: widget.controller.connections,
-                      onNodeTap: _handleNodeTap,
-                      onNodeDoubleTap: _handleNodeDoubleTap,
-                    ),
-
-                    // Foreground annotations (stickies, markers) - above nodes
-                    if (widget.showAnnotations)
-                      AnnotationLayer.foreground(widget.controller),
-
-                    // Interaction layer - temporary connection and selection rectangle
-                    InteractionLayer<T>(controller: widget.controller),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   // Event handlers
