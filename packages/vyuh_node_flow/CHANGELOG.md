@@ -1,3 +1,7 @@
+## 0.3.14
+
+ - **FEAT**: added the ability to check for input/output port when rendering a port shape.
+
 ## 0.3.13
 
  - **FEAT**: optimizing step hit area calculation.
