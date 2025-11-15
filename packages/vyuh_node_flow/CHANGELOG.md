@@ -1,3 +1,7 @@
+## 0.3.15
+
+ - **FEAT**: consolidating the step and smooth step connection styles.
+
 ## 0.3.14
 
  - **FEAT**: added the ability to check for input/output port when rendering a port shape.
