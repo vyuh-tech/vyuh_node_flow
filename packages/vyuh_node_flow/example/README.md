@@ -276,7 +276,7 @@ Control the visual appearance:
 - Built-in light/dark themes
 - Fully customizable colors, sizes, and styles
 - Grid styles (dots, lines, hierarchical, none)
-- Connection styles (bezier, smoothstep, straight, step)
+- Connection styles (bezier, step with configurable corner radius, straight)
 
 ---
 

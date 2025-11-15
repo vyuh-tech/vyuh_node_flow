@@ -86,8 +86,8 @@ minimap, and more.
   validation
 - **Connection Animation Effects** - Flowing dashes, particles, gradients, and
   pulse effects to visualize data flow
-- **Connection Styles** - Multiple connection path styles (bezier, smoothstep,
-  straight)
+- **Connection Styles** - Multiple connection path styles (bezier, step with
+  configurable corner radius, straight)
 - **Annotations** - Add labels, notes, and custom overlays to your flow
 - **Minimap** - Built-in minimap for navigation in complex flows
 - **Keyboard Shortcuts** - Full keyboard support for power users
@@ -957,7 +957,7 @@ NodeFlowEditor<MyData>(
 Choose from multiple connection path styles:
 
 ```dart
-// Smooth step (default, clean right-angle paths)
+// Smooth step (default, right-angle paths with rounded corners)
 connectionTheme: ConnectionTheme(
   style: ConnectionStyles.smoothstep,
   // ...
@@ -975,11 +975,14 @@ connectionTheme: ConnectionTheme(
   // ...
 )
 
-// Step lines (right-angle paths)
+// Step with custom corner radius (for fine control)
 connectionTheme: ConnectionTheme(
   style: ConnectionStyles.step,
+  cornerRadius: 0, // 0 = sharp corners, >0 = rounded corners
   // ...
 )
+
+// Note: smoothstep is equivalent to step with cornerRadius: 8.0
 ```
 
 ### Connection Animation Effects
