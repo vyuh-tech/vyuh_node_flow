@@ -1,3 +1,7 @@
+## 0.3.16
+
+ - **FEAT**: optimizing the widget tree by removing an unnecessary Container.
+
 ## 0.3.15+1
 
  - **FIX**: update examples to indicate the consolidated step styles.
