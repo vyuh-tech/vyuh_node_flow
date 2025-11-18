@@ -1,3 +1,7 @@
+## 0.3.18
+
+ - **FEAT**: updated readme about structured events.
+
 ## 0.3.17
 
  - **FEAT**: adding centering of viewport.
