@@ -143,6 +143,7 @@ export 'graph/node_flow_config.dart';
 export 'graph/node_flow_controller.dart';
 export 'graph/node_flow_editor.dart'
     hide HitTestResult, HitTarget, SelectionRectanglePainter;
+export 'graph/node_flow_events.dart';
 export 'graph/node_flow_minimap.dart';
 export 'graph/node_flow_theme.dart';
 export 'graph/node_flow_viewer.dart';
@@ -171,4 +172,4 @@ export 'ports/shapes/port_shapes.dart';
 export 'shared/flutter_actions_integration.dart';
 export 'shared/json_converters.dart';
 // Widgets
-export 'widgets/shortcuts_viewer_dialog.dart';
+export 'shared/shortcuts_viewer_dialog.dart';

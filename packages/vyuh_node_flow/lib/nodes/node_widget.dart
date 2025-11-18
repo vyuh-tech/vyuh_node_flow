@@ -82,6 +82,9 @@ class NodeWidget<T> extends StatelessWidget {
     this.onPortHover,
     this.onNodeTap,
     this.onNodeDoubleTap,
+    this.onNodeMouseEnter,
+    this.onNodeMouseLeave,
+    this.onNodeContextMenu,
     this.hoveredPortInfo,
     this.backgroundColor,
     this.selectedBackgroundColor,
@@ -109,6 +112,9 @@ class NodeWidget<T> extends StatelessWidget {
     this.onPortHover,
     this.onNodeTap,
     this.onNodeDoubleTap,
+    this.onNodeMouseEnter,
+    this.onNodeMouseLeave,
+    this.onNodeContextMenu,
     this.hoveredPortInfo,
     this.backgroundColor,
     this.selectedBackgroundColor,
@@ -156,6 +162,21 @@ class NodeWidget<T> extends StatelessWidget {
   ///
   /// Parameters: (nodeId)
   final void Function(String nodeId)? onNodeDoubleTap;
+
+  /// Callback invoked when mouse enters the node.
+  ///
+  /// Parameters: (nodeId)
+  final void Function(String nodeId)? onNodeMouseEnter;
+
+  /// Callback invoked when mouse leaves the node.
+  ///
+  /// Parameters: (nodeId)
+  final void Function(String nodeId)? onNodeMouseLeave;
+
+  /// Callback invoked on secondary tap (right-click/long-press) for context menu.
+  ///
+  /// Parameters: (nodeId, position)
+  final void Function(String nodeId, Offset position)? onNodeContextMenu;
 
   /// Information about the currently hovered port.
   ///
@@ -218,29 +239,43 @@ class NodeWidget<T> extends StatelessWidget {
         return Positioned(
           left: position.dx,
           top: position.dy,
-          child: SizedBox(
-            width: size.width,
-            height: size.height,
-            child: Stack(
-              clipBehavior: Clip.none, // Allow ports to overflow the bounds
-              children: [
-                // Main node visual - either shaped or rectangular
-                Positioned.fill(
-                  child: shape != null
-                      ? _buildShapedNode(nodeTheme, isSelected)
-                      : _buildRectangularNode(nodeTheme, isSelected),
-                ),
+          child: MouseRegion(
+            onEnter: onNodeMouseEnter != null
+                ? (_) => onNodeMouseEnter!(node.id)
+                : null,
+            onExit: onNodeMouseLeave != null
+                ? (_) => onNodeMouseLeave!(node.id)
+                : null,
+            child: GestureDetector(
+              onSecondaryTapUp: onNodeContextMenu != null
+                  ? (details) =>
+                        onNodeContextMenu!(node.id, details.localPosition)
+                  : null,
+              child: SizedBox(
+                width: size.width,
+                height: size.height,
+                child: Stack(
+                  clipBehavior: Clip.none, // Allow ports to overflow the bounds
+                  children: [
+                    // Main node visual - either shaped or rectangular
+                    Positioned.fill(
+                      child: shape != null
+                          ? _buildShapedNode(nodeTheme, isSelected)
+                          : _buildRectangularNode(nodeTheme, isSelected),
+                    ),
 
-                // Input ports (positioned on edges of padded container)
-                ...node.inputPorts.map(
-                  (port) => _buildPort(context, port, false, nodeTheme),
-                ),
+                    // Input ports (positioned on edges of padded container)
+                    ...node.inputPorts.map(
+                      (port) => _buildPort(context, port, false, nodeTheme),
+                    ),
 
-                // Output ports (positioned on edges of padded container)
-                ...node.outputPorts.map(
-                  (port) => _buildPort(context, port, true, nodeTheme),
+                    // Output ports (positioned on edges of padded container)
+                    ...node.outputPorts.map(
+                      (port) => _buildPort(context, port, true, nodeTheme),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         );

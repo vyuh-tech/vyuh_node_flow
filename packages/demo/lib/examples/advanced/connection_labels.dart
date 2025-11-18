@@ -67,7 +67,11 @@ class _ConnectionLabelsExampleState extends State<ConnectionLabelsExample> {
                     maxLines: _store.labelMaxLines.value,
                   ),
                 ),
-                onConnectionSelected: _store.onConnectionSelected,
+                events: NodeFlowEvents<Map<String, dynamic>>(
+                  connection: ConnectionEvents<Map<String, dynamic>>(
+                    onSelected: _store.onConnectionSelected,
+                  ),
+                ),
               ),
             ),
           ),

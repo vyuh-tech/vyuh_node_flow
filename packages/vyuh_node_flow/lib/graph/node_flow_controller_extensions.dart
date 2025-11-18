@@ -94,10 +94,24 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
     if (!canvasFocusNode.hasFocus) {
       canvasFocusNode.requestFocus();
     }
+
+    // Fire drag start event
+    final node = nodes[nodeId];
+    if (node != null) {
+      events.node?.onDragStart?.call(node);
+    }
   }
 
   /// Optimized drag end that batches all cleanup changes
   void _endNodeDrag() {
+    // Capture dragged nodes before clearing state
+    final draggedNodes = <Node<T>>[];
+    for (final node in nodes.values) {
+      if (node.dragging.value) {
+        draggedNodes.add(node);
+      }
+    }
+
     runInAction(() {
       // Check for drag-to-group intersections before clearing drag state
       final draggedNodeIds = <String>[];
@@ -119,6 +133,11 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
       interaction.draggedNodeId.value = null;
       interaction.lastPointerPosition.value = null;
     });
+
+    // Fire drag stop event for all dragged nodes
+    for (final node in draggedNodes) {
+      events.node?.onDragStop?.call(node);
+    }
   }
 
   /// Optimized node movement that batches position and pointer updates
@@ -131,6 +150,10 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
     if (!canvasFocusNode.hasFocus) {
       canvasFocusNode.requestFocus();
     }
+
+    // Collect nodes that will be moved for event firing
+    final movedNodes = <Node<T>>[];
+
     runInAction(() {
       // Update pointer position
       interaction.lastPointerPosition.value = newPointerPosition;
@@ -145,6 +168,7 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
             node.position.value = newPosition;
             // Update visual position with snapping
             node.setVisualPosition(config.snapToGridIfEnabled(newPosition));
+            movedNodes.add(node);
           }
         }
         // Update drag-to-group highlight for the dragged node (Command+drag only)
@@ -158,12 +182,18 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
           node.position.value = newPosition;
           // Update visual position with snapping
           node.setVisualPosition(config.snapToGridIfEnabled(newPosition));
+          movedNodes.add(node);
           // Update drag-to-group highlight (Command+drag only)
           final isCommandPressed = HardwareKeyboard.instance.isMetaPressed;
           annotations.updateDragHighlight(draggedNodeId, isCommandPressed);
         }
       }
     });
+
+    // Fire drag event for all moved nodes
+    for (final node in movedNodes) {
+      events.node?.onDrag?.call(node);
+    }
   }
 
   void _setPointerPosition(Offset? position) {
@@ -219,13 +249,20 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
   void _setTemporaryConnection(TemporaryConnection? connection) =>
       interaction.update(temporaryConnection: connection);
 
-  void _cancelConnection() => interaction.cancelConnection();
+  void _cancelConnection() {
+    interaction.cancelConnection();
+    // Fire connection end event with failure
+    events.connection?.onConnectEnd?.call(false);
+  }
 
   List<Connection> _startConnection(
     String nodeId,
     String portId,
     bool isOutput,
   ) {
+    // Fire connection start event
+    events.connection?.onConnectStart?.call(nodeId, portId, isOutput);
+
     // Batch removal of existing connections if port doesn't allow multiple connections
     final connectionsToRemove = _getConnectionsToRemove(
       nodeId,
@@ -298,9 +335,14 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
         return connection;
       });
 
+      // Fire connection end event with success
+      events.connection?.onConnectEnd?.call(true);
+
       return createdConnection;
     }
 
+    // Fire connection end event with failure
+    events.connection?.onConnectEnd?.call(false);
     return null;
   }
 }

@@ -257,14 +257,18 @@ class _ConnectionValidationExampleState
         controller: _controller,
         theme: _theme,
         nodeBuilder: (context, node) => _buildNode(node),
-        onBeforeStartConnection: _onBeforeStartConnection,
-        onBeforeCompleteConnection: _onBeforeCompleteConnection,
-        onConnectionCreated: (connection) {
-          _showMessage('Connection created: ${connection.id}');
-        },
-        onConnectionDeleted: (connection) {
-          _showMessage('Connection deleted: ${connection.id}');
-        },
+        events: NodeFlowEvents<String>(
+          connection: ConnectionEvents<String>(
+            onBeforeStart: _onBeforeStartConnection,
+            onBeforeComplete: _onBeforeCompleteConnection,
+            onCreated: (connection) {
+              _showMessage('Connection created: ${connection.id}');
+            },
+            onDeleted: (connection) {
+              _showMessage('Connection deleted: ${connection.id}');
+            },
+          ),
+        ),
         enableNodeDeletion: false,
       ),
       children: [

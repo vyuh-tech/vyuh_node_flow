@@ -15,6 +15,9 @@ class NodesLayer<T> extends StatelessWidget {
     required this.connections,
     required this.onNodeTap,
     required this.onNodeDoubleTap,
+    this.onNodeMouseEnter,
+    this.onNodeMouseLeave,
+    this.onNodeContextMenu,
     this.nodeContainerBuilder,
   });
 
@@ -29,6 +32,9 @@ class NodesLayer<T> extends StatelessWidget {
   final List<Connection> connections;
   final void Function(Node<T> node) onNodeTap;
   final void Function(Node<T> node) onNodeDoubleTap;
+  final void Function(Node<T> node)? onNodeMouseEnter;
+  final void Function(Node<T> node)? onNodeMouseLeave;
+  final void Function(Node<T> node, Offset position)? onNodeContextMenu;
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +79,15 @@ class NodesLayer<T> extends StatelessWidget {
       connections: connections,
       onNodeTap: (nodeId) => onNodeTap(node),
       onNodeDoubleTap: (nodeId) => onNodeDoubleTap(node),
+      onNodeMouseEnter: onNodeMouseEnter != null
+          ? (nodeId) => onNodeMouseEnter!(node)
+          : null,
+      onNodeMouseLeave: onNodeMouseLeave != null
+          ? (nodeId) => onNodeMouseLeave!(node)
+          : null,
+      onNodeContextMenu: onNodeContextMenu != null
+          ? (nodeId, pos) => onNodeContextMenu!(node, pos)
+          : null,
       child: content,
     );
   }

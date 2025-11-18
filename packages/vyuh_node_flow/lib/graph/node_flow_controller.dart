@@ -8,8 +8,8 @@ import '../connections/connection.dart';
 import '../connections/connection_painter.dart';
 import '../connections/temporary_connection.dart';
 import '../graph/graph.dart';
-import '../graph/node_flow_callbacks.dart';
 import '../graph/node_flow_config.dart';
+import '../graph/node_flow_events.dart';
 import '../graph/node_flow_theme.dart';
 import '../graph/viewport.dart';
 import '../nodes/interaction_state.dart';
@@ -17,7 +17,7 @@ import '../nodes/node.dart';
 import '../nodes/node_data.dart';
 import '../nodes/node_shape.dart';
 import '../ports/port.dart';
-import '../widgets/shortcuts_viewer_dialog.dart';
+import '../shared/shortcuts_viewer_dialog.dart';
 import 'node_flow_actions.dart';
 
 part '../annotations/annotation_controller.dart';
@@ -54,8 +54,7 @@ class NodeFlowController<T> {
     : _viewport = Observable(
         initialViewport ?? const GraphViewport(x: 0, y: 0, zoom: 1.0),
       ),
-      _config = config ?? NodeFlowConfig.defaultConfig,
-      _callbacks = const NodeFlowCallbacks() {
+      _config = config ?? NodeFlowConfig.defaultConfig {
     // Initialize annotation controller with reference to this controller
     annotations = AnnotationController<T>(this);
 
@@ -65,6 +64,9 @@ class NodeFlowController<T> {
 
     // Setup annotation reactions after construction
     _setupAnnotationReactions();
+
+    // Setup selection change reactions
+    _setupSelectionReactions();
   }
 
   // Behavioral configuration
@@ -123,14 +125,14 @@ class NodeFlowController<T> {
     );
   }
 
-  // Callbacks for various events
-  NodeFlowCallbacks<T> _callbacks = const NodeFlowCallbacks();
+  // Structured events system
+  NodeFlowEvents<T> _events = const NodeFlowEvents();
 
-  /// Gets the current callback configuration.
+  /// Gets the current events configuration.
   ///
-  /// Callbacks are triggered for various events like node creation,
-  /// deletion, selection, etc.
-  NodeFlowCallbacks<T> get callbacks => _callbacks;
+  /// Events are organized into logical groups (node, connection, viewport, etc.)
+  /// for better discoverability and maintainability.
+  NodeFlowEvents<T> get events => _events;
 
   // Canvas focus management
   final FocusNode _canvasFocusNode = FocusNode(debugLabel: 'NodeFlowCanvas');
@@ -319,6 +321,47 @@ class NodeFlowController<T> {
     });
   }
 
+  void _setupSelectionReactions() {
+    // Fire selection change event when selection changes
+    reaction(
+      (_) {
+        // Observe all selection state
+        return (
+          _selectedNodeIds.toSet(),
+          _selectedConnectionIds.toSet(),
+          annotations.selectedAnnotationIds.toSet(),
+        );
+      },
+      (_) {
+        // Build selection state
+        final selectedNodes = _selectedNodeIds
+            .map((id) => _nodes[id])
+            .where((node) => node != null)
+            .cast<Node<T>>()
+            .toList();
+
+        final selectedConnections = _selectedConnectionIds
+            .map((id) => _connections.firstWhere((c) => c.id == id))
+            .toList();
+
+        final selectedAnnotations = annotations.selectedAnnotationIds
+            .map((id) => annotations.annotations[id])
+            .where((anno) => anno != null)
+            .cast<Annotation>()
+            .toList();
+
+        final selectionState = SelectionState<T>(
+          nodes: selectedNodes,
+          connections: selectedConnections,
+          annotations: selectedAnnotations,
+        );
+
+        // Fire the selection change event
+        events.onSelectionChange?.call(selectionState);
+      },
+    );
+  }
+
   /// Gets the connection painter used for rendering and hit-testing connections.
   ///
   /// The connection painter must be initialized by calling `setTheme` first,
@@ -328,7 +371,7 @@ class NodeFlowController<T> {
   ConnectionPainter get connectionPainter {
     if (_connectionPainter == null) {
       throw StateError(
-        'ConnectionPainter not initialized. Call setTheme or setCallbacksAndTheme first.',
+        'ConnectionPainter not initialized. Call setTheme first.',
       );
     }
     return _connectionPainter!;

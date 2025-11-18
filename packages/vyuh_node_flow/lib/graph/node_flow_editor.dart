@@ -5,13 +5,12 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart' hide Listener;
 import 'package:vector_math/vector_math_64.dart' hide Colors;
 
-import '../annotations/annotation.dart';
 import '../annotations/annotation_layer.dart';
 import '../connections/connection.dart';
 import '../connections/connection_validation.dart';
 import '../connections/temporary_connection.dart';
-import '../graph/node_flow_callbacks.dart';
 import '../graph/node_flow_controller.dart';
+import '../graph/node_flow_events.dart';
 import '../graph/node_flow_theme.dart';
 import '../graph/viewport.dart';
 import '../nodes/node.dart';
@@ -63,22 +62,7 @@ class NodeFlowEditor<T> extends StatefulWidget {
     required this.theme,
     this.nodeShapeBuilder,
     this.nodeContainerBuilder,
-    this.onNodeSelected,
-    this.onNodeTap,
-    this.onNodeDoubleTap,
-    this.onNodeCreated,
-    this.onNodeDeleted,
-    this.onConnectionTap,
-    this.onConnectionDoubleTap,
-    this.onConnectionCreated,
-    this.onConnectionDeleted,
-    this.onConnectionSelected,
-    this.onAnnotationSelected,
-    this.onAnnotationTap,
-    this.onAnnotationCreated,
-    this.onAnnotationDeleted,
-    this.onBeforeStartConnection,
-    this.onBeforeCompleteConnection,
+    this.events,
     this.enablePanning = true,
     this.enableZooming = true,
     this.enableSelection = true,
@@ -167,100 +151,36 @@ class NodeFlowEditor<T> extends StatefulWidget {
   /// ports, and other UI elements.
   final NodeFlowTheme theme;
 
-  /// Called when a node's selection state changes.
+  /// Structured event system for handling various editor events.
   ///
-  /// Receives the selected node, or `null` if selection was cleared.
-  final ValueChanged<Node<T>?>? onNodeSelected;
-
-  /// Called when a node is tapped.
-  final ValueChanged<Node<T>>? onNodeTap;
-
-  /// Called when a node is double-tapped.
-  final ValueChanged<Node<T>>? onNodeDoubleTap;
-
-  /// Called when a node is created and added to the graph.
-  final ValueChanged<Node<T>>? onNodeCreated;
-
-  /// Called when a node is deleted from the graph.
-  final ValueChanged<Node<T>>? onNodeDeleted;
-
-  /// Called when a connection's selection state changes.
-  ///
-  /// Receives the selected connection, or `null` if selection was cleared.
-  final ValueChanged<Connection?>? onConnectionSelected;
-
-  /// Called when a connection is tapped.
-  final ValueChanged<Connection>? onConnectionTap;
-
-  /// Called when a connection is double-tapped.
-  final ValueChanged<Connection>? onConnectionDoubleTap;
-
-  /// Called when a connection is created.
-  final ValueChanged<Connection>? onConnectionCreated;
-
-  /// Called when a connection is deleted.
-  final ValueChanged<Connection>? onConnectionDeleted;
-
-  /// Called when an annotation's selection state changes.
-  ///
-  /// Receives the selected annotation, or `null` if selection was cleared.
-  final ValueChanged<Annotation?>? onAnnotationSelected;
-
-  /// Called when an annotation is tapped.
-  final ValueChanged<Annotation>? onAnnotationTap;
-
-  /// Called when an annotation is created.
-  final ValueChanged<Annotation>? onAnnotationCreated;
-
-  /// Called when an annotation is deleted.
-  final ValueChanged<Annotation>? onAnnotationDeleted;
-
-  /// Validation callback called before starting a connection from a port.
-  ///
-  /// Return a `ConnectionValidationResult` to control whether the connection
-  /// can be started. Set `allowed: false` to prevent the connection.
+  /// Events are organized into logical groups (node, connection, viewport, etc.)
+  /// for better discoverability and maintainability.
   ///
   /// Example:
   /// ```dart
-  /// onBeforeStartConnection: (context) {
-  ///   // Don't allow connections from ports that already have connections
-  ///   if (context.existingConnections.isNotEmpty && !context.sourcePort.multiConnections) {
-  ///     return ConnectionValidationResult(
-  ///       allowed: false,
-  ///       message: 'Port already has a connection',
-  ///     );
-  ///   }
-  ///   return ConnectionValidationResult(allowed: true);
-  /// }
+  /// NodeFlowEditor(
+  ///   controller: controller,
+  ///   nodeBuilder: nodeBuilder,
+  ///   theme: theme,
+  ///   events: NodeFlowEvents(
+  ///     node: NodeEvents(
+  ///       onTap: (node) => handleNodeTap(node),
+  ///       onDragStart: (node) => print('Dragging ${node.id}'),
+  ///     ),
+  ///     viewport: ViewportEvents(
+  ///       onCanvasTap: (pos) => clearSelection(),
+  ///     ),
+  ///     connection: ConnectionEvents(
+  ///       onBeforeComplete: (context) {
+  ///         // Validate connections
+  ///         return ConnectionValidationResult(allowed: true);
+  ///       },
+  ///     ),
+  ///     onInit: () => controller.fitToView(),
+  ///   ),
+  /// )
   /// ```
-  final ConnectionValidationResult Function(ConnectionStartContext<T> context)?
-  onBeforeStartConnection;
-
-  /// Validation callback called before completing a connection to a target port.
-  ///
-  /// Return a `ConnectionValidationResult` to control whether the connection
-  /// can be created. Set `allowed: false` to prevent the connection.
-  ///
-  /// Use this to implement custom connection rules, type checking, or
-  /// prevent cycles in the graph.
-  ///
-  /// Example:
-  /// ```dart
-  /// onBeforeCompleteConnection: (context) {
-  ///   // Check if connection would create a cycle
-  ///   if (wouldCreateCycle(context.sourceNode, context.targetNode)) {
-  ///     return ConnectionValidationResult(
-  ///       allowed: false,
-  ///       message: 'This would create a cycle',
-  ///     );
-  ///   }
-  ///   return ConnectionValidationResult(allowed: true);
-  /// }
-  /// ```
-  final ConnectionValidationResult Function(
-    ConnectionCompleteContext<T> context,
-  )?
-  onBeforeCompleteConnection;
+  final NodeFlowEvents<T>? events;
 
   /// Whether to enable viewport panning with mouse/trackpad drag.
   ///
@@ -369,9 +289,18 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Set up node shape builder BEFORE theme (so ConnectionPainter gets the shape builder)
     _updateNodeShapeBuilder();
 
-    // Set up callbacks for the controller
-    _updateCallbacks();
+    // Set theme on the controller
     widget.controller.setTheme(widget.theme);
+
+    // Set events on the controller
+    if (widget.events != null) {
+      widget.controller.setEvents(widget.events!);
+    }
+
+    // Fire onInit event after initialization completes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.controller.events.onInit?.call();
+    });
   }
 
   @override
@@ -389,9 +318,15 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       _updateNodeShapeBuilder();
     }
 
-    // Update callbacks if they changed
-    _updateCallbacks();
-    widget.controller.setTheme(widget.theme);
+    // Update events if they changed
+    if (oldWidget.events != widget.events && widget.events != null) {
+      widget.controller.setEvents(widget.events!);
+    }
+
+    // Update theme if it changed
+    if (oldWidget.theme != widget.theme) {
+      widget.controller.setTheme(widget.theme);
+    }
 
     // Update animation controller duration if it changed
     if (oldWidget.theme.connectionAnimationDuration !=
@@ -478,6 +413,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
               panEnabled: widget.controller.panEnabled,
               scaleEnabled: widget.enableZooming,
               trackpadScrollCausesScale: widget.scrollToZoom,
+              onInteractionStart: _onInteractionStart,
               onInteractionUpdate: _onInteractionUpdate,
               onInteractionEnd: _onInteractionEnd,
               child: child,
@@ -528,6 +464,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                   connections: widget.controller.connections,
                   onNodeTap: _handleNodeTap,
                   onNodeDoubleTap: _handleNodeDoubleTap,
+                  onNodeMouseEnter: _handleNodeMouseEnter,
+                  onNodeMouseLeave: _handleNodeMouseLeave,
+                  onNodeContextMenu: _handleNodeContextMenu,
                 ),
 
                 // Foreground annotations (stickies, markers) - above nodes
@@ -630,21 +569,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     }
   }
 
-  void _updateCallbacks() {
-    final callbacks = NodeFlowCallbacks<T>(
-      onNodeCreated: widget.onNodeCreated,
-      onNodeDeleted: widget.onNodeDeleted,
-      onNodeSelected: widget.onNodeSelected,
-      onConnectionCreated: widget.onConnectionCreated,
-      onConnectionDeleted: widget.onConnectionDeleted,
-      onConnectionSelected: widget.onConnectionSelected,
-      onAnnotationCreated: widget.onAnnotationCreated,
-      onAnnotationDeleted: widget.onAnnotationDeleted,
-      onAnnotationSelected: widget.onAnnotationSelected,
-    );
-    widget.controller.setCallbacks(callbacks);
-  }
-
   @override
   void dispose() {
     for (final disposer in _disposers) {
@@ -665,8 +589,8 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       widget.controller.canvasFocusNode.requestFocus();
     }
 
-    // Call the user's callback
-    widget.onNodeTap?.call(node);
+    // Fire event
+    widget.controller.events.node?.onTap?.call(node);
   }
 
   void _handleNodeDoubleTap(Node<T> node) {
@@ -675,20 +599,55 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       widget.controller.canvasFocusNode.requestFocus();
     }
 
-    // Call the user's callback
-    widget.onNodeDoubleTap?.call(node);
+    // Fire event
+    widget.controller.events.node?.onDoubleTap?.call(node);
+  }
+
+  void _handleNodeMouseEnter(Node<T> node) {
+    // Fire new event system
+    widget.controller.events.node?.onMouseEnter?.call(node);
+  }
+
+  void _handleNodeMouseLeave(Node<T> node) {
+    // Fire new event system
+    widget.controller.events.node?.onMouseLeave?.call(node);
+  }
+
+  void _handleNodeContextMenu(Node<T> node, Offset position) {
+    // Fire new event system
+    widget.controller.events.node?.onContextMenu?.call(node, position);
   }
 
   // Event handlers
+  void _onInteractionStart(ScaleStartDetails details) {
+    // Fire viewport move start event
+    final transform = _transformationController.value;
+    final translation = transform.getTranslation();
+    final scale = transform.getMaxScaleOnAxis();
+
+    final viewport = GraphViewport(
+      x: translation.x,
+      y: translation.y,
+      zoom: scale,
+    );
+    widget.controller.events.viewport?.onMoveStart?.call(viewport);
+  }
+
   void _onInteractionUpdate(ScaleUpdateDetails details) {
     // Update viewport in store during interaction for real-time updates
     final transform = _transformationController.value;
     final translation = transform.getTranslation();
     final scale = transform.getMaxScaleOnAxis();
 
-    widget.controller.setViewport(
-      GraphViewport(x: translation.x, y: translation.y, zoom: scale),
+    final viewport = GraphViewport(
+      x: translation.x,
+      y: translation.y,
+      zoom: scale,
     );
+    widget.controller.setViewport(viewport);
+
+    // Fire viewport move event
+    widget.controller.events.viewport?.onMove?.call(viewport);
   }
 
   void _onInteractionEnd(ScaleEndDetails details) {
@@ -697,9 +656,15 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     final translation = transform.getTranslation();
     final scale = transform.getMaxScaleOnAxis();
 
-    widget.controller.setViewport(
-      GraphViewport(x: translation.x, y: translation.y, zoom: scale),
+    final viewport = GraphViewport(
+      x: translation.x,
+      y: translation.y,
+      zoom: scale,
     );
+    widget.controller.setViewport(viewport);
+
+    // Fire viewport move end event
+    widget.controller.events.viewport?.onMoveEnd?.call(viewport);
   }
 
   void _handleMouseHover(PointerHoverEvent event) {
@@ -708,6 +673,20 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   }
 
   void _handlePointerDown(PointerDownEvent event) {
+    // Handle secondary button (right-click) for context menu
+    if (event.buttons == kSecondaryMouseButton) {
+      final hitResult = _performHitTest(event.localPosition);
+
+      // Fire canvas context menu if clicking on empty space
+      if (hitResult.hitType == HitTarget.canvas) {
+        final graphPosition = _screenToGraph(event.localPosition);
+        widget.controller.events.viewport?.onCanvasContextMenu?.call(
+          graphPosition,
+        );
+      }
+      return;
+    }
+
     // Early return if all interactions are disabled
     if (!widget.enableSelection &&
         !widget.enableNodeDragging &&
@@ -800,7 +779,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         final connection = widget.controller.connections.firstWhere(
           (c) => c.id == hitResult.connectionId!,
         );
-        widget.onConnectionTap?.call(connection);
+        widget.controller.events.connection?.onTap?.call(connection);
         break;
 
       case HitTarget.annotation:
@@ -983,6 +962,11 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         !wasDragging &&
         !wasAnnotationDragging) {
       widget.controller.clearSelection();
+
+      // Fire canvas tap event
+      final graphPosition = _screenToGraph(event.localPosition);
+      widget.controller.events.viewport?.onCanvasTap?.call(graphPosition);
+
       // Callbacks should be managed by the selection system, not here
       // Controller clearSelection will trigger appropriate callbacks
     }
@@ -1008,15 +992,15 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
             (event.localPosition - _lastTapPosition!).distance < _doubleTapSlop;
 
         if (isDoubleTap) {
-          // Fire double-tap callback
-          widget.onNodeDoubleTap?.call(node);
+          // Fire double-tap event (handled via _handleNodeDoubleTap)
+          _handleNodeDoubleTap(node);
           // Reset tap tracking to prevent triple-tap being detected as another double-tap
           _lastTapTime = null;
           _lastTapPosition = null;
           _lastTappedNodeId = null;
         } else {
-          // Fire single tap callback
-          widget.onNodeTap?.call(node);
+          // Fire single tap event (handled via _handleNodeTap)
+          _handleNodeTap(node);
           // Update tap tracking for potential double-tap
           _lastTapTime = now;
           _lastTapPosition = event.localPosition;
@@ -1211,8 +1195,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         );
 
         // Check user-defined validation
-        if (widget.onBeforeCompleteConnection != null) {
-          final result = widget.onBeforeCompleteConnection!(context);
+        final validationCallback =
+            widget.controller.events.connection?.onBeforeComplete;
+        if (validationCallback != null) {
+          final result = validationCallback(context);
           if (!result.allowed) {
             widget.controller._cancelConnection();
             return;
@@ -1249,10 +1235,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
           hitResult.portId!,
         );
 
-        // Fire callbacks for removed connections
-        if (widget.onConnectionDeleted != null) {
-          // Connection deletion callbacks handled by controller
-        }
+        // Connection deletion callbacks handled by controller via events
 
         // Connection creation callback handled by controller
       } else {
@@ -1293,8 +1276,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       );
 
       // Check user-defined validation
-      if (widget.onBeforeStartConnection != null) {
-        final result = widget.onBeforeStartConnection!(context);
+      final validationCallback =
+          widget.controller.events.connection?.onBeforeStart;
+      if (validationCallback != null) {
+        final result = validationCallback(context);
         if (!result.allowed) {
           return;
         }
@@ -1306,10 +1291,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         hitResult.isOutput!,
       );
 
-      // Fire callbacks for connections removed when starting drag from a single-connection port
-      if (widget.onConnectionDeleted != null) {
-        // Connection deletion callbacks handled by controller
-      }
+      // Connection deletion callbacks handled by controller via events
 
       final theme = widget.theme;
       final shape = widget.controller.nodeShapeBuilder?.call(node);

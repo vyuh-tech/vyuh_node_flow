@@ -26,8 +26,8 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       // Initialize visual position with snapping
       node.setVisualPosition(_config.snapToGridIfEnabled(node.position.value));
     });
-    // Fire callback after successful addition
-    callbacks.onNodeCreated?.call(node);
+    // Fire event after successful addition
+    events.node?.onCreated?.call(node);
   }
 
   /// Adds an input port to an existing node.
@@ -197,9 +197,9 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
         }
       }
     });
-    // Fire callback after successful removal
+    // Fire event after successful removal
     if (nodeToDelete != null) {
-      callbacks.onNodeDeleted?.call(nodeToDelete);
+      events.node?.onDeleted?.call(nodeToDelete);
     }
   }
 
@@ -311,7 +311,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     final selectedNode = _selectedNodeIds.contains(nodeId)
         ? _nodes[nodeId]
         : null;
-    callbacks.onNodeSelected?.call(selectedNode);
+    events.node?.onSelected?.call(selectedNode);
 
     if (!canvasFocusNode.hasFocus) {
       canvasFocusNode.requestFocus();
@@ -420,7 +420,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     final selectedConnection = _selectedConnectionIds.contains(connectionId)
         ? _connections.firstWhere((c) => c.id == connectionId)
         : null;
-    callbacks.onConnectionSelected?.call(selectedConnection);
+    events.connection?.onSelected?.call(selectedConnection);
 
     if (!canvasFocusNode.hasFocus) {
       canvasFocusNode.requestFocus();
@@ -444,8 +444,8 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     }
     _selectedNodeIds.clear();
 
-    // Fire selection callback with null to indicate no selection
-    callbacks.onNodeSelected?.call(null);
+    // Fire selection event with null to indicate no selection
+    events.node?.onSelected?.call(null);
   }
 
   /// Clears all connection selections.
@@ -467,8 +467,8 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     }
     _selectedConnectionIds.clear();
 
-    // Fire selection callback with null to indicate no selection
-    callbacks.onConnectionSelected?.call(null);
+    // Fire selection event with null to indicate no selection
+    events.connection?.onSelected?.call(null);
   }
 
   /// Clears all selections (nodes, connections, and annotations).
@@ -601,8 +601,8 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     runInAction(() {
       _connections.add(connection);
     });
-    // Fire callback after successful addition
-    callbacks.onConnectionCreated?.call(connection);
+    // Fire event after successful addition
+    events.connection?.onCreated?.call(connection);
   }
 
   /// Removes a connection from the graph.
@@ -628,8 +628,8 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     // Remove cached path to prevent stale rendering
     _connectionPainter?.removeConnectionFromCache(connectionId);
 
-    // Fire callback after successful removal
-    callbacks.onConnectionDeleted?.call(connectionToDelete);
+    // Fire event after successful removal
+    events.connection?.onDeleted?.call(connectionToDelete);
   }
 
   // Control point operations
@@ -917,8 +917,8 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   /// - `createMarker` for creating marker annotations
   void addAnnotation(Annotation annotation) {
     annotations.addAnnotation(annotation);
-    // Fire callback after successful addition
-    callbacks.onAnnotationCreated?.call(annotation);
+    // Fire event after successful addition
+    events.annotation?.onCreated?.call(annotation);
   }
 
   /// Removes an annotation from the graph.
@@ -930,9 +930,9 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   void removeAnnotation(String annotationId) {
     final annotationToDelete = annotations.getAnnotation(annotationId);
     annotations.removeAnnotation(annotationId);
-    // Fire callback after successful removal
+    // Fire event after successful removal
     if (annotationToDelete != null) {
-      callbacks.onAnnotationDeleted?.call(annotationToDelete);
+      events.annotation?.onDeleted?.call(annotationToDelete);
     }
   }
 
@@ -973,7 +973,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     final selectedAnnotation = annotations.isAnnotationSelected(annotationId)
         ? annotations.getAnnotation(annotationId)
         : null;
-    callbacks.onAnnotationSelected?.call(selectedAnnotation);
+    events.annotation?.onSelected?.call(selectedAnnotation);
 
     canvasFocusNode.requestFocus();
   }
@@ -985,9 +985,9 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     final hadSelection = annotations.hasAnnotationSelection;
     annotations.clearAnnotationSelection();
 
-    // Fire selection callback with null to indicate no selection
+    // Fire selection event with null to indicate no selection
     if (hadSelection) {
-      callbacks.onAnnotationSelected?.call(null);
+      events.annotation?.onSelected?.call(null);
     }
   }
 
@@ -1479,6 +1479,115 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
         zoom: currentVp.zoom,
       ),
     );
+  }
+
+  /// Centers the viewport on the geometric center of all nodes without changing zoom.
+  ///
+  /// Calculates the center point of all nodes in the graph and pans the viewport
+  /// to that location while maintaining the current zoom level.
+  ///
+  /// Does nothing if there are no nodes or if the screen size is zero.
+  ///
+  /// This is useful for recentering your view on the content without losing your
+  /// current zoom level, unlike [fitToView] which adjusts the zoom.
+  ///
+  /// Example:
+  /// ```dart
+  /// // User zoomed in to 200% and panned around
+  /// controller.setZoom(2.0);
+  /// // ... user pans around ...
+  ///
+  /// // Recenter on all nodes while keeping 200% zoom
+  /// controller.centerViewport();
+  /// ```
+  ///
+  /// See also:
+  /// - [fitToView] to fit all nodes with automatic zoom adjustment
+  /// - [centerOnSelection] to center on selected nodes only
+  /// - [resetViewport] to reset zoom to 1.0 and center
+  void centerViewport() {
+    if (_nodes.isEmpty || _screenSize.value == Size.zero) return;
+
+    final bounds = nodesBounds;
+    if (bounds == Rect.zero) return;
+
+    // Get the center of all nodes
+    final center = bounds.center;
+    final currentVp = _viewport.value;
+
+    setViewport(
+      GraphViewport(
+        x: _screenSize.value.width / 2 - center.dx * currentVp.zoom,
+        y: _screenSize.value.height / 2 - center.dy * currentVp.zoom,
+        zoom: currentVp.zoom,
+      ),
+    );
+  }
+
+  /// Centers the viewport on a specific point in graph coordinates without changing zoom.
+  ///
+  /// This is useful for centering the viewport on an arbitrary location, such as
+  /// where a new node should be created.
+  ///
+  /// Does nothing if the screen size is zero.
+  ///
+  /// Parameters:
+  /// - [point]: The point in graph coordinates to center on
+  ///
+  /// Example:
+  /// ```dart
+  /// // Center on a specific point where user wants to add a node
+  /// final center = controller.getViewportCenter();
+  /// controller.centerOn(center);
+  ///
+  /// // Or center on a specific coordinate
+  /// controller.centerOn(Offset(500, 300));
+  /// ```
+  void centerOn(Offset point) {
+    if (_screenSize.value == Size.zero) return;
+
+    final currentVp = _viewport.value;
+
+    setViewport(
+      GraphViewport(
+        x: _screenSize.value.width / 2 - point.dx * currentVp.zoom,
+        y: _screenSize.value.height / 2 - point.dy * currentVp.zoom,
+        zoom: currentVp.zoom,
+      ),
+    );
+  }
+
+  /// Gets the center point of the current viewport in graph coordinates.
+  ///
+  /// This is useful for determining where to place new nodes so they appear
+  /// in the center of the visible area.
+  ///
+  /// Returns [Offset.zero] if the screen size is zero.
+  ///
+  /// Returns the center point of the viewport in graph/world coordinates.
+  ///
+  /// Example:
+  /// ```dart
+  /// // Get the viewport center to place a new node there
+  /// final center = controller.getViewportCenter();
+  /// final newNode = Node(
+  ///   id: 'new-node',
+  ///   type: 'process',
+  ///   position: center, // Node will appear at viewport center
+  /// );
+  /// controller.addNode(newNode);
+  /// ```
+  Offset getViewportCenter() {
+    if (_screenSize.value == Size.zero) return Offset.zero;
+
+    // Get the screen center point
+    final screenCenter = Offset(
+      _screenSize.value.width / 2,
+      _screenSize.value.height / 2,
+    );
+
+    // Convert to graph coordinates
+    return screenToWorld(screenCenter);
   }
 
   /// Resets the viewport to zoom 1.0 and centers on all nodes in the graph.
@@ -2422,10 +2531,10 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     }
   }
 
-  /// Update the callbacks that the controller will use
+  /// Update the events that the controller will use
   /// This is called internally by the editor widget only
-  void setCallbacks(NodeFlowCallbacks<T> callbacks) {
-    _callbacks = callbacks;
+  void setEvents(NodeFlowEvents<T> events) {
+    _events = events;
   }
 
   /// Hit test annotations at a specific position

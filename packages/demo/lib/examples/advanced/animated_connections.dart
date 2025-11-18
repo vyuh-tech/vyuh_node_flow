@@ -525,36 +525,41 @@ class _AnimatedConnectionsExampleState
               selectedStrokeWidth: _store.strokeWidth,
             ),
           ),
-          onConnectionSelected: (connection) {
-            _store.selectedConnection = connection;
-            if (connection != null) {
-              // Update UI based on current effect
-              final effect = connection.animationEffect;
-              if (effect is FlowingDashEffect) {
-                _store.selectedEffectType = 'flowing_dash';
-                _store.speed = effect.speed;
-                _store.dashLength = effect.dashLength;
-                _store.gapLength = effect.gapLength;
-              } else if (effect is ParticleEffect) {
-                _store.selectedEffectType = 'particle';
-                _store.speed = effect.speed;
-                _store.particleCount = effect.particleCount;
-                // Note: particleSize is now part of the particlePainter, not the effect itself
-              } else if (effect is GradientFlowEffect) {
-                _store.selectedEffectType = 'gradient';
-                _store.speed = effect.speed;
-                _store.gradientLength = effect.gradientLength;
-              } else if (effect is PulseEffect) {
-                _store.selectedEffectType = 'pulse';
-                _store.speed = effect.speed;
-                _store.minOpacity = effect.minOpacity;
-                _store.maxOpacity = effect.maxOpacity;
-                _store.widthVariation = effect.widthVariation;
-              } else {
-                _store.selectedEffectType = 'none';
-              }
-            }
-          },
+
+          events: NodeFlowEvents<Map<String, dynamic>>(
+            connection: ConnectionEvents<Map<String, dynamic>>(
+              onSelected: (connection) {
+                _store.selectedConnection = connection;
+                if (connection != null) {
+                  // Update UI based on current effect
+                  final effect = connection.animationEffect;
+                  if (effect is FlowingDashEffect) {
+                    _store.selectedEffectType = 'flowing_dash';
+                    _store.speed = effect.speed;
+                    _store.dashLength = effect.dashLength;
+                    _store.gapLength = effect.gapLength;
+                  } else if (effect is ParticleEffect) {
+                    _store.selectedEffectType = 'particle';
+                    _store.speed = effect.speed;
+                    _store.particleCount = effect.particleCount;
+                    // Note: particleSize is now part of the particlePainter, not the effect itself
+                  } else if (effect is GradientFlowEffect) {
+                    _store.selectedEffectType = 'gradient';
+                    _store.speed = effect.speed;
+                    _store.gradientLength = effect.gradientLength;
+                  } else if (effect is PulseEffect) {
+                    _store.selectedEffectType = 'pulse';
+                    _store.speed = effect.speed;
+                    _store.minOpacity = effect.minOpacity;
+                    _store.maxOpacity = effect.maxOpacity;
+                    _store.widthVariation = effect.widthVariation;
+                  } else {
+                    _store.selectedEffectType = 'none';
+                  }
+                }
+              },
+            ),
+          ),
         ),
       ),
       children: [

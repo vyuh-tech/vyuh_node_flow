@@ -67,13 +67,18 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
     int counter, [
     Offset? position,
   ]) {
-    // Use provided position or generate random position
+    // Use provided position or get viewport center with small random offset
     final nodePosition =
         position ??
-        Offset(
-          100.0 + math.Random().nextDouble() * 400,
-          100.0 + math.Random().nextDouble() * 300,
-        );
+        () {
+          // Get viewport center as the base position
+          final center = _controller.getViewportCenter();
+          // Add small random offset to avoid stacking nodes on top of each other
+          return Offset(
+            center.dx + (math.Random().nextDouble() - 0.5) * 100,
+            center.dy + (math.Random().nextDouble() - 0.5) * 100,
+          );
+        }();
 
     // Different node configurations based on type
     final config = _getNodeConfig(nodeType);

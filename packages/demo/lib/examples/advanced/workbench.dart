@@ -65,14 +65,18 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
             theme: _nodeFlowTheme,
             nodeBuilder: _buildCustomNode,
             scrollToZoom: _scrollToZoom,
-            onConnectionCreated: (connection) {
-              _showSnackBar(
-                'Connection created: ${connection.sourceNodeId} → ${connection.targetNodeId}',
-              );
-            },
-            onConnectionDeleted: (connection) {
-              _showSnackBar('Connection deleted');
-            },
+            events: NodeFlowEvents<Map<String, dynamic>>(
+              connection: ConnectionEvents<Map<String, dynamic>>(
+                onCreated: (connection) {
+                  _showSnackBar(
+                    'Connection created: ${connection.sourceNodeId} → ${connection.targetNodeId}',
+                  );
+                },
+                onDeleted: (connection) {
+                  _showSnackBar('Connection deleted');
+                },
+              ),
+            ),
           ),
         ],
       ),
@@ -435,6 +439,11 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
           icon: Icons.home,
           onPressed: () => _controller.resetViewport(),
         ),
+        GridButton(
+          label: 'Center Viewport',
+          icon: Icons.filter_center_focus,
+          onPressed: () => _controller.centerViewport(),
+        ),
       ]),
       _buildGridSection('Navigation', [
         Observer(
@@ -667,7 +676,13 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-          decoration: BoxDecoration(color: nodeColor),
+          decoration: BoxDecoration(
+            color: nodeColor,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(6),
+              topRight: Radius.circular(6),
+            ),
+          ),
           child: Row(
             children: [
               Icon(_getNodeIcon(node.type), size: 14, color: iconColor),

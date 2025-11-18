@@ -5,6 +5,7 @@ import '../nodes/node.dart';
 import 'node_flow_config.dart';
 import 'node_flow_controller.dart';
 import 'node_flow_editor.dart';
+import 'node_flow_events.dart';
 import 'node_flow_theme.dart';
 import 'viewport.dart';
 
@@ -190,13 +191,16 @@ class NodeFlowViewer<T> extends StatelessWidget {
       enableConnectionCreation: false,
       scrollToZoom: scrollToZoom,
       showAnnotations: showAnnotations,
-      // Selection callbacks (only active if allowSelection is true)
-      onNodeSelected: allowSelection ? onNodeSelected : null,
-      onNodeTap: allowSelection ? onNodeTap : null,
-      onNodeDoubleTap: null,
-      onConnectionSelected: allowSelection ? onConnectionSelected : null,
-      onConnectionTap: allowSelection ? onConnectionTap : null,
-      onConnectionDoubleTap: null,
+      // Events (only active if allowSelection is true)
+      events: allowSelection
+          ? NodeFlowEvents<T>(
+              node: NodeEvents<T>(onTap: onNodeTap, onSelected: onNodeSelected),
+              connection: ConnectionEvents<T>(
+                onTap: onConnectionTap,
+                onSelected: onConnectionSelected,
+              ),
+            )
+          : null,
     );
   }
 
