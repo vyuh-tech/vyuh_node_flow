@@ -1,3 +1,7 @@
+## 0.3.17
+
+ - **FEAT**: adding centering of viewport.
+
 ## 0.3.16
 
  - **FEAT**: optimizing the widget tree by removing an unnecessary Container.
