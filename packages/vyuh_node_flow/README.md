@@ -60,7 +60,7 @@ minimap, and more.
   - [Custom Annotations](#custom-annotations)
   - [Following Nodes](#following-nodes)
 - [Interactive Features](#interactive-features)
-  - [Editor Callbacks](#editor-callbacks)
+  - [Event System](#event-system)
   - [Keyboard Shortcuts](#keyboard-shortcuts)
   - [Feature Toggles](#feature-toggles)
 - [Minimap](#minimap)
@@ -900,7 +900,7 @@ controller.addConnection(connection);
 
 ### Connection Validation
 
-Validate connections before they're created:
+Validate connections before they're created using the event system:
 
 <details>
 <summary><strong>Connection Validation Example</strong></summary>
@@ -911,42 +911,46 @@ NodeFlowEditor<MyData>(
   theme: theme,
   nodeBuilder: _buildNode,
 
-  // Validate when starting a connection
-  onBeforeStartConnection: (context) {
-    // Don't allow connections from disabled nodes
-    if (context.sourceNode.data.isDisabled) {
-      return ConnectionValidationResult.invalid(
-        reason: 'Cannot connect from disabled node',
-      );
-    }
-    return ConnectionValidationResult.valid();
-  },
+  events: NodeFlowEvents<MyData>(
+    connection: ConnectionEvents<MyData>(
+      // Validate when starting a connection
+      onBeforeStart: (context) {
+        // Don't allow connections from disabled nodes
+        if (context.sourceNode.data.isDisabled) {
+          return ConnectionValidationResult.invalid(
+            reason: 'Cannot connect from disabled node',
+          );
+        }
+        return ConnectionValidationResult.valid();
+      },
 
-  // Validate when completing a connection
-  onBeforeCompleteConnection: (context) {
-    // Don't allow self-connections
-    if (context.sourceNode.id == context.targetNode.id) {
-      return ConnectionValidationResult.invalid(
-        reason: 'Cannot connect node to itself',
-      );
-    }
+      // Validate when completing a connection
+      onBeforeComplete: (context) {
+        // Don't allow self-connections
+        if (context.sourceNode.id == context.targetNode.id) {
+          return ConnectionValidationResult.invalid(
+            reason: 'Cannot connect node to itself',
+          );
+        }
 
-    // Check for circular dependencies
-    if (_wouldCreateCycle(context)) {
-      return ConnectionValidationResult.invalid(
-        reason: 'Would create circular dependency',
-      );
-    }
+        // Check for circular dependencies
+        if (_wouldCreateCycle(context)) {
+          return ConnectionValidationResult.invalid(
+            reason: 'Would create circular dependency',
+          );
+        }
 
-    // Check port compatibility
-    if (!_arePortsCompatible(context.sourcePort, context.targetPort)) {
-      return ConnectionValidationResult.invalid(
-        reason: 'Incompatible port types',
-      );
-    }
+        // Check port compatibility
+        if (!_arePortsCompatible(context.sourcePort, context.targetPort)) {
+          return ConnectionValidationResult.invalid(
+            reason: 'Incompatible port types',
+          );
+        }
 
-    return ConnectionValidationResult.valid();
-  },
+        return ConnectionValidationResult.valid();
+      },
+    ),
+  ),
 )
 ```
 
@@ -1555,10 +1559,12 @@ controller.addAnnotation(annotation);
 
 ## Interactive Features
 
-### Editor Callbacks
+### Event System
+
+Vyuh Node Flow uses a structured event system organized into logical groups for better discoverability and maintainability.
 
 <details>
-<summary><strong>All Available Callbacks</strong></summary>
+<summary><strong>Complete Event System Example</strong></summary>
 
 ```dart
 NodeFlowEditor<MyData>(
@@ -1566,82 +1572,108 @@ NodeFlowEditor<MyData>(
   theme: theme,
   nodeBuilder: _buildNode,
 
-  // Node events
-  onNodeSelected: (node) {
-    print('Node selected: ${node?.id}');
-  },
-  onNodeTap: (node) {
-    print('Node tapped: ${node.id}');
-  },
-  onNodeDoubleTap: (node) {
-    print('Node double-tapped: ${node.id}');
-    _showNodeEditor(node);
-  },
-  onNodeCreated: (node) {
-    print('Node created: ${node.id}');
-  },
-  onNodeDeleted: (node) {
-    print('Node deleted: ${node.id}');
-  },
+  events: NodeFlowEvents<MyData>(
+    // Node-related events
+    node: NodeEvents<MyData>(
+      onCreated: (node) => print('Node created: ${node.id}'),
+      onDeleted: (node) => print('Node deleted: ${node.id}'),
+      onSelected: (node) => print('Node selected: ${node?.id}'),
+      onTap: (node) => print('Node tapped: ${node.id}'),
+      onDoubleTap: (node) => _showNodeEditor(node),
+      onDragStart: (node) => print('Drag started: ${node.id}'),
+      onDrag: (node) => print('Dragging: ${node.id}'),
+      onDragStop: (node) => print('Drag stopped: ${node.id}'),
+      onMouseEnter: (node) => print('Mouse entered: ${node.id}'),
+      onMouseLeave: (node) => print('Mouse left: ${node.id}'),
+      onContextMenu: (node, position) => _showNodeContextMenu(node, position),
+    ),
 
-  // Connection events
-  onConnectionSelected: (connection) {
-    print('Connection selected: ${connection?.id}');
-  },
-  onConnectionTap: (connection) {
-    print('Connection tapped: ${connection.id}');
-  },
-  onConnectionDoubleTap: (connection) {
-    print('Connection double-tapped: ${connection.id}');
-  },
-  onConnectionCreated: (connection) {
-    print('Connection created: ${connection.id}');
-    _notifyConnectionChange();
-  },
-  onConnectionDeleted: (connection) {
-    print('Connection deleted: ${connection.id}');
-  },
+    // Connection-related events
+    connection: ConnectionEvents<MyData>(
+      onCreated: (connection) {
+        print('Connection created: ${connection.id}');
+        _notifyConnectionChange();
+      },
+      onDeleted: (connection) => print('Connection deleted: ${connection.id}'),
+      onSelected: (connection) => print('Connection selected: ${connection?.id}'),
+      onTap: (connection) => print('Connection tapped: ${connection.id}'),
+      onDoubleTap: (connection) => _editConnection(connection),
+      onMouseEnter: (connection) => print('Mouse entered connection'),
+      onMouseLeave: (connection) => print('Mouse left connection'),
+      onContextMenu: (connection, position) => _showConnectionMenu(connection, position),
 
-  // Connection validation callbacks
-  onBeforeStartConnection: (context) {
-    // Validate before starting a connection from a port
-    if (context.existingConnections.isNotEmpty &&
-        !context.sourcePort.multiConnections) {
-      return ConnectionValidationResult(
-        allowed: false,
-        message: 'Port already has a connection',
-      );
-    }
-    return ConnectionValidationResult.valid();
-  },
-  onBeforeCompleteConnection: (context) {
-    // Validate before completing a connection to a target port
-    if (_wouldCreateCycle(context.sourceNode, context.targetNode)) {
-      return ConnectionValidationResult(
-        allowed: false,
-        message: 'This would create a cycle',
-      );
-    }
-    return ConnectionValidationResult.valid();
-  },
+      // Connection lifecycle events
+      onConnectStart: (nodeId, portId, isOutput) {
+        print('Started connecting from port $portId');
+      },
+      onConnectEnd: (success) {
+        print(success ? 'Connection completed' : 'Connection cancelled');
+      },
 
-  // Annotation events
-  onAnnotationSelected: (annotation) {
-    print('Annotation selected: ${annotation?.id}');
-  },
-  onAnnotationTap: (annotation) {
-    print('Annotation tapped: ${annotation.id}');
-  },
-  onAnnotationCreated: (annotation) {
-    print('Annotation created: ${annotation.id}');
-  },
-  onAnnotationDeleted: (annotation) {
-    print('Annotation deleted: ${annotation.id}');
-  },
+      // Connection validation
+      onBeforeStart: (context) {
+        if (context.existingConnections.isNotEmpty &&
+            !context.sourcePort.multiConnections) {
+          return ConnectionValidationResult.invalid(
+            reason: 'Port already has a connection',
+          );
+        }
+        return ConnectionValidationResult.valid();
+      },
+      onBeforeComplete: (context) {
+        if (_wouldCreateCycle(context.sourceNode, context.targetNode)) {
+          return ConnectionValidationResult.invalid(
+            reason: 'This would create a cycle',
+          );
+        }
+        return ConnectionValidationResult.valid();
+      },
+    ),
+
+    // Viewport events (pan, zoom, canvas interaction)
+    viewport: ViewportEvents(
+      onMoveStart: (viewport) => print('Viewport move started'),
+      onMove: (viewport) => print('Viewport: ${viewport.x}, ${viewport.y}'),
+      onMoveEnd: (viewport) => print('Viewport move ended'),
+      onCanvasTap: (position) => _handleCanvasTap(position),
+      onCanvasContextMenu: (position) => _showCanvasMenu(position),
+    ),
+
+    // Annotation events
+    annotation: AnnotationEvents(
+      onCreated: (annotation) => print('Annotation created'),
+      onDeleted: (annotation) => print('Annotation deleted'),
+      onSelected: (annotation) => print('Annotation selected'),
+      onTap: (annotation) => print('Annotation tapped'),
+    ),
+
+    // Selection change tracking
+    onSelectionChange: (state) {
+      print('Selection: ${state.nodes.length} nodes, '
+            '${state.connections.length} connections');
+    },
+
+    // Lifecycle events
+    onInit: () {
+      print('Editor initialized');
+      controller.fitToView(); // Auto-fit on init
+    },
+    onError: (error) {
+      print('Error: ${error.message}');
+    },
+  ),
 )
 ```
 
 </details>
+
+**Event Categories:**
+
+- **`NodeEvents`** - Node lifecycle, interaction, drag, and hover events
+- **`ConnectionEvents`** - Connection lifecycle, validation, and interaction events
+- **`ViewportEvents`** - Pan, zoom, and canvas interaction events
+- **`AnnotationEvents`** - Annotation lifecycle and interaction events
+- **Top-level** - Selection change tracking, initialization, and error handling
 
 ### Keyboard Shortcuts
 
@@ -2050,30 +2082,34 @@ class _WorkflowBuilderState extends State<WorkflowBuilder> {
         theme: _createWorkflowTheme(),
         nodeBuilder: _buildWorkflowNode,
 
-        // Prevent invalid connections
-        onBeforeCompleteConnection: (context) {
-          // Don't allow loops
-          if (context.sourceNode.id == context.targetNode.id) {
-            return ConnectionValidationResult.invalid(
-              reason: 'Cannot connect to self',
-            );
-          }
+        events: NodeFlowEvents<WorkflowNodeData>(
+          connection: ConnectionEvents<WorkflowNodeData>(
+            // Prevent invalid connections
+            onBeforeComplete: (context) {
+              // Don't allow loops
+              if (context.sourceNode.id == context.targetNode.id) {
+                return ConnectionValidationResult.invalid(
+                  reason: 'Cannot connect to self',
+                );
+              }
 
-          // Check for cycles
-          if (_wouldCreateCycle(context)) {
-            return ConnectionValidationResult.invalid(
-              reason: 'Would create circular dependency',
-            );
-          }
+              // Check for cycles
+              if (_wouldCreateCycle(context)) {
+                return ConnectionValidationResult.invalid(
+                  reason: 'Would create circular dependency',
+                );
+              }
 
-          return ConnectionValidationResult.valid();
-        },
+              return ConnectionValidationResult.valid();
+            },
 
-        onConnectionCreated: (connection) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Connection created')),
-          );
-        },
+            onCreated: (connection) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Connection created')),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -2302,6 +2338,9 @@ class ProcessViewer extends StatelessWidget {
 | `zoomBy(double delta)`                        | Adjust zoom by delta            |
 | `zoomTo(double zoom)`                         | Set specific zoom level         |
 | `fitToView()`                                 | Fit all nodes in view           |
+| `centerViewport()`                            | Center viewport on all nodes    |
+| `getViewportCenter()`                         | Get viewport center in graph coordinates |
+| `centerOn(Offset point)`                      | Center viewport on specific point |
 | `centerOnNode(String id)`                     | Center viewport on node         |
 | `exportGraph()`                               | Export graph to JSON            |
 | `loadGraph(NodeGraph)`                        | Load graph from data            |
