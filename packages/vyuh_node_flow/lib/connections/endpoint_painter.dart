@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 
 import '../ports/port.dart';
-import '../ports/shapes/port_shape.dart';
+import '../shared/shapes/marker_shape.dart';
 
-/// Painter for connection endpoints that can render different shapes
+/// Painter for connection endpoints that can render different shapes.
+///
+/// For connection endpoints, asymmetric shapes (like triangles) have their tips
+/// pointing outward (along the connection direction).
 class EndpointPainter {
   /// Paints an endpoint shape at the given position
   static void paint({
     required Canvas canvas,
     required Offset position,
     required double size,
-    required PortShape shape,
+    required MarkerShape shape,
     required PortPosition portPosition,
     required Paint fillPaint,
     Paint? borderPaint,
@@ -18,7 +21,8 @@ class EndpointPainter {
     // Get opposite orientation (endpoints face away from the port they connect to)
     final orientation = _getOppositeOrientation(portPosition);
 
-    // Use the PortShape's paint method
+    // Use the MarkerShape's paint method.
+    // For connection endpoints, isPointingOutward is always true (tips point outward).
     shape.paint(
       canvas,
       position,
@@ -26,6 +30,7 @@ class EndpointPainter {
       fillPaint,
       borderPaint,
       orientation: orientation,
+      isPointingOutward: true,
     );
   }
 

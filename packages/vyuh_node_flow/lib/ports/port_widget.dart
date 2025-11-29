@@ -39,7 +39,6 @@ class PortWidget extends StatelessWidget {
             color: _getPortColor(),
             borderColor: _getBorderColor(),
             borderWidth: _getBorderWidth(),
-            isOutputPort: port.isSource,
           ),
         ),
         // Port label (if enabled in both theme and port)

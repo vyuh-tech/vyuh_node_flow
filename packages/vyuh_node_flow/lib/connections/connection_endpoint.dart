@@ -1,8 +1,8 @@
 import 'package:json_annotation/json_annotation.dart';
 
-import '../ports/shapes/port_shape.dart';
-import '../ports/shapes/port_shapes.dart';
 import '../shared/json_converters.dart';
+import '../shared/shapes/marker_shape.dart';
+import '../shared/shapes/marker_shapes.dart';
 
 part 'connection_endpoint.g.dart';
 
@@ -22,7 +22,7 @@ part 'connection_endpoint.g.dart';
 /// ```dart
 /// // Create a custom endpoint
 /// const myEndpoint = ConnectionEndPoint(
-///   shape: PortShapes.triangle,
+///   shape: MarkerShapes.triangle,
 ///   size: 8.0,
 /// );
 ///
@@ -33,7 +33,7 @@ part 'connection_endpoint.g.dart';
 /// ```
 ///
 /// See also:
-/// - [PortShape] for available shapes
+/// - [MarkerShape] for available shapes
 /// - [ConnectionTheme] for configuring default endpoints
 /// - [Connection] for applying endpoints to connections
 @JsonSerializable()
@@ -46,8 +46,8 @@ class ConnectionEndPoint {
   const ConnectionEndPoint({required this.shape, required this.size});
 
   /// The geometric shape of the endpoint marker.
-  @PortShapeConverter()
-  final PortShape shape;
+  @MarkerShapeConverter()
+  final MarkerShape shape;
 
   /// The size of the marker in logical pixels.
   ///
@@ -61,7 +61,7 @@ class ConnectionEndPoint {
   /// - [size]: If provided, replaces the current size
   ///
   /// Returns: A new [ConnectionEndPoint] with the specified changes
-  ConnectionEndPoint copyWith({PortShape? shape, double? size}) {
+  ConnectionEndPoint copyWith({MarkerShape? shape, double? size}) {
     return ConnectionEndPoint(
       shape: shape ?? this.shape,
       size: size ?? this.size,
@@ -78,31 +78,37 @@ class ConnectionEndPoint {
   /// No endpoint marker (invisible).
   ///
   /// Use this when you want a clean connection line without any decorative markers.
-  static const none = ConnectionEndPoint(shape: PortShapes.none, size: 0.0);
+  static const none = ConnectionEndPoint(shape: MarkerShapes.none, size: 0.0);
 
   /// Half-capsule endpoint marker with default size 5.0.
   ///
   /// This creates a rounded arrow-like appearance.
   static const capsuleHalf = ConnectionEndPoint(
-    shape: PortShapes.capsuleHalf,
+    shape: MarkerShapes.capsuleHalf,
     size: 5.0,
   );
 
   /// Circular endpoint marker with default size 5.0.
   ///
   /// Creates a simple dot at the endpoint.
-  static const circle = ConnectionEndPoint(shape: PortShapes.circle, size: 5.0);
+  static const circle = ConnectionEndPoint(
+    shape: MarkerShapes.circle,
+    size: 5.0,
+  );
 
   /// Square endpoint marker with default size 5.0.
   ///
   /// Creates a solid square at the endpoint.
-  static const square = ConnectionEndPoint(shape: PortShapes.square, size: 5.0);
+  static const square = ConnectionEndPoint(
+    shape: MarkerShapes.square,
+    size: 5.0,
+  );
 
   /// Diamond endpoint marker with default size 5.0.
   ///
   /// Creates a diamond (45-degree rotated square) at the endpoint.
   static const diamond = ConnectionEndPoint(
-    shape: PortShapes.diamond,
+    shape: MarkerShapes.diamond,
     size: 5.0,
   );
 
@@ -111,7 +117,7 @@ class ConnectionEndPoint {
   /// Creates an arrow-head triangle at the endpoint, pointing in the
   /// direction of the connection.
   static const triangle = ConnectionEndPoint(
-    shape: PortShapes.triangle,
+    shape: MarkerShapes.triangle,
     size: 5.0,
   );
 

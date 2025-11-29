@@ -15,8 +15,9 @@ class ThemingExample extends StatefulWidget {
 class _ThemingExampleState extends State<ThemingExample> {
   late final NodeFlowController<Map<String, dynamic>> _controller;
   late NodeFlowTheme _theme;
-  PortShape _selectedPortShape = PortShapes.capsuleHalf;
+  MarkerShape _selectedPortShape = MarkerShapes.capsuleHalf;
   bool _scrollToZoom = true;
+  double _endpointSize = 5.0;
 
   @override
   void initState() {
@@ -36,6 +37,9 @@ class _ThemingExampleState extends State<ThemingExample> {
 
   void _createExampleGraph() {
     // Create a sample graph to demonstrate theming
+    // Port offsets specify the CENTER of the port shape:
+    // - For left/right ports: offset.dy is the vertical center
+    // - For top/bottom ports: offset.dx is the horizontal center
     final node1 = Node<Map<String, dynamic>>(
       id: 'node1',
       type: 'source',
@@ -47,7 +51,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'out1',
           name: 'Output 1',
           position: PortPosition.right,
-          offset: const Offset(0, 30),
+          offset: const Offset(0, 33), // Vertical center at 1/3 height
           shape: _selectedPortShape,
           showLabel: true,
         ),
@@ -55,7 +59,23 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'out2',
           name: 'Output 2',
           position: PortPosition.right,
-          offset: const Offset(0, 70),
+          offset: const Offset(0, 67), // Vertical center at 2/3 height
+          shape: _selectedPortShape,
+          showLabel: true,
+        ),
+        Port(
+          id: 'out-top',
+          name: 'Top',
+          position: PortPosition.top,
+          offset: const Offset(75, 0), // Horizontal center at mid-width
+          shape: _selectedPortShape,
+          showLabel: true,
+        ),
+        Port(
+          id: 'out-bottom',
+          name: 'Bottom',
+          position: PortPosition.bottom,
+          offset: const Offset(75, 0), // Horizontal center at mid-width
           shape: _selectedPortShape,
           showLabel: true,
         ),
@@ -73,7 +93,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'in1',
           name: 'Input',
           position: PortPosition.left,
-          offset: const Offset(0, 50),
+          offset: const Offset(0, 50), // Vertical center at mid-height
           shape: _selectedPortShape,
           showLabel: true,
         ),
@@ -83,7 +103,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'out1',
           name: 'Output',
           position: PortPosition.right,
-          offset: const Offset(0, 50),
+          offset: const Offset(0, 50), // Vertical center at mid-height
           shape: _selectedPortShape,
           showLabel: true,
         ),
@@ -101,7 +121,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'in1',
           name: 'Input 1',
           position: PortPosition.left,
-          offset: const Offset(0, 30),
+          offset: const Offset(0, 33), // Vertical center at 1/3 height
           shape: _selectedPortShape,
           showLabel: true,
         ),
@@ -109,7 +129,23 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'in2',
           name: 'Input 2',
           position: PortPosition.left,
-          offset: const Offset(0, 70),
+          offset: const Offset(0, 67), // Vertical center at 2/3 height
+          shape: _selectedPortShape,
+          showLabel: true,
+        ),
+        Port(
+          id: 'in-top',
+          name: 'Top',
+          position: PortPosition.top,
+          offset: const Offset(75, 0), // Horizontal center at mid-width
+          shape: _selectedPortShape,
+          showLabel: true,
+        ),
+        Port(
+          id: 'in-bottom',
+          name: 'Bottom',
+          position: PortPosition.bottom,
+          offset: const Offset(75, 0), // Horizontal center at mid-width
           shape: _selectedPortShape,
           showLabel: true,
         ),
@@ -155,7 +191,7 @@ class _ThemingExampleState extends State<ThemingExample> {
   void _resetToLightTheme() {
     setState(() {
       _theme = NodeFlowTheme.light;
-      _selectedPortShape = PortShapes.capsuleHalf;
+      _selectedPortShape = MarkerShapes.capsuleHalf;
     });
 
     // Clear and recreate the graph with default port shapes
@@ -163,7 +199,7 @@ class _ThemingExampleState extends State<ThemingExample> {
     _createExampleGraph();
   }
 
-  void _updatePortShape(PortShape newShape) {
+  void _updatePortShape(MarkerShape newShape) {
     setState(() {
       _selectedPortShape = newShape;
     });
@@ -285,7 +321,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           onPressed: () {
             setState(() {
               _theme = NodeFlowTheme.dark;
-              _selectedPortShape = PortShapes.capsuleHalf;
+              _selectedPortShape = MarkerShapes.capsuleHalf;
             });
             _controller.clearGraph();
             _createExampleGraph();
@@ -380,23 +416,28 @@ class _ThemingExampleState extends State<ThemingExample> {
           runSpacing: 8,
           children:
               [
-                ('None', ConnectionEndPoint.none),
-                ('Circle', ConnectionEndPoint.circle),
-                ('Square', ConnectionEndPoint.square),
-                ('Diamond', ConnectionEndPoint.diamond),
-                ('Triangle', ConnectionEndPoint.triangle),
-                ('Capsule', ConnectionEndPoint.capsuleHalf),
+                ('None', MarkerShapes.none),
+                ('Circle', MarkerShapes.circle),
+                ('Square', MarkerShapes.square),
+                ('Diamond', MarkerShapes.diamond),
+                ('Triangle', MarkerShapes.triangle),
+                ('Capsule', MarkerShapes.capsuleHalf),
               ].map((entry) {
-                final (name, endpoint) = entry;
+                final (name, shape) = entry;
+                final isSelected =
+                    _theme.connectionTheme.startPoint.shape == shape;
                 return ChoiceChip(
                   label: Text(name, style: const TextStyle(fontSize: 11)),
-                  selected: _theme.connectionTheme.startPoint == endpoint,
+                  selected: isSelected,
                   onSelected: (selected) {
                     if (selected) {
                       _updateTheme(
                         _theme.copyWith(
                           connectionTheme: _theme.connectionTheme.copyWith(
-                            startPoint: endpoint,
+                            startPoint: ConnectionEndPoint(
+                              shape: shape,
+                              size: _endpointSize,
+                            ),
                           ),
                         ),
                       );
@@ -413,23 +454,28 @@ class _ThemingExampleState extends State<ThemingExample> {
           runSpacing: 8,
           children:
               [
-                ('None', ConnectionEndPoint.none),
-                ('Circle', ConnectionEndPoint.circle),
-                ('Square', ConnectionEndPoint.square),
-                ('Diamond', ConnectionEndPoint.diamond),
-                ('Triangle', ConnectionEndPoint.triangle),
-                ('Capsule', ConnectionEndPoint.capsuleHalf),
+                ('None', MarkerShapes.none),
+                ('Circle', MarkerShapes.circle),
+                ('Square', MarkerShapes.square),
+                ('Diamond', MarkerShapes.diamond),
+                ('Triangle', MarkerShapes.triangle),
+                ('Capsule', MarkerShapes.capsuleHalf),
               ].map((entry) {
-                final (name, endpoint) = entry;
+                final (name, shape) = entry;
+                final isSelected =
+                    _theme.connectionTheme.endPoint.shape == shape;
                 return ChoiceChip(
                   label: Text(name, style: const TextStyle(fontSize: 11)),
-                  selected: _theme.connectionTheme.endPoint == endpoint,
+                  selected: isSelected,
                   onSelected: (selected) {
                     if (selected) {
                       _updateTheme(
                         _theme.copyWith(
                           connectionTheme: _theme.connectionTheme.copyWith(
-                            endPoint: endpoint,
+                            endPoint: ConnectionEndPoint(
+                              shape: shape,
+                              size: _endpointSize,
+                            ),
                           ),
                         ),
                       );
@@ -438,6 +484,22 @@ class _ThemingExampleState extends State<ThemingExample> {
                 );
               }).toList(),
         ),
+        const SizedBox(height: 12),
+        _buildSlider('Endpoint Size', _endpointSize, 3.0, 15.0, (value) {
+          setState(() {
+            _endpointSize = value;
+          });
+          _updateTheme(
+            _theme.copyWith(
+              connectionTheme: _theme.connectionTheme.copyWith(
+                startPoint: _theme.connectionTheme.startPoint.copyWith(
+                  size: value,
+                ),
+                endPoint: _theme.connectionTheme.endPoint.copyWith(size: value),
+              ),
+            ),
+          );
+        }),
       ],
     );
   }
@@ -640,11 +702,12 @@ class _ThemingExampleState extends State<ThemingExample> {
           runSpacing: 8,
           children:
               [
-                ('circle', PortShapes.circle),
-                ('square', PortShapes.square),
-                ('diamond', PortShapes.diamond),
-                ('triangle', PortShapes.triangle),
-                ('capsule', PortShapes.capsuleHalf),
+                ('circle', MarkerShapes.circle),
+                ('square', MarkerShapes.square),
+                ('rectangle', MarkerShapes.rectangle),
+                ('diamond', MarkerShapes.diamond),
+                ('triangle', MarkerShapes.triangle),
+                ('capsule', MarkerShapes.capsuleHalf),
               ].map((entry) {
                 final (name, shape) = entry;
                 return ChoiceChip(

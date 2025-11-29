@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
-import 'port_shape.dart';
+import 'marker_shape.dart';
 
-/// Diamond port shape
-class DiamondPortShape extends PortShape {
-  const DiamondPortShape();
+/// Diamond marker shape.
+///
+/// A symmetric shape (45-degree rotated square) that looks the same
+/// regardless of orientation.
+class DiamondMarkerShape extends MarkerShape {
+  const DiamondMarkerShape();
 
   @override
   String get typeName => 'diamond';
@@ -17,7 +20,7 @@ class DiamondPortShape extends PortShape {
     Paint fillPaint,
     Paint? borderPaint, {
     ShapeDirection? orientation,
-    bool isOutputPort = false,
+    bool isPointingOutward = false,
   }) {
     final path = Path();
     path.moveTo(center.dx, center.dy - size / 2);
@@ -34,7 +37,7 @@ class DiamondPortShape extends PortShape {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is DiamondPortShape;
+      identical(this, other) || other is DiamondMarkerShape;
 
   @override
   int get hashCode => typeName.hashCode;

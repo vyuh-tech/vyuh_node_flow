@@ -5,6 +5,7 @@ import '../nodes/node.dart';
 import '../nodes/node_shape.dart';
 import '../ports/port.dart';
 import '../ports/port_theme.dart';
+import '../shared/shapes/none_marker_shape.dart';
 import 'connection.dart';
 import 'connection_endpoint.dart';
 import 'connection_path_cache.dart';
@@ -152,16 +153,24 @@ class ConnectionPainter {
       shape: targetShape,
     );
 
+    // Use 0 size for NoneMarkerShape to avoid creating gaps
+    final startPointSize = effectiveStartPoint.shape is NoneMarkerShape
+        ? 0.0
+        : effectiveStartPoint.size;
+    final endPointSize = effectiveEndPoint.shape is NoneMarkerShape
+        ? 0.0
+        : effectiveEndPoint.size;
+
     final source = EndpointPositionCalculator.calculatePortConnectionPoints(
       sourcePortPosition,
       sourcePort.position,
-      effectiveStartPoint.size,
+      startPointSize,
       portTheme.size,
     );
     final target = EndpointPositionCalculator.calculatePortConnectionPoints(
       targetPortPosition,
       targetPort.position,
-      effectiveEndPoint.size,
+      endPointSize,
       portTheme.size,
     );
 
@@ -238,11 +247,20 @@ class ConnectionPainter {
     ({Offset endpointPos, Offset linePos})? source;
     ({Offset endpointPos, Offset linePos})? target;
 
+    // Use 0 size for NoneMarkerShape to avoid creating gaps
+    final tempStartPointSize =
+        connectionTheme.startPoint.shape is NoneMarkerShape
+        ? 0.0
+        : connectionTheme.startPoint.size;
+    final tempEndPointSize = connectionTheme.endPoint.shape is NoneMarkerShape
+        ? 0.0
+        : connectionTheme.endPoint.size;
+
     if (sourcePort != null) {
       source = EndpointPositionCalculator.calculatePortConnectionPoints(
         startPoint,
         sourcePort.position,
-        connectionTheme.startPoint.size,
+        tempStartPointSize,
         portTheme.size,
       );
     } else {
@@ -254,7 +272,7 @@ class ConnectionPainter {
       target = EndpointPositionCalculator.calculatePortConnectionPoints(
         currentPoint,
         targetPort.position,
-        connectionTheme.endPoint.size,
+        tempEndPointSize,
         portTheme.size,
       );
     } else {

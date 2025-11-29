@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../capsule_half.dart';
-import 'port_shape.dart';
+import '../../ports/capsule_half.dart';
+import 'marker_shape.dart';
 
 /// Extension to convert ShapeDirection to CapsuleFlatSide
 extension ShapeDirectionExtension on ShapeDirection {
@@ -19,9 +19,12 @@ extension ShapeDirectionExtension on ShapeDirection {
   }
 }
 
-/// Half-capsule port shape with orientation
-class CapsuleHalfPortShape extends PortShape {
-  const CapsuleHalfPortShape();
+/// Half-capsule marker shape with orientation.
+///
+/// Renders a half-capsule (semicircular) shape. The flat side is determined
+/// by the [orientation] parameter.
+class CapsuleHalfMarkerShape extends MarkerShape {
+  const CapsuleHalfMarkerShape();
 
   @override
   String get typeName => 'capsuleHalf';
@@ -34,7 +37,7 @@ class CapsuleHalfPortShape extends PortShape {
     Paint fillPaint,
     Paint? borderPaint, {
     ShapeDirection? orientation,
-    bool isOutputPort = false,
+    bool isPointingOutward = false,
   }) {
     // Default to right if no orientation provided
     final effectiveOrientation = orientation ?? ShapeDirection.right;
@@ -51,7 +54,7 @@ class CapsuleHalfPortShape extends PortShape {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is CapsuleHalfPortShape;
+      identical(this, other) || other is CapsuleHalfMarkerShape;
 
   @override
   int get hashCode => typeName.hashCode;

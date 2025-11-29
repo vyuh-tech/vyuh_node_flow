@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
-import 'port_shape.dart';
+import 'marker_shape.dart';
 
-/// Port shape that renders nothing
-class NonePortShape extends PortShape {
-  const NonePortShape();
+/// Marker shape that renders nothing.
+///
+/// Use this when you want an invisible marker or to disable
+/// visual markers for ports or connection endpoints.
+class NoneMarkerShape extends MarkerShape {
+  const NoneMarkerShape();
 
   @override
   String get typeName => 'none';
@@ -17,14 +20,14 @@ class NonePortShape extends PortShape {
     Paint fillPaint,
     Paint? borderPaint, {
     ShapeDirection? orientation,
-    bool isOutputPort = false,
+    bool isPointingOutward = false,
   }) {
     // Intentionally empty - no shape rendered
   }
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is NonePortShape;
+      identical(this, other) || other is NoneMarkerShape;
 
   @override
   int get hashCode => typeName.hashCode;

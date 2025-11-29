@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../shared/shapes/marker_shape.dart';
 import 'port.dart';
-import 'shapes/port_shape.dart';
 
-/// A widget that renders different port shapes based on the port's shape configuration
+/// A widget that renders different marker shapes for ports.
+///
+/// For ports, asymmetric shapes (like triangles) always have their tips
+/// pointing inward (into the node).
 class PortShapeWidget extends StatelessWidget {
   const PortShapeWidget({
     super.key,
@@ -13,16 +16,14 @@ class PortShapeWidget extends StatelessWidget {
     required this.color,
     required this.borderColor,
     required this.borderWidth,
-    this.isOutputPort = false,
   });
 
-  final PortShape shape;
+  final MarkerShape shape;
   final PortPosition position;
   final double size;
   final Color color;
   final Color borderColor;
   final double borderWidth;
-  final bool isOutputPort;
 
   @override
   Widget build(BuildContext context) {
@@ -34,13 +35,12 @@ class PortShapeWidget extends StatelessWidget {
         color: color,
         borderColor: borderColor,
         borderWidth: borderWidth,
-        isOutputPort: isOutputPort,
       ),
     );
   }
 }
 
-/// Custom painter that uses PortShape classes for rendering
+/// Custom painter that uses MarkerShape classes for rendering
 class _PortShapePainter extends CustomPainter {
   const _PortShapePainter({
     required this.shape,
@@ -48,15 +48,13 @@ class _PortShapePainter extends CustomPainter {
     required this.color,
     required this.borderColor,
     required this.borderWidth,
-    required this.isOutputPort,
   });
 
-  final PortShape shape;
+  final MarkerShape shape;
   final PortPosition position;
   final Color color;
   final Color borderColor;
   final double borderWidth;
-  final bool isOutputPort;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -72,7 +70,8 @@ class _PortShapePainter extends CustomPainter {
             ..style = PaintingStyle.stroke)
         : null;
 
-    // Use the shape's paint method, passing orientation from port position
+    // Use the shape's paint method, passing orientation from port position.
+    // For ports, isPointingOutward is always false (tips point inward).
     shape.paint(
       canvas,
       Offset(size.width / 2, size.height / 2),
@@ -80,7 +79,7 @@ class _PortShapePainter extends CustomPainter {
       fillPaint,
       borderPaint,
       orientation: position.toOrientation(),
-      isOutputPort: isOutputPort,
+      isPointingOutward: false,
     );
   }
 
@@ -90,7 +89,6 @@ class _PortShapePainter extends CustomPainter {
         position != oldDelegate.position ||
         color != oldDelegate.color ||
         borderColor != oldDelegate.borderColor ||
-        borderWidth != oldDelegate.borderWidth ||
-        isOutputPort != oldDelegate.isOutputPort;
+        borderWidth != oldDelegate.borderWidth;
   }
 }

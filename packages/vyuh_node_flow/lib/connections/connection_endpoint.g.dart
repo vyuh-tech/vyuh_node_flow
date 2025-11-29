@@ -8,7 +8,7 @@ part of 'connection_endpoint.dart';
 
 ConnectionEndPoint _$ConnectionEndPointFromJson(Map<String, dynamic> json) =>
     ConnectionEndPoint(
-      shape: const PortShapeConverter().fromJson(
+      shape: const MarkerShapeConverter().fromJson(
         json['shape'] as Map<String, dynamic>,
       ),
       size: (json['size'] as num).toDouble(),
@@ -16,6 +16,6 @@ ConnectionEndPoint _$ConnectionEndPointFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$ConnectionEndPointToJson(ConnectionEndPoint instance) =>
     <String, dynamic>{
-      'shape': const PortShapeConverter().toJson(instance.shape),
+      'shape': const MarkerShapeConverter().toJson(instance.shape),
       'size': instance.size,
     };

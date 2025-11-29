@@ -7,6 +7,7 @@ import '../graph/node_flow_theme.dart';
 import '../nodes/node.dart';
 import '../nodes/node_shape.dart';
 import '../ports/port.dart';
+import '../shared/shapes/none_marker_shape.dart';
 
 /// Cached path data with hit testing capabilities
 class _CachedConnectionPath {
@@ -209,17 +210,25 @@ class ConnectionPathCache {
       connectionTheme.endPoint,
     );
 
+    // Use 0 size for NoneMarkerShape to avoid creating gaps
+    final startPointSize = effectiveStartPoint.shape is NoneMarkerShape
+        ? 0.0
+        : effectiveStartPoint.size;
+    final endPointSize = effectiveEndPoint.shape is NoneMarkerShape
+        ? 0.0
+        : effectiveEndPoint.size;
+
     // Calculate connection points
     final source = EndpointPositionCalculator.calculatePortConnectionPoints(
       sourcePortPosition,
       sourcePort.position,
-      effectiveStartPoint.size,
+      startPointSize,
       portTheme.size,
     );
     final target = EndpointPositionCalculator.calculatePortConnectionPoints(
       targetPortPosition,
       targetPort.position,
-      effectiveEndPoint.size,
+      endPointSize,
       portTheme.size,
     );
 

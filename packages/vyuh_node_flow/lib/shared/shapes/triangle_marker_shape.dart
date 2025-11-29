@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 
-import 'port_shape.dart';
+import 'marker_shape.dart';
 
-/// Triangle port shape with orientation
-class TrianglePortShape extends PortShape {
-  const TrianglePortShape();
+/// Triangle marker shape with orientation.
+///
+/// The triangle orientation depends on both the [orientation] parameter
+/// and the [isPointingOutward] parameter:
+/// - When [isPointingOutward] is false: flat side faces outward, tip points inward
+/// - When [isPointingOutward] is true: tip points outward, flat side faces inward
+class TriangleMarkerShape extends MarkerShape {
+  const TriangleMarkerShape();
 
   @override
   String get typeName => 'triangle';
@@ -17,7 +22,7 @@ class TrianglePortShape extends PortShape {
     Paint fillPaint,
     Paint? borderPaint, {
     ShapeDirection? orientation,
-    bool isOutputPort = false,
+    bool isPointingOutward = false,
   }) {
     final path = Path();
     final halfSize = size / 2;
@@ -25,12 +30,12 @@ class TrianglePortShape extends PortShape {
     // Default to right if no orientation provided
     final effectiveOrientation = orientation ?? ShapeDirection.right;
 
-    // Orient triangle based on port type:
-    // - Input ports (isOutputPort = false): point faces inward, flat side outside
-    // - Output ports (isOutputPort = true): point faces outward, flat side inside
+    // Orient triangle based on context:
+    // - isPointingOutward = false: flat side outside, tip points inward (input ports)
+    // - isPointingOutward = true: tip points outward, flat side inside (output ports, endpoints)
     switch (effectiveOrientation) {
       case ShapeDirection.left:
-        if (isOutputPort) {
+        if (isPointingOutward) {
           // Point on left (outside), flat side on right (inside)
           path.moveTo(center.dx - halfSize, center.dy);
           path.lineTo(center.dx + halfSize, center.dy - halfSize);
@@ -43,7 +48,7 @@ class TrianglePortShape extends PortShape {
         }
         break;
       case ShapeDirection.right:
-        if (isOutputPort) {
+        if (isPointingOutward) {
           // Point on right (outside), flat side on left (inside)
           path.moveTo(center.dx + halfSize, center.dy);
           path.lineTo(center.dx - halfSize, center.dy - halfSize);
@@ -56,7 +61,7 @@ class TrianglePortShape extends PortShape {
         }
         break;
       case ShapeDirection.top:
-        if (isOutputPort) {
+        if (isPointingOutward) {
           // Point on top (outside), flat side on bottom (inside)
           path.moveTo(center.dx, center.dy - halfSize);
           path.lineTo(center.dx - halfSize, center.dy + halfSize);
@@ -69,7 +74,7 @@ class TrianglePortShape extends PortShape {
         }
         break;
       case ShapeDirection.bottom:
-        if (isOutputPort) {
+        if (isPointingOutward) {
           // Point on bottom (outside), flat side on top (inside)
           path.moveTo(center.dx, center.dy + halfSize);
           path.lineTo(center.dx - halfSize, center.dy - halfSize);
@@ -92,7 +97,7 @@ class TrianglePortShape extends PortShape {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is TrianglePortShape;
+      identical(this, other) || other is TriangleMarkerShape;
 
   @override
   int get hashCode => typeName.hashCode;

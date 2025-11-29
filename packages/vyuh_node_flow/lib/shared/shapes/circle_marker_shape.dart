@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
-import 'port_shape.dart';
+import 'marker_shape.dart';
 
-/// Circular port shape
-class CirclePortShape extends PortShape {
-  const CirclePortShape();
+/// Circular marker shape.
+///
+/// A symmetric shape that looks the same regardless of orientation.
+class CircleMarkerShape extends MarkerShape {
+  const CircleMarkerShape();
 
   @override
   String get typeName => 'circle';
@@ -17,7 +19,7 @@ class CirclePortShape extends PortShape {
     Paint fillPaint,
     Paint? borderPaint, {
     ShapeDirection? orientation,
-    bool isOutputPort = false,
+    bool isPointingOutward = false,
   }) {
     final radius = size / 2;
     canvas.drawCircle(center, radius, fillPaint);
@@ -32,7 +34,7 @@ class CirclePortShape extends PortShape {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is CirclePortShape;
+      identical(this, other) || other is CircleMarkerShape;
 
   @override
   int get hashCode => typeName.hashCode;

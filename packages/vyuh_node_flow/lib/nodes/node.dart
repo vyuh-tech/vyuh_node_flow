@@ -234,34 +234,35 @@ class Node<T> {
     }
 
     // Use rectangular logic
+    // The port.offset specifies the CENTER of the port shape:
+    // - For left/right ports: offset.dy is the vertical center
+    // - For top/bottom ports: offset.dx is the horizontal center
+    final halfPortSize = portSize / 2;
+
     switch (port.position) {
       case PortPosition.left:
-        // Left edge: port protrudes halfway out from left edge
+        // Left edge: port centered vertically at offset.dy
         return Offset(
-          port.offset.dx, // Left edge of padded container
-          port.offset.dy, // Centered vertically with offset
+          port.offset.dx,
+          port.offset.dy - halfPortSize, // Center vertically at offset.dy
         );
       case PortPosition.right:
-        // Right edge: port protrudes halfway out from right edge
+        // Right edge: port centered vertically at offset.dy
         return Offset(
-          size.value.width -
-              portSize +
-              port.offset.dx, // Right edge of padded container minus port size
-          port.offset.dy, // Centered vertically with offset
+          size.value.width - portSize + port.offset.dx,
+          port.offset.dy - halfPortSize, // Center vertically at offset.dy
         );
       case PortPosition.top:
-        // Top edge: port protrudes halfway out from top edge
+        // Top edge: port centered horizontally at offset.dx
         return Offset(
-          port.offset.dx, // Centered horizontally with offset
-          port.offset.dy, // Top edge of padded container
+          port.offset.dx - halfPortSize, // Center horizontally at offset.dx
+          port.offset.dy,
         );
       case PortPosition.bottom:
-        // Bottom edge: port protrudes halfway out from bottom edge
+        // Bottom edge: port centered horizontally at offset.dx
         return Offset(
-          port.offset.dx, // Centered horizontally with offset
-          size.value.height -
-              portSize +
-              port.offset.dy, // Bottom edge of container
+          port.offset.dx - halfPortSize, // Center horizontally at offset.dx
+          size.value.height - portSize + port.offset.dy,
         );
     }
   }

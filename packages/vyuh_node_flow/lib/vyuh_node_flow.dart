@@ -166,8 +166,9 @@ export 'nodes/shapes/hexagon_shape.dart';
 // Ports
 export 'ports/port.dart';
 export 'ports/port_theme.dart';
-export 'ports/shapes/port_shape.dart';
-export 'ports/shapes/port_shapes.dart';
+// Marker Shapes (for ports and connection endpoints)
+export 'shared/shapes/marker_shape.dart';
+export 'shared/shapes/marker_shapes.dart';
 // Shared Utilities
 export 'shared/flutter_actions_integration.dart';
 export 'shared/json_converters.dart';

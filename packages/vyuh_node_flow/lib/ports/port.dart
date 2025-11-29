@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../shared/json_converters.dart';
-import 'shapes/port_shape.dart';
-import 'shapes/port_shapes.dart';
+import '../shared/shapes/marker_shape.dart';
+import '../shared/shapes/marker_shapes.dart';
 
 part 'port.g.dart';
 
@@ -96,7 +96,9 @@ class Port extends Equatable {
   /// - [name]: Display name for the port
   /// - [multiConnections]: Whether multiple connections are allowed (default: false)
   /// - [position]: Where the port is positioned on the node (default: left)
-  /// - [offset]: Additional offset from the default position (default: zero)
+  /// - [offset]: Position where the CENTER of the port should be. For left/right
+  ///   ports, offset.dy is the vertical center. For top/bottom ports, offset.dx
+  ///   is the horizontal center. (default: zero)
   /// - [type]: Whether the port is a source, target, or both (default: both)
   /// - [shape]: Visual shape of the port (default: capsuleHalf)
   /// - [size]: Diameter of the port in logical pixels (default: 9.0)
@@ -111,7 +113,7 @@ class Port extends Equatable {
     this.position = PortPosition.left,
     this.offset = Offset.zero,
     this.type = PortType.both,
-    this.shape = PortShapes.capsuleHalf,
+    this.shape = MarkerShapes.capsuleHalf,
     this.size = 9.0,
     this.tooltip,
     this.isConnectable = true,
@@ -143,10 +145,28 @@ class Port extends Equatable {
   /// Determines which side of the node the port appears on.
   final PortPosition position;
 
-  /// Additional offset from the port's base position.
+  /// Position offset that specifies where the CENTER of the port should be.
   ///
-  /// Used to fine-tune port placement when multiple ports are on the same
-  /// side of a node or when custom positioning is required.
+  /// The offset interpretation depends on the port's [position]:
+  /// - **Left/Right ports**: [offset.dy] is the vertical center position
+  ///   (distance from the top of the node). [offset.dx] adjusts the horizontal
+  ///   position from the edge.
+  /// - **Top/Bottom ports**: [offset.dx] is the horizontal center position
+  ///   (distance from the left of the node). [offset.dy] adjusts the vertical
+  ///   position from the edge.
+  ///
+  /// Example for a 150x100 node:
+  /// ```dart
+  /// // Right port centered vertically at 50 (middle of node)
+  /// Port(position: PortPosition.right, offset: Offset(0, 50))
+  ///
+  /// // Top port centered horizontally at 75 (middle of node width)
+  /// Port(position: PortPosition.top, offset: Offset(75, 0))
+  ///
+  /// // Two right ports at 1/3 and 2/3 height
+  /// Port(position: PortPosition.right, offset: Offset(0, 33))
+  /// Port(position: PortPosition.right, offset: Offset(0, 67))
+  /// ```
   @OffsetConverter()
   final Offset offset;
 
@@ -160,8 +180,8 @@ class Port extends Equatable {
   ///
   /// Different shapes can be used to visually distinguish different types
   /// of ports or data flows.
-  @PortShapeConverter()
-  final PortShape shape;
+  @MarkerShapeConverter()
+  final MarkerShape shape;
 
   /// The size of the port in logical pixels.
   ///
@@ -234,7 +254,7 @@ class Port extends Equatable {
     PortPosition? position,
     Offset? offset,
     PortType? type,
-    PortShape? shape,
+    MarkerShape? shape,
     double? size,
     IconData? icon,
     String? tooltip,

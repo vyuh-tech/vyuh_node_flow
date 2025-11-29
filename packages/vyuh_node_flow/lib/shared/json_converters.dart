@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../ports/shapes/port_shape.dart';
+import 'shapes/marker_shape.dart';
 
 /// A JSON converter for Flutter's [Offset] class.
 ///
@@ -200,10 +200,10 @@ class ColorConverter implements JsonConverter<Color, int> {
   }
 }
 
-/// A JSON converter for [PortShape] class.
+/// A JSON converter for [MarkerShape] class.
 ///
-/// This converter serializes [PortShape] objects to JSON using their toJson method,
-/// and deserializes JSON maps back to [PortShape] objects using the factory constructor.
+/// This converter serializes [MarkerShape] objects to JSON using their toJson method,
+/// and deserializes JSON maps back to [MarkerShape] objects using the factory constructor.
 ///
 /// Example JSON representation:
 /// ```json
@@ -224,32 +224,32 @@ class ColorConverter implements JsonConverter<Color, int> {
 /// ```dart
 /// @JsonSerializable()
 /// class Port {
-///   @PortShapeConverter()
-///   final PortShape shape;
+///   @MarkerShapeConverter()
+///   final MarkerShape shape;
 ///
 ///   Port(this.shape);
 /// }
 /// ```
-class PortShapeConverter
-    implements JsonConverter<PortShape, Map<String, dynamic>> {
-  /// Creates a const instance of [PortShapeConverter].
-  const PortShapeConverter();
+class MarkerShapeConverter
+    implements JsonConverter<MarkerShape, Map<String, dynamic>> {
+  /// Creates a const instance of [MarkerShapeConverter].
+  const MarkerShapeConverter();
 
-  /// Converts a JSON map to a [PortShape] object.
+  /// Converts a JSON map to a [MarkerShape] object.
   ///
-  /// Uses the factory constructor PortShape.fromJson to create the appropriate
+  /// Uses the factory constructor MarkerShape.fromJson to create the appropriate
   /// subclass based on the 'type' field in the JSON.
   @override
-  PortShape fromJson(Map<String, dynamic> json) {
-    return PortShape.fromJson(json);
+  MarkerShape fromJson(Map<String, dynamic> json) {
+    return MarkerShape.fromJson(json);
   }
 
-  /// Converts a [PortShape] object to a JSON map.
+  /// Converts a [MarkerShape] object to a JSON map.
   ///
-  /// Uses the toJson method of the PortShape instance, which returns
+  /// Uses the toJson method of the MarkerShape instance, which returns
   /// a map with 'type' and any additional properties.
   @override
-  Map<String, dynamic> toJson(PortShape shape) {
+  Map<String, dynamic> toJson(MarkerShape shape) {
     return shape.toJson();
   }
 }
