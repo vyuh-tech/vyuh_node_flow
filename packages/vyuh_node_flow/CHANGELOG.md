@@ -1,3 +1,7 @@
+## 0.4.0
+
+ - **FEAT**: moving from PortShapes to MarkerShapes! This is a BREAKING change. Also generalizing the square marker shape to be rectangle.
+
 ## 0.3.18
 
  - **FEAT**: updated readme about structured events.
