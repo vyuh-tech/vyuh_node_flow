@@ -32,11 +32,12 @@ minimap, and more.
 - [Core Concepts](#core-concepts)
   - [The Controller](#the-controller)
 - [Theming](#theming)
+  - [Theme Architecture](#theme-architecture)
   - [Using Built-in Themes](#using-built-in-themes)
-  - [Creating Custom Themes](#creating-custom-themes)
-- [Grid Styles](#grid-styles)
-  - [Available Grid Styles](#available-grid-styles)
-  - [Customizing Grid Appearance](#customizing-grid-appearance)
+  - [Customizing Themes with copyWith](#customizing-themes-with-copywith)
+  - [Sub-Theme Reference](#sub-theme-reference)
+  - [Theming Cascade](#theming-cascade)
+  - [Custom Builders for Per-Item Styling](#custom-builders-for-per-item-styling)
 - [Building Nodes](#building-nodes)
   - [Basic Node Widget](#basic-node-widget)
   - [Custom Node Content](#custom-node-content)
@@ -278,24 +279,437 @@ controller.clearGraph();
 
 ## Theming
 
+Vyuh Node Flow provides a comprehensive, hierarchical theming system that gives
+you full control over every visual aspect of your flow editor. The theme is
+organized into logical **sub-themes**, each responsible for a specific part of
+the UI.
+
+### Theme Architecture
+
+The `NodeFlowTheme` is the root theme that contains specialized sub-themes:
+
+```
+NodeFlowTheme
+├── nodeTheme          → Node appearance (colors, borders, shadows)
+├── connectionTheme    → Established connection appearance
+├── temporaryConnectionTheme → Connection during drag creation
+├── portTheme          → Port appearance (size, colors, shapes)
+├── labelTheme         → Connection label styling
+├── annotationTheme    → Annotation appearance
+├── gridTheme          → Grid background appearance
+├── selectionTheme     → Selection rectangle styling
+├── cursorTheme        → Mouse cursor styles
+├── backgroundColor    → Canvas background color
+└── connectionAnimationDuration → Animation timing
+```
+
 ### Using Built-in Themes
 
 ```dart
-// Light theme
-controller.setTheme(NodeFlowTheme.light);
+// Light theme (default)
+NodeFlowEditor<T>(
+  controller: controller,
+  theme: NodeFlowTheme.light,
+  nodeBuilder: _buildNode,
+);
 
 // Dark theme
-controller.setTheme(NodeFlowTheme.dark);
+NodeFlowEditor<T>(
+  controller: controller,
+  theme: NodeFlowTheme.dark,
+  nodeBuilder: _buildNode,
+);
 ```
 
-### Creating Custom Themes
+### Customizing Themes with copyWith
+
+Use `copyWith` to customize specific aspects while keeping defaults:
+
+```dart
+final customTheme = NodeFlowTheme.light.copyWith(
+  backgroundColor: Colors.grey.shade100,
+
+  // Customize node appearance
+  nodeTheme: NodeTheme.light.copyWith(
+    borderRadius: BorderRadius.circular(12),
+    selectedBorderColor: Colors.purple,
+  ),
+
+  // Customize connections
+  connectionTheme: ConnectionTheme.light.copyWith(
+    style: ConnectionStyles.bezier,
+    color: Colors.purple.shade300,
+    animationEffect: ConnectionEffects.particles,
+  ),
+
+  // Customize grid
+  gridTheme: GridTheme.light.copyWith(
+    style: GridStyles.dots,
+    size: 25.0,
+    color: Colors.grey.shade300,
+  ),
+);
+```
+
+### Sub-Theme Reference
 
 <details>
-<summary><strong>Complete Custom Theme Example</strong></summary>
+<summary><strong>NodeTheme - Node Appearance</strong></summary>
+
+Controls the visual appearance of nodes including colors, borders, and shadows.
+
+```dart
+NodeTheme(
+  // Background colors
+  backgroundColor: Colors.white,
+  selectedBackgroundColor: Colors.blue.shade50,
+
+  // Border styling
+  borderColor: Colors.grey.shade300,
+  selectedBorderColor: Colors.blue,
+  borderWidth: 1.0,
+  selectedBorderWidth: 2.0,
+  borderRadius: BorderRadius.circular(8.0),
+
+  // Inner padding
+  padding: const EdgeInsets.all(8.0),
+
+  // Shadow (optional)
+  shadow: BoxShadow(
+    color: Colors.black.withOpacity(0.1),
+    blurRadius: 8,
+    offset: const Offset(0, 2),
+  ),
+
+  // Typography
+  titleStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+  contentStyle: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+)
+```
+
+**Widget-level overrides**: Use `NodeWidget` constructor parameters to override
+per-node: `backgroundColor`, `borderColor`, `borderWidth`, `borderRadius`, `padding`.
+
+</details>
+
+<details>
+<summary><strong>ConnectionTheme - Connection Appearance</strong></summary>
+
+Controls how connection lines are rendered.
+
+```dart
+ConnectionTheme(
+  // Path style
+  style: ConnectionStyles.smoothstep,
+  bezierCurvature: 0.5,        // For bezier style
+  cornerRadius: 8.0,           // For step/smoothstep
+  portExtension: 20.0,         // Extension from port before curve
+
+  // Colors
+  color: Colors.grey.shade500,
+  selectedColor: Colors.blue,
+
+  // Stroke
+  strokeWidth: 2.0,
+  selectedStrokeWidth: 3.0,
+  dashPattern: null,           // e.g., [5, 5] for dashed
+
+  // Endpoints
+  startPoint: ConnectionEndPoint.none,
+  endPoint: ConnectionEndPoint.arrow,
+
+  // Animation effect
+  animationEffect: ConnectionEffects.flowingDash,
+)
+```
+
+**Available styles**: `ConnectionStyles.bezier`, `ConnectionStyles.smoothstep`,
+`ConnectionStyles.step`, `ConnectionStyles.straight`
+
+**Model-level overrides**: Each `Connection` can override `style`, `animationEffect`,
+`startPoint`, `endPoint`.
+
+</details>
+
+<details>
+<summary><strong>PortTheme - Port Appearance</strong></summary>
+
+Controls port visual styling and label display.
+
+```dart
+PortTheme(
+  // Size and colors
+  size: 9.0,
+  color: Colors.grey.shade400,          // Idle color
+  connectedColor: Colors.blue,           // When connected
+  snappingColor: Colors.blue.shade700,   // During drag hover
+
+  // Border
+  borderColor: Colors.transparent,
+  borderWidth: 0.0,
+  highlightBorderColor: Colors.black,    // When highlighted
+  highlightBorderWidthDelta: 1.5,        // Added to borderWidth when highlighted
+
+  // Labels
+  showLabel: false,
+  labelTextStyle: TextStyle(fontSize: 10),
+  labelOffset: 4.0,
+  labelVisibilityThreshold: 0.5,         // Hide below this zoom level
+)
+```
+
+**Model-level overrides**: Each `Port` can set `shape`, `size`, `showLabel`.
+
+</details>
+
+<details>
+<summary><strong>LabelTheme - Connection Label Styling</strong></summary>
+
+Controls the appearance of labels on connections.
+
+```dart
+LabelTheme(
+  // Typography
+  textStyle: TextStyle(
+    fontSize: 12,
+    color: Colors.black87,
+    fontWeight: FontWeight.w500,
+  ),
+
+  // Background
+  backgroundColor: Colors.white,
+  borderRadius: BorderRadius.circular(4),
+  border: Border.all(color: Colors.grey.shade300),
+
+  // Layout
+  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+  maxWidth: 150.0,
+  maxLines: 2,
+)
+```
+
+</details>
+
+<details>
+<summary><strong>GridTheme - Grid Background</strong></summary>
+
+Controls the canvas grid pattern.
+
+```dart
+GridTheme(
+  style: GridStyles.dots,     // Grid pattern style
+  size: 20.0,                 // Grid cell size
+  color: Colors.grey.shade300, // Grid color
+  thickness: 1.0,             // Line/dot thickness
+)
+```
+
+**Available grid styles**:
+- `GridStyles.dots` - Subtle dots at intersections
+- `GridStyles.lines` - Traditional grid lines
+- `GridStyles.cross` - Small crosses at intersections
+- `GridStyles.hierarchical` - Major/minor grid lines
+- `GridStyles.none` - No grid
+
+```dart
+// Hierarchical grid with custom multiplier
+gridTheme: GridTheme.light.copyWith(
+  style: HierarchicalGridStyle(majorGridMultiplier: 10),
+),
+```
+
+</details>
+
+<details>
+<summary><strong>SelectionTheme - Selection Rectangle</strong></summary>
+
+Controls the marquee selection rectangle appearance.
+
+```dart
+SelectionTheme(
+  color: Colors.blue.withOpacity(0.1),
+  borderColor: Colors.blue,
+  borderWidth: 1.0,
+)
+```
+
+</details>
+
+<details>
+<summary><strong>AnnotationTheme - Annotation Styling</strong></summary>
+
+Controls annotation visual feedback.
+
+```dart
+AnnotationTheme(
+  selectionColor: Colors.blue,
+  highlightColor: Colors.blue.withOpacity(0.2),
+)
+```
+
+</details>
+
+<details>
+<summary><strong>CursorTheme - Mouse Cursors</strong></summary>
+
+Controls cursor styles for different interactions.
+
+```dart
+CursorTheme(
+  selectionCursor: SystemMouseCursors.grab,
+  dragCursor: SystemMouseCursors.grabbing,
+  nodeCursor: SystemMouseCursors.click,
+  portCursor: SystemMouseCursors.precise,
+)
+```
+
+</details>
+
+### Theming Cascade
+
+Properties are resolved using a cascade from most specific to most general:
+
+```
+Model Level → Widget Level → Theme Level
+(highest priority)           (lowest priority)
+```
+
+For example, port color resolution:
+1. **Model**: `port.color` (if set on the Port)
+2. **Widget**: `PortWidget(color: ...)` (widget parameter)
+3. **Theme**: `portTheme.color` (from theme)
+
+This allows you to set global defaults in the theme while overriding specific
+instances at the widget or model level.
+
+### Custom Builders for Per-Item Styling
+
+For complete per-item customization, use builder functions:
+
+<details>
+<summary><strong>Custom Port Builder</strong></summary>
+
+Customize port rendering based on port data or node context:
+
+```dart
+NodeFlowEditor<MyData>(
+  controller: controller,
+  theme: theme,
+  nodeBuilder: _buildNode,
+
+  // Custom port builder
+  portBuilder: (context, node, port, isOutput, isConnected, isHighlighted) {
+    // Different colors for input vs output ports
+    final baseColor = isOutput ? Colors.green : Colors.blue;
+    final color = isHighlighted
+        ? baseColor.shade700
+        : isConnected
+            ? baseColor.shade400
+            : baseColor.shade200;
+
+    return PortWidget(
+      port: port,
+      theme: theme.portTheme,
+      isConnected: isConnected,
+      isHighlighted: isHighlighted,
+      color: color,
+      connectedColor: baseColor.shade400,
+      borderColor: baseColor.shade800,
+    );
+  },
+);
+```
+
+</details>
+
+<details>
+<summary><strong>Custom Label Builder</strong></summary>
+
+Customize connection label rendering:
+
+```dart
+NodeFlowEditor<MyData>(
+  controller: controller,
+  theme: theme,
+  nodeBuilder: _buildNode,
+
+  // Custom label builder
+  labelBuilder: (context, connection, label, position) {
+    // Custom styling based on connection data
+    final isPriority = connection.data?['priority'] == 'high';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: isPriority ? Colors.red.shade100 : Colors.white,
+        borderRadius: BorderRadius.circular(50),
+        border: Border.all(
+          color: isPriority ? Colors.red : Colors.grey.shade300,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isPriority) ...[
+            Icon(Icons.priority_high, size: 14, color: Colors.red),
+            const SizedBox(width: 4),
+          ],
+          Text(label.text),
+        ],
+      ),
+    );
+  },
+);
+```
+
+</details>
+
+<details>
+<summary><strong>Connection Style Resolver</strong></summary>
+
+Override connection styles per-connection:
+
+```dart
+NodeFlowEditor<MyData>(
+  controller: controller,
+  theme: theme,
+  nodeBuilder: _buildNode,
+
+  // Per-connection style overrides
+  connectionStyleResolver: (connection) {
+    // Error connections in red
+    if (connection.data?['hasError'] == true) {
+      return ConnectionStyleOverrides(
+        color: Colors.red,
+        strokeWidth: 3.0,
+      );
+    }
+
+    // Active connections with animation
+    if (connection.data?['isActive'] == true) {
+      return ConnectionStyleOverrides(
+        color: Colors.green,
+        animationEffect: ConnectionEffects.flowingDash,
+      );
+    }
+
+    return null; // Use theme defaults
+  },
+);
+```
+
+</details>
+
+### Complete Custom Theme Example
+
+<details>
+<summary><strong>View Complete Theme</strong></summary>
 
 ```dart
 final customTheme = NodeFlowTheme(
-  // Node appearance
+  backgroundColor: Colors.grey.shade50,
+
+  // Node styling
   nodeTheme: NodeTheme(
     backgroundColor: Colors.white,
     selectedBackgroundColor: Colors.blue.shade50,
@@ -304,168 +718,88 @@ final customTheme = NodeFlowTheme(
     borderWidth: 1.0,
     selectedBorderWidth: 2.0,
     borderRadius: BorderRadius.circular(8.0),
-    padding: const EdgeInsets.all(16.0),
-    titleStyle: TextStyle(
-      fontSize: 14,
-      fontWeight: FontWeight.bold,
-      color: Colors.black87,
-    ),
-    contentStyle: TextStyle(
-      fontSize: 12,
-      color: Colors.grey.shade700,
-    ),
+    padding: const EdgeInsets.all(8.0),
   ),
 
-  // Connection appearance
+  // Connection styling
   connectionTheme: ConnectionTheme(
-    style: ConnectionStyles.smoothstep, // Connection path style
-    color: Colors.blue.shade300,
-    selectedColor: Colors.blue.shade700,
+    style: ConnectionStyles.smoothstep,
+    color: Colors.grey.shade500,
+    selectedColor: Colors.blue,
     strokeWidth: 2.0,
     selectedStrokeWidth: 3.0,
     startPoint: ConnectionEndPoint.none,
-    endPoint: ConnectionEndPoint.arrow,
-    // Optional: Add animation effect
+    endPoint: ConnectionEndPoint(
+      shape: MarkerShapes.triangle,
+      size: 8.0,
+    ),
     animationEffect: ConnectionEffects.particles,
   ),
 
-  // Temporary connection (while dragging)
+  // Temporary connection (during drag)
   temporaryConnectionTheme: ConnectionTheme(
     style: ConnectionStyles.smoothstep,
     color: Colors.grey.shade400,
     strokeWidth: 2.0,
-    dashPattern: [5, 5], // Dashed line
+    dashPattern: [5, 5],
+    endPoint: ConnectionEndPoint.capsuleHalf,
   ),
 
-  // Animation timing
   connectionAnimationDuration: const Duration(seconds: 2),
 
-  // Port appearance
+  // Port styling
   portTheme: PortTheme(
     size: 10.0,
-    color: Colors.blue.shade400,
-    connectedColor: Colors.blue.shade700,
-    snappingColor: Colors.blue.shade800,
+    color: Colors.grey.shade400,
+    connectedColor: Colors.blue,
+    snappingColor: Colors.blue.shade700,
     borderColor: Colors.white,
     borderWidth: 2.0,
+    showLabel: true,
+    labelVisibilityThreshold: 0.7,
   ),
 
-  // Grid and canvas
-  backgroundColor: Colors.grey.shade50,
-  gridColor: Colors.grey.shade300,
-  gridSize: 20.0,
-  gridStyle: GridStyle.dots,
+  // Label styling
+  labelTheme: LabelTheme(
+    textStyle: TextStyle(fontSize: 11, color: Colors.grey.shade700),
+    backgroundColor: Colors.white,
+    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    borderRadius: BorderRadius.circular(4),
+    border: Border.all(color: Colors.grey.shade300),
+  ),
 
-  // Selection appearance
-  selectionColor: Colors.blue.withOpacity(0.2),
-  selectionBorderColor: Colors.blue,
-  selectionBorderWidth: 1.0,
-);
+  // Grid styling
+  gridTheme: GridTheme(
+    style: GridStyles.dots,
+    size: 20.0,
+    color: Colors.grey.shade300,
+    thickness: 1.5,
+  ),
 
-controller.setTheme(customTheme);
-```
+  // Selection styling
+  selectionTheme: SelectionTheme(
+    color: Colors.blue.withOpacity(0.1),
+    borderColor: Colors.blue,
+    borderWidth: 1.0,
+  ),
 
-</details>
+  // Annotation styling
+  annotationTheme: AnnotationTheme(
+    selectionColor: Colors.blue,
+    highlightColor: Colors.blue.withOpacity(0.2),
+  ),
 
-> [!NOTE] Grid styles available: `GridStyles.dots`, `GridStyles.lines`,
-> `GridStyles.cross`, `GridStyles.hierarchical`, `GridStyles.none`
-
----
-
-## Grid Styles
-
-Vyuh Node Flow offers multiple grid style options to customize the background
-pattern of your flow editor canvas.
-
-### Available Grid Styles
-
-<details>
-<summary><strong>Lines Grid Style</strong></summary>
-
-The most common grid style with evenly spaced vertical and horizontal lines,
-providing clear visual reference.
-
-```dart
-final theme = NodeFlowTheme.light.copyWith(
-  gridStyle: GridStyles.lines,
-);
-```
-
-</details>
-
-<details>
-<summary><strong>Dots Grid Style</strong></summary>
-
-A more subtle alternative with dots at grid intersections, reducing visual
-clutter while maintaining reference points.
-
-```dart
-final theme = NodeFlowTheme.light.copyWith(
-  gridStyle: GridStyles.dots,
+  // Cursor styling
+  cursorTheme: CursorTheme(
+    selectionCursor: SystemMouseCursors.grab,
+    dragCursor: SystemMouseCursors.grabbing,
+    nodeCursor: SystemMouseCursors.click,
+    portCursor: SystemMouseCursors.precise,
+  ),
 );
 ```
 
 </details>
-
-<details>
-<summary><strong>Cross Grid Style</strong></summary>
-
-Features small crosses at grid intersections, offering a balance between
-visibility and subtlety.
-
-```dart
-final theme = NodeFlowTheme.light.copyWith(
-  gridStyle: GridStyles.cross,
-);
-```
-
-</details>
-
-<details>
-<summary><strong>Hierarchical Grid Style</strong></summary>
-
-Renders both minor and major grid lines at different intervals, with major lines
-appearing every 5 minor grid cells by default. Useful for complex diagrams
-requiring multiple levels of visual organization.
-
-```dart
-// Use default hierarchical (5x multiplier)
-final theme = NodeFlowTheme.light.copyWith(
-  gridStyle: GridStyles.hierarchical,
-);
-
-// Custom multiplier for major grid lines
-final customTheme = NodeFlowTheme.light.copyWith(
-  gridStyle: HierarchicalGridStyle(majorGridMultiplier: 10),
-);
-```
-
-</details>
-
-<details>
-<summary><strong>None Grid Style</strong></summary>
-
-Provides a clean canvas with no background pattern.
-
-```dart
-final theme = NodeFlowTheme.light.copyWith(
-  gridStyle: GridStyles.none,
-);
-```
-
-</details>
-
-### Customizing Grid Appearance
-
-Control the grid size and color through the theme:
-
-```dart
-final theme = NodeFlowTheme.light.copyWith(
-  gridStyle: GridStyles.lines,
-  gridSize: 20.0,              // Size of each grid cell
-  gridColor: Colors.grey[300], // Grid line/dot color
-);
-```
 
 ---
 
