@@ -1,3 +1,7 @@
+## 0.5.1
+
+ - **FEAT**: readme update to include section on theming.
+
 ## 0.5.0
 
 - Theming refactoring
