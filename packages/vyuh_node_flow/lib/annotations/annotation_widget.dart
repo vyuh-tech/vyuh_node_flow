@@ -106,8 +106,8 @@ class AnnotationWidget extends StatelessWidget {
   /// 3. Returns a [Container] with the styled content
   ///
   /// The styling priority is:
-  /// - Highlighted state (orange border) takes precedence over selected
-  /// - Selected state (theme border color) is used when not highlighted
+  /// - Highlighted state takes precedence over selected
+  /// - Selected state is used when not highlighted
   /// - No border when neither selected nor highlighted
   Widget _buildAnnotationContent(BuildContext context) {
     // Get the custom widget from the annotation implementation
@@ -115,23 +115,24 @@ class AnnotationWidget extends StatelessWidget {
 
     // Get the NodeFlowTheme for consistent styling
     final theme = Theme.of(context).extension<NodeFlowTheme>()!;
+    final annotationTheme = theme.annotationTheme;
 
     // Determine border color and background color based on state
     // Highlight takes precedence over selection for better drag feedback
     Color borderColor = Colors.transparent;
     Color? backgroundColor;
-    double borderWidth = theme.selectionBorderWidth;
+    double borderWidth = annotationTheme.borderWidth;
 
     if (isHighlighted) {
-      // Use a bright highlight color for drag-over feedback
-      borderColor = Colors.orange;
-      backgroundColor = Colors.orange.withValues(alpha: 0.1);
+      // Use highlight colors for drag-over feedback
+      borderColor = annotationTheme.highlightBorderColor;
+      backgroundColor = annotationTheme.highlightBackgroundColor;
       borderWidth =
-          theme.selectionBorderWidth +
-          1; // Make highlight border slightly thicker
+          annotationTheme.borderWidth +
+          annotationTheme.highlightBorderWidthDelta;
     } else if (isSelected) {
-      borderColor = theme.selectionBorderColor;
-      backgroundColor = theme.selectionColor;
+      borderColor = annotationTheme.selectionBorderColor;
+      backgroundColor = annotationTheme.selectionBackgroundColor;
     }
 
     // Apply theme-consistent selection and highlight styling
@@ -140,7 +141,7 @@ class AnnotationWidget extends StatelessWidget {
       height: annotation.size.height,
       decoration: BoxDecoration(
         border: Border.all(color: borderColor, width: borderWidth),
-        borderRadius: theme.nodeTheme.borderRadius,
+        borderRadius: annotationTheme.borderRadius,
         color: backgroundColor,
       ),
       child: content,

@@ -1,10 +1,71 @@
 import 'package:flutter/material.dart';
 
 import '../graph/canvas_transform_provider.dart';
+import '../nodes/node.dart';
 import '../ports/port.dart';
 import '../ports/port_theme.dart';
 import 'port_shape_widget.dart';
 
+/// Builder function type for customizing individual port widgets.
+///
+/// This typedef defines the signature for custom port builders that can be
+/// provided to [NodeFlowEditor] or [NodeWidget] to customize port rendering.
+///
+/// Parameters:
+/// - [context]: The build context
+/// - [node]: The node containing this port
+/// - [port]: The port being rendered
+/// - [isOutput]: Whether this is an output port (true) or input port (false)
+/// - [isConnected]: Whether the port currently has any connections
+/// - [isHighlighted]: Whether the port is being hovered during connection drag
+///
+/// Example:
+/// ```dart
+/// PortBuilder myPortBuilder = (context, node, port, isOutput, isConnected, isHighlighted) {
+///   final color = isOutput ? Colors.green : Colors.blue;
+///   return PortWidget(
+///     port: port,
+///     theme: Theme.of(context).extension<NodeFlowTheme>()!.portTheme,
+///     isConnected: isConnected,
+///     isHighlighted: isHighlighted,
+///     color: color,
+///   );
+/// };
+/// ```
+typedef PortBuilder<T> =
+    Widget Function(
+      BuildContext context,
+      Node<T> node,
+      Port port,
+      bool isOutput,
+      bool isConnected,
+      bool isHighlighted,
+    );
+
+/// Widget for rendering a port on a node.
+///
+/// The [PortWidget] displays a port with its shape, color, and optional label.
+/// It supports property overrides at both widget and model levels.
+///
+/// ## Property Cascade (lowest to highest priority)
+///
+/// Properties are resolved in this order of precedence:
+/// 1. Theme values (from [PortTheme]) - lowest priority
+/// 2. Widget-level overrides (constructor parameters)
+/// 3. Model-level values (from [Port]) - highest priority
+///
+/// For example, port size is resolved as:
+/// - `port.size` (if different from default) → widget `size` → `theme.size`
+///
+/// Example with overrides:
+/// ```dart
+/// PortWidget(
+///   port: myPort, // port.size = 12.0 takes precedence
+///   theme: PortTheme.light,
+///   color: Colors.blue, // Override idle color
+///   connectedColor: Colors.green, // Override connected color
+/// )
+/// ```
 class PortWidget extends StatelessWidget {
   const PortWidget({
     super.key,
@@ -14,6 +75,15 @@ class PortWidget extends StatelessWidget {
     this.onTap,
     this.onHover,
     this.isHighlighted = false,
+    // Property overrides (widget level)
+    this.size,
+    this.color,
+    this.connectedColor,
+    this.snappingColor,
+    this.borderColor,
+    this.highlightBorderColor,
+    this.borderWidth,
+    this.highlightBorderWidthDelta,
   });
 
   final Port port;
@@ -23,19 +93,48 @@ class PortWidget extends StatelessWidget {
   final ValueChanged<(Port, bool)>? onHover;
   final bool isHighlighted;
 
+  // Optional property overrides (widget level) - if null, uses model or theme values
+
+  /// Override for the port size.
+  /// Resolution: port.size → widget.size → theme.size
+  final double? size;
+
+  /// Override for the idle port color.
+  final Color? color;
+
+  /// Override for the connected port color.
+  final Color? connectedColor;
+
+  /// Override for the snapping (drag-over) port color.
+  final Color? snappingColor;
+
+  /// Override for the border color.
+  final Color? borderColor;
+
+  /// Override for the highlight border color.
+  final Color? highlightBorderColor;
+
+  /// Override for the border width.
+  final double? borderWidth;
+
+  /// Override for the additional highlight border width.
+  final double? highlightBorderWidthDelta;
+
   @override
   Widget build(BuildContext context) {
+    final effectiveSize = _getPortSize();
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // Port shape
+        // Marker shape - uses model shape (highest priority)
         MouseRegion(
           onEnter: (_) => onHover?.call((port, true)),
           onExit: (_) => onHover?.call((port, false)),
           child: PortShapeWidget(
-            shape: port.shape,
+            shape: port.shape, // Model level - always wins
             position: port.position,
-            size: theme.size,
+            size: effectiveSize,
             color: _getPortColor(),
             borderColor: _getBorderColor(),
             borderWidth: _getBorderWidth(),
@@ -43,37 +142,54 @@ class PortWidget extends StatelessWidget {
         ),
         // Port label (if enabled in both theme and port)
         if (theme.showLabel && port.showLabel)
-          _PortLabel(port: port, theme: theme),
+          _PortLabel(port: port, theme: theme, size: effectiveSize),
       ],
     );
   }
 
-  /// Determines the appropriate color for the port based on its state
+  /// Get the effective port size using the cascade:
+  /// port.size (model) → widget.size → theme.size
+  double _getPortSize() {
+    // Model-level size takes precedence (Port default is 9.0)
+    // If port.size differs from default, it was explicitly set
+    return port.size != 9.0 ? port.size : (size ?? theme.size);
+  }
+
+  /// Determines the appropriate color for the port based on its state.
+  ///
+  /// Uses widget-level overrides if provided, otherwise falls back to theme.
   Color _getPortColor() {
     if (isHighlighted) {
-      return theme.snappingColor; // Use snapping color for drag operations
+      return snappingColor ?? theme.snappingColor;
     } else if (isConnected) {
-      return theme.connectedColor;
+      return connectedColor ?? theme.connectedColor;
     } else {
-      return theme.color;
+      return color ?? theme.color;
     }
   }
 
-  /// Get border color based on port state
+  /// Get border color based on port state.
+  ///
+  /// Uses widget-level overrides if provided, otherwise falls back to theme.
   Color _getBorderColor() {
     if (isHighlighted) {
-      return Colors.black; // Strong black border for snap feedback
+      return highlightBorderColor ?? theme.highlightBorderColor;
     } else {
-      return theme.borderColor;
+      return borderColor ?? theme.borderColor;
     }
   }
 
-  /// Get border width based on port state
+  /// Get border width based on port state.
+  ///
+  /// Uses widget-level overrides if provided, otherwise falls back to theme.
   double _getBorderWidth() {
+    final baseBorderWidth = borderWidth ?? theme.borderWidth;
     if (isHighlighted) {
-      return theme.borderWidth + 1.5;
+      final delta =
+          highlightBorderWidthDelta ?? theme.highlightBorderWidthDelta;
+      return baseBorderWidth + delta;
     } else {
-      return theme.borderWidth;
+      return baseBorderWidth;
     }
   }
 }
@@ -81,10 +197,15 @@ class PortWidget extends StatelessWidget {
 /// Private widget for rendering port labels
 /// Handles positioning based on port position and theme settings
 class _PortLabel extends StatelessWidget {
-  const _PortLabel({required this.port, required this.theme});
+  const _PortLabel({
+    required this.port,
+    required this.theme,
+    required this.size,
+  });
 
   final Port port;
   final PortTheme theme;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -113,8 +234,8 @@ class _PortLabel extends StatelessWidget {
         // Left port: label to the right (inside)
         // Offset from right edge of port, vertically centered
         return Positioned(
-          left: theme.size + theme.labelOffset,
-          top: theme.size / 2,
+          left: size + theme.labelOffset,
+          top: size / 2,
           child: FractionalTranslation(
             translation: const Offset(0.0, -0.5),
             child: Text(port.name, style: textStyle, textAlign: TextAlign.left),
@@ -124,8 +245,8 @@ class _PortLabel extends StatelessWidget {
         // Right port: label to the left (inside)
         // Offset from left edge of port, vertically centered
         return Positioned(
-          right: theme.size + theme.labelOffset,
-          top: theme.size / 2,
+          right: size + theme.labelOffset,
+          top: size / 2,
           child: FractionalTranslation(
             translation: const Offset(0.0, -0.5),
             child: Text(
@@ -139,8 +260,8 @@ class _PortLabel extends StatelessWidget {
         // Top port: label below (inside)
         // Offset from bottom edge of port, horizontally centered
         return Positioned(
-          left: theme.size / 2,
-          top: theme.size / 2 + theme.labelOffset,
+          left: size / 2,
+          top: size / 2 + theme.labelOffset,
           child: FractionalTranslation(
             translation: const Offset(-0.5, 0.0), // Center horizontally
             child: Text(
@@ -154,8 +275,8 @@ class _PortLabel extends StatelessWidget {
         // Bottom port: label above (inside)
         // Offset from top edge of port, horizontally centered
         return Positioned(
-          left: theme.size / 2,
-          bottom: theme.size / 2 + theme.labelOffset,
+          left: size / 2,
+          bottom: size / 2 + theme.labelOffset,
           child: FractionalTranslation(
             translation: const Offset(-0.5, 0.0), // Center horizontally
             child: Text(

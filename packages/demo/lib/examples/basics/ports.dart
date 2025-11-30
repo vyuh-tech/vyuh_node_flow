@@ -285,8 +285,10 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
   void _updateThemeWithGridValues() {
     final currentTheme = _currentTheme;
     final newTheme = currentTheme.copyWith(
-      gridStyle: _themeControl._gridStyle.value,
-      gridSize: _themeControl._gridSize.value,
+      gridTheme: currentTheme.gridTheme.copyWith(
+        style: _themeControl._gridStyle.value,
+        size: _themeControl._gridSize.value,
+      ),
     );
 
     // Update controller config for snap to grid

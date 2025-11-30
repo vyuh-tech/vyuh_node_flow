@@ -5,11 +5,11 @@ import '../graph/node_flow_theme.dart';
 class SelectionPainter {
   SelectionPainter({required this.theme})
     : _fillPaint = Paint()
-        ..color = theme.selectionColor
+        ..color = theme.selectionTheme.color
         ..style = PaintingStyle.fill,
       _borderPaint = Paint()
-        ..color = theme.selectionBorderColor
-        ..strokeWidth = theme.selectionBorderWidth
+        ..color = theme.selectionTheme.borderColor
+        ..strokeWidth = theme.selectionTheme.borderWidth
         ..style = PaintingStyle.stroke;
 
   final NodeFlowTheme theme;
@@ -31,9 +31,10 @@ class SelectionPainter {
     Size canvasSize,
     List<Offset> guideLines,
   ) {
+    final selectionTheme = theme.selectionTheme;
     final paint = Paint()
-      ..color = theme.selectionBorderColor.withValues(alpha: 0.5)
-      ..strokeWidth = theme.selectionBorderWidth
+      ..color = selectionTheme.borderColor.withValues(alpha: 0.5)
+      ..strokeWidth = selectionTheme.borderWidth
       ..style = PaintingStyle.stroke;
 
     for (final guide in guideLines) {

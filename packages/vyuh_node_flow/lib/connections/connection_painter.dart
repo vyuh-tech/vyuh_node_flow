@@ -9,6 +9,7 @@ import '../shared/shapes/none_marker_shape.dart';
 import 'connection.dart';
 import 'connection_endpoint.dart';
 import 'connection_path_cache.dart';
+import 'connection_style_overrides.dart';
 import 'connection_theme.dart';
 import 'endpoint_painter.dart';
 import 'styles/connection_path_calculator.dart';
@@ -57,6 +58,7 @@ class ConnectionPainter {
     bool isSelected = false,
     bool isAnimated = false,
     double? animationValue,
+    ConnectionStyleOverrides? styleOverrides,
   }) {
     // Get effective style from connection instance or theme
     final effectiveStyle = connection.getEffectiveStyle(
@@ -85,6 +87,7 @@ class ConnectionPainter {
       isSelected: isSelected,
       isAnimated: isAnimated,
       animationValue: animationValue,
+      styleOverrides: styleOverrides,
     );
 
     // Draw debug visualization if enabled
@@ -103,6 +106,7 @@ class ConnectionPainter {
     bool isSelected = false,
     bool isAnimated = false,
     double? animationValue,
+    ConnectionStyleOverrides? styleOverrides,
   }) {
     final connectionTheme = theme.connectionTheme;
     final portTheme = theme.portTheme;
@@ -175,13 +179,18 @@ class ConnectionPainter {
     );
 
     // Configure paint for the connection line using cached path
+    // Apply style overrides if provided, otherwise use theme values
+    final effectiveColor = isSelected
+        ? (styleOverrides?.selectedColor ?? connectionTheme.selectedColor)
+        : (styleOverrides?.color ?? connectionTheme.color);
+    final effectiveStrokeWidth = isSelected
+        ? (styleOverrides?.selectedStrokeWidth ??
+              connectionTheme.selectedStrokeWidth)
+        : (styleOverrides?.strokeWidth ?? connectionTheme.strokeWidth);
+
     final paint = Paint()
-      ..color = isSelected
-          ? connectionTheme.selectedColor
-          : connectionTheme.color
-      ..strokeWidth = isSelected
-          ? connectionTheme.selectedStrokeWidth
-          : connectionTheme.strokeWidth
+      ..color = effectiveColor
+      ..strokeWidth = effectiveStrokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 

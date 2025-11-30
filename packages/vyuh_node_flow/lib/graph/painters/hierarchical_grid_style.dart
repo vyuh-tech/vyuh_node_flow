@@ -26,18 +26,19 @@ class HierarchicalGridStyle extends GridStyle {
     NodeFlowTheme theme,
     ({double left, double top, double right, double bottom}) gridArea,
   ) {
-    final gridSize = theme.gridSize;
+    final gridTheme = theme.gridTheme;
+    final gridSize = gridTheme.size;
     final majorGridSize = gridSize * majorGridMultiplier;
 
     // Create paint objects for minor and major grids
     final minorPaint = Paint()
-      ..color = theme.gridColor.withValues(alpha: 0.3)
-      ..strokeWidth = theme.gridThickness
+      ..color = gridTheme.color.withValues(alpha: 0.3)
+      ..strokeWidth = gridTheme.thickness
       ..style = PaintingStyle.stroke;
 
     final majorPaint = Paint()
-      ..color = theme.gridColor
-      ..strokeWidth = theme.gridThickness * 2
+      ..color = gridTheme.color
+      ..strokeWidth = gridTheme.thickness * 2
       ..style = PaintingStyle.stroke;
 
     // Calculate grid-aligned start positions for minor grid

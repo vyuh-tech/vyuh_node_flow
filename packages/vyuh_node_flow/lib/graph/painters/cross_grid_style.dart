@@ -9,17 +9,17 @@ import 'grid_style.dart';
 /// and horizontal grid lines would intersect.
 ///
 /// The [crossSize] parameter controls the arm length of each cross. If not provided,
-/// it defaults to theme.gridThickness * 3, clamped to 2.0-6.0 pixels.
+/// it defaults to gridTheme.thickness * 3, clamped to 2.0-6.0 pixels.
 ///
 /// This style provides a unique visual reference that's more distinct than dots
 /// while remaining less prominent than full lines.
 class CrossGridStyle extends GridStyle {
   /// Creates a cross grid style.
   ///
-  /// [crossSize] - Optional arm length for each cross. If null, calculated from theme.gridThickness.
+  /// [crossSize] - Optional arm length for each cross. If null, calculated from gridTheme.thickness.
   const CrossGridStyle({this.crossSize});
 
-  /// The arm length of each cross. If null, calculated from theme.gridThickness.
+  /// The arm length of each cross. If null, calculated from gridTheme.thickness.
   final double? crossSize;
 
   @override
@@ -28,14 +28,15 @@ class CrossGridStyle extends GridStyle {
     NodeFlowTheme theme,
     ({double left, double top, double right, double bottom}) gridArea,
   ) {
-    final gridSize = theme.gridSize;
+    final gridTheme = theme.gridTheme;
+    final gridSize = gridTheme.size;
 
     // Create paint for the crosses
     final paint = createGridPaint(theme)
-      ..strokeWidth = theme.gridThickness.clamp(0.5, 1.5);
+      ..strokeWidth = gridTheme.thickness.clamp(0.5, 1.5);
 
     // Calculate arm length
-    final armLength = crossSize ?? (theme.gridThickness * 3).clamp(2.0, 6.0);
+    final armLength = crossSize ?? (gridTheme.thickness * 3).clamp(2.0, 6.0);
 
     // Calculate grid-aligned start positions
     final startX = (gridArea.left / gridSize).floor() * gridSize;

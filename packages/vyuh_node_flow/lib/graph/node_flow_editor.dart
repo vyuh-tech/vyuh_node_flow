@@ -7,6 +7,7 @@ import 'package:vector_math/vector_math_64.dart' hide Colors;
 
 import '../annotations/annotation_layer.dart';
 import '../connections/connection.dart';
+import '../connections/connection_style_overrides.dart';
 import '../connections/connection_validation.dart';
 import '../connections/temporary_connection.dart';
 import '../graph/node_flow_controller.dart';
@@ -16,6 +17,7 @@ import '../graph/viewport.dart';
 import '../nodes/node.dart';
 import '../nodes/node_shape.dart';
 import '../ports/port.dart';
+import '../ports/port_widget.dart';
 import '../shared/flutter_actions_integration.dart';
 import 'canvas_transform_provider.dart';
 import 'layers/attribution_overlay.dart';
@@ -62,6 +64,9 @@ class NodeFlowEditor<T> extends StatefulWidget {
     required this.theme,
     this.nodeShapeBuilder,
     this.nodeContainerBuilder,
+    this.portBuilder,
+    this.labelBuilder,
+    this.connectionStyleResolver,
     this.events,
     this.enablePanning = true,
     this.enableZooming = true,
@@ -144,6 +149,100 @@ class NodeFlowEditor<T> extends StatefulWidget {
   /// ```
   final Widget Function(BuildContext context, Node<T> node, Widget content)?
   nodeContainerBuilder;
+
+  /// Optional builder for customizing individual port widgets.
+  ///
+  /// This function is called for each port in every node, allowing you to
+  /// customize port appearance based on the port data, node, or any other
+  /// application-specific logic.
+  ///
+  /// The builder receives:
+  /// - [context]: Build context
+  /// - [node]: The node containing this port
+  /// - [port]: The port being rendered
+  /// - [isOutput]: Whether this is an output port (true) or input port (false)
+  /// - [isConnected]: Whether the port currently has connections
+  /// - [isHighlighted]: Whether the port is being hovered during connection drag
+  ///
+  /// Return null to use the default PortWidget with theme styling.
+  ///
+  /// Example:
+  /// ```dart
+  /// portBuilder: (context, node, port, isOutput, isConnected, isHighlighted) {
+  ///   // Color ports based on data type
+  ///   final color = port.name.contains('error')
+  ///       ? Colors.red
+  ///       : null; // Use theme default
+  ///
+  ///   return PortWidget(
+  ///     port: port,
+  ///     theme: Theme.of(context).extension<NodeFlowTheme>()!.portTheme,
+  ///     isConnected: isConnected,
+  ///     isHighlighted: isHighlighted,
+  ///     color: color,
+  ///   );
+  /// }
+  /// ```
+  final PortBuilder<T>? portBuilder;
+
+  /// Optional builder for customizing connection label widgets.
+  ///
+  /// This function is called for each label on every connection, allowing you
+  /// to customize label appearance based on the label data, connection, or any
+  /// other application-specific logic.
+  ///
+  /// The builder receives:
+  /// - [context]: Build context
+  /// - [connection]: The connection containing this label
+  /// - [label]: The label being rendered
+  /// - [position]: The calculated position rect for the label
+  ///
+  /// Return null to use the default label widget with theme styling.
+  ///
+  /// Example:
+  /// ```dart
+  /// labelBuilder: (context, connection, label, position) {
+  ///   return Positioned(
+  ///     left: position.left,
+  ///     top: position.top,
+  ///     child: Container(
+  ///       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+  ///       decoration: BoxDecoration(
+  ///         color: connection.data?['priority'] == 'high'
+  ///             ? Colors.orange.shade100
+  ///             : Colors.white,
+  ///         borderRadius: BorderRadius.circular(4),
+  ///       ),
+  ///       child: Text(label.text),
+  ///     ),
+  ///   );
+  /// }
+  /// ```
+  final LabelBuilder? labelBuilder;
+
+  /// Optional resolver for customizing connection styles per-connection.
+  ///
+  /// This function is called for each connection during painting, allowing
+  /// you to override colors and stroke widths based on connection data.
+  ///
+  /// Return null to use the theme defaults, or return a [ConnectionStyleOverrides]
+  /// to customize specific properties.
+  ///
+  /// Example:
+  /// ```dart
+  /// connectionStyleResolver: (connection) {
+  ///   if (connection.data?['type'] == 'error') {
+  ///     return ConnectionStyleOverrides(
+  ///       color: Colors.red,
+  ///       selectedColor: Colors.red.shade700,
+  ///       strokeWidth: 3.0,
+  ///     );
+  ///   }
+  ///   return null; // Use theme defaults
+  /// }
+  /// ```
+  final ConnectionStyleOverrides? Function(Connection connection)?
+  connectionStyleResolver;
 
   /// The theme configuration for styling the editor.
   ///
@@ -451,7 +550,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                 ),
 
                 // Connection labels - rendered separately for optimized repainting
-                ConnectionLabelsLayer<T>(controller: widget.controller),
+                ConnectionLabelsLayer<T>(
+                  controller: widget.controller,
+                  labelBuilder: widget.labelBuilder,
+                ),
 
                 // Connection control points - interactive waypoint editing
                 ConnectionControlPointsLayer<T>(controller: widget.controller),
@@ -461,6 +563,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                   controller: widget.controller,
                   nodeBuilder: widget.nodeBuilder,
                   nodeContainerBuilder: widget.nodeContainerBuilder,
+                  portBuilder: widget.portBuilder,
                   connections: widget.controller.connections,
                   onNodeTap: _handleNodeTap,
                   onNodeDoubleTap: _handleNodeDoubleTap,
@@ -743,7 +846,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
             widget.controller._startNodeDrag(
               hitResult.nodeId!,
               event.localPosition,
-              widget.theme.dragCursorStyle,
+              widget.theme.cursorTheme.dragCursor,
             );
             // Disable panning to allow Command+drag of nodes over canvas
             widget.controller._updateInteractionState(panEnabled: false);
@@ -757,7 +860,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
           widget.controller._startNodeDrag(
             hitResult.nodeId!,
             event.localPosition,
-            widget.theme.dragCursorStyle,
+            widget.theme.cursorTheme.dragCursor,
           );
         } else {
           // Handle simple node click when dragging is disabled
@@ -1024,28 +1127,28 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   // Helper methods
 
   void _updateCursor(HitTestResult hitResult) {
-    final theme = widget.theme;
+    final cursorTheme = widget.theme.cursorTheme;
     MouseCursor newCursor;
 
-    // When all interactions disabled, always use pan cursor
+    // When all interactions disabled, always use selection cursor
     if (!widget.enableSelection &&
         !widget.enableNodeDragging &&
         !widget.enableConnectionCreation) {
-      newCursor = theme.cursorStyle; // Pan cursor
+      newCursor = cursorTheme.selectionCursor;
     } else if (widget.controller.isDrawingSelection) {
       newCursor = SystemMouseCursors.precise;
     } else if (widget.controller.draggedNodeId != null) {
-      newCursor = theme.dragCursorStyle;
+      newCursor = cursorTheme.dragCursor;
     } else if (widget.controller.isConnecting) {
-      newCursor = theme.portCursorStyle;
+      newCursor = cursorTheme.portCursor;
     } else if (hitResult.isPort) {
-      newCursor = theme.portCursorStyle;
+      newCursor = cursorTheme.portCursor;
     } else if (hitResult.isNode) {
-      newCursor = theme.nodeCursorStyle;
+      newCursor = cursorTheme.nodeCursor;
     } else if (hitResult.isConnection) {
       newCursor = SystemMouseCursors.click;
     } else {
-      newCursor = theme.cursorStyle;
+      newCursor = cursorTheme.selectionCursor;
     }
 
     widget.controller._updateInteractionState(cursor: newCursor);
@@ -1455,11 +1558,11 @@ class SelectionRectanglePainter extends CustomPainter {
     required this.selectionRectangle,
     required this.theme,
   }) : _fillPaint = Paint()
-         ..color = theme.selectionColor
+         ..color = theme.selectionTheme.color
          ..style = PaintingStyle.fill,
        _borderPaint = Paint()
-         ..color = theme.selectionBorderColor
-         ..strokeWidth = theme.selectionBorderWidth
+         ..color = theme.selectionTheme.borderColor
+         ..strokeWidth = theme.selectionTheme.borderWidth
          ..style = PaintingStyle.stroke;
 
   /// The bounds of the selection rectangle in graph coordinates.
@@ -1609,13 +1712,14 @@ class InteractionLayerPainter<T> extends CustomPainter {
   }
 
   void _paintSelectionRectangle(Canvas canvas) {
+    final selectionTheme = theme.selectionTheme;
     final fillPaint = Paint()
-      ..color = theme.selectionColor
+      ..color = selectionTheme.color
       ..style = PaintingStyle.fill;
 
     final borderPaint = Paint()
-      ..color = theme.selectionBorderColor
-      ..strokeWidth = theme.selectionBorderWidth
+      ..color = selectionTheme.borderColor
+      ..strokeWidth = selectionTheme.borderWidth
       ..style = PaintingStyle.stroke;
 
     canvas.drawRect(selectionRectangle!, fillPaint);

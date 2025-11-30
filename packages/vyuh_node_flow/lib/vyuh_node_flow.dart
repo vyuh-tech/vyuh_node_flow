@@ -116,10 +116,12 @@ library;
 // Annotations
 export 'annotations/annotation.dart';
 export 'annotations/annotation_layer.dart';
+export 'annotations/annotation_theme.dart';
 export 'annotations/annotation_widget.dart';
 export 'connections/effects/effects.dart';
 // Connections
 export 'connections/connection.dart';
+export 'connections/connection_style_overrides.dart';
 export 'connections/connection_anchor.dart';
 export 'connections/connection_endpoint.dart';
 export 'connections/connection_label.dart';
@@ -136,17 +138,21 @@ export 'connections/styles/label_calculator.dart';
 export 'connections/label_theme.dart';
 export 'connections/temporary_connection.dart';
 // Core
+export 'graph/cursor_theme.dart';
 export 'graph/graph.dart'; // Needed for examples and serialization
 export 'graph/grid_styles.dart';
+export 'graph/grid_theme.dart';
 export 'graph/node_flow_actions.dart';
 export 'graph/node_flow_config.dart';
 export 'graph/node_flow_controller.dart';
+export 'graph/layers/connection_labels_layer.dart' show LabelBuilder;
 export 'graph/node_flow_editor.dart'
     hide HitTestResult, HitTarget, SelectionRectanglePainter;
 export 'graph/node_flow_events.dart';
 export 'graph/node_flow_minimap.dart';
 export 'graph/node_flow_theme.dart';
 export 'graph/node_flow_viewer.dart';
+export 'graph/selection_theme.dart';
 export 'graph/painters/grid_style.dart';
 export 'graph/viewport.dart';
 // Nodes
@@ -166,6 +172,7 @@ export 'nodes/shapes/hexagon_shape.dart';
 // Ports
 export 'ports/port.dart';
 export 'ports/port_theme.dart';
+export 'ports/port_widget.dart'; // Also exports PortBuilder typedef
 // Marker Shapes (for ports and connection endpoints)
 export 'shared/shapes/marker_shape.dart';
 export 'shared/shapes/marker_shapes.dart';

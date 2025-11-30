@@ -72,6 +72,7 @@ class NodeWidget<T> extends StatelessWidget {
   /// * [selectedBorderWidth] - Custom selected border width (overrides theme)
   /// * [borderRadius] - Custom border radius (overrides theme)
   /// * [padding] - Custom padding (overrides theme)
+  /// * [portBuilder] - Optional builder for customizing port widgets
   const NodeWidget({
     super.key,
     required this.node,
@@ -94,6 +95,7 @@ class NodeWidget<T> extends StatelessWidget {
     this.selectedBorderWidth,
     this.borderRadius,
     this.padding,
+    this.portBuilder,
   });
 
   /// Creates a node widget with default content layout.
@@ -124,6 +126,7 @@ class NodeWidget<T> extends StatelessWidget {
     this.selectedBorderWidth,
     this.borderRadius,
     this.padding,
+    this.portBuilder,
   }) : child = null;
 
   /// The node data model to render.
@@ -222,6 +225,18 @@ class NodeWidget<T> extends StatelessWidget {
   ///
   /// Overrides the theme's padding when provided.
   final EdgeInsets? padding;
+
+  /// Optional builder for customizing individual port widgets.
+  ///
+  /// When provided, this builder is called for each port and receives:
+  /// - [node] - The node containing the port
+  /// - [port] - The port to render
+  /// - [isOutput] - Whether the port is an output port
+  /// - [isConnected] - Whether the port has any connections
+  /// - [isHighlighted] - Whether the port is being hovered during connection drag
+  ///
+  /// The returned widget replaces the default [PortWidget].
+  final PortBuilder<T>? portBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -354,6 +369,7 @@ class NodeWidget<T> extends StatelessWidget {
         Theme.of(context).extension<NodeFlowTheme>() ?? NodeFlowTheme.light;
     final portTheme = theme.portTheme;
     final isConnected = _isPortConnected(port.id, isOutput);
+    final isHighlighted = _isPortHighlighted(port.id, isOutput);
 
     // Get the visual position from the Node model
     // For shaped nodes, pass the padding to account for shape inset
@@ -364,21 +380,33 @@ class NodeWidget<T> extends StatelessWidget {
       shape: shape,
     );
 
+    // Use custom port builder if provided
+    final portWidget = portBuilder != null
+        ? portBuilder!(
+            context,
+            node,
+            port,
+            isOutput,
+            isConnected,
+            isHighlighted,
+          )
+        : PortWidget(
+            port: port,
+            theme: portTheme,
+            isConnected: isConnected,
+            isHighlighted: isHighlighted,
+            onTap: onPortTap != null
+                ? (p) => onPortTap!(node.id, p.id, isOutput)
+                : null,
+            onHover: onPortHover != null
+                ? (data) => onPortHover!(node.id, data.$1.id, data.$2)
+                : null,
+          );
+
     return Positioned(
       left: visualPosition.dx,
       top: visualPosition.dy,
-      child: PortWidget(
-        port: port,
-        theme: portTheme,
-        isConnected: isConnected,
-        isHighlighted: _isPortHighlighted(port.id, isOutput),
-        onTap: onPortTap != null
-            ? (p) => onPortTap!(node.id, p.id, isOutput)
-            : null,
-        onHover: onPortHover != null
-            ? (data) => onPortHover!(node.id, data.$1.id, data.$2)
-            : null,
-      ),
+      child: portWidget,
     );
   }
 
