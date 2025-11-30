@@ -234,7 +234,7 @@ class Node<T> {
     }
 
     // Use rectangular logic
-    // The port.offset specifies the CENTER of the port shape:
+    // The port.offset specifies the CENTER of the marker shape:
     // - For left/right ports: offset.dy is the vertical center
     // - For top/bottom ports: offset.dx is the horizontal center
     final halfPortSize = portSize / 2;

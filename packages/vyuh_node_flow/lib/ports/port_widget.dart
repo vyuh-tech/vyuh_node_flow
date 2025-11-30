@@ -28,7 +28,7 @@ class PortWidget extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // Port shape
+        // Marker shape
         MouseRegion(
           onEnter: (_) => onHover?.call((port, true)),
           onExit: (_) => onHover?.call((port, false)),

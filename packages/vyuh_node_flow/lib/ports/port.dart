@@ -79,7 +79,7 @@ enum PortType {
 ///   name: 'I/O',
 ///   type: PortType.both,
 ///   position: PortPosition.top,
-///   shape: PortShape.diamond,
+///   shape: MarkerShapes.diamond,
 ///   size: 12.0,
 ///   offset: Offset(10, 0),
 /// );
@@ -211,7 +211,7 @@ class Port extends Equatable {
   /// Whether to display the port's label.
   ///
   /// When true, the port's [name] is displayed near the port visual.
-  /// When false, only the port shape is shown.
+  /// When false, only the marker shape is shown.
   /// Label visibility may also be affected by zoom level based on theme settings.
   final bool showLabel;
 

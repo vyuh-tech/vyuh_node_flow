@@ -14,7 +14,7 @@ import 'marker_shape.dart';
 /// - Left/Right ports: taller rectangle (height > width)
 /// - Top/Bottom ports: wider rectangle (width > height)
 ///
-/// The shape is centered on the port position, just like other port shapes.
+/// The shape is centered on the port position, just like other marker shapes.
 ///
 /// The [size] parameter in [paint] represents the larger dimension.
 class RectangleMarkerShape extends MarkerShape {

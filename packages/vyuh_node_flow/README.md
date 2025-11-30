@@ -45,7 +45,7 @@ minimap, and more.
 - [Working with Ports](#working-with-ports)
   - [Port Basics](#port-basics)
   - [Port Positions and Offsets](#port-positions-and-offsets)
-  - [Port Shapes](#port-shapes)
+  - [Marker Shapes](#marker-shapes)
   - [Multiple Connections](#multiple-connections)
   - [Dynamic Ports](#dynamic-ports)
 - [Connections](#connections)
@@ -82,7 +82,7 @@ minimap, and more.
 - **Type-Safe Node Data** - Generic type support for strongly-typed node data
 - **Fully Customizable** - Comprehensive theming system for nodes, connections,
   ports and backgrounds
-- **Flexible Ports** - Multiple port shapes, positions, and connection
+- **Flexible Ports** - Multiple marker shapes, positions, and connection
   validation
 - **Connection Animation Effects** - Flowing dashes, particles, gradients, and
   pulse effects to visualize data flow
@@ -789,33 +789,91 @@ inputPorts: [
 
 </details>
 
-### Port Shapes
+### Marker Shapes
 
 Ports can display different visual shapes to indicate different types of data or
-connection semantics. Port shapes are implemented as an extensible class
+connection semantics. Marker shapes are implemented as an extensible class
 hierarchy, allowing for custom shapes:
 
 ```dart
 const Port(
   id: 'port-1',
   name: 'Data',
-  shape: PortShape.capsuleHalf, // Default, auto-oriented
+  shape: MarkerShapes.capsuleHalf, // Default, auto-oriented
 )
 
 // Available built-in shapes:
-// - PortShape.capsuleHalf (default, oriented based on port position)
-// - PortShape.circle (simple round shape)
-// - PortShape.square (rectangular shape)
-// - PortShape.diamond (45-degree rotated square)
-// - PortShape.triangle (oriented arrow shape)
-// - PortShape.none (invisible port)
+// - MarkerShapes.capsuleHalf (default, oriented based on port position)
+// - MarkerShapes.circle (simple round shape)
+// - MarkerShapes.rectangle (rectangular shape)
+// - MarkerShapes.square (alias for rectangle with equal width/height)
+// - MarkerShapes.diamond (45-degree rotated square)
+// - MarkerShapes.triangle (oriented arrow shape)
+// - MarkerShapes.none (invisible port)
 ```
 
-> [!NOTE] **Shape Architecture**: `PortShape` is an abstract class with concrete
+> [!NOTE] **Shape Architecture**: `MarkerShape` is an abstract class with concrete
 > subclasses for each shape type. Orientation for directional shapes (capsuleHalf,
 > triangle) is determined automatically based on the port's position on the node.
-> This architecture allows you to create custom port shapes by extending the
-> `PortShape` class.
+
+<details>
+<summary><strong>Creating Custom Marker Shapes</strong></summary>
+
+You can create custom marker shapes by extending the `MarkerShape` class:
+
+```dart
+class StarMarkerShape extends MarkerShape {
+  const StarMarkerShape();
+
+  @override
+  void paint(Canvas canvas, Size size, Paint paint) {
+    final path = Path();
+    final center = Offset(size.width / 2, size.height / 2);
+    final outerRadius = size.width / 2;
+    final innerRadius = outerRadius * 0.4;
+
+    // Draw a 5-pointed star
+    for (int i = 0; i < 5; i++) {
+      final outerAngle = (i * 72 - 90) * pi / 180;
+      final innerAngle = ((i * 72) + 36 - 90) * pi / 180;
+
+      final outerPoint = Offset(
+        center.dx + outerRadius * cos(outerAngle),
+        center.dy + outerRadius * sin(outerAngle),
+      );
+      final innerPoint = Offset(
+        center.dx + innerRadius * cos(innerAngle),
+        center.dy + innerRadius * sin(innerAngle),
+      );
+
+      if (i == 0) {
+        path.moveTo(outerPoint.dx, outerPoint.dy);
+      } else {
+        path.lineTo(outerPoint.dx, outerPoint.dy);
+      }
+      path.lineTo(innerPoint.dx, innerPoint.dy);
+    }
+    path.close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  Path getPath(Size size) {
+    // Return the same path for hit testing
+    // ... similar implementation
+  }
+}
+
+// Use the custom shape
+const Port(
+  id: 'special-port',
+  name: 'Special',
+  shape: StarMarkerShape(),
+)
+```
+
+</details>
 
 ### Multiple Connections
 
@@ -2368,7 +2426,7 @@ class ProcessViewer extends StatelessWidget {
 | `position`         | PortPosition | Port location on node      |
 | `offset`           | Offset       | Position offset            |
 | `type`             | PortType     | source/target/both         |
-| `shape`            | PortShape    | Visual appearance          |
+| `shape`            | MarkerShape  | Visual appearance          |
 | `multiConnections` | bool         | Allow multiple connections |
 | `maxConnections`   | int?         | Connection limit           |
 

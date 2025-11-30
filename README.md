@@ -2,8 +2,9 @@
 
 ![Vyuh Node Flow Banner](packages/vyuh_node_flow/assets/node-flow-banner.png)
 
-A flexible, high-performance node-based flow editor for Flutter applications, inspired by React Flow. This monorepo
-contains the core library and demo application.
+A flexible, high-performance node-based flow editor for Flutter applications,
+inspired by React Flow. This monorepo contains the core library and demo
+application.
 
 <p align="center">
   <a href="https://pub.dev/packages/vyuh_node_flow">
@@ -16,7 +17,6 @@ contains the core library and demo application.
     <img src="https://img.shields.io/badge/Demo-Live-brightgreen?style=for-the-badge" alt="Live Demo">
   </a>
 </p>
-
 
 ## 📦 Packages
 
@@ -35,7 +35,8 @@ The core Flutter package providing the node-based flow editor functionality.
 - Annotations (sticky notes, markers, groups)
 - Built-in minimap for navigation
 - Comprehensive keyboard shortcuts
-- Multiple connection styles (bezier, smoothstep, straight, step)
+- Multiple connection styles (bezier, smoothstep, straight, step) with
+  customizable end points
 - Read-only viewer mode
 - JSON serialization for saving/loading flows
 - Auto-layout algorithms (grid, hierarchical, alignment, distribution)
@@ -44,12 +45,13 @@ The core Flutter package providing the node-based flow editor functionality.
 
 ```yaml
 dependencies:
-  vyuh_node_flow: ^0.2.5
+  vyuh_node_flow: <latest version>
 ```
 
 ### [`demo`](./packages/demo)
 
-A comprehensive demo application showcasing all features of the Vyuh Node Flow editor.
+A comprehensive demo application showcasing all features of the Vyuh Node Flow
+editor.
 
 **Includes:**
 
@@ -62,7 +64,6 @@ A comprehensive demo application showcasing all features of the Vyuh Node Flow e
 
 **Try it online:** [🚀 Live Demo](https://flow.demo.vyuh.tech)
 
-
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -72,20 +73,24 @@ A comprehensive demo application showcasing all features of the Vyuh Node Flow e
 
 ### Development Setup
 
-This project uses [Melos](https://melos.invertase.dev/) for workspace management.
+This project uses [Melos](https://melos.invertase.dev/) for workspace
+management.
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/vyuh-tech/vyuh_node_flow.git
    cd vyuh_node_flow
    ```
 
 2. **Install dependencies:**
+
    ```bash
    dart pub get
    ```
 
 3. **Bootstrap the workspace:**
+
    ```bash
    dart run melos bootstrap
    ```
@@ -96,13 +101,11 @@ This project uses [Melos](https://melos.invertase.dev/) for workspace management
    flutter run -d chrome
    ```
 
-
 ## Documentation
 
 - [Package Documentation](./packages/vyuh_node_flow/README.md)
 - [API Reference](https://pub.dev/documentation/vyuh_node_flow/latest/)
 - [Live Demo](https://flow.demo.vyuh.tech)
-
 
 ## 🤝 Contributing
 
@@ -114,10 +117,10 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
+for details.
 
 ---
 
