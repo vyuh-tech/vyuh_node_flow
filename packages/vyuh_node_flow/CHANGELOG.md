@@ -1,101 +1,121 @@
+## 0.5.0
+
+- Theming refactoring
+- **FEAT**: Sub-Themes with more control on theme overrides
+
 ## 0.4.0
 
- - **FEAT**: moving from PortShapes to MarkerShapes! This is a BREAKING change. Also generalizing the square marker shape to be rectangle.
+- **FEAT**: moving from PortShapes to MarkerShapes! This is a BREAKING change.
+  Also generalizing the square marker shape to be rectangle.
 
 ## 0.3.18
 
- - **FEAT**: updated readme about structured events.
+- **FEAT**: updated readme about structured events.
 
 ## 0.3.17
 
- - **FEAT**: adding centering of viewport.
+- **FEAT**: adding centering of viewport.
 
 ## 0.3.16
 
- - **FEAT**: optimizing the widget tree by removing an unnecessary Container.
+- **FEAT**: optimizing the widget tree by removing an unnecessary Container.
 
 ## 0.3.15+1
 
- - **FIX**: update examples to indicate the consolidated step styles.
+- **FIX**: update examples to indicate the consolidated step styles.
 
 ## 0.3.15
 
- - **FEAT**: consolidating the step and smooth step connection styles.
+- **FEAT**: consolidating the step and smooth step connection styles.
 
 ## 0.3.14
 
- - **FEAT**: added the ability to check for input/output port when rendering a port shape.
+- **FEAT**: added the ability to check for input/output port when rendering a
+  port shape.
 
 ## 0.3.13
 
- - **FEAT**: optimizing step hit area calculation.
+- **FEAT**: optimizing step hit area calculation.
 
 ## 0.3.12
 
- - **FEAT**: tap and double tap handling at node editor level with custom hit testing.
+- **FEAT**: tap and double tap handling at node editor level with custom hit
+  testing.
 
 ## 0.3.11
 
- - **FIX**: updated readme.
- - **FIX**: updated icons on demo, adjusted padding in node.
- - **FEAT**: refactoring and renaming across the board for better semantic naming.
- - **FEAT**: refactoring and renaming across the board for better semantic naming.
- - **FEAT**: using LabelTheme.light/dark directly.
+- **FIX**: updated readme.
+- **FIX**: updated icons on demo, adjusted padding in node.
+- **FEAT**: refactoring and renaming across the board for better semantic
+  naming.
+- **FEAT**: refactoring and renaming across the board for better semantic
+  naming.
+- **FEAT**: using LabelTheme.light/dark directly.
 
 ## 0.3.10
 
- - **FIX**: updated icons on demo, adjusted padding in node.
- - **BREAKING**: renamed types for better semantic clarity:
-   - `HitType` → `HitTarget`
-   - `AnnotationDependencyType` → `AnnotationBehavior`
-   - `MinimapPosition` → `CornerPosition`
-   - `ShapeOrientation` → `ShapeDirection`
-   - `PathParameters` → `ConnectionPathParameters`
- - **FEAT**: using LabelTheme.light/dark static constants directly in NodeFlowTheme.
+- **FIX**: updated icons on demo, adjusted padding in node.
+- **BREAKING**: renamed types for better semantic clarity:
+  - `HitType` → `HitTarget`
+  - `AnnotationDependencyType` → `AnnotationBehavior`
+  - `MinimapPosition` → `CornerPosition`
+  - `ShapeOrientation` → `ShapeDirection`
+  - `PathParameters` → `ConnectionPathParameters`
+- **FEAT**: using LabelTheme.light/dark static constants directly in
+  NodeFlowTheme.
 
 ## 0.3.9
 
- - **FEAT**: introduced Port Labels, which help in setting labels for ports on the inside of the port. The labels are positioned as per the port position with a customizable label offset, TextStyle and visibility threshold based on the zoom-level of canvas.
+- **FEAT**: introduced Port Labels, which help in setting labels for ports on
+  the inside of the port. The labels are positioned as per the port position
+  with a customizable label offset, TextStyle and visibility threshold based on
+  the zoom-level of canvas.
 
 ## 0.3.8
 
- - **FEAT**: introduced ConnectionEffects, Particles with static constants for easy usage.
+- **FEAT**: introduced ConnectionEffects, Particles with static constants for
+  easy usage.
 
 ## 0.3.7+1
 
- - **FIX**: simplified use of shape orientation.
+- **FIX**: simplified use of shape orientation.
 
 ## 0.3.7
 
- - **FEAT**: Making PortShape into a class hierarchy and consolidating the end point shape into a PortShape. Also fixed the autopan related properties since they are currently not supported.
+- **FEAT**: Making PortShape into a class hierarchy and consolidating the end
+  point shape into a PortShape. Also fixed the autopan related properties since
+  they are currently not supported.
 
 ## 0.3.6
 
- - **FEAT**: GridStyle is now an abstract class with subclasses that provide lines, hierarchical, dots, cross and none styles!
+- **FEAT**: GridStyle is now an abstract class with subclasses that provide
+  lines, hierarchical, dots, cross and none styles!
 
 ## 0.3.5
 
- - **FEAT**: using a CustomPainter to ensure the Text Metrics are accurate for the connection labels.
+- **FEAT**: using a CustomPainter to ensure the Text Metrics are accurate for
+  the connection labels.
 
 ## 0.3.4
 
- - **FEAT**: leveraging path cache to avoid computing the paths again for connections.
+- **FEAT**: leveraging path cache to avoid computing the paths again for
+  connections.
 
 ## 0.3.3
 
- - **FEAT**: multiple connection labels.
+- **FEAT**: multiple connection labels.
 
 ## 0.3.2+1
 
- - **FIX**: adding connection effects gif and fixing a typo.
+- **FIX**: adding connection effects gif and fixing a typo.
 
 ## 0.3.2
 
- - **FEAT**: adding connection effects to readme.
+- **FEAT**: adding connection effects to readme.
 
 ## 0.3.1
 
- - **FEAT**: renaming pulseSpeed => speed for consistency.
+- **FEAT**: renaming pulseSpeed => speed for consistency.
 
 ## 0.3.0
 
