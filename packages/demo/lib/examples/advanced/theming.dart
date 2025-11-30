@@ -18,6 +18,8 @@ class _ThemingExampleState extends State<ThemingExample> {
   MarkerShape _selectedPortShape = MarkerShapes.capsuleHalf;
   bool _scrollToZoom = true;
   double _endpointSize = 5.0;
+  bool _useCustomPortBuilder = false;
+  bool _useCustomLabelBuilder = false;
 
   @override
   void initState() {
@@ -156,7 +158,7 @@ class _ThemingExampleState extends State<ThemingExample> {
     _controller.addNode(node2);
     _controller.addNode(node3);
 
-    // Add connections
+    // Add connections with labels
     _controller.addConnection(
       Connection(
         id: 'conn1',
@@ -164,6 +166,7 @@ class _ThemingExampleState extends State<ThemingExample> {
         sourcePortId: 'out1',
         targetNodeId: 'node2',
         targetPortId: 'in1',
+        label: ConnectionLabel.center(text: 'Data Flow'),
       ),
     );
 
@@ -174,6 +177,7 @@ class _ThemingExampleState extends State<ThemingExample> {
         sourcePortId: 'out1',
         targetNodeId: 'node3',
         targetPortId: 'in1',
+        label: ConnectionLabel.center(text: 'Transform'),
       ),
     );
 
@@ -261,6 +265,89 @@ class _ThemingExampleState extends State<ThemingExample> {
     );
   }
 
+  /// Custom port builder that colors ports based on whether they're input or output
+  Widget _buildCustomPort(
+    BuildContext context,
+    Node<Map<String, dynamic>> node,
+    Port port,
+    bool isOutput,
+    bool isConnected,
+    bool isHighlighted,
+  ) {
+    final portTheme = _theme.portTheme;
+
+    // Use different colors for input vs output ports
+    final baseColor = isOutput ? Colors.green : Colors.blue;
+    final color = isHighlighted
+        ? baseColor.shade700
+        : isConnected
+        ? baseColor.shade400
+        : baseColor.shade200;
+
+    return PortWidget(
+      port: port,
+      theme: portTheme,
+      isConnected: isConnected,
+      isHighlighted: isHighlighted,
+      color: color,
+      connectedColor: baseColor.shade400,
+      snappingColor: baseColor.shade700,
+      borderColor: baseColor.shade800,
+      borderWidth: isHighlighted ? 2.0 : 1.0,
+    );
+  }
+
+  /// Custom label builder that adds icons to labels
+  Widget _buildCustomLabel(
+    BuildContext context,
+    Connection connection,
+    ConnectionLabel label,
+    Rect position,
+  ) {
+    final labelTheme = _theme.labelTheme;
+
+    // Use OverflowBox to allow custom sizing while maintaining center alignment
+    // The position rect is calculated for the default label size, so we use
+    // SizedBox + alignment to center our custom-sized widget
+    return SizedBox(
+      width: position.width,
+      height: position.height,
+      child: OverflowBox(
+        maxWidth: double.infinity,
+        maxHeight: double.infinity,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.amber.shade100,
+            borderRadius: BorderRadius.circular(50), // Capsule shape
+            border: Border.all(color: Colors.amber.shade400),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.amber.withValues(alpha: 0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.bolt, size: 14, color: Colors.amber.shade800),
+              const SizedBox(width: 4),
+              Text(
+                label.text,
+                style: labelTheme.textStyle.copyWith(
+                  color: Colors.amber.shade900,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ResponsiveControlPanel(
@@ -280,6 +367,8 @@ class _ThemingExampleState extends State<ThemingExample> {
         nodeBuilder: _buildNode,
         theme: _theme,
         scrollToZoom: _scrollToZoom,
+        portBuilder: _useCustomPortBuilder ? _buildCustomPort : null,
+        labelBuilder: _useCustomLabelBuilder ? _buildCustomLabel : null,
       ),
       children: [
         _buildThemePresets(),
@@ -293,6 +382,8 @@ class _ThemingExampleState extends State<ThemingExample> {
         _buildStrokeWidthSection(),
         const SizedBox(height: 24),
         _buildPortSizeSection(),
+        const SizedBox(height: 24),
+        _buildCustomBuildersSection(),
         const SizedBox(height: 24),
         _buildGridSection(),
         const SizedBox(height: 24),
@@ -742,6 +833,53 @@ class _ThemingExampleState extends State<ThemingExample> {
     );
   }
 
+  Widget _buildCustomBuildersSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle('Custom Builders'),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            const Text('Custom Port Builder', style: TextStyle(fontSize: 12)),
+            const Spacer(),
+            Switch(
+              value: _useCustomPortBuilder,
+              onChanged: (value) {
+                setState(() {
+                  _useCustomPortBuilder = value;
+                });
+              },
+            ),
+          ],
+        ),
+        Text(
+          'Colors ports based on input (blue) / output (green)',
+          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Text('Custom Label Builder', style: TextStyle(fontSize: 12)),
+            const Spacer(),
+            Switch(
+              value: _useCustomLabelBuilder,
+              onChanged: (value) {
+                setState(() {
+                  _useCustomLabelBuilder = value;
+                });
+              },
+            ),
+          ],
+        ),
+        Text(
+          'Adds icons and custom styling to connection labels',
+          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSlider(
     String label,
     double value,
@@ -778,20 +916,27 @@ class _ThemingExampleState extends State<ThemingExample> {
   }
 
   Widget _buildGridSection() {
+    final gridTheme = _theme.gridTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Grid'),
         const SizedBox(height: 12),
-        _buildColorPicker('Grid Color', _theme.gridColor, (color) {
-          _updateTheme(_theme.copyWith(gridColor: color));
+        _buildColorPicker('Grid Color', gridTheme.color, (color) {
+          _updateTheme(
+            _theme.copyWith(gridTheme: gridTheme.copyWith(color: color)),
+          );
         }),
         const SizedBox(height: 8),
-        _buildSlider('Grid Size', _theme.gridSize, 10.0, 50.0, (value) {
-          _updateTheme(_theme.copyWith(gridSize: value));
+        _buildSlider('Grid Size', gridTheme.size, 10.0, 50.0, (value) {
+          _updateTheme(
+            _theme.copyWith(gridTheme: gridTheme.copyWith(size: value)),
+          );
         }),
-        _buildSlider('Grid Thickness', _theme.gridThickness, 0.5, 3.0, (value) {
-          _updateTheme(_theme.copyWith(gridThickness: value));
+        _buildSlider('Grid Thickness', gridTheme.thickness, 0.5, 3.0, (value) {
+          _updateTheme(
+            _theme.copyWith(gridTheme: gridTheme.copyWith(thickness: value)),
+          );
         }),
         const SizedBox(height: 8),
         const Text('Grid Style', style: TextStyle(fontSize: 12)),
@@ -810,10 +955,14 @@ class _ThemingExampleState extends State<ThemingExample> {
                 final (name, style) = entry;
                 return ChoiceChip(
                   label: Text(name, style: const TextStyle(fontSize: 11)),
-                  selected: _theme.gridStyle == style,
+                  selected: gridTheme.style == style,
                   onSelected: (selected) {
                     if (selected) {
-                      _updateTheme(_theme.copyWith(gridStyle: style));
+                      _updateTheme(
+                        _theme.copyWith(
+                          gridTheme: gridTheme.copyWith(style: style),
+                        ),
+                      );
                     }
                   },
                 );

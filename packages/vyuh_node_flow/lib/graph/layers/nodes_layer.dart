@@ -4,6 +4,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import '../../connections/connection.dart';
 import '../../nodes/node.dart';
 import '../../nodes/node_widget.dart';
+import '../../ports/port_widget.dart';
 import '../node_flow_controller.dart';
 
 /// Nodes layer widget that renders all nodes with optimized reactivity
@@ -19,6 +20,7 @@ class NodesLayer<T> extends StatelessWidget {
     this.onNodeMouseLeave,
     this.onNodeContextMenu,
     this.nodeContainerBuilder,
+    this.portBuilder,
   });
 
   final NodeFlowController<T> controller;
@@ -28,6 +30,10 @@ class NodesLayer<T> extends StatelessWidget {
   /// When not provided, uses the default NodeWidget implementation.
   final Widget Function(BuildContext context, Node<T> node, Widget content)?
   nodeContainerBuilder;
+
+  /// Optional builder for customizing individual port widgets.
+  /// When not provided, uses the default PortWidget implementation.
+  final PortBuilder<T>? portBuilder;
 
   final List<Connection> connections;
   final void Function(Node<T> node) onNodeTap;
@@ -87,6 +93,17 @@ class NodesLayer<T> extends StatelessWidget {
           : null,
       onNodeContextMenu: onNodeContextMenu != null
           ? (nodeId, pos) => onNodeContextMenu!(node, pos)
+          : null,
+      portBuilder: portBuilder != null
+          ? (context, n, port, isOutput, isConnected, isHighlighted) =>
+                portBuilder!(
+                  context,
+                  n,
+                  port,
+                  isOutput,
+                  isConnected,
+                  isHighlighted,
+                )
           : null,
       child: content,
     );

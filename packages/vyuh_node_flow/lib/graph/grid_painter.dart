@@ -17,7 +17,7 @@ class GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // Delegate to the grid style's paint method
-    theme.gridStyle.paint(canvas, size, theme, viewport);
+    theme.gridTheme.style.paint(canvas, size, theme, viewport);
   }
 
   @override

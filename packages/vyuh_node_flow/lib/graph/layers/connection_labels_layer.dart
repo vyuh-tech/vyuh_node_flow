@@ -11,12 +11,65 @@ import '../../connections/styles/label_calculator.dart';
 import '../node_flow_controller.dart';
 import '../node_flow_theme.dart';
 
+/// Builder function type for customizing connection label widgets.
+///
+/// This typedef defines the signature for custom label builders that can be
+/// provided to [NodeFlowEditor] to customize how connection labels are rendered.
+///
+/// Parameters:
+/// - [context]: The build context
+/// - [connection]: The connection containing this label
+/// - [label]: The label being rendered
+/// - [position]: The calculated position rect for the label (includes size)
+///
+/// Example:
+/// ```dart
+/// LabelBuilder myLabelBuilder = (context, connection, label, position) {
+///   return Container(
+///     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+///     decoration: BoxDecoration(
+///       color: Colors.amber.shade100,
+///       borderRadius: BorderRadius.circular(12),
+///     ),
+///     child: Row(
+///       mainAxisSize: MainAxisSize.min,
+///       children: [
+///         Icon(Icons.bolt, size: 14),
+///         SizedBox(width: 4),
+///         Text(label.text),
+///       ],
+///     ),
+///   );
+/// };
+/// ```
+typedef LabelBuilder =
+    Widget Function(
+      BuildContext context,
+      Connection connection,
+      ConnectionLabel label,
+      Rect position,
+    );
+
 /// Layer that renders connection labels independently from connection lines
 /// This allows for optimized repainting when only labels change
 class ConnectionLabelsLayer<T> extends StatelessWidget {
-  const ConnectionLabelsLayer({super.key, required this.controller});
+  const ConnectionLabelsLayer({
+    super.key,
+    required this.controller,
+    this.labelBuilder,
+  });
 
   final NodeFlowController<T> controller;
+
+  /// Optional builder for customizing individual label widgets.
+  ///
+  /// When provided, this builder is called for each label and receives:
+  /// - [connection] - The connection containing the label
+  /// - [label] - The label to render
+  /// - [position] - The calculated rect position for the label
+  ///
+  /// The returned widget replaces the default label rendering.
+  final LabelBuilder? labelBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +91,7 @@ class ConnectionLabelsLayer<T> extends StatelessWidget {
                 key: ValueKey('label_${connection.id}'),
                 connection: connection,
                 controller: controller,
+                labelBuilder: labelBuilder,
                 onLabelTap: () {
                   // Check for modifier keys to support toggle selection
                   final isCmd = HardwareKeyboard.instance.isMetaPressed;
@@ -64,11 +118,13 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
     super.key,
     required this.connection,
     required this.controller,
+    this.labelBuilder,
     this.onLabelTap,
   });
 
   final Connection connection;
   final NodeFlowController<T> controller;
+  final LabelBuilder? labelBuilder;
   final VoidCallback? onLabelTap;
 
   @override
@@ -132,12 +188,13 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        return _buildLabelWidgets(labels, labelRects, currentTheme);
+        return _buildLabelWidgets(context, labels, labelRects, currentTheme);
       },
     );
   }
 
   Widget _buildLabelWidgets(
+    BuildContext context,
     List<ConnectionLabel> labels,
     List<Rect> labelRects,
     NodeFlowTheme currentTheme,
@@ -150,6 +207,17 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
       final label = labels[i];
       final rect = labelRects[i];
 
+      // Use custom label builder if provided
+      final labelWidget = labelBuilder != null
+          ? labelBuilder!(context, connection, label, rect)
+          : _TappableLabelWidget(
+              text: label.text,
+              labelTheme: labelTheme,
+              anchor: label.anchor,
+              onTap: onLabelTap,
+              visualSize: rect.size,
+            );
+
       // Position the label at the calculated position
       // Pass the calculated visual size to ensure correct anchoring
       labelWidgets.add(
@@ -157,13 +225,7 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
           key: ValueKey('label_${connection.id}_${label.id}'),
           left: rect.left,
           top: rect.top,
-          child: _TappableLabelWidget(
-            text: label.text,
-            labelTheme: labelTheme,
-            anchor: label.anchor,
-            onTap: onLabelTap,
-            visualSize: rect.size,
-          ),
+          child: labelWidget,
         ),
       );
     }

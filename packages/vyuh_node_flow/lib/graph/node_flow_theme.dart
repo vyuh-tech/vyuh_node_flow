@@ -1,15 +1,14 @@
-import 'dart:ui' show lerpDouble;
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
+import '../annotations/annotation_theme.dart';
 import '../connections/connection_endpoint.dart';
 import '../connections/connection_theme.dart';
 import '../connections/label_theme.dart';
 import '../nodes/node_theme.dart';
 import '../ports/port_theme.dart';
-import 'grid_styles.dart';
-import 'painters/grid_style.dart';
+import 'cursor_theme.dart';
+import 'grid_theme.dart';
+import 'selection_theme.dart';
 
 /// Theme configuration for the node flow editor.
 ///
@@ -18,6 +17,19 @@ import 'painters/grid_style.dart';
 ///
 /// The theme uses Flutter's [ThemeExtension] pattern, allowing it to be
 /// integrated with Flutter's theming system and accessed via `Theme.of(context)`.
+///
+/// ## Theme Hierarchy
+///
+/// The theme is organized into logical sub-themes:
+/// - [nodeTheme]: Node appearance (colors, borders, shadows)
+/// - [connectionTheme]: Connection appearance (colors, stroke, style)
+/// - [temporaryConnectionTheme]: Temporary connection during creation
+/// - [portTheme]: Port appearance (size, colors, shapes)
+/// - [labelTheme]: Connection label styling
+/// - [annotationTheme]: Annotation appearance (selection, highlight)
+/// - [gridTheme]: Grid background appearance
+/// - [selectionTheme]: Selection rectangle and indicator colors
+/// - [cursorTheme]: Mouse cursor styles for different interactions
 ///
 /// Two built-in themes are provided:
 /// - [NodeFlowTheme.light]: Light color scheme suitable for bright backgrounds
@@ -34,7 +46,9 @@ import 'painters/grid_style.dart';
 /// // Customize a theme
 /// final customTheme = NodeFlowTheme.light.copyWith(
 ///   backgroundColor: Colors.grey[100],
-///   gridStyle: GridStyles.hierarchical,
+///   gridTheme: GridTheme.light.copyWith(
+///     style: GridStyles.hierarchical,
+///   ),
 ///   nodeTheme: NodeTheme.light.copyWith(
 ///     defaultColor: Colors.blue,
 ///   ),
@@ -51,18 +65,11 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     this.connectionAnimationDuration = const Duration(seconds: 2),
     required this.portTheme,
     required this.labelTheme,
+    required this.annotationTheme,
+    required this.gridTheme,
+    required this.selectionTheme,
+    required this.cursorTheme,
     this.backgroundColor = Colors.white,
-    this.gridColor = const Color(0xFF919191),
-    this.gridSize = 20.0,
-    this.gridThickness = 0.5,
-    this.gridStyle = GridStyles.dots,
-    this.selectionColor = const Color(0x3300BCD4),
-    this.selectionBorderColor = const Color(0xFF00BCD4),
-    this.selectionBorderWidth = 1.0,
-    this.cursorStyle = SystemMouseCursors.basic,
-    this.dragCursorStyle = SystemMouseCursors.grabbing,
-    this.nodeCursorStyle = SystemMouseCursors.click,
-    this.portCursorStyle = SystemMouseCursors.precise,
     this.debugMode = false,
   });
 
@@ -88,65 +95,20 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   /// Theme for connection label styling (font, background, positioning).
   final LabelTheme labelTheme;
 
+  /// Theme for annotation appearance (selection, highlight colors).
+  final AnnotationTheme annotationTheme;
+
+  /// Theme for grid background appearance (color, size, style).
+  final GridTheme gridTheme;
+
+  /// Theme for selection rectangle and indicator colors.
+  final SelectionTheme selectionTheme;
+
+  /// Theme for mouse cursor styles.
+  final CursorTheme cursorTheme;
+
   /// Background color of the canvas.
   final Color backgroundColor;
-
-  /// Color of the grid lines or dots.
-  final Color gridColor;
-
-  /// Spacing between grid lines in pixels.
-  ///
-  /// Default is 20.0. Applies to both horizontal and vertical spacing.
-  final double gridSize;
-
-  /// Thickness of grid lines in pixels.
-  ///
-  /// Default is 0.5. For dot style, this affects dot radius.
-  final double gridThickness;
-
-  /// The grid style to render on the canvas background.
-  ///
-  /// Use constants from [GridStyles] class or create a custom [GridStyle].
-  /// Use [GridStyles.none] for no grid.
-  ///
-  /// Default is [GridStyles.dots].
-  ///
-  /// Example:
-  /// ```dart
-  /// // Using GridStyles constants
-  /// gridStyle: GridStyles.lines,
-  /// gridStyle: GridStyles.hierarchical,
-  ///
-  /// // Custom grid style
-  /// gridStyle: MyCustomGridStyle(),
-  ///
-  /// // No grid
-  /// gridStyle: GridStyles.none,
-  /// ```
-  final GridStyle gridStyle;
-
-  /// Fill color for the selection rectangle.
-  ///
-  /// Used when dragging to select multiple nodes. Typically semi-transparent.
-  final Color selectionColor;
-
-  /// Border color for the selection rectangle.
-  final Color selectionBorderColor;
-
-  /// Border width for the selection rectangle in pixels.
-  final double selectionBorderWidth;
-
-  /// Default mouse cursor style for the canvas.
-  final SystemMouseCursor cursorStyle;
-
-  /// Mouse cursor style when dragging nodes or panning.
-  final SystemMouseCursor dragCursorStyle;
-
-  /// Mouse cursor style when hovering over nodes.
-  final SystemMouseCursor nodeCursorStyle;
-
-  /// Mouse cursor style when hovering over ports or creating connections.
-  final SystemMouseCursor portCursorStyle;
 
   /// Whether to enable debug visualization.
   ///
@@ -161,18 +123,11 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     Duration? connectionAnimationDuration,
     PortTheme? portTheme,
     LabelTheme? labelTheme,
+    AnnotationTheme? annotationTheme,
+    GridTheme? gridTheme,
+    SelectionTheme? selectionTheme,
+    CursorTheme? cursorTheme,
     Color? backgroundColor,
-    Color? gridColor,
-    double? gridSize,
-    double? gridThickness,
-    GridStyle? gridStyle,
-    Color? selectionColor,
-    Color? selectionBorderColor,
-    double? selectionBorderWidth,
-    SystemMouseCursor? cursorStyle,
-    SystemMouseCursor? dragCursorStyle,
-    SystemMouseCursor? nodeCursorStyle,
-    SystemMouseCursor? portCursorStyle,
     bool? debugMode,
   }) {
     return NodeFlowTheme(
@@ -184,18 +139,11 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
           connectionAnimationDuration ?? this.connectionAnimationDuration,
       portTheme: portTheme ?? this.portTheme,
       labelTheme: labelTheme ?? this.labelTheme,
+      annotationTheme: annotationTheme ?? this.annotationTheme,
+      gridTheme: gridTheme ?? this.gridTheme,
+      selectionTheme: selectionTheme ?? this.selectionTheme,
+      cursorTheme: cursorTheme ?? this.cursorTheme,
       backgroundColor: backgroundColor ?? this.backgroundColor,
-      gridColor: gridColor ?? this.gridColor,
-      gridSize: gridSize ?? this.gridSize,
-      gridThickness: gridThickness ?? this.gridThickness,
-      gridStyle: gridStyle ?? this.gridStyle,
-      selectionColor: selectionColor ?? this.selectionColor,
-      selectionBorderColor: selectionBorderColor ?? this.selectionBorderColor,
-      selectionBorderWidth: selectionBorderWidth ?? this.selectionBorderWidth,
-      cursorStyle: cursorStyle ?? this.cursorStyle,
-      dragCursorStyle: dragCursorStyle ?? this.dragCursorStyle,
-      nodeCursorStyle: nodeCursorStyle ?? this.nodeCursorStyle,
-      portCursorStyle: portCursorStyle ?? this.portCursorStyle,
       debugMode: debugMode ?? this.debugMode,
     );
   }
@@ -217,26 +165,17 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
       portTheme: portTheme,
       // PortTheme doesn't support lerp
       labelTheme: t < 0.5 ? labelTheme : other.labelTheme,
+      annotationTheme: t < 0.5 ? annotationTheme : other.annotationTheme,
+      // AnnotationTheme doesn't support lerp
+      gridTheme: t < 0.5 ? gridTheme : other.gridTheme,
+      // GridTheme doesn't support lerp
+      selectionTheme: t < 0.5 ? selectionTheme : other.selectionTheme,
+      // SelectionTheme doesn't support lerp
+      cursorTheme: t < 0.5 ? cursorTheme : other.cursorTheme,
+      // CursorTheme doesn't support lerp
       backgroundColor:
           Color.lerp(backgroundColor, other.backgroundColor, t) ??
           backgroundColor,
-      gridColor: Color.lerp(gridColor, other.gridColor, t) ?? gridColor,
-      gridSize: lerpDouble(gridSize, other.gridSize, t) ?? gridSize,
-      gridThickness:
-          lerpDouble(gridThickness, other.gridThickness, t) ?? gridThickness,
-      gridStyle: t < 0.5 ? gridStyle : other.gridStyle,
-      selectionColor:
-          Color.lerp(selectionColor, other.selectionColor, t) ?? selectionColor,
-      selectionBorderColor:
-          Color.lerp(selectionBorderColor, other.selectionBorderColor, t) ??
-          selectionBorderColor,
-      selectionBorderWidth:
-          lerpDouble(selectionBorderWidth, other.selectionBorderWidth, t) ??
-          selectionBorderWidth,
-      cursorStyle: t < 0.5 ? cursorStyle : other.cursorStyle,
-      dragCursorStyle: t < 0.5 ? dragCursorStyle : other.dragCursorStyle,
-      nodeCursorStyle: t < 0.5 ? nodeCursorStyle : other.nodeCursorStyle,
-      portCursorStyle: t < 0.5 ? portCursorStyle : other.portCursorStyle,
       debugMode: t < 0.5 ? debugMode : other.debugMode,
     );
   }
@@ -246,7 +185,7 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   /// Suitable for applications with light backgrounds. Features:
   /// - White background
   /// - Light grey dot grid
-  /// - Blue selection and highlights
+  /// - Cyan selection and highlights
   /// - Black text and borders
   static final light = NodeFlowTheme(
     nodeTheme: NodeTheme.light,
@@ -259,18 +198,11 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     ),
     portTheme: PortTheme.light,
     labelTheme: LabelTheme.light,
+    annotationTheme: AnnotationTheme.light,
+    gridTheme: GridTheme.light,
+    selectionTheme: SelectionTheme.light,
+    cursorTheme: CursorTheme.light,
     backgroundColor: Colors.white,
-    gridColor: Color(0xFFC8C8C8),
-    gridSize: 20.0,
-    gridThickness: 1,
-    gridStyle: GridStyles.dots,
-    selectionColor: Color(0x3300BCD4),
-    selectionBorderColor: Color(0xFF00BCD4),
-    selectionBorderWidth: 1.0,
-    cursorStyle: SystemMouseCursors.grab,
-    dragCursorStyle: SystemMouseCursors.grabbing,
-    nodeCursorStyle: SystemMouseCursors.click,
-    portCursorStyle: SystemMouseCursors.precise,
   );
 
   /// Built-in dark theme with muted colors and visible grid.
@@ -291,17 +223,10 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     ),
     portTheme: PortTheme.dark,
     labelTheme: LabelTheme.dark,
+    annotationTheme: AnnotationTheme.dark,
+    gridTheme: GridTheme.dark,
+    selectionTheme: SelectionTheme.dark,
+    cursorTheme: CursorTheme.dark,
     backgroundColor: const Color(0xFF1A1A1A),
-    gridColor: const Color(0xFF707070),
-    gridSize: 20.0,
-    gridThickness: 1,
-    gridStyle: GridStyles.dots,
-    selectionColor: const Color(0x3364B5F6),
-    selectionBorderColor: const Color(0xFF64B5F6),
-    selectionBorderWidth: 1.0,
-    cursorStyle: SystemMouseCursors.grab,
-    dragCursorStyle: SystemMouseCursors.grabbing,
-    nodeCursorStyle: SystemMouseCursors.click,
-    portCursorStyle: SystemMouseCursors.precise,
   );
 }

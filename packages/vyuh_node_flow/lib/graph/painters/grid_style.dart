@@ -25,7 +25,8 @@ import '../viewport.dart';
 ///     ({double left, double top, double right, double bottom}) gridArea,
 ///   ) {
 ///     // Calculate style-specific positions and render
-///     final startX = (gridArea.left / theme.gridSize).floor() * theme.gridSize;
+///     final gridSize = theme.gridTheme.size;
+///     final startX = (gridArea.left / gridSize).floor() * gridSize;
 ///     // ... custom grid painting logic here
 ///   }
 /// }
@@ -49,11 +50,12 @@ abstract class GridStyle {
     NodeFlowTheme theme,
     GraphViewport viewport,
   ) {
-    if (theme.gridSize <= 0) return;
+    final gridSize = theme.gridTheme.size;
+    if (gridSize <= 0) return;
 
     // Calculate common parameters once
     final visibleArea = _calculateVisibleArea(viewport, size);
-    final gridArea = _calculateGridArea(visibleArea, theme.gridSize);
+    final gridArea = _calculateGridArea(visibleArea, gridSize);
 
     // Delegate to style-specific implementation
     paintGrid(canvas, theme, gridArea);
@@ -115,9 +117,10 @@ abstract class GridStyle {
   /// Helper to create a base paint object with grid color and thickness.
   @protected
   Paint createGridPaint(NodeFlowTheme theme) {
+    final gridTheme = theme.gridTheme;
     return Paint()
-      ..color = theme.gridColor
-      ..strokeWidth = theme.gridThickness
+      ..color = gridTheme.color
+      ..strokeWidth = gridTheme.thickness
       ..style = PaintingStyle.stroke;
   }
 }

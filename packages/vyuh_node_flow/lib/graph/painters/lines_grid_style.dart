@@ -6,8 +6,8 @@ import 'grid_style.dart';
 /// Grid style that renders evenly spaced vertical and horizontal lines.
 ///
 /// Creates a traditional line-based grid with consistent spacing defined by
-/// the theme's gridSize property. Lines are rendered using the theme's
-/// gridColor and gridThickness.
+/// the gridTheme's size property. Lines are rendered using the gridTheme's
+/// color and thickness.
 ///
 /// This is the most common grid style, providing clear visual reference for
 /// positioning and alignment.
@@ -21,7 +21,7 @@ class LinesGridStyle extends GridStyle {
     ({double left, double top, double right, double bottom}) gridArea,
   ) {
     final paint = createGridPaint(theme);
-    final gridSize = theme.gridSize;
+    final gridSize = theme.gridTheme.size;
 
     // Calculate grid-aligned start positions
     final startX = (gridArea.left / gridSize).floor() * gridSize;

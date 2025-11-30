@@ -43,6 +43,8 @@ class PortTheme {
   /// - [labelTextStyle]: Text style for port labels
   /// - [labelOffset]: Distance from port center to label (default: 8.0)
   /// - [labelVisibilityThreshold]: Minimum zoom level to show labels (default: 0.5)
+  /// - [highlightBorderColor]: Border color when port is highlighted (default: black)
+  /// - [highlightBorderWidthDelta]: Additional border width when highlighted (default: 1.5)
   const PortTheme({
     required this.size,
     required this.color,
@@ -54,6 +56,8 @@ class PortTheme {
     this.labelTextStyle,
     this.labelOffset = 4.0,
     this.labelVisibilityThreshold = 0.5,
+    this.highlightBorderColor = const Color(0xFF000000),
+    this.highlightBorderWidthDelta = 1.5,
   });
 
   /// The diameter of the port in logical pixels.
@@ -117,6 +121,18 @@ class PortTheme {
   /// Set to 0.0 to always show labels regardless of zoom level.
   final double labelVisibilityThreshold;
 
+  /// The border color when the port is highlighted (being hovered during drag).
+  ///
+  /// This provides strong visual feedback during connection creation, indicating
+  /// that the port is a valid target. Default is black.
+  final Color highlightBorderColor;
+
+  /// Additional border width applied when the port is highlighted.
+  ///
+  /// This is added to [borderWidth] when the port is in highlighted state.
+  /// Default is 1.5 pixels.
+  final double highlightBorderWidthDelta;
+
   /// Creates a copy of this theme with the specified properties replaced.
   ///
   /// All parameters are optional. If a parameter is not provided, the
@@ -143,6 +159,8 @@ class PortTheme {
     TextStyle? labelTextStyle,
     double? labelOffset,
     double? labelVisibilityThreshold,
+    Color? highlightBorderColor,
+    double? highlightBorderWidthDelta,
   }) {
     return PortTheme(
       size: size ?? this.size,
@@ -156,6 +174,9 @@ class PortTheme {
       labelOffset: labelOffset ?? this.labelOffset,
       labelVisibilityThreshold:
           labelVisibilityThreshold ?? this.labelVisibilityThreshold,
+      highlightBorderColor: highlightBorderColor ?? this.highlightBorderColor,
+      highlightBorderWidthDelta:
+          highlightBorderWidthDelta ?? this.highlightBorderWidthDelta,
     );
   }
 
@@ -185,6 +206,8 @@ class PortTheme {
     ),
     labelOffset: 4.0,
     labelVisibilityThreshold: 0.5,
+    highlightBorderColor: Color(0xFF000000),
+    highlightBorderWidthDelta: 1.5,
   );
 
   /// A predefined dark theme for ports.
@@ -213,5 +236,7 @@ class PortTheme {
     ),
     labelOffset: 4.0,
     labelVisibilityThreshold: 0.5,
+    highlightBorderColor: Color(0xFFFFFFFF),
+    highlightBorderWidthDelta: 1.5,
   );
 }

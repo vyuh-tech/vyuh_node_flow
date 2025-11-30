@@ -9,17 +9,17 @@ import 'grid_style.dart';
 /// horizontal grid lines would intersect.
 ///
 /// The [dotSize] parameter controls the radius of each dot. If not provided,
-/// it defaults to the theme's gridThickness clamped to 0.5-2.0 pixels.
+/// it defaults to the gridTheme's thickness clamped to 0.5-2.0 pixels.
 ///
 /// This style reduces visual clutter while still providing reference points
 /// for positioning and alignment.
 class DotsGridStyle extends GridStyle {
   /// Creates a dots grid style.
   ///
-  /// [dotSize] - Optional dot radius. If null, uses theme.gridThickness clamped to 0.5-2.0.
+  /// [dotSize] - Optional dot radius. If null, uses gridTheme.thickness clamped to 0.5-2.0.
   const DotsGridStyle({this.dotSize});
 
-  /// The radius of each dot. If null, calculated from theme.gridThickness.
+  /// The radius of each dot. If null, calculated from gridTheme.thickness.
   final double? dotSize;
 
   @override
@@ -28,12 +28,13 @@ class DotsGridStyle extends GridStyle {
     NodeFlowTheme theme,
     ({double left, double top, double right, double bottom}) gridArea,
   ) {
-    final gridSize = theme.gridSize;
+    final gridTheme = theme.gridTheme;
+    final gridSize = gridTheme.size;
 
     // Calculate dot radius and create paint
-    final radius = dotSize ?? theme.gridThickness.clamp(0.5, 2.0);
+    final radius = dotSize ?? gridTheme.thickness.clamp(0.5, 2.0);
     final paint = Paint()
-      ..color = theme.gridColor
+      ..color = gridTheme.color
       ..style = PaintingStyle.fill;
 
     // Calculate grid-aligned start positions
