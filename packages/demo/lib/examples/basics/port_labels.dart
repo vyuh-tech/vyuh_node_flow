@@ -42,7 +42,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           name: 'Left Input',
           position: PortPosition.left,
           type: PortType.target,
-          offset: Offset(0, 50),
+          offset: Offset(-2, 90), // Vertical center
           showLabel: true,
         ),
         Port(
@@ -50,7 +50,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           name: 'Top',
           position: PortPosition.top,
           type: PortType.target,
-          offset: Offset(20, 0),
+          offset: Offset(90, -2), // Horizontal center
           showLabel: true,
         ),
       ],
@@ -60,7 +60,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           name: 'Right Output',
           position: PortPosition.right,
           type: PortType.source,
-          offset: Offset(0, 20),
+          offset: Offset(2, 90), // Vertical center
           showLabel: true,
         ),
         Port(
@@ -68,7 +68,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           name: 'Bottom',
           position: PortPosition.bottom,
           type: PortType.source,
-          offset: Offset(40, 0),
+          offset: Offset(90, 2), // Horizontal center
           showLabel: true,
         ),
       ],
@@ -87,17 +87,17 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           name: 'Circle',
           position: PortPosition.left,
           type: PortType.target,
-          offset: Offset(0, 20),
+          offset: Offset(-2, 20),
           shape: MarkerShapes.circle,
           showLabel: true,
         ),
         Port(
-          id: 'square-input',
-          name: 'Square',
+          id: 'rectangle-input',
+          name: 'Rectangle',
           position: PortPosition.left,
           type: PortType.target,
-          offset: Offset(0, 40),
-          shape: MarkerShapes.square,
+          offset: Offset(-2, 50),
+          shape: MarkerShapes.rectangle,
           showLabel: true,
         ),
         Port(
@@ -105,7 +105,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           name: 'Diamond',
           position: PortPosition.left,
           type: PortType.target,
-          offset: Offset(0, 60),
+          offset: Offset(-2, 80),
           shape: MarkerShapes.diamond,
           showLabel: true,
         ),
@@ -114,7 +114,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           name: 'Triangle',
           position: PortPosition.left,
           type: PortType.target,
-          offset: Offset(0, 80),
+          offset: Offset(-2, 110),
           shape: MarkerShapes.triangle,
           showLabel: true,
         ),
@@ -125,7 +125,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           name: 'Capsule',
           position: PortPosition.right,
           type: PortType.source,
-          offset: Offset(0, 40),
+          offset: Offset(2, 115), // Vertical center of 230 height
           shape: MarkerShapes.capsuleHalf,
           showLabel: true,
         ),
@@ -146,7 +146,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           name: 'Input ${i + 1}',
           position: PortPosition.left,
           type: PortType.target,
-          offset: Offset(0, 20 + (i * 20.0)),
+          offset: Offset(-2, 20 + (i * 30.0)), // Starting 20, separation 30
           showLabel: true,
         ),
       ),
@@ -157,7 +157,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           name: 'Out ${i + 1}',
           position: PortPosition.right,
           type: PortType.source,
-          offset: Offset(0, 20 + (i * 20.0)),
+          offset: Offset(2, 20 + (i * 30.0)), // Starting 20, separation 30
           showLabel: true,
         ),
       ),
@@ -176,7 +176,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           name: 'With Label',
           position: PortPosition.left,
           type: PortType.target,
-          offset: Offset(0, 20),
+          offset: Offset(-2, 20), // Starting offset
           showLabel: true, // Label enabled
         ),
         Port(
@@ -184,7 +184,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           name: 'No Label',
           position: PortPosition.left,
           type: PortType.target,
-          offset: Offset(0, 40),
+          offset: Offset(-2, 50), // 20 + 30 separation
           showLabel: false, // Label disabled
         ),
       ],
@@ -194,7 +194,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           name: 'With Label',
           position: PortPosition.right,
           type: PortType.source,
-          offset: Offset(0, 20),
+          offset: Offset(2, 20), // Starting offset
           showLabel: true,
         ),
         Port(
@@ -202,7 +202,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           name: 'No Label',
           position: PortPosition.right,
           type: PortType.source,
-          offset: Offset(0, 40),
+          offset: Offset(2, 50), // 20 + 30 separation
           showLabel: false,
         ),
       ],

@@ -31,8 +31,7 @@ import 'triangle_marker_shape.dart';
 /// Available shapes:
 /// - [none] - Invisible marker (functional but not visually rendered)
 /// - [circle] - Circular marker (default, universal)
-/// - [square] - Square marker (equal width and height)
-/// - [rectangle] - Rectangle marker (2:1 tall by default)
+/// - [rectangle] - Rectangle marker (use Size.square for equal dimensions)
 /// - [diamond] - Diamond-shaped marker (decisions, branching)
 /// - [triangle] - Triangular marker (directional, arrow-like)
 /// - [capsuleHalf] - Half-capsule marker (socket/plug metaphor)
@@ -55,22 +54,14 @@ final class MarkerShapes {
   /// - When no specific meaning is needed
   static const MarkerShape circle = CircleMarkerShape();
 
-  /// Square marker shape (equal width and height).
+  /// Rectangle marker shape. Uses the provided Size directly.
+  ///
+  /// For square markers, use a port with equal width and height (e.g., `Size.square(10)`).
   ///
   /// Best for:
   /// - Control flow ports
   /// - Event triggers
-  /// - Grid-aligned designs
-  static const MarkerShape square = RectangleMarkerShape.square();
-
-  /// Rectangle marker shape (2:1 tall by default).
-  ///
-  /// Best for:
-  /// - Taller, more prominent markers
-  /// - Distinguishing from square markers
   /// - Technical diagrams
-  ///
-  /// Use [RectangleMarkerShape] directly for custom aspect ratios.
   static const MarkerShape rectangle = RectangleMarkerShape();
 
   /// Diamond-shaped marker (rotated square). Excellent for conditional/decision points.

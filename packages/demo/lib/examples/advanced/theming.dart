@@ -53,7 +53,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'out1',
           name: 'Output 1',
           position: PortPosition.right,
-          offset: const Offset(0, 33), // Vertical center at 1/3 height
+          offset: const Offset(2, 20), // Starting offset
           shape: _selectedPortShape,
           showLabel: true,
         ),
@@ -61,7 +61,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'out2',
           name: 'Output 2',
           position: PortPosition.right,
-          offset: const Offset(0, 67), // Vertical center at 2/3 height
+          offset: const Offset(2, 50), // 20 + 30 separation
           shape: _selectedPortShape,
           showLabel: true,
         ),
@@ -69,7 +69,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'out-top',
           name: 'Top',
           position: PortPosition.top,
-          offset: const Offset(75, 0), // Horizontal center at mid-width
+          offset: const Offset(75, -2), // Horizontal center at mid-width
           shape: _selectedPortShape,
           showLabel: true,
         ),
@@ -77,7 +77,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'out-bottom',
           name: 'Bottom',
           position: PortPosition.bottom,
-          offset: const Offset(75, 0), // Horizontal center at mid-width
+          offset: const Offset(75, 2), // Horizontal center at mid-width
           shape: _selectedPortShape,
           showLabel: true,
         ),
@@ -95,7 +95,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'in1',
           name: 'Input',
           position: PortPosition.left,
-          offset: const Offset(0, 50), // Vertical center at mid-height
+          offset: const Offset(-2, 50), // Vertical center at mid-height
           shape: _selectedPortShape,
           showLabel: true,
         ),
@@ -105,7 +105,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'out1',
           name: 'Output',
           position: PortPosition.right,
-          offset: const Offset(0, 50), // Vertical center at mid-height
+          offset: const Offset(2, 50), // Vertical center at mid-height
           shape: _selectedPortShape,
           showLabel: true,
         ),
@@ -123,7 +123,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'in1',
           name: 'Input 1',
           position: PortPosition.left,
-          offset: const Offset(0, 33), // Vertical center at 1/3 height
+          offset: const Offset(-2, 20), // Starting offset
           shape: _selectedPortShape,
           showLabel: true,
         ),
@@ -131,7 +131,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'in2',
           name: 'Input 2',
           position: PortPosition.left,
-          offset: const Offset(0, 67), // Vertical center at 2/3 height
+          offset: const Offset(-2, 50), // 20 + 30 separation
           shape: _selectedPortShape,
           showLabel: true,
         ),
@@ -139,7 +139,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'in-top',
           name: 'Top',
           position: PortPosition.top,
-          offset: const Offset(75, 0), // Horizontal center at mid-width
+          offset: const Offset(75, -2), // Horizontal center at mid-width
           shape: _selectedPortShape,
           showLabel: true,
         ),
@@ -147,7 +147,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'in-bottom',
           name: 'Bottom',
           position: PortPosition.bottom,
-          offset: const Offset(75, 0), // Horizontal center at mid-width
+          offset: const Offset(75, 2), // Horizontal center at mid-width
           shape: _selectedPortShape,
           showLabel: true,
         ),
@@ -509,7 +509,7 @@ class _ThemingExampleState extends State<ThemingExample> {
               [
                 ('None', MarkerShapes.none),
                 ('Circle', MarkerShapes.circle),
-                ('Square', MarkerShapes.square),
+                ('Rectangle', MarkerShapes.rectangle),
                 ('Diamond', MarkerShapes.diamond),
                 ('Triangle', MarkerShapes.triangle),
                 ('Capsule', MarkerShapes.capsuleHalf),
@@ -547,7 +547,7 @@ class _ThemingExampleState extends State<ThemingExample> {
               [
                 ('None', MarkerShapes.none),
                 ('Circle', MarkerShapes.circle),
-                ('Square', MarkerShapes.square),
+                ('Rectangle', MarkerShapes.rectangle),
                 ('Diamond', MarkerShapes.diamond),
                 ('Triangle', MarkerShapes.triangle),
                 ('Capsule', MarkerShapes.capsuleHalf),
@@ -780,9 +780,11 @@ class _ThemingExampleState extends State<ThemingExample> {
       children: [
         const SectionTitle('Ports'),
         const SizedBox(height: 12),
-        _buildSlider('Size', _theme.portTheme.size, 6.0, 16.0, (value) {
+        _buildSlider('Size', _theme.portTheme.size.width, 6.0, 16.0, (value) {
           _updateTheme(
-            _theme.copyWith(portTheme: _theme.portTheme.copyWith(size: value)),
+            _theme.copyWith(
+              portTheme: _theme.portTheme.copyWith(size: Size.square(value)),
+            ),
           );
         }),
         const SizedBox(height: 12),
@@ -794,7 +796,6 @@ class _ThemingExampleState extends State<ThemingExample> {
           children:
               [
                 ('circle', MarkerShapes.circle),
-                ('square', MarkerShapes.square),
                 ('rectangle', MarkerShapes.rectangle),
                 ('diamond', MarkerShapes.diamond),
                 ('triangle', MarkerShapes.triangle),
@@ -1002,17 +1003,6 @@ class _ThemingExampleState extends State<ThemingExample> {
       children: [
         const SectionTitle('Nodes'),
         const SizedBox(height: 12),
-        _buildSlider('Padding', _theme.nodeTheme.padding.left, 0.0, 24.0, (
-          value,
-        ) {
-          _updateTheme(
-            _theme.copyWith(
-              nodeTheme: _theme.nodeTheme.copyWith(
-                padding: EdgeInsets.all(value),
-              ),
-            ),
-          );
-        }),
         _buildSlider('Border Width', _theme.nodeTheme.borderWidth, 0.0, 5.0, (
           value,
         ) {

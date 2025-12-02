@@ -31,7 +31,6 @@ class NodeTheme {
     required this.borderWidth,
     required this.selectedBorderWidth,
     required this.borderRadius,
-    required this.padding,
     required this.titleStyle,
     required this.contentStyle,
   });
@@ -56,9 +55,6 @@ class NodeTheme {
 
   /// Corner radius for node borders.
   final BorderRadius borderRadius;
-
-  /// Padding inside the node container.
-  final EdgeInsets padding;
 
   /// Text style for the node title.
   final TextStyle titleStyle;
@@ -86,7 +82,6 @@ class NodeTheme {
     double? borderWidth,
     double? selectedBorderWidth,
     BorderRadius? borderRadius,
-    EdgeInsets? padding,
     TextStyle? titleStyle,
     TextStyle? contentStyle,
   }) {
@@ -99,7 +94,6 @@ class NodeTheme {
       borderWidth: borderWidth ?? this.borderWidth,
       selectedBorderWidth: selectedBorderWidth ?? this.selectedBorderWidth,
       borderRadius: borderRadius ?? this.borderRadius,
-      padding: padding ?? this.padding,
       titleStyle: titleStyle ?? this.titleStyle,
       contentStyle: contentStyle ?? this.contentStyle,
     );
@@ -117,7 +111,6 @@ class NodeTheme {
     borderWidth: 2.0,
     selectedBorderWidth: 2.0,
     borderRadius: BorderRadius.all(Radius.circular(8.0)),
-    padding: EdgeInsets.all(2.0),
     titleStyle: TextStyle(
       fontSize: 14.0,
       fontWeight: FontWeight.bold,
@@ -138,7 +131,6 @@ class NodeTheme {
     borderWidth: 2.0,
     selectedBorderWidth: 2.0,
     borderRadius: BorderRadius.all(Radius.circular(8.0)),
-    padding: EdgeInsets.all(2.0),
     titleStyle: TextStyle(
       fontSize: 14.0,
       fontWeight: FontWeight.bold,

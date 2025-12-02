@@ -45,12 +45,13 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
           id: 'output',
           name: 'Out',
           position: PortPosition.right,
-          offset: Offset(0, 50),
+          offset: Offset(2, 50),
         ),
       ],
     );
 
     // Circle node - input only, allows multiple connections
+    // Shaped nodes use Offset.zero (default) since anchors define port positions
     final circleNode = Node<Map<String, dynamic>>(
       id: 'circle',
       type: 'Terminal',
@@ -68,6 +69,7 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
     );
 
     // Diamond node
+    // Shaped nodes use Offset.zero (default) since anchors define port positions
     final diamondNode = Node<Map<String, dynamic>>(
       id: 'diamond',
       type: 'Decision',
@@ -84,6 +86,7 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
     );
 
     // Hexagon node - horizontal
+    // Shaped nodes use Offset.zero (default) since anchors define port positions
     final hexagonNode = Node<Map<String, dynamic>>(
       id: 'hexagon',
       type: 'Preparation',
@@ -99,6 +102,7 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
     );
 
     // Vertical hexagon node
+    // Shaped nodes use Offset.zero (default) since anchors define port positions
     final verticalHexagonNode = Node<Map<String, dynamic>>(
       id: 'hexagon-vertical',
       type: 'VerticalPreparation',

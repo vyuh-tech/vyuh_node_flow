@@ -162,7 +162,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
               id: 'output',
               name: 'Out',
               position: PortPosition.right,
-              offset: Offset(0, 40),
+              offset: Offset(2, 40),
             ),
           ],
         ),
@@ -177,7 +177,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
               name: 'In',
 
               position: PortPosition.left,
-              offset: Offset(0, 50),
+              offset: Offset(-2, 50),
             ),
           ],
           outputPorts: [
@@ -186,7 +186,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
               name: 'Out',
 
               position: PortPosition.right,
-              offset: Offset(0, 40),
+              offset: Offset(2, 40),
             ),
           ],
         ),
@@ -220,7 +220,10 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
             bezierCurvature: 0.5,
           ),
       portTheme: NodeFlowTheme.light.portTheme.copyWith(
-        size: 12.0, // Increased from default 9.0 for better visibility
+        size: const Size(
+          12,
+          12,
+        ), // Increased from default 9.0 for better visibility
         borderWidth: 1.0, // Add border for better visibility
       ),
     );

@@ -70,7 +70,7 @@ class _AlignmentExampleState extends State<AlignmentExample> {
           id: 'input',
           name: 'In',
           position: PortPosition.left,
-          offset: Offset(0, height / 2),
+          offset: Offset(-2, height / 2),
         ),
       ],
       outputPorts: [
@@ -78,7 +78,7 @@ class _AlignmentExampleState extends State<AlignmentExample> {
           id: 'output',
           name: 'Out',
           position: PortPosition.right,
-          offset: Offset(0, height / 2),
+          offset: Offset(2, height / 2),
         ),
       ],
     );

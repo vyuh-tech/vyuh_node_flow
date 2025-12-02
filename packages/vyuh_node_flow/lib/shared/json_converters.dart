@@ -69,7 +69,7 @@ class OffsetConverter implements JsonConverter<Offset, Map<String, dynamic>> {
 /// A JSON converter for Flutter's [Size] class.
 ///
 /// This converter serializes [Size] objects to JSON as a map with 'width' and 'height'
-/// keys, and deserializes JSON maps back to [Size] objects.
+/// keys, and deserializes JSON maps back to [Size] objects. Supports nullable Size.
 ///
 /// Example JSON representation:
 /// ```json
@@ -84,7 +84,7 @@ class OffsetConverter implements JsonConverter<Offset, Map<String, dynamic>> {
 /// @JsonSerializable()
 /// class MyClass {
 ///   @SizeConverter()
-///   final Size dimensions;
+///   final Size? dimensions; // null = use theme default
 ///
 ///   MyClass(this.dimensions);
 /// }
@@ -93,11 +93,11 @@ class OffsetConverter implements JsonConverter<Offset, Map<String, dynamic>> {
 /// See also:
 /// - [Size], the Flutter class representing 2D dimensions
 /// - [OffsetConverter], for converting [Offset] objects
-class SizeConverter implements JsonConverter<Size, Map<String, dynamic>> {
+class SizeConverter implements JsonConverter<Size?, Map<String, dynamic>?> {
   /// Creates a const instance of [SizeConverter].
   const SizeConverter();
 
-  /// Converts a JSON map to a [Size] object.
+  /// Converts a JSON map to a [Size] object, or null if json is null.
   ///
   /// The JSON map must contain 'width' and 'height' keys with numeric values.
   /// Both integer and double values are supported and will be converted to doubles.
@@ -109,14 +109,15 @@ class SizeConverter implements JsonConverter<Size, Map<String, dynamic>> {
   /// // size.width == 100.0, size.height == 50.0
   /// ```
   @override
-  Size fromJson(Map<String, dynamic> json) {
+  Size? fromJson(Map<String, dynamic>? json) {
+    if (json == null) return null;
     return Size(
       (json['width'] as num).toDouble(),
       (json['height'] as num).toDouble(),
     );
   }
 
-  /// Converts a [Size] object to a JSON map.
+  /// Converts a [Size] object to a JSON map, or null if size is null.
   ///
   /// Returns a map with 'width' and 'height' keys containing the size's dimensions.
   ///
@@ -127,7 +128,8 @@ class SizeConverter implements JsonConverter<Size, Map<String, dynamic>> {
   /// // json == {'width': 100.5, 'height': 50.3}
   /// ```
   @override
-  Map<String, dynamic> toJson(Size size) {
+  Map<String, dynamic>? toJson(Size? size) {
+    if (size == null) return null;
     return {'width': size.width, 'height': size.height};
   }
 }
@@ -225,31 +227,32 @@ class ColorConverter implements JsonConverter<Color, int> {
 /// @JsonSerializable()
 /// class Port {
 ///   @MarkerShapeConverter()
-///   final MarkerShape shape;
+///   final MarkerShape? shape; // null = use theme default
 ///
 ///   Port(this.shape);
 /// }
 /// ```
 class MarkerShapeConverter
-    implements JsonConverter<MarkerShape, Map<String, dynamic>> {
+    implements JsonConverter<MarkerShape?, Map<String, dynamic>?> {
   /// Creates a const instance of [MarkerShapeConverter].
   const MarkerShapeConverter();
 
-  /// Converts a JSON map to a [MarkerShape] object.
+  /// Converts a JSON map to a [MarkerShape] object, or null if json is null.
   ///
   /// Uses the factory constructor MarkerShape.fromJson to create the appropriate
   /// subclass based on the 'type' field in the JSON.
   @override
-  MarkerShape fromJson(Map<String, dynamic> json) {
+  MarkerShape? fromJson(Map<String, dynamic>? json) {
+    if (json == null) return null;
     return MarkerShape.fromJson(json);
   }
 
-  /// Converts a [MarkerShape] object to a JSON map.
+  /// Converts a [MarkerShape] object to a JSON map, or null if shape is null.
   ///
   /// Uses the toJson method of the MarkerShape instance, which returns
   /// a map with 'type' and any additional properties.
   @override
-  Map<String, dynamic> toJson(MarkerShape shape) {
-    return shape.toJson();
+  Map<String, dynamic>? toJson(MarkerShape? shape) {
+    return shape?.toJson();
   }
 }

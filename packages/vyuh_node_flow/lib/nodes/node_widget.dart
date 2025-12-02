@@ -346,7 +346,7 @@ class NodeWidget<T> extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
 
-        SizedBox(height: nodeTheme.padding.top / 3),
+        const SizedBox(height: 4),
 
         // Simple node info
         Text(
@@ -372,11 +372,11 @@ class NodeWidget<T> extends StatelessWidget {
     final isHighlighted = _isPortHighlighted(port.id, isOutput);
 
     // Get the visual position from the Node model
-    // For shaped nodes, pass the padding to account for shape inset
+    // Use cascade: port.size → theme.size
+    final effectivePortSize = port.size ?? portTheme.size;
     final visualPosition = node.getVisualPortPosition(
       port.id,
-      portSize: portTheme.size,
-      padding: shape != null ? (padding ?? nodeTheme.padding) : EdgeInsets.zero,
+      portSize: effectivePortSize,
       shape: shape,
     );
 
@@ -451,29 +451,20 @@ class NodeWidget<T> extends StatelessWidget {
   /// by painting the shape background and border, then clipping the content
   /// to the shape's boundaries.
   ///
-  /// The shape is inset by the padding amount to leave space around the edges
-  /// for ports to be visible (similar to how rectangular nodes use margin).
+  /// The shape fills the entire node bounds. Ports are positioned at the
+  /// shape boundary (which equals node boundary) and extend inward.
   Widget _buildShapedNode(NodeTheme nodeTheme, bool isSelected) {
-    final nodePadding = padding ?? nodeTheme.padding;
-
     return CustomPaint(
       painter: NodeShapePainter(
         shape: shape!,
         backgroundColor: _getNodeBackgroundColor(nodeTheme, isSelected),
         borderColor: _getNodeBorderColor(nodeTheme, isSelected),
         borderWidth: _getNodeBorderWidth(nodeTheme, isSelected),
-        inset: nodePadding, // Inset the shape to leave room for ports
         size: node.size.value,
       ),
       child: ClipPath(
-        clipper: NodeShapeClipper(
-          shape: shape!,
-          padding: nodePadding, // Clip to the inset shape
-        ),
-        child: Padding(
-          padding: nodePadding,
-          child: Center(child: _buildNodeContent(nodeTheme)),
-        ),
+        clipper: NodeShapeClipper(shape: shape!),
+        child: Center(child: _buildNodeContent(nodeTheme)),
       ),
     );
   }
@@ -481,10 +472,10 @@ class NodeWidget<T> extends StatelessWidget {
   /// Builds a rectangular node using a Container.
   ///
   /// This is the default node rendering method that uses a Container
-  /// with BoxDecoration for rectangular nodes.
+  /// with BoxDecoration for rectangular nodes. The container fills the
+  /// entire node bounds. Ports are positioned at the node boundary.
   Widget _buildRectangularNode(NodeTheme nodeTheme, bool isSelected) {
     return Container(
-      margin: padding ?? nodeTheme.padding,
       decoration: BoxDecoration(
         color: _getNodeBackgroundColor(nodeTheme, isSelected),
         border: Border.all(

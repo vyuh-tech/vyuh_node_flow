@@ -19,12 +19,10 @@ Port _$PortFromJson(Map<String, dynamic> json) => Port(
           json['offset'] as Map<String, dynamic>,
         ),
   type: $enumDecodeNullable(_$PortTypeEnumMap, json['type']) ?? PortType.both,
-  shape: json['shape'] == null
-      ? MarkerShapes.capsuleHalf
-      : const MarkerShapeConverter().fromJson(
-          json['shape'] as Map<String, dynamic>,
-        ),
-  size: (json['size'] as num?)?.toDouble() ?? 9.0,
+  shape: const MarkerShapeConverter().fromJson(
+    json['shape'] as Map<String, dynamic>?,
+  ),
+  size: const SizeConverter().fromJson(json['size'] as Map<String, dynamic>?),
   tooltip: json['tooltip'] as String?,
   isConnectable: json['isConnectable'] as bool? ?? true,
   maxConnections: (json['maxConnections'] as num?)?.toInt(),
@@ -39,7 +37,7 @@ Map<String, dynamic> _$PortToJson(Port instance) => <String, dynamic>{
   'offset': const OffsetConverter().toJson(instance.offset),
   'type': _$PortTypeEnumMap[instance.type]!,
   'shape': const MarkerShapeConverter().toJson(instance.shape),
-  'size': instance.size,
+  'size': const SizeConverter().toJson(instance.size),
   'tooltip': instance.tooltip,
   'isConnectable': instance.isConnectable,
   'maxConnections': instance.maxConnections,

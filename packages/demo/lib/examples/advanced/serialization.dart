@@ -70,7 +70,7 @@ class _SerializationExampleState extends State<SerializationExample> {
           id: 'out',
           name: 'Output',
           position: PortPosition.right,
-          offset: Offset(0, 20),
+          offset: Offset(2, 40), // Vertical center of 80 height
         ),
       ],
     );
@@ -86,7 +86,7 @@ class _SerializationExampleState extends State<SerializationExample> {
           id: 'in',
           name: 'Input',
           position: PortPosition.left,
-          offset: Offset(0, 30),
+          offset: Offset(-2, 50), // Vertical center of 100 height
         ),
       ],
       outputPorts: const [
@@ -94,7 +94,7 @@ class _SerializationExampleState extends State<SerializationExample> {
           id: 'out',
           name: 'Result',
           position: PortPosition.right,
-          offset: Offset(0, 30),
+          offset: Offset(2, 50), // Vertical center of 100 height
         ),
       ],
     );
@@ -110,7 +110,7 @@ class _SerializationExampleState extends State<SerializationExample> {
           id: 'in',
           name: 'Input',
           position: PortPosition.left,
-          offset: Offset(0, 30),
+          offset: Offset(-2, 50), // Vertical center of 100 height
         ),
       ],
       outputPorts: const [
@@ -118,7 +118,7 @@ class _SerializationExampleState extends State<SerializationExample> {
           id: 'out',
           name: 'Result',
           position: PortPosition.right,
-          offset: Offset(0, 30),
+          offset: Offset(2, 50), // Vertical center of 100 height
         ),
       ],
     );
@@ -134,13 +134,13 @@ class _SerializationExampleState extends State<SerializationExample> {
           id: 'in1',
           name: 'Input 1',
           position: PortPosition.left,
-          offset: Offset(0, 15),
+          offset: Offset(-2, 20), // Multiple ports: starting offset 20
         ),
         Port(
           id: 'in2',
           name: 'Input 2',
           position: PortPosition.left,
-          offset: Offset(0, 45),
+          offset: Offset(-2, 50), // Multiple ports: 20 + 30 separation
         ),
       ],
     );

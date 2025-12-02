@@ -58,7 +58,7 @@ class _CallbacksExampleState extends State<CallbacksExample> {
           id: 'out',
           name: 'Output',
           position: PortPosition.right,
-          offset: Offset(0, 20),
+          offset: Offset(2, 40), // Vertical center of 80 height
         ),
       ],
     );
@@ -74,7 +74,7 @@ class _CallbacksExampleState extends State<CallbacksExample> {
           id: 'in',
           name: 'Input',
           position: PortPosition.left,
-          offset: Offset(0, 20),
+          offset: Offset(-2, 40), // Vertical center of 80 height
         ),
       ],
       outputPorts: const [
@@ -82,7 +82,7 @@ class _CallbacksExampleState extends State<CallbacksExample> {
           id: 'out',
           name: 'Output',
           position: PortPosition.right,
-          offset: Offset(0, 20),
+          offset: Offset(2, 40), // Vertical center of 80 height
         ),
       ],
     );
@@ -98,7 +98,7 @@ class _CallbacksExampleState extends State<CallbacksExample> {
           id: 'in',
           name: 'Input',
           position: PortPosition.left,
-          offset: Offset(0, 20),
+          offset: Offset(-2, 40), // Vertical center of 80 height
         ),
       ],
     );
@@ -496,7 +496,7 @@ class _CallbacksExampleState extends State<CallbacksExample> {
                         id: 'in',
                         name: 'Input',
                         position: PortPosition.left,
-                        offset: Offset(0, 20),
+                        offset: Offset(0, 40), // Vertical center of 80 height
                       ),
                     ],
                     outputPorts: const [
@@ -504,7 +504,7 @@ class _CallbacksExampleState extends State<CallbacksExample> {
                         id: 'out',
                         name: 'Output',
                         position: PortPosition.right,
-                        offset: Offset(0, 20),
+                        offset: Offset(0, 40), // Vertical center of 80 height
                       ),
                     ],
                   ),

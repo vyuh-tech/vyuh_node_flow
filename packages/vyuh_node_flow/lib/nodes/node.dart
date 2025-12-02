@@ -178,26 +178,31 @@ class Node<T> {
 
   /// Gets the visual position where a port should be rendered within the node container.
   ///
-  /// This calculates the local position of a port within the node's coordinate space,
-  /// accounting for the port's edge position and size. The port widget will be
-  /// centered on this position.
+  /// This calculates the local position of a port within the node's coordinate space.
+  /// The port's outer edge aligns with the node/shape boundary, and the port extends
+  /// inward. For example, a left port's left edge aligns with the node's left edge.
   ///
   /// Parameters:
   /// * [portId] - The unique identifier of the port
-  /// * [portSize] - The size of the port widget
-  /// * [padding] - Optional padding/inset for shaped nodes (to account for shape inset)
+  /// * [portSize] - The size of the port widget (width x height)
+  /// * [shape] - Optional shape for anchor-based positioning
   ///
-  /// Returns the [Offset] where the port should be positioned relative to the node's
-  /// top-left corner for rectangular nodes.
+  /// Returns the [Offset] where the port widget's top-left corner should be positioned.
   ///
-  /// For shaped nodes, pass the shape parameter to calculate positions based on
-  /// the shape's anchors.
+  /// **Shaped nodes**: Ports positioned at shape boundary anchors.
+  /// - Anchor gives the exact point on the shape boundary (e.g., diamond's left tip)
+  /// - Port edge aligns with anchor, port extends inward
+  /// - port.offset adjusts from this base position (usually Offset.zero)
+  ///
+  /// **Rectangular nodes**: Ports positioned using absolute offset.
+  /// - port.offset.dy = vertical position for left/right ports
+  /// - port.offset.dx = horizontal position for top/bottom ports
+  /// - Port edge aligns with node edge, port extends inward
   ///
   /// Throws [ArgumentError] if no port with the given [portId] is found.
   Offset getVisualPortPosition(
     String portId, {
-    required double portSize,
-    EdgeInsets padding = EdgeInsets.zero,
+    required Size portSize,
     NodeShape? shape,
   }) {
     final port = [
@@ -209,60 +214,60 @@ class Node<T> {
       throw ArgumentError('Port $portId not found');
     }
 
-    // If shape is provided, use shape-defined anchors
+    // Get anchor position from shape (full node size) or default edge centers
+    final Offset anchorOffset;
     if (shape != null) {
-      // Calculate inset size (shape is rendered smaller to leave room for ports)
-      final insetSize = Size(
-        size.value.width - padding.left - padding.right,
-        size.value.height - padding.top - padding.bottom,
-      );
-
-      // Get anchors for the inset shape
-      final anchors = shape.getPortAnchors(insetSize);
+      final anchors = shape.getPortAnchors(size.value);
       final anchor = anchors.firstWhere(
         (a) => a.position == port.position,
-        orElse: () => _fallbackAnchor(port.position, insetSize),
+        orElse: () => _fallbackAnchor(port.position),
       );
-
-      // Translate anchor position to account for padding offset,
-      // adjust for port size (center the port on the anchor point),
-      // and add any custom port offset
-      return Offset(padding.left, padding.top) +
-          anchor.offset +
-          port.offset -
-          Offset(portSize / 2, portSize / 2);
+      anchorOffset = anchor.offset;
+    } else {
+      anchorOffset = _fallbackAnchor(port.position).offset;
     }
 
-    // Use rectangular logic
-    // The port.offset specifies the CENTER of the marker shape:
-    // - For left/right ports: offset.dy is the vertical center
-    // - For top/bottom ports: offset.dx is the horizontal center
-    final halfPortSize = portSize / 2;
+    // Port positioning:
+    // - Port outer edge aligns with shape/node boundary at anchor point
+    // - Port extends INWARD from the boundary
+    // - Port is centered on the perpendicular axis
+    // - port.offset provides adjustment from this base position
+    //
+    // For shaped nodes: anchor.dy/dx gives the center position, port.offset adjusts
+    // For rectangular nodes: port.offset gives the center position directly
 
     switch (port.position) {
       case PortPosition.left:
-        // Left edge: port centered vertically at offset.dy
+        // Port left edge at anchor x (shape/node left boundary)
+        // Port centered vertically at anchor y (shaped) or offset.dy (rectangular)
+        final baseY = shape != null ? anchorOffset.dy : port.offset.dy;
         return Offset(
-          port.offset.dx,
-          port.offset.dy - halfPortSize, // Center vertically at offset.dy
+          anchorOffset.dx + port.offset.dx,
+          baseY - portSize.height / 2 + (shape != null ? port.offset.dy : 0),
         );
       case PortPosition.right:
-        // Right edge: port centered vertically at offset.dy
+        // Port right edge at anchor x (shape/node right boundary)
+        // Port centered vertically at anchor y (shaped) or offset.dy (rectangular)
+        final baseY = shape != null ? anchorOffset.dy : port.offset.dy;
         return Offset(
-          size.value.width - portSize + port.offset.dx,
-          port.offset.dy - halfPortSize, // Center vertically at offset.dy
+          anchorOffset.dx - portSize.width + port.offset.dx,
+          baseY - portSize.height / 2 + (shape != null ? port.offset.dy : 0),
         );
       case PortPosition.top:
-        // Top edge: port centered horizontally at offset.dx
+        // Port top edge at anchor y (shape/node top boundary)
+        // Port centered horizontally at anchor x (shaped) or offset.dx (rectangular)
+        final baseX = shape != null ? anchorOffset.dx : port.offset.dx;
         return Offset(
-          port.offset.dx - halfPortSize, // Center horizontally at offset.dx
-          port.offset.dy,
+          baseX - portSize.width / 2 + (shape != null ? port.offset.dx : 0),
+          anchorOffset.dy + port.offset.dy,
         );
       case PortPosition.bottom:
-        // Bottom edge: port centered horizontally at offset.dx
+        // Port bottom edge at anchor y (shape/node bottom boundary)
+        // Port centered horizontally at anchor x (shaped) or offset.dx (rectangular)
+        final baseX = shape != null ? anchorOffset.dx : port.offset.dx;
         return Offset(
-          port.offset.dx - halfPortSize, // Center horizontally at offset.dx
-          size.value.height - portSize + port.offset.dy,
+          baseX - portSize.width / 2 + (shape != null ? port.offset.dx : 0),
+          anchorOffset.dy - portSize.height + port.offset.dy,
         );
     }
   }
@@ -270,14 +275,13 @@ class Node<T> {
   /// Creates a fallback anchor for a port position.
   ///
   /// Used when a shape doesn't provide an anchor for a specific position.
+  /// Returns anchors at edge centers for the node's current size.
   ///
   /// Parameters:
   /// * [position] - The port position
-  /// * [shapeSize] - Optional size of the shape (defaults to node size)
-  PortAnchor _fallbackAnchor(PortPosition position, [Size? shapeSize]) {
-    final effectiveSize = shapeSize ?? size.value;
-    final centerX = effectiveSize.width / 2;
-    final centerY = effectiveSize.height / 2;
+  PortAnchor _fallbackAnchor(PortPosition position) {
+    final centerX = size.value.width / 2;
+    final centerY = size.value.height / 2;
 
     switch (position) {
       case PortPosition.left:
@@ -289,7 +293,7 @@ class Node<T> {
       case PortPosition.right:
         return PortAnchor(
           position: PortPosition.right,
-          offset: Offset(effectiveSize.width, centerY),
+          offset: Offset(size.value.width, centerY),
           normal: const Offset(1, 0),
         );
       case PortPosition.top:
@@ -301,7 +305,7 @@ class Node<T> {
       case PortPosition.bottom:
         return PortAnchor(
           position: PortPosition.bottom,
-          offset: Offset(centerX, effectiveSize.height),
+          offset: Offset(centerX, size.value.height),
           normal: const Offset(0, 1),
         );
     }
@@ -309,14 +313,13 @@ class Node<T> {
 
   /// Gets the connection point for a port where line endpoints should attach.
   ///
-  /// Connections should align with the flat edge of the capsule half shapes
-  /// that represent ports. This method returns absolute coordinates in the
-  /// graph coordinate space.
+  /// Connections attach at the port's outer edge since ports are edge-aligned
+  /// with the node/shape boundary. This method returns absolute coordinates
+  /// in the graph coordinate space.
   ///
   /// Parameters:
   /// * [portId] - The unique identifier of the port
-  /// * [portSize] - The size of the port widget
-  /// * [padding] - Optional padding for shaped nodes (defaults to standard 4px for shapes)
+  /// * [portSize] - The size of the port widget (width x height)
   /// * [shape] - Optional shape to use for port position calculation
   ///
   /// Returns the absolute [Offset] where connection lines should attach.
@@ -324,27 +327,35 @@ class Node<T> {
   /// Throws [ArgumentError] if no port with the given [portId] is found.
   Offset getPortPosition(
     String portId, {
-    required double portSize,
-    EdgeInsets? padding,
+    required Size portSize,
     NodeShape? shape,
   }) {
-    final portHalfSize = portSize / 2;
+    final port = [
+      ...inputPorts,
+      ...outputPorts,
+    ].cast<Port?>().firstWhere((p) => p?.id == portId, orElse: () => null);
 
-    // For shaped nodes, use padding (default to standard 4px if not provided)
-    final effectivePadding = shape != null
-        ? (padding ?? const EdgeInsets.all(4.0))
-        : EdgeInsets.zero;
+    if (port == null) {
+      throw ArgumentError('Port $portId not found');
+    }
+
+    // Calculate connection point offset based on port position.
+    // Connections attach at the port's outer edge (aligned with node/shape boundary):
+    // - Left: left edge of port widget (x=0, y=center)
+    // - Right: right edge of port widget (x=portSize.width, y=center)
+    // - Top: top edge of port widget (x=center, y=0)
+    // - Bottom: bottom edge of port widget (x=center, y=portSize.height)
+    final Offset connectionOffset = switch (port.position) {
+      PortPosition.left => Offset(0, portSize.height / 2),
+      PortPosition.right => Offset(portSize.width, portSize.height / 2),
+      PortPosition.top => Offset(portSize.width / 2, 0),
+      PortPosition.bottom => Offset(portSize.width / 2, portSize.height),
+    };
 
     // Convert from node coordinates to absolute graph coordinates
-    // Use visual position for consistent rendering
     return visualPosition.value +
-        getVisualPortPosition(
-          portId,
-          portSize: portSize,
-          padding: effectivePadding,
-          shape: shape,
-        ) +
-        Offset(portHalfSize, portHalfSize);
+        getVisualPortPosition(portId, portSize: portSize, shape: shape) +
+        connectionOffset;
   }
 
   /// Gets the capsule flat side orientation for a port.
@@ -532,10 +543,9 @@ class Node<T> {
   ///
   /// Parameters:
   /// * [point] - The point to test in graph coordinates
-  /// * [portSize] - The size of ports (for compatibility, currently unused)
   ///
   /// Returns true if the point is inside the node bounds, false otherwise.
-  bool containsPoint(Offset point, {double portSize = 11.0}) {
+  bool containsPoint(Offset point) {
     // Check if point is within the actual node bounds (not including port padding)
     return Rect.fromLTWH(
       position.value.dx,
@@ -551,11 +561,8 @@ class Node<T> {
   /// Port padding is excluded from the bounds. The bounds use the current
   /// position value.
   ///
-  /// Parameters:
-  /// * [portSize] - The size of ports (for compatibility, currently unused)
-  ///
   /// Returns a [Rect] representing the node's bounding box.
-  Rect getBounds({double portSize = 11.0}) {
+  Rect getBounds() {
     // Return the actual node bounds without port padding
     // Use visual position for bounds
     return Rect.fromLTWH(

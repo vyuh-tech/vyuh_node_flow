@@ -146,14 +146,18 @@ class ConnectionPainter {
     final targetShape = nodeShape?.call(targetNode);
 
     // Calculate endpoint positions for drawing
+    // Use cascade: port.size if set, otherwise fallback to theme.size
+    final sourcePortSize = sourcePort.size ?? portTheme.size;
+    final targetPortSize = targetPort.size ?? portTheme.size;
+
     final sourcePortPosition = sourceNode.getPortPosition(
       connection.sourcePortId,
-      portSize: portTheme.size,
+      portSize: sourcePortSize,
       shape: sourceShape,
     );
     final targetPortPosition = targetNode.getPortPosition(
       connection.targetPortId,
-      portSize: portTheme.size,
+      portSize: targetPortSize,
       shape: targetShape,
     );
 
@@ -169,13 +173,11 @@ class ConnectionPainter {
       sourcePortPosition,
       sourcePort.position,
       startPointSize,
-      portTheme.size,
     );
     final target = EndpointPositionCalculator.calculatePortConnectionPoints(
       targetPortPosition,
       targetPort.position,
       endPointSize,
-      portTheme.size,
     );
 
     // Configure paint for the connection line using cached path
@@ -250,7 +252,6 @@ class ConnectionPainter {
     bool isReversed = false,
   }) {
     final connectionTheme = theme.temporaryConnectionTheme;
-    final portTheme = theme.portTheme;
 
     // Calculate line endpoints and endpoint positions using same logic as permanent connections
     ({Offset endpointPos, Offset linePos})? source;
@@ -270,7 +271,6 @@ class ConnectionPainter {
         startPoint,
         sourcePort.position,
         tempStartPointSize,
-        portTheme.size,
       );
     } else {
       // When no source port, use startPoint directly
@@ -282,7 +282,6 @@ class ConnectionPainter {
         currentPoint,
         targetPort.position,
         tempEndPointSize,
-        portTheme.size,
       );
     } else {
       // When not snapped to a port, use currentPoint directly
@@ -441,7 +440,7 @@ class ConnectionPainter {
     EndpointPainter.paint(
       canvas: canvas,
       position: source.endpointPos,
-      size: startPoint.size,
+      size: Size.square(startPoint.size),
       shape: startPoint.shape,
       portPosition: sourcePortPosition,
       fillPaint: endpointPaint,
@@ -454,7 +453,7 @@ class ConnectionPainter {
       EndpointPainter.paint(
         canvas: canvas,
         position: target.endpointPos,
-        size: endPoint.size,
+        size: Size.square(endPoint.size),
         shape: endPoint.shape,
         portPosition: targetPortPosition,
         fillPaint: endpointPaint,

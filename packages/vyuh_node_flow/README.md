@@ -156,7 +156,9 @@ class _SimpleFlowEditorState extends State<SimpleFlowEditor> {
       type: 'input',
       position: const Offset(100, 100),
       data: 'Input Node',
-      outputPorts: const [Port(id: 'out', name: 'Output')],
+      outputPorts: const [
+        Port(id: 'out', name: 'Output', offset: Offset(2, 40)),
+      ],
     ));
 
     controller.addNode(Node<String>(
@@ -164,7 +166,9 @@ class _SimpleFlowEditorState extends State<SimpleFlowEditor> {
       type: 'output',
       position: const Offset(400, 100),
       data: 'Output Node',
-      inputPorts: const [Port(id: 'in', name: 'Input')],
+      inputPorts: const [
+        Port(id: 'in', name: 'Input', offset: Offset(-2, 40)),
+      ],
     ));
   }
 
@@ -371,9 +375,6 @@ NodeTheme(
   selectedBorderWidth: 2.0,
   borderRadius: BorderRadius.circular(8.0),
 
-  // Inner padding
-  padding: const EdgeInsets.all(8.0),
-
   // Shadow (optional)
   shadow: BoxShadow(
     color: Colors.black.withOpacity(0.1),
@@ -388,7 +389,12 @@ NodeTheme(
 ```
 
 **Widget-level overrides**: Use `NodeWidget` constructor parameters to override
-per-node: `backgroundColor`, `borderColor`, `borderWidth`, `borderRadius`, `padding`.
+per-node: `backgroundColor`, `borderColor`, `borderWidth`, `borderRadius`.
+
+> [!NOTE] **Port Positioning**: `NodeTheme` no longer includes a `padding` property.
+> Ports are positioned directly at the node boundary by default. Use `Port.offset`
+> to explicitly shift ports outward (e.g., `Offset(-2, y)` for left ports,
+> `Offset(2, y)` for right ports) for better visual separation from the node edge.
 
 </details>
 
@@ -718,7 +724,6 @@ final customTheme = NodeFlowTheme(
     borderWidth: 1.0,
     selectedBorderWidth: 2.0,
     borderRadius: BorderRadius.circular(8.0),
-    padding: const EdgeInsets.all(8.0),
   ),
 
   // Connection styling
@@ -1084,39 +1089,69 @@ const Port(
 
 ### Port Positions and Offsets
 
+Ports are positioned at the node boundary by default. The `offset` property controls:
+- **Position along the edge**: For left/right ports, the Y component positions the port vertically. For top/bottom ports, the X component positions horizontally.
+- **Outward shift**: To push ports slightly away from the node edge for better visibility, use a small offset in the perpendicular direction.
+
+**Recommended outward offsets** (2 points provides good visual separation):
+- Left ports: `Offset(-2, y)` - negative X pushes left
+- Right ports: `Offset(2, y)` - positive X pushes right
+- Top ports: `Offset(x, -2)` - negative Y pushes up
+- Bottom ports: `Offset(x, 2)` - positive Y pushes down
+
 <details>
 <summary><strong>Port Positioning Examples</strong></summary>
 
 ```dart
-// Left-side ports with vertical offsets
+// Left-side ports with outward offset and vertical positioning
 inputPorts: [
   Port(
     id: 'in-1',
     name: 'Input 1',
     position: PortPosition.left,
-    offset: Offset(0, 20), // 20px from top
+    offset: Offset(-2, 20), // 2px outward, 20px from top
   ),
   Port(
     id: 'in-2',
     name: 'Input 2',
     position: PortPosition.left,
-    offset: Offset(0, 60), // 60px from top
+    offset: Offset(-2, 60), // 2px outward, 60px from top
   ),
 ]
 
-// Top-side ports with horizontal offsets
+// Right-side ports with outward offset
+outputPorts: [
+  Port(
+    id: 'out-1',
+    name: 'Output 1',
+    position: PortPosition.right,
+    offset: Offset(2, 40), // 2px outward, 40px from top
+  ),
+]
+
+// Top-side ports with outward offset and horizontal positioning
 inputPorts: [
   Port(
     id: 'in-1',
     name: 'Input 1',
     position: PortPosition.top,
-    offset: Offset(40, 0), // 40px from left
+    offset: Offset(40, -2), // 40px from left, 2px outward
   ),
   Port(
     id: 'in-2',
     name: 'Input 2',
     position: PortPosition.top,
-    offset: Offset(120, 0), // 120px from left
+    offset: Offset(120, -2), // 120px from left, 2px outward
+  ),
+]
+
+// Bottom-side ports with outward offset
+outputPorts: [
+  Port(
+    id: 'out-1',
+    name: 'Output',
+    position: PortPosition.bottom,
+    offset: Offset(80, 2), // 80px from left, 2px outward
   ),
 ]
 ```
@@ -1139,8 +1174,7 @@ const Port(
 // Available built-in shapes:
 // - MarkerShapes.capsuleHalf (default, oriented based on port position)
 // - MarkerShapes.circle (simple round shape)
-// - MarkerShapes.rectangle (rectangular shape)
-// - MarkerShapes.square (alias for rectangle with equal width/height)
+// - MarkerShapes.rectangle (uses provided Size; for squares use Size.square())
 // - MarkerShapes.diamond (45-degree rotated square)
 // - MarkerShapes.triangle (oriented arrow shape)
 // - MarkerShapes.none (invisible port)
@@ -2340,7 +2374,7 @@ class _DataPipelineEditorState extends State<DataPipelineEditor> {
       position: const Offset(100, 200),
       data: 'Data Source',
       outputPorts: const [
-        Port(id: 'out', name: 'Output', position: PortPosition.right),
+        Port(id: 'out', name: 'Output', position: PortPosition.right, offset: Offset(2, 40)),
       ],
     ));
 
@@ -2351,10 +2385,10 @@ class _DataPipelineEditorState extends State<DataPipelineEditor> {
       position: const Offset(350, 200),
       data: 'Transform',
       inputPorts: const [
-        Port(id: 'in', name: 'Input', position: PortPosition.left),
+        Port(id: 'in', name: 'Input', position: PortPosition.left, offset: Offset(-2, 40)),
       ],
       outputPorts: const [
-        Port(id: 'out', name: 'Output', position: PortPosition.right),
+        Port(id: 'out', name: 'Output', position: PortPosition.right, offset: Offset(2, 40)),
       ],
     ));
 
@@ -2365,7 +2399,7 @@ class _DataPipelineEditorState extends State<DataPipelineEditor> {
       position: const Offset(600, 200),
       data: 'Data Sink',
       inputPorts: const [
-        Port(id: 'in', name: 'Input', position: PortPosition.left),
+        Port(id: 'in', name: 'Input', position: PortPosition.left, offset: Offset(-2, 40)),
       ],
     ));
 
@@ -2757,8 +2791,8 @@ class ProcessViewer extends StatelessWidget {
 | ------------------ | ------------ | -------------------------- |
 | `id`               | String       | Unique identifier          |
 | `name`             | String       | Display name               |
-| `position`         | PortPosition | Port location on node      |
-| `offset`           | Offset       | Position offset            |
+| `position`         | PortPosition | Port location on node (left, right, top, bottom) |
+| `offset`           | Offset       | Position along edge + outward shift (e.g., `Offset(-2, 40)` for left port) |
 | `type`             | PortType     | source/target/both         |
 | `shape`            | MarkerShape  | Visual appearance          |
 | `multiConnections` | bool         | Allow multiple connections |

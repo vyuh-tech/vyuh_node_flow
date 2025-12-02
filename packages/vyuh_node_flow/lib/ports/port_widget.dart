@@ -97,7 +97,7 @@ class PortWidget extends StatelessWidget {
 
   /// Override for the port size.
   /// Resolution: port.size → widget.size → theme.size
-  final double? size;
+  final Size? size;
 
   /// Override for the idle port color.
   final Color? color;
@@ -127,12 +127,12 @@ class PortWidget extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // Marker shape - uses model shape (highest priority)
+        // Marker shape - uses model shape if set, otherwise theme
         MouseRegion(
           onEnter: (_) => onHover?.call((port, true)),
           onExit: (_) => onHover?.call((port, false)),
           child: PortShapeWidget(
-            shape: port.shape, // Model level - always wins
+            shape: port.shape ?? theme.shape, // Model → Theme fallback
             position: port.position,
             size: effectiveSize,
             color: _getPortColor(),
@@ -149,10 +149,9 @@ class PortWidget extends StatelessWidget {
 
   /// Get the effective port size using the cascade:
   /// port.size (model) → widget.size → theme.size
-  double _getPortSize() {
-    // Model-level size takes precedence (Port default is 9.0)
-    // If port.size differs from default, it was explicitly set
-    return port.size != 9.0 ? port.size : (size ?? theme.size);
+  Size _getPortSize() {
+    // Cascade: port.size → widget.size → theme.size
+    return port.size ?? size ?? theme.size;
   }
 
   /// Determines the appropriate color for the port based on its state.
@@ -205,7 +204,7 @@ class _PortLabel extends StatelessWidget {
 
   final Port port;
   final PortTheme theme;
-  final double size;
+  final Size size;
 
   @override
   Widget build(BuildContext context) {
@@ -234,8 +233,8 @@ class _PortLabel extends StatelessWidget {
         // Left port: label to the right (inside)
         // Offset from right edge of port, vertically centered
         return Positioned(
-          left: size + theme.labelOffset,
-          top: size / 2,
+          left: size.width + theme.labelOffset,
+          top: size.height / 2,
           child: FractionalTranslation(
             translation: const Offset(0.0, -0.5),
             child: Text(port.name, style: textStyle, textAlign: TextAlign.left),
@@ -245,8 +244,8 @@ class _PortLabel extends StatelessWidget {
         // Right port: label to the left (inside)
         // Offset from left edge of port, vertically centered
         return Positioned(
-          right: size + theme.labelOffset,
-          top: size / 2,
+          right: size.width + theme.labelOffset,
+          top: size.height / 2,
           child: FractionalTranslation(
             translation: const Offset(0.0, -0.5),
             child: Text(
@@ -260,8 +259,8 @@ class _PortLabel extends StatelessWidget {
         // Top port: label below (inside)
         // Offset from bottom edge of port, horizontally centered
         return Positioned(
-          left: size / 2,
-          top: size / 2 + theme.labelOffset,
+          left: size.width / 2,
+          top: size.height / 2 + theme.labelOffset,
           child: FractionalTranslation(
             translation: const Offset(-0.5, 0.0), // Center horizontally
             child: Text(
@@ -275,8 +274,8 @@ class _PortLabel extends StatelessWidget {
         // Bottom port: label above (inside)
         // Offset from top edge of port, horizontally centered
         return Positioned(
-          left: size / 2,
-          bottom: size / 2 + theme.labelOffset,
+          left: size.width / 2,
+          bottom: size.height / 2 + theme.labelOffset,
           child: FractionalTranslation(
             translation: const Offset(-0.5, 0.0), // Center horizontally
             child: Text(

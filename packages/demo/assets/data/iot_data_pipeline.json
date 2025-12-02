@@ -15,7 +15,7 @@
           "dataType": "telemetry",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         }
@@ -47,7 +47,7 @@
           "dataType": "telemetry",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         }
@@ -79,7 +79,7 @@
           "dataType": "telemetry",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         }
@@ -111,7 +111,7 @@
           "dataType": "telemetry",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         }
@@ -142,7 +142,7 @@
           "dataType": "telemetry",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 20
           }
         },
@@ -152,7 +152,7 @@
           "dataType": "telemetry",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         },
@@ -162,7 +162,7 @@
           "dataType": "telemetry",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         },
@@ -172,7 +172,7 @@
           "dataType": "telemetry",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 110
           }
         }
@@ -184,7 +184,7 @@
           "dataType": "stream",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -194,7 +194,7 @@
           "dataType": "alert",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -226,7 +226,7 @@
           "dataType": "stream",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         }
@@ -238,7 +238,7 @@
           "dataType": "stream",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 20
           }
         },
@@ -248,7 +248,7 @@
           "dataType": "stream",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 50
           }
         },
@@ -258,7 +258,7 @@
           "dataType": "stream",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -294,7 +294,7 @@
           "dataType": "stream",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 30
           }
         },
@@ -304,7 +304,7 @@
           "dataType": "stream",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         },
@@ -314,7 +314,7 @@
           "dataType": "config",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 90
           }
         }
@@ -326,7 +326,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -336,7 +336,7 @@
           "dataType": "alert",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -373,7 +373,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -385,7 +385,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -395,7 +395,7 @@
           "dataType": "metrics",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -405,7 +405,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 90
           }
         }
@@ -437,7 +437,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         },
@@ -447,7 +447,7 @@
           "dataType": "stream",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         }
@@ -459,7 +459,7 @@
           "dataType": "prediction",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -469,7 +469,7 @@
           "dataType": "model",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -479,7 +479,7 @@
           "dataType": "report",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 90
           }
         }
@@ -514,7 +514,7 @@
           "dataType": "metrics",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 30
           }
         },
@@ -524,7 +524,7 @@
           "dataType": "alert",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         },
@@ -534,7 +534,7 @@
           "dataType": "prediction",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 90
           }
         }
@@ -546,7 +546,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         }
@@ -578,7 +578,7 @@
           "dataType": "alert",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 30
           }
         },
@@ -588,7 +588,7 @@
           "dataType": "config",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         },
@@ -598,7 +598,7 @@
           "dataType": "prediction",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 90
           }
         }
@@ -610,7 +610,7 @@
           "dataType": "notification",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 20
           }
         },
@@ -620,7 +620,7 @@
           "dataType": "notification",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 50
           }
         },
@@ -630,7 +630,7 @@
           "dataType": "trigger",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -667,7 +667,7 @@
           "dataType": "trigger",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 30
           }
         },
@@ -677,7 +677,7 @@
           "dataType": "config",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -689,7 +689,7 @@
           "dataType": "command",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 50
           }
         }

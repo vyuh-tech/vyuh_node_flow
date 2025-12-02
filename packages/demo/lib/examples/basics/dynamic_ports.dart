@@ -43,7 +43,7 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
           id: 'port-1',
           name: 'Input',
           position: PortPosition.left,
-          offset: Offset(0, 50),
+          offset: Offset(-2, 50),
           type: PortType.target,
           multiConnections: true,
         ),
@@ -53,7 +53,7 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
           id: 'port-2',
           name: 'Output',
           position: PortPosition.right,
-          offset: Offset(0, 50),
+          offset: Offset(2, 50),
           type: PortType.source,
         ),
       ],
@@ -71,7 +71,7 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
           id: 'port-3',
           name: 'Input',
           position: PortPosition.top,
-          offset: Offset(60, 0),
+          offset: Offset(60, -2),
           type: PortType.target,
           multiConnections: true,
         ),
@@ -81,7 +81,7 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
           id: 'port-4',
           name: 'Output',
           position: PortPosition.bottom,
-          offset: Offset(60, 0),
+          offset: Offset(60, 2),
           type: PortType.source,
         ),
       ],
@@ -185,11 +185,13 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
 
     switch (position) {
       case PortPosition.left:
+        return Offset(-2, startOffset + (index * spacing));
       case PortPosition.right:
-        return Offset(0, startOffset + (index * spacing));
+        return Offset(2, startOffset + (index * spacing));
       case PortPosition.top:
+        return Offset(startOffset + (index * spacing), -2);
       case PortPosition.bottom:
-        return Offset(startOffset + (index * spacing), 0);
+        return Offset(startOffset + (index * spacing), 2);
     }
   }
 

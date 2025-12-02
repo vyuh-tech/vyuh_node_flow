@@ -4,9 +4,11 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../shared/json_converters.dart';
 import '../shared/shapes/marker_shape.dart';
-import '../shared/shapes/marker_shapes.dart';
 
 part 'port.g.dart';
+
+/// Default port size used when no size is specified.
+const Size defaultPortSize = Size(9, 9);
 
 /// Defines the directionality of a port in a node-based flow editor.
 ///
@@ -80,7 +82,7 @@ enum PortType {
 ///   type: PortType.both,
 ///   position: PortPosition.top,
 ///   shape: MarkerShapes.diamond,
-///   size: 12.0,
+///   size: Size(12, 12),
 ///   offset: Offset(10, 0),
 /// );
 /// ```
@@ -100,12 +102,13 @@ class Port extends Equatable {
   ///   ports, offset.dy is the vertical center. For top/bottom ports, offset.dx
   ///   is the horizontal center. (default: zero)
   /// - [type]: Whether the port is a source, target, or both (default: both)
-  /// - [shape]: Visual shape of the port (default: capsuleHalf)
-  /// - [size]: Diameter of the port in logical pixels (default: 9.0)
+  /// - [shape]: Visual shape of the port (null = use theme default)
+  /// - [size]: Size of the port in logical pixels (null = use theme default)
   /// - [tooltip]: Optional tooltip text displayed on hover
   /// - [isConnectable]: Whether connections can be made to this port (default: true)
   /// - [maxConnections]: Maximum number of connections allowed (null for unlimited)
   /// - [showLabel]: Whether to display the port's label (default: false)
+
   const Port({
     required this.id,
     required this.name,
@@ -113,8 +116,8 @@ class Port extends Equatable {
     this.position = PortPosition.left,
     this.offset = Offset.zero,
     this.type = PortType.both,
-    this.shape = MarkerShapes.capsuleHalf,
-    this.size = 9.0,
+    this.shape,
+    this.size,
     this.tooltip,
     this.isConnectable = true,
     this.maxConnections,
@@ -178,16 +181,19 @@ class Port extends Equatable {
 
   /// The visual shape of the port.
   ///
+  /// When null, falls back to [PortTheme.shape].
   /// Different shapes can be used to visually distinguish different types
   /// of ports or data flows.
   @MarkerShapeConverter()
-  final MarkerShape shape;
+  final MarkerShape? shape;
 
   /// The size of the port in logical pixels.
   ///
-  /// This determines the diameter of the port visual and its hit area for
-  /// interaction.
-  final double size;
+  /// When null, falls back to [PortTheme.size].
+  /// This determines the dimensions of the port visual and its hit area for
+  /// interaction. Width and height can differ for asymmetric port shapes.
+  @SizeConverter()
+  final Size? size;
 
   /// Optional tooltip text displayed when hovering over the port.
   ///
@@ -255,7 +261,7 @@ class Port extends Equatable {
     Offset? offset,
     PortType? type,
     MarkerShape? shape,
-    double? size,
+    Size? size,
     IconData? icon,
     String? tooltip,
     bool? isConnectable,

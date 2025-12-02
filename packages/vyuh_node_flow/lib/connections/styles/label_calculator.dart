@@ -59,7 +59,6 @@ class LabelCalculator {
   /// - [targetNode]: The target node of the connection
   /// - [connectionStyle]: The style used to render the connection
   /// - [curvature]: Curvature factor for the connection (0.0 to 1.0)
-  /// - [portSize]: Size of the ports in logical pixels
   /// - [endpointSize]: Size of the endpoint markers in logical pixels
   /// - [labelTheme]: Theme defining label appearance
   /// - [pathCache]: Optional path cache to reuse cached connection paths
@@ -78,24 +77,13 @@ class LabelCalculator {
     required Node targetNode,
     required ConnectionStyle connectionStyle,
     required double curvature,
-    required double portSize,
     required double endpointSize,
     required LabelTheme labelTheme,
     ConnectionPathCache? pathCache,
     double portExtension = 10.0,
   }) {
     try {
-      // Get port positions
-      final sourcePortPosition = sourceNode.getPortPosition(
-        connection.sourcePortId,
-        portSize: portSize,
-      );
-      final targetPortPosition = targetNode.getPortPosition(
-        connection.targetPortId,
-        portSize: portSize,
-      );
-
-      // Find the actual port objects
+      // Find the actual port objects first (needed for their sizes)
       Port? sourcePort;
       Port? targetPort;
 
@@ -117,18 +105,26 @@ class LabelCalculator {
         // Target port not found
       }
 
+      // Get port positions using each port's size
+      final sourcePortPosition = sourceNode.getPortPosition(
+        connection.sourcePortId,
+        portSize: sourcePort?.size ?? defaultPortSize,
+      );
+      final targetPortPosition = targetNode.getPortPosition(
+        connection.targetPortId,
+        portSize: targetPort?.size ?? defaultPortSize,
+      );
+
       // Calculate endpoint positions using the existing utility
       final source = EndpointPositionCalculator.calculatePortConnectionPoints(
         sourcePortPosition,
         sourcePort?.position ?? PortPosition.right,
         endpointSize,
-        portSize,
       );
       final target = EndpointPositionCalculator.calculatePortConnectionPoints(
         targetPortPosition,
         targetPort?.position ?? PortPosition.left,
         endpointSize,
-        portSize,
       );
 
       // Get or create the connection path

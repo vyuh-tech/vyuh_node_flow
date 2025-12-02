@@ -63,7 +63,10 @@ class _MinimapExampleState extends State<MinimapExample> {
                       id: 'in',
                       name: 'Input',
                       position: PortPosition.left,
-                      offset: const Offset(0, 20),
+                      offset: const Offset(
+                        -2,
+                        40,
+                      ), // Vertical center of 80 height
                     ),
                   ]
                 : [],
@@ -73,7 +76,10 @@ class _MinimapExampleState extends State<MinimapExample> {
                       id: 'out',
                       name: 'Output',
                       position: PortPosition.right,
-                      offset: const Offset(0, 20),
+                      offset: const Offset(
+                        2,
+                        40,
+                      ), // Vertical center of 80 height
                     ),
                   ]
                 : [],

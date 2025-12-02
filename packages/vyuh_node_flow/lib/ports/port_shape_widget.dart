@@ -20,7 +20,7 @@ class PortShapeWidget extends StatelessWidget {
 
   final MarkerShape shape;
   final PortPosition position;
-  final double size;
+  final Size size;
   final Color color;
   final Color borderColor;
   final double borderWidth;
@@ -28,7 +28,7 @@ class PortShapeWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      size: Size(size, size),
+      size: size,
       painter: _PortShapePainter(
         shape: shape,
         position: position,
@@ -75,7 +75,7 @@ class _PortShapePainter extends CustomPainter {
     shape.paint(
       canvas,
       Offset(size.width / 2, size.height / 2),
-      size.width,
+      size,
       fillPaint,
       borderPaint,
       orientation: position.toOrientation(),

@@ -15,7 +15,7 @@
           "dataType": "relation",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         }
@@ -60,7 +60,7 @@
           "dataType": "relation",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -72,7 +72,7 @@
           "dataType": "relation",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         }
@@ -118,7 +118,7 @@
           "position": "top",
           "offset": {
             "x": 60,
-            "y": 0
+            "y": -2
           }
         }
       ],
@@ -129,7 +129,7 @@
           "dataType": "relation",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -140,7 +140,7 @@
           "position": "bottom",
           "offset": {
             "x": 60,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -183,7 +183,7 @@
           "dataType": "relation",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         }
@@ -195,7 +195,7 @@
           "dataType": "relation",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         }
@@ -243,7 +243,7 @@
           "dataType": "relation",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -286,7 +286,7 @@
           "dataType": "relation",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -330,7 +330,7 @@
           "dataType": "relation",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         }
@@ -372,7 +372,7 @@
           "position": "top",
           "offset": {
             "x": 60,
-            "y": 0
+            "y": -2
           }
         },
         {
@@ -381,7 +381,7 @@
           "dataType": "relation",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         }
@@ -427,7 +427,7 @@
           "position": "top",
           "offset": {
             "x": 60,
-            "y": 0
+            "y": -2
           }
         },
         {
@@ -437,7 +437,7 @@
           "position": "top",
           "offset": {
             "x": 100,
-            "y": 0
+            "y": -2
           }
         }
       ],
@@ -448,7 +448,7 @@
           "dataType": "relation",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         }
@@ -497,7 +497,7 @@
           "dataType": "relation",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         },
@@ -508,7 +508,7 @@
           "position": "top",
           "offset": {
             "x": 60,
-            "y": 0
+            "y": -2
           }
         }
       ],
@@ -553,7 +553,7 @@
           "dataType": "relation",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -598,7 +598,7 @@
           "dataType": "relation",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -644,7 +644,7 @@
           "position": "top",
           "offset": {
             "x": 60,
-            "y": 0
+            "y": -2
           }
         },
         {
@@ -653,7 +653,7 @@
           "dataType": "relation",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         }
@@ -698,7 +698,7 @@
           "position": "top",
           "offset": {
             "x": 60,
-            "y": 0
+            "y": -2
           }
         },
         {
@@ -707,7 +707,7 @@
           "dataType": "relation",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         }
@@ -752,7 +752,7 @@
           "position": "top",
           "offset": {
             "x": 60,
-            "y": 0
+            "y": -2
           }
         },
         {
@@ -761,7 +761,7 @@
           "dataType": "relation",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         }
@@ -810,7 +810,7 @@
           "dataType": "relation",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         }
@@ -858,7 +858,7 @@
           "position": "top",
           "offset": {
             "x": 60,
-            "y": 0
+            "y": -2
           }
         },
         {
@@ -867,7 +867,7 @@
           "dataType": "relation",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }

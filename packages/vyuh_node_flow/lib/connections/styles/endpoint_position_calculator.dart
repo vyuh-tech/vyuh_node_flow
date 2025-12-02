@@ -6,7 +6,7 @@ import '../../ports/port.dart';
 ///
 /// This calculator determines the exact positions where endpoint markers should
 /// be drawn and where connection lines should start/end, taking into account
-/// port positions, sizes, and endpoint marker dimensions.
+/// port positions and endpoint marker dimensions.
 ///
 /// ## Purpose
 /// When rendering connections, we need to:
@@ -20,7 +20,6 @@ import '../../ports/port.dart';
 ///   portPos: Offset(100, 50),
 ///   portPosition: PortPosition.right,
 ///   endpointSize: 5.0,
-///   portSize: 8.0,
 /// );
 ///
 /// // Draw endpoint marker at points.endpointPos
@@ -38,70 +37,47 @@ class EndpointPositionCalculator {
   /// - `linePos`: The position where the connection line should start/end
   ///
   /// Parameters:
-  /// - [portPos]: The center position of the port in logical pixels
+  /// - [portPos]: The connection point at the port's outer edge (from Node.getPortPosition)
   /// - [portPosition]: The orientation of the port (left, right, top, or bottom)
   /// - [endpointSize]: The size (diameter) of the endpoint marker in logical pixels
-  /// - [portSize]: The size (diameter) of the port in logical pixels
   ///
   /// The calculation accounts for:
-  /// - Port radius (portSize / 2)
   /// - Endpoint marker size
   /// - Port orientation to position markers correctly
+  ///
+  /// Note: With edge-aligned ports, portPos is already at the port's outer edge,
+  /// so we only need to offset by the endpoint marker size.
   ///
   /// Returns: A record with `endpointPos` and `linePos` offsets
   static ({Offset endpointPos, Offset linePos}) calculatePortConnectionPoints(
     Offset portPos,
     PortPosition portPosition,
     double endpointSize,
-    double portSize,
   ) {
-    // Port radius is half the port size
-    final portRadius = portSize / 2;
-
     switch (portPosition) {
       case PortPosition.left:
-        // Endpoint starts at the left edge of the port
-        final endpointPos = Offset(
-          portPos.dx - portRadius - endpointSize / 2,
-          portPos.dy,
-        );
-        final linePos = Offset(
-          portPos.dx - portRadius - endpointSize,
-          portPos.dy,
-        );
+        // Endpoint marker center is half its size to the left of port edge
+        final endpointPos = Offset(portPos.dx - endpointSize / 2, portPos.dy);
+        // Line starts at the left edge of the endpoint marker
+        final linePos = Offset(portPos.dx - endpointSize, portPos.dy);
         return (endpointPos: endpointPos, linePos: linePos);
       case PortPosition.right:
-        // Endpoint starts at the right edge of the port
-        final endpointPos = Offset(
-          portPos.dx + portRadius + endpointSize / 2,
-          portPos.dy,
-        );
-        final linePos = Offset(
-          portPos.dx + portRadius + endpointSize,
-          portPos.dy,
-        );
+        // Endpoint marker center is half its size to the right of port edge
+        final endpointPos = Offset(portPos.dx + endpointSize / 2, portPos.dy);
+        // Line starts at the right edge of the endpoint marker
+        final linePos = Offset(portPos.dx + endpointSize, portPos.dy);
         return (endpointPos: endpointPos, linePos: linePos);
       case PortPosition.top:
-        // Endpoint starts at the top edge of the port
-        final endpointPos = Offset(
-          portPos.dx,
-          portPos.dy - portRadius - endpointSize / 2,
-        );
-        final linePos = Offset(
-          portPos.dx,
-          portPos.dy - portRadius - endpointSize,
-        );
+        // Endpoint marker center is half its size above port edge
+        final endpointPos = Offset(portPos.dx, portPos.dy - endpointSize / 2);
+        // Line starts at the top edge of the endpoint marker
+        final linePos = Offset(portPos.dx, portPos.dy - endpointSize);
         return (endpointPos: endpointPos, linePos: linePos);
       case PortPosition.bottom:
-        // Endpoint starts at the bottom edge of the port
-        final endpointPos = Offset(
-          portPos.dx,
-          portPos.dy + portRadius + endpointSize / 2,
-        );
-        final linePos = Offset(
-          portPos.dx,
-          portPos.dy + portRadius + endpointSize,
-        );
+        // Endpoint marker center is half its size below port edge
+        final endpointPos = Offset(portPos.dx, portPos.dy + endpointSize / 2);
+        // Line starts at the bottom edge of the endpoint marker
+        final linePos = Offset(portPos.dx, portPos.dy + endpointSize);
         return (endpointPos: endpointPos, linePos: linePos);
     }
   }

@@ -12,7 +12,7 @@ class EndpointPainter {
   static void paint({
     required Canvas canvas,
     required Offset position,
-    required double size,
+    required Size size,
     required MarkerShape shape,
     required PortPosition portPosition,
     required Paint fillPaint,

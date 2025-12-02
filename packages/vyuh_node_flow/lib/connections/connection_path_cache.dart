@@ -168,19 +168,7 @@ class ConnectionPathCache {
     final sourceShape = nodeShape?.call(sourceNode);
     final targetShape = nodeShape?.call(targetNode);
 
-    // Calculate port positions with shapes
-    final sourcePortPosition = sourceNode.getPortPosition(
-      connection.sourcePortId,
-      portSize: portTheme.size,
-      shape: sourceShape,
-    );
-    final targetPortPosition = targetNode.getPortPosition(
-      connection.targetPortId,
-      portSize: portTheme.size,
-      shape: targetShape,
-    );
-
-    // Get ports
+    // Get ports first to determine their sizes
     Port? sourcePort;
     Port? targetPort;
 
@@ -201,6 +189,22 @@ class ConnectionPathCache {
     } catch (e) {
       return null;
     }
+
+    // Use cascade: port.size if set, otherwise fallback to theme.size
+    final sourcePortSize = sourcePort.size ?? portTheme.size;
+    final targetPortSize = targetPort.size ?? portTheme.size;
+
+    // Calculate port positions with shapes and effective sizes
+    final sourcePortPosition = sourceNode.getPortPosition(
+      connection.sourcePortId,
+      portSize: sourcePortSize,
+      shape: sourceShape,
+    );
+    final targetPortPosition = targetNode.getPortPosition(
+      connection.targetPortId,
+      portSize: targetPortSize,
+      shape: targetShape,
+    );
 
     // Get effective endpoint configurations from connection instance or theme
     final effectiveStartPoint = connection.getEffectiveStartPoint(
@@ -223,13 +227,11 @@ class ConnectionPathCache {
       sourcePortPosition,
       sourcePort.position,
       startPointSize,
-      portTheme.size,
     );
     final target = EndpointPositionCalculator.calculatePortConnectionPoints(
       targetPortPosition,
       targetPort.position,
       endPointSize,
-      portTheme.size,
     );
 
     // Create path parameters for both original and hit test paths

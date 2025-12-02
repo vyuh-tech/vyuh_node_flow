@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../shared/shapes/marker_shape.dart';
+import '../shared/shapes/marker_shapes.dart';
+
 /// Theme configuration for port visual appearance.
 ///
 /// [PortTheme] defines the visual styling of ports in the flow editor,
@@ -33,7 +36,7 @@ class PortTheme {
   /// different port states.
   ///
   /// Parameters:
-  /// - [size]: The diameter of the port in logical pixels
+  /// - [size]: The size of the port in logical pixels (width, height)
   /// - [color]: Default color when the port is idle
   /// - [connectedColor]: Color when the port has active connections
   /// - [snappingColor]: Color when a connection is being dragged near
@@ -45,6 +48,7 @@ class PortTheme {
   /// - [labelVisibilityThreshold]: Minimum zoom level to show labels (default: 0.5)
   /// - [highlightBorderColor]: Border color when port is highlighted (default: black)
   /// - [highlightBorderWidthDelta]: Additional border width when highlighted (default: 1.5)
+  /// - [shape]: Default marker shape for ports (default: capsuleHalf)
   const PortTheme({
     required this.size,
     required this.color,
@@ -52,6 +56,7 @@ class PortTheme {
     required this.snappingColor,
     required this.borderColor,
     required this.borderWidth,
+    this.shape = MarkerShapes.capsuleHalf,
     this.showLabel = false,
     this.labelTextStyle,
     this.labelOffset = 4.0,
@@ -60,11 +65,11 @@ class PortTheme {
     this.highlightBorderWidthDelta = 1.5,
   });
 
-  /// The diameter of the port in logical pixels.
+  /// The size of the port in logical pixels.
   ///
   /// This determines the visual size of the port and its hit area for
-  /// interaction. Typical values range from 6.0 to 15.0.
-  final double size;
+  /// interaction. Width and height can differ for asymmetric port shapes.
+  final Size size;
 
   /// The default color of the port when idle.
   ///
@@ -133,6 +138,13 @@ class PortTheme {
   /// Default is 1.5 pixels.
   final double highlightBorderWidthDelta;
 
+  /// The default marker shape for ports.
+  ///
+  /// Individual ports can override this with their own [Port.shape] property.
+  /// If a port's shape is not specified, this theme value is used as fallback.
+  /// Default is [MarkerShapes.capsuleHalf].
+  final MarkerShape shape;
+
   /// Creates a copy of this theme with the specified properties replaced.
   ///
   /// All parameters are optional. If a parameter is not provided, the
@@ -149,12 +161,13 @@ class PortTheme {
   /// // properties from the light theme
   /// ```
   PortTheme copyWith({
-    double? size,
+    Size? size,
     Color? color,
     Color? connectedColor,
     Color? snappingColor,
     Color? borderColor,
     double? borderWidth,
+    MarkerShape? shape,
     bool? showLabel,
     TextStyle? labelTextStyle,
     double? labelOffset,
@@ -169,6 +182,7 @@ class PortTheme {
       snappingColor: snappingColor ?? this.snappingColor,
       borderColor: borderColor ?? this.borderColor,
       borderWidth: borderWidth ?? this.borderWidth,
+      shape: shape ?? this.shape,
       showLabel: showLabel ?? this.showLabel,
       labelTextStyle: labelTextStyle ?? this.labelTextStyle,
       labelOffset: labelOffset ?? this.labelOffset,
@@ -192,7 +206,7 @@ class PortTheme {
   /// - Connected: Material blue (#2196F3)
   /// - Snapping: Dark blue (#1565C0)
   static const light = PortTheme(
-    size: 9.0,
+    size: Size(9, 9),
     color: Color(0xFFBABABA),
     connectedColor: Color(0xFF2196F3),
     snappingColor: Color(0xFF1565C0),
@@ -222,7 +236,7 @@ class PortTheme {
   /// - Connected: Light blue (#64B5F6)
   /// - Snapping: Medium blue (#42A5F5)
   static const dark = PortTheme(
-    size: 9.0,
+    size: Size(9, 9),
     color: Color(0xFF666666),
     connectedColor: Color(0xFF64B5F6),
     snappingColor: Color(0xFF42A5F5),

@@ -14,7 +14,7 @@
           "dataType": "code",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         }
@@ -26,7 +26,7 @@
           "dataType": "code",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -36,7 +36,7 @@
           "dataType": "trigger",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         }
@@ -71,7 +71,7 @@
           "dataType": "trigger",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         },
@@ -81,7 +81,7 @@
           "dataType": "code",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 90
           }
         }
@@ -93,7 +93,7 @@
           "dataType": "artifact",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -103,7 +103,7 @@
           "dataType": "report",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -113,7 +113,7 @@
           "dataType": "metrics",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 90
           }
         },
@@ -124,7 +124,7 @@
           "position": "bottom",
           "offset": {
             "x": 70,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -159,7 +159,7 @@
           "dataType": "code",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         }
@@ -171,7 +171,7 @@
           "dataType": "report",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -181,7 +181,7 @@
           "dataType": "status",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         }
@@ -212,7 +212,7 @@
           "dataType": "code",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -224,7 +224,7 @@
           "dataType": "report",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -234,7 +234,7 @@
           "dataType": "metrics",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -244,7 +244,7 @@
           "dataType": "recommendation",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 90
           }
         }
@@ -284,7 +284,7 @@
           "dataType": "code",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 30
           }
         },
@@ -294,7 +294,7 @@
           "dataType": "config",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -306,7 +306,7 @@
           "dataType": "report",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -316,7 +316,7 @@
           "dataType": "status",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         }
@@ -351,7 +351,7 @@
           "dataType": "artifact",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         }
@@ -363,7 +363,7 @@
           "dataType": "artifact",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -373,7 +373,7 @@
           "dataType": "config",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         }
@@ -404,7 +404,7 @@
           "dataType": "artifact",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         },
@@ -414,7 +414,7 @@
           "dataType": "config",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         }
@@ -426,7 +426,7 @@
           "dataType": "url",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -436,7 +436,7 @@
           "dataType": "status",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -446,7 +446,7 @@
           "dataType": "logs",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 90
           }
         }
@@ -478,7 +478,7 @@
           "dataType": "url",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         }
@@ -490,7 +490,7 @@
           "dataType": "report",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -500,7 +500,7 @@
           "dataType": "status",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         }
@@ -532,7 +532,7 @@
           "dataType": "url",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         }
@@ -544,7 +544,7 @@
           "dataType": "metrics",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -554,7 +554,7 @@
           "dataType": "status",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         }
@@ -586,7 +586,7 @@
           "dataType": "artifact",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 30
           }
         },
@@ -596,7 +596,7 @@
           "dataType": "approval",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         },
@@ -606,7 +606,7 @@
           "dataType": "config",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 90
           }
         }
@@ -618,7 +618,7 @@
           "dataType": "url",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -628,7 +628,7 @@
           "dataType": "status",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -664,7 +664,7 @@
           "dataType": "metrics",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 30
           }
         },
@@ -674,7 +674,7 @@
           "dataType": "logs",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         },
@@ -684,7 +684,7 @@
           "dataType": "traces",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 90
           }
         }
@@ -696,7 +696,7 @@
           "dataType": "visualization",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -706,7 +706,7 @@
           "dataType": "notification",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -743,7 +743,7 @@
           "dataType": "metrics",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         }
@@ -755,7 +755,7 @@
           "dataType": "recommendation",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -765,7 +765,7 @@
           "dataType": "report",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         }
@@ -801,7 +801,7 @@
           "dataType": "notification",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         }
@@ -813,7 +813,7 @@
           "dataType": "command",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 50
           }
         }

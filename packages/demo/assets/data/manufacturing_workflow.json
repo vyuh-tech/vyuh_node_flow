@@ -15,7 +15,7 @@
           "dataType": "material",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -25,7 +25,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         }
@@ -61,7 +61,7 @@
           "dataType": "material",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -71,7 +71,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         }
@@ -107,7 +107,7 @@
           "dataType": "material",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -117,7 +117,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         }
@@ -153,7 +153,7 @@
           "dataType": "component",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -163,7 +163,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         }
@@ -199,7 +199,7 @@
           "dataType": "material",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 20
           }
         },
@@ -209,7 +209,7 @@
           "dataType": "material",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         },
@@ -219,7 +219,7 @@
           "dataType": "material",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         },
@@ -229,7 +229,7 @@
           "dataType": "component",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 110
           }
         }
@@ -241,7 +241,7 @@
           "dataType": "material",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 50
           }
         },
@@ -252,7 +252,7 @@
           "position": "bottom",
           "offset": {
             "x": 80,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -283,7 +283,7 @@
           "dataType": "material",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         },
@@ -294,7 +294,7 @@
           "position": "top",
           "offset": {
             "x": 70,
-            "y": 0
+            "y": -2
           }
         }
       ],
@@ -305,7 +305,7 @@
           "dataType": "material",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -315,7 +315,7 @@
           "dataType": "material",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -326,7 +326,7 @@
           "position": "bottom",
           "offset": {
             "x": 70,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -360,7 +360,7 @@
           "dataType": "material",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         },
@@ -370,7 +370,7 @@
           "dataType": "component",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         },
@@ -381,7 +381,7 @@
           "position": "top",
           "offset": {
             "x": 90,
-            "y": 0
+            "y": -2
           }
         }
       ],
@@ -392,7 +392,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -403,7 +403,7 @@
           "position": "bottom",
           "offset": {
             "x": 60,
-            "y": 0
+            "y": 2
           }
         },
         {
@@ -413,7 +413,7 @@
           "position": "bottom",
           "offset": {
             "x": 120,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -446,7 +446,7 @@
           "dataType": "material",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         },
@@ -456,7 +456,7 @@
           "dataType": "component",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         },
@@ -467,7 +467,7 @@
           "position": "top",
           "offset": {
             "x": 90,
-            "y": 0
+            "y": -2
           }
         }
       ],
@@ -478,7 +478,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -489,7 +489,7 @@
           "position": "bottom",
           "offset": {
             "x": 60,
-            "y": 0
+            "y": 2
           }
         },
         {
@@ -499,7 +499,7 @@
           "position": "bottom",
           "offset": {
             "x": 120,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -532,7 +532,7 @@
           "dataType": "material",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         },
@@ -542,7 +542,7 @@
           "dataType": "component",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         },
@@ -553,7 +553,7 @@
           "position": "top",
           "offset": {
             "x": 90,
-            "y": 0
+            "y": -2
           }
         }
       ],
@@ -564,7 +564,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -575,7 +575,7 @@
           "position": "bottom",
           "offset": {
             "x": 60,
-            "y": 0
+            "y": 2
           }
         },
         {
@@ -585,7 +585,7 @@
           "position": "bottom",
           "offset": {
             "x": 120,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -618,7 +618,7 @@
           "dataType": "material",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         },
@@ -628,7 +628,7 @@
           "dataType": "component",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         },
@@ -639,7 +639,7 @@
           "position": "top",
           "offset": {
             "x": 90,
-            "y": 0
+            "y": -2
           }
         }
       ],
@@ -650,7 +650,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -661,7 +661,7 @@
           "position": "bottom",
           "offset": {
             "x": 60,
-            "y": 0
+            "y": 2
           }
         },
         {
@@ -671,7 +671,7 @@
           "position": "bottom",
           "offset": {
             "x": 120,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -704,7 +704,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 30
           }
         },
@@ -714,7 +714,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         },
@@ -724,7 +724,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 90
           }
         },
@@ -734,7 +734,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 120
           }
         }
@@ -746,7 +746,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 75
           }
         },
@@ -757,7 +757,7 @@
           "position": "bottom",
           "offset": {
             "x": 100,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -789,7 +789,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         },
@@ -800,7 +800,7 @@
           "position": "top",
           "offset": {
             "x": 80,
-            "y": 0
+            "y": -2
           }
         }
       ],
@@ -811,7 +811,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -821,7 +821,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         },
@@ -832,7 +832,7 @@
           "position": "bottom",
           "offset": {
             "x": 80,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -868,7 +868,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         },
@@ -879,7 +879,7 @@
           "position": "top",
           "offset": {
             "x": 80,
-            "y": 0
+            "y": -2
           }
         }
       ],
@@ -890,7 +890,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 50
           }
         },
@@ -901,7 +901,7 @@
           "position": "bottom",
           "offset": {
             "x": 80,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -933,7 +933,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         },
@@ -944,7 +944,7 @@
           "position": "top",
           "offset": {
             "x": 80,
-            "y": 0
+            "y": -2
           }
         }
       ],
@@ -955,7 +955,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 50
           }
         },
@@ -966,7 +966,7 @@
           "position": "bottom",
           "offset": {
             "x": 80,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -997,7 +997,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         },
@@ -1008,7 +1008,7 @@
           "position": "top",
           "offset": {
             "x": 70,
-            "y": 0
+            "y": -2
           }
         }
       ],
@@ -1019,7 +1019,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -1030,7 +1030,7 @@
           "position": "bottom",
           "offset": {
             "x": 70,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -1064,7 +1064,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         },
@@ -1075,7 +1075,7 @@
           "position": "top",
           "offset": {
             "x": 70,
-            "y": 0
+            "y": -2
           }
         }
       ],
@@ -1086,7 +1086,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -1097,7 +1097,7 @@
           "position": "bottom",
           "offset": {
             "x": 70,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -1132,7 +1132,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         },
@@ -1143,7 +1143,7 @@
           "position": "top",
           "offset": {
             "x": 70,
-            "y": 0
+            "y": -2
           }
         }
       ],
@@ -1154,7 +1154,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         }
@@ -1191,7 +1191,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -1203,7 +1203,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -1213,7 +1213,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -1223,7 +1223,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 90
           }
         }
@@ -1260,7 +1260,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -1272,7 +1272,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -1282,7 +1282,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -1292,7 +1292,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 90
           }
         }
@@ -1324,7 +1324,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -1336,7 +1336,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -1346,7 +1346,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -1356,7 +1356,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 90
           }
         }
@@ -1388,7 +1388,7 @@
           "dataType": "waste",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 30
           }
         },
@@ -1398,7 +1398,7 @@
           "dataType": "waste",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         },
@@ -1408,7 +1408,7 @@
           "dataType": "waste",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 90
           }
         }
@@ -1420,7 +1420,7 @@
           "dataType": "material",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -1430,7 +1430,7 @@
           "dataType": "waste",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -1469,7 +1469,7 @@
           "dataType": "energy",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 30
           }
         },
@@ -1479,7 +1479,7 @@
           "dataType": "energy",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         },
@@ -1489,7 +1489,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 90
           }
         }
@@ -1501,7 +1501,7 @@
           "dataType": "energy",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -1511,7 +1511,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -1544,7 +1544,7 @@
           "dataType": "water",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         },
@@ -1554,7 +1554,7 @@
           "dataType": "waste",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         }
@@ -1566,7 +1566,7 @@
           "dataType": "water",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -1576,7 +1576,7 @@
           "dataType": "water",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -1608,7 +1608,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 30
           }
         },
@@ -1618,7 +1618,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         },
@@ -1628,7 +1628,7 @@
           "dataType": "document",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 90
           }
         }
@@ -1640,7 +1640,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -1650,7 +1650,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -1683,7 +1683,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -1695,7 +1695,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -1705,7 +1705,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -1715,7 +1715,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 90
           }
         }
@@ -1747,7 +1747,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -1759,7 +1759,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -1769,7 +1769,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -1779,7 +1779,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 90
           }
         }
@@ -1816,7 +1816,7 @@
           "dataType": "human",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         },
@@ -1826,7 +1826,7 @@
           "dataType": "document",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         }
@@ -1838,7 +1838,7 @@
           "dataType": "human",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -1848,7 +1848,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -1881,7 +1881,7 @@
           "dataType": "equipment",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         },
@@ -1891,7 +1891,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         }
@@ -1903,7 +1903,7 @@
           "dataType": "equipment",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -1913,7 +1913,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -1946,7 +1946,7 @@
           "dataType": "equipment",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -1958,7 +1958,7 @@
           "dataType": "equipment",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -1968,7 +1968,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -2001,7 +2001,7 @@
           "dataType": "material",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -2013,7 +2013,7 @@
           "dataType": "service",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         }
@@ -2051,7 +2051,7 @@
           "dataType": "human",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -2063,7 +2063,7 @@
           "dataType": "human",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -2073,7 +2073,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -2110,7 +2110,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -2122,7 +2122,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -2132,7 +2132,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -2165,7 +2165,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -2177,7 +2177,7 @@
           "dataType": "service",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -2187,7 +2187,7 @@
           "dataType": "service",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -2197,7 +2197,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 90
           }
         }
@@ -2230,7 +2230,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -2242,7 +2242,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -2252,7 +2252,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -2262,7 +2262,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 90
           }
         }
@@ -2303,7 +2303,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -2315,7 +2315,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -2325,7 +2325,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -2361,7 +2361,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -2373,7 +2373,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -2383,7 +2383,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -2393,7 +2393,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 90
           }
         }
@@ -2426,7 +2426,7 @@
           "dataType": "document",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 60
           }
         }
@@ -2438,7 +2438,7 @@
           "dataType": "human",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -2448,7 +2448,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -2458,7 +2458,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 90
           }
         }
@@ -2491,7 +2491,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         },
@@ -2501,7 +2501,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 90
           }
         }
@@ -2513,7 +2513,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 70
           }
         }

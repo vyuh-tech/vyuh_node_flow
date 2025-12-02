@@ -82,7 +82,7 @@ class _CapsuleHalfCustomPainter extends CustomPainter {
     CapsuleHalfPainter.paint(
       canvas,
       center,
-      size.width,
+      size,
       flatSide,
       fillPaint,
       borderPaint,
@@ -103,15 +103,22 @@ class CapsuleHalfPainter {
   static void paint(
     Canvas canvas,
     Offset center,
-    double size,
+    Size size,
     CapsuleFlatSide flatSide,
     Paint fillPaint,
     Paint? borderPaint,
   ) {
-    final radius = size / 2;
+    final width = size.width;
+    final height = size.height;
 
-    // Simple: position is the center, create capsule half based on flat side
-    final rect = Rect.fromCenter(center: center, width: size, height: size);
+    // Use the shorter dimension for the corner radius
+    final radius =
+        (flatSide == CapsuleFlatSide.left || flatSide == CapsuleFlatSide.right)
+        ? height / 2
+        : width / 2;
+
+    // Position is the center, create capsule half based on flat side
+    final rect = Rect.fromCenter(center: center, width: width, height: height);
 
     RRect rrect;
     switch (flatSide) {

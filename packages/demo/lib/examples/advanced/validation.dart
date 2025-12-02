@@ -40,14 +40,14 @@ class _ConnectionValidationExampleState
           id: 'out1',
           name: 'Output 1',
           position: PortPosition.right,
-          offset: Offset(0, 20),
+          offset: Offset(2, 20), // Multiple ports: starting offset 20
         ),
         const Port(
           id: 'out2',
           name: 'Output 2',
           position: PortPosition.right,
           multiConnections: true,
-          offset: Offset(0, 40),
+          offset: Offset(2, 50), // Multiple ports: 20 + 30 separation
         ),
       ],
     );
@@ -63,14 +63,14 @@ class _ConnectionValidationExampleState
           id: 'in1',
           name: 'Input 1',
           position: PortPosition.left,
-          offset: Offset(0, 20),
+          offset: Offset(-2, 20), // Multiple ports: starting offset 20
         ),
         const Port(
           id: 'in2',
           name: 'Input 2',
           position: PortPosition.left,
           multiConnections: true,
-          offset: Offset(0, 40),
+          offset: Offset(-2, 50), // Multiple ports: 20 + 30 separation
         ),
       ],
       outputPorts: [
@@ -78,7 +78,7 @@ class _ConnectionValidationExampleState
           id: 'out1',
           name: 'Result',
           position: PortPosition.right,
-          offset: Offset(0, 20),
+          offset: Offset(2, 50), // Vertical center of 100 height
         ),
       ],
     );
@@ -94,7 +94,7 @@ class _ConnectionValidationExampleState
           id: 'in1',
           name: 'Input',
           position: PortPosition.left,
-          offset: Offset(0, 20),
+          offset: Offset(-2, 40), // Vertical center of 80 height
         ),
       ],
     );
@@ -111,7 +111,7 @@ class _ConnectionValidationExampleState
           id: 'in1',
           name: 'Locked In',
           position: PortPosition.left,
-          offset: Offset(0, 20),
+          offset: Offset(-2, 40), // Vertical center of 80 height
         ),
       ],
       outputPorts: [
@@ -119,7 +119,7 @@ class _ConnectionValidationExampleState
           id: 'out1',
           name: 'Locked Out',
           position: PortPosition.right,
-          offset: Offset(0, 20),
+          offset: Offset(2, 40), // Vertical center of 80 height
         ),
       ],
     );

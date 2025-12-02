@@ -15,7 +15,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -25,7 +25,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         }
@@ -55,7 +55,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         }
@@ -67,7 +67,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -77,7 +77,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -88,7 +88,7 @@
           "position": "bottom",
           "offset": {
             "x": 70,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -122,7 +122,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         }
@@ -134,7 +134,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -144,7 +144,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -155,7 +155,7 @@
           "position": "bottom",
           "offset": {
             "x": 70,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -190,7 +190,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         }
@@ -202,7 +202,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -212,7 +212,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -223,7 +223,7 @@
           "position": "bottom",
           "offset": {
             "x": 70,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -258,7 +258,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         }
@@ -270,7 +270,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -280,7 +280,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -291,7 +291,7 @@
           "position": "bottom",
           "offset": {
             "x": 70,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -328,7 +328,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         }
@@ -340,7 +340,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -350,7 +350,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -361,7 +361,7 @@
           "position": "bottom",
           "offset": {
             "x": 70,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -396,7 +396,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 20
           }
         },
@@ -406,7 +406,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         },
@@ -416,7 +416,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         },
@@ -426,7 +426,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 110
           }
         }
@@ -438,7 +438,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -448,7 +448,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 80
           }
         }
@@ -479,7 +479,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         }
@@ -491,7 +491,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         }
@@ -522,7 +522,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 20
           }
         },
@@ -532,7 +532,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         },
@@ -542,7 +542,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         }
@@ -554,7 +554,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         },
@@ -565,7 +565,7 @@
           "position": "bottom",
           "offset": {
             "x": 70,
-            "y": 0
+            "y": 2
           }
         }
       ],
@@ -599,7 +599,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 20
           }
         },
@@ -609,7 +609,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         },
@@ -619,7 +619,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 80
           }
         }
@@ -631,7 +631,7 @@
           "dataType": "visualization",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -641,7 +641,7 @@
           "dataType": "notification",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         },
@@ -651,7 +651,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 90
           }
         }
@@ -689,7 +689,7 @@
           "dataType": "equipment",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         }
@@ -701,7 +701,7 @@
           "dataType": "equipment",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 30
           }
         },
@@ -711,7 +711,7 @@
           "dataType": "document",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 60
           }
         }
@@ -746,7 +746,7 @@
           "dataType": "product",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 50
           }
         }
@@ -758,7 +758,7 @@
           "dataType": "product",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 50
           }
         }

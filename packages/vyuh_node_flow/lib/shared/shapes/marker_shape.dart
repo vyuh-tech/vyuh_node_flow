@@ -30,12 +30,32 @@ enum ShapeDirection { left, right, top, bottom }
 abstract class MarkerShape {
   const MarkerShape();
 
+  /// Returns the effective rendered size of this shape for a given base size
+  /// and orientation.
+  ///
+  /// For symmetric shapes (circle, square, diamond), this returns the base size
+  /// unchanged. For asymmetric shapes (rectangle, capsuleHalf), the effective
+  /// size may differ based on orientation and aspect ratio.
+  ///
+  /// Parameters:
+  /// - [baseSize]: The base size specified for the port/marker
+  /// - [orientation]: The direction the shape is anchored/facing
+  ///
+  /// Returns the actual width and height the shape will occupy when rendered.
+  ///
+  /// This is used for accurate port positioning calculations where we need
+  /// to know the exact dimensions of the rendered shape.
+  Size getEffectiveSize(Size baseSize, ShapeDirection orientation) {
+    // Default implementation: use base size as-is (for symmetric shapes)
+    return baseSize;
+  }
+
   /// Paints the marker shape on the given canvas.
   ///
   /// Parameters:
   /// - [canvas]: The canvas to draw on
   /// - [center]: The center position of the shape
-  /// - [size]: The diameter of the shape
+  /// - [size]: The size of the shape (width and height)
   /// - [fillPaint]: Paint to use for filling the shape
   /// - [borderPaint]: Optional paint to use for the border/stroke
   /// - [orientation]: Direction the shape is anchored/facing (left, right, top, bottom)
@@ -45,7 +65,7 @@ abstract class MarkerShape {
   void paint(
     Canvas canvas,
     Offset center,
-    double size,
+    Size size,
     Paint fillPaint,
     Paint? borderPaint, {
     ShapeDirection? orientation,
@@ -69,12 +89,8 @@ abstract class MarkerShape {
         return const NoneMarkerShape();
       case 'circle':
         return const CircleMarkerShape();
-      case 'square':
-        // Backward compatibility: 'square' maps to RectangleMarkerShape.square()
-        return const RectangleMarkerShape.square();
       case 'rectangle':
-        final aspectRatio = (json['aspectRatio'] as num?)?.toDouble() ?? 0.5;
-        return RectangleMarkerShape(aspectRatio: aspectRatio);
+        return const RectangleMarkerShape();
       case 'diamond':
         return const DiamondMarkerShape();
       case 'triangle':

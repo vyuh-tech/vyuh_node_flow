@@ -15,7 +15,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         }
@@ -45,7 +45,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         }
@@ -57,7 +57,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         }
@@ -86,7 +86,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         }
@@ -98,7 +98,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         }
@@ -127,7 +127,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         }
@@ -139,7 +139,7 @@
           "dataType": "data",
           "position": "right",
           "offset": {
-            "x": 0,
+            "x": 2,
             "y": 40
           }
         }
@@ -169,7 +169,7 @@
           "dataType": "data",
           "position": "left",
           "offset": {
-            "x": 0,
+            "x": -2,
             "y": 40
           }
         }

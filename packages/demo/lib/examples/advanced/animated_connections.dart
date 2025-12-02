@@ -268,19 +268,19 @@ class _AnimatedConnectionsExampleState
           id: 'out_right',
           name: 'Output',
           position: PortPosition.right,
-          offset: Offset(0, 40),
+          offset: Offset(2, 40),
         ),
         Port(
           id: 'out_top',
           name: 'Top',
           position: PortPosition.top,
-          offset: Offset(75, 0),
+          offset: Offset(75, -2),
         ),
         Port(
           id: 'out_bottom',
           name: 'Bottom',
           position: PortPosition.bottom,
-          offset: Offset(75, 0),
+          offset: Offset(75, 2),
         ),
       ],
     );
@@ -296,7 +296,7 @@ class _AnimatedConnectionsExampleState
           id: 'in_left',
           name: 'Input',
           position: PortPosition.left,
-          offset: Offset(0, 40),
+          offset: Offset(-2, 40),
         ),
       ],
       outputPorts: const [
@@ -304,7 +304,7 @@ class _AnimatedConnectionsExampleState
           id: 'out_right',
           name: 'Output',
           position: PortPosition.right,
-          offset: Offset(0, 40),
+          offset: Offset(2, 40),
         ),
       ],
     );
@@ -320,19 +320,19 @@ class _AnimatedConnectionsExampleState
           id: 'in_left',
           name: 'Input',
           position: PortPosition.left,
-          offset: Offset(0, 40),
+          offset: Offset(-2, 40),
         ),
         Port(
           id: 'in_top',
           name: 'Top',
           position: PortPosition.top,
-          offset: Offset(75, 0),
+          offset: Offset(75, -2),
         ),
         Port(
           id: 'in_bottom',
           name: 'Bottom',
           position: PortPosition.bottom,
-          offset: Offset(75, 0),
+          offset: Offset(75, 2),
         ),
       ],
     );
@@ -349,7 +349,7 @@ class _AnimatedConnectionsExampleState
           id: 'in_bottom',
           name: 'Input',
           position: PortPosition.bottom,
-          offset: Offset(75, 0),
+          offset: Offset(75, 2),
         ),
       ],
       outputPorts: const [
@@ -357,7 +357,7 @@ class _AnimatedConnectionsExampleState
           id: 'out_top',
           name: 'Output',
           position: PortPosition.top,
-          offset: Offset(75, 0),
+          offset: Offset(75, -2),
         ),
       ],
     );
@@ -373,7 +373,7 @@ class _AnimatedConnectionsExampleState
           id: 'in_top',
           name: 'Input',
           position: PortPosition.top,
-          offset: Offset(75, 0),
+          offset: Offset(75, -2),
         ),
       ],
       outputPorts: const [
@@ -381,7 +381,7 @@ class _AnimatedConnectionsExampleState
           id: 'out_bottom',
           name: 'Output',
           position: PortPosition.bottom,
-          offset: Offset(75, 0),
+          offset: Offset(75, 2),
         ),
       ],
     );

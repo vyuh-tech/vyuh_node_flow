@@ -33,7 +33,7 @@ class CapsuleHalfMarkerShape extends MarkerShape {
   void paint(
     Canvas canvas,
     Offset center,
-    double size,
+    Size size,
     Paint fillPaint,
     Paint? borderPaint, {
     ShapeDirection? orientation,

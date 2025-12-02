@@ -16,17 +16,20 @@ class DiamondMarkerShape extends MarkerShape {
   void paint(
     Canvas canvas,
     Offset center,
-    double size,
+    Size size,
     Paint fillPaint,
     Paint? borderPaint, {
     ShapeDirection? orientation,
     bool isPointingOutward = false,
   }) {
+    // Diamond uses the full width and height
+    final halfWidth = size.width / 2;
+    final halfHeight = size.height / 2;
     final path = Path();
-    path.moveTo(center.dx, center.dy - size / 2);
-    path.lineTo(center.dx + size / 2, center.dy);
-    path.lineTo(center.dx, center.dy + size / 2);
-    path.lineTo(center.dx - size / 2, center.dy);
+    path.moveTo(center.dx, center.dy - halfHeight);
+    path.lineTo(center.dx + halfWidth, center.dy);
+    path.lineTo(center.dx, center.dy + halfHeight);
+    path.lineTo(center.dx - halfWidth, center.dy);
     path.close();
 
     canvas.drawPath(path, fillPaint);

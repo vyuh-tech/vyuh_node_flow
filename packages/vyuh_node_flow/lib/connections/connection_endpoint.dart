@@ -96,11 +96,11 @@ class ConnectionEndPoint {
     size: 5.0,
   );
 
-  /// Square endpoint marker with default size 5.0.
+  /// Rectangle endpoint marker with default size 5.0.
   ///
-  /// Creates a solid square at the endpoint.
-  static const square = ConnectionEndPoint(
-    shape: MarkerShapes.square,
+  /// Creates a solid rectangle at the endpoint.
+  static const rectangle = ConnectionEndPoint(
+    shape: MarkerShapes.rectangle,
     size: 5.0,
   );
 

@@ -1398,9 +1398,11 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
       final theme = widget.theme;
       final shape = widget.controller.nodeShapeBuilder?.call(node);
+      // Use cascade: port.size → theme.size
+      final effectivePortSize = port.size ?? theme.portTheme.size;
       final portPosition = node.getPortPosition(
         hitResult.portId!,
-        portSize: theme.portTheme.size,
+        portSize: effectivePortSize,
         shape: shape,
       );
 
@@ -1438,9 +1440,16 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       if (targetNode != null) {
         final theme = widget.theme;
         final shape = widget.controller.nodeShapeBuilder?.call(targetNode);
+        // Find the target port to get its size
+        final targetPort = [
+          ...targetNode.inputPorts,
+          ...targetNode.outputPorts,
+        ].where((p) => p.id == hitResult.portId!).firstOrNull;
+        // Use cascade: port.size → theme.size
+        final effectivePortSize = targetPort?.size ?? theme.portTheme.size;
         finalPosition = targetNode.getPortPosition(
           hitResult.portId!,
-          portSize: theme.portTheme.size,
+          portSize: effectivePortSize,
           shape: shape,
         );
       }
@@ -1458,7 +1467,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   // Hit testing
   HitTestResult _performHitTest(Offset localPosition) {
     final graphPosition = _screenToGraph(localPosition);
-    final portSize = widget.theme.portTheme.size;
+    final themePortSize = widget.theme.portTheme.size;
 
     // Use cached sorted nodes and reverse for hit testing (highest zIndex first)
     final sortedNodes = widget.controller.sortedNodes.reversed.toList();
@@ -1469,9 +1478,11 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       final shape = widget.controller.nodeShapeBuilder?.call(node);
 
       for (final port in [...node.inputPorts, ...node.outputPorts]) {
+        // Use cascade: port.size → theme.size
+        final effectivePortSize = port.size ?? themePortSize;
         final portPosition = node.getPortPosition(
           port.id,
-          portSize: portSize,
+          portSize: effectivePortSize,
           shape: shape,
         );
         final distance = (graphPosition - portPosition).distance;

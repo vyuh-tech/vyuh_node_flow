@@ -48,7 +48,7 @@ class _AnnotationExampleState extends State<AnnotationExample> {
           id: 'output1',
           name: 'Out',
           position: PortPosition.right,
-          offset: Offset(0, 20),
+          offset: Offset(2, 40), // Vertical center of 80 height
         ),
       ],
       inputPorts: [
@@ -56,7 +56,7 @@ class _AnnotationExampleState extends State<AnnotationExample> {
           id: 'input1',
           name: 'In',
           position: PortPosition.left,
-          offset: Offset(0, 20),
+          offset: Offset(-2, 40), // Vertical center of 80 height
         ),
       ],
     );
@@ -72,7 +72,7 @@ class _AnnotationExampleState extends State<AnnotationExample> {
           id: 'output1',
           name: 'Out',
           position: PortPosition.right,
-          offset: Offset(0, 20),
+          offset: Offset(2, 40), // Vertical center of 80 height
         ),
       ],
       inputPorts: [
@@ -80,7 +80,7 @@ class _AnnotationExampleState extends State<AnnotationExample> {
           id: 'input1',
           name: 'In',
           position: PortPosition.left,
-          offset: Offset(0, 20),
+          offset: Offset(-2, 40), // Vertical center of 80 height
         ),
       ],
     );
@@ -96,7 +96,7 @@ class _AnnotationExampleState extends State<AnnotationExample> {
           id: 'output1',
           name: 'Out',
           position: PortPosition.right,
-          offset: Offset(0, 20),
+          offset: Offset(2, 40), // Vertical center of 80 height
         ),
       ],
       inputPorts: [
@@ -104,13 +104,13 @@ class _AnnotationExampleState extends State<AnnotationExample> {
           id: 'input1',
           name: 'In',
           position: PortPosition.left,
-          offset: Offset(0, 20),
+          offset: Offset(-2, 20), // Multiple ports: starting offset 20
         ),
         Port(
           id: 'input2',
           name: 'In2',
           position: PortPosition.left,
-          offset: Offset(0, 40),
+          offset: Offset(-2, 50), // Multiple ports: 20 + 30 separation
         ),
       ],
     );
