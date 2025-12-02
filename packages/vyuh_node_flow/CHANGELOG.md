@@ -1,3 +1,7 @@
+## 0.6.0
+
+ - **FEAT**: Refactor port positioning and size cascade system.
+
 ## 0.5.1
 
  - **FEAT**: readme update to include section on theming.
