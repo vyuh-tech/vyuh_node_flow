@@ -1,3 +1,7 @@
+## 0.7.0
+
+ - **FEAT**: Add animation support for temporary connections and update connection rendering logic, Add configurable gaps, colors, and borders for connection endpoints.
+
 ## 0.6.0
 
  - **FEAT**: Refactor port positioning and size cascade system.
