@@ -420,12 +420,24 @@ ConnectionTheme(
   selectedStrokeWidth: 3.0,
   dashPattern: null,           // e.g., [5, 5] for dashed
 
-  // Endpoints
+  // Endpoints (shape and size)
   startPoint: ConnectionEndPoint.none,
-  endPoint: ConnectionEndPoint.arrow,
+  endPoint: ConnectionEndPoint.triangle,
+
+  // Endpoint styling (fallback colors for ConnectionEndPoint)
+  endpointColor: Colors.grey.shade500,     // Default fill color
+  endpointBorderColor: Colors.grey.shade700, // Default border color
+  endpointBorderWidth: 0.0,                // Default border width (0 = no border)
+
+  // Gaps between ports and endpoints
+  startGap: 0.0,               // Gap at source port (default: 0)
+  endGap: 0.0,                 // Gap at target port (default: 0)
 
   // Animation effect
   animationEffect: ConnectionEffects.flowingDash,
+
+  // Hit testing
+  hitTolerance: 8.0,           // Distance for click detection
 )
 ```
 
@@ -434,6 +446,8 @@ ConnectionTheme(
 
 **Model-level overrides**: Each `Connection` can override `style`, `animationEffect`,
 `startPoint`, `endPoint`.
+
+**Endpoint color cascade**: `ConnectionEndPoint.color` → `endpointColor` (theme fallback)
 
 </details>
 
@@ -736,18 +750,41 @@ final customTheme = NodeFlowTheme(
     startPoint: ConnectionEndPoint.none,
     endPoint: ConnectionEndPoint(
       shape: MarkerShapes.triangle,
-      size: 8.0,
+      size: Size.square(8.0),
     ),
+    // Endpoint fallback colors (used when ConnectionEndPoint doesn't specify)
+    endpointColor: Colors.grey.shade500,
+    endpointBorderColor: Colors.grey.shade700,
+    endpointBorderWidth: 0.0,
+    // Gaps between ports and endpoints
+    startGap: 0.0,
+    endGap: 0.0,
     animationEffect: ConnectionEffects.particles,
+    bezierCurvature: 0.5,
+    cornerRadius: 8.0,
+    portExtension: 20.0,
+    hitTolerance: 8.0,
   ),
 
   // Temporary connection (during drag)
   temporaryConnectionTheme: ConnectionTheme(
     style: ConnectionStyles.smoothstep,
     color: Colors.grey.shade400,
+    selectedColor: Colors.blue,
     strokeWidth: 2.0,
-    dashPattern: [5, 5],
+    selectedStrokeWidth: 3.0,
+    dashPattern: [5, 5],  // Dashed line for temporary connections
+    startPoint: ConnectionEndPoint.none,
     endPoint: ConnectionEndPoint.capsuleHalf,
+    endpointColor: Colors.grey.shade400,
+    endpointBorderColor: Colors.grey.shade600,
+    endpointBorderWidth: 0.0,
+    startGap: 0.0,
+    endGap: 0.0,
+    bezierCurvature: 0.5,
+    cornerRadius: 8.0,
+    portExtension: 20.0,
+    hitTolerance: 8.0,
   ),
 
   connectionAnimationDuration: const Duration(seconds: 2),
@@ -1658,25 +1695,116 @@ controller.addConnection(Connection(
 
 ### Connection Endpoints
 
-Customize connection line endpoints:
+Connection endpoints are decorative markers (arrows, circles, diamonds, etc.) that appear
+at the start and/or end of connections. They help visually indicate direction and
+termination points.
+
+#### Endpoint Shapes
 
 <details>
-<summary><strong>Connection Endpoint Styles</strong></summary>
+<summary><strong>Available Endpoint Shapes</strong></summary>
 
 ```dart
 connectionTheme: ConnectionTheme(
-  // Start endpoint (source port)
+  // Start endpoint (at source port)
   startPoint: ConnectionEndPoint.none,
 
-  // End endpoint (target port)
-  endPoint: ConnectionEndPoint.arrow,
+  // End endpoint (at target port)
+  endPoint: ConnectionEndPoint.triangle,
 
-  // Other endpoint options:
-  // - ConnectionEndPoint.none
-  // - ConnectionEndPoint.arrow
-  // - ConnectionEndPoint.circle
-  // - ConnectionEndPoint.capsuleHalf (matches port shape)
+  // Built-in endpoint options:
+  // - ConnectionEndPoint.none        - No visible marker
+  // - ConnectionEndPoint.circle      - Circular dot
+  // - ConnectionEndPoint.rectangle   - Square/rectangle
+  // - ConnectionEndPoint.diamond     - 45-degree rotated square
+  // - ConnectionEndPoint.triangle    - Arrow head pointing outward
+  // - ConnectionEndPoint.capsuleHalf - Rounded half-capsule (matches port shape)
 )
+```
+
+</details>
+
+#### Custom Endpoint Configuration
+
+Each `ConnectionEndPoint` can be customized with size, colors, and borders:
+
+<details>
+<summary><strong>ConnectionEndPoint Properties</strong></summary>
+
+```dart
+// Create a custom endpoint with full styling
+final customEndpoint = ConnectionEndPoint(
+  shape: MarkerShapes.triangle,
+  size: Size.square(8.0),      // Width and height of the marker
+  color: Colors.blue,           // Fill color (optional, falls back to theme)
+  borderColor: Colors.blueAccent, // Border color (optional)
+  borderWidth: 1.0,             // Border width (optional)
+);
+
+// Apply to connection theme
+connectionTheme: ConnectionTheme(
+  startPoint: ConnectionEndPoint.none,
+  endPoint: customEndpoint,
+  // ... other properties
+)
+```
+
+**Property Cascade**: If `color`, `borderColor`, or `borderWidth` are not set on
+the `ConnectionEndPoint`, they fall back to the `ConnectionTheme` defaults:
+- `endpointColor` - Default fill color for all endpoints
+- `endpointBorderColor` - Default border color for all endpoints
+- `endpointBorderWidth` - Default border width for all endpoints
+
+</details>
+
+#### Gap Between Port and Endpoint
+
+Control the visual gap between ports and endpoint markers:
+
+<details>
+<summary><strong>Start and End Gaps</strong></summary>
+
+```dart
+connectionTheme: ConnectionTheme(
+  // Gap between source port and start endpoint
+  startGap: 4.0,  // 4 logical pixels of space
+
+  // Gap between target port and end endpoint
+  endGap: 2.0,    // 2 logical pixels of space
+
+  // Default is 0.0 (no gap)
+  // ... other properties
+)
+```
+
+Gaps create visual separation between ports and connection lines, which can
+improve readability when ports have visible shapes.
+
+</details>
+
+#### Per-Connection Endpoint Overrides
+
+Individual connections can override the theme's endpoint configuration:
+
+<details>
+<summary><strong>Connection-Level Overrides</strong></summary>
+
+```dart
+final connection = Connection(
+  id: 'conn-1',
+  sourceNodeId: 'node-1',
+  sourcePortId: 'output',
+  targetNodeId: 'node-2',
+  targetPortId: 'input',
+
+  // Override just for this connection
+  startPoint: ConnectionEndPoint.circle,
+  endPoint: ConnectionEndPoint(
+    shape: MarkerShapes.diamond,
+    size: Size.square(10.0),
+    color: Colors.orange,
+  ),
+);
 ```
 
 </details>

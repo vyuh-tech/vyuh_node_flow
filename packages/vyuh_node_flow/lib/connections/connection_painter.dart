@@ -4,7 +4,6 @@ import '../graph/node_flow_theme.dart';
 import '../nodes/node.dart';
 import '../nodes/node_shape.dart';
 import '../ports/port.dart';
-import '../ports/port_theme.dart';
 import '../shared/shapes/none_marker_shape.dart';
 import 'connection.dart';
 import 'connection_endpoint.dart';
@@ -56,7 +55,6 @@ class ConnectionPainter {
     Node sourceNode, // Can be either Node or ObservableNode
     Node targetNode, { // Can be either Node or ObservableNode
     bool isSelected = false,
-    bool isAnimated = false,
     double? animationValue,
     ConnectionStyleOverrides? styleOverrides,
   }) {
@@ -85,7 +83,6 @@ class ConnectionPainter {
       sourceNode,
       targetNode,
       isSelected: isSelected,
-      isAnimated: isAnimated,
       animationValue: animationValue,
       styleOverrides: styleOverrides,
     );
@@ -104,7 +101,6 @@ class ConnectionPainter {
     Node sourceNode,
     Node targetNode, {
     bool isSelected = false,
-    bool isAnimated = false,
     double? animationValue,
     ConnectionStyleOverrides? styleOverrides,
   }) {
@@ -163,21 +159,23 @@ class ConnectionPainter {
 
     // Use 0 size for NoneMarkerShape to avoid creating gaps
     final startPointSize = effectiveStartPoint.shape is NoneMarkerShape
-        ? 0.0
+        ? Size.zero
         : effectiveStartPoint.size;
     final endPointSize = effectiveEndPoint.shape is NoneMarkerShape
-        ? 0.0
+        ? Size.zero
         : effectiveEndPoint.size;
 
     final source = EndpointPositionCalculator.calculatePortConnectionPoints(
       sourcePortPosition,
       sourcePort.position,
       startPointSize,
+      gap: connectionTheme.startGap,
     );
     final target = EndpointPositionCalculator.calculatePortConnectionPoints(
       targetPortPosition,
       targetPort.position,
       endPointSize,
+      gap: connectionTheme.endGap,
     );
 
     // Configure paint for the connection line using cached path
@@ -235,8 +233,6 @@ class ConnectionPainter {
       connectionTheme: connectionTheme,
       effectiveStartPoint: effectiveStartPoint,
       effectiveEndPoint: effectiveEndPoint,
-      portTheme: portTheme,
-      isTemporary: false,
       drawTargetEndpoint: true,
     );
   }
@@ -250,6 +246,7 @@ class ConnectionPainter {
     Port? sourcePort,
     Port? targetPort,
     bool isReversed = false,
+    double? animationValue,
   }) {
     final connectionTheme = theme.temporaryConnectionTheme;
 
@@ -260,10 +257,10 @@ class ConnectionPainter {
     // Use 0 size for NoneMarkerShape to avoid creating gaps
     final tempStartPointSize =
         connectionTheme.startPoint.shape is NoneMarkerShape
-        ? 0.0
+        ? Size.zero
         : connectionTheme.startPoint.size;
     final tempEndPointSize = connectionTheme.endPoint.shape is NoneMarkerShape
-        ? 0.0
+        ? Size.zero
         : connectionTheme.endPoint.size;
 
     if (sourcePort != null) {
@@ -271,6 +268,7 @@ class ConnectionPainter {
         startPoint,
         sourcePort.position,
         tempStartPointSize,
+        gap: connectionTheme.startGap,
       );
     } else {
       // When no source port, use startPoint directly
@@ -282,6 +280,7 @@ class ConnectionPainter {
         currentPoint,
         targetPort.position,
         tempEndPointSize,
+        gap: connectionTheme.endGap,
       );
     } else {
       // When not snapped to a port, use currentPoint directly
@@ -299,6 +298,7 @@ class ConnectionPainter {
       isSelected: false,
       isTemporary: true,
       drawTargetEndpoint: targetPort != null,
+      animationValue: animationValue,
     );
   }
 
@@ -346,13 +346,14 @@ class ConnectionPainter {
     bool isSelected = false,
     bool isTemporary = false,
     bool drawTargetEndpoint = true,
+    double? animationValue,
   }) {
     // Get theme components based on connection type
     final connectionTheme = isTemporary
         ? theme.temporaryConnectionTheme
         : theme.connectionTheme;
     final connectionStyle = connectionTheme.style;
-    final portTheme = theme.portTheme;
+
     // Create connection path
     final connectionPath = ConnectionPathCalculator.createConnectionPath(
       style: connectionStyle,
@@ -367,27 +368,36 @@ class ConnectionPainter {
 
     // Configure paint for the connection line
     final paint = Paint()
-      ..color = isTemporary
-          ? connectionTheme.color.withValues(alpha: 0.6)
-          : (isSelected ? connectionTheme.selectedColor : connectionTheme.color)
-      ..strokeWidth = isSelected && !isTemporary
+      ..color = isSelected
+          ? connectionTheme.selectedColor
+          : connectionTheme.color
+      ..strokeWidth = isSelected
           ? connectionTheme.selectedStrokeWidth
           : connectionTheme.strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    // Apply dash pattern if specified
-    Path? dashPath;
-    if (connectionTheme.dashPattern != null) {
-      dashPath = _createDashedPath(
-        connectionPath,
-        connectionTheme.dashPattern!,
-      );
-    }
+    // Get animation effect from theme (for temporary connections, there's no connection object)
+    final animationEffect = connectionTheme.animationEffect;
 
-    // Draw connection line (dashed or solid)
-    final pathToDraw = dashPath ?? connectionPath;
-    canvas.drawPath(pathToDraw, paint);
+    // Check if we have an animation effect and animation value
+    if (animationEffect != null && animationValue != null) {
+      // Use animation effect to render the connection
+      animationEffect.paint(canvas, connectionPath, paint, animationValue);
+    } else {
+      // Apply dash pattern if specified
+      Path? dashPath;
+      if (connectionTheme.dashPattern != null) {
+        dashPath = _createDashedPath(
+          connectionPath,
+          connectionTheme.dashPattern!,
+        );
+      }
+
+      // Draw connection line (dashed or solid)
+      final pathToDraw = dashPath ?? connectionPath;
+      canvas.drawPath(pathToDraw, paint);
+    }
 
     // Draw endpoints
     _drawEndpoints(
@@ -397,8 +407,6 @@ class ConnectionPainter {
       sourcePort: sourcePort,
       targetPort: targetPort,
       connectionTheme: connectionTheme,
-      portTheme: portTheme,
-      isTemporary: isTemporary,
       drawTargetEndpoint: drawTargetEndpoint,
     );
 
@@ -415,49 +423,64 @@ class ConnectionPainter {
     required ConnectionTheme connectionTheme,
     ConnectionEndPoint? effectiveStartPoint,
     ConnectionEndPoint? effectiveEndPoint,
-    required PortTheme portTheme,
-    bool isTemporary = false,
     bool drawTargetEndpoint = true,
   }) {
-    // Configure paints for endpoints
-    final endpointPaint = Paint()
-      ..color = isTemporary ? portTheme.color : connectionTheme.color
-      ..style = PaintingStyle.fill;
-
-    final Paint? endpointBorderPaint = portTheme.borderWidth > 0
-        ? (Paint()
-            ..color = portTheme.borderColor
-            ..strokeWidth = portTheme.borderWidth
-            ..style = PaintingStyle.stroke)
-        : null;
-
     // Use effective endpoint configurations or fallback to theme
     final startPoint = effectiveStartPoint ?? connectionTheme.startPoint;
     final endPoint = effectiveEndPoint ?? connectionTheme.endPoint;
 
+    // Default colors from ConnectionTheme (used as fallback)
+    final defaultFillColor = connectionTheme.endpointColor;
+    final defaultBorderColor = connectionTheme.endpointBorderColor;
+    final defaultBorderWidth = connectionTheme.endpointBorderWidth;
+
     // Draw source endpoint (startPoint)
     final sourcePortPosition = sourcePort?.position ?? PortPosition.left;
+    final startFillPaint = Paint()
+      ..color = startPoint.color ?? defaultFillColor
+      ..style = PaintingStyle.fill;
+    final startBorderWidth = startPoint.borderWidth ?? defaultBorderWidth;
+    final startBorderColor = startPoint.borderColor ?? defaultBorderColor;
+    final Paint? startBorderPaint = startBorderWidth > 0
+        ? (Paint()
+            ..color = startBorderColor
+            ..strokeWidth = startBorderWidth
+            ..style = PaintingStyle.stroke)
+        : null;
+
     EndpointPainter.paint(
       canvas: canvas,
       position: source.endpointPos,
-      size: Size.square(startPoint.size),
+      size: startPoint.size,
       shape: startPoint.shape,
       portPosition: sourcePortPosition,
-      fillPaint: endpointPaint,
-      borderPaint: endpointBorderPaint,
+      fillPaint: startFillPaint,
+      borderPaint: startBorderPaint,
     );
 
     // Draw target endpoint (endPoint) if needed
     if (drawTargetEndpoint) {
       final targetPortPosition = targetPort?.position ?? PortPosition.right;
+      final endFillPaint = Paint()
+        ..color = endPoint.color ?? defaultFillColor
+        ..style = PaintingStyle.fill;
+      final endBorderWidth = endPoint.borderWidth ?? defaultBorderWidth;
+      final endBorderColor = endPoint.borderColor ?? defaultBorderColor;
+      final Paint? endBorderPaint = endBorderWidth > 0
+          ? (Paint()
+              ..color = endBorderColor
+              ..strokeWidth = endBorderWidth
+              ..style = PaintingStyle.stroke)
+          : null;
+
       EndpointPainter.paint(
         canvas: canvas,
         position: target.endpointPos,
-        size: Size.square(endPoint.size),
+        size: endPoint.size,
         shape: endPoint.shape,
         portPosition: targetPortPosition,
-        fillPaint: endpointPaint,
-        borderPaint: endpointBorderPaint,
+        fillPaint: endFillPaint,
+        borderPaint: endBorderPaint,
       );
     }
   }

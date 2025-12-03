@@ -134,6 +134,41 @@ class SizeConverter implements JsonConverter<Size?, Map<String, dynamic>?> {
   }
 }
 
+/// A non-nullable JSON converter for Flutter's [Size] class.
+///
+/// Similar to [SizeConverter] but for non-nullable Size fields.
+/// This converter serializes [Size] objects to JSON as a map with 'width' and 'height'
+/// keys, and deserializes JSON maps back to [Size] objects.
+///
+/// Usage with json_serializable:
+/// ```dart
+/// @JsonSerializable()
+/// class MyClass {
+///   @RequiredSizeConverter()
+///   final Size dimensions;
+///
+///   MyClass(this.dimensions);
+/// }
+/// ```
+class RequiredSizeConverter
+    implements JsonConverter<Size, Map<String, dynamic>> {
+  /// Creates a const instance of [RequiredSizeConverter].
+  const RequiredSizeConverter();
+
+  @override
+  Size fromJson(Map<String, dynamic> json) {
+    return Size(
+      (json['width'] as num).toDouble(),
+      (json['height'] as num).toDouble(),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson(Size size) {
+    return {'width': size.width, 'height': size.height};
+  }
+}
+
 /// A JSON converter for Flutter's [Color] class.
 ///
 /// This converter serializes [Color] objects to JSON as a 32-bit ARGB integer,

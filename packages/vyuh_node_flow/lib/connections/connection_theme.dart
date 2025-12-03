@@ -42,25 +42,35 @@ class ConnectionTheme {
   /// - [dashPattern]: Optional dash pattern for dashed lines (e.g., [5, 3] for 5px dash, 3px gap)
   /// - [startPoint]: Endpoint marker for the connection start
   /// - [endPoint]: Endpoint marker for the connection end
+  /// - [endpointColor]: Fill color for endpoint markers
+  /// - [endpointBorderColor]: Border color for endpoint markers
+  /// - [endpointBorderWidth]: Border width for endpoint markers
   /// - [animationEffect]: Optional default animation effect for connections
   /// - [bezierCurvature]: Curvature factor for bezier-style connections (0.0 to 1.0)
   /// - [cornerRadius]: Radius for rounded corners in step-style connections
   /// - [portExtension]: Distance connections extend straight from ports before curving
   /// - [hitTolerance]: Distance tolerance for hit testing in logical pixels
+  /// - [startGap]: Gap between the source port and the start endpoint (default: 0)
+  /// - [endGap]: Gap between the target port and the end endpoint (default: 0)
   const ConnectionTheme({
-    this.style = ConnectionStyles.smoothstep,
-    this.color = Colors.grey,
-    this.selectedColor = Colors.blue,
-    this.strokeWidth = 2.0,
-    this.selectedStrokeWidth = 3.0,
+    required this.style,
+    required this.color,
+    required this.selectedColor,
+    required this.strokeWidth,
+    required this.selectedStrokeWidth,
     this.dashPattern,
-    this.startPoint = ConnectionEndPoint.none,
-    this.endPoint = ConnectionEndPoint.capsuleHalf,
+    required this.startPoint,
+    required this.endPoint,
+    required this.endpointColor,
+    required this.endpointBorderColor,
+    required this.endpointBorderWidth,
     this.animationEffect,
-    this.bezierCurvature = 0.3,
-    this.cornerRadius = 4.0,
-    this.portExtension = 20.0,
-    this.hitTolerance = 8.0,
+    required this.bezierCurvature,
+    required this.cornerRadius,
+    required this.portExtension,
+    required this.hitTolerance,
+    this.startGap = 0.0,
+    this.endGap = 0.0,
   });
 
   /// The connection line style (bezier, smoothstep, straight, etc.).
@@ -93,6 +103,22 @@ class ConnectionTheme {
 
   /// Endpoint marker for the connection end (target).
   final ConnectionEndPoint endPoint;
+
+  /// Fill color for endpoint markers.
+  ///
+  /// Individual endpoints can override this via [ConnectionEndPoint.color].
+  final Color endpointColor;
+
+  /// Border color for endpoint markers.
+  ///
+  /// Individual endpoints can override this via [ConnectionEndPoint.borderColor].
+  final Color endpointBorderColor;
+
+  /// Border width for endpoint markers in logical pixels.
+  ///
+  /// If 0, no border is drawn.
+  /// Individual endpoints can override this via [ConnectionEndPoint.borderWidth].
+  final double endpointBorderWidth;
 
   /// Optional default animation effect for all connections.
   ///
@@ -135,6 +161,18 @@ class ConnectionTheme {
   /// overlapping hit areas.
   final double hitTolerance;
 
+  /// Gap between the source port and the start endpoint in logical pixels.
+  ///
+  /// This creates visual separation between the port and where the connection
+  /// line begins. Default is 0 (no gap).
+  final double startGap;
+
+  /// Gap between the target port and the end endpoint in logical pixels.
+  ///
+  /// This creates visual separation between the port and where the connection
+  /// line ends. Default is 0 (no gap).
+  final double endGap;
+
   /// Creates a copy of this theme with optionally updated properties.
   ///
   /// Any parameter that is not provided will retain its current value.
@@ -149,11 +187,16 @@ class ConnectionTheme {
     List<double>? dashPattern,
     ConnectionEndPoint? startPoint,
     ConnectionEndPoint? endPoint,
+    Color? endpointColor,
+    Color? endpointBorderColor,
+    double? endpointBorderWidth,
     ConnectionEffect? animationEffect,
     double? bezierCurvature,
     double? cornerRadius,
     double? portExtension,
     double? hitTolerance,
+    double? startGap,
+    double? endGap,
   }) {
     return ConnectionTheme(
       style: style ?? this.style,
@@ -164,11 +207,16 @@ class ConnectionTheme {
       dashPattern: dashPattern,
       startPoint: startPoint ?? this.startPoint,
       endPoint: endPoint ?? this.endPoint,
+      endpointColor: endpointColor ?? this.endpointColor,
+      endpointBorderColor: endpointBorderColor ?? this.endpointBorderColor,
+      endpointBorderWidth: endpointBorderWidth ?? this.endpointBorderWidth,
       animationEffect: animationEffect,
       bezierCurvature: bezierCurvature ?? this.bezierCurvature,
       cornerRadius: cornerRadius ?? this.cornerRadius,
       portExtension: portExtension ?? this.portExtension,
       hitTolerance: hitTolerance ?? this.hitTolerance,
+      startGap: startGap ?? this.startGap,
+      endGap: endGap ?? this.endGap,
     );
   }
 
@@ -179,6 +227,7 @@ class ConnectionTheme {
   /// - Dark gray connections (0xFF666666) for good contrast
   /// - Blue selection color (Material blue 500)
   /// - No start marker, capsule-half end marker
+  /// - Endpoint color matches connection color
   /// - Moderate curvature (0.5)
   static const light = ConnectionTheme(
     style: ConnectionStyles.smoothstep,
@@ -188,6 +237,9 @@ class ConnectionTheme {
     selectedStrokeWidth: 3.0,
     startPoint: ConnectionEndPoint.none,
     endPoint: ConnectionEndPoint.capsuleHalf,
+    endpointColor: Color(0xFF666666),
+    endpointBorderColor: Color(0xFF444444),
+    endpointBorderWidth: 0.0,
     bezierCurvature: 0.5,
     cornerRadius: 4.0,
     portExtension: 20.0,
@@ -201,6 +253,7 @@ class ConnectionTheme {
   /// - Light gray connections (0xFF999999) for good contrast
   /// - Light blue selection color (Material blue 300)
   /// - No start marker, capsule-half end marker
+  /// - Endpoint color matches connection color
   /// - Moderate curvature (0.5)
   static const dark = ConnectionTheme(
     style: ConnectionStyles.smoothstep,
@@ -210,6 +263,9 @@ class ConnectionTheme {
     selectedStrokeWidth: 3.0,
     startPoint: ConnectionEndPoint.none,
     endPoint: ConnectionEndPoint.capsuleHalf,
+    endpointColor: Color(0xFF999999),
+    endpointBorderColor: Color(0xFFBBBBBB),
+    endpointBorderWidth: 0.0,
     bezierCurvature: 0.5,
     cornerRadius: 4.0,
     portExtension: 20.0,

@@ -33,7 +33,7 @@ import 'endpoint_position_calculator.dart';
 ///   connectionStyle: ConnectionStyles.smoothstep,
 ///   curvature: 0.5,
 ///   portSize: 8.0,
-///   endpointSize: 5.0,
+///   endpointSize: Size.square(5.0),
 ///   labelTheme: myLabelTheme,
 /// );
 ///
@@ -59,7 +59,7 @@ class LabelCalculator {
   /// - [targetNode]: The target node of the connection
   /// - [connectionStyle]: The style used to render the connection
   /// - [curvature]: Curvature factor for the connection (0.0 to 1.0)
-  /// - [endpointSize]: Size of the endpoint markers in logical pixels
+  /// - [endpointSize]: Size of the endpoint markers (width and height) in logical pixels
   /// - [labelTheme]: Theme defining label appearance
   /// - [pathCache]: Optional path cache to reuse cached connection paths
   ///
@@ -77,10 +77,12 @@ class LabelCalculator {
     required Node targetNode,
     required ConnectionStyle connectionStyle,
     required double curvature,
-    required double endpointSize,
+    required Size endpointSize,
     required LabelTheme labelTheme,
     ConnectionPathCache? pathCache,
     double portExtension = 10.0,
+    double startGap = 0.0,
+    double endGap = 0.0,
   }) {
     try {
       // Find the actual port objects first (needed for their sizes)
@@ -120,11 +122,13 @@ class LabelCalculator {
         sourcePortPosition,
         sourcePort?.position ?? PortPosition.right,
         endpointSize,
+        gap: startGap,
       );
       final target = EndpointPositionCalculator.calculatePortConnectionPoints(
         targetPortPosition,
         targetPort?.position ?? PortPosition.left,
         endpointSize,
+        gap: endGap,
       );
 
       // Get or create the connection path

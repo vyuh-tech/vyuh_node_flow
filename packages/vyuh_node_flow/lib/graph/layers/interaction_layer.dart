@@ -8,9 +8,15 @@ import '../node_flow_theme.dart';
 
 /// Interaction layer widget that renders temporary connections and selection rectangles
 class InteractionLayer<T> extends StatelessWidget {
-  const InteractionLayer({super.key, required this.controller});
+  const InteractionLayer({super.key, required this.controller, this.animation});
 
   final NodeFlowController<T> controller;
+
+  /// Optional animation for animated temporary connections.
+  ///
+  /// When provided, the animation value will be passed to temporary connections
+  /// for rendering animation effects (if configured in the theme).
+  final Animation<double>? animation;
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +47,7 @@ class InteractionLayer<T> extends StatelessWidget {
                   theme: theme,
                   selectionRectangle: selectionRectangle,
                   temporaryConnection: tempConnection,
+                  animation: animation,
                 ),
                 size: Size.infinite,
               );
@@ -59,12 +66,16 @@ class InteractionLayerPainter<T> extends CustomPainter {
     required this.theme,
     required this.selectionRectangle,
     required this.temporaryConnection,
-  });
+    this.animation,
+  }) : super(repaint: animation);
 
   final NodeFlowController<T> controller;
   final NodeFlowTheme theme;
   final Rect? selectionRectangle;
   final TemporaryConnection? temporaryConnection;
+
+  /// Optional animation for animated temporary connections.
+  final Animation<double>? animation;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -120,6 +131,7 @@ class InteractionLayerPainter<T> extends CustomPainter {
         sourcePort: sourcePort,
         targetPort: targetPort,
         isReversed: false,
+        animationValue: animation?.value,
       );
     }
   }

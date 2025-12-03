@@ -17,7 +17,7 @@ class _ThemingExampleState extends State<ThemingExample> {
   late NodeFlowTheme _theme;
   MarkerShape _selectedPortShape = MarkerShapes.capsuleHalf;
   bool _scrollToZoom = true;
-  double _endpointSize = 5.0;
+  Size _endpointSize = const Size.square(5.0);
   bool _useCustomPortBuilder = false;
   bool _useCustomLabelBuilder = false;
 
@@ -377,7 +377,11 @@ class _ThemingExampleState extends State<ThemingExample> {
         const SizedBox(height: 24),
         _buildConnectionEffectSection(),
         const SizedBox(height: 24),
+        _buildEndpointColorsSection(),
+        const SizedBox(height: 24),
         _buildConnectionColorsSection(),
+        const SizedBox(height: 24),
+        _buildTemporaryConnectionSection(),
         const SizedBox(height: 24),
         _buildStrokeWidthSection(),
         const SizedBox(height: 24),
@@ -576,17 +580,22 @@ class _ThemingExampleState extends State<ThemingExample> {
               }).toList(),
         ),
         const SizedBox(height: 12),
-        _buildSlider('Endpoint Size', _endpointSize, 3.0, 15.0, (value) {
+        _buildSlider('Endpoint Size', _endpointSize.shortestSide, 3.0, 15.0, (
+          value,
+        ) {
+          final newSize = Size.square(value);
           setState(() {
-            _endpointSize = value;
+            _endpointSize = newSize;
           });
           _updateTheme(
             _theme.copyWith(
               connectionTheme: _theme.connectionTheme.copyWith(
                 startPoint: _theme.connectionTheme.startPoint.copyWith(
-                  size: value,
+                  size: newSize,
                 ),
-                endPoint: _theme.connectionTheme.endPoint.copyWith(size: value),
+                endPoint: _theme.connectionTheme.endPoint.copyWith(
+                  size: newSize,
+                ),
               ),
             ),
           );
@@ -631,6 +640,140 @@ class _ThemingExampleState extends State<ThemingExample> {
             ),
           );
         }),
+      ],
+    );
+  }
+
+  Widget _buildEndpointColorsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle('Endpoint Styling'),
+        const SizedBox(height: 12),
+        _buildColorPicker('Fill Color', _theme.connectionTheme.endpointColor, (
+          color,
+        ) {
+          _updateTheme(
+            _theme.copyWith(
+              connectionTheme: _theme.connectionTheme.copyWith(
+                endpointColor: color,
+              ),
+              temporaryConnectionTheme: _theme.temporaryConnectionTheme
+                  .copyWith(endpointColor: color),
+            ),
+          );
+        }),
+        const SizedBox(height: 8),
+        _buildColorPicker(
+          'Border Color',
+          _theme.connectionTheme.endpointBorderColor,
+          (color) {
+            _updateTheme(
+              _theme.copyWith(
+                connectionTheme: _theme.connectionTheme.copyWith(
+                  endpointBorderColor: color,
+                ),
+                temporaryConnectionTheme: _theme.temporaryConnectionTheme
+                    .copyWith(endpointBorderColor: color),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 8),
+        _buildSlider(
+          'Border Width',
+          _theme.connectionTheme.endpointBorderWidth,
+          0.0,
+          3.0,
+          (value) {
+            _updateTheme(
+              _theme.copyWith(
+                connectionTheme: _theme.connectionTheme.copyWith(
+                  endpointBorderWidth: value,
+                ),
+                temporaryConnectionTheme: _theme.temporaryConnectionTheme
+                    .copyWith(endpointBorderWidth: value),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTemporaryConnectionSection() {
+    final tempTheme = _theme.temporaryConnectionTheme;
+    final hasDash = tempTheme.dashPattern != null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle('Temporary Connection'),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            const Text('Dashed Line', style: TextStyle(fontSize: 12)),
+            const Spacer(),
+            Switch(
+              value: hasDash,
+              onChanged: (value) {
+                _updateTheme(
+                  _theme.copyWith(
+                    temporaryConnectionTheme: tempTheme.copyWith(
+                      dashPattern: value ? [6, 4] : null,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        Text(
+          'Show temporary connections as dashed lines',
+          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+        ),
+        const SizedBox(height: 12),
+        _buildSlider('Stroke Width', tempTheme.strokeWidth, 1.0, 5.0, (value) {
+          _updateTheme(
+            _theme.copyWith(
+              temporaryConnectionTheme: tempTheme.copyWith(strokeWidth: value),
+            ),
+          );
+        }),
+        const SizedBox(height: 12),
+        const Text('End Point Shape', style: TextStyle(fontSize: 12)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children:
+              [
+                ('None', MarkerShapes.none),
+                ('Circle', MarkerShapes.circle),
+                ('Triangle', MarkerShapes.triangle),
+                ('Capsule', MarkerShapes.capsuleHalf),
+              ].map((entry) {
+                final (name, shape) = entry;
+                final isSelected = tempTheme.endPoint.shape == shape;
+                return ChoiceChip(
+                  label: Text(name, style: const TextStyle(fontSize: 11)),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    if (selected) {
+                      _updateTheme(
+                        _theme.copyWith(
+                          temporaryConnectionTheme: tempTheme.copyWith(
+                            endPoint: ConnectionEndPoint(
+                              shape: shape,
+                              size: _endpointSize,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                );
+              }).toList(),
+        ),
       ],
     );
   }

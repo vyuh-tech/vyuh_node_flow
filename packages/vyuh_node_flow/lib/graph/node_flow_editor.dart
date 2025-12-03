@@ -16,7 +16,6 @@ import '../graph/node_flow_theme.dart';
 import '../graph/viewport.dart';
 import '../nodes/node.dart';
 import '../nodes/node_shape.dart';
-import '../ports/port.dart';
 import '../ports/port_widget.dart';
 import '../shared/flutter_actions_integration.dart';
 import 'canvas_transform_provider.dart';
@@ -577,7 +576,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                   AnnotationLayer.foreground(widget.controller),
 
                 // Interaction layer - temporary connection and selection rectangle
-                InteractionLayer<T>(controller: widget.controller),
+                InteractionLayer<T>(
+                  controller: widget.controller,
+                  animation: _connectionAnimationController,
+                ),
               ],
             ),
           ),
@@ -618,6 +620,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       reaction(
         (_) => (
           widget.theme.connectionTheme.animationEffect,
+          widget.theme.temporaryConnectionTheme.animationEffect,
           widget.controller.connections.any((c) => c.animationEffect != null),
         ),
         (_) => _updateAnimationController(),
@@ -652,18 +655,27 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
   /// Updates the animation controller based on theme and connection animation effects.
   ///
-  /// Starts the animation controller if either the theme has a default animation effect
-  /// or any connection has an individual animation effect. Stops it otherwise.
+  /// Starts the animation controller if either the theme has a default animation effect,
+  /// the temporary connection theme has an animation effect, or any connection has an
+  /// individual animation effect. Stops it otherwise.
   void _updateAnimationController() {
-    // Check if theme has default animation effect
-    final themeHasEffect = widget.theme.connectionTheme.animationEffect != null;
+    // Check if permanent connection theme has animation effect
+    final connectionThemeHasEffect =
+        widget.theme.connectionTheme.animationEffect != null;
+
+    // Check if temporary connection theme has animation effect
+    final tempConnectionThemeHasEffect =
+        widget.theme.temporaryConnectionTheme.animationEffect != null;
 
     // Check if any connection has an animation effect
     final connectionHasEffect = widget.controller.connections.any(
       (connection) => connection.animationEffect != null,
     );
 
-    final hasAnimations = themeHasEffect || connectionHasEffect;
+    final hasAnimations =
+        connectionThemeHasEffect ||
+        tempConnectionThemeHasEffect ||
+        connectionHasEffect;
 
     if (hasAnimations) {
       _connectionAnimationController?.repeat();
@@ -1679,117 +1691,4 @@ class HitTestResult {
 
   /// Returns `true` if empty canvas was hit (no elements).
   bool get isCanvas => hitType == HitTarget.canvas;
-}
-
-/// Painter for interactive elements (selection rectangle and temporary connection).
-///
-/// This painter renders transient UI elements that appear during user interactions:
-/// - Selection rectangle when dragging to select multiple nodes
-/// - Temporary connection line when creating connections between ports
-///
-/// These elements are repainted frequently during interactions and are kept
-/// separate from static elements for performance optimization.
-class InteractionLayerPainter<T> extends CustomPainter {
-  InteractionLayerPainter({
-    required this.controller,
-    required this.theme,
-    this.selectionRectangle,
-    this.temporaryConnection,
-  });
-
-  /// The controller managing the graph state.
-  final NodeFlowController<T> controller;
-
-  /// The theme configuration for styling.
-  final NodeFlowTheme theme;
-
-  /// The current selection rectangle bounds, if user is selecting.
-  final Rect? selectionRectangle;
-
-  /// The temporary connection being created, if user is connecting ports.
-  final TemporaryConnection? temporaryConnection;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Paint selection rectangle if present
-    if (selectionRectangle != null) {
-      _paintSelectionRectangle(canvas);
-    }
-
-    // Paint temporary connection if present
-    if (temporaryConnection != null) {
-      _paintTemporaryConnection(canvas);
-    }
-  }
-
-  void _paintSelectionRectangle(Canvas canvas) {
-    final selectionTheme = theme.selectionTheme;
-    final fillPaint = Paint()
-      ..color = selectionTheme.color
-      ..style = PaintingStyle.fill;
-
-    final borderPaint = Paint()
-      ..color = selectionTheme.borderColor
-      ..strokeWidth = selectionTheme.borderWidth
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawRect(selectionRectangle!, fillPaint);
-    canvas.drawRect(selectionRectangle!, borderPaint);
-  }
-
-  void _paintTemporaryConnection(Canvas canvas) {
-    final connectionPainter = controller.connectionPainter;
-
-    // Get source port information
-    Port? sourcePort;
-    final sourceNode = controller.getNode(temporaryConnection!.sourceNodeId);
-    if (sourceNode != null) {
-      try {
-        sourcePort = [
-          ...sourceNode.inputPorts,
-          ...sourceNode.outputPorts,
-        ].firstWhere((port) => port.id == temporaryConnection!.sourcePortId);
-      } catch (e) {
-        sourcePort = null;
-      }
-    }
-
-    // Get target port information if available (for snapping)
-    Port? targetPort;
-    if (temporaryConnection!.targetNodeId != null &&
-        temporaryConnection!.targetPortId != null) {
-      final targetNode = controller.getNode(temporaryConnection!.targetNodeId!);
-      if (targetNode != null) {
-        try {
-          targetPort = [
-            ...targetNode.inputPorts,
-            ...targetNode.outputPorts,
-          ].firstWhere((port) => port.id == temporaryConnection!.targetPortId);
-        } catch (e) {
-          targetPort = null;
-        }
-      }
-    }
-
-    // Paint the temporary connection line
-    connectionPainter.paintTemporaryConnection(
-      canvas,
-      temporaryConnection!.startPoint,
-      temporaryConnection!.currentPoint,
-      sourcePort: sourcePort,
-      targetPort: targetPort,
-      isReversed: false,
-    );
-  }
-
-  @override
-  bool shouldRepaint(InteractionLayerPainter<T> oldDelegate) {
-    // Always repaint if we have a temporary connection to ensure real-time updates
-    if (temporaryConnection != null ||
-        oldDelegate.temporaryConnection != null) {
-      return true;
-    }
-
-    return selectionRectangle != oldDelegate.selectionRectangle;
-  }
 }

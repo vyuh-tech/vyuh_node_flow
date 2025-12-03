@@ -168,19 +168,26 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
         );
 
         // Calculate all label positions using the cached paths
+        // Use the larger dimension from start and end point sizes
+        final startSize = currentTheme.connectionTheme.startPoint.size;
+        final endSize = currentTheme.connectionTheme.endPoint.size;
+        final effectiveEndpointSize = Size(
+          math.max(startSize.width, endSize.width),
+          math.max(startSize.height, endSize.height),
+        );
+
         final labelRects = LabelCalculator.calculateAllLabelPositions(
           connection: connection,
           sourceNode: sourceNode,
           targetNode: targetNode,
           connectionStyle: effectiveStyle,
           curvature: currentTheme.connectionTheme.bezierCurvature,
-          endpointSize: math.max(
-            currentTheme.connectionTheme.startPoint.size,
-            currentTheme.connectionTheme.endPoint.size,
-          ),
+          endpointSize: effectiveEndpointSize,
           labelTheme: currentTheme.labelTheme,
           pathCache: controller.connectionPainter.pathCache,
           portExtension: currentTheme.connectionTheme.portExtension,
+          startGap: currentTheme.connectionTheme.startGap,
+          endGap: currentTheme.connectionTheme.endGap,
         );
 
         if (labelRects.isEmpty) {

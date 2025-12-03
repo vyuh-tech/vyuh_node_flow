@@ -97,7 +97,6 @@ class ConnectionsCanvas<T> extends CustomPainter {
       if (sourceNode == null || targetNode == null) continue;
 
       final isSelected = store.selectedConnectionIds.contains(connection.id);
-      final isAnimated = connection.animated;
 
       // Paint connection without labels using cached painter
       connectionPainter.paintConnection(
@@ -106,7 +105,6 @@ class ConnectionsCanvas<T> extends CustomPainter {
         sourceNode,
         targetNode,
         isSelected: isSelected,
-        isAnimated: isAnimated,
         animationValue: animationValue,
       );
     }

@@ -59,6 +59,9 @@ class ConnectionPathCache {
             newTheme.connectionTheme.startPoint ||
         oldTheme.connectionTheme.endPoint !=
             newTheme.connectionTheme.endPoint ||
+        oldTheme.connectionTheme.startGap !=
+            newTheme.connectionTheme.startGap ||
+        oldTheme.connectionTheme.endGap != newTheme.connectionTheme.endGap ||
         oldTheme.portTheme.size != newTheme.portTheme.size;
 
     if (pathChanged) {
@@ -216,10 +219,10 @@ class ConnectionPathCache {
 
     // Use 0 size for NoneMarkerShape to avoid creating gaps
     final startPointSize = effectiveStartPoint.shape is NoneMarkerShape
-        ? 0.0
+        ? Size.zero
         : effectiveStartPoint.size;
     final endPointSize = effectiveEndPoint.shape is NoneMarkerShape
-        ? 0.0
+        ? Size.zero
         : effectiveEndPoint.size;
 
     // Calculate connection points
@@ -227,11 +230,13 @@ class ConnectionPathCache {
       sourcePortPosition,
       sourcePort.position,
       startPointSize,
+      gap: connectionTheme.startGap,
     );
     final target = EndpointPositionCalculator.calculatePortConnectionPoints(
       targetPortPosition,
       targetPort.position,
       endPointSize,
+      gap: connectionTheme.endGap,
     );
 
     // Create path parameters for both original and hit test paths
