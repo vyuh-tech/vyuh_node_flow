@@ -7,7 +7,7 @@ import '../connections/label_theme.dart';
 import '../nodes/node_theme.dart';
 import '../ports/port_theme.dart';
 import 'cursor_theme.dart';
-import 'grid_theme.dart';
+import '../grid/grid_theme.dart';
 import 'selection_theme.dart';
 
 /// Theme configuration for the node flow editor.

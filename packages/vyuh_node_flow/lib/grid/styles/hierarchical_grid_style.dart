@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../node_flow_theme.dart';
+import '../../graph/node_flow_theme.dart';
 import 'grid_style.dart';
 
 /// Grid style that renders a two-level hierarchical grid.

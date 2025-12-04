@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'grid_styles.dart';
-import 'painters/grid_style.dart';
+import 'styles/grid_style.dart';
 
 /// Theme configuration for the grid background.
 ///

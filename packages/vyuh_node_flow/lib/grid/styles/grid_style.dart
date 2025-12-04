@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../node_flow_theme.dart';
-import '../viewport.dart';
+import '../../graph/node_flow_theme.dart';
+import '../../graph/viewport.dart';
 
 /// Abstract base class for all grid styles.
 ///

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../grid_painter.dart';
+import '../../grid/grid_painter.dart';
 import '../node_flow_theme.dart';
 import '../viewport.dart';
 

@@ -1,9 +1,9 @@
-import 'painters/cross_grid_style.dart';
-import 'painters/dots_grid_style.dart';
-import 'painters/grid_style.dart';
-import 'painters/hierarchical_grid_style.dart';
-import 'painters/lines_grid_style.dart';
-import 'painters/none_grid_style.dart';
+import 'styles/cross_grid_style.dart';
+import 'styles/dots_grid_style.dart';
+import 'styles/grid_style.dart';
+import 'styles/hierarchical_grid_style.dart';
+import 'styles/lines_grid_style.dart';
+import 'styles/none_grid_style.dart';
 
 /// Provides static constants for different grid styles.
 ///

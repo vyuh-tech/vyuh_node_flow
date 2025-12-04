@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'node_flow_theme.dart';
-import 'painters/grid_style.dart';
-import 'viewport.dart';
+import '../graph/node_flow_theme.dart';
+import '../graph/viewport.dart';
 
 /// CustomPainter that delegates grid rendering to a GridStyle.
 ///
