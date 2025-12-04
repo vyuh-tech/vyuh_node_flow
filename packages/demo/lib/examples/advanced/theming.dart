@@ -580,10 +580,8 @@ class _ThemingExampleState extends State<ThemingExample> {
               }).toList(),
         ),
         const SizedBox(height: 12),
-        _buildSlider('Endpoint Size', _endpointSize.shortestSide, 3.0, 15.0, (
-          value,
-        ) {
-          final newSize = Size.square(value);
+        _buildSlider('Endpoint Width', _endpointSize.width, 3.0, 20.0, (value) {
+          final newSize = Size(value, _endpointSize.height);
           setState(() {
             _endpointSize = newSize;
           });
@@ -597,6 +595,45 @@ class _ThemingExampleState extends State<ThemingExample> {
                   size: newSize,
                 ),
               ),
+            ),
+          );
+        }),
+        _buildSlider('Endpoint Height', _endpointSize.height, 3.0, 20.0, (
+          value,
+        ) {
+          final newSize = Size(_endpointSize.width, value);
+          setState(() {
+            _endpointSize = newSize;
+          });
+          _updateTheme(
+            _theme.copyWith(
+              connectionTheme: _theme.connectionTheme.copyWith(
+                startPoint: _theme.connectionTheme.startPoint.copyWith(
+                  size: newSize,
+                ),
+                endPoint: _theme.connectionTheme.endPoint.copyWith(
+                  size: newSize,
+                ),
+              ),
+            ),
+          );
+        }),
+        const SizedBox(height: 12),
+        _buildSlider('Start Gap', _theme.connectionTheme.startGap, 0.0, 20.0, (
+          value,
+        ) {
+          _updateTheme(
+            _theme.copyWith(
+              connectionTheme: _theme.connectionTheme.copyWith(startGap: value),
+            ),
+          );
+        }),
+        _buildSlider('End Gap', _theme.connectionTheme.endGap, 0.0, 20.0, (
+          value,
+        ) {
+          _updateTheme(
+            _theme.copyWith(
+              connectionTheme: _theme.connectionTheme.copyWith(endGap: value),
             ),
           );
         }),
@@ -774,6 +811,53 @@ class _ThemingExampleState extends State<ThemingExample> {
                 );
               }).toList(),
         ),
+        const SizedBox(height: 16),
+        const Text('Animation Effect', style: TextStyle(fontSize: 12)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children:
+              [
+                ('None', null),
+                ('Flowing Dash', ConnectionEffects.flowingDash),
+                ('Particles', ConnectionEffects.particles),
+                ('Gradient', ConnectionEffects.gradientFlow),
+                ('Pulse', ConnectionEffects.pulse),
+              ].map((entry) {
+                final (name, effect) = entry;
+                return ChoiceChip(
+                  label: Text(name, style: const TextStyle(fontSize: 11)),
+                  selected: tempTheme.animationEffect == effect,
+                  onSelected: (selected) {
+                    if (selected) {
+                      _updateTheme(
+                        _theme.copyWith(
+                          temporaryConnectionTheme: tempTheme.copyWith(
+                            animationEffect: effect,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                );
+              }).toList(),
+        ),
+        const SizedBox(height: 12),
+        _buildSlider('Start Gap', tempTheme.startGap, 0.0, 20.0, (value) {
+          _updateTheme(
+            _theme.copyWith(
+              temporaryConnectionTheme: tempTheme.copyWith(startGap: value),
+            ),
+          );
+        }),
+        _buildSlider('End Gap', tempTheme.endGap, 0.0, 20.0, (value) {
+          _updateTheme(
+            _theme.copyWith(
+              temporaryConnectionTheme: tempTheme.copyWith(endGap: value),
+            ),
+          );
+        }),
       ],
     );
   }
@@ -923,10 +1007,23 @@ class _ThemingExampleState extends State<ThemingExample> {
       children: [
         const SectionTitle('Ports'),
         const SizedBox(height: 12),
-        _buildSlider('Size', _theme.portTheme.size.width, 6.0, 16.0, (value) {
+        _buildSlider('Width', _theme.portTheme.size.width, 6.0, 20.0, (value) {
           _updateTheme(
             _theme.copyWith(
-              portTheme: _theme.portTheme.copyWith(size: Size.square(value)),
+              portTheme: _theme.portTheme.copyWith(
+                size: Size(value, _theme.portTheme.size.height),
+              ),
+            ),
+          );
+        }),
+        _buildSlider('Height', _theme.portTheme.size.height, 6.0, 20.0, (
+          value,
+        ) {
+          _updateTheme(
+            _theme.copyWith(
+              portTheme: _theme.portTheme.copyWith(
+                size: Size(_theme.portTheme.size.width, value),
+              ),
             ),
           );
         }),

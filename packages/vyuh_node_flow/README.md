@@ -445,9 +445,11 @@ ConnectionTheme(
 `ConnectionStyles.step`, `ConnectionStyles.straight`
 
 **Model-level overrides**: Each `Connection` can override `style`, `animationEffect`,
-`startPoint`, `endPoint`.
+`startPoint`, `endPoint`, `startGap`, `endGap`.
 
 **Endpoint color cascade**: `ConnectionEndPoint.color` → `endpointColor` (theme fallback)
+
+**Gap cascade**: `Connection.startGap` → `ConnectionTheme.startGap` (theme fallback)
 
 </details>
 
@@ -1797,15 +1799,23 @@ final connection = Connection(
   targetNodeId: 'node-2',
   targetPortId: 'input',
 
-  // Override just for this connection
+  // Override endpoint shapes for this connection
   startPoint: ConnectionEndPoint.circle,
   endPoint: ConnectionEndPoint(
     shape: MarkerShapes.diamond,
     size: Size.square(10.0),
     color: Colors.orange,
   ),
+
+  // Override gap values for this connection (falls back to theme if null)
+  startGap: 5.0,  // 5px gap at source port
+  endGap: 3.0,    // 3px gap at target port
 );
 ```
+
+**Gap Cascade**: Connection-level `startGap` and `endGap` take precedence over
+theme values. If not set on the connection, the values from `ConnectionTheme`
+are used.
 
 </details>
 
@@ -2928,14 +2938,22 @@ class ProcessViewer extends StatelessWidget {
 
 ### Connection
 
-| Property       | Type    | Description       |
-| -------------- | ------- | ----------------- |
-| `id`           | String  | Unique identifier |
-| `sourceNodeId` | String  | Source node ID    |
-| `sourcePortId` | String  | Source port ID    |
-| `targetNodeId` | String  | Target node ID    |
-| `targetPortId` | String  | Target port ID    |
-| `label`        | String? | Connection label  |
+| Property          | Type                | Description                                      |
+| ----------------- | ------------------- | ------------------------------------------------ |
+| `id`              | String              | Unique identifier                                |
+| `sourceNodeId`    | String              | Source node ID                                   |
+| `sourcePortId`    | String              | Source port ID                                   |
+| `targetNodeId`    | String              | Target node ID                                   |
+| `targetPortId`    | String              | Target port ID                                   |
+| `label`           | ConnectionLabel?    | Center label (anchor 0.5)                        |
+| `startLabel`      | ConnectionLabel?    | Start label (anchor 0.0)                         |
+| `endLabel`        | ConnectionLabel?    | End label (anchor 1.0)                           |
+| `style`           | ConnectionStyle?    | Override connection style                        |
+| `animationEffect` | ConnectionEffect?   | Override animation effect                        |
+| `startPoint`      | ConnectionEndPoint? | Override start endpoint                          |
+| `endPoint`        | ConnectionEndPoint? | Override end endpoint                            |
+| `startGap`        | double?             | Gap at source port (falls back to theme)         |
+| `endGap`          | double?             | Gap at target port (falls back to theme)         |
 
 ---
 

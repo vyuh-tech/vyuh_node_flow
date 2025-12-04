@@ -81,6 +81,8 @@ class Connection {
   /// - [endLabel]: Optional label at the end of the connection (anchor 1.0)
   /// - [startPoint]: Optional custom start endpoint marker (defaults to theme if null)
   /// - [endPoint]: Optional custom end endpoint marker (defaults to theme if null)
+  /// - [startGap]: Optional gap between source port and start endpoint (defaults to theme if null)
+  /// - [endGap]: Optional gap between target port and end endpoint (defaults to theme if null)
   /// - [animationEffect]: Optional animation effect to apply (overrides animated flag)
   /// - [controlPoints]: Optional list of control points for editable path connections
   Connection({
@@ -98,6 +100,8 @@ class Connection {
     ConnectionLabel? endLabel,
     this.startPoint,
     this.endPoint,
+    this.startGap,
+    this.endGap,
     ConnectionEffect? animationEffect,
     List<Offset>? controlPoints,
   }) : _animated = Observable(animated),
@@ -153,6 +157,16 @@ class Connection {
   ///
   /// If null, the connection will use the endPoint from [ConnectionTheme].
   final ConnectionEndPoint? endPoint;
+
+  /// Optional gap between source port and start endpoint in logical pixels.
+  ///
+  /// If null, the connection will use the startGap from [ConnectionTheme].
+  final double? startGap;
+
+  /// Optional gap between target port and end endpoint in logical pixels.
+  ///
+  /// If null, the connection will use the endGap from [ConnectionTheme].
+  final double? endGap;
 
   // Getters and setters for accessing observable values
 

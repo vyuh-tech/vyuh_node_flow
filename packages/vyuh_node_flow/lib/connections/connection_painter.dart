@@ -169,13 +169,13 @@ class ConnectionPainter {
       sourcePortPosition,
       sourcePort.position,
       startPointSize,
-      gap: connectionTheme.startGap,
+      gap: connection.startGap ?? connectionTheme.startGap,
     );
     final target = EndpointPositionCalculator.calculatePortConnectionPoints(
       targetPortPosition,
       targetPort.position,
       endPointSize,
-      gap: connectionTheme.endGap,
+      gap: connection.endGap ?? connectionTheme.endGap,
     );
 
     // Configure paint for the connection line using cached path

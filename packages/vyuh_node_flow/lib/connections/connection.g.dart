@@ -20,6 +20,8 @@ Connection _$ConnectionFromJson(Map<String, dynamic> json) => Connection(
   endPoint: json['endPoint'] == null
       ? null
       : ConnectionEndPoint.fromJson(json['endPoint'] as Map<String, dynamic>),
+  startGap: (json['startGap'] as num?)?.toDouble(),
+  endGap: (json['endGap'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$ConnectionToJson(Connection instance) =>
@@ -33,4 +35,6 @@ Map<String, dynamic> _$ConnectionToJson(Connection instance) =>
       'style': _connectionStyleToJson(instance.style),
       'startPoint': instance.startPoint,
       'endPoint': instance.endPoint,
+      'startGap': instance.startGap,
+      'endGap': instance.endGap,
     };

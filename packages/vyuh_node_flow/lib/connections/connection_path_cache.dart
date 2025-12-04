@@ -16,6 +16,8 @@ class _CachedConnectionPath {
     required this.hitTestPath,
     required this.sourcePosition,
     required this.targetPosition,
+    required this.startGap,
+    required this.endGap,
   });
 
   /// The original geometric path for drawing
@@ -27,6 +29,10 @@ class _CachedConnectionPath {
   /// Cached node positions for invalidation
   final Offset sourcePosition;
   final Offset targetPosition;
+
+  /// Cached gap values for invalidation
+  final double startGap;
+  final double endGap;
 }
 
 /// Manages connection path caching and hit testing
@@ -132,12 +138,17 @@ class ConnectionPathCache {
   }) {
     final currentSourcePos = sourceNode.position.value;
     final currentTargetPos = targetNode.position.value;
+    final connectionTheme = theme.connectionTheme;
+    final currentStartGap = connection.startGap ?? connectionTheme.startGap;
+    final currentEndGap = connection.endGap ?? connectionTheme.endGap;
 
     // Check if cache needs updating
     final existing = _getCachedPath(connection.id);
     if (existing != null &&
         existing.sourcePosition == currentSourcePos &&
-        existing.targetPosition == currentTargetPos) {
+        existing.targetPosition == currentTargetPos &&
+        existing.startGap == currentStartGap &&
+        existing.endGap == currentEndGap) {
       return existing.originalPath; // Cache hit
     }
 
@@ -149,6 +160,8 @@ class ConnectionPathCache {
       sourcePosition: currentSourcePos,
       targetPosition: currentTargetPos,
       connectionStyle: connectionStyle,
+      startGap: currentStartGap,
+      endGap: currentEndGap,
     );
 
     return newPath?.originalPath;
@@ -162,6 +175,8 @@ class ConnectionPathCache {
     required Offset sourcePosition,
     required Offset targetPosition,
     required ConnectionStyle connectionStyle,
+    required double startGap,
+    required double endGap,
   }) {
     // Get connection and port themes
     final connectionTheme = theme.connectionTheme;
@@ -225,18 +240,18 @@ class ConnectionPathCache {
         ? Size.zero
         : effectiveEndPoint.size;
 
-    // Calculate connection points
+    // Calculate connection points using passed gap values
     final source = EndpointPositionCalculator.calculatePortConnectionPoints(
       sourcePortPosition,
       sourcePort.position,
       startPointSize,
-      gap: connectionTheme.startGap,
+      gap: startGap,
     );
     final target = EndpointPositionCalculator.calculatePortConnectionPoints(
       targetPortPosition,
       targetPort.position,
       endPointSize,
-      gap: connectionTheme.endGap,
+      gap: endGap,
     );
 
     // Create path parameters for both original and hit test paths
@@ -263,12 +278,14 @@ class ConnectionPathCache {
       pathParams: pathParams,
     );
 
-    // Cache both paths
+    // Cache both paths with gap values for invalidation
     final cachedPath = _CachedConnectionPath(
       originalPath: originalPath,
       hitTestPath: hitTestPath,
       sourcePosition: sourcePosition,
       targetPosition: targetPosition,
+      startGap: startGap,
+      endGap: endGap,
     );
 
     _pathCache[connection.id] = cachedPath;
