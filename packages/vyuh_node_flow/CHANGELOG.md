@@ -1,3 +1,7 @@
+## 0.7.1
+
+ - **FEAT**: Add startGap and endGap support for connections.
+
 ## 0.7.0
 
  - **FEAT**: Add animation support for temporary connections and update connection rendering logic, Add configurable gaps, colors, and borders for connection endpoints.

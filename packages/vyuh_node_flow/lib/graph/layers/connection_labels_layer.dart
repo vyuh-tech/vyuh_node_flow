@@ -186,7 +186,8 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
           labelTheme: currentTheme.labelTheme,
           pathCache: controller.connectionPainter.pathCache,
           portExtension: currentTheme.connectionTheme.portExtension,
-          startGap: connection.startGap ?? currentTheme.connectionTheme.startGap,
+          startGap:
+              connection.startGap ?? currentTheme.connectionTheme.startGap,
           endGap: connection.endGap ?? currentTheme.connectionTheme.endGap,
         );
 
