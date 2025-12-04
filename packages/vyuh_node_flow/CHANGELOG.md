@@ -1,3 +1,7 @@
+## 0.7.2
+
+ - **FEAT**: Restructure the grid components and annotations by splitting into separate files.
+
 ## 0.7.1
 
  - **FEAT**: Add startGap and endGap support for connections.
