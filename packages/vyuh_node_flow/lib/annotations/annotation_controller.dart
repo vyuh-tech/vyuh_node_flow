@@ -86,6 +86,9 @@ class AnnotationController<T> {
     runInAction(() {
       _annotations[annotation.id] = annotation;
 
+      // Update spatial index
+      _parentController._spatialIndex.updateAnnotation(annotation);
+
       // Only assign z-index if annotation doesn't have a meaningful one set
       // This preserves z-index values from loaded workflows while providing defaults for new annotations
       if (annotation.zIndex.value == -1) {
@@ -131,6 +134,9 @@ class AnnotationController<T> {
       _annotations.remove(annotationId);
       _selectedAnnotationIds.remove(annotationId);
 
+      // Remove from spatial index
+      _parentController._spatialIndex.removeAnnotation(annotationId);
+
       // Clear drag state if removing the dragged annotation
       if (_draggedAnnotationId.value == annotationId) {
         _draggedAnnotationId.value = null;
@@ -143,6 +149,7 @@ class AnnotationController<T> {
     runInAction(() {
       _annotations[annotationId] = updatedAnnotation;
     });
+    // Note: Spatial index update handled by MobX reactions in _setupSpatialIndexReactions()
   }
 
   Annotation? getAnnotation(String annotationId) {
@@ -266,6 +273,9 @@ class AnnotationController<T> {
         annotation.setVisualPosition(
           _parentController.config.snapAnnotationsToGridIfEnabled(newPosition),
         );
+
+        // Mark annotation dirty (deferred during drag)
+        _parentController.internalMarkAnnotationDirty(draggedId);
 
         // If this is a group annotation, move all dependent nodes
         if (annotation is GroupAnnotation && annotation.hasAnyDependencies) {
@@ -394,6 +404,9 @@ class AnnotationController<T> {
           }
         }
       });
+
+      // Mark dependent nodes dirty (deferred during annotation drag)
+      _parentController.internalMarkNodesDirty(groupAnnotation.dependencies);
     } catch (e) {
       // Force reset flag in error case
       _isMovingGroupNodes = false;
@@ -414,6 +427,8 @@ class AnnotationController<T> {
         _isMovingGroupNodes = false;
       }
     });
+    // Note: Spatial index update is handled by MobX reaction in _setupSpatialIndexReactions()
+    // which fires when draggedAnnotationId becomes null
   }
 
   // Dependency management
@@ -559,6 +574,8 @@ class AnnotationController<T> {
         );
         groupAnnotation.updateCalculatedSize(newSize);
       });
+      // Mark annotation dirty
+      _parentController.internalMarkAnnotationDirty(groupAnnotation.id);
     }
   }
 
@@ -597,6 +614,8 @@ class AnnotationController<T> {
           annotationCenterOffset,
         ),
       );
+      // Mark annotation dirty
+      _parentController.internalMarkAnnotationDirty(annotation.id);
     }
   }
 
@@ -803,6 +822,7 @@ class AnnotationController<T> {
   }
 
   void moveSelectedAnnotations(Offset delta) {
+    final movedAnnotationIds = <String>[];
     runInAction(() {
       for (final annotationId in _selectedAnnotationIds) {
         final annotation = _annotations[annotationId];
@@ -815,9 +835,14 @@ class AnnotationController<T> {
               newPosition,
             ),
           );
+          movedAnnotationIds.add(annotationId);
         }
       }
     });
+    // Mark moved annotations dirty
+    for (final annotationId in movedAnnotationIds) {
+      _parentController.internalMarkAnnotationDirty(annotationId);
+    }
   }
 
   // Visibility management

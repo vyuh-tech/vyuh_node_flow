@@ -146,8 +146,9 @@ export 'graph/node_flow_actions.dart';
 export 'graph/node_flow_config.dart';
 export 'graph/node_flow_controller.dart';
 export 'graph/layers/connection_labels_layer.dart' show LabelBuilder;
-export 'graph/node_flow_editor.dart'
-    hide HitTestResult, HitTarget, SelectionRectanglePainter;
+export 'shared/spatial/graph_spatial_index.dart'
+    show GraphSpatialIndex, HitTestResult, HitTarget;
+export 'graph/node_flow_editor.dart' hide SelectionRectanglePainter;
 export 'graph/node_flow_events.dart';
 export 'graph/node_flow_minimap.dart';
 export 'graph/node_flow_theme.dart';

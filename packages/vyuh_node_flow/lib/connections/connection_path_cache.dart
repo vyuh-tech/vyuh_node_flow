@@ -14,6 +14,7 @@ class _CachedConnectionPath {
   _CachedConnectionPath({
     required this.originalPath,
     required this.hitTestPath,
+    required this.segmentBounds,
     required this.sourcePosition,
     required this.targetPosition,
     required this.startGap,
@@ -25,6 +26,9 @@ class _CachedConnectionPath {
 
   /// The expanded path for hit testing (includes stroke tolerance)
   final Path hitTestPath;
+
+  /// Rectangle bounds for each path segment, used for spatial indexing
+  final List<Rect> segmentBounds;
 
   /// Cached node positions for invalidation
   final Offset sourcePosition;
@@ -96,36 +100,64 @@ class ConnectionPathCache {
     double? tolerance,
   }) {
     final hitTolerance = tolerance ?? defaultHitTolerance;
+    final connectionStyle = theme.connectionTheme.style;
 
-    // Get cached path - read only, no creation during hit testing
+    // Get cached path
     final cachedPath = _getCachedPath(connection.id);
-    if (cachedPath == null) {
-      return false; // No cached path - should be created during painting
-    }
-
-    // Validate cache is still valid
     final currentSourcePos = sourceNode.position.value;
     final currentTargetPos = targetNode.position.value;
 
-    if (cachedPath.sourcePosition != currentSourcePos ||
-        cachedPath.targetPosition != currentTargetPos) {
-      return false; // Stale cache - will be recreated on next paint
+    // Check if cache is valid (positions match)
+    final cacheValid =
+        cachedPath != null &&
+        cachedPath.sourcePosition == currentSourcePos &&
+        cachedPath.targetPosition == currentTargetPos;
+
+    if (cacheValid) {
+      // Use the pre-computed hit test path (already expanded for tolerance)
+      // Only recompute if tolerance differs significantly from default
+      if ((hitTolerance - defaultHitTolerance).abs() > 1.0) {
+        // Custom tolerance - create temporary expanded path
+        final customHitPath = _createHitTestPath(
+          cachedPath.originalPath,
+          hitTolerance,
+          connectionStyle: connectionStyle,
+        );
+        return customHitPath.contains(testPoint);
+      }
+
+      // Use cached hit test path (most common case)
+      return cachedPath.hitTestPath.contains(testPoint);
     }
 
-    // Use the pre-computed hit test path (already expanded for tolerance)
-    // Only recompute if tolerance differs significantly from default
+    // Cache is stale or missing - compute path on-demand for hit testing
+    // This ensures hit testing works even before the next paint cycle
+    final newCachedPath = _createAndCachePath(
+      connection: connection,
+      sourceNode: sourceNode,
+      targetNode: targetNode,
+      sourcePosition: currentSourcePos,
+      targetPosition: currentTargetPos,
+      connectionStyle: connectionStyle,
+      startGap: connection.startGap ?? theme.connectionTheme.startGap,
+      endGap: connection.endGap ?? theme.connectionTheme.endGap,
+    );
+
+    if (newCachedPath == null) {
+      return false; // Could not create path (missing ports, etc.)
+    }
+
+    // Use the newly created hit test path
     if ((hitTolerance - defaultHitTolerance).abs() > 1.0) {
-      // Custom tolerance - create temporary expanded path
       final customHitPath = _createHitTestPath(
-        cachedPath.originalPath,
+        newCachedPath.originalPath,
         hitTolerance,
-        connectionStyle: theme.connectionTheme.style,
+        connectionStyle: connectionStyle,
       );
       return customHitPath.contains(testPoint);
     }
 
-    // Use cached hit test path (most common case)
-    return cachedPath.hitTestPath.contains(testPoint);
+    return newCachedPath.hitTestPath.contains(testPoint);
   }
 
   /// Get or create cached path during painting operations
@@ -278,10 +310,18 @@ class ConnectionPathCache {
       pathParams: pathParams,
     );
 
-    // Cache both paths with gap values for invalidation
+    // Get segment bounds for spatial indexing
+    final segmentBounds = connectionStyle.getHitTestSegments(
+      originalPath,
+      defaultHitTolerance,
+      pathParams: pathParams,
+    );
+
+    // Cache paths and segment bounds for invalidation
     final cachedPath = _CachedConnectionPath(
       originalPath: originalPath,
       hitTestPath: hitTestPath,
+      segmentBounds: segmentBounds,
       sourcePosition: sourcePosition,
       targetPosition: targetPosition,
       startGap: startGap,
@@ -338,6 +378,51 @@ class ConnectionPathCache {
   /// Get the cached original path for debugging purposes
   Path? getOriginalPath(String connectionId) {
     return _getCachedPath(connectionId)?.originalPath;
+  }
+
+  /// Get the cached segment bounds for spatial indexing.
+  /// Returns null if there's no cached path for this connection.
+  List<Rect>? getSegmentBounds(String connectionId) {
+    return _getCachedPath(connectionId)?.segmentBounds;
+  }
+
+  /// Get or compute segment bounds for a connection.
+  /// Creates the path if not cached or if the cache is stale.
+  List<Rect> getOrCreateSegmentBounds({
+    required Connection connection,
+    required Node sourceNode,
+    required Node targetNode,
+    required ConnectionStyle connectionStyle,
+  }) {
+    final currentSourcePos = sourceNode.position.value;
+    final currentTargetPos = targetNode.position.value;
+    final connectionTheme = theme.connectionTheme;
+    final currentStartGap = connection.startGap ?? connectionTheme.startGap;
+    final currentEndGap = connection.endGap ?? connectionTheme.endGap;
+
+    // Check if cache is valid
+    final existing = _getCachedPath(connection.id);
+    if (existing != null &&
+        existing.sourcePosition == currentSourcePos &&
+        existing.targetPosition == currentTargetPos &&
+        existing.startGap == currentStartGap &&
+        existing.endGap == currentEndGap) {
+      return existing.segmentBounds;
+    }
+
+    // Create new path and get segments
+    final newCachedPath = _createAndCachePath(
+      connection: connection,
+      sourceNode: sourceNode,
+      targetNode: targetNode,
+      sourcePosition: currentSourcePos,
+      targetPosition: currentTargetPos,
+      connectionStyle: connectionStyle,
+      startGap: currentStartGap,
+      endGap: currentEndGap,
+    );
+
+    return newCachedPath?.segmentBounds ?? [];
   }
 
   /// Get cache statistics

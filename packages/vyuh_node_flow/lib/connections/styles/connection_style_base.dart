@@ -124,6 +124,75 @@ abstract class ConnectionStyle {
     return _createSimpleStrokeHitTestPath(originalPath, tolerance);
   }
 
+  /// Returns hit test segments as Rects for spatial indexing.
+  /// Each segment represents a rectangular hit area along the connection path.
+  /// The base implementation samples the path and creates rectangle segments.
+  ///
+  /// Subclasses can override this to provide more optimized segment rectangles
+  /// based on their specific geometry (e.g., exact bend points for step connections).
+  List<Rect> getHitTestSegments(
+    Path originalPath,
+    double tolerance, {
+    ConnectionPathParameters? pathParams,
+  }) {
+    return _createSegmentsFromPath(originalPath, tolerance);
+  }
+
+  /// Creates segment rectangles by sampling points along the path.
+  /// Works for any path shape by using path metrics.
+  List<Rect> _createSegmentsFromPath(Path path, double tolerance) {
+    final bounds = path.getBounds();
+    if (bounds.width <= 0 && bounds.height <= 0) {
+      return [];
+    }
+
+    final metrics = path.computeMetrics().toList();
+    if (metrics.isEmpty) {
+      return [bounds.inflate(tolerance)];
+    }
+
+    final segments = <Rect>[];
+
+    for (final metric in metrics) {
+      if (metric.length == 0) continue;
+
+      // Determine segment count based on path length
+      final segmentCount = math.min(
+        10,
+        math.max(3, (metric.length / 50).ceil()),
+      );
+      final segmentLength = metric.length / segmentCount;
+
+      for (int i = 0; i < segmentCount; i++) {
+        final startOffset = i * segmentLength;
+        final endOffset = math.min((i + 1) * segmentLength, metric.length);
+
+        final startTangent = metric.getTangentForOffset(startOffset);
+        final endTangent = metric.getTangentForOffset(endOffset);
+
+        if (startTangent != null && endTangent != null) {
+          final segmentRect = _createSegmentRect(
+            startTangent.position,
+            endTangent.position,
+            tolerance,
+          );
+          segments.add(segmentRect);
+        }
+      }
+    }
+
+    return segments;
+  }
+
+  /// Creates a rectangle around a line segment with given tolerance.
+  Rect _createSegmentRect(Offset start, Offset end, double tolerance) {
+    final minX = math.min(start.dx, end.dx) - tolerance;
+    final maxX = math.max(start.dx, end.dx) + tolerance;
+    final minY = math.min(start.dy, end.dy) - tolerance;
+    final maxY = math.max(start.dy, end.dy) + tolerance;
+    return Rect.fromLTRB(minX, minY, maxX, maxY);
+  }
+
   // === Bend Detection (for caching optimization) ===
 
   /// Whether this connection style needs bend detection for hit testing optimization

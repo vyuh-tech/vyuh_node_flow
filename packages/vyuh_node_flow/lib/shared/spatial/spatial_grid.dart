@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 /// Generic spatial indexing interface for 2D objects
@@ -9,10 +7,11 @@ abstract class SpatialIndexable {
   Rect getBounds();
 }
 
-/// Ultra-fast spatial indexing system using grid-based hashing
-/// Optimized for large numbers of 2D objects with frequent position updates
-class SpatialIndex<T extends SpatialIndexable> {
-  SpatialIndex({this.gridSize = 500.0, this.enableCaching = true})
+/// Ultra-fast spatial grid system using grid-based hashing.
+/// This is the low-level implementation used by [SpatialIndex].
+/// Optimized for large numbers of 2D objects with frequent position updates.
+class SpatialGrid<T extends SpatialIndexable> {
+  SpatialGrid({this.gridSize = 500.0, this.enableCaching = true})
     : _spatialGrid = <String, Set<String>>{},
       _spatialRects = <String, Rect>{},
       _objects = <String, T>{},
@@ -31,11 +30,9 @@ class SpatialIndex<T extends SpatialIndexable> {
   List<T> _cachedVisibleObjects;
   Rect _lastQueryBounds;
 
-  // Surgical rendering state
+  // Dragging state - spatial index rebuilt at drag end
   bool _isDragging = false;
   Set<String> _draggingObjectIds = <String>{};
-  Rect _draggingBounds = Rect.zero;
-  final Map<String, Rect> _draggingObjectBounds = <String, Rect>{};
 
   // Performance counters and batching
   DateTime _lastBatchUpdate = DateTime.now();
@@ -73,6 +70,53 @@ class SpatialIndex<T extends SpatialIndexable> {
     _spatialGrid.clear();
     _spatialRects.clear();
     _invalidateCache();
+  }
+
+  /// Query objects near a specific point for hit testing.
+  ///
+  /// Returns objects in the cell containing the point plus neighboring cells
+  /// to handle objects that span cell boundaries. Results are not cached
+  /// since hit testing typically involves different points each time.
+  List<T> queryPoint(Offset point, {double radius = 0}) {
+    final result = <T>[];
+    final checkedObjects = <String>{};
+
+    // Calculate the cell range to check
+    final minX = ((point.dx - radius) / gridSize).floor();
+    final maxX = ((point.dx + radius) / gridSize).floor();
+    final minY = ((point.dy - radius) / gridSize).floor();
+    final maxY = ((point.dy + radius) / gridSize).floor();
+
+    // Check all cells in range (typically just 1-4 cells for small radius)
+    for (var x = minX; x <= maxX; x++) {
+      for (var y = minY; y <= maxY; y++) {
+        final cellKey = '${x}_$y';
+        final objectIds = _spatialGrid[cellKey];
+
+        if (objectIds != null) {
+          for (final objectId in objectIds) {
+            if (checkedObjects.add(objectId)) {
+              final object = _objects[objectId];
+              if (object != null) {
+                final bounds = object.getBounds();
+                // Check if point is within bounds (with optional radius expansion)
+                if (radius > 0) {
+                  if (bounds.inflate(radius).contains(point)) {
+                    result.add(object);
+                  }
+                } else {
+                  if (bounds.contains(point)) {
+                    result.add(object);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return result;
   }
 
   /// Ultra-fast query with surgical caching
@@ -156,22 +200,12 @@ class SpatialIndex<T extends SpatialIndexable> {
     return result;
   }
 
-  /// Start drag optimization mode for specified objects
+  /// Start drag optimization mode for specified objects.
+  /// During drag, spatial index is not updated. Call [endDragging] to rebuild.
   void startDragging(List<String> objectIds) {
     if (!_isDragging && objectIds.isNotEmpty) {
       _isDragging = true;
       _draggingObjectIds = objectIds.toSet();
-
-      // Initialize dragging bounds tracking
-      _draggingObjectBounds.clear();
-      for (final objectId in objectIds) {
-        final object = _objects[objectId];
-        if (object != null) {
-          _draggingObjectBounds[objectId] = object.getBounds();
-        }
-      }
-
-      _computeDraggingBounds();
     }
   }
 
@@ -180,66 +214,27 @@ class SpatialIndex<T extends SpatialIndexable> {
     if (_isDragging) {
       _isDragging = false;
 
-      // Clean rebuild only for objects that actually moved
+      // Rebuild spatial index for objects that were being dragged
       _rebuildSpatialIndexForDraggedObjects();
 
       _draggingObjectIds.clear();
-      _draggingObjectBounds.clear();
-      _draggingBounds = Rect.zero;
 
       // Force cache invalidation after drag ends
       _invalidateCache();
     }
   }
 
-  /// Ultra-fast surgical update only for dragging objects
+  /// Track dragging objects without updating spatial index during drag.
+  /// Spatial index will be rebuilt when drag ends via [endDragging].
   void updateDraggingObjects(List<T> objects) {
     if (!_isDragging) return;
 
-    bool hasSignificantChange = false;
-
-    // Track bounds changes for surgical updates
+    // Just update the object references - spatial index rebuild happens at drag end
     for (final object in objects) {
       if (_draggingObjectIds.contains(object.id)) {
-        final newBounds = object.getBounds();
-        final oldBounds = _draggingObjectBounds[object.id];
-
-        // Only update if bounds actually changed significantly
-        if (oldBounds == null || !_boundsAreSimilar(oldBounds, newBounds)) {
-          _spatialRects[object.id] = newBounds;
-          _draggingObjectBounds[object.id] = newBounds;
-
-          // Surgical grid update - only update this object's grid cells
-          _updateSpatialGridSurgical(object, newBounds, oldBounds);
-          hasSignificantChange = true;
-        }
+        _objects[object.id] = object;
       }
     }
-
-    // Only update derived data if there were significant changes
-    if (hasSignificantChange) {
-      _computeDraggingBounds();
-      _invalidateCacheForDragging();
-    }
-  }
-
-  /// Surgical spatial grid update for individual objects
-  void _updateSpatialGridSurgical(T object, Rect newBounds, Rect? oldBounds) {
-    // Remove from old grid cells if they exist
-    if (oldBounds != null) {
-      _removeFromGridCells(object.id, oldBounds);
-    }
-
-    // Add to new grid cells
-    _addToGridCells(object.id, newBounds);
-  }
-
-  /// Check if bounds are similar enough to skip update
-  bool _boundsAreSimilar(Rect a, Rect b) {
-    return (a.left - b.left).abs() < 2 &&
-        (a.top - b.top).abs() < 2 &&
-        (a.width - b.width).abs() < 2 &&
-        (a.height - b.height).abs() < 2;
   }
 
   /// Get total number of objects in the index
@@ -247,6 +242,13 @@ class SpatialIndex<T extends SpatialIndexable> {
 
   /// Get object by ID
   T? getObject(String objectId) => _objects[objectId];
+
+  /// Get all objects (for type-based filtering)
+  Iterable<T> get objects => _objects.values;
+
+  /// Count objects matching a predicate
+  int countWhere(bool Function(T object) test) =>
+      _objects.values.where(test).length;
 
   /// Check if spatial grid is being used
   bool get isUsingSpatialGrid =>
@@ -290,27 +292,6 @@ class SpatialIndex<T extends SpatialIndexable> {
       for (int y = startY; y <= endY; y++) {
         final cellKey = '${x}_$y';
         _spatialGrid.putIfAbsent(cellKey, () => <String>{}).add(objectId);
-      }
-    }
-  }
-
-  /// Remove object from grid cells based on bounds
-  void _removeFromGridCells(String objectId, Rect bounds) {
-    final startX = (bounds.left / gridSize).floor();
-    final endX = (bounds.right / gridSize).floor();
-    final startY = (bounds.top / gridSize).floor();
-    final endY = (bounds.bottom / gridSize).floor();
-
-    for (int x = startX; x <= endX; x++) {
-      for (int y = startY; y <= endY; y++) {
-        final cellKey = '${x}_$y';
-        final cellSet = _spatialGrid[cellKey];
-        if (cellSet != null) {
-          cellSet.remove(objectId);
-          if (cellSet.isEmpty) {
-            _spatialGrid.remove(cellKey);
-          }
-        }
       }
     }
   }
@@ -410,27 +391,6 @@ class SpatialIndex<T extends SpatialIndexable> {
         (bounds.height - _lastQueryBounds.height).abs() < 50;
   }
 
-  void _computeDraggingBounds() {
-    if (_draggingObjectIds.isEmpty) return;
-
-    double minX = double.infinity;
-    double minY = double.infinity;
-    double maxX = double.negativeInfinity;
-    double maxY = double.negativeInfinity;
-
-    for (final objectId in _draggingObjectIds) {
-      final bounds = _spatialRects[objectId];
-      if (bounds != null) {
-        minX = math.min(minX, bounds.left);
-        minY = math.min(minY, bounds.top);
-        maxX = math.max(maxX, bounds.right);
-        maxY = math.max(maxY, bounds.bottom);
-      }
-    }
-
-    _draggingBounds = Rect.fromLTRB(minX, minY, maxX, maxY);
-  }
-
   void _rebuildSpatialIndexForDraggedObjects() {
     for (final objectId in _draggingObjectIds) {
       final object = _objects[objectId];
@@ -447,17 +407,6 @@ class SpatialIndex<T extends SpatialIndexable> {
     }
   }
 
-  void _invalidateCacheForDragging() {
-    if (enableCaching && _lastQueryBounds != Rect.zero) {
-      // More conservative cache invalidation during dragging
-      final expandedDraggingBounds = _draggingBounds.inflate(50);
-      if (expandedDraggingBounds.overlaps(_lastQueryBounds)) {
-        _cachedVisibleObjects.clear();
-        _lastQueryBounds = Rect.zero;
-      }
-    }
-  }
-
   /// Process pending updates in batches for better performance
   void _processPendingUpdatesIfNeeded() {
     if (_pendingUpdates.isEmpty) return;
@@ -471,19 +420,32 @@ class SpatialIndex<T extends SpatialIndexable> {
     }
   }
 
-  /// Process all pending spatial index updates as a batch
+  /// Process all pending spatial index updates as a batch.
+  /// Cache is invalidated only once at the end, not per-item.
   void _processPendingUpdates() {
     if (_pendingUpdates.isEmpty) return;
 
+    // Process all updates without invalidating cache per-item
     for (final objectId in _pendingUpdates) {
       final object = _objects[objectId];
       if (object != null) {
-        _updateSpatialIndexForObject(object);
+        _updateSpatialIndexForObjectWithoutCacheInvalidation(object);
       }
     }
 
     _pendingUpdates.clear();
     _lastBatchUpdate = DateTime.now();
+
+    // Invalidate cache once at the end of batch
+    _invalidateCache();
+  }
+
+  /// Updates spatial index for an object without invalidating cache.
+  /// Used during batch processing to avoid redundant cache invalidations.
+  void _updateSpatialIndexForObjectWithoutCacheInvalidation(T object) {
+    final bounds = object.getBounds();
+    _spatialRects[object.id] = bounds;
+    _updateSpatialGrid(object, bounds);
   }
 
   /// Force process any pending updates immediately

@@ -25,6 +25,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       _nodes[node.id] = node;
       // Initialize visual position with snapping
       node.setVisualPosition(_config.snapToGridIfEnabled(node.position.value));
+      // Note: Spatial index is auto-synced via MobX reaction
     });
     // Fire event after successful addition
     events.node?.onCreated?.call(node);
@@ -74,7 +75,22 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     if (node == null) return;
 
     runInAction(() {
-      // Remove any connections involving this port
+      // Find connections involving this port
+      final connectionsToRemove = _connections
+          .where(
+            (c) =>
+                (c.sourceNodeId == nodeId && c.sourcePortId == portId) ||
+                (c.targetNodeId == nodeId && c.targetPortId == portId),
+          )
+          .toList();
+
+      // Remove from spatial index and path cache
+      for (final connection in connectionsToRemove) {
+        _spatialIndex.removeConnection(connection.id);
+        _connectionPainter?.removeConnectionFromCache(connection.id);
+      }
+
+      // Remove from connections list
       _connections.removeWhere(
         (c) =>
             (c.sourceNodeId == nodeId && c.sourcePortId == portId) ||
@@ -151,6 +167,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     runInAction(() {
       node.size.value = size;
     });
+    internalMarkNodeDirty(nodeId);
   }
 
   /// Removes a node from the graph along with all its connections.
@@ -171,8 +188,20 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     runInAction(() {
       _nodes.remove(nodeId);
       _selectedNodeIds.remove(nodeId);
+      // Remove from spatial index
+      _spatialIndex.removeNode(nodeId);
 
-      // Remove connections involving this node
+      // Remove connections involving this node from spatial index first
+      final connectionsToRemove = _connections
+          .where((c) => c.sourceNodeId == nodeId || c.targetNodeId == nodeId)
+          .toList();
+      for (final connection in connectionsToRemove) {
+        _spatialIndex.removeConnection(connection.id);
+        // Also remove from path cache to prevent stale rendering
+        _connectionPainter?.removeConnectionFromCache(connection.id);
+      }
+
+      // Then remove from connections list
       _connections.removeWhere(
         (c) => c.sourceNodeId == nodeId || c.targetNodeId == nodeId,
       );
@@ -222,6 +251,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
         // Update visual position with snapping
         node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
       });
+      internalMarkNodeDirty(nodeId);
     }
   }
 
@@ -239,7 +269,6 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     if (nodeIds.isEmpty) return;
 
     runInAction(() {
-      // Batch position updates
       for (final nodeId in nodeIds) {
         final node = _nodes[nodeId];
         if (node != null) {
@@ -250,6 +279,76 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
         }
       }
     });
+    internalMarkNodesDirty(nodeIds);
+  }
+
+  /// Rebuilds connection spatial index using accurate path segments.
+  /// Call this after drag ends to restore accurate hit-testing.
+  void rebuildConnectionSegmentsForNodes(List<String> nodeIds) {
+    if (!isConnectionPainterInitialized || _theme == null) return;
+
+    final nodeIdSet = nodeIds.toSet();
+    final pathCache = _connectionPainter!.pathCache;
+    final connectionStyle = _theme!.connectionTheme.style;
+
+    for (final connection in _connections) {
+      if (nodeIdSet.contains(connection.sourceNodeId) ||
+          nodeIdSet.contains(connection.targetNodeId)) {
+        final sourceNode = _nodes[connection.sourceNodeId];
+        final targetNode = _nodes[connection.targetNodeId];
+        if (sourceNode == null || targetNode == null) continue;
+
+        final segments = pathCache.getOrCreateSegmentBounds(
+          connection: connection,
+          sourceNode: sourceNode,
+          targetNode: targetNode,
+          connectionStyle: connectionStyle,
+        );
+        _spatialIndex.updateConnection(connection, segments);
+      }
+    }
+  }
+
+  /// Rebuilds the entire connection spatial index using accurate path segments.
+  void rebuildAllConnectionSegments() {
+    if (!isConnectionPainterInitialized || _theme == null) return;
+
+    final pathCache = _connectionPainter!.pathCache;
+    final connectionStyle = _theme!.connectionTheme.style;
+
+    _spatialIndex.rebuildConnectionsWithSegments(_connections, (connection) {
+      final sourceNode = _nodes[connection.sourceNodeId];
+      final targetNode = _nodes[connection.targetNodeId];
+      if (sourceNode == null || targetNode == null) return [];
+
+      return pathCache.getOrCreateSegmentBounds(
+        connection: connection,
+        sourceNode: sourceNode,
+        targetNode: targetNode,
+        connectionStyle: connectionStyle,
+      );
+    });
+  }
+
+  /// Rebuilds spatial index for a single connection using accurate path segments.
+  /// Call this after control point changes to restore accurate hit-testing.
+  void _rebuildSingleConnectionSpatialIndex(Connection connection) {
+    if (!isConnectionPainterInitialized || _theme == null) return;
+
+    final sourceNode = _nodes[connection.sourceNodeId];
+    final targetNode = _nodes[connection.targetNodeId];
+    if (sourceNode == null || targetNode == null) return;
+
+    final pathCache = _connectionPainter!.pathCache;
+    final connectionStyle = _theme!.connectionTheme.style;
+
+    final segments = pathCache.getOrCreateSegmentBounds(
+      connection: connection,
+      sourceNode: sourceNode,
+      targetNode: targetNode,
+      connectionStyle: connectionStyle,
+    );
+    _spatialIndex.updateConnection(connection, segments);
   }
 
   // Selection operations
@@ -547,6 +646,14 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       node.setVisualPosition(_config.snapToGridIfEnabled(node.position.value));
     }
 
+    // Rebuild spatial indexes for hit testing
+    _spatialIndex.rebuildFromNodes(_nodes.values);
+    _spatialIndex.rebuildConnections(
+      _connections,
+      (connection) => _calculateConnectionBounds(connection) ?? Rect.zero,
+    );
+    _spatialIndex.rebuildFromAnnotations(annotations.annotations.values);
+
     // Update dependent annotations after loading
     annotations.internalUpdateDependentAnnotations(_nodes);
   }
@@ -600,9 +707,52 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   void addConnection(Connection connection) {
     runInAction(() {
       _connections.add(connection);
+      // Note: Spatial index is auto-synced via MobX reaction
     });
     // Fire event after successful addition
     events.connection?.onCreated?.call(connection);
+  }
+
+  /// Calculates the bounding box for a connection based on its source and target nodes.
+  Rect? _calculateConnectionBounds(Connection connection) {
+    final sourceNode = _nodes[connection.sourceNodeId];
+    final targetNode = _nodes[connection.targetNodeId];
+    if (sourceNode == null || targetNode == null) return null;
+
+    final sourcePos = sourceNode.position.value;
+    final sourceSize = sourceNode.size.value;
+    final targetPos = targetNode.position.value;
+    final targetSize = targetNode.size.value;
+
+    final sourceCenter =
+        sourcePos + Offset(sourceSize.width / 2, sourceSize.height / 2);
+    final targetCenter =
+        targetPos + Offset(targetSize.width / 2, targetSize.height / 2);
+
+    // Create bounding box with padding for bezier curves
+    const padding = 50.0;
+    final minX =
+        (sourceCenter.dx < targetCenter.dx
+            ? sourceCenter.dx
+            : targetCenter.dx) -
+        padding;
+    final maxX =
+        (sourceCenter.dx > targetCenter.dx
+            ? sourceCenter.dx
+            : targetCenter.dx) +
+        padding;
+    final minY =
+        (sourceCenter.dy < targetCenter.dy
+            ? sourceCenter.dy
+            : targetCenter.dy) -
+        padding;
+    final maxY =
+        (sourceCenter.dy > targetCenter.dy
+            ? sourceCenter.dy
+            : targetCenter.dy) +
+        padding;
+
+    return Rect.fromLTRB(minX, minY, maxX, maxY);
   }
 
   /// Removes a connection from the graph.
@@ -623,6 +773,8 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     runInAction(() {
       _connections.removeWhere((c) => c.id == connectionId);
       _selectedConnectionIds.remove(connectionId);
+      // Remove from spatial index
+      _spatialIndex.removeConnection(connectionId);
     });
 
     // Remove cached path to prevent stale rendering
@@ -676,8 +828,9 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       connection.controlPoints = controlPoints;
     });
 
-    // Invalidate cached path
+    // Invalidate cached path and rebuild spatial index
     _connectionPainter?.pathCache.removeConnection(connectionId);
+    _rebuildSingleConnectionSpatialIndex(connection);
   }
 
   /// Updates the position of a control point on a connection.
@@ -715,8 +868,9 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       connection.controlPoints = controlPoints;
     });
 
-    // Invalidate cached path
+    // Invalidate cached path and rebuild spatial index
     _connectionPainter?.pathCache.removeConnection(connectionId);
+    _rebuildSingleConnectionSpatialIndex(connection);
   }
 
   /// Removes a control point from a connection.
@@ -754,8 +908,9 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       connection.controlPoints = controlPoints;
     });
 
-    // Invalidate cached path
+    // Invalidate cached path and rebuild spatial index
     _connectionPainter?.pathCache.removeConnection(connectionId);
+    _rebuildSingleConnectionSpatialIndex(connection);
   }
 
   /// Clears all control points from a connection.
@@ -783,8 +938,9 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       connection.controlPoints = [];
     });
 
-    // Invalidate cached path
+    // Invalidate cached path and rebuild spatial index
     _connectionPainter?.pathCache.removeConnection(connectionId);
+    _rebuildSingleConnectionSpatialIndex(connection);
   }
 
   // Viewport operations
@@ -1698,6 +1854,9 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       annotations.clearAnnotationSelection();
     });
 
+    // Clear spatial indexes to prevent stale hit test entries
+    _spatialIndex.clear();
+
     // Clear connection painter cache to prevent stale paths
     _connectionPainter?.clearAllCachedPaths();
   }
@@ -1814,6 +1973,10 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
         nodeList[i].setVisualPosition(_config.snapToGridIfEnabled(newPosition));
       }
     });
+
+    // Rebuild spatial index for all nodes and connections after layout
+    _spatialIndex.rebuildFromNodes(nodeList);
+    rebuildAllConnectionSegments();
   }
 
   /// Arranges nodes hierarchically by type.
@@ -1846,6 +2009,10 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
         y += 150;
       }
     });
+
+    // Rebuild spatial index for all nodes and connections after layout
+    _spatialIndex.rebuildFromNodes(_nodes.values);
+    rebuildAllConnectionSegments();
   }
 
   // Query methods
@@ -2124,6 +2291,10 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
         node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
       }
     });
+
+    // Update spatial index and rebuild connection segments
+    internalMarkNodesDirty(nodeIds);
+    rebuildConnectionSegmentsForNodes(nodeIds);
   }
 
   /// Distributes nodes evenly along the horizontal axis.
@@ -2162,6 +2333,10 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
         nodes[i].setVisualPosition(_config.snapToGridIfEnabled(newPosition));
       }
     });
+
+    // Update spatial index and rebuild connection segments
+    internalMarkNodesDirty(nodeIds);
+    rebuildConnectionSegmentsForNodes(nodeIds);
   }
 
   /// Distributes nodes evenly along the vertical axis.
@@ -2200,6 +2375,10 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
         nodes[i].setVisualPosition(_config.snapToGridIfEnabled(newPosition));
       }
     });
+
+    // Update spatial index and rebuild connection segments
+    internalMarkNodesDirty(nodeIds);
+    rebuildConnectionSegmentsForNodes(nodeIds);
   }
 
   /// Selects only the specified nodes, clearing any existing selection.
@@ -2253,6 +2432,10 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
 
     runInAction(() {
       for (final conn in connectionsToRemove) {
+        // Remove from spatial index and path cache
+        _spatialIndex.removeConnection(conn.id);
+        _connectionPainter?.removeConnectionFromCache(conn.id);
+        // Remove from connections list
         _connections.remove(conn);
       }
     });
@@ -2317,6 +2500,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
         // Update visual position with snapping
         node.setVisualPosition(_config.snapToGridIfEnabled(position));
       });
+      internalMarkNodeDirty(nodeId);
     }
   }
 

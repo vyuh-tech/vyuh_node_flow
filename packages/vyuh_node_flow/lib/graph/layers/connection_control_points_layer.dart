@@ -172,6 +172,11 @@ class _DraggableControlPointState<T> extends State<_DraggableControlPoint<T>> {
           setState(() {
             _isDragging = false;
           });
+          // Rebuild spatial index for this connection after drag ends
+          widget.controller.rebuildConnectionSegmentsForNodes([
+            widget.connection.sourceNodeId,
+            widget.connection.targetNodeId,
+          ]);
         },
         child: MouseRegion(
           cursor: SystemMouseCursors.move,

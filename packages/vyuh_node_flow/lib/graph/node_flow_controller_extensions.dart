@@ -106,20 +106,18 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
   void _endNodeDrag() {
     // Capture dragged nodes before clearing state
     final draggedNodes = <Node<T>>[];
+    final draggedNodeIds = <String>[];
     for (final node in nodes.values) {
       if (node.dragging.value) {
         draggedNodes.add(node);
+        draggedNodeIds.add(node.id);
       }
     }
 
     runInAction(() {
-      // Check for drag-to-group intersections before clearing drag state
-      final draggedNodeIds = <String>[];
-      for (final node in nodes.values) {
-        if (node.dragging.value) {
-          draggedNodeIds.add(node.id);
-          node.dragging.value = false;
-        }
+      // Clear dragging state on nodes
+      for (final node in draggedNodes) {
+        node.dragging.value = false;
       }
 
       // Handle Command+drag group operations (add/remove from groups)
@@ -133,6 +131,13 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
       interaction.draggedNodeId.value = null;
       interaction.lastPointerPosition.value = null;
     });
+
+    // Rebuild connection segments with accurate path bounds after drag ends
+    // Note: Node and annotation spatial index updates are handled by MobX reactions
+    // in _setupSpatialIndexReactions() which fire when draggedNodeId becomes null
+    if (draggedNodeIds.isNotEmpty) {
+      rebuildConnectionSegmentsForNodes(draggedNodeIds);
+    }
 
     // Fire drag stop event for all dragged nodes
     for (final node in draggedNodes) {
@@ -189,6 +194,9 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
         }
       }
     });
+
+    // Mark moved nodes dirty (deferred during drag, flushed when drag ends)
+    internalMarkNodesDirty(movedNodes.map((n) => n.id));
 
     // Fire drag event for all moved nodes
     for (final node in movedNodes) {

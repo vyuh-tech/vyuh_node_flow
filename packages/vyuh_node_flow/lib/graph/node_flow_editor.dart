@@ -1,4 +1,4 @@
-import 'package:flutter/gestures.dart';
+import 'package:flutter/gestures.dart' hide HitTestResult;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -18,6 +18,7 @@ import '../nodes/node.dart';
 import '../nodes/node_shape.dart';
 import '../ports/port_widget.dart';
 import '../shared/flutter_actions_integration.dart';
+import '../shared/spatial/graph_spatial_index.dart';
 import 'canvas_transform_provider.dart';
 import 'layers/attribution_overlay.dart';
 import 'layers/connection_control_points_layer.dart';
@@ -387,8 +388,11 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Set up node shape builder BEFORE theme (so ConnectionPainter gets the shape builder)
     _updateNodeShapeBuilder();
 
-    // Set theme on the controller
+    // Set theme on the controller (this initializes the connection painter)
     widget.controller.setTheme(widget.theme);
+
+    // Set up spatial index callbacks (requires connection painter to be initialized)
+    _setupSpatialIndex();
 
     // Set events on the controller
     if (widget.events != null) {
@@ -446,144 +450,148 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
     return Theme(
       data: Theme.of(context).copyWith(extensions: [theme]),
-      child: LayoutBuilder(
+      child: _SizeObserver(
+        onSizeChanged: widget.controller.setScreenSize,
         builder: (context, constraints) {
-          // Update screen size immediately on first build, then use post frame callback for updates
-          if (widget.controller.screenSize == Size.zero) {
-            widget.controller.setScreenSize(constraints.biggest);
-          } else {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (widget.controller.screenSize != constraints.biggest) {
-                widget.controller.setScreenSize(constraints.biggest);
-              }
-            });
-          }
-
           return NodeFlowKeyboardHandler<T>(
             controller: widget.controller,
             focusNode: widget.controller.canvasFocusNode,
-            child: Container(
-              width: constraints.maxWidth,
-              height: constraints.maxHeight,
-              clipBehavior: Clip.hardEdge,
-              decoration: BoxDecoration(color: theme.backgroundColor),
-              child: Stack(
-                children: [
-                  _buildCanvas(constraints, theme),
+            child: Listener(
+              onPointerDown: _handlePointerDown,
+              onPointerMove: _handlePointerMove,
+              onPointerUp: _handlePointerUp,
+              onPointerHover: _handleMouseHover,
+              child: Observer.withBuiltChild(
+                builder: (context, child) {
+                  return MouseRegion(
+                    cursor: widget.controller.currentCursor,
+                    child: child,
+                  );
+                },
+                child: Container(
+                  width: constraints.maxWidth,
+                  height: constraints.maxHeight,
+                  clipBehavior: Clip.hardEdge,
+                  decoration: BoxDecoration(color: theme.backgroundColor),
+                  child: Stack(
+                    children: [
+                      // Canvas with InteractiveViewer for pan/zoom
+                      // Wrapped in Observer to react to panEnabled changes
+                      Observer.withBuiltChild(
+                        builder: (context, child) {
+                          return InteractiveViewer(
+                            transformationController: _transformationController,
+                            boundaryMargin: const EdgeInsets.all(
+                              double.infinity,
+                            ),
+                            constrained: false,
+                            minScale: widget.controller.config.minZoom.value,
+                            maxScale: widget.controller.config.maxZoom.value,
+                            panEnabled: widget.controller.panEnabled,
+                            scaleEnabled: widget.enableZooming,
+                            trackpadScrollCausesScale: widget.scrollToZoom,
+                            onInteractionStart: _onInteractionStart,
+                            onInteractionUpdate: _onInteractionUpdate,
+                            onInteractionEnd: _onInteractionEnd,
+                            child: child,
+                          );
+                        },
+                        child: SizedBox(
+                          width: constraints.maxWidth,
+                          height: constraints.maxHeight,
+                          child: AnimatedBuilder(
+                            animation: _transformationController,
+                            builder: (context, child) {
+                              return CanvasTransformProvider(
+                                transform: _transformationController.value,
+                                child: child!,
+                              );
+                            },
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                // Background grid
+                                GridLayer(
+                                  theme: theme,
+                                  transformationController:
+                                      _transformationController,
+                                ),
 
-                  // Minimap overlay - topmost layer, outside InteractiveViewer
-                  MinimapOverlay<T>(
-                    controller: widget.controller,
-                    theme: theme,
-                    transformationController: _transformationController,
-                    canvasSize: constraints.biggest,
-                  ),
+                                // Background annotations (groups)
+                                if (widget.showAnnotations)
+                                  AnnotationLayer.background(widget.controller),
 
-                  // Attribution overlay - bottom center
-                  AttributionOverlay(
-                    show: widget.controller.config.showAttribution,
+                                // Connections
+                                ConnectionsLayer<T>(
+                                  controller: widget.controller,
+                                  animation: _connectionAnimationController,
+                                ),
+
+                                // Connection labels
+                                ConnectionLabelsLayer<T>(
+                                  controller: widget.controller,
+                                  labelBuilder: widget.labelBuilder,
+                                ),
+
+                                // Connection control points
+                                ConnectionControlPointsLayer<T>(
+                                  controller: widget.controller,
+                                ),
+
+                                // Nodes
+                                NodesLayer<T>(
+                                  controller: widget.controller,
+                                  nodeBuilder: widget.nodeBuilder,
+                                  nodeContainerBuilder:
+                                      widget.nodeContainerBuilder,
+                                  portBuilder: widget.portBuilder,
+                                  connections: widget.controller.connections,
+                                  onNodeTap: _handleNodeTap,
+                                  onNodeDoubleTap: _handleNodeDoubleTap,
+                                  onNodeMouseEnter: _handleNodeMouseEnter,
+                                  onNodeMouseLeave: _handleNodeMouseLeave,
+                                  onNodeContextMenu: _handleNodeContextMenu,
+                                ),
+
+                                // Foreground annotations (stickies, markers)
+                                if (widget.showAnnotations)
+                                  AnnotationLayer.foreground(widget.controller),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Interaction layer - renders temporary connections and selection rectangles
+                      // Positioned outside the canvas to render anywhere on the infinite canvas
+                      // Uses IgnorePointer since Listener above handles all events
+                      Positioned.fill(
+                        child: InteractionLayer<T>(
+                          controller: widget.controller,
+                          transformationController: _transformationController,
+                          animation: _connectionAnimationController,
+                        ),
+                      ),
+
+                      // Minimap overlay - topmost layer, outside InteractiveViewer
+                      MinimapOverlay<T>(
+                        controller: widget.controller,
+                        theme: theme,
+                        transformationController: _transformationController,
+                        canvasSize: constraints.biggest,
+                      ),
+
+                      // Attribution overlay - bottom center
+                      AttributionOverlay(
+                        show: widget.controller.config.showAttribution,
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildCanvas(BoxConstraints constraints, NodeFlowTheme theme) {
-    return Listener(
-      onPointerDown: _handlePointerDown,
-      onPointerMove: _handlePointerMove,
-      onPointerUp: _handlePointerUp,
-      onPointerHover: _handleMouseHover,
-      child: Observer.withBuiltChild(
-        builder: (context, child) {
-          return MouseRegion(
-            cursor: widget.controller.currentCursor,
-            child: InteractiveViewer(
-              transformationController: _transformationController,
-              boundaryMargin: const EdgeInsets.all(double.infinity),
-              constrained: false,
-              minScale: widget.controller.config.minZoom.value,
-              maxScale: widget.controller.config.maxZoom.value,
-              panEnabled: widget.controller.panEnabled,
-              scaleEnabled: widget.enableZooming,
-              trackpadScrollCausesScale: widget.scrollToZoom,
-              onInteractionStart: _onInteractionStart,
-              onInteractionUpdate: _onInteractionUpdate,
-              onInteractionEnd: _onInteractionEnd,
-              child: child,
-            ),
-          );
-        },
-        child: SizedBox(
-          width: constraints.maxWidth,
-          height: constraints.maxHeight,
-          child: AnimatedBuilder(
-            animation: _transformationController,
-            builder: (context, child) {
-              return CanvasTransformProvider(
-                transform: _transformationController.value,
-                child: child!,
-              );
-            },
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Background grid - observes only viewport changes
-                GridLayer(
-                  theme: theme,
-                  transformationController: _transformationController,
-                ),
-
-                // Background annotations (groups) - behind nodes
-                if (widget.showAnnotations)
-                  AnnotationLayer.background(widget.controller),
-
-                // Connections - uses specialized observable layer
-                ConnectionsLayer<T>(
-                  controller: widget.controller,
-                  animation: _connectionAnimationController,
-                ),
-
-                // Connection labels - rendered separately for optimized repainting
-                ConnectionLabelsLayer<T>(
-                  controller: widget.controller,
-                  labelBuilder: widget.labelBuilder,
-                ),
-
-                // Connection control points - interactive waypoint editing
-                ConnectionControlPointsLayer<T>(controller: widget.controller),
-
-                // Nodes - each node observes only its own state
-                NodesLayer<T>(
-                  controller: widget.controller,
-                  nodeBuilder: widget.nodeBuilder,
-                  nodeContainerBuilder: widget.nodeContainerBuilder,
-                  portBuilder: widget.portBuilder,
-                  connections: widget.controller.connections,
-                  onNodeTap: _handleNodeTap,
-                  onNodeDoubleTap: _handleNodeDoubleTap,
-                  onNodeMouseEnter: _handleNodeMouseEnter,
-                  onNodeMouseLeave: _handleNodeMouseLeave,
-                  onNodeContextMenu: _handleNodeContextMenu,
-                ),
-
-                // Foreground annotations (stickies, markers) - above nodes
-                if (widget.showAnnotations)
-                  AnnotationLayer.foreground(widget.controller),
-
-                // Interaction layer - temporary connection and selection rectangle
-                InteractionLayer<T>(
-                  controller: widget.controller,
-                  animation: _connectionAnimationController,
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -641,6 +649,69 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     } else {
       widget.controller.setNodeShapeBuilder(null);
     }
+  }
+
+  void _setupSpatialIndex() {
+    final spatialIndex = widget.controller.spatialIndex;
+    final themePortSize = widget.theme.portTheme.size;
+
+    // Set up node shape builder callback
+    spatialIndex.nodeShapeBuilder = widget.controller.nodeShapeBuilder;
+
+    // Set up port size resolver
+    spatialIndex.portSizeResolver = (port) => port.size ?? themePortSize;
+
+    // Set up connection hit tester callback
+    spatialIndex.connectionHitTester = (connection, point) {
+      final sourceNode = widget.controller.getNode(connection.sourceNodeId);
+      final targetNode = widget.controller.getNode(connection.targetNodeId);
+      if (sourceNode == null || targetNode == null) return false;
+
+      return widget.controller.connectionPainter.hitTestConnection(
+        connection: connection,
+        sourceNode: sourceNode,
+        targetNode: targetNode,
+        testPoint: point,
+      );
+    };
+
+    // Initialize spatial indexes
+    spatialIndex.rebuildFromNodes(widget.controller.nodes.values);
+    _rebuildConnectionSpatialIndex();
+    spatialIndex.rebuildFromAnnotations(
+      widget.controller.annotations.annotations.values,
+    );
+  }
+
+  void _rebuildConnectionSpatialIndex() {
+    // Guard: connection painter must be initialized first
+    if (!widget.controller.isConnectionPainterInitialized) {
+      return;
+    }
+
+    final spatialIndex = widget.controller.spatialIndex;
+    final pathCache = widget.controller.connectionPainter.pathCache;
+    final connectionStyle = widget.theme.connectionTheme.style;
+
+    // Use segment-based spatial indexing for accurate hit testing
+    spatialIndex.rebuildConnectionsWithSegments(widget.controller.connections, (
+      connection,
+    ) {
+      final sourceNode = widget.controller.getNode(connection.sourceNodeId);
+      final targetNode = widget.controller.getNode(connection.targetNodeId);
+      if (sourceNode == null || targetNode == null) {
+        return [];
+      }
+
+      // Get segment bounds from the path cache
+      // This uses the rectangle segments created by the connection style
+      return pathCache.getOrCreateSegmentBounds(
+        connection: connection,
+        sourceNode: sourceNode,
+        targetNode: targetNode,
+        connectionStyle: connectionStyle,
+      );
+    });
   }
 
   void _updatePanState() {
@@ -1476,85 +1547,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     );
   }
 
-  // Hit testing
+  // Hit testing - delegates to GraphSpatialIndex for O(1) performance
   HitTestResult _performHitTest(Offset localPosition) {
     final graphPosition = _screenToGraph(localPosition);
-    final themePortSize = widget.theme.portTheme.size;
-
-    // Use cached sorted nodes and reverse for hit testing (highest zIndex first)
-    final sortedNodes = widget.controller.sortedNodes.reversed.toList();
-
-    // 1. Check ports first (highest priority)
-    for (final node in sortedNodes) {
-      // Get the shape for this node (if any) for shape-aware port positions
-      final shape = widget.controller.nodeShapeBuilder?.call(node);
-
-      for (final port in [...node.inputPorts, ...node.outputPorts]) {
-        // Use cascade: port.size → theme.size
-        final effectivePortSize = port.size ?? themePortSize;
-        final portPosition = node.getPortPosition(
-          port.id,
-          portSize: effectivePortSize,
-          shape: shape,
-        );
-        final distance = (graphPosition - portPosition).distance;
-
-        // Is the cursor within the port's hit area?
-        if (distance <= widget.controller.config.portSnapDistance.value) {
-          return HitTestResult(
-            nodeId: node.id,
-            portId: port.id,
-            isOutput: node.outputPorts.contains(port),
-            hitType: HitTarget.port,
-          );
-        }
-      }
-    }
-
-    // 2. Check nodes (use shape-aware hit testing)
-    for (final node in sortedNodes) {
-      // Get the shape for this node (if any)
-      final shape = widget.controller.nodeShapeBuilder?.call(node);
-
-      if (shape != null) {
-        // Use shape-aware hit testing with full node size
-        // Calculate position relative to node
-        final relativePosition = graphPosition - node.position.value;
-
-        // Use full node size for hit testing (not inset)
-        // The shape might be rendered smaller due to padding, but we want
-        // the entire node area to be clickable
-        if (shape.containsPoint(relativePosition, node.size.value)) {
-          return HitTestResult(nodeId: node.id, hitType: HitTarget.node);
-        }
-      } else {
-        // Rectangular node - use simple bounds check
-        if (node.containsPoint(graphPosition)) {
-          return HitTestResult(nodeId: node.id, hitType: HitTarget.node);
-        }
-      }
-    }
-
-    // 3. Check connections
-    final hitConnectionId = widget.controller.hitTestConnections(graphPosition);
-    if (hitConnectionId != null) {
-      return HitTestResult(
-        connectionId: hitConnectionId,
-        hitType: HitTarget.connection,
-      );
-    }
-
-    // 4. Check annotations
-    final annotation = widget.controller.hitTestAnnotations(graphPosition);
-    if (annotation != null) {
-      return HitTestResult(
-        annotationId: annotation.id,
-        hitType: HitTarget.annotation,
-      );
-    }
-
-    // 5. Canvas (lowest priority)
-    return const HitTestResult(hitType: HitTarget.canvas);
+    return widget.controller.spatialIndex.hitTest(graphPosition);
   }
 
   Offset _screenToGraph(Offset screenPosition) {
@@ -1618,77 +1614,54 @@ class SelectionRectanglePainter extends CustomPainter {
   }
 }
 
-/// Hit test result types for different UI elements.
+/// A widget that observes size changes and notifies via callback.
 ///
-/// Used to determine what element the user is interacting with at a specific
-/// position on the canvas.
-enum HitTarget {
-  /// Empty canvas area (no elements hit)
-  canvas,
+/// This properly separates size observation from the build phase by using
+/// post-frame callbacks to notify of size changes.
+class _SizeObserver extends StatefulWidget {
+  const _SizeObserver({required this.onSizeChanged, required this.builder});
 
-  /// A node element
-  node,
+  /// Callback invoked when the size changes.
+  final ValueChanged<Size> onSizeChanged;
 
-  /// A port on a node
-  port,
+  /// Builder that receives the current constraints.
+  final Widget Function(BuildContext context, BoxConstraints constraints)
+  builder;
 
-  /// A connection between nodes
-  connection,
-
-  /// An annotation (sticky note, marker, or group)
-  annotation,
+  @override
+  State<_SizeObserver> createState() => _SizeObserverState();
 }
 
-/// Result of hit testing at a specific position on the canvas.
-///
-/// Contains information about what element was hit and its properties.
-/// Used for cursor updates, interaction handling, and event routing.
-class HitTestResult {
-  const HitTestResult({
-    this.nodeId,
-    this.portId,
-    this.connectionId,
-    this.annotationId,
-    this.isOutput,
-    this.position,
-    this.hitType = HitTarget.canvas,
-  });
+class _SizeObserverState extends State<_SizeObserver> {
+  Size? _lastSize;
 
-  /// The ID of the node that was hit, if any.
-  final String? nodeId;
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = constraints.biggest;
+        _scheduleNotification(size);
+        return widget.builder(context, constraints);
+      },
+    );
+  }
 
-  /// The ID of the port that was hit, if any.
-  final String? portId;
+  void _scheduleNotification(Size size) {
+    if (_lastSize == size) return;
 
-  /// The ID of the connection that was hit, if any.
-  final String? connectionId;
+    // For initial size, notify immediately to avoid flicker
+    if (_lastSize == null) {
+      _lastSize = size;
+      widget.onSizeChanged(size);
+      return;
+    }
 
-  /// The ID of the annotation that was hit, if any.
-  final String? annotationId;
-
-  /// Whether the hit port is an output port.
-  ///
-  /// `true` for output ports, `false` for input ports, `null` if not a port.
-  final bool? isOutput;
-
-  /// The position where the hit occurred in graph coordinates.
-  final Offset? position;
-
-  /// The type of element that was hit.
-  final HitTarget hitType;
-
-  /// Returns `true` if a port was hit.
-  bool get isPort => hitType == HitTarget.port;
-
-  /// Returns `true` if a node was hit.
-  bool get isNode => hitType == HitTarget.node;
-
-  /// Returns `true` if a connection was hit.
-  bool get isConnection => hitType == HitTarget.connection;
-
-  /// Returns `true` if an annotation was hit.
-  bool get isAnnotation => hitType == HitTarget.annotation;
-
-  /// Returns `true` if empty canvas was hit (no elements).
-  bool get isCanvas => hitType == HitTarget.canvas;
+    // For subsequent changes, use post-frame callback
+    _lastSize = size;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        widget.onSizeChanged(size);
+      }
+    });
+  }
 }

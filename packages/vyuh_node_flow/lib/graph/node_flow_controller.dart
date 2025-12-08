@@ -18,6 +18,7 @@ import '../nodes/node_data.dart';
 import '../nodes/node_shape.dart';
 import '../ports/port.dart';
 import '../shared/shortcuts_viewer_dialog.dart';
+import '../shared/spatial/graph_spatial_index.dart';
 import 'node_flow_actions.dart';
 
 part '../annotations/annotation_controller.dart';
@@ -67,6 +68,9 @@ class NodeFlowController<T> {
 
     // Setup selection change reactions
     _setupSelectionReactions();
+
+    // Setup spatial index auto-sync reactions
+    _setupSpatialIndexReactions();
   }
 
   // Behavioral configuration
@@ -179,6 +183,19 @@ class NodeFlowController<T> {
   // Connection painting and hit-testing
   ConnectionPainter? _connectionPainter;
 
+  // Spatial hit testing
+  late final GraphSpatialIndex<T> _spatialIndex = GraphSpatialIndex<T>(
+    portSnapDistance: _config.portSnapDistance.value,
+  );
+
+  // Pending spatial index updates (dirty tracking)
+  final Set<String> _pendingNodeUpdates = {};
+  final Set<String> _pendingAnnotationUpdates = {};
+  final Set<String> _pendingConnectionUpdates = {};
+
+  // Connection index for O(1) lookup by node ID
+  final Map<String, Set<String>> _connectionsByNodeId = {};
+
   // Actions and shortcuts management
   late final NodeFlowShortcutManager<T> shortcuts;
 
@@ -283,6 +300,11 @@ class NodeFlowController<T> {
   /// Returns a set of connection IDs. An empty set means no connections are selected.
   Set<String> get selectedConnectionIds => _selectedConnectionIds;
 
+  /// Gets the hit tester for spatial queries (package-private).
+  ///
+  /// Used by the editor for efficient hit testing with spatial indexing.
+  GraphSpatialIndex<T> get spatialIndex => _spatialIndex;
+
   List<Node<T>> _computeSortedNodes() {
     // Create a list from nodes and sort by zIndex
     final nodesList = _nodes.values.toList();
@@ -362,6 +384,61 @@ class NodeFlowController<T> {
     );
   }
 
+  void _setupSpatialIndexReactions() {
+    // === DRAG STATE FLUSH REACTION ===
+    // When any drag ends (node or annotation), flush all pending spatial index updates.
+    // This is the single point where pending updates are committed.
+    reaction(
+      (_) => (
+        interaction.draggedNodeId.value,
+        annotations.draggedAnnotationId,
+      ),
+      ((String?, String?) dragState) {
+        final (nodeDragId, annotationDragId) = dragState;
+        // Only flush when ALL drags have ended
+        if (nodeDragId == null && annotationDragId == null) {
+          _flushPendingSpatialUpdates();
+        }
+      },
+      fireImmediately: false,
+    );
+
+    // === NODE ADD/REMOVE SYNC ===
+    // When nodes are added/removed, rebuild the node spatial index
+    reaction(
+      (_) => _nodes.keys.toSet(),
+      (Set<String> currentNodeIds) {
+        _spatialIndex.rebuildFromNodes(_nodes.values);
+      },
+      fireImmediately: false,
+    );
+
+    // === CONNECTION ADD/REMOVE SYNC ===
+    // When connections are added/removed, rebuild connection spatial index and update index
+    reaction(
+      (_) => _connections.map((c) => c.id).toSet(),
+      (Set<String> connectionIds) {
+        // Rebuild connection-by-node index
+        _rebuildConnectionsByNodeIndex();
+        // Rebuild connection spatial index
+        _spatialIndex.rebuildConnections(
+          _connections,
+          (connection) => _calculateConnectionBounds(connection) ?? Rect.zero,
+        );
+      },
+      fireImmediately: false,
+    );
+
+    // === ANNOTATION ADD/REMOVE SYNC ===
+    reaction(
+      (_) => annotations.annotations.keys.toSet(),
+      (Set<String> annotationIds) {
+        _spatialIndex.rebuildFromAnnotations(annotations.annotations.values);
+      },
+      fireImmediately: false,
+    );
+  }
+
   /// Gets the connection painter used for rendering and hit-testing connections.
   ///
   /// The connection painter must be initialized by calling `setTheme` first,
@@ -376,6 +453,10 @@ class NodeFlowController<T> {
     }
     return _connectionPainter!;
   }
+
+  /// Whether the connection painter has been initialized.
+  /// Use this to guard access to [connectionPainter] during initialization.
+  bool get isConnectionPainterInitialized => _connectionPainter != null;
 
   /// Disposes of the controller and releases resources.
   ///
@@ -395,5 +476,182 @@ class NodeFlowController<T> {
     _connectionPainter?.dispose();
     annotations.dispose();
     // Other disposal logic...
+  }
+}
+
+/// Private extension for dirty tracking and spatial index management.
+///
+/// This extension groups all the dirty tracking logic for efficient spatial
+/// index updates. The pattern defers spatial index updates during drag
+/// operations and batches them when the drag ends.
+///
+/// Key concepts:
+/// - Dirty tracking: Nodes/annotations/connections are marked "dirty" during drag
+/// - Deferred updates: Spatial index updates are deferred to pending sets
+/// - Batch flush: All pending updates are flushed when drag ends
+/// - Connection index: O(1) lookup of connections by node ID
+extension DirtyTrackingExtension<T> on NodeFlowController<T> {
+  /// Checks if any drag operation is in progress (node or annotation)
+  bool get _isAnyDragInProgress =>
+      interaction.draggedNodeId.value != null ||
+      annotations.draggedAnnotationId != null;
+
+  /// Flushes all pending spatial index updates.
+  /// Called when drag operations end.
+  void _flushPendingSpatialUpdates() {
+    // Flush node updates
+    if (_pendingNodeUpdates.isNotEmpty) {
+      _spatialIndex.batch(() {
+        for (final nodeId in _pendingNodeUpdates) {
+          final node = _nodes[nodeId];
+          if (node != null) {
+            _spatialIndex.update(node);
+          }
+        }
+      });
+      _pendingNodeUpdates.clear();
+    }
+
+    // Flush connection updates
+    if (_pendingConnectionUpdates.isNotEmpty) {
+      for (final connectionId in _pendingConnectionUpdates) {
+        final connection = _connections.firstWhere(
+          (c) => c.id == connectionId,
+          orElse: () => throw StateError('Connection not found'),
+        );
+        final bounds = _calculateConnectionBounds(connection);
+        if (bounds != null) {
+          _spatialIndex.updateConnection(connection, [bounds]);
+        }
+      }
+      _pendingConnectionUpdates.clear();
+    }
+
+    // Flush annotation updates
+    if (_pendingAnnotationUpdates.isNotEmpty) {
+      for (final annotationId in _pendingAnnotationUpdates) {
+        final annotation = annotations.annotations[annotationId];
+        if (annotation != null) {
+          _spatialIndex.updateAnnotation(annotation);
+        }
+      }
+      _pendingAnnotationUpdates.clear();
+    }
+  }
+
+  /// Rebuilds the connection-by-node index for O(1) lookup
+  void _rebuildConnectionsByNodeIndex() {
+    _connectionsByNodeId.clear();
+    for (final connection in _connections) {
+      _connectionsByNodeId
+          .putIfAbsent(connection.sourceNodeId, () => {})
+          .add(connection.id);
+      _connectionsByNodeId
+          .putIfAbsent(connection.targetNodeId, () => {})
+          .add(connection.id);
+    }
+  }
+
+  /// Updates spatial index bounds for a single node's connections using the index.
+  void _updateConnectionBoundsForNode(String nodeId) {
+    final connectionIds = _connectionsByNodeId[nodeId];
+    if (connectionIds == null || connectionIds.isEmpty) return;
+
+    for (final connectionId in connectionIds) {
+      final connection = _connections.firstWhere(
+        (c) => c.id == connectionId,
+        orElse: () => throw StateError('Connection not found: $connectionId'),
+      );
+      final bounds = _calculateConnectionBounds(connection);
+      if (bounds != null) {
+        _spatialIndex.updateConnection(connection, [bounds]);
+      }
+    }
+  }
+
+  /// Updates spatial index bounds for connections attached to the given nodes.
+  void _updateConnectionBoundsForNodeIds(Iterable<String> nodeIds) {
+    final connectionIdsToUpdate = <String>{};
+    for (final nodeId in nodeIds) {
+      final connectedIds = _connectionsByNodeId[nodeId];
+      if (connectedIds != null) {
+        connectionIdsToUpdate.addAll(connectedIds);
+      }
+    }
+
+    for (final connectionId in connectionIdsToUpdate) {
+      final connection = _connections.firstWhere(
+        (c) => c.id == connectionId,
+        orElse: () => throw StateError('Connection not found: $connectionId'),
+      );
+      final bounds = _calculateConnectionBounds(connection);
+      if (bounds != null) {
+        _spatialIndex.updateConnection(connection, [bounds]);
+      }
+    }
+  }
+
+  // === Public internal methods (accessible from other libraries) ===
+  // These methods need to be part of the extension but accessible externally,
+  // hence the 'internal' prefix convention instead of underscore.
+
+  // @nodoc - Internal framework use only - do not use in user code
+  /// Marks a node as needing spatial index update.
+  /// If no drag is in progress, updates immediately. Otherwise, defers until drag ends.
+  void internalMarkNodeDirty(String nodeId) {
+    if (_isAnyDragInProgress) {
+      _pendingNodeUpdates.add(nodeId);
+      // Also mark connected connections as dirty
+      final connectedIds = _connectionsByNodeId[nodeId];
+      if (connectedIds != null) {
+        _pendingConnectionUpdates.addAll(connectedIds);
+      }
+    } else {
+      // Immediate update
+      final node = _nodes[nodeId];
+      if (node != null) {
+        _spatialIndex.update(node);
+        _updateConnectionBoundsForNode(nodeId);
+      }
+    }
+  }
+
+  // @nodoc - Internal framework use only - do not use in user code
+  /// Marks multiple nodes as needing spatial index update.
+  void internalMarkNodesDirty(Iterable<String> nodeIds) {
+    if (_isAnyDragInProgress) {
+      _pendingNodeUpdates.addAll(nodeIds);
+      // Also mark connected connections as dirty
+      for (final nodeId in nodeIds) {
+        final connectedIds = _connectionsByNodeId[nodeId];
+        if (connectedIds != null) {
+          _pendingConnectionUpdates.addAll(connectedIds);
+        }
+      }
+    } else {
+      // Immediate update
+      _spatialIndex.batch(() {
+        for (final nodeId in nodeIds) {
+          final node = _nodes[nodeId];
+          if (node != null) {
+            _spatialIndex.update(node);
+          }
+        }
+      });
+      _updateConnectionBoundsForNodeIds(nodeIds);
+    }
+  }
+
+  // @nodoc - Internal framework use only - do not use in user code
+  /// Marks an annotation as needing spatial index update.
+  void internalMarkAnnotationDirty(String annotationId) {
+    if (_isAnyDragInProgress) {
+      _pendingAnnotationUpdates.add(annotationId);
+    } else {
+      final annotation = annotations.annotations[annotationId];
+      if (annotation != null) {
+        _spatialIndex.updateAnnotation(annotation);
+      }
+    }
   }
 }
