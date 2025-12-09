@@ -71,6 +71,10 @@ class NodeFlowController<T> {
 
     // Setup spatial index auto-sync reactions
     _setupSpatialIndexReactions();
+
+    // Provide render order to spatial index for accurate hit testing
+    // when nodes have the same zIndex
+    _spatialIndex.renderOrderProvider = () => sortedNodes;
   }
 
   // Behavioral configuration

@@ -73,6 +73,21 @@ class GraphSpatialIndex<T> {
   bool Function(Connection connection, Offset point)? connectionHitTester;
   Size Function(Port port)? portSizeResolver;
 
+  /// Provider for the canonical render order of nodes.
+  ///
+  /// When two nodes have the same zIndex, the render order determines which
+  /// one is visually on top (later in the list = on top). This is typically
+  /// provided by the controller's sortedNodes getter.
+  List<Node<T>> Function()? _renderOrderProvider;
+
+  /// Sets the render order provider for accurate hit testing.
+  ///
+  /// This should be called by the controller to provide access to the
+  /// canonical render order (sortedNodes).
+  set renderOrderProvider(List<Node<T>> Function()? provider) {
+    _renderOrderProvider = provider;
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // CORE OPERATIONS
   // ═══════════════════════════════════════════════════════════════════════════
@@ -389,6 +404,9 @@ class GraphSpatialIndex<T> {
         .map((item) => _nodes[item.nodeId])
         .whereType<Node<T>>()
         .toList();
+
+    // Sort by zIndex descending (highest first = visually on top)
+    // For nodes with same zIndex, we need to check render order
     nearbyNodes.sort((a, b) => b.zIndex.value.compareTo(a.zIndex.value));
 
     for (final node in nearbyNodes) {
@@ -405,16 +423,93 @@ class GraphSpatialIndex<T> {
         final distance = (point - portPosition).distance;
 
         if (distance <= portSnapDistance) {
-          return HitTestResult(
-            nodeId: node.id,
-            portId: port.id,
-            isOutput: node.outputPorts.contains(port),
-            hitType: HitTarget.port,
+          // Check if any other node is covering this port position
+          // This includes nodes with higher zIndex OR nodes with the same zIndex
+          // that render later (appear later in the render order)
+          final isCoveredByOtherNode = _isPointCoveredByOtherNode(
+            portPosition,
+            node,
           );
+
+          if (!isCoveredByOtherNode) {
+            return HitTestResult(
+              nodeId: node.id,
+              portId: port.id,
+              isOutput: node.outputPorts.contains(port),
+              hitType: HitTarget.port,
+            );
+          }
         }
       }
     }
     return null;
+  }
+
+  /// Checks if a point is covered by any node that renders above [excludeNode].
+  ///
+  /// A node renders above another if:
+  /// 1. It has a higher zIndex, OR
+  /// 2. It has the same zIndex but appears later in the render order
+  ///
+  /// Used to ensure that ports visually obscured by overlapping nodes are not hit.
+  bool _isPointCoveredByOtherNode(Offset point, Node<T> excludeNode) {
+    final nodesAtPoint = _grid
+        .queryPoint(point)
+        .whereType<NodeSpatialItem>()
+        .map((item) => _nodes[item.nodeId])
+        .whereType<Node<T>>()
+        .where((node) => node.id != excludeNode.id)
+        .toList();
+
+    for (final node in nodesAtPoint) {
+      // Check if this node renders above the excludeNode
+      final rendersAbove = _nodeRendersAbove(node, excludeNode);
+      if (!rendersAbove) continue;
+
+      final shape = nodeShapeBuilder?.call(node);
+
+      if (shape != null) {
+        final relativePosition = point - node.position.value;
+        if (shape.containsPoint(relativePosition, node.size.value)) {
+          return true;
+        }
+      } else {
+        if (node.containsPoint(point)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Determines if [nodeA] renders above [nodeB] in the visual stack.
+  ///
+  /// Returns true if nodeA has a higher zIndex, or if they have the same zIndex
+  /// and nodeA appears later in the render order (based on _renderOrderProvider).
+  bool _nodeRendersAbove(Node<T> nodeA, Node<T> nodeB) {
+    final zIndexA = nodeA.zIndex.value;
+    final zIndexB = nodeB.zIndex.value;
+
+    if (zIndexA > zIndexB) {
+      return true;
+    } else if (zIndexA < zIndexB) {
+      return false;
+    }
+
+    // Same zIndex - check render order if provider is available
+    if (_renderOrderProvider != null) {
+      final renderOrder = _renderOrderProvider!();
+      final indexA = renderOrder.indexWhere((n) => n.id == nodeA.id);
+      final indexB = renderOrder.indexWhere((n) => n.id == nodeB.id);
+
+      // Higher index in render order = renders later = visually on top
+      if (indexA >= 0 && indexB >= 0) {
+        return indexA > indexB;
+      }
+    }
+
+    // Fallback: if we can't determine order, assume they don't overlap in priority
+    return false;
   }
 
   HitTestResult? _hitTestNodes(Offset point) {

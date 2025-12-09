@@ -7,18 +7,17 @@ import '../../nodes/node_widget.dart';
 import '../../ports/port_widget.dart';
 import '../node_flow_controller.dart';
 
-/// Nodes layer widget that renders all nodes with optimized reactivity
+/// Nodes layer widget that renders all nodes with optimized reactivity.
+///
+/// Note: Tap, double-tap, context menu, and hover events are handled at the
+/// Listener level in NodeFlowEditor using hit testing. This ensures events
+/// work correctly regardless of node position on the canvas.
 class NodesLayer<T> extends StatelessWidget {
   const NodesLayer({
     super.key,
     required this.controller,
     required this.nodeBuilder,
     required this.connections,
-    required this.onNodeTap,
-    required this.onNodeDoubleTap,
-    this.onNodeMouseEnter,
-    this.onNodeMouseLeave,
-    this.onNodeContextMenu,
     this.nodeContainerBuilder,
     this.portBuilder,
   });
@@ -29,18 +28,13 @@ class NodesLayer<T> extends StatelessWidget {
   /// Optional builder for customizing the node container.
   /// When not provided, uses the default NodeWidget implementation.
   final Widget Function(BuildContext context, Node<T> node, Widget content)?
-  nodeContainerBuilder;
+      nodeContainerBuilder;
 
   /// Optional builder for customizing individual port widgets.
   /// When not provided, uses the default PortWidget implementation.
   final PortBuilder<T>? portBuilder;
 
   final List<Connection> connections;
-  final void Function(Node<T> node) onNodeTap;
-  final void Function(Node<T> node) onNodeDoubleTap;
-  final void Function(Node<T> node)? onNodeMouseEnter;
-  final void Function(Node<T> node)? onNodeMouseLeave;
-  final void Function(Node<T> node, Offset position)? onNodeContextMenu;
 
   @override
   Widget build(BuildContext context) {
@@ -54,8 +48,7 @@ class NodesLayer<T> extends StatelessWidget {
             return Stack(
               clipBehavior: Clip.none,
               children: [
-                for (final node in nodesList)
-                  _buildNodeContainer(context, node),
+                for (final node in nodesList) _buildNodeContainer(context, node),
               ],
             );
           },
@@ -78,32 +71,23 @@ class NodesLayer<T> extends StatelessWidget {
     final shape = controller.nodeShapeBuilder?.call(node);
 
     // Default implementation: NodeWidget with standard functionality
+    // Note: Event callbacks (tap, double-tap, context menu, hover) are handled
+    // at the Listener level in NodeFlowEditor, not here.
     return NodeWidget<T>(
       key: ValueKey(node.id),
       node: node,
       shape: shape,
       connections: connections,
-      onNodeTap: (nodeId) => onNodeTap(node),
-      onNodeDoubleTap: (nodeId) => onNodeDoubleTap(node),
-      onNodeMouseEnter: onNodeMouseEnter != null
-          ? (nodeId) => onNodeMouseEnter!(node)
-          : null,
-      onNodeMouseLeave: onNodeMouseLeave != null
-          ? (nodeId) => onNodeMouseLeave!(node)
-          : null,
-      onNodeContextMenu: onNodeContextMenu != null
-          ? (nodeId, pos) => onNodeContextMenu!(node, pos)
-          : null,
       portBuilder: portBuilder != null
           ? (context, n, port, isOutput, isConnected, isHighlighted) =>
-                portBuilder!(
-                  context,
-                  n,
-                  port,
-                  isOutput,
-                  isConnected,
-                  isHighlighted,
-                )
+              portBuilder!(
+                context,
+                n,
+                port,
+                isOutput,
+                isConnected,
+                isHighlighted,
+              )
           : null,
       child: content,
     );

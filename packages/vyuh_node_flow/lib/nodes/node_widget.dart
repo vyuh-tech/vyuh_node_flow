@@ -18,8 +18,11 @@ import '../ports/port_widget.dart';
 /// * Positioning and sizing based on [Node] state
 /// * Rendering ports at appropriate positions
 /// * Applying theme-based or custom styling
-/// * Managing user interactions (taps, hovers)
 /// * Reactive updates via MobX observables
+///
+/// Note: Tap, double-tap, context menu, and hover events are handled at the
+/// Listener level in NodeFlowEditor using hit testing. This ensures events
+/// work correctly regardless of node position on the canvas.
 ///
 /// The widget supports two usage patterns:
 /// 1. **Custom content**: Provide a [child] widget for complete control over node appearance
@@ -33,7 +36,6 @@ import '../ports/port_widget.dart';
 /// NodeWidget<MyData>(
 ///   node: myNode,
 ///   child: MyCustomNodeContent(data: myNode.data),
-///   onNodeTap: (nodeId) => print('Tapped: $nodeId'),
 ///   backgroundColor: Colors.blue.shade50,
 /// )
 /// ```
@@ -61,8 +63,6 @@ class NodeWidget<T> extends StatelessWidget {
   /// * [connections] - List of connections for determining port connection state
   /// * [onPortTap] - Callback when a port is tapped
   /// * [onPortHover] - Callback when a port is hovered
-  /// * [onNodeTap] - Callback when the node is tapped
-  /// * [onNodeDoubleTap] - Callback when the node is double-tapped
   /// * [hoveredPortInfo] - Information about the currently hovered port
   /// * [backgroundColor] - Custom background color (overrides theme)
   /// * [selectedBackgroundColor] - Custom selected background color (overrides theme)
@@ -81,11 +81,6 @@ class NodeWidget<T> extends StatelessWidget {
     this.connections = const [],
     this.onPortTap,
     this.onPortHover,
-    this.onNodeTap,
-    this.onNodeDoubleTap,
-    this.onNodeMouseEnter,
-    this.onNodeMouseLeave,
-    this.onNodeContextMenu,
     this.hoveredPortInfo,
     this.backgroundColor,
     this.selectedBackgroundColor,
@@ -112,11 +107,6 @@ class NodeWidget<T> extends StatelessWidget {
     this.connections = const [],
     this.onPortTap,
     this.onPortHover,
-    this.onNodeTap,
-    this.onNodeDoubleTap,
-    this.onNodeMouseEnter,
-    this.onNodeMouseLeave,
-    this.onNodeContextMenu,
     this.hoveredPortInfo,
     this.backgroundColor,
     this.selectedBackgroundColor,
@@ -155,31 +145,6 @@ class NodeWidget<T> extends StatelessWidget {
   ///
   /// Parameters: (nodeId, portId, isHover)
   final void Function(String nodeId, String portId, bool isHover)? onPortHover;
-
-  /// Callback invoked when the node is tapped.
-  ///
-  /// Parameters: (nodeId)
-  final void Function(String nodeId)? onNodeTap;
-
-  /// Callback invoked when the node is double-tapped.
-  ///
-  /// Parameters: (nodeId)
-  final void Function(String nodeId)? onNodeDoubleTap;
-
-  /// Callback invoked when mouse enters the node.
-  ///
-  /// Parameters: (nodeId)
-  final void Function(String nodeId)? onNodeMouseEnter;
-
-  /// Callback invoked when mouse leaves the node.
-  ///
-  /// Parameters: (nodeId)
-  final void Function(String nodeId)? onNodeMouseLeave;
-
-  /// Callback invoked on secondary tap (right-click/long-press) for context menu.
-  ///
-  /// Parameters: (nodeId, position)
-  final void Function(String nodeId, Offset position)? onNodeContextMenu;
 
   /// Information about the currently hovered port.
   ///
@@ -251,46 +216,35 @@ class NodeWidget<T> extends StatelessWidget {
         final isSelected = node.isSelected;
         final size = node.size.value;
 
+        // Note: Tap, double-tap, context menu, and hover events are handled
+        // at the Listener level in NodeFlowEditor using hit testing. This
+        // ensures events work even when nodes are dragged outside the viewport.
         return Positioned(
           left: position.dx,
           top: position.dy,
-          child: MouseRegion(
-            onEnter: onNodeMouseEnter != null
-                ? (_) => onNodeMouseEnter!(node.id)
-                : null,
-            onExit: onNodeMouseLeave != null
-                ? (_) => onNodeMouseLeave!(node.id)
-                : null,
-            child: GestureDetector(
-              onSecondaryTapUp: onNodeContextMenu != null
-                  ? (details) =>
-                        onNodeContextMenu!(node.id, details.localPosition)
-                  : null,
-              child: SizedBox(
-                width: size.width,
-                height: size.height,
-                child: Stack(
-                  clipBehavior: Clip.none, // Allow ports to overflow the bounds
-                  children: [
-                    // Main node visual - either shaped or rectangular
-                    Positioned.fill(
-                      child: shape != null
-                          ? _buildShapedNode(nodeTheme, isSelected)
-                          : _buildRectangularNode(nodeTheme, isSelected),
-                    ),
-
-                    // Input ports (positioned on edges of padded container)
-                    ...node.inputPorts.map(
-                      (port) => _buildPort(context, port, false, nodeTheme),
-                    ),
-
-                    // Output ports (positioned on edges of padded container)
-                    ...node.outputPorts.map(
-                      (port) => _buildPort(context, port, true, nodeTheme),
-                    ),
-                  ],
+          child: SizedBox(
+            width: size.width,
+            height: size.height,
+            child: Stack(
+              clipBehavior: Clip.none, // Allow ports to overflow the bounds
+              children: [
+                // Main node visual - either shaped or rectangular
+                Positioned.fill(
+                  child: shape != null
+                      ? _buildShapedNode(nodeTheme, isSelected)
+                      : _buildRectangularNode(nodeTheme, isSelected),
                 ),
-              ),
+
+                // Input ports (positioned on edges of padded container)
+                ...node.inputPorts.map(
+                  (port) => _buildPort(context, port, false, nodeTheme),
+                ),
+
+                // Output ports (positioned on edges of padded container)
+                ...node.outputPorts.map(
+                  (port) => _buildPort(context, port, true, nodeTheme),
+                ),
+              ],
             ),
           ),
         );

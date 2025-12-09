@@ -10,12 +10,14 @@ import '../connections/connection.dart';
 import '../connections/connection_style_overrides.dart';
 import '../connections/connection_validation.dart';
 import '../connections/temporary_connection.dart';
+import '../graph/hit_test_result.dart';
 import '../graph/node_flow_controller.dart';
 import '../graph/node_flow_events.dart';
 import '../graph/node_flow_theme.dart';
 import '../graph/viewport.dart';
 import '../nodes/node.dart';
 import '../nodes/node_shape.dart';
+import '../ports/port.dart';
 import '../ports/port_widget.dart';
 import '../shared/flutter_actions_integration.dart';
 import '../shared/spatial/graph_spatial_index.dart';
@@ -30,6 +32,7 @@ import 'layers/minimap_overlay.dart';
 import 'layers/nodes_layer.dart';
 
 part 'node_flow_controller_extensions.dart';
+part 'node_flow_editor_hit_testing.dart';
 
 /// Node flow editor widget using MobX for reactive state management.
 ///
@@ -346,14 +349,22 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   // Track if we should clear selection on pointer up (for empty canvas taps)
   bool _shouldClearSelectionOnTap = false;
 
-  // Double-tap detection
+  // Double-tap detection - tracks last tap for any hit target type
   DateTime? _lastTapTime;
   Offset? _lastTapPosition;
-  String? _lastTappedNodeId;
+  HitTarget? _lastTapHitType;
+  String? _lastTappedEntityId; // nodeId, connectionId, or null for canvas
   static const _doubleTapTimeout = Duration(milliseconds: 300);
   static const _doubleTapSlop = 20.0;
 
-  // Cached connection painter for efficient hit testing
+  // Hover tracking for mouse enter/leave events
+  HitTarget? _lastHoverHitType;
+  String? _lastHoveredEntityId; // nodeId, connectionId, portId, or annotationId
+  String? _lastHoveredNodeId; // For port hover, track the parent node
+  bool? _lastHoveredPortIsOutput; // For port hover, track if it's an output port
+
+  // Shift key tracking for selection mode cursor
+  bool _isShiftPressed = false;
 
   @override
   void initState() {
@@ -398,6 +409,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     if (widget.events != null) {
       widget.controller.setEvents(widget.events!);
     }
+
+    // Register keyboard handler for shift key cursor changes
+    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
 
     // Fire onInit event after initialization completes
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -546,11 +560,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                                       widget.nodeContainerBuilder,
                                   portBuilder: widget.portBuilder,
                                   connections: widget.controller.connections,
-                                  onNodeTap: _handleNodeTap,
-                                  onNodeDoubleTap: _handleNodeDoubleTap,
-                                  onNodeMouseEnter: _handleNodeMouseEnter,
-                                  onNodeMouseLeave: _handleNodeMouseLeave,
-                                  onNodeContextMenu: _handleNodeContextMenu,
                                 ),
 
                                 // Foreground annotations (stickies, markers)
@@ -564,7 +573,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
                       // Interaction layer - renders temporary connections and selection rectangles
                       // Positioned outside the canvas to render anywhere on the infinite canvas
-                      // Uses IgnorePointer since Listener above handles all events
+                      // Uses IgnorePointer - all event handling is done by the Listener above
                       Positioned.fill(
                         child: InteractionLayer<T>(
                           controller: widget.controller,
@@ -757,6 +766,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
   @override
   void dispose() {
+    // Remove keyboard handler
+    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+
     for (final disposer in _disposers) {
       disposer();
     }
@@ -766,42 +778,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Note: Controller disposal is handled by whoever created the controller,
     // not by this widget
     super.dispose();
-  }
-
-  // Node interaction handlers
-  void _handleNodeTap(Node<T> node) {
-    // Ensure canvas has focus when tapping nodes
-    if (!widget.controller.canvasFocusNode.hasFocus) {
-      widget.controller.canvasFocusNode.requestFocus();
-    }
-
-    // Fire event
-    widget.controller.events.node?.onTap?.call(node);
-  }
-
-  void _handleNodeDoubleTap(Node<T> node) {
-    // Ensure canvas has focus when double-tapping nodes
-    if (!widget.controller.canvasFocusNode.hasFocus) {
-      widget.controller.canvasFocusNode.requestFocus();
-    }
-
-    // Fire event
-    widget.controller.events.node?.onDoubleTap?.call(node);
-  }
-
-  void _handleNodeMouseEnter(Node<T> node) {
-    // Fire new event system
-    widget.controller.events.node?.onMouseEnter?.call(node);
-  }
-
-  void _handleNodeMouseLeave(Node<T> node) {
-    // Fire new event system
-    widget.controller.events.node?.onMouseLeave?.call(node);
-  }
-
-  void _handleNodeContextMenu(Node<T> node, Offset position) {
-    // Fire new event system
-    widget.controller.events.node?.onContextMenu?.call(node, position);
   }
 
   // Event handlers
@@ -853,23 +829,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     widget.controller.events.viewport?.onMoveEnd?.call(viewport);
   }
 
-  void _handleMouseHover(PointerHoverEvent event) {
-    final hitResult = _performHitTest(event.localPosition);
-    _updateCursor(hitResult);
-  }
-
   void _handlePointerDown(PointerDownEvent event) {
     // Handle secondary button (right-click) for context menu
-    if (event.buttons == kSecondaryMouseButton) {
-      final hitResult = _performHitTest(event.localPosition);
-
-      // Fire canvas context menu if clicking on empty space
-      if (hitResult.hitType == HitTarget.canvas) {
-        final graphPosition = _screenToGraph(event.localPosition);
-        widget.controller.events.viewport?.onCanvasContextMenu?.call(
-          graphPosition,
-        );
-      }
+    if (_handleContextMenu(event)) {
       return;
     }
 
@@ -1035,7 +997,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         widget.controller.lastPointerPosition != null) {
       final delta =
           event.localPosition - widget.controller.lastPointerPosition!;
-      final graphDelta = _screenToGraphDelta(delta);
+      final graphDelta = widget.controller.viewport.screenToGraphDelta(delta);
 
       // Batch position and pointer updates in single runInAction
       widget.controller._moveNodeDrag(
@@ -1052,7 +1014,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       final delta =
           event.localPosition -
           widget.controller.annotations.lastPointerPosition!;
-      final graphDelta = _screenToGraphDelta(delta);
+      final graphDelta = widget.controller.viewport.screenToGraphDelta(delta);
 
       widget.controller._moveAnnotationDrag(event.localPosition, graphDelta);
       return;
@@ -1123,8 +1085,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       }
     }
 
-    // Check if this was a tap (minimal movement) vs a drag
-    final wasDragging = widget.controller.draggedNodeId != null;
+    // Track annotation drag state before cleanup (for panning re-enable)
     final wasAnnotationDragging =
         widget.controller.annotations.draggedAnnotationId != null;
 
@@ -1137,67 +1098,19 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     }
 
     widget.controller._endAnnotationDrag();
-    // No longer needed - isInteractingWithPort removed
-    // No longer needed - hoveredPortInfo removed
 
     final hitResult = _performHitTest(event.localPosition);
 
-    // Clear selection only if this was a tap on empty canvas (not a drag)
-    if (_shouldClearSelectionOnTap &&
-        wasTap &&
-        !wasDragging &&
-        !wasAnnotationDragging) {
-      widget.controller.clearSelection();
-
-      // Fire canvas tap event
-      final graphPosition = _screenToGraph(event.localPosition);
-      widget.controller.events.viewport?.onCanvasTap?.call(graphPosition);
-
-      // Callbacks should be managed by the selection system, not here
-      // Controller clearSelection will trigger appropriate callbacks
-    }
-
-    // If this was a tap (minimal movement), handle node tap callbacks
-    // Note: wasTap takes precedence over wasDragging because draggedNodeId
-    // is set on pointer down even for taps when dragging is enabled
-    if (wasTap && hitResult.isNode) {
-      // Ensure canvas has focus after tap (in case it was lost during selection processing)
-      if (!widget.controller.canvasFocusNode.hasFocus) {
-        widget.controller.canvasFocusNode.requestFocus();
-      }
-
-      final node = widget.controller.getNode(hitResult.nodeId!);
-      if (node != null) {
-        // Check for double-tap
-        final now = DateTime.now();
-        final isDoubleTap =
-            _lastTapTime != null &&
-            _lastTapPosition != null &&
-            _lastTappedNodeId == hitResult.nodeId &&
-            now.difference(_lastTapTime!) < _doubleTapTimeout &&
-            (event.localPosition - _lastTapPosition!).distance < _doubleTapSlop;
-
-        if (isDoubleTap) {
-          // Fire double-tap event (handled via _handleNodeDoubleTap)
-          _handleNodeDoubleTap(node);
-          // Reset tap tracking to prevent triple-tap being detected as another double-tap
-          _lastTapTime = null;
-          _lastTapPosition = null;
-          _lastTappedNodeId = null;
-        } else {
-          // Fire single tap event (handled via _handleNodeTap)
-          _handleNodeTap(node);
-          // Update tap tracking for potential double-tap
-          _lastTapTime = now;
-          _lastTapPosition = event.localPosition;
-          _lastTappedNodeId = hitResult.nodeId;
-        }
-      }
-    } else if (!wasTap) {
-      // Was a drag, reset double-tap tracking
-      _lastTapTime = null;
-      _lastTapPosition = null;
-      _lastTappedNodeId = null;
+    // Handle tap events (minimal movement from initial position)
+    // IMPORTANT: wasTap takes precedence over wasDragging because draggedNodeId
+    // is set on pointer down BEFORE we know if user will tap or drag.
+    // So we check wasTap first - if movement was minimal, it's a tap regardless
+    // of whether drag state was set up.
+    if (wasTap) {
+      _handleTapEvent(event.localPosition, hitResult);
+    } else {
+      // Was a drag (significant movement), reset double-tap tracking
+      _resetDoubleTapTracking();
     }
 
     // Reset tap tracking
@@ -1209,36 +1122,8 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
   // Helper methods
 
-  void _updateCursor(HitTestResult hitResult) {
-    final cursorTheme = widget.theme.cursorTheme;
-    MouseCursor newCursor;
-
-    // When all interactions disabled, always use selection cursor
-    if (!widget.enableSelection &&
-        !widget.enableNodeDragging &&
-        !widget.enableConnectionCreation) {
-      newCursor = cursorTheme.selectionCursor;
-    } else if (widget.controller.isDrawingSelection) {
-      newCursor = SystemMouseCursors.precise;
-    } else if (widget.controller.draggedNodeId != null) {
-      newCursor = cursorTheme.dragCursor;
-    } else if (widget.controller.isConnecting) {
-      newCursor = cursorTheme.portCursor;
-    } else if (hitResult.isPort) {
-      newCursor = cursorTheme.portCursor;
-    } else if (hitResult.isNode) {
-      newCursor = cursorTheme.nodeCursor;
-    } else if (hitResult.isConnection) {
-      newCursor = SystemMouseCursors.click;
-    } else {
-      newCursor = cursorTheme.selectionCursor;
-    }
-
-    widget.controller._updateInteractionState(cursor: newCursor);
-  }
-
   void _startSelectionDrag(Offset startPosition) {
-    final startGraph = _screenToGraph(startPosition);
+    final startGraph = widget.controller.viewport.screenToGraph(startPosition);
     widget.controller._updateSelectionDrag(
       startPoint: startGraph,
       rectangle: Rect.fromPoints(
@@ -1260,7 +1145,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     final startPoint = widget.controller.selectionStartPoint;
     if (startPoint == null) return;
 
-    final currentGraph = _screenToGraph(currentPosition);
+    final currentGraph = widget.controller.viewport.screenToGraph(currentPosition);
     final rect = Rect.fromPoints(startPoint, currentGraph);
 
     // Update visual rectangle and handle selection in one call
@@ -1504,7 +1389,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     final temp = widget.controller.temporaryConnection;
     if (temp == null) return;
 
-    final currentGraphPosition = _screenToGraph(currentScreenPosition);
+    final currentGraphPosition = widget.controller.viewport.screenToGraph(currentScreenPosition);
 
     // Check for port snapping during connection drag
     String? targetNodeId;
@@ -1547,71 +1432,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     );
   }
 
-  // Hit testing - delegates to GraphSpatialIndex for O(1) performance
-  HitTestResult _performHitTest(Offset localPosition) {
-    final graphPosition = _screenToGraph(localPosition);
-    return widget.controller.spatialIndex.hitTest(graphPosition);
-  }
-
-  Offset _screenToGraph(Offset screenPosition) {
-    final transform = _transformationController.value;
-    final inverse = Matrix4.inverted(transform);
-    final transformed = inverse.transform3(
-      Vector3(screenPosition.dx, screenPosition.dy, 0),
-    );
-    return Offset(transformed.x, transformed.y);
-  }
-
-  Offset _screenToGraphDelta(Offset screenDelta) {
-    return screenDelta / widget.controller.viewport.zoom;
-  }
-}
-
-/// Optimized painter for selection rectangle rendering.
-///
-/// Renders the selection rectangle shown when the user drags to select
-/// multiple nodes. Uses pre-calculated paint objects for maximum performance
-/// to maintain 60fps during selection operations.
-class SelectionRectanglePainter extends CustomPainter {
-  SelectionRectanglePainter({
-    required this.selectionRectangle,
-    required this.theme,
-  }) : _fillPaint = Paint()
-         ..color = theme.selectionTheme.color
-         ..style = PaintingStyle.fill,
-       _borderPaint = Paint()
-         ..color = theme.selectionTheme.borderColor
-         ..strokeWidth = theme.selectionTheme.borderWidth
-         ..style = PaintingStyle.stroke;
-
-  /// The bounds of the selection rectangle in graph coordinates.
-  final Rect selectionRectangle;
-
-  /// The theme configuration for styling the selection rectangle.
-  final NodeFlowTheme theme;
-
-  /// Pre-calculated paint for the rectangle fill.
-  ///
-  /// Computed once in constructor for maximum performance.
-  final Paint _fillPaint;
-
-  /// Pre-calculated paint for the rectangle border.
-  ///
-  /// Computed once in constructor for maximum performance.
-  final Paint _borderPaint;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Ultra-fast direct painting without intermediate objects
-    canvas.drawRect(selectionRectangle, _fillPaint);
-    canvas.drawRect(selectionRectangle, _borderPaint);
-  }
-
-  @override
-  bool shouldRepaint(SelectionRectanglePainter oldDelegate) {
-    // Only repaint if the rectangle actually changed
-    return selectionRectangle != oldDelegate.selectionRectangle;
-  }
 }
 
 /// A widget that observes size changes and notifies via callback.

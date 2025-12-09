@@ -4,6 +4,7 @@ import '../annotations/annotation.dart';
 import '../connections/connection.dart';
 import '../connections/connection_validation.dart';
 import '../nodes/node.dart';
+import '../ports/port.dart';
 import 'viewport.dart';
 
 /// Comprehensive event system for the NodeFlowEditor
@@ -12,6 +13,7 @@ import 'viewport.dart';
 class NodeFlowEvents<T> {
   const NodeFlowEvents({
     this.node,
+    this.port,
     this.connection,
     this.viewport,
     this.annotation,
@@ -22,6 +24,9 @@ class NodeFlowEvents<T> {
 
   /// Node-related events
   final NodeEvents<T>? node;
+
+  /// Port-related events
+  final PortEvents<T>? port;
 
   /// Connection-related events
   final ConnectionEvents<T>? connection;
@@ -46,6 +51,7 @@ class NodeFlowEvents<T> {
   /// Create a new events object with updated values
   NodeFlowEvents<T> copyWith({
     NodeEvents<T>? node,
+    PortEvents<T>? port,
     ConnectionEvents<T>? connection,
     ViewportEvents? viewport,
     AnnotationEvents? annotation,
@@ -55,6 +61,7 @@ class NodeFlowEvents<T> {
   }) {
     return NodeFlowEvents<T>(
       node: node ?? this.node,
+      port: port ?? this.port,
       connection: connection ?? this.connection,
       viewport: viewport ?? this.viewport,
       annotation: annotation ?? this.annotation,
@@ -139,6 +146,58 @@ class NodeEvents<T> {
       onDragStart: onDragStart ?? this.onDragStart,
       onDrag: onDrag ?? this.onDrag,
       onDragStop: onDragStop ?? this.onDragStop,
+      onMouseEnter: onMouseEnter ?? this.onMouseEnter,
+      onMouseLeave: onMouseLeave ?? this.onMouseLeave,
+      onContextMenu: onContextMenu ?? this.onContextMenu,
+    );
+  }
+}
+
+/// Events related to port interactions
+///
+/// Port events include the parent node for context, since ports are always
+/// associated with a node.
+class PortEvents<T> {
+  const PortEvents({
+    this.onTap,
+    this.onDoubleTap,
+    this.onMouseEnter,
+    this.onMouseLeave,
+    this.onContextMenu,
+  });
+
+  /// Called when a port is tapped
+  /// Receives the node, port, and whether it's an output port
+  final void Function(Node<T> node, Port port, bool isOutput)? onTap;
+
+  /// Called when a port is double-tapped
+  /// Receives the node, port, and whether it's an output port
+  final void Function(Node<T> node, Port port, bool isOutput)? onDoubleTap;
+
+  /// Called when mouse enters a port's bounds
+  /// Receives the node, port, and whether it's an output port
+  final void Function(Node<T> node, Port port, bool isOutput)? onMouseEnter;
+
+  /// Called when mouse leaves a port's bounds
+  /// Receives the node, port, and whether it's an output port
+  final void Function(Node<T> node, Port port, bool isOutput)? onMouseLeave;
+
+  /// Called on secondary tap on a port (right-click/long-press for context menu)
+  /// Receives the node, port, whether it's an output port, and the pointer position
+  final void Function(Node<T> node, Port port, bool isOutput, Offset position)?
+      onContextMenu;
+
+  PortEvents<T> copyWith({
+    void Function(Node<T> node, Port port, bool isOutput)? onTap,
+    void Function(Node<T> node, Port port, bool isOutput)? onDoubleTap,
+    void Function(Node<T> node, Port port, bool isOutput)? onMouseEnter,
+    void Function(Node<T> node, Port port, bool isOutput)? onMouseLeave,
+    void Function(Node<T> node, Port port, bool isOutput, Offset position)?
+        onContextMenu,
+  }) {
+    return PortEvents<T>(
+      onTap: onTap ?? this.onTap,
+      onDoubleTap: onDoubleTap ?? this.onDoubleTap,
       onMouseEnter: onMouseEnter ?? this.onMouseEnter,
       onMouseLeave: onMouseLeave ?? this.onMouseLeave,
       onContextMenu: onContextMenu ?? this.onContextMenu,
@@ -250,6 +309,7 @@ class ViewportEvents {
     this.onMoveStart,
     this.onMoveEnd,
     this.onCanvasTap,
+    this.onCanvasDoubleTap,
     this.onCanvasContextMenu,
   });
 
@@ -269,6 +329,10 @@ class ViewportEvents {
   /// Receives the tap position in graph coordinates
   final ValueChanged<Offset>? onCanvasTap;
 
+  /// Called when double-tapping on empty canvas area (not on nodes/connections)
+  /// Receives the tap position in graph coordinates
+  final ValueChanged<Offset>? onCanvasDoubleTap;
+
   /// Called on secondary tap on empty canvas (right-click/long-press for context menu)
   /// Receives the tap position in graph coordinates
   final ValueChanged<Offset>? onCanvasContextMenu;
@@ -278,6 +342,7 @@ class ViewportEvents {
     ValueChanged<GraphViewport>? onMoveStart,
     ValueChanged<GraphViewport>? onMoveEnd,
     ValueChanged<Offset>? onCanvasTap,
+    ValueChanged<Offset>? onCanvasDoubleTap,
     ValueChanged<Offset>? onCanvasContextMenu,
   }) {
     return ViewportEvents(
@@ -285,6 +350,7 @@ class ViewportEvents {
       onMoveStart: onMoveStart ?? this.onMoveStart,
       onMoveEnd: onMoveEnd ?? this.onMoveEnd,
       onCanvasTap: onCanvasTap ?? this.onCanvasTap,
+      onCanvasDoubleTap: onCanvasDoubleTap ?? this.onCanvasDoubleTap,
       onCanvasContextMenu: onCanvasContextMenu ?? this.onCanvasContextMenu,
     );
   }
@@ -319,6 +385,10 @@ class AnnotationEvents {
     this.onDeleted,
     this.onSelected,
     this.onTap,
+    this.onDoubleTap,
+    this.onMouseEnter,
+    this.onMouseLeave,
+    this.onContextMenu,
   });
 
   /// Called when an annotation is created
@@ -334,17 +404,38 @@ class AnnotationEvents {
   /// Called when an annotation is tapped
   final ValueChanged<Annotation>? onTap;
 
+  /// Called when an annotation is double-tapped
+  final ValueChanged<Annotation>? onDoubleTap;
+
+  /// Called when mouse enters an annotation's bounds
+  final ValueChanged<Annotation>? onMouseEnter;
+
+  /// Called when mouse leaves an annotation's bounds
+  final ValueChanged<Annotation>? onMouseLeave;
+
+  /// Called on secondary tap on an annotation (right-click/long-press for context menu)
+  /// Receives both the annotation and the pointer position for menu placement
+  final void Function(Annotation annotation, Offset position)? onContextMenu;
+
   AnnotationEvents copyWith({
     ValueChanged<Annotation>? onCreated,
     ValueChanged<Annotation>? onDeleted,
     ValueChanged<Annotation?>? onSelected,
     ValueChanged<Annotation>? onTap,
+    ValueChanged<Annotation>? onDoubleTap,
+    ValueChanged<Annotation>? onMouseEnter,
+    ValueChanged<Annotation>? onMouseLeave,
+    void Function(Annotation annotation, Offset position)? onContextMenu,
   }) {
     return AnnotationEvents(
       onCreated: onCreated ?? this.onCreated,
       onDeleted: onDeleted ?? this.onDeleted,
       onSelected: onSelected ?? this.onSelected,
       onTap: onTap ?? this.onTap,
+      onDoubleTap: onDoubleTap ?? this.onDoubleTap,
+      onMouseEnter: onMouseEnter ?? this.onMouseEnter,
+      onMouseLeave: onMouseLeave ?? this.onMouseLeave,
+      onContextMenu: onContextMenu ?? this.onContextMenu,
     );
   }
 }

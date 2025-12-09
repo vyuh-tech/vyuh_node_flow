@@ -265,6 +265,40 @@ class _CallbacksExampleState extends State<CallbacksExample> {
             },
           ),
 
+          // ===== PORT EVENTS =====
+          port: PortEvents(
+            onTap: (node, port, isOutput) {
+              _addEvent(
+                'Tapped ${isOutput ? 'output' : 'input'} port ${port.id} on ${node.id}',
+                EventType.interaction,
+              );
+            },
+            onDoubleTap: (node, port, isOutput) {
+              _addEvent(
+                'Double-tapped ${isOutput ? 'output' : 'input'} port ${port.id} on ${node.id}',
+                EventType.interaction,
+              );
+            },
+            onMouseEnter: (node, port, isOutput) {
+              _addEvent(
+                'Mouse entered ${isOutput ? 'output' : 'input'} port ${port.id} on ${node.id}',
+                EventType.interaction,
+              );
+            },
+            onMouseLeave: (node, port, isOutput) {
+              _addEvent(
+                'Mouse left ${isOutput ? 'output' : 'input'} port ${port.id} on ${node.id}',
+                EventType.interaction,
+              );
+            },
+            onContextMenu: (node, port, isOutput, position) {
+              _addEvent(
+                'Context menu on ${isOutput ? 'output' : 'input'} port ${port.id} at ${position.dx.toInt()},${position.dy.toInt()}',
+                EventType.interaction,
+              );
+            },
+          ),
+
           // ===== CONNECTION EVENTS =====
           connection: ConnectionEvents(
             onCreated: (connection) {
@@ -296,6 +330,24 @@ class _CallbacksExampleState extends State<CallbacksExample> {
             onDoubleTap: (connection) {
               _addEvent(
                 'Double-tapped connection ${connection.id}',
+                EventType.interaction,
+              );
+            },
+            onMouseEnter: (connection) {
+              _addEvent(
+                'Mouse entered connection ${connection.id}',
+                EventType.interaction,
+              );
+            },
+            onMouseLeave: (connection) {
+              _addEvent(
+                'Mouse left connection ${connection.id}',
+                EventType.interaction,
+              );
+            },
+            onContextMenu: (connection, position) {
+              _addEvent(
+                'Context menu on connection ${connection.id} at ${position.dx.toInt()},${position.dy.toInt()}',
                 EventType.interaction,
               );
             },
@@ -350,9 +402,69 @@ class _CallbacksExampleState extends State<CallbacksExample> {
                 EventType.interaction,
               );
             },
+            onCanvasDoubleTap: (position) {
+              _addEvent(
+                'Canvas double-tapped at ${position.dx.toInt()},${position.dy.toInt()}',
+                EventType.interaction,
+              );
+            },
             onCanvasContextMenu: (position) {
               _addEvent(
                 'Canvas context menu at ${position.dx.toInt()},${position.dy.toInt()}',
+                EventType.interaction,
+              );
+            },
+          ),
+
+          // ===== ANNOTATION EVENTS =====
+          annotation: AnnotationEvents(
+            onCreated: (annotation) {
+              _addEvent(
+                'Created annotation ${annotation.id}',
+                EventType.lifecycle,
+              );
+            },
+            onDeleted: (annotation) {
+              _addEvent(
+                'Deleted annotation ${annotation.id}',
+                EventType.lifecycle,
+              );
+            },
+            onSelected: (annotation) {
+              _addEvent(
+                annotation != null
+                    ? 'Selected annotation ${annotation.id}'
+                    : 'Deselected annotation',
+                EventType.selection,
+              );
+            },
+            onTap: (annotation) {
+              _addEvent(
+                'Tapped annotation ${annotation.id}',
+                EventType.interaction,
+              );
+            },
+            onDoubleTap: (annotation) {
+              _addEvent(
+                'Double-tapped annotation ${annotation.id}',
+                EventType.interaction,
+              );
+            },
+            onMouseEnter: (annotation) {
+              _addEvent(
+                'Mouse entered annotation ${annotation.id}',
+                EventType.interaction,
+              );
+            },
+            onMouseLeave: (annotation) {
+              _addEvent(
+                'Mouse left annotation ${annotation.id}',
+                EventType.interaction,
+              );
+            },
+            onContextMenu: (annotation, position) {
+              _addEvent(
+                'Context menu on annotation ${annotation.id} at ${position.dx.toInt()},${position.dy.toInt()}',
                 EventType.interaction,
               );
             },
