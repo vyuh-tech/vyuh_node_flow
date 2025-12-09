@@ -1,3 +1,7 @@
+## 0.8.0
+
+ - **FEAT**: added spatial indexing, added a custom size observer to avoid side effects in build method.
+
 ## 0.7.2
 
  - **FEAT**: Restructure the grid components and annotations by splitting into separate files.
