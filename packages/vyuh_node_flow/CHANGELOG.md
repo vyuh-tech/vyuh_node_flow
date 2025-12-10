@@ -1,3 +1,9 @@
+## 0.8.1
+
+ - **FIX**: respecting render order when detecting events, esp. around ports and nodes that are overlapping.
+ - **FEAT**: migrate layout logic to hit testing, remove `NodeFlowLayoutDelegate`.
+ - **FEAT**: centralize interaction handling via hit testing, remove redundant node event callbacks.
+
 ## 0.8.0
 
  - **FEAT**: added spatial indexing, added a custom size observer to avoid side effects in build method.
