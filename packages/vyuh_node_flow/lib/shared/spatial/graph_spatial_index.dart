@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobx/mobx.dart';
 
 import '../../annotations/annotation.dart';
 import '../../connections/connection.dart';
@@ -68,6 +69,28 @@ class GraphSpatialIndex<T> {
   // Batch mode tracking
   bool _inBatch = false;
 
+  /// Observable version counter that increments on every spatial index change.
+  ///
+  /// Use this in MobX Observer widgets to reactively update when the
+  /// spatial index changes. The value itself is meaningless - only changes
+  /// to it trigger reactivity.
+  final Observable<int> version = Observable(0);
+
+  /// Notifies observers that the spatial index has changed.
+  /// Only notifies if not currently in a batch operation.
+  void _notifyChanged() {
+    if (!_inBatch) {
+      runInAction(() => version.value++);
+    }
+  }
+
+  /// Forces a notification to observers that the spatial index has changed.
+  ///
+  /// This bypasses the batch check and always notifies.
+  void notifyChanged() {
+    runInAction(() => version.value++);
+  }
+
   // Configurable callbacks
   NodeShape? Function(Node<T> node)? nodeShapeBuilder;
   bool Function(Connection connection, Offset point)? connectionHitTester;
@@ -100,6 +123,7 @@ class GraphSpatialIndex<T> {
     final item = NodeSpatialItem(nodeId: node.id, bounds: node.getBounds());
     _grid.addOrUpdate(item);
     _autoFlush();
+    _notifyChanged();
   }
 
   /// Updates an annotation in the spatial index.
@@ -111,6 +135,7 @@ class GraphSpatialIndex<T> {
     );
     _grid.addOrUpdate(item);
     _autoFlush();
+    _notifyChanged();
   }
 
   /// Updates a connection in the spatial index with segment bounds.
@@ -118,9 +143,12 @@ class GraphSpatialIndex<T> {
   /// Connections use multiple segments for accurate curved path hit testing.
   void updateConnection(Connection connection, List<Rect> segmentBounds) {
     _connections[connection.id] = connection;
-    _removeConnectionSegments(connection.id);
+    _removeConnectionSegments(connectionId: connection.id, notify: false);
 
-    if (segmentBounds.isEmpty) return;
+    if (segmentBounds.isEmpty) {
+      _notifyChanged();
+      return;
+    }
 
     final segmentIds = <String>[];
     for (int i = 0; i < segmentBounds.length; i++) {
@@ -134,6 +162,7 @@ class GraphSpatialIndex<T> {
     }
     _connectionSegmentIds[connection.id] = segmentIds;
     _autoFlush();
+    _notifyChanged();
   }
 
   /// Removes a node from the spatial index.
@@ -144,6 +173,7 @@ class GraphSpatialIndex<T> {
     final node = _nodes.remove(nodeId);
     if (node != null) {
       _grid.remove(NodeSpatialItem(nodeId: nodeId, bounds: Rect.zero).id);
+      _notifyChanged();
     }
   }
 
@@ -153,20 +183,25 @@ class GraphSpatialIndex<T> {
     _grid.remove(
       AnnotationSpatialItem(annotationId: annotationId, bounds: Rect.zero).id,
     );
+    _notifyChanged();
   }
 
   /// Removes a connection from the spatial index.
   void removeConnection(String connectionId) {
     _connections.remove(connectionId);
-    _removeConnectionSegments(connectionId);
+    _removeConnectionSegments(connectionId: connectionId, notify: true);
   }
 
-  void _removeConnectionSegments(String connectionId) {
+  void _removeConnectionSegments({
+    required String connectionId,
+    required bool notify,
+  }) {
     final segmentIds = _connectionSegmentIds.remove(connectionId);
     if (segmentIds != null) {
       for (final segmentId in segmentIds) {
         _grid.remove(segmentId);
       }
+      if (notify) _notifyChanged();
     }
   }
 
@@ -177,6 +212,7 @@ class GraphSpatialIndex<T> {
     _annotations.clear();
     _connectionSegmentIds.clear();
     _grid.clear();
+    _notifyChanged();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -202,6 +238,7 @@ class GraphSpatialIndex<T> {
     } finally {
       _inBatch = false;
       _grid.flushPendingUpdates();
+      _notifyChanged();
     }
   }
 
@@ -336,7 +373,7 @@ class GraphSpatialIndex<T> {
   ) {
     // Clear existing connections
     for (final connectionId in _connections.keys.toList()) {
-      _removeConnectionSegments(connectionId);
+      _removeConnectionSegments(connectionId: connectionId, notify: false);
     }
     _connections.clear();
 
@@ -386,6 +423,25 @@ class GraphSpatialIndex<T> {
   int get connectionCount => _connections.length;
   int get annotationCount => _annotations.length;
   SpatialIndexStats get stats => _grid.stats;
+
+  /// The grid size used for spatial hashing (default: 500.0 pixels).
+  double get gridSize => _grid.gridSize;
+
+  /// Gets information about all active spatial grid cells for debug visualization.
+  ///
+  /// Returns a list of [CellDebugInfo] containing:
+  /// - `bounds`: The world-coordinate bounding rectangle of the cell
+  /// - `cellX`, `cellY`: The grid cell coordinates (not pixels)
+  /// - Type breakdown: `nodeCount`, `portCount`, `connectionCount`, `annotationCount`
+  ///
+  /// This is useful for visualizing how the spatial index partitions space.
+  List<CellDebugInfo> getActiveCellsInfo() => _grid.getActiveCellsInfo();
+
+  /// Converts grid cell coordinates to world bounds.
+  ///
+  /// Given grid cell coordinates (x, y), returns the bounding rectangle
+  /// in world/pixel coordinates.
+  Rect cellBounds(int cellX, int cellY) => _grid.cellBounds(cellX, cellY);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // PRIVATE IMPLEMENTATION

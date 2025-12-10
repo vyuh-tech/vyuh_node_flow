@@ -263,6 +263,76 @@ class SpatialGrid<T extends SpatialIndexable> {
     cacheSize: _cachedVisibleObjects.length,
   );
 
+  /// Gets all active grid cell keys for debug visualization.
+  ///
+  /// Returns an iterable of cell keys in the format "${x}_${y}".
+  /// Use [parseCellKey] to convert these to coordinates.
+  Iterable<String> get activeCellKeys => _spatialGrid.keys;
+
+  /// Parses a cell key into its (x, y) coordinates.
+  ///
+  /// Cell keys are formatted as "${x}_${y}" where x and y are integer
+  /// grid coordinates (not pixel positions).
+  static (int x, int y) parseCellKey(String cellKey) {
+    final parts = cellKey.split('_');
+    return (int.parse(parts[0]), int.parse(parts[1]));
+  }
+
+  /// Converts grid coordinates to world bounds.
+  ///
+  /// Given grid cell coordinates (x, y), returns the bounding rectangle
+  /// in world/pixel coordinates.
+  Rect cellBounds(int cellX, int cellY) {
+    return Rect.fromLTWH(
+      cellX * gridSize,
+      cellY * gridSize,
+      gridSize,
+      gridSize,
+    );
+  }
+
+  /// Gets the object count for a specific cell.
+  ///
+  /// Returns 0 if the cell doesn't exist.
+  int getObjectCountInCell(String cellKey) {
+    return _spatialGrid[cellKey]?.length ?? 0;
+  }
+
+  /// Gets all cell bounds with their object counts for debug visualization.
+  ///
+  /// Returns a list of records containing the cell bounds and the number
+  /// of objects in that cell, broken down by type.
+  List<CellDebugInfo> getActiveCellsInfo() {
+    return _spatialGrid.entries.map((entry) {
+      final (cellX, cellY) = parseCellKey(entry.key);
+      final objects = entry.value;
+
+      // Count objects by type based on ID prefix
+      int nodes = 0, ports = 0, connections = 0, annotations = 0;
+      for (final id in objects) {
+        if (id.startsWith('node_')) {
+          nodes++;
+        } else if (id.startsWith('port_')) {
+          ports++;
+        } else if (id.startsWith('conn_')) {
+          connections++;
+        } else if (id.startsWith('annot_')) {
+          annotations++;
+        }
+      }
+
+      return CellDebugInfo(
+        bounds: cellBounds(cellX, cellY),
+        cellX: cellX,
+        cellY: cellY,
+        nodeCount: nodes,
+        portCount: ports,
+        connectionCount: connections,
+        annotationCount: annotations,
+      );
+    }).toList();
+  }
+
   // Internal implementation methods
 
   void _updateSpatialIndexForObject(T object) {
@@ -478,5 +548,44 @@ class SpatialIndexStats {
         'dragging: $isDragging, '
         'draggingObjects: $draggingObjectCount, '
         'cacheSize: $cacheSize)';
+  }
+}
+
+/// Debug information for a spatial grid cell.
+///
+/// Contains the cell coordinates, bounds, and a breakdown of object counts
+/// by type (nodes, ports, connections, annotations).
+class CellDebugInfo {
+  const CellDebugInfo({
+    required this.bounds,
+    required this.cellX,
+    required this.cellY,
+    required this.nodeCount,
+    required this.portCount,
+    required this.connectionCount,
+    required this.annotationCount,
+  });
+
+  final Rect bounds;
+  final int cellX;
+  final int cellY;
+  final int nodeCount;
+  final int portCount;
+  final int connectionCount;
+  final int annotationCount;
+
+  int get totalCount =>
+      nodeCount + portCount + connectionCount + annotationCount;
+
+  bool get isEmpty => totalCount == 0;
+
+  /// Returns a compact string like "n:2 p:4 c:1" showing only non-zero counts.
+  String get typeBreakdown {
+    final parts = <String>[];
+    if (nodeCount > 0) parts.add('n:$nodeCount');
+    if (portCount > 0) parts.add('p:$portCount');
+    if (connectionCount > 0) parts.add('c:$connectionCount');
+    if (annotationCount > 0) parts.add('a:$annotationCount');
+    return parts.join(' ');
   }
 }

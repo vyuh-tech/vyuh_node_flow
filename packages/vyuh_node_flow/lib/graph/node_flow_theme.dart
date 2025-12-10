@@ -4,10 +4,11 @@ import '../annotations/annotation_theme.dart';
 import '../connections/connection_endpoint.dart';
 import '../connections/connection_theme.dart';
 import '../connections/label_theme.dart';
+import '../grid/grid_theme.dart';
+import '../grid/spatial_index_debug_painter.dart';
 import '../nodes/node_theme.dart';
 import '../ports/port_theme.dart';
 import 'cursor_theme.dart';
-import '../grid/grid_theme.dart';
 import 'selection_theme.dart';
 
 /// Theme configuration for the node flow editor.
@@ -71,6 +72,7 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     required this.cursorTheme,
     this.backgroundColor = Colors.white,
     this.debugMode = false,
+    this.debugTheme = DebugTheme.light,
   });
 
   /// Theme for node appearance (colors, borders, shadows, etc.).
@@ -115,6 +117,11 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   /// When true, may show additional overlays like bounds, hit areas, etc.
   final bool debugMode;
 
+  /// Theme for debug visualization (spatial index grid, hit areas, etc.).
+  ///
+  /// Used by [SpatialIndexDebugPainter] and connection segment debug rendering.
+  final DebugTheme debugTheme;
+
   @override
   NodeFlowTheme copyWith({
     NodeTheme? nodeTheme,
@@ -129,6 +136,7 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     CursorTheme? cursorTheme,
     Color? backgroundColor,
     bool? debugMode,
+    DebugTheme? debugTheme,
   }) {
     return NodeFlowTheme(
       nodeTheme: nodeTheme ?? this.nodeTheme,
@@ -145,6 +153,7 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
       cursorTheme: cursorTheme ?? this.cursorTheme,
       backgroundColor: backgroundColor ?? this.backgroundColor,
       debugMode: debugMode ?? this.debugMode,
+      debugTheme: debugTheme ?? this.debugTheme,
     );
   }
 
@@ -177,6 +186,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
           Color.lerp(backgroundColor, other.backgroundColor, t) ??
           backgroundColor,
       debugMode: t < 0.5 ? debugMode : other.debugMode,
+      debugTheme: t < 0.5 ? debugTheme : other.debugTheme,
+      // DebugTheme doesn't support lerp
     );
   }
 
@@ -203,6 +214,7 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     selectionTheme: SelectionTheme.light,
     cursorTheme: CursorTheme.light,
     backgroundColor: Colors.white,
+    debugTheme: DebugTheme.light,
   );
 
   /// Built-in dark theme with muted colors and visible grid.
@@ -228,5 +240,6 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     selectionTheme: SelectionTheme.dark,
     cursorTheme: CursorTheme.dark,
     backgroundColor: const Color(0xFF1A1A1A),
+    debugTheme: DebugTheme.dark,
   );
 }

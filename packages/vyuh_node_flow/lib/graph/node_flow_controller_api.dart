@@ -976,6 +976,25 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Gets the current mouse position in world coordinates.
+  ///
+  /// Returns `null` if the mouse is outside the canvas area.
+  /// This is useful for debug visualization and features that need cursor tracking.
+  Offset? get mousePositionWorld => _mousePositionWorld.value;
+
+  /// Updates the mouse position in world coordinates.
+  ///
+  /// This is typically called internally by the editor widget during mouse hover.
+  /// Pass `null` when the mouse exits the canvas.
+  ///
+  /// Parameters:
+  /// - [position]: The mouse position in world coordinates, or `null` if outside canvas
+  void setMousePositionWorld(Offset? position) {
+    runInAction(() {
+      _mousePositionWorld.value = position;
+    });
+  }
+
   /// Zoom the viewport by a delta value while maintaining the viewport center as the focal point.
   ///
   /// The zoom level is clamped to the min/max zoom values configured in `NodeFlowConfig`.

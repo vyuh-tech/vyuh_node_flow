@@ -20,6 +20,7 @@ class _ThemingExampleState extends State<ThemingExample> {
   Size _endpointSize = const Size.square(5.0);
   bool _useCustomPortBuilder = false;
   bool _useCustomLabelBuilder = false;
+  bool _debugMode = false;
 
   @override
   void initState() {
@@ -194,13 +195,8 @@ class _ThemingExampleState extends State<ThemingExample> {
 
   void _resetToLightTheme() {
     setState(() {
-      _theme = NodeFlowTheme.light;
-      _selectedPortShape = MarkerShapes.capsuleHalf;
+      _theme = NodeFlowTheme.light.copyWith(debugMode: _debugMode);
     });
-
-    // Clear and recreate the graph with default port shapes
-    _controller.clearGraph();
-    _createExampleGraph();
   }
 
   void _updatePortShape(MarkerShape newShape) {
@@ -208,9 +204,12 @@ class _ThemingExampleState extends State<ThemingExample> {
       _selectedPortShape = newShape;
     });
 
-    // Clear and recreate the graph with new port shapes
-    _controller.clearGraph();
-    _createExampleGraph();
+    // Update port shapes on all existing nodes
+    for (final node in _controller.nodes.values) {
+      for (final port in [...node.inputPorts, ...node.outputPorts]) {
+        node.updatePort(port.id, port.copyWith(shape: newShape));
+      }
+    }
   }
 
   Widget _buildNode(BuildContext context, Node<Map<String, dynamic>> node) {
@@ -373,27 +372,19 @@ class _ThemingExampleState extends State<ThemingExample> {
       children: [
         _buildThemePresets(),
         const SizedBox(height: 24),
-        _buildConnectionStyleSection(),
-        const SizedBox(height: 24),
-        _buildConnectionEffectSection(),
-        const SizedBox(height: 24),
-        _buildEndpointColorsSection(),
-        const SizedBox(height: 24),
-        _buildConnectionColorsSection(),
+        _buildConnectionsSection(),
         const SizedBox(height: 24),
         _buildTemporaryConnectionSection(),
         const SizedBox(height: 24),
-        _buildStrokeWidthSection(),
-        const SizedBox(height: 24),
-        _buildPortSizeSection(),
-        const SizedBox(height: 24),
-        _buildCustomBuildersSection(),
+        _buildPortsSection(),
         const SizedBox(height: 24),
         _buildGridSection(),
         const SizedBox(height: 24),
         _buildViewportSection(),
         const SizedBox(height: 24),
-        _buildNodeBorderSection(),
+        _buildNodesSection(),
+        const SizedBox(height: 24),
+        _buildDebugSection(),
       ],
     );
   }
@@ -415,23 +406,24 @@ class _ThemingExampleState extends State<ThemingExample> {
           label: 'Dark',
           onPressed: () {
             setState(() {
-              _theme = NodeFlowTheme.dark;
-              _selectedPortShape = MarkerShapes.capsuleHalf;
+              _theme = NodeFlowTheme.dark.copyWith(debugMode: _debugMode);
             });
-            _controller.clearGraph();
-            _createExampleGraph();
           },
         ),
       ],
     );
   }
 
-  Widget _buildConnectionStyleSection() {
+  Widget _buildConnectionsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionTitle('Connection Style'),
+        const SectionTitle('Connections'),
         const SizedBox(height: 12),
+
+        // Style subsection
+        const Text('Style', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -461,16 +453,11 @@ class _ThemingExampleState extends State<ThemingExample> {
             );
           }).toList(),
         ),
-      ],
-    );
-  }
+        const SizedBox(height: 16),
 
-  Widget _buildConnectionEffectSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SectionTitle('Connection Effect'),
-        const SizedBox(height: 12),
+        // Effect subsection
+        const Text('Effect', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -504,7 +491,9 @@ class _ThemingExampleState extends State<ThemingExample> {
               }).toList(),
         ),
         const SizedBox(height: 16),
-        const Text('Start Point', style: TextStyle(fontSize: 12)),
+
+        // Start Point subsection
+        const Text('Start Point', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -542,7 +531,9 @@ class _ThemingExampleState extends State<ThemingExample> {
               }).toList(),
         ),
         const SizedBox(height: 12),
-        const Text('End Point', style: TextStyle(fontSize: 12)),
+
+        // End Point subsection
+        const Text('End Point', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -637,56 +628,11 @@ class _ThemingExampleState extends State<ThemingExample> {
             ),
           );
         }),
-      ],
-    );
-  }
+        const SizedBox(height: 16),
 
-  Widget _buildConnectionColorsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SectionTitle('Connection Colors'),
-        const SizedBox(height: 12),
-        _buildColorPicker('Normal', _theme.connectionTheme.color, (color) {
-          _updateTheme(
-            _theme.copyWith(
-              connectionTheme: _theme.connectionTheme.copyWith(color: color),
-            ),
-          );
-        }),
+        // Endpoint Styling subsection
+        const Text('Endpoint Styling', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
-        _buildColorPicker('Selected', _theme.connectionTheme.selectedColor, (
-          color,
-        ) {
-          _updateTheme(
-            _theme.copyWith(
-              connectionTheme: _theme.connectionTheme.copyWith(
-                selectedColor: color,
-              ),
-            ),
-          );
-        }),
-        const SizedBox(height: 8),
-        _buildColorPicker('Temporary', _theme.temporaryConnectionTheme.color, (
-          color,
-        ) {
-          _updateTheme(
-            _theme.copyWith(
-              temporaryConnectionTheme: _theme.temporaryConnectionTheme
-                  .copyWith(color: color),
-            ),
-          );
-        }),
-      ],
-    );
-  }
-
-  Widget _buildEndpointColorsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SectionTitle('Endpoint Styling'),
-        const SizedBox(height: 12),
         _buildColorPicker('Fill Color', _theme.connectionTheme.endpointColor, (
           color,
         ) {
@@ -730,6 +676,61 @@ class _ThemingExampleState extends State<ThemingExample> {
                 ),
                 temporaryConnectionTheme: _theme.temporaryConnectionTheme
                     .copyWith(endpointBorderWidth: value),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+
+        // Colors subsection
+        const Text('Colors', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        _buildColorPicker('Normal', _theme.connectionTheme.color, (color) {
+          _updateTheme(
+            _theme.copyWith(
+              connectionTheme: _theme.connectionTheme.copyWith(color: color),
+            ),
+          );
+        }),
+        const SizedBox(height: 8),
+        _buildColorPicker('Selected', _theme.connectionTheme.selectedColor, (
+          color,
+        ) {
+          _updateTheme(
+            _theme.copyWith(
+              connectionTheme: _theme.connectionTheme.copyWith(
+                selectedColor: color,
+              ),
+            ),
+          );
+        }),
+        const SizedBox(height: 16),
+
+        // Stroke Width subsection
+        const Text('Stroke Width', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        _buildSlider('Normal', _theme.connectionTheme.strokeWidth, 1.0, 5.0, (
+          value,
+        ) {
+          _updateTheme(
+            _theme.copyWith(
+              connectionTheme: _theme.connectionTheme.copyWith(
+                strokeWidth: value,
+              ),
+            ),
+          );
+        }),
+        _buildSlider(
+          'Selected',
+          _theme.connectionTheme.selectedStrokeWidth,
+          1.0,
+          6.0,
+          (value) {
+            _updateTheme(
+              _theme.copyWith(
+                connectionTheme: _theme.connectionTheme.copyWith(
+                  selectedStrokeWidth: value,
+                ),
               ),
             );
           },
@@ -965,48 +966,16 @@ class _ThemingExampleState extends State<ThemingExample> {
     );
   }
 
-  Widget _buildStrokeWidthSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SectionTitle('Connections'),
-        const SizedBox(height: 12),
-        _buildSlider('Normal', _theme.connectionTheme.strokeWidth, 1.0, 5.0, (
-          value,
-        ) {
-          _updateTheme(
-            _theme.copyWith(
-              connectionTheme: _theme.connectionTheme.copyWith(
-                strokeWidth: value,
-              ),
-            ),
-          );
-        }),
-        _buildSlider(
-          'Selected',
-          _theme.connectionTheme.selectedStrokeWidth,
-          1.0,
-          6.0,
-          (value) {
-            _updateTheme(
-              _theme.copyWith(
-                connectionTheme: _theme.connectionTheme.copyWith(
-                  selectedStrokeWidth: value,
-                ),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPortSizeSection() {
+  Widget _buildPortsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Ports'),
         const SizedBox(height: 12),
+
+        // Size subsection
+        const Text('Size', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
         _buildSlider('Width', _theme.portTheme.size.width, 6.0, 20.0, (value) {
           _updateTheme(
             _theme.copyWith(
@@ -1028,18 +997,20 @@ class _ThemingExampleState extends State<ThemingExample> {
           );
         }),
         const SizedBox(height: 12),
-        const Text('Port Shape', style: TextStyle(fontSize: 12)),
+
+        // Shape subsection
+        const Text('Shape', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children:
               [
-                ('circle', MarkerShapes.circle),
-                ('rectangle', MarkerShapes.rectangle),
-                ('diamond', MarkerShapes.diamond),
-                ('triangle', MarkerShapes.triangle),
-                ('capsule', MarkerShapes.capsuleHalf),
+                ('Circle', MarkerShapes.circle),
+                ('Rectangle', MarkerShapes.rectangle),
+                ('Diamond', MarkerShapes.diamond),
+                ('Triangle', MarkerShapes.triangle),
+                ('Capsule', MarkerShapes.capsuleHalf),
               ].map((entry) {
                 final (name, shape) = entry;
                 return ChoiceChip(
@@ -1054,6 +1025,8 @@ class _ThemingExampleState extends State<ThemingExample> {
               }).toList(),
         ),
         const SizedBox(height: 12),
+
+        // Labels subsection
         Row(
           children: [
             const Text('Show Labels', style: TextStyle(fontSize: 12)),
@@ -1070,16 +1043,11 @@ class _ThemingExampleState extends State<ThemingExample> {
             ),
           ],
         ),
-      ],
-    );
-  }
+        const SizedBox(height: 16),
 
-  Widget _buildCustomBuildersSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SectionTitle('Custom Builders'),
-        const SizedBox(height: 12),
+        // Custom Builders subsection
+        const Text('Custom Builders', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
         Row(
           children: [
             const Text('Custom Port Builder', style: TextStyle(fontSize: 12)),
@@ -1237,13 +1205,46 @@ class _ThemingExampleState extends State<ThemingExample> {
     );
   }
 
-  Widget _buildNodeBorderSection() {
+  Widget _buildDebugSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle('Debug'),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            const Text('Debug Mode', style: TextStyle(fontSize: 12)),
+            const Spacer(),
+            Switch(
+              value: _debugMode,
+              onChanged: (value) {
+                setState(() {
+                  _debugMode = value;
+                  _theme = _theme.copyWith(debugMode: value);
+                });
+              },
+            ),
+          ],
+        ),
+        Text(
+          'Show spatial index grid & connection hit areas',
+          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNodesSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Nodes'),
         const SizedBox(height: 12),
-        _buildSlider('Border Width', _theme.nodeTheme.borderWidth, 0.0, 5.0, (
+
+        // Border subsection
+        const Text('Border', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        _buildSlider('Width', _theme.nodeTheme.borderWidth, 0.0, 5.0, (
           value,
         ) {
           _updateTheme(
@@ -1253,7 +1254,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           );
         }),
         _buildSlider(
-          'Border Radius',
+          'Radius',
           _theme.nodeTheme.borderRadius.topLeft.x,
           0.0,
           20.0,
@@ -1268,7 +1269,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           },
         ),
         const SizedBox(height: 8),
-        _buildColorPicker('Border Color', _theme.nodeTheme.borderColor, (
+        _buildColorPicker('Normal', _theme.nodeTheme.borderColor, (
           color,
         ) {
           _updateTheme(

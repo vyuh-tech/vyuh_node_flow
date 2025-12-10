@@ -30,6 +30,7 @@ import 'layers/grid_layer.dart';
 import 'layers/interaction_layer.dart';
 import 'layers/minimap_overlay.dart';
 import 'layers/nodes_layer.dart';
+import 'layers/spatial_index_debug_layer.dart';
 
 part 'node_flow_controller_extensions.dart';
 part 'node_flow_editor_hit_testing.dart';
@@ -565,6 +566,15 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                                 // Foreground annotations (stickies, markers)
                                 if (widget.showAnnotations)
                                   AnnotationLayer.foreground(widget.controller),
+
+                                // Spatial index debug visualization (when debug mode is enabled)
+                                if (theme.debugMode)
+                                  SpatialIndexDebugLayer<T>(
+                                    controller: widget.controller,
+                                    transformationController:
+                                        _transformationController,
+                                    theme: theme,
+                                  ),
                               ],
                             ),
                           ),
@@ -973,6 +983,11 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   }
 
   void _handlePointerMove(PointerMoveEvent event) {
+    // Always update mouse position for debug visualization (before any early returns)
+    final worldPosition =
+        widget.controller.viewport.screenToGraph(event.localPosition);
+    widget.controller.setMousePositionWorld(worldPosition);
+
     // Reset tap tracking if user moves significantly (they're dragging, not tapping)
     const dragThreshold = 5.0; // pixels
     if (_initialPointerPosition != null &&

@@ -539,22 +539,18 @@ class ConnectionPainter {
 
     if (hitTestPath == null || originalPath == null) return;
 
+    final debugTheme = theme.debugTheme;
+
     // Debug paint for hit test area (semi-transparent overlay)
     final hitAreaPaint = Paint()
-      ..color = Colors.red.withValues(alpha: 0.2)
+      ..color = debugTheme.color
       ..style = PaintingStyle.fill;
 
     // Debug paint for hit test border (visible outline)
     final hitBorderPaint = Paint()
-      ..color = Colors.red.withValues(alpha: 0.6)
+      ..color = debugTheme.borderColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-
-    // Debug paint for original path (green outline)
-    final originalPathPaint = Paint()
-      ..color = Colors.green.withValues(alpha: 0.8)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
+      ..strokeWidth = 0.5;
 
     // Draw hit test area (filled)
     canvas.drawPath(hitTestPath, hitAreaPaint);
@@ -563,6 +559,6 @@ class ConnectionPainter {
     canvas.drawPath(hitTestPath, hitBorderPaint);
 
     // Draw original geometric path (for comparison)
-    canvas.drawPath(originalPath, originalPathPaint);
+    canvas.drawPath(originalPath, hitBorderPaint);
   }
 }

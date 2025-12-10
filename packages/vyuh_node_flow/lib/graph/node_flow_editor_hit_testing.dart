@@ -60,6 +60,11 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
       _isShiftPressed = isShiftPressed;
     }
 
+    // Update mouse position in world coordinates for debug visualization
+    final worldPosition =
+        widget.controller.viewport.screenToGraph(event.localPosition);
+    widget.controller.setMousePositionWorld(worldPosition);
+
     final hitResult = _performHitTest(event.localPosition);
 
     // Track hover state changes and fire enter/leave events

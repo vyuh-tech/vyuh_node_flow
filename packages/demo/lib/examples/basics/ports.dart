@@ -655,20 +655,6 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
           },
         ),
       ),
-      Observer(
-        builder: (context) => SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Debug Mode', style: TextStyle(fontSize: 13)),
-          subtitle: const Text(
-            'Show connection hit area segments',
-            style: TextStyle(fontSize: 11),
-          ),
-          value: _themeControl._debugMode.value,
-          onChanged: (value) {
-            _themeControl.debugMode = value;
-          },
-        ),
-      ),
       const SizedBox(height: 24),
 
       // Grid Settings Section

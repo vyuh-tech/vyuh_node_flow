@@ -18,6 +18,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
   late NodeFlowConfig _nodeFlowConfig;
   bool _isLoading = true;
   final bool _scrollToZoom = true;
+  bool _debugMode = false;
 
   // Workflow dropdown
   String _selectedWorkflow = 'simple_workflow.json';
@@ -404,6 +405,11 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
           label: 'Toggle Minimap',
           icon: Icons.map,
           onPressed: _toggleMinimap,
+        ),
+        GridButton(
+          label: _debugMode ? 'Debug: ON' : 'Debug: OFF',
+          icon: Icons.bug_report,
+          onPressed: _toggleDebugMode,
         ),
       ]),
       _buildGridSection('Viewport Controls', [
@@ -838,6 +844,13 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
           ? 'Minimap enabled'
           : 'Minimap disabled',
     );
+  }
+
+  void _toggleDebugMode() {
+    setState(() {
+      _debugMode = !_debugMode;
+      _nodeFlowTheme = _nodeFlowTheme.copyWith(debugMode: _debugMode);
+    });
   }
 
   void _showSnackBar(String message) {

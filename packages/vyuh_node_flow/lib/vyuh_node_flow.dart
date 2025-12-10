@@ -154,6 +154,8 @@ export 'graph/node_flow_minimap.dart';
 export 'graph/node_flow_theme.dart';
 export 'graph/node_flow_viewer.dart';
 export 'graph/selection_theme.dart';
+export 'grid/spatial_index_debug_painter.dart';
+export 'graph/layers/spatial_index_debug_layer.dart';
 export 'grid/styles/grid_style.dart';
 export 'graph/viewport.dart';
 // Nodes

@@ -178,6 +178,10 @@ class NodeFlowController<T> {
   final Observable<GraphViewport> _viewport;
   final Observable<Size> _screenSize = Observable(Size.zero);
 
+  /// Current mouse position in world coordinates (null if mouse is outside canvas).
+  /// Used for debug visualization and other features that need cursor tracking.
+  final Observable<Offset?> _mousePositionWorld = Observable<Offset?>(null);
+
   // Interaction state - organized in separate object
   final InteractionState interaction = InteractionState();
 
@@ -503,8 +507,11 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
   /// Flushes all pending spatial index updates.
   /// Called when drag operations end.
   void _flushPendingSpatialUpdates() {
+    bool hadUpdates = false;
+
     // Flush node updates
     if (_pendingNodeUpdates.isNotEmpty) {
+      hadUpdates = true;
       _spatialIndex.batch(() {
         for (final nodeId in _pendingNodeUpdates) {
           final node = _nodes[nodeId];
@@ -518,6 +525,7 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
 
     // Flush connection updates
     if (_pendingConnectionUpdates.isNotEmpty) {
+      hadUpdates = true;
       for (final connectionId in _pendingConnectionUpdates) {
         final connection = _connections.firstWhere(
           (c) => c.id == connectionId,
@@ -533,6 +541,7 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
 
     // Flush annotation updates
     if (_pendingAnnotationUpdates.isNotEmpty) {
+      hadUpdates = true;
       for (final annotationId in _pendingAnnotationUpdates) {
         final annotation = annotations.annotations[annotationId];
         if (annotation != null) {
@@ -540,6 +549,13 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
         }
       }
       _pendingAnnotationUpdates.clear();
+    }
+
+    // Always notify at the end of flush to ensure debug layer updates
+    // even if all pending updates were handled via batch (which also notifies)
+    if (hadUpdates) {
+      // Force a final notification to ensure observers are updated
+      _spatialIndex.notifyChanged();
     }
   }
 
