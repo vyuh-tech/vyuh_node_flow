@@ -86,14 +86,15 @@ class NodeFlowController<T> {
   /// port snap distance, and other behavioral settings.
   NodeFlowConfig get config => _config;
 
-  // Theme configuration
-  NodeFlowTheme? _theme;
+  // Theme configuration - observable to enable reactive spatial index updates
+  final Observable<NodeFlowTheme?> _themeObservable = Observable<NodeFlowTheme?>(null);
 
   /// Gets the current theme configuration.
   ///
   /// Returns `null` if no theme has been set. The theme is typically set
   /// by the editor widget during initialization.
-  NodeFlowTheme? get theme => _theme;
+  NodeFlowTheme? get theme => _themeObservable.value;
+  NodeFlowTheme? get _theme => _themeObservable.value;
 
   // Node shape builder - determines the shape for each node based on its type/data
   NodeShape? Function(Node<T> node)? _nodeShapeBuilder;
@@ -428,11 +429,20 @@ class NodeFlowController<T> {
       (Set<String> connectionIds) {
         // Rebuild connection-by-node index
         _rebuildConnectionsByNodeIndex();
-        // Rebuild connection spatial index
-        _spatialIndex.rebuildConnections(
-          _connections,
-          (connection) => _calculateConnectionBounds(connection) ?? Rect.zero,
-        );
+        // Rebuild connection spatial index with proper segments
+        rebuildAllConnectionSegments();
+      },
+      fireImmediately: false,
+    );
+
+    // === THEME/STYLE CHANGE SYNC ===
+    // When path-affecting theme properties change, rebuild connection segments
+    reaction(
+      (_) => _getPathAffectingSignature(),
+      (_) {
+        // Theme properties that affect path geometry have changed
+        // Rebuild all connection segments in spatial index
+        rebuildAllConnectionSegments();
       },
       fireImmediately: false,
     );
@@ -523,19 +533,10 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
       _pendingNodeUpdates.clear();
     }
 
-    // Flush connection updates
+    // Flush connection updates using proper segment bounds
     if (_pendingConnectionUpdates.isNotEmpty) {
       hadUpdates = true;
-      for (final connectionId in _pendingConnectionUpdates) {
-        final connection = _connections.firstWhere(
-          (c) => c.id == connectionId,
-          orElse: () => throw StateError('Connection not found'),
-        );
-        final bounds = _calculateConnectionBounds(connection);
-        if (bounds != null) {
-          _spatialIndex.updateConnection(connection, [bounds]);
-        }
-      }
+      _flushPendingConnectionUpdates();
       _pendingConnectionUpdates.clear();
     }
 
@@ -559,6 +560,53 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
     }
   }
 
+  /// Returns a signature of all path-affecting theme properties.
+  /// Used by the reaction to detect when spatial index needs rebuilding.
+  Object _getPathAffectingSignature() {
+    final theme = _themeObservable.value;
+    if (theme == null) return const Object();
+
+    final conn = theme.connectionTheme;
+    // Return a tuple of all properties that affect connection path geometry
+    return (
+      conn.style.id,
+      conn.bezierCurvature,
+      conn.cornerRadius,
+      conn.portExtension,
+      conn.startGap,
+      conn.endGap,
+      conn.hitTolerance,
+      theme.portTheme.size,
+    );
+  }
+
+  /// Flushes pending connection updates using proper segment bounds from path cache.
+  void _flushPendingConnectionUpdates() {
+    if (!isConnectionPainterInitialized || _theme == null) return;
+
+    final pathCache = _connectionPainter!.pathCache;
+    final connectionStyle = _theme!.connectionTheme.style;
+
+    for (final connectionId in _pendingConnectionUpdates) {
+      final connection = _connections.firstWhere(
+        (c) => c.id == connectionId,
+        orElse: () => throw StateError('Connection not found: $connectionId'),
+      );
+
+      final sourceNode = _nodes[connection.sourceNodeId];
+      final targetNode = _nodes[connection.targetNodeId];
+      if (sourceNode == null || targetNode == null) continue;
+
+      final segments = pathCache.getOrCreateSegmentBounds(
+        connection: connection,
+        sourceNode: sourceNode,
+        targetNode: targetNode,
+        connectionStyle: connectionStyle,
+      );
+      _spatialIndex.updateConnection(connection, segments);
+    }
+  }
+
   /// Rebuilds the connection-by-node index for O(1) lookup
   void _rebuildConnectionsByNodeIndex() {
     _connectionsByNodeId.clear();
@@ -572,43 +620,16 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
     }
   }
 
-  /// Updates spatial index bounds for a single node's connections using the index.
+  /// Updates spatial index bounds for a single node's connections using proper segment bounds.
   void _updateConnectionBoundsForNode(String nodeId) {
-    final connectionIds = _connectionsByNodeId[nodeId];
-    if (connectionIds == null || connectionIds.isEmpty) return;
-
-    for (final connectionId in connectionIds) {
-      final connection = _connections.firstWhere(
-        (c) => c.id == connectionId,
-        orElse: () => throw StateError('Connection not found: $connectionId'),
-      );
-      final bounds = _calculateConnectionBounds(connection);
-      if (bounds != null) {
-        _spatialIndex.updateConnection(connection, [bounds]);
-      }
-    }
+    // Use the API method that calculates proper segment bounds from path cache
+    rebuildConnectionSegmentsForNodes([nodeId]);
   }
 
   /// Updates spatial index bounds for connections attached to the given nodes.
   void _updateConnectionBoundsForNodeIds(Iterable<String> nodeIds) {
-    final connectionIdsToUpdate = <String>{};
-    for (final nodeId in nodeIds) {
-      final connectedIds = _connectionsByNodeId[nodeId];
-      if (connectedIds != null) {
-        connectionIdsToUpdate.addAll(connectedIds);
-      }
-    }
-
-    for (final connectionId in connectionIdsToUpdate) {
-      final connection = _connections.firstWhere(
-        (c) => c.id == connectionId,
-        orElse: () => throw StateError('Connection not found: $connectionId'),
-      );
-      final bounds = _calculateConnectionBounds(connection);
-      if (bounds != null) {
-        _spatialIndex.updateConnection(connection, [bounds]);
-      }
-    }
+    // Use the API method that calculates proper segment bounds from path cache
+    rebuildConnectionSegmentsForNodes(nodeIds.toList());
   }
 
   // === Public internal methods (accessible from other libraries) ===

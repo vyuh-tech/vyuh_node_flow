@@ -9,9 +9,8 @@ import '../shared/spatial/spatial_grid.dart';
 /// This painter draws the spatial hashing grid used for efficient hit testing
 /// and spatial queries. Each cell shows:
 /// - Grid cell boundary
-/// - Cell coordinates (e.g., "(0, 0)", "(-1, 0)")
-/// - Object counts by type: `n:X p:X c:X a:X` (nodes, ports, connections, annotations)
-/// - Star indicator (★) for the cell containing the mouse cursor
+/// - Cell coordinates in top-left as `[x, y]` with green background when mouse is in cell
+/// - Object counts below as vertical list: `N: X`, `C: X`, `P: X` (nodes, connections, ports)
 ///
 /// The spatial index grid is typically much larger than the visual grid
 /// (default 500px vs 20px) because it's optimized for query performance,
@@ -179,82 +178,120 @@ class SpatialIndexDebugPainter extends CustomPainter {
     if (scaledFontSize < 4) return;
 
     final paddingH = 4 / zoom;
-    final paddingV = 6 / zoom;
-    final dotRadius = 3 / zoom;
-    final dotSpacing = 5 / zoom;
+    final paddingV = 3 / zoom;
+    final lineSpacing = 2 / zoom;
 
-    // Build label text: "(x, y)" followed by type breakdown if active
-    final coordText = '($cellX, $cellY)';
+    // Coordinate label: [x, y]
+    final coordText = '[$cellX, $cellY]';
 
-    // For active cells, show type breakdown (n:X p:X c:X a:X)
-    String labelText;
-    if (cellInfo != null && !cellInfo.isEmpty) {
-      final breakdown = cellInfo.typeBreakdown;
-      labelText = breakdown.isNotEmpty ? '$coordText  $breakdown' : coordText;
-    } else {
-      labelText = coordText;
-    }
+    final textStyle = TextStyle(
+      color: theme.labelColor,
+      fontSize: scaledFontSize,
+      fontWeight: FontWeight.normal,
+      fontFamily: 'monospace',
+    );
 
-    // Create text painter with uniform styling (no color/weight difference)
-    final textSpan = TextSpan(
-      text: labelText,
-      style: TextStyle(
-        color: theme.labelColor,
-        fontSize: scaledFontSize,
-        fontWeight: FontWeight.normal,
-        fontFamily: 'monospace',
+    // Create text painter for coordinates
+    final coordPainter = TextPainter(
+      text: TextSpan(text: coordText, style: textStyle),
+      textDirection: TextDirection.ltr,
+    );
+    coordPainter.layout();
+
+    // Draw coordinate label background (green if mouse in cell)
+    final coordBgRect = Rect.fromLTWH(
+      bounds.left + paddingH / 2,
+      bounds.top + paddingV / 2,
+      coordPainter.width + paddingH * 2,
+      coordPainter.height + paddingV * 2,
+    );
+
+    final coordBgPaint = Paint()
+      ..color = isMouseCell
+          ? theme.indicatorColor.withValues(alpha: 0.85)
+          : theme.labelBackgroundColor.withValues(alpha: 0.85);
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(coordBgRect, Radius.circular(2 / zoom)),
+      coordBgPaint,
+    );
+
+    // Draw coordinate text (use dark color when background is green)
+    final coordTextStyle = isMouseCell
+        ? textStyle.copyWith(color: const Color(0xFF000000))
+        : textStyle;
+    final coordPainterFinal = TextPainter(
+      text: TextSpan(text: coordText, style: coordTextStyle),
+      textDirection: TextDirection.ltr,
+    );
+    coordPainterFinal.layout();
+
+    coordPainterFinal.paint(
+      canvas,
+      Offset(
+        coordBgRect.left + paddingH,
+        coordBgRect.top + paddingV,
       ),
     );
 
-    final textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.ltr,
-    );
+    // Draw stats label if cell has objects (N:, C:, P: as vertical list)
+    if (cellInfo != null && !cellInfo.isEmpty) {
+      final stats = <String>[];
+      if (cellInfo.nodeCount > 0) stats.add('N: ${cellInfo.nodeCount}');
+      if (cellInfo.connectionCount > 0) {
+        stats.add('C: ${cellInfo.connectionCount}');
+      }
+      if (cellInfo.portCount > 0) stats.add('P: ${cellInfo.portCount}');
 
-    textPainter.layout();
+      if (stats.isNotEmpty) {
+        // Create painters for each stat line to measure widths
+        final statPainters = stats.map((stat) {
+          final painter = TextPainter(
+            text: TextSpan(text: stat, style: textStyle),
+            textDirection: TextDirection.ltr,
+          );
+          painter.layout();
+          return painter;
+        }).toList();
 
-    // Calculate content height (max of text and dot)
-    final contentHeight = textPainter.height;
+        // Find max width for right alignment
+        final maxWidth = statPainters
+            .map((p) => p.width)
+            .reduce((a, b) => a > b ? a : b);
 
-    // Draw background for better readability (uniform dark background)
-    final bgRect = Rect.fromLTWH(
-      bounds.left + paddingH / 2,
-      bounds.top + paddingV / 2,
-      dotRadius * 2 + dotSpacing + textPainter.width + paddingH * 1.5,
-      contentHeight + paddingV,
-    );
+        // Calculate total height
+        final totalHeight = statPainters.fold<double>(
+              0,
+              (sum, p) => sum + p.height,
+            ) +
+            (stats.length - 1) * lineSpacing;
 
-    final bgPaint = Paint()
-      ..color = theme.labelBackgroundColor.withValues(alpha: 0.85);
+        // Stats background positioned below coordinates
+        final statsBgRect = Rect.fromLTWH(
+          bounds.left + paddingH / 2,
+          coordBgRect.bottom + lineSpacing,
+          maxWidth + paddingH * 2,
+          totalHeight + paddingV * 2,
+        );
 
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(bgRect, Radius.circular(2 / zoom)),
-      bgPaint,
-    );
+        final statsBgPaint = Paint()
+          ..color = theme.labelBackgroundColor.withValues(alpha: 0.85);
 
-    // Calculate vertical center of the background
-    final centerY = bgRect.top + bgRect.height / 2;
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(statsBgRect, Radius.circular(2 / zoom)),
+          statsBgPaint,
+        );
 
-    // Calculate dot position (vertically centered)
-    final dotCenter = Offset(
-      bounds.left + paddingH + dotRadius,
-      centerY,
-    );
-
-    // Draw the dot - uses theme colors for active/inactive states
-    final dotPaint = Paint()
-      ..color = isMouseCell ? theme.indicatorColor : theme.indicatorInactiveColor
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(dotCenter, dotRadius, dotPaint);
-
-    // Calculate label offset (after the dot, vertically centered)
-    final labelOffset = Offset(
-      dotCenter.dx + dotRadius + dotSpacing,
-      centerY - textPainter.height / 2,
-    );
-
-    // Draw text
-    textPainter.paint(canvas, labelOffset);
+        // Draw each stat line, right-aligned
+        var currentY = statsBgRect.top + paddingV;
+        for (final painter in statPainters) {
+          final xOffset =
+              statsBgRect.left + paddingH + (maxWidth - painter.width);
+          painter.paint(canvas, Offset(xOffset, currentY));
+          currentY += painter.height + lineSpacing;
+        }
+      }
+    }
   }
 
   @override

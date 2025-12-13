@@ -38,6 +38,8 @@ class StepConnectionStyle extends ConnectionStyle {
       cornerRadius: params.cornerRadius > 0
           ? params.cornerRadius
           : cornerRadius,
+      sourceNodeBounds: params.sourceNodeBounds,
+      targetNodeBounds: params.targetNodeBounds,
     );
   }
 
@@ -55,6 +57,8 @@ class StepConnectionStyle extends ConnectionStyle {
       sourcePosition: params.sourcePosition,
       targetPosition: params.targetPosition,
       offset: params.offset,
+      sourceNodeBounds: params.sourceNodeBounds,
+      targetNodeBounds: params.targetNodeBounds,
     );
   }
 
@@ -71,46 +75,36 @@ class StepConnectionStyle extends ConnectionStyle {
   double get minBendDistance => 6.0; // Larger spacing for predictable turns
 
   @override
-  Path createHitTestPath(
+  List<Rect> getHitTestSegments(
     Path originalPath,
     double tolerance, {
     ConnectionPathParameters? pathParams,
   }) {
-    // Use exact bend points from the path calculator
+    // Use exact bend points for minimal segment count
     if (pathParams == null) {
-      // This shouldn't happen in normal usage
-      return Path()..addRect(originalPath.getBounds().inflate(tolerance));
+      return super.getHitTestSegments(originalPath, tolerance);
     }
 
     final bendPoints = getExactBendPoints(pathParams);
     if (bendPoints == null || bendPoints.length < 2) {
-      return Path()..addRect(originalPath.getBounds().inflate(tolerance));
+      return super.getHitTestSegments(originalPath, tolerance);
     }
 
-    return _createStepHitAreas(bendPoints, tolerance);
+    // Merge collinear segments and create rectangles
+    final mergedSegments = _mergeCollinearSegments(bendPoints);
+    return mergedSegments.map((segment) {
+      return _createSegmentRect(segment.start, segment.end, tolerance);
+    }).toList();
   }
 
-  /// Create hit areas for step paths
-  /// Creates one rectangle per straight segment, merging collinear segments
-  Path _createStepHitAreas(List<Offset> waypoints, double tolerance) {
-    if (waypoints.length < 2) return Path();
-
-    final combinedPath = Path();
-
-    // Merge collinear segments to reduce rectangle count
-    final mergedSegments = _mergeCollinearSegments(waypoints);
-
-    // Create rectangles for each merged segment
-    for (final segment in mergedSegments) {
-      final segmentRect = _createStepSegmentHitArea(
-        segment.start,
-        segment.end,
-        tolerance,
-      );
-      combinedPath.addPath(segmentRect, Offset.zero);
-    }
-
-    return combinedPath;
+  /// Creates a rectangle around a line segment with tolerance extending past endpoints.
+  Rect _createSegmentRect(Offset start, Offset end, double tolerance) {
+    return Rect.fromLTRB(
+      math.min(start.dx, end.dx) - tolerance,
+      math.min(start.dy, end.dy) - tolerance,
+      math.max(start.dx, end.dx) + tolerance,
+      math.max(start.dy, end.dy) + tolerance,
+    );
   }
 
   /// Merge consecutive collinear segments to reduce rectangle count
@@ -152,76 +146,6 @@ class StepConnectionStyle extends ConnectionStyle {
     }
 
     return segments;
-  }
-
-  /// Create hit area for a single step segment (optimized for horizontal/vertical lines)
-  Path _createStepSegmentHitArea(Offset start, Offset end, double tolerance) {
-    final dx = (end.dx - start.dx).abs();
-    final dy = (end.dy - start.dy).abs();
-
-    // Determine if this is primarily horizontal or vertical
-    if (dx < 1.0) {
-      // Vertical segment
-      return Path()..addRect(
-        Rect.fromLTRB(
-          start.dx - tolerance,
-          math.min(start.dy, end.dy),
-          start.dx + tolerance,
-          math.max(start.dy, end.dy),
-        ),
-      );
-    } else if (dy < 1.0) {
-      // Horizontal segment
-      return Path()..addRect(
-        Rect.fromLTRB(
-          math.min(start.dx, end.dx),
-          start.dy - tolerance,
-          math.max(start.dx, end.dx),
-          start.dy + tolerance,
-        ),
-      );
-    } else {
-      // Diagonal segment (shouldn't happen in step connections, but handle gracefully)
-      final length = math.sqrt(dx * dx + dy * dy);
-      final perpX = -dy / length * tolerance;
-      final perpY = dx / length * tolerance;
-
-      return Path()
-        ..moveTo(start.dx + perpX, start.dy + perpY)
-        ..lineTo(end.dx + perpX, end.dy + perpY)
-        ..lineTo(end.dx - perpX, end.dy - perpY)
-        ..lineTo(start.dx - perpX, start.dy - perpY)
-        ..close();
-    }
-  }
-
-  /// Create hit test path from exact waypoints
-  Path createHitTestPathFromWaypoints(
-    List<Offset> waypoints,
-    double tolerance,
-  ) {
-    if (waypoints.length <= 2) {
-      // Simple case: single segment
-      return _createStepSegmentHitArea(
-        waypoints.first,
-        waypoints.last,
-        tolerance,
-      );
-    }
-
-    final combinedPath = Path();
-
-    // Create rectangles for all segments
-    for (int i = 0; i < waypoints.length - 1; i++) {
-      final segmentPath = _createStepSegmentHitArea(
-        waypoints[i],
-        waypoints[i + 1],
-        tolerance,
-      );
-      combinedPath.addPath(segmentPath, Offset.zero);
-    }
-
-    return combinedPath;
   }
 
   @override

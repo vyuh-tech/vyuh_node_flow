@@ -19,6 +19,8 @@ class _CachedConnectionPath {
     required this.targetPosition,
     required this.startGap,
     required this.endGap,
+    required this.sourceNodeSize,
+    required this.targetNodeSize,
   });
 
   /// The original geometric path for drawing
@@ -37,6 +39,10 @@ class _CachedConnectionPath {
   /// Cached gap values for invalidation
   final double startGap;
   final double endGap;
+
+  /// Cached node sizes for invalidation (used for node-aware routing)
+  final Size sourceNodeSize;
+  final Size targetNodeSize;
 }
 
 /// Manages connection path caching and hit testing
@@ -65,6 +71,10 @@ class ConnectionPathCache {
             newTheme.connectionTheme.bezierCurvature ||
         oldTheme.connectionTheme.cornerRadius !=
             newTheme.connectionTheme.cornerRadius ||
+        oldTheme.connectionTheme.portExtension !=
+            newTheme.connectionTheme.portExtension ||
+        oldTheme.connectionTheme.backEdgeGap !=
+            newTheme.connectionTheme.backEdgeGap ||
         oldTheme.connectionTheme.startPoint !=
             newTheme.connectionTheme.startPoint ||
         oldTheme.connectionTheme.endPoint !=
@@ -117,11 +127,13 @@ class ConnectionPathCache {
       // Use the pre-computed hit test path (already expanded for tolerance)
       // Only recompute if tolerance differs significantly from default
       if ((hitTolerance - defaultHitTolerance).abs() > 1.0) {
-        // Custom tolerance - create temporary expanded path
-        final customHitPath = _createHitTestPath(
+        // Custom tolerance - recompute segments with new tolerance
+        final customSegments = connectionStyle.getHitTestSegments(
           cachedPath.originalPath,
           hitTolerance,
-          connectionStyle: connectionStyle,
+        );
+        final customHitPath = connectionStyle.createHitTestPathFromSegments(
+          customSegments,
         );
         return customHitPath.contains(testPoint);
       }
@@ -149,10 +161,13 @@ class ConnectionPathCache {
 
     // Use the newly created hit test path
     if ((hitTolerance - defaultHitTolerance).abs() > 1.0) {
-      final customHitPath = _createHitTestPath(
+      // Custom tolerance - recompute segments with new tolerance
+      final customSegments = connectionStyle.getHitTestSegments(
         newCachedPath.originalPath,
         hitTolerance,
-        connectionStyle: connectionStyle,
+      );
+      final customHitPath = connectionStyle.createHitTestPathFromSegments(
+        customSegments,
       );
       return customHitPath.contains(testPoint);
     }
@@ -170,17 +185,21 @@ class ConnectionPathCache {
   }) {
     final currentSourcePos = sourceNode.position.value;
     final currentTargetPos = targetNode.position.value;
+    final currentSourceSize = sourceNode.size.value;
+    final currentTargetSize = targetNode.size.value;
     final connectionTheme = theme.connectionTheme;
     final currentStartGap = connection.startGap ?? connectionTheme.startGap;
     final currentEndGap = connection.endGap ?? connectionTheme.endGap;
 
-    // Check if cache needs updating
+    // Check if cache needs updating (including node sizes for node-aware routing)
     final existing = _getCachedPath(connection.id);
     if (existing != null &&
         existing.sourcePosition == currentSourcePos &&
         existing.targetPosition == currentTargetPos &&
         existing.startGap == currentStartGap &&
-        existing.endGap == currentEndGap) {
+        existing.endGap == currentEndGap &&
+        existing.sourceNodeSize == currentSourceSize &&
+        existing.targetNodeSize == currentTargetSize) {
       return existing.originalPath; // Cache hit
     }
 
@@ -286,6 +305,10 @@ class ConnectionPathCache {
       gap: endGap,
     );
 
+    // Get node bounds for node-aware routing
+    final sourceNodeBounds = sourceNode.getBounds();
+    final targetNodeBounds = targetNode.getBounds();
+
     // Create path parameters for both original and hit test paths
     final pathParams = ConnectionPathParameters(
       start: source.linePos,
@@ -295,26 +318,26 @@ class ConnectionPathCache {
       targetPort: targetPort,
       cornerRadius: connectionTheme.cornerRadius,
       offset: connectionTheme.portExtension,
+      backEdgeGap: connectionTheme.backEdgeGap,
       controlPoints: connection.controlPoints
           .toList(), // Convert ObservableList to List
+      sourceNodeBounds: sourceNodeBounds,
+      targetNodeBounds: targetNodeBounds,
     );
 
     // Create the original geometric path
     final originalPath = connectionStyle.createPath(pathParams);
 
-    // Create hit test path with connection style-specific logic
-    final hitTestPath = _createHitTestPath(
-      originalPath,
-      defaultHitTolerance,
-      connectionStyle: connectionStyle,
-      pathParams: pathParams,
-    );
-
-    // Get segment bounds for spatial indexing
+    // Calculate segment bounds ONCE - this is the canonical source
     final segmentBounds = connectionStyle.getHitTestSegments(
       originalPath,
       defaultHitTolerance,
       pathParams: pathParams,
+    );
+
+    // Derive hit test path FROM the canonical segments
+    final hitTestPath = connectionStyle.createHitTestPathFromSegments(
+      segmentBounds,
     );
 
     // Cache paths and segment bounds for invalidation
@@ -326,27 +349,12 @@ class ConnectionPathCache {
       targetPosition: targetPosition,
       startGap: startGap,
       endGap: endGap,
+      sourceNodeSize: sourceNode.size.value,
+      targetNodeSize: targetNode.size.value,
     );
 
     _pathCache[connection.id] = cachedPath;
     return cachedPath;
-  }
-
-  /// Create an expanded path for hit testing with given tolerance
-  /// Uses connection style-specific segmentation strategies
-  Path _createHitTestPath(
-    Path originalPath,
-    double tolerance, {
-    required ConnectionStyle connectionStyle,
-    ConnectionPathParameters? pathParams,
-  }) {
-    // Delegate to the connection style's own hit test path creation
-    // Pass path parameters if available for optimized hit test path creation
-    return connectionStyle.createHitTestPath(
-      originalPath,
-      tolerance,
-      pathParams: pathParams,
-    );
   }
 
   /// Get cached path (read-only)
@@ -396,17 +404,21 @@ class ConnectionPathCache {
   }) {
     final currentSourcePos = sourceNode.position.value;
     final currentTargetPos = targetNode.position.value;
+    final currentSourceSize = sourceNode.size.value;
+    final currentTargetSize = targetNode.size.value;
     final connectionTheme = theme.connectionTheme;
     final currentStartGap = connection.startGap ?? connectionTheme.startGap;
     final currentEndGap = connection.endGap ?? connectionTheme.endGap;
 
-    // Check if cache is valid
+    // Check if cache is valid (including node sizes for node-aware routing)
     final existing = _getCachedPath(connection.id);
     if (existing != null &&
         existing.sourcePosition == currentSourcePos &&
         existing.targetPosition == currentTargetPos &&
         existing.startGap == currentStartGap &&
-        existing.endGap == currentEndGap) {
+        existing.endGap == currentEndGap &&
+        existing.sourceNodeSize == currentSourceSize &&
+        existing.targetNodeSize == currentTargetSize) {
       return existing.segmentBounds;
     }
 

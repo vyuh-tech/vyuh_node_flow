@@ -66,6 +66,10 @@ class GraphSpatialIndex<T> {
   // Track connection segment IDs for cleanup
   final Map<String, List<String>> _connectionSegmentIds = {};
 
+  // Track port spatial item IDs per node for cleanup
+  // Key: nodeId, Value: list of port spatial item IDs
+  final Map<String, List<String>> _nodePortIds = {};
+
   // Batch mode tracking
   bool _inBatch = false;
 
@@ -118,12 +122,78 @@ class GraphSpatialIndex<T> {
   /// Updates a node in the spatial index.
   ///
   /// Call this after any change to node position or size.
+  /// Also updates all port positions for this node.
   void update(Node<T> node) {
     _nodes[node.id] = node;
     final item = NodeSpatialItem(nodeId: node.id, bounds: node.getBounds());
     _grid.addOrUpdate(item);
+
+    // Update port positions for this node
+    _updatePortsForNode(node);
+
     _autoFlush();
     _notifyChanged();
+  }
+
+  /// Updates all port spatial items for a node.
+  void _updatePortsForNode(Node<T> node) {
+    // Remove existing port items for this node
+    _removePortsForNode(node.id, notify: false);
+
+    final shape = nodeShapeBuilder?.call(node);
+    final portIds = <String>[];
+
+    // Helper to add a port to the spatial index
+    void addPort(Port port, bool isOutput) {
+      final effectivePortSize =
+          portSizeResolver?.call(port) ?? const Size.square(10.0);
+      final portCenter = node.getPortPosition(
+        port.id,
+        portSize: effectivePortSize,
+        shape: shape,
+      );
+
+      // Create bounds around the port center with portSnapDistance as radius
+      // This ensures the port is found when querying within snap distance
+      final portBounds = Rect.fromCenter(
+        center: portCenter,
+        width: portSnapDistance * 2,
+        height: portSnapDistance * 2,
+      );
+
+      final spatialItem = PortSpatialItem(
+        portId: port.id,
+        nodeId: node.id,
+        isOutput: isOutput,
+        bounds: portBounds,
+      );
+
+      _grid.addOrUpdate(spatialItem);
+      portIds.add(spatialItem.id);
+    }
+
+    // Add all input ports
+    for (final port in node.inputPorts) {
+      addPort(port, false);
+    }
+
+    // Add all output ports
+    for (final port in node.outputPorts) {
+      addPort(port, true);
+    }
+
+    _nodePortIds[node.id] = portIds;
+  }
+
+  /// Removes all port spatial items for a node.
+  void _removePortsForNode(String nodeId, {required bool notify}) {
+    final portIds = _nodePortIds.remove(nodeId);
+    if (portIds != null) {
+      for (final portId in portIds) {
+        _grid.remove(portId);
+      }
+      if (notify) _notifyChanged();
+    }
   }
 
   /// Updates an annotation in the spatial index.
@@ -169,10 +239,12 @@ class GraphSpatialIndex<T> {
   void remove(Node<T> node) => removeNode(node.id);
 
   /// Removes a node by ID.
+  /// Also removes all port spatial items for this node.
   void removeNode(String nodeId) {
     final node = _nodes.remove(nodeId);
     if (node != null) {
       _grid.remove(NodeSpatialItem(nodeId: nodeId, bounds: Rect.zero).id);
+      _removePortsForNode(nodeId, notify: false);
       _notifyChanged();
     }
   }
@@ -211,6 +283,7 @@ class GraphSpatialIndex<T> {
     _connections.clear();
     _annotations.clear();
     _connectionSegmentIds.clear();
+    _nodePortIds.clear();
     _grid.clear();
     _notifyChanged();
   }
@@ -351,14 +424,16 @@ class GraphSpatialIndex<T> {
   }
 
   /// Rebuilds only nodes from the given iterable.
+  /// Also rebuilds all port spatial items.
   void rebuildFromNodes(Iterable<Node<T>> nodes) {
-    // Clear existing nodes
+    // Clear existing nodes and their ports
     for (final nodeId in _nodes.keys.toList()) {
       _grid.remove(NodeSpatialItem(nodeId: nodeId, bounds: Rect.zero).id);
+      _removePortsForNode(nodeId, notify: false);
     }
     _nodes.clear();
 
-    // Add new nodes
+    // Add new nodes (update() also adds their ports)
     batch(() {
       for (final node in nodes) {
         update(node);
@@ -386,7 +461,8 @@ class GraphSpatialIndex<T> {
     });
   }
 
-  /// Rebuilds connections using single bounds calculator (legacy compatibility).
+  /// Rebuilds connections using single bounds calculator.
+  /// Convenience wrapper that converts single-bound results to segment lists.
   void rebuildConnections(
     Iterable<Connection> connections,
     Rect Function(Connection) boundsCalculator,
@@ -422,6 +498,8 @@ class GraphSpatialIndex<T> {
   int get nodeCount => _nodes.length;
   int get connectionCount => _connections.length;
   int get annotationCount => _annotations.length;
+  int get portCount =>
+      _nodePortIds.values.fold(0, (sum, list) => sum + list.length);
   SpatialIndexStats get stats => _grid.stats;
 
   /// The grid size used for spatial hashing (default: 500.0 pixels).
@@ -454,50 +532,55 @@ class GraphSpatialIndex<T> {
   }
 
   HitTestResult? _hitTestPorts(Offset point) {
-    final nearbyNodes = _grid
-        .queryPoint(point, radius: portSnapDistance)
-        .whereType<NodeSpatialItem>()
-        .map((item) => _nodes[item.nodeId])
-        .whereType<Node<T>>()
-        .toList();
+    // Query port spatial items directly - O(1) spatial lookup
+    final nearbyPorts = _grid.queryPoint(point).whereType<PortSpatialItem>();
 
-    // Sort by zIndex descending (highest first = visually on top)
-    // For nodes with same zIndex, we need to check render order
-    nearbyNodes.sort((a, b) => b.zIndex.value.compareTo(a.zIndex.value));
+    // Collect port candidates with distance (all data is on the spatial item)
+    final candidates = <({PortSpatialItem item, double distance})>[];
 
-    for (final node in nearbyNodes) {
-      final shape = nodeShapeBuilder?.call(node);
+    for (final portItem in nearbyPorts) {
+      // Calculate distance from point to port center
+      final portCenter = portItem.bounds.center;
+      final distance = (point - portCenter).distance;
 
-      for (final port in [...node.inputPorts, ...node.outputPorts]) {
-        final effectivePortSize =
-            portSizeResolver?.call(port) ?? const Size.square(10.0);
-        final portPosition = node.getPortPosition(
-          port.id,
-          portSize: effectivePortSize,
-          shape: shape,
-        );
-        final distance = (point - portPosition).distance;
-
-        if (distance <= portSnapDistance) {
-          // Check if any other node is covering this port position
-          // This includes nodes with higher zIndex OR nodes with the same zIndex
-          // that render later (appear later in the render order)
-          final isCoveredByOtherNode = _isPointCoveredByOtherNode(
-            portPosition,
-            node,
-          );
-
-          if (!isCoveredByOtherNode) {
-            return HitTestResult(
-              nodeId: node.id,
-              portId: port.id,
-              isOutput: node.outputPorts.contains(port),
-              hitType: HitTarget.port,
-            );
-          }
-        }
+      if (distance <= portSnapDistance) {
+        candidates.add((item: portItem, distance: distance));
       }
     }
+
+    if (candidates.isEmpty) return null;
+
+    // Sort by node zIndex (highest first), then by distance (closest first)
+    candidates.sort((a, b) {
+      final nodeA = _nodes[a.item.nodeId];
+      final nodeB = _nodes[b.item.nodeId];
+      if (nodeA == null || nodeB == null) return 0;
+
+      final zIndexCompare = nodeB.zIndex.value.compareTo(nodeA.zIndex.value);
+      if (zIndexCompare != 0) return zIndexCompare;
+
+      // Same zIndex - prefer closer port
+      return a.distance.compareTo(b.distance);
+    });
+
+    // Find the first port that isn't covered by another node
+    for (final candidate in candidates) {
+      final node = _nodes[candidate.item.nodeId];
+      if (node == null) continue;
+
+      final portCenter = candidate.item.bounds.center;
+      final isCoveredByOtherNode = _isPointCoveredByOtherNode(portCenter, node);
+
+      if (!isCoveredByOtherNode) {
+        return HitTestResult(
+          nodeId: candidate.item.nodeId,
+          portId: candidate.item.portId,
+          isOutput: candidate.item.isOutput,
+          hitType: HitTarget.port,
+        );
+      }
+    }
+
     return null;
   }
 

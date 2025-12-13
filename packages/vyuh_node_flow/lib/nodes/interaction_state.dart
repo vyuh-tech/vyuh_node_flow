@@ -95,15 +95,15 @@ class InteractionState {
   /// Returns true when the user is dragging from a port to create a connection.
   bool get isCreatingConnection => temporaryConnection.value != null;
 
-  /// Gets the source node ID of the temporary connection.
+  /// Gets the starting node ID of the temporary connection.
   ///
   /// Returns null if no connection is being created.
-  String? get connectionSourceNodeId => temporaryConnection.value?.sourceNodeId;
+  String? get connectionStartNodeId => temporaryConnection.value?.startNodeId;
 
-  /// Gets the source port ID of the temporary connection.
+  /// Gets the starting port ID of the temporary connection.
   ///
   /// Returns null if no connection is being created.
-  String? get connectionSourcePortId => temporaryConnection.value?.sourcePortId;
+  String? get connectionStartPortId => temporaryConnection.value?.startPortId;
 
   /// Checks if a selection rectangle is being drawn.
   ///

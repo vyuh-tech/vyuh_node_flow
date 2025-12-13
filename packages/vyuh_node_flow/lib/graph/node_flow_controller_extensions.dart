@@ -214,6 +214,7 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
     Offset graphPosition,
     String? targetNodeId,
     String? targetPortId,
+    Rect? targetNodeBounds,
   ) {
     final temp = interaction.temporaryConnection.value;
     if (temp == null) return;
@@ -229,6 +230,9 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
       }
       if (temp.targetPortId != targetPortId) {
         temp.targetPortId = targetPortId;
+      }
+      if (temp.targetNodeBounds != targetNodeBounds) {
+        temp.targetNodeBounds = targetNodeBounds;
       }
     });
   }
@@ -307,50 +311,69 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
     annotations.internalEndAnnotationDrag();
   }
 
-  Connection? _completeConnection(String targetNodeId, String targetPortId) {
-    if (interaction.connectionSourceNodeId != null &&
-        interaction.connectionSourcePortId != null) {
-      final sourceNodeId = interaction.connectionSourceNodeId!;
-      final sourcePortId = interaction.connectionSourcePortId!;
-
-      // Get connections to remove before batching
-      final connectionsToRemove = _getConnectionsToRemove(
-        targetNodeId,
-        targetPortId,
-        false,
-      );
-
-      // Batch all connection operations for instant visual update
-      final createdConnection = runInAction(() {
-        // Remove existing connections from target port if needed
-        for (final connection in connectionsToRemove) {
-          removeConnection(connection.id);
-        }
-
-        // Create the new connection
-        final connection = Connection(
-          id: '${sourceNodeId}_${sourcePortId}_${targetNodeId}_$targetPortId',
-          sourceNodeId: sourceNodeId,
-          sourcePortId: sourcePortId,
-          targetNodeId: targetNodeId,
-          targetPortId: targetPortId,
-        );
-        addConnection(connection);
-
-        // Clear temporary connection state
-        interaction.temporaryConnection.value = null;
-
-        return connection;
-      });
-
-      // Fire connection end event with success
-      events.connection?.onConnectEnd?.call(true);
-
-      return createdConnection;
+  Connection? _completeConnection(String hoveredNodeId, String hoveredPortId) {
+    final temp = interaction.temporaryConnection.value;
+    if (temp == null) {
+      // Fire connection end event with failure
+      events.connection?.onConnectEnd?.call(false);
+      return null;
     }
 
-    // Fire connection end event with failure
-    events.connection?.onConnectEnd?.call(false);
-    return null;
+    // Determine actual source/target based on port direction:
+    // - If started from output: start is source, hovered is target
+    // - If started from input: hovered is source, start is target
+    final String sourceNodeId;
+    final String sourcePortId;
+    final String targetNodeId;
+    final String targetPortId;
+
+    if (temp.isStartFromOutput) {
+      // Output → Input: start is source, hovered is target
+      sourceNodeId = temp.startNodeId;
+      sourcePortId = temp.startPortId;
+      targetNodeId = hoveredNodeId;
+      targetPortId = hoveredPortId;
+    } else {
+      // Input ← Output: hovered is source, start is target
+      sourceNodeId = hoveredNodeId;
+      sourcePortId = hoveredPortId;
+      targetNodeId = temp.startNodeId;
+      targetPortId = temp.startPortId;
+    }
+
+    // Get connections to remove before batching
+    final connectionsToRemove = _getConnectionsToRemove(
+      targetNodeId,
+      targetPortId,
+      false,
+    );
+
+    // Batch all connection operations for instant visual update
+    final createdConnection = runInAction(() {
+      // Remove existing connections from target port if needed
+      for (final connection in connectionsToRemove) {
+        removeConnection(connection.id);
+      }
+
+      // Create the new connection
+      final connection = Connection(
+        id: '${sourceNodeId}_${sourcePortId}_${targetNodeId}_$targetPortId',
+        sourceNodeId: sourceNodeId,
+        sourcePortId: sourcePortId,
+        targetNodeId: targetNodeId,
+        targetPortId: targetPortId,
+      );
+      addConnection(connection);
+
+      // Clear temporary connection state
+      interaction.temporaryConnection.value = null;
+
+      return connection;
+    });
+
+    // Fire connection end event with success
+    events.connection?.onConnectEnd?.call(true);
+
+    return createdConnection;
   }
 }

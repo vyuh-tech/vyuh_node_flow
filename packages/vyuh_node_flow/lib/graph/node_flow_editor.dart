@@ -1087,8 +1087,8 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         final tempConnection = widget.controller.temporaryConnection;
         // Only complete connection if it's a different port than the source
         if (tempConnection != null &&
-            (hitResult.nodeId != tempConnection.sourceNodeId ||
-                hitResult.portId != tempConnection.sourcePortId)) {
+            (hitResult.nodeId != tempConnection.startNodeId ||
+                hitResult.portId != tempConnection.startPortId)) {
           _handlePortInteraction(hitResult);
         } else {
           // Same port or invalid target - cancel the connection
@@ -1200,18 +1200,18 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     }
 
     // Can't connect to the same port
-    if (hitResult.nodeId == tempConnection.sourceNodeId &&
-        hitResult.portId == tempConnection.sourcePortId) {
+    if (hitResult.nodeId == tempConnection.startNodeId &&
+        hitResult.portId == tempConnection.startPortId) {
       return false;
     }
 
     // Get source port info from temporary connection
-    final sourceNode = widget.controller.getNode(tempConnection.sourceNodeId);
+    final sourceNode = widget.controller.getNode(tempConnection.startNodeId);
     if (sourceNode == null) return false;
 
     // Determine if source port is output
     final isSourceOutput = sourceNode.outputPorts.any(
-      (port) => port.id == tempConnection.sourcePortId,
+      (port) => port.id == tempConnection.startPortId,
     );
     final isTargetOutput = hitResult.isOutput ?? false;
 
@@ -1228,7 +1228,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
         // Get nodes and ports for validation context
         final sourceNode = widget.controller.getNode(
-          tempConnection.sourceNodeId,
+          tempConnection.startNodeId,
         );
         final targetNode = widget.controller.getNode(hitResult.nodeId!);
 
@@ -1240,7 +1240,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         final sourcePort = [
           ...sourceNode.inputPorts,
           ...sourceNode.outputPorts,
-        ].where((p) => p.id == tempConnection.sourcePortId).firstOrNull;
+        ].where((p) => p.id == tempConnection.startPortId).firstOrNull;
         final targetPort = [
           ...targetNode.inputPorts,
           ...targetNode.outputPorts,
@@ -1255,8 +1255,8 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         final existingSourceConnections = widget.controller.connections
             .where(
               (c) =>
-                  c.sourceNodeId == tempConnection.sourceNodeId &&
-                  c.sourcePortId == tempConnection.sourcePortId,
+                  c.sourceNodeId == tempConnection.startNodeId &&
+                  c.sourcePortId == tempConnection.startPortId,
             )
             .map((c) => c.id)
             .toList();
@@ -1310,8 +1310,8 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
           connectionsToBeRemoved.addAll(
             widget.controller.connections.where(
               (c) =>
-                  c.sourceNodeId == tempConnection.sourceNodeId &&
-                  c.sourcePortId == tempConnection.sourcePortId,
+                  c.sourceNodeId == tempConnection.startNodeId &&
+                  c.sourcePortId == tempConnection.startPortId,
             ),
           );
         }
@@ -1392,8 +1392,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       widget.controller._setTemporaryConnection(
         TemporaryConnection(
           startPoint: portPosition,
-          sourceNodeId: hitResult.nodeId!,
-          sourcePortId: hitResult.portId!,
+          startNodeId: hitResult.nodeId!,
+          startPortId: hitResult.portId!,
+          isStartFromOutput: hitResult.isOutput!,
+          startNodeBounds: node.getBounds(),
           initialCurrentPoint: portPosition,
         ),
       );
@@ -1409,11 +1411,16 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Check for port snapping during connection drag
     String? targetNodeId;
     String? targetPortId;
+    Rect? targetNodeBounds;
     Offset finalPosition = currentGraphPosition;
 
     // Perform hit test to find nearby ports for snapping
     final hitResult = _performHitTest(currentScreenPosition);
-    if (hitResult.isPort && hitResult.nodeId != temp.sourceNodeId) {
+    // Allow snapping to any port except the exact same port we started from
+    // This enables self-connections (connecting different ports on the same node)
+    final isSamePort = hitResult.nodeId == temp.startNodeId &&
+        hitResult.portId == temp.startPortId;
+    if (hitResult.isPort && !isSamePort) {
       // Found a target port to snap to
       targetNodeId = hitResult.nodeId;
       targetPortId = hitResult.portId;
@@ -1421,6 +1428,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       // Update position to port center for snapping
       final targetNode = widget.controller.getNode(hitResult.nodeId!);
       if (targetNode != null) {
+        targetNodeBounds = targetNode.getBounds();
         final theme = widget.theme;
         final shape = widget.controller.nodeShapeBuilder?.call(targetNode);
         // Find the target port to get its size
@@ -1444,6 +1452,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       finalPosition,
       targetNodeId,
       targetPortId,
+      targetNodeBounds,
     );
   }
 

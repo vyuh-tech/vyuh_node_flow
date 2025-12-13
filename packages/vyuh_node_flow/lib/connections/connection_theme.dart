@@ -49,6 +49,7 @@ class ConnectionTheme {
   /// - [bezierCurvature]: Curvature factor for bezier-style connections (0.0 to 1.0)
   /// - [cornerRadius]: Radius for rounded corners in step-style connections
   /// - [portExtension]: Distance connections extend straight from ports before curving
+  /// - [backEdgeGap]: Gap from node bounds for loopback/back-edge routing
   /// - [hitTolerance]: Distance tolerance for hit testing in logical pixels
   /// - [startGap]: Gap between the source port and the start endpoint (default: 0)
   /// - [endGap]: Gap between the target port and the end endpoint (default: 0)
@@ -68,6 +69,7 @@ class ConnectionTheme {
     required this.bezierCurvature,
     required this.cornerRadius,
     required this.portExtension,
+    required this.backEdgeGap,
     required this.hitTolerance,
     this.startGap = 0.0,
     this.endGap = 0.0,
@@ -154,6 +156,14 @@ class ConnectionTheme {
   /// distance for label positioning at the start and end of connections.
   final double portExtension;
 
+  /// Gap from node bounds for loopback/back-edge routing.
+  ///
+  /// When a connection needs to route around nodes (loopback scenarios),
+  /// this value determines the clearance from the node bounds. This is
+  /// independent of [portExtension] which only controls the initial
+  /// straight segment from the port.
+  final double backEdgeGap;
+
   /// Distance tolerance for hit testing in logical pixels.
   ///
   /// Determines how close a pointer must be to a connection to register
@@ -194,6 +204,7 @@ class ConnectionTheme {
     double? bezierCurvature,
     double? cornerRadius,
     double? portExtension,
+    double? backEdgeGap,
     double? hitTolerance,
     double? startGap,
     double? endGap,
@@ -214,6 +225,7 @@ class ConnectionTheme {
       bezierCurvature: bezierCurvature ?? this.bezierCurvature,
       cornerRadius: cornerRadius ?? this.cornerRadius,
       portExtension: portExtension ?? this.portExtension,
+      backEdgeGap: backEdgeGap ?? this.backEdgeGap,
       hitTolerance: hitTolerance ?? this.hitTolerance,
       startGap: startGap ?? this.startGap,
       endGap: endGap ?? this.endGap,
@@ -243,6 +255,7 @@ class ConnectionTheme {
     bezierCurvature: 0.5,
     cornerRadius: 4.0,
     portExtension: 20.0,
+    backEdgeGap: 20.0,
     hitTolerance: 8.0,
   );
 
@@ -269,6 +282,7 @@ class ConnectionTheme {
     bezierCurvature: 0.5,
     cornerRadius: 4.0,
     portExtension: 20.0,
+    backEdgeGap: 20.0,
     hitTolerance: 8.0,
   );
 }

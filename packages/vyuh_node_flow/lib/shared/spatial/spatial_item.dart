@@ -75,11 +75,15 @@ final class PortSpatialItem extends SpatialItem {
   const PortSpatialItem({
     required this.portId,
     required this.nodeId,
+    required this.isOutput,
     required super.bounds,
   });
 
   final String portId;
   final String nodeId;
+
+  /// Whether this is an output port (true) or input port (false).
+  final bool isOutput;
 
   @override
   String get id => 'port_${nodeId}_$portId';
@@ -88,8 +92,12 @@ final class PortSpatialItem extends SpatialItem {
   String get referenceId => portId;
 
   @override
-  PortSpatialItem copyWithBounds(Rect newBounds) =>
-      PortSpatialItem(portId: portId, nodeId: nodeId, bounds: newBounds);
+  PortSpatialItem copyWithBounds(Rect newBounds) => PortSpatialItem(
+    portId: portId,
+    nodeId: nodeId,
+    isOutput: isOutput,
+    bounds: newBounds,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -180,10 +188,10 @@ final class AnnotationSpatialItem extends SpatialItem {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// BACKWARD COMPATIBILITY - Factory constructors on SpatialItem
+// Factory Constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Extension to provide factory-style constructors for backward compatibility.
+/// Extension to provide factory-style constructors for spatial items.
 extension SpatialItemFactories on SpatialItem {
   /// Creates a spatial item for a node.
   static NodeSpatialItem node({required String nodeId, required Rect bounds}) =>
@@ -193,8 +201,14 @@ extension SpatialItemFactories on SpatialItem {
   static PortSpatialItem port({
     required String portId,
     required String nodeId,
+    required bool isOutput,
     required Rect bounds,
-  }) => PortSpatialItem(portId: portId, nodeId: nodeId, bounds: bounds);
+  }) => PortSpatialItem(
+    portId: portId,
+    nodeId: nodeId,
+    isOutput: isOutput,
+    bounds: bounds,
+  );
 
   /// Creates a spatial item for a connection segment.
   static ConnectionSegmentItem connectionSegment({

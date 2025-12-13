@@ -11,10 +11,9 @@ import '../viewport.dart';
 /// This layer renders an overlay showing how the spatial index partitions
 /// the canvas into cells. It displays:
 /// - Grid cell boundaries (large cells, typically 500px)
-/// - Cell coordinates (e.g., "(0, 0)", "(-1, 0)") in the top-left corner
-/// - Object counts by type: `n:X p:X c:X a:X` (nodes, ports, connections, annotations)
+/// - Cell coordinates as `[x, y]` in the top-left corner (green background when mouse is in cell)
+/// - Object counts as vertical list: `N: X`, `C: X`, `P: X` (nodes, connections, ports)
 /// - Visual highlighting for active (non-empty) cells
-/// - Star indicator (★) showing which cell the mouse cursor is in
 ///
 /// The spatial index grid is much larger than the visual grid (default 500px
 /// vs 20px) because it's optimized for query performance, not visual reference.

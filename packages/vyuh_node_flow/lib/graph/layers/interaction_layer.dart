@@ -132,41 +132,79 @@ class InteractionLayerPainter<T> extends CustomPainter {
 
     // Draw temporary connection (in graph coordinates)
     if (temporaryConnection != null) {
-      Port? sourcePort;
-      Port? targetPort;
+      final temp = temporaryConnection!;
+      final isStartFromOutput = temp.isStartFromOutput;
 
-      // Get source port
-      final sourceNode = controller.nodes[temporaryConnection!.sourceNodeId];
-      if (sourceNode != null) {
-        for (final port in sourceNode.outputPorts) {
-          if (port.id == temporaryConnection!.sourcePortId) {
-            sourcePort = port;
+      // Get the starting port (where drag began)
+      Port? startPort;
+      final startNode = controller.nodes[temp.startNodeId];
+      if (startNode != null) {
+        // Search in the appropriate port list based on port type
+        final portList = isStartFromOutput
+            ? startNode.outputPorts
+            : startNode.inputPorts;
+        for (final port in portList) {
+          if (port.id == temp.startPortId) {
+            startPort = port;
             break;
           }
         }
       }
 
-      // Get target port if available
-      if (temporaryConnection!.targetNodeId != null &&
-          temporaryConnection!.targetPortId != null) {
-        final targetNode = controller.nodes[temporaryConnection!.targetNodeId!];
-        if (targetNode != null) {
-          for (final port in targetNode.inputPorts) {
-            if (port.id == temporaryConnection!.targetPortId) {
-              targetPort = port;
+      // Get the hovered port if available (where mouse is hovering)
+      Port? hoveredPort;
+      if (temp.targetNodeId != null && temp.targetPortId != null) {
+        final hoveredNode = controller.nodes[temp.targetNodeId!];
+        if (hoveredNode != null) {
+          // Hovered port is the opposite type of start port
+          final portList = isStartFromOutput
+              ? hoveredNode.inputPorts
+              : hoveredNode.outputPorts;
+          for (final port in portList) {
+            if (port.id == temp.targetPortId) {
+              hoveredPort = port;
               break;
             }
           }
         }
       }
 
+      // Determine actual source/target based on port direction:
+      // - If started from output: start port is SOURCE, hovered/mouse is TARGET
+      // - If started from input: start port is TARGET, hovered/mouse is SOURCE
+      final Port? sourcePort;
+      final Port? targetPort;
+      final Offset sourcePoint;
+      final Offset targetPoint;
+      final Rect? sourceNodeBounds;
+      final Rect? targetNodeBounds;
+
+      if (isStartFromOutput) {
+        // Output → Input: start is source, current point is target
+        sourcePort = startPort;
+        targetPort = hoveredPort;
+        sourcePoint = temp.startPoint;
+        targetPoint = temp.currentPoint;
+        sourceNodeBounds = temp.startNodeBounds;
+        targetNodeBounds = temp.targetNodeBounds;
+      } else {
+        // Input ← Output: start is target, current point is source
+        sourcePort = hoveredPort;
+        targetPort = startPort;
+        sourcePoint = temp.currentPoint;
+        targetPoint = temp.startPoint;
+        sourceNodeBounds = temp.targetNodeBounds;
+        targetNodeBounds = temp.startNodeBounds;
+      }
+
       controller.connectionPainter.paintTemporaryConnection(
         canvas,
-        temporaryConnection!.startPoint,
-        temporaryConnection!.currentPoint,
+        sourcePoint,
+        targetPoint,
         sourcePort: sourcePort,
         targetPort: targetPort,
-        isReversed: false,
+        sourceNodeBounds: sourceNodeBounds,
+        targetNodeBounds: targetNodeBounds,
         animationValue: animation?.value,
       );
     }

@@ -2,8 +2,19 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import '../../ports/port.dart';
+import 'waypoint_builder.dart';
 
+/// Calculates smoothstep connection paths with optional node-aware routing.
+///
+/// When [sourceNodeBounds] and [targetNodeBounds] are provided, the calculator
+/// uses [WaypointBuilder] for node-aware routing that ensures connections never
+/// route through nodes. When bounds are not provided, it falls back to simple
+/// offset-based routing.
 class SmoothstepPathCalculator {
+  /// Creates a smoothstep path between two points.
+  ///
+  /// If [sourceNodeBounds] and [targetNodeBounds] are provided, uses node-aware
+  /// routing that ensures the path avoids going through nodes.
   static Path calculatePath({
     required Offset start,
     required Offset end,
@@ -11,6 +22,8 @@ class SmoothstepPathCalculator {
     required PortPosition targetPosition,
     double offset = 10.0,
     double cornerRadius = 8.0,
+    Rect? sourceNodeBounds,
+    Rect? targetNodeBounds,
   }) {
     final waypoints = _calculateWaypoints(
       start.dx,
@@ -20,19 +33,26 @@ class SmoothstepPathCalculator {
       end.dy,
       targetPosition,
       offset,
+      sourceNodeBounds: sourceNodeBounds,
+      targetNodeBounds: targetNodeBounds,
     );
 
     return _generateSmoothPath(waypoints, cornerRadius);
   }
 
-  /// Get the bend points (waypoints) for a smoothstep path without creating the Path
-  /// These are the exact points where 90-degree bends occur
+  /// Get the bend points (waypoints) for a smoothstep path without creating the Path.
+  ///
+  /// These are the exact points where 90-degree bends occur.
+  /// If [sourceNodeBounds] and [targetNodeBounds] are provided, uses node-aware
+  /// routing that ensures waypoints avoid going through nodes.
   static List<Offset> getBendPoints({
     required Offset start,
     required Offset end,
     required PortPosition sourcePosition,
     required PortPosition targetPosition,
     double offset = 10.0,
+    Rect? sourceNodeBounds,
+    Rect? targetNodeBounds,
   }) {
     return _calculateWaypoints(
       start.dx,
@@ -42,6 +62,8 @@ class SmoothstepPathCalculator {
       end.dy,
       targetPosition,
       offset,
+      sourceNodeBounds: sourceNodeBounds,
+      targetNodeBounds: targetNodeBounds,
     );
   }
 
@@ -52,11 +74,28 @@ class SmoothstepPathCalculator {
     double endX,
     double endY,
     PortPosition targetPos,
-    double offset,
-  ) {
-    // Phase II: Early detection of simple paths
+    double offset, {
+    Rect? sourceNodeBounds,
+    Rect? targetNodeBounds,
+  }) {
     final start = Offset(startX, startY);
     final end = Offset(endX, endY);
+
+    // Use WaypointBuilder for node-aware routing when bounds are provided
+    if (sourceNodeBounds != null || targetNodeBounds != null) {
+      final waypoints = WaypointBuilder.calculateWaypoints(
+        start: start,
+        end: end,
+        sourcePosition: sourcePos,
+        targetPosition: targetPos,
+        offset: offset,
+        sourceNodeBounds: sourceNodeBounds,
+        targetNodeBounds: targetNodeBounds,
+      );
+      return WaypointBuilder.optimizeWaypoints(waypoints);
+    }
+
+    // Simple offset-based routing when no node bounds provided
     final startExtended = _getExtendedPoint(start, sourcePos, offset);
     final endExtended = _getExtendedPoint(end, targetPos, offset);
 

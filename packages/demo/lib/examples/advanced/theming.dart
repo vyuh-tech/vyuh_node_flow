@@ -49,6 +49,24 @@ class _ThemingExampleState extends State<ThemingExample> {
       position: const Offset(100, 100),
       size: const Size(150, 100),
       data: {'label': 'Source'},
+      inputPorts: [
+        Port(
+          id: 'in1',
+          name: 'Input 1',
+          position: PortPosition.left,
+          offset: const Offset(-2, 20), // Starting offset for loopback testing
+          shape: _selectedPortShape,
+          showLabel: true,
+        ),
+        Port(
+          id: 'in2',
+          name: 'Input 2',
+          position: PortPosition.left,
+          offset: const Offset(-2, 50), // Second input for loopback testing
+          shape: _selectedPortShape,
+          showLabel: true,
+        ),
+      ],
       outputPorts: [
         Port(
           id: 'out1',
@@ -452,6 +470,98 @@ class _ThemingExampleState extends State<ThemingExample> {
               },
             );
           }).toList(),
+        ),
+        const SizedBox(height: 16),
+
+        // Path Parameters subsection
+        const Text('Path Parameters', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        _buildSlider(
+          'Corner Radius',
+          _theme.connectionTheme.cornerRadius,
+          0.0,
+          20.0,
+          (value) {
+            _updateTheme(
+              _theme.copyWith(
+                connectionTheme: _theme.connectionTheme.copyWith(
+                  cornerRadius: value,
+                ),
+                temporaryConnectionTheme: _theme.temporaryConnectionTheme
+                    .copyWith(cornerRadius: value),
+              ),
+            );
+          },
+        ),
+        Text(
+          'Rounded corners for step-style connections',
+          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+        ),
+        const SizedBox(height: 4),
+        _buildSlider(
+          'Port Extension',
+          _theme.connectionTheme.portExtension,
+          5.0,
+          50.0,
+          (value) {
+            _updateTheme(
+              _theme.copyWith(
+                connectionTheme: _theme.connectionTheme.copyWith(
+                  portExtension: value,
+                ),
+                temporaryConnectionTheme: _theme.temporaryConnectionTheme
+                    .copyWith(portExtension: value),
+              ),
+            );
+          },
+        ),
+        Text(
+          'Distance connections extend straight from ports',
+          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+        ),
+        const SizedBox(height: 4),
+        _buildSlider(
+          'Back Edge Gap',
+          _theme.connectionTheme.backEdgeGap,
+          5.0,
+          80.0,
+          (value) {
+            _updateTheme(
+              _theme.copyWith(
+                connectionTheme: _theme.connectionTheme.copyWith(
+                  backEdgeGap: value,
+                ),
+                temporaryConnectionTheme: _theme.temporaryConnectionTheme
+                    .copyWith(backEdgeGap: value),
+              ),
+            );
+          },
+        ),
+        Text(
+          'Clearance from node bounds for loopback routing',
+          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+        ),
+        const SizedBox(height: 4),
+        _buildSlider(
+          'Curvature',
+          _theme.connectionTheme.bezierCurvature,
+          0.0,
+          1.0,
+          (value) {
+            _updateTheme(
+              _theme.copyWith(
+                connectionTheme: _theme.connectionTheme.copyWith(
+                  bezierCurvature: value,
+                ),
+                temporaryConnectionTheme: _theme.temporaryConnectionTheme
+                    .copyWith(bezierCurvature: value),
+              ),
+            );
+          },
+        ),
+        Text(
+          'Curvature factor for bezier-style connections',
+          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
         ),
         const SizedBox(height: 16),
 

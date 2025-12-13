@@ -173,15 +173,14 @@ class Connection {
   /// Whether the connection shows flowing animation.
   ///
   /// When true, the connection will display an animated effect. This is
-  /// automatically true when [animationEffect] is set, or can be set
-  /// manually for backward compatibility.
+  /// automatically true when [animationEffect] is set, or can be set manually.
   @JsonKey(includeFromJson: false, includeToJson: false)
   bool get animated => _animationEffect.value != null || _animated.value;
 
   /// Sets whether the connection shows flowing animation.
   ///
-  /// Note: Setting [animationEffect] is the preferred way to enable animations.
-  /// This setter is kept for backward compatibility.
+  /// Setting [animationEffect] is the preferred way to enable animations
+  /// as it provides more control over the effect.
   set animated(bool value) => runInAction(() => _animated.value = value);
 
   /// The animation effect to apply to this connection.

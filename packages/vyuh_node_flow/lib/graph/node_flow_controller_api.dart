@@ -2718,8 +2718,6 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   /// Set the theme and update the connection painter
   /// This is called internally by the editor widget only
   void setTheme(NodeFlowTheme theme) {
-    _theme = theme;
-
     // Create painter if it doesn't exist, otherwise update its theme
     if (_connectionPainter == null) {
       _connectionPainter = ConnectionPainter(
@@ -2732,6 +2730,9 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     } else {
       _connectionPainter!.updateTheme(theme);
     }
+
+    // Update observable theme - this triggers the reaction for spatial index rebuild
+    runInAction(() => _themeObservable.value = theme);
   }
 
   /// Update the events that the controller will use

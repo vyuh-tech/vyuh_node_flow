@@ -245,7 +245,8 @@ class ConnectionPainter {
     Offset currentPoint, {
     Port? sourcePort,
     Port? targetPort,
-    bool isReversed = false,
+    Rect? sourceNodeBounds,
+    Rect? targetNodeBounds,
     double? animationValue,
   }) {
     final connectionTheme = theme.temporaryConnectionTheme;
@@ -295,6 +296,8 @@ class ConnectionPainter {
       target: target,
       sourcePort: sourcePort,
       targetPort: targetPort,
+      sourceNodeBounds: sourceNodeBounds,
+      targetNodeBounds: targetNodeBounds,
       isSelected: false,
       isTemporary: true,
       drawTargetEndpoint: targetPort != null,
@@ -343,6 +346,8 @@ class ConnectionPainter {
     required ({Offset endpointPos, Offset linePos}) target,
     required Port? sourcePort,
     required Port? targetPort,
+    Rect? sourceNodeBounds,
+    Rect? targetNodeBounds,
     bool isSelected = false,
     bool isTemporary = false,
     bool drawTargetEndpoint = true,
@@ -364,6 +369,9 @@ class ConnectionPainter {
       targetPort: targetPort,
       cornerRadius: connectionTheme.cornerRadius,
       offset: connectionTheme.portExtension,
+      backEdgeGap: connectionTheme.backEdgeGap,
+      sourceNodeBounds: sourceNodeBounds,
+      targetNodeBounds: targetNodeBounds,
     );
 
     // Configure paint for the connection line

@@ -14,7 +14,10 @@ class ConnectionPathParameters {
     this.targetPort,
     this.cornerRadius = 4.0,
     this.offset = 10.0,
+    this.backEdgeGap = 20.0,
     this.controlPoints = const [],
+    this.sourceNodeBounds,
+    this.targetNodeBounds,
   });
 
   /// Start point of the connection
@@ -35,11 +38,30 @@ class ConnectionPathParameters {
   /// Corner radius for rounded connections
   final double cornerRadius;
 
-  /// Offset distance from ports
+  /// Offset distance from ports (port extension)
   final double offset;
+
+  /// Gap from node bounds for loopback/back-edge routing.
+  ///
+  /// When a connection needs to route around nodes, this value determines
+  /// the clearance from the node bounds. Independent of [offset] which
+  /// controls the initial straight segment from the port.
+  final double backEdgeGap;
 
   /// Control points for editable path connections
   final List<Offset> controlPoints;
+
+  /// Bounds of the source node for node-aware routing.
+  ///
+  /// When provided, the waypoint calculator uses this to ensure connections
+  /// route around the node bounds rather than through them.
+  final Rect? sourceNodeBounds;
+
+  /// Bounds of the target node for node-aware routing.
+  ///
+  /// When provided, the waypoint calculator uses this to ensure connections
+  /// route around the node bounds rather than through them.
+  final Rect? targetNodeBounds;
 
   /// Get source port position, defaulting to right if not specified
   PortPosition get sourcePosition => sourcePort?.position ?? PortPosition.right;
@@ -59,7 +81,10 @@ class ConnectionPathParameters {
           targetPort == other.targetPort &&
           cornerRadius == other.cornerRadius &&
           offset == other.offset &&
-          _listEquals(controlPoints, other.controlPoints);
+          backEdgeGap == other.backEdgeGap &&
+          _listEquals(controlPoints, other.controlPoints) &&
+          sourceNodeBounds == other.sourceNodeBounds &&
+          targetNodeBounds == other.targetNodeBounds;
 
   @override
   int get hashCode => Object.hash(
@@ -70,7 +95,10 @@ class ConnectionPathParameters {
     targetPort,
     cornerRadius,
     offset,
+    backEdgeGap,
     Object.hashAll(controlPoints),
+    sourceNodeBounds,
+    targetNodeBounds,
   );
 
   /// Helper to compare two lists
@@ -111,31 +139,36 @@ abstract class ConnectionStyle {
   /// Some styles may need different tolerances based on their geometry
   double get defaultHitTolerance => 8.0;
 
-  /// Creates an expanded path for hit testing
-  /// The base implementation provides a simple stroke-based expansion
-  ///
-  /// [pathParams] - Optional parameters used to create the original path.
-  /// Some connection styles can use these to create more optimized hit test paths.
-  Path createHitTestPath(
-    Path originalPath,
-    double tolerance, {
-    ConnectionPathParameters? pathParams,
-  }) {
-    return _createSimpleStrokeHitTestPath(originalPath, tolerance);
-  }
-
   /// Returns hit test segments as Rects for spatial indexing.
+  /// This is the CANONICAL source for hit testing geometry.
+  ///
   /// Each segment represents a rectangular hit area along the connection path.
   /// The base implementation samples the path and creates rectangle segments.
   ///
-  /// Subclasses can override this to provide more optimized segment rectangles
-  /// based on their specific geometry (e.g., exact bend points for step connections).
+  /// Subclasses MUST override this to provide optimized segment rectangles
+  /// based on their specific geometry (e.g., exact bend points for step connections,
+  /// curve sampling for bezier connections).
+  ///
+  /// The path cache calls this once and stores the result. Both the spatial index
+  /// and the hit test path are derived from these segments.
   List<Rect> getHitTestSegments(
     Path originalPath,
     double tolerance, {
     ConnectionPathParameters? pathParams,
   }) {
     return _createSegmentsFromPath(originalPath, tolerance);
+  }
+
+  /// Creates a hit test path from segment rectangles.
+  /// Derives the path FROM [getHitTestSegments].
+  Path createHitTestPathFromSegments(List<Rect> segments) {
+    if (segments.isEmpty) return Path();
+
+    final path = Path();
+    for (final segment in segments) {
+      path.addRect(segment);
+    }
+    return path;
   }
 
   /// Creates segment rectangles by sampling points along the path.
@@ -223,31 +256,6 @@ abstract class ConnectionStyle {
   /// This is used for caching decisions and theme comparisons
   bool isEquivalentTo(ConnectionStyle other) {
     return runtimeType == other.runtimeType && id == other.id;
-  }
-
-  // === Helper Methods ===
-
-  /// Creates a simple stroke-based hit test path (fallback implementation)
-  Path _createSimpleStrokeHitTestPath(Path originalPath, double tolerance) {
-    final bounds = originalPath.getBounds();
-
-    if (bounds.width <= 0 && bounds.height <= 0) {
-      return Path();
-    }
-
-    // Simple approach: inflate the bounding rectangle
-    // Subclasses can override createHitTestPath for more sophisticated approaches
-    return Path()..addRect(bounds.inflate(tolerance));
-  }
-
-  // === Factory Methods (for backward compatibility) ===
-
-  /// Convert from legacy enum values to connection style instances
-  static ConnectionStyle fromEnum(dynamic enumValue) {
-    // This will be implemented once we have the concrete classes
-    throw UnimplementedError(
-      'fromEnum will be implemented with concrete classes',
-    );
   }
 
   @override

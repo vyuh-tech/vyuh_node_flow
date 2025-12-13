@@ -7,8 +7,7 @@ import 'connection_styles.dart';
 /// Utility class for creating connection paths from style definitions.
 ///
 /// This calculator serves as a facade for the polymorphic [ConnectionStyle]
-/// system, providing a simple static method to create paths while handling
-/// backward compatibility and style resolution.
+/// system, providing a simple static method to create paths.
 ///
 /// ## Design Pattern
 /// This class uses the Strategy pattern, delegating path creation to the
@@ -78,6 +77,9 @@ class ConnectionPathCalculator {
     Port? targetPort,
     double cornerRadius = 4.0,
     double offset = 10.0,
+    double? backEdgeGap,
+    Rect? sourceNodeBounds,
+    Rect? targetNodeBounds,
   }) {
     // Convert style to connection style instance if it's still an enum
     final ConnectionStyle connectionStyle = _resolveConnectionStyle(style);
@@ -91,6 +93,9 @@ class ConnectionPathCalculator {
       targetPort: targetPort,
       cornerRadius: cornerRadius,
       offset: offset,
+      backEdgeGap: backEdgeGap ?? offset,
+      sourceNodeBounds: sourceNodeBounds,
+      targetNodeBounds: targetNodeBounds,
     );
 
     // Delegate to the connection style's createPath method
@@ -99,12 +104,7 @@ class ConnectionPathCalculator {
 
   /// Resolves a connection style parameter to a [ConnectionStyle] instance.
   ///
-  /// This method handles backward compatibility by accepting both legacy enum
-  /// values, string IDs, and new [ConnectionStyle] instances. It converts
-  /// string IDs to their corresponding style instances.
-  ///
-  /// Parameters:
-  /// - [style]: Can be a [ConnectionStyle] instance or a string ID
+  /// Accepts both [ConnectionStyle] instances and string IDs.
   ///
   /// Returns: A [ConnectionStyle] instance, defaulting to [ConnectionStyles.smoothstep]
   /// if the style cannot be resolved

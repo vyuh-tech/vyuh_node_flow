@@ -135,6 +135,7 @@ export 'connections/connection_validation.dart';
 export 'connections/connections_canvas.dart';
 export 'connections/styles/endpoint_position_calculator.dart';
 export 'connections/styles/label_calculator.dart';
+export 'connections/styles/waypoint_builder.dart';
 export 'connections/label_theme.dart';
 export 'connections/temporary_connection.dart';
 // Core
