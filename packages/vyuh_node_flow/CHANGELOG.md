@@ -1,3 +1,7 @@
+## 0.8.4+1
+
+ - **FIX**: left aligning the stat labels for spatial debug painter.
+
 ## 0.8.4
 
 - **FEAT**: simplifying connection styles.
