@@ -95,7 +95,9 @@ class SpatialIndexDebugPainter extends CustomPainter {
     // Paint for grid lines (inactive cells use reddish border)
     final gridPaint = Paint()
       ..color = theme.borderColor
-      ..strokeWidth = borderWidth / zoom // Scale with zoom
+      ..strokeWidth =
+          borderWidth /
+          zoom // Scale with zoom
       ..style = PaintingStyle.stroke;
 
     // Paint for active cell fill (greenish)
@@ -228,10 +230,7 @@ class SpatialIndexDebugPainter extends CustomPainter {
 
     coordPainterFinal.paint(
       canvas,
-      Offset(
-        coordBgRect.left + paddingH,
-        coordBgRect.top + paddingV,
-      ),
+      Offset(coordBgRect.left + paddingH, coordBgRect.top + paddingV),
     );
 
     // Draw stats label if cell has objects (N:, C:, P: as vertical list)
@@ -260,10 +259,8 @@ class SpatialIndexDebugPainter extends CustomPainter {
             .reduce((a, b) => a > b ? a : b);
 
         // Calculate total height
-        final totalHeight = statPainters.fold<double>(
-              0,
-              (sum, p) => sum + p.height,
-            ) +
+        final totalHeight =
+            statPainters.fold<double>(0, (sum, p) => sum + p.height) +
             (stats.length - 1) * lineSpacing;
 
         // Stats background positioned below coordinates
@@ -282,12 +279,10 @@ class SpatialIndexDebugPainter extends CustomPainter {
           statsBgPaint,
         );
 
-        // Draw each stat line, right-aligned
+        // Draw each stat line, left-aligned
         var currentY = statsBgRect.top + paddingV;
         for (final painter in statPainters) {
-          final xOffset =
-              statsBgRect.left + paddingH + (maxWidth - painter.width);
-          painter.paint(canvas, Offset(xOffset, currentY));
+          painter.paint(canvas, Offset(statsBgRect.left + paddingH, currentY));
           currentY += painter.height + lineSpacing;
         }
       }
