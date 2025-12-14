@@ -1,3 +1,7 @@
+## 0.8.4+3
+
+ - Fixed analysis issues and updated readme
+
 ## 0.8.4+2
 
  - **FIX**: analysis fixes for 160.
