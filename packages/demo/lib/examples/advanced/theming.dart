@@ -440,7 +440,10 @@ class _ThemingExampleState extends State<ThemingExample> {
         const SizedBox(height: 12),
 
         // Style subsection
-        const Text('Style', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const Text(
+          'Style',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -474,7 +477,10 @@ class _ThemingExampleState extends State<ThemingExample> {
         const SizedBox(height: 16),
 
         // Path Parameters subsection
-        const Text('Path Parameters', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const Text(
+          'Path Parameters',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         _buildSlider(
           'Corner Radius',
@@ -566,7 +572,10 @@ class _ThemingExampleState extends State<ThemingExample> {
         const SizedBox(height: 16),
 
         // Effect subsection
-        const Text('Effect', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const Text(
+          'Effect',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -603,7 +612,10 @@ class _ThemingExampleState extends State<ThemingExample> {
         const SizedBox(height: 16),
 
         // Start Point subsection
-        const Text('Start Point', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const Text(
+          'Start Point',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -643,7 +655,10 @@ class _ThemingExampleState extends State<ThemingExample> {
         const SizedBox(height: 12),
 
         // End Point subsection
-        const Text('End Point', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const Text(
+          'End Point',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -741,7 +756,10 @@ class _ThemingExampleState extends State<ThemingExample> {
         const SizedBox(height: 16),
 
         // Endpoint Styling subsection
-        const Text('Endpoint Styling', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const Text(
+          'Endpoint Styling',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         _buildColorPicker('Fill Color', _theme.connectionTheme.endpointColor, (
           color,
@@ -793,7 +811,10 @@ class _ThemingExampleState extends State<ThemingExample> {
         const SizedBox(height: 16),
 
         // Colors subsection
-        const Text('Colors', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const Text(
+          'Colors',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         _buildColorPicker('Normal', _theme.connectionTheme.color, (color) {
           _updateTheme(
@@ -817,7 +838,10 @@ class _ThemingExampleState extends State<ThemingExample> {
         const SizedBox(height: 16),
 
         // Stroke Width subsection
-        const Text('Stroke Width', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const Text(
+          'Stroke Width',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         _buildSlider('Normal', _theme.connectionTheme.strokeWidth, 1.0, 5.0, (
           value,
@@ -1084,7 +1108,10 @@ class _ThemingExampleState extends State<ThemingExample> {
         const SizedBox(height: 12),
 
         // Size subsection
-        const Text('Size', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const Text(
+          'Size',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         _buildSlider('Width', _theme.portTheme.size.width, 6.0, 20.0, (value) {
           _updateTheme(
@@ -1109,7 +1136,10 @@ class _ThemingExampleState extends State<ThemingExample> {
         const SizedBox(height: 12),
 
         // Shape subsection
-        const Text('Shape', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const Text(
+          'Shape',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -1156,7 +1186,10 @@ class _ThemingExampleState extends State<ThemingExample> {
         const SizedBox(height: 16),
 
         // Custom Builders subsection
-        const Text('Custom Builders', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const Text(
+          'Custom Builders',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -1352,11 +1385,12 @@ class _ThemingExampleState extends State<ThemingExample> {
         const SizedBox(height: 12),
 
         // Border subsection
-        const Text('Border', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const Text(
+          'Border',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
-        _buildSlider('Width', _theme.nodeTheme.borderWidth, 0.0, 5.0, (
-          value,
-        ) {
+        _buildSlider('Width', _theme.nodeTheme.borderWidth, 0.0, 5.0, (value) {
           _updateTheme(
             _theme.copyWith(
               nodeTheme: _theme.nodeTheme.copyWith(borderWidth: value),
@@ -1379,9 +1413,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           },
         ),
         const SizedBox(height: 8),
-        _buildColorPicker('Normal', _theme.nodeTheme.borderColor, (
-          color,
-        ) {
+        _buildColorPicker('Normal', _theme.nodeTheme.borderColor, (color) {
           _updateTheme(
             _theme.copyWith(
               nodeTheme: _theme.nodeTheme.copyWith(borderColor: color),

@@ -89,10 +89,7 @@ abstract class EditablePathConnectionStyle extends ConnectionStyle {
   ({Offset start, List<PathSegment> segments}) createDefaultSegments(
     ConnectionPathParameters params,
   ) {
-    return (
-      start: params.start,
-      segments: [StraightSegment(end: params.end)],
-    );
+    return (start: params.start, segments: [StraightSegment(end: params.end)]);
   }
 
   /// Creates segments for this connection, using control points if available.

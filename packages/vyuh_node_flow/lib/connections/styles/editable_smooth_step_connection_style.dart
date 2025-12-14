@@ -78,8 +78,9 @@ class EditableSmoothStepConnectionStyle extends EditablePathConnectionStyle {
     );
 
     final optimized = WaypointBuilder.optimizeWaypoints(waypoints);
-    final effectiveCornerRadius =
-        params.cornerRadius > 0 ? params.cornerRadius : defaultCornerRadius;
+    final effectiveCornerRadius = params.cornerRadius > 0
+        ? params.cornerRadius
+        : defaultCornerRadius;
     final segments = WaypointBuilder.waypointsToSegments(
       optimized,
       cornerRadius: effectiveCornerRadius,
@@ -107,8 +108,9 @@ class EditableSmoothStepConnectionStyle extends EditablePathConnectionStyle {
     final orthogonalWaypoints = _createOrthogonalWaypoints(waypoints);
 
     // Generate segments with rounded corners
-    final effectiveCornerRadius =
-        params.cornerRadius > 0 ? params.cornerRadius : defaultCornerRadius;
+    final effectiveCornerRadius = params.cornerRadius > 0
+        ? params.cornerRadius
+        : defaultCornerRadius;
     final segments = _generateSmoothSegments(
       orthogonalWaypoints,
       effectiveCornerRadius,
@@ -283,10 +285,7 @@ class EditableSmoothStepConnectionStyle extends EditablePathConnectionStyle {
         segments.add(StraightSegment(end: cornerStart));
 
         // Add quadratic bezier curve for the corner
-        segments.add(QuadraticSegment(
-          controlPoint: current,
-          end: cornerEnd,
-        ));
+        segments.add(QuadraticSegment(controlPoint: current, end: cornerEnd));
       } else {
         // Not a perpendicular corner, just add straight segment
         segments.add(StraightSegment(end: current));

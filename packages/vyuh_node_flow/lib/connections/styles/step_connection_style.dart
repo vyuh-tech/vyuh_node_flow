@@ -57,8 +57,9 @@ class StepConnectionStyle extends ConnectionStyle {
     final optimized = WaypointBuilder.optimizeWaypoints(waypoints);
 
     // Determine effective corner radius
-    final effectiveCornerRadius =
-        params.cornerRadius > 0 ? params.cornerRadius : cornerRadius;
+    final effectiveCornerRadius = params.cornerRadius > 0
+        ? params.cornerRadius
+        : cornerRadius;
 
     // Convert to segments with rounded corners
     final segments = WaypointBuilder.waypointsToSegments(

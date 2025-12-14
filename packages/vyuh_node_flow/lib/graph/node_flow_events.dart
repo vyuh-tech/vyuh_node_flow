@@ -185,7 +185,7 @@ class PortEvents<T> {
   /// Called on secondary tap on a port (right-click/long-press for context menu)
   /// Receives the node, port, whether it's an output port, and the pointer position
   final void Function(Node<T> node, Port port, bool isOutput, Offset position)?
-      onContextMenu;
+  onContextMenu;
 
   PortEvents<T> copyWith({
     void Function(Node<T> node, Port port, bool isOutput)? onTap,
@@ -193,7 +193,7 @@ class PortEvents<T> {
     void Function(Node<T> node, Port port, bool isOutput)? onMouseEnter,
     void Function(Node<T> node, Port port, bool isOutput)? onMouseLeave,
     void Function(Node<T> node, Port port, bool isOutput, Offset position)?
-        onContextMenu,
+    onContextMenu,
   }) {
     return PortEvents<T>(
       onTap: onTap ?? this.onTap,

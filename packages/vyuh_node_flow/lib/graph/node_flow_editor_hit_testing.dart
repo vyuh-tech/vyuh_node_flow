@@ -15,7 +15,8 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
   /// Handles keyboard events for shift key cursor changes.
   bool _handleKeyEvent(KeyEvent event) {
     // Only care about shift key changes
-    final isShiftKey = event.logicalKey == LogicalKeyboardKey.shiftLeft ||
+    final isShiftKey =
+        event.logicalKey == LogicalKeyboardKey.shiftLeft ||
         event.logicalKey == LogicalKeyboardKey.shiftRight;
 
     if (!isShiftKey) return false;
@@ -28,12 +29,14 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
       // Use the last known hover state to update cursor
       final hitResult = HitTestResult(
         hitType: _lastHoverHitType ?? HitTarget.canvas,
-        nodeId: _lastHoverHitType == HitTarget.node ||
+        nodeId:
+            _lastHoverHitType == HitTarget.node ||
                 _lastHoverHitType == HitTarget.port
             ? _lastHoveredEntityId ?? _lastHoveredNodeId
             : null,
-        portId:
-            _lastHoverHitType == HitTarget.port ? _lastHoveredEntityId : null,
+        portId: _lastHoverHitType == HitTarget.port
+            ? _lastHoveredEntityId
+            : null,
         connectionId: _lastHoverHitType == HitTarget.connection
             ? _lastHoveredEntityId
             : null,
@@ -61,8 +64,9 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
     }
 
     // Update mouse position in world coordinates for debug visualization
-    final worldPosition =
-        widget.controller.viewport.screenToGraph(event.localPosition);
+    final worldPosition = widget.controller.viewport.screenToGraph(
+      event.localPosition,
+    );
     widget.controller.setMousePositionWorld(worldPosition);
 
     final hitResult = _performHitTest(event.localPosition);
@@ -102,7 +106,8 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
     }
 
     // Check if hover target changed
-    final hoverChanged = _lastHoverHitType != currentHitType ||
+    final hoverChanged =
+        _lastHoverHitType != currentHitType ||
         _lastHoveredEntityId != currentEntityId;
 
     if (!hoverChanged) return;
@@ -165,8 +170,9 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
         break;
       case HitTarget.annotation:
         if (_lastHoveredEntityId != null) {
-          final annotation =
-              widget.controller.annotations.getAnnotation(_lastHoveredEntityId!);
+          final annotation = widget.controller.annotations.getAnnotation(
+            _lastHoveredEntityId!,
+          );
           if (annotation != null) {
             widget.controller.events.annotation?.onMouseLeave?.call(annotation);
           }
@@ -220,8 +226,9 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
         break;
       case HitTarget.annotation:
         if (entityId != null) {
-          final annotation =
-              widget.controller.annotations.getAnnotation(entityId);
+          final annotation = widget.controller.annotations.getAnnotation(
+            entityId,
+          );
           if (annotation != null) {
             widget.controller.events.annotation?.onMouseEnter?.call(annotation);
           }
@@ -282,8 +289,9 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
         break;
 
       case HitTarget.annotation:
-        final annotation = widget.controller.annotations
-            .getAnnotation(hitResult.annotationId!);
+        final annotation = widget.controller.annotations.getAnnotation(
+          hitResult.annotationId!,
+        );
         if (annotation != null) {
           widget.controller.events.annotation?.onContextMenu?.call(
             annotation,
@@ -293,7 +301,9 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
         break;
 
       case HitTarget.canvas:
-        final graphPosition = widget.controller.viewport.screenToGraph(event.localPosition);
+        final graphPosition = widget.controller.viewport.screenToGraph(
+          event.localPosition,
+        );
         widget.controller.events.viewport?.onCanvasContextMenu?.call(
           graphPosition,
         );
@@ -320,12 +330,15 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
 
     // Check for double-tap: same target type, same entity (if applicable),
     // within timeout and position threshold
-    final isDoubleTap = _lastTapTime != null &&
+    final isDoubleTap =
+        _lastTapTime != null &&
         _lastTapPosition != null &&
         _lastTapHitType == hitResult.hitType &&
         _lastTappedEntityId == entityId &&
-        now.difference(_lastTapTime!) < _NodeFlowEditorState._doubleTapTimeout &&
-        (position - _lastTapPosition!).distance < _NodeFlowEditorState._doubleTapSlop;
+        now.difference(_lastTapTime!) <
+            _NodeFlowEditorState._doubleTapTimeout &&
+        (position - _lastTapPosition!).distance <
+            _NodeFlowEditorState._doubleTapSlop;
 
     if (isDoubleTap) {
       _handleDoubleTap(position, hitResult);
@@ -370,8 +383,9 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
         break;
 
       case HitTarget.annotation:
-        final annotation = widget.controller.annotations
-            .getAnnotation(hitResult.annotationId!);
+        final annotation = widget.controller.annotations.getAnnotation(
+          hitResult.annotationId!,
+        );
         if (annotation != null) {
           widget.controller.events.annotation?.onTap?.call(annotation);
         }
@@ -381,7 +395,9 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
         // Clear selection on canvas tap (if _shouldClearSelectionOnTap is set)
         if (_shouldClearSelectionOnTap) {
           widget.controller.clearSelection();
-          final graphPosition = widget.controller.viewport.screenToGraph(position);
+          final graphPosition = widget.controller.viewport.screenToGraph(
+            position,
+          );
           widget.controller.events.viewport?.onCanvasTap?.call(graphPosition);
         }
         break;
@@ -422,15 +438,18 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
         break;
 
       case HitTarget.annotation:
-        final annotation = widget.controller.annotations
-            .getAnnotation(hitResult.annotationId!);
+        final annotation = widget.controller.annotations.getAnnotation(
+          hitResult.annotationId!,
+        );
         if (annotation != null) {
           widget.controller.events.annotation?.onDoubleTap?.call(annotation);
         }
         break;
 
       case HitTarget.canvas:
-        final graphPosition = widget.controller.viewport.screenToGraph(position);
+        final graphPosition = widget.controller.viewport.screenToGraph(
+          position,
+        );
         widget.controller.events.viewport?.onCanvasDoubleTap?.call(
           graphPosition,
         );
@@ -500,7 +519,9 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
   /// Performs hit testing at the given local position.
   /// Converts screen coordinates to graph coordinates and delegates to spatial index.
   HitTestResult _performHitTest(Offset localPosition) {
-    final graphPosition = widget.controller.viewport.screenToGraph(localPosition);
+    final graphPosition = widget.controller.viewport.screenToGraph(
+      localPosition,
+    );
     return widget.controller.spatialIndex.hitTest(graphPosition);
   }
 }

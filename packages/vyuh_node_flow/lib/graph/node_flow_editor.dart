@@ -362,7 +362,8 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   HitTarget? _lastHoverHitType;
   String? _lastHoveredEntityId; // nodeId, connectionId, portId, or annotationId
   String? _lastHoveredNodeId; // For port hover, track the parent node
-  bool? _lastHoveredPortIsOutput; // For port hover, track if it's an output port
+  bool?
+  _lastHoveredPortIsOutput; // For port hover, track if it's an output port
 
   // Shift key tracking for selection mode cursor
   bool _isShiftPressed = false;
@@ -984,8 +985,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
   void _handlePointerMove(PointerMoveEvent event) {
     // Always update mouse position for debug visualization (before any early returns)
-    final worldPosition =
-        widget.controller.viewport.screenToGraph(event.localPosition);
+    final worldPosition = widget.controller.viewport.screenToGraph(
+      event.localPosition,
+    );
     widget.controller.setMousePositionWorld(worldPosition);
 
     // Reset tap tracking if user moves significantly (they're dragging, not tapping)
@@ -1160,7 +1162,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     final startPoint = widget.controller.selectionStartPoint;
     if (startPoint == null) return;
 
-    final currentGraph = widget.controller.viewport.screenToGraph(currentPosition);
+    final currentGraph = widget.controller.viewport.screenToGraph(
+      currentPosition,
+    );
     final rect = Rect.fromPoints(startPoint, currentGraph);
 
     // Update visual rectangle and handle selection in one call
@@ -1406,7 +1410,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     final temp = widget.controller.temporaryConnection;
     if (temp == null) return;
 
-    final currentGraphPosition = widget.controller.viewport.screenToGraph(currentScreenPosition);
+    final currentGraphPosition = widget.controller.viewport.screenToGraph(
+      currentScreenPosition,
+    );
 
     // Check for port snapping during connection drag
     String? targetNodeId;
@@ -1418,7 +1424,8 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     final hitResult = _performHitTest(currentScreenPosition);
     // Allow snapping to any port except the exact same port we started from
     // This enables self-connections (connecting different ports on the same node)
-    final isSamePort = hitResult.nodeId == temp.startNodeId &&
+    final isSamePort =
+        hitResult.nodeId == temp.startNodeId &&
         hitResult.portId == temp.startPortId;
     if (hitResult.isPort && !isSamePort) {
       // Found a target port to snap to
@@ -1455,7 +1462,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       targetNodeBounds,
     );
   }
-
 }
 
 /// A widget that observes size changes and notifies via callback.

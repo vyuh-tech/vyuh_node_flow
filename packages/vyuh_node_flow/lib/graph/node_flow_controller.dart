@@ -87,7 +87,8 @@ class NodeFlowController<T> {
   NodeFlowConfig get config => _config;
 
   // Theme configuration - observable to enable reactive spatial index updates
-  final Observable<NodeFlowTheme?> _themeObservable = Observable<NodeFlowTheme?>(null);
+  final Observable<NodeFlowTheme?> _themeObservable =
+      Observable<NodeFlowTheme?>(null);
 
   /// Gets the current theme configuration.
   ///
@@ -398,10 +399,7 @@ class NodeFlowController<T> {
     // When any drag ends (node or annotation), flush all pending spatial index updates.
     // This is the single point where pending updates are committed.
     reaction(
-      (_) => (
-        interaction.draggedNodeId.value,
-        annotations.draggedAnnotationId,
-      ),
+      (_) => (interaction.draggedNodeId.value, annotations.draggedAnnotationId),
       ((String?, String?) dragState) {
         final (nodeDragId, annotationDragId) = dragState;
         // Only flush when ALL drags have ended
@@ -414,47 +412,35 @@ class NodeFlowController<T> {
 
     // === NODE ADD/REMOVE SYNC ===
     // When nodes are added/removed, rebuild the node spatial index
-    reaction(
-      (_) => _nodes.keys.toSet(),
-      (Set<String> currentNodeIds) {
-        _spatialIndex.rebuildFromNodes(_nodes.values);
-      },
-      fireImmediately: false,
-    );
+    reaction((_) => _nodes.keys.toSet(), (Set<String> currentNodeIds) {
+      _spatialIndex.rebuildFromNodes(_nodes.values);
+    }, fireImmediately: false);
 
     // === CONNECTION ADD/REMOVE SYNC ===
     // When connections are added/removed, rebuild connection spatial index and update index
-    reaction(
-      (_) => _connections.map((c) => c.id).toSet(),
-      (Set<String> connectionIds) {
-        // Rebuild connection-by-node index
-        _rebuildConnectionsByNodeIndex();
-        // Rebuild connection spatial index with proper segments
-        rebuildAllConnectionSegments();
-      },
-      fireImmediately: false,
-    );
+    reaction((_) => _connections.map((c) => c.id).toSet(), (
+      Set<String> connectionIds,
+    ) {
+      // Rebuild connection-by-node index
+      _rebuildConnectionsByNodeIndex();
+      // Rebuild connection spatial index with proper segments
+      rebuildAllConnectionSegments();
+    }, fireImmediately: false);
 
     // === THEME/STYLE CHANGE SYNC ===
     // When path-affecting theme properties change, rebuild connection segments
-    reaction(
-      (_) => _getPathAffectingSignature(),
-      (_) {
-        // Theme properties that affect path geometry have changed
-        // Rebuild all connection segments in spatial index
-        rebuildAllConnectionSegments();
-      },
-      fireImmediately: false,
-    );
+    reaction((_) => _getPathAffectingSignature(), (_) {
+      // Theme properties that affect path geometry have changed
+      // Rebuild all connection segments in spatial index
+      rebuildAllConnectionSegments();
+    }, fireImmediately: false);
 
     // === ANNOTATION ADD/REMOVE SYNC ===
-    reaction(
-      (_) => annotations.annotations.keys.toSet(),
-      (Set<String> annotationIds) {
-        _spatialIndex.rebuildFromAnnotations(annotations.annotations.values);
-      },
-      fireImmediately: false,
-    );
+    reaction((_) => annotations.annotations.keys.toSet(), (
+      Set<String> annotationIds,
+    ) {
+      _spatialIndex.rebuildFromAnnotations(annotations.annotations.values);
+    }, fireImmediately: false);
   }
 
   /// Gets the connection painter used for rendering and hit-testing connections.

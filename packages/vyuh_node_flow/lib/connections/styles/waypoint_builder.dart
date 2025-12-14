@@ -108,7 +108,9 @@ class WaypointBuilder {
   /// always uses the same step-based approach regardless of style.
   ///
   /// Returns a list of [PathSegment]s that route around node bounds.
-  static List<PathSegment> buildLoopbackSegments(ConnectionPathParameters params) {
+  static List<PathSegment> buildLoopbackSegments(
+    ConnectionPathParameters params,
+  ) {
     final waypoints = calculateWaypoints(
       start: params.start,
       end: params.end,
@@ -122,10 +124,7 @@ class WaypointBuilder {
     final optimized = optimizeWaypoints(waypoints);
 
     // Convert waypoints to segments with rounded corners
-    return waypointsToSegments(
-      optimized,
-      cornerRadius: params.cornerRadius,
-    );
+    return waypointsToSegments(optimized, cornerRadius: params.cornerRadius);
   }
 
   // ============================================================
@@ -320,21 +319,18 @@ class WaypointBuilder {
   }
 
   /// Checks if four points are collinear (can form a straight line).
-  static bool _arePointsCollinear(
-    Offset p1,
-    Offset p2,
-    Offset p3,
-    Offset p4,
-  ) {
+  static bool _arePointsCollinear(Offset p1, Offset p2, Offset p3, Offset p4) {
     const tolerance = 1.0;
 
     // Check if all points share the same X (vertical line)
-    final sameX = (p1.dx - p2.dx).abs() < tolerance &&
+    final sameX =
+        (p1.dx - p2.dx).abs() < tolerance &&
         (p2.dx - p3.dx).abs() < tolerance &&
         (p3.dx - p4.dx).abs() < tolerance;
 
     // Check if all points share the same Y (horizontal line)
-    final sameY = (p1.dy - p2.dy).abs() < tolerance &&
+    final sameY =
+        (p1.dy - p2.dy).abs() < tolerance &&
         (p2.dy - p3.dy).abs() < tolerance &&
         (p3.dy - p4.dy).abs() < tolerance;
 
@@ -441,11 +437,9 @@ class WaypointBuilder {
     // For vertical source ports, corner is at (endExtended.dx, startExtended.dy)
     return switch (sourcePosition) {
       PortPosition.left ||
-      PortPosition.right =>
-        Offset(startExtended.dx, endExtended.dy),
+      PortPosition.right => Offset(startExtended.dx, endExtended.dy),
       PortPosition.top ||
-      PortPosition.bottom =>
-        Offset(endExtended.dx, startExtended.dy),
+      PortPosition.bottom => Offset(endExtended.dx, startExtended.dy),
     };
   }
 
@@ -486,37 +480,37 @@ class WaypointBuilder {
 
     return switch (sourcePosition) {
       PortPosition.right => _sameSideRight(
-          start,
-          end,
-          startExtended,
-          endExtended,
-          backEdgeGap,
-          unionBounds,
-        ),
+        start,
+        end,
+        startExtended,
+        endExtended,
+        backEdgeGap,
+        unionBounds,
+      ),
       PortPosition.left => _sameSideLeft(
-          start,
-          end,
-          startExtended,
-          endExtended,
-          backEdgeGap,
-          unionBounds,
-        ),
+        start,
+        end,
+        startExtended,
+        endExtended,
+        backEdgeGap,
+        unionBounds,
+      ),
       PortPosition.top => _sameSideTop(
-          start,
-          end,
-          startExtended,
-          endExtended,
-          backEdgeGap,
-          unionBounds,
-        ),
+        start,
+        end,
+        startExtended,
+        endExtended,
+        backEdgeGap,
+        unionBounds,
+      ),
       PortPosition.bottom => _sameSideBottom(
-          start,
-          end,
-          startExtended,
-          endExtended,
-          backEdgeGap,
-          unionBounds,
-        ),
+        start,
+        end,
+        startExtended,
+        endExtended,
+        backEdgeGap,
+        unionBounds,
+      ),
     };
   }
 
@@ -630,7 +624,8 @@ class WaypointBuilder {
     final unionBounds = _getUnionBounds(sourceNodeBounds, targetNodeBounds);
 
     // Determine if this is a horizontal (left↔right) or vertical (top↔bottom) connection
-    final isHorizontal = sourcePosition == PortPosition.left ||
+    final isHorizontal =
+        sourcePosition == PortPosition.left ||
         sourcePosition == PortPosition.right;
 
     if (isHorizontal) {
@@ -1250,8 +1245,7 @@ class WaypointBuilder {
         final outgoingDistance = outgoingVector.distance;
 
         // Adapt corner radius to available space
-        final maxRadius =
-            math.min(incomingDistance / 2, outgoingDistance / 2);
+        final maxRadius = math.min(incomingDistance / 2, outgoingDistance / 2);
         final actualRadius = math.min(cornerRadius, maxRadius);
 
         if (actualRadius < 1.0) {
@@ -1348,7 +1342,8 @@ class WaypointBuilder {
         final nextIsVertical = nextVector.dx.abs() < 0.5;
 
         // If direction changes, end this segment
-        shouldEndSegment = (currentIsHorizontal != nextIsHorizontal) ||
+        shouldEndSegment =
+            (currentIsHorizontal != nextIsHorizontal) ||
             (currentIsVertical != nextIsVertical);
       }
 
@@ -1536,10 +1531,7 @@ class WaypointBuilder {
         segments.add(StraightSegment(end: cornerStart));
 
         // Add quadratic curve for the corner
-        segments.add(QuadraticSegment(
-          controlPoint: current,
-          end: cornerEnd,
-        ));
+        segments.add(QuadraticSegment(controlPoint: current, end: cornerEnd));
       } else {
         // Not a perpendicular corner - straight line
         segments.add(StraightSegment(end: current));
@@ -1615,19 +1607,31 @@ class WaypointBuilder {
     // portExtension ensures minimum offset for very close nodes
     switch (position) {
       case PortPosition.right:
-        final offset = math.max(portExtension, (target.dx - anchor.dx).abs() * curvature);
+        final offset = math.max(
+          portExtension,
+          (target.dx - anchor.dx).abs() * curvature,
+        );
         return Offset(anchor.dx + offset, anchor.dy);
 
       case PortPosition.left:
-        final offset = math.max(portExtension, (target.dx - anchor.dx).abs() * curvature);
+        final offset = math.max(
+          portExtension,
+          (target.dx - anchor.dx).abs() * curvature,
+        );
         return Offset(anchor.dx - offset, anchor.dy);
 
       case PortPosition.bottom:
-        final offset = math.max(portExtension, (target.dy - anchor.dy).abs() * curvature);
+        final offset = math.max(
+          portExtension,
+          (target.dy - anchor.dy).abs() * curvature,
+        );
         return Offset(anchor.dx, anchor.dy + offset);
 
       case PortPosition.top:
-        final offset = math.max(portExtension, (target.dy - anchor.dy).abs() * curvature);
+        final offset = math.max(
+          portExtension,
+          (target.dy - anchor.dy).abs() * curvature,
+        );
         return Offset(anchor.dx, anchor.dy - offset);
     }
   }
