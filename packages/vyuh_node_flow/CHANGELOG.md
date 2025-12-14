@@ -1,3 +1,7 @@
+## 0.8.4+2
+
+ - **FIX**: analysis fixes for 160.
+
 ## 0.8.4+1
 
  - **FIX**: left aligning the stat labels for spatial debug painter.
