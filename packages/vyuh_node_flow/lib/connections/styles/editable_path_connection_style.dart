@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import '../connection.dart';
 import 'connection_style_base.dart';
+import 'path_segments.dart';
 
 /// Abstract base class for connection styles that support interactive editing
 /// of connection paths through control points.
@@ -19,16 +20,16 @@ import 'connection_style_base.dart';
 /// - Move existing bends to customize the path
 /// - Remove waypoints to simplify the path
 ///
-/// ## Path Creation Strategy
+/// ## Segment Creation Strategy
 ///
 /// Editable path styles support two modes:
-/// 1. **Algorithmic mode** (no control points): Uses the default path algorithm
-/// 2. **Manual mode** (with control points): Creates path through user-defined waypoints
+/// 1. **Algorithmic mode** (no control points): Uses the default segment algorithm
+/// 2. **Manual mode** (with control points): Creates segments through user-defined waypoints
 ///
 /// ## Implementation Requirements
 ///
 /// Concrete subclasses must implement:
-/// - [createPathThroughWaypoints]: How to create a path through control points
+/// - [createSegmentsThroughWaypoints]: How to create segments through control points
 /// - Optionally override [requiresControlPoints] if the style only works in manual mode
 ///
 /// ## Example
@@ -42,12 +43,12 @@ import 'connection_style_base.dart';
 ///   String get displayName => 'Editable Smooth Step';
 ///
 ///   @override
-///   Path createPathThroughWaypoints(
+///   ({Offset start, List<PathSegment> segments}) createSegmentsThroughWaypoints(
 ///     List<Offset> waypoints,
 ///     ConnectionPathParameters params,
 ///   ) {
-///     // Generate smooth step path through waypoints with rounded corners
-///     return _generateSmoothPath(waypoints, params.cornerRadius);
+///     // Generate smooth step segments through waypoints with rounded corners
+///     return _generateSmoothSegments(waypoints, params.cornerRadius);
 ///   }
 /// }
 /// ```
@@ -56,11 +57,11 @@ abstract class EditablePathConnectionStyle extends ConnectionStyle {
 
   /// Whether this style requires control points to function.
   ///
-  /// If true, the style cannot fall back to algorithmic path creation.
+  /// If true, the style cannot fall back to algorithmic segment creation.
   /// Most editable styles should return false to allow both modes.
   bool get requiresControlPoints => false;
 
-  /// Creates a path through the given waypoints.
+  /// Creates segments through the given waypoints.
   ///
   /// This method is called when control points are provided or when the
   /// algorithmic path has been converted to waypoints for editing.
@@ -71,51 +72,78 @@ abstract class EditablePathConnectionStyle extends ConnectionStyle {
   /// - [params]: Original connection parameters for context (curvature,
   ///   corner radius, etc.)
   ///
-  /// Returns: A [Path] that connects all waypoints according to the style's
-  /// visual characteristics (e.g., smooth curves, sharp angles, etc.)
-  Path createPathThroughWaypoints(
+  /// Returns: A tuple of start and segments that connect all waypoints
+  /// according to the style's visual characteristics.
+  ({Offset start, List<PathSegment> segments}) createSegmentsThroughWaypoints(
     List<Offset> waypoints,
     ConnectionPathParameters params,
   );
 
-  /// Creates a path for this connection, using control points if available.
+  /// Creates the default algorithmic segments when no control points are provided.
+  ///
+  /// Subclasses should implement this to define their default routing algorithm.
+  /// This can be overridden to return simple segments or to use sophisticated
+  /// routing logic similar to the non-editable version of the style.
+  ///
+  /// The default implementation creates a straight line from start to end.
+  ({Offset start, List<PathSegment> segments}) createDefaultSegments(
+    ConnectionPathParameters params,
+  ) {
+    return (
+      start: params.start,
+      segments: [StraightSegment(end: params.end)],
+    );
+  }
+
+  /// Creates segments for this connection, using control points if available.
   ///
   /// This method is the main entry point called by the rendering system.
   /// It delegates to either:
-  /// - [createPathThroughWaypoints] if control points are provided
-  /// - [createDefaultPath] if no control points exist
+  /// - [createSegmentsThroughWaypoints] if control points are provided
+  /// - [createDefaultSegments] if no control points exist
   @override
-  Path createPath(ConnectionPathParameters params) {
+  ({Offset start, List<PathSegment> segments}) createSegments(
+    ConnectionPathParameters params,
+  ) {
     if (params.controlPoints.isNotEmpty) {
       // Manual mode: use control points as waypoints
       // IMPORTANT: Include start and end points in the waypoints list
       final waypoints = createWaypointsWithEnds(params.controlPoints, params);
-      return createPathThroughWaypoints(waypoints, params);
+      return createSegmentsThroughWaypoints(waypoints, params);
     } else if (!requiresControlPoints) {
-      // Algorithmic mode: use default path creation
-      return createDefaultPath(params);
+      // Algorithmic mode: use default segment creation
+      return createDefaultSegments(params);
     } else {
       // Style requires control points but none provided
       // Fall back to simple straight line
-      final path = Path();
-      path.moveTo(params.start.dx, params.start.dy);
-      path.lineTo(params.end.dx, params.end.dy);
-      return path;
+      return (
+        start: params.start,
+        segments: [StraightSegment(end: params.end)],
+      );
     }
+  }
+
+  // === Legacy/Convenience Methods (kept for backward compatibility) ===
+
+  /// Creates a path through the given waypoints.
+  ///
+  /// **Deprecated:** Use [createSegmentsThroughWaypoints] instead.
+  /// This method is kept for backward compatibility.
+  Path createPathThroughWaypoints(
+    List<Offset> waypoints,
+    ConnectionPathParameters params,
+  ) {
+    final result = createSegmentsThroughWaypoints(waypoints, params);
+    return buildPath(result.start, result.segments);
   }
 
   /// Creates the default algorithmic path when no control points are provided.
   ///
-  /// Subclasses should implement this to define their default routing algorithm.
-  /// This can be overridden to return a simple path or to use sophisticated
-  /// routing logic similar to the non-editable version of the style.
-  ///
-  /// The default implementation creates a straight line from start to end.
+  /// **Deprecated:** Use [createDefaultSegments] instead.
+  /// This method is kept for backward compatibility.
   Path createDefaultPath(ConnectionPathParameters params) {
-    final path = Path();
-    path.moveTo(params.start.dx, params.start.dy);
-    path.lineTo(params.end.dx, params.end.dy);
-    return path;
+    final result = createDefaultSegments(params);
+    return buildPath(result.start, result.segments);
   }
 
   /// Helper method to create waypoints including start and end points.

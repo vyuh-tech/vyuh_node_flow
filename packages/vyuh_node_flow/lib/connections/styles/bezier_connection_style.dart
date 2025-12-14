@@ -1,6 +1,3 @@
-import 'dart:math' as math;
-import 'dart:ui' show PathMetric;
-
 import 'package:flutter/material.dart';
 
 import '../../ports/port.dart';
@@ -17,6 +14,12 @@ import 'waypoint_builder.dart';
 /// When [sourceNodeBounds] and [targetNodeBounds] are provided in the path
 /// parameters, control points are adjusted to guide the curve around nodes,
 /// preventing curves from passing through node bodies.
+///
+/// ## Segment-Based Architecture
+///
+/// This style implements [createSegments] as the primary method.
+/// All path rendering, hit testing, and bend detection derive from
+/// the segments calculated once - eliminating redundant calculations.
 class BezierConnectionStyle extends ConnectionStyle {
   const BezierConnectionStyle();
 
@@ -27,23 +30,19 @@ class BezierConnectionStyle extends ConnectionStyle {
   String get displayName => 'Bezier';
 
   @override
-  Path createPath(ConnectionPathParameters params) {
+  ({Offset start, List<PathSegment> segments}) createSegments(
+    ConnectionPathParameters params,
+  ) {
     // Check if we need loopback routing (target behind source or same-side ports)
     if (WaypointBuilder.needsLoopbackRouting(params)) {
       // Use shared loopback routing - produces clean step-based routing
       final segments = WaypointBuilder.buildLoopbackSegments(params);
-      return WaypointBuilder.generatePathFromSegments(
-        start: params.start,
-        segments: segments,
-      );
+      return (start: params.start, segments: segments);
     }
 
-    // Forward bezier curve - use segment-based API
+    // Forward bezier curve - use single cubic segment
     final segments = _buildForwardBezierSegments(params);
-    return WaypointBuilder.generatePathFromSegments(
-      start: params.start,
-      segments: segments,
-    );
+    return (start: params.start, segments: segments);
   }
 
   /// Builds path segments for forward bezier connections.
@@ -103,211 +102,10 @@ class BezierConnectionStyle extends ConnectionStyle {
     return [segment];
   }
 
-  @override
-  bool get needsBendDetection => true; // Curves need bend detection for hit testing
-
-  @override
-  double get bendThreshold => math.pi / 9; // 20 degrees - sensitive for bezier curves
-
-  @override
-  int getSampleCount(double pathLength) {
-    // More samples for curves to detect subtle bends
-    return math.min(20, math.max(5, (pathLength / 20).ceil()));
-  }
-
-  @override
-  double get minBendDistance => 3.0; // Closer segments for precise curves
-
-  @override
-  List<Rect> getHitTestSegments(
-    Path originalPath,
-    double tolerance, {
-    ConnectionPathParameters? pathParams,
-  }) {
-    final bounds = originalPath.getBounds();
-    if (bounds.width <= 0 && bounds.height <= 0) {
-      return [];
-    }
-
-    // Use segment-based hit testing when params are available
-    if (pathParams != null) {
-      if (WaypointBuilder.needsLoopbackRouting(pathParams)) {
-        // Loopback path - use shared loopback segments
-        final segments = WaypointBuilder.buildLoopbackSegments(pathParams);
-        return WaypointBuilder.generateHitTestFromSegments(
-          start: pathParams.start,
-          segments: segments,
-          tolerance: tolerance,
-        );
-      }
-
-      // Forward bezier curve - use segment-based hit testing
-      final segments = _buildForwardBezierSegments(pathParams);
-      return WaypointBuilder.generateHitTestFromSegments(
-        start: pathParams.start,
-        segments: segments,
-        tolerance: tolerance,
-      );
-    }
-
-    // Fallback: use path metrics when no params available
-    final metrics = originalPath.computeMetrics().toList();
-    if (metrics.isEmpty) {
-      return [bounds.inflate(tolerance)];
-    }
-
-    final segmentRects = <Rect>[];
-
-    for (final metric in metrics) {
-      if (metric.length == 0) continue;
-      _createBendBasedSegments(metric, tolerance, segmentRects);
-    }
-
-    return segmentRects;
-  }
-
-  /// Creates strip segments that follow the curve path tightly.
-  ///
-  /// Each segment samples multiple points along the curve and creates a
-  /// bounding box that follows the actual curve shape with perpendicular
-  /// thickness of 2 * tolerance.
-  ///
-  /// Segment size is limited to a factor of tolerance to prevent oversized
-  /// hit test areas on curves.
-  void _createBendBasedSegments(
-    PathMetric metric,
-    double tolerance,
-    List<Rect> segments,
-  ) {
-    if (metric.length == 0) return;
-
-    // Limit segment length to 3x tolerance to keep AABB sizes reasonable
-    // This ensures hit test rectangles stay tight even for long curves
-    final maxSegmentLength = tolerance * 3;
-    final segmentCount = math.max(3, (metric.length / maxSegmentLength).ceil());
-    final segmentLength = metric.length / segmentCount;
-
-    for (int i = 0; i < segmentCount; i++) {
-      final startOffset = i * segmentLength;
-      final endOffset = math.min((i + 1) * segmentLength, metric.length);
-
-      // Sample multiple points within this segment to follow curve shape
-      final sampleCount = 4;
-      final boundaryPoints = <Offset>[];
-
-      for (int j = 0; j <= sampleCount; j++) {
-        final t = j / sampleCount;
-        final offset = startOffset + t * (endOffset - startOffset);
-        final tangent = metric.getTangentForOffset(offset);
-
-        if (tangent == null) continue;
-
-        final point = tangent.position;
-        final dir = tangent.vector;
-        final dirLength = dir.distance;
-
-        if (dirLength < 0.001) continue;
-
-        // Perpendicular direction (normalized)
-        final perpX = -dir.dy / dirLength;
-        final perpY = dir.dx / dirLength;
-
-        // Add points at ±tolerance perpendicular to the curve
-        boundaryPoints.add(Offset(
-          point.dx + perpX * tolerance,
-          point.dy + perpY * tolerance,
-        ));
-        boundaryPoints.add(Offset(
-          point.dx - perpX * tolerance,
-          point.dy - perpY * tolerance,
-        ));
-      }
-
-      if (boundaryPoints.length < 2) continue;
-
-      // Create tight bounding box from all boundary points
-      double minX = boundaryPoints[0].dx;
-      double maxX = boundaryPoints[0].dx;
-      double minY = boundaryPoints[0].dy;
-      double maxY = boundaryPoints[0].dy;
-
-      for (final point in boundaryPoints) {
-        if (point.dx < minX) minX = point.dx;
-        if (point.dx > maxX) maxX = point.dx;
-        if (point.dy < minY) minY = point.dy;
-        if (point.dy > maxY) maxY = point.dy;
-      }
-
-      segments.add(Rect.fromLTRB(minX, minY, maxX, maxY));
-    }
-
-    // Fallback for very short paths
-    if (segments.isEmpty) {
-      final center = metric.getTangentForOffset(metric.length / 2)?.position;
-      if (center != null) {
-        segments.add(Rect.fromCenter(
-          center: center,
-          width: tolerance * 2,
-          height: tolerance * 2,
-        ));
-      }
-    }
-  }
-
-  /// Creates the bezier curve path with optional node-aware control point adjustment.
-  void _createBezierPath(
-    Path path,
-    Offset start,
-    Offset end,
-    double curvature,
-    Port? sourcePort,
-    Port? targetPort, {
-    Rect? sourceNodeBounds,
-    Rect? targetNodeBounds,
-    double portExtension = 10.0,
-  }) {
-    final sourcePosition = sourcePort?.position ?? PortPosition.right;
-    final targetPosition = targetPort?.position ?? PortPosition.left;
-
-    // Calculate base control points using portExtension and curvature
-    var cp1 = _getControlPoint(
-      anchor: start,
-      target: end,
-      position: sourcePosition,
-      portExtension: portExtension,
-      curvature: curvature,
-    );
-
-    var cp2 = _getControlPoint(
-      anchor: end,
-      target: start,
-      position: targetPosition,
-      portExtension: portExtension,
-      curvature: curvature,
-    );
-
-    // Adjust control points for node-aware routing using INDIVIDUAL bounds
-    if (sourceNodeBounds != null) {
-      cp1 = _adjustControlPointForNodeAvoidance(
-        controlPoint: cp1,
-        anchorPoint: start,
-        position: sourcePosition,
-        nodeBounds: sourceNodeBounds,
-        clearance: portExtension,
-      );
-    }
-    if (targetNodeBounds != null) {
-      cp2 = _adjustControlPointForNodeAvoidance(
-        controlPoint: cp2,
-        anchorPoint: end,
-        position: targetPosition,
-        nodeBounds: targetNodeBounds,
-        clearance: portExtension,
-      );
-    }
-
-    path.cubicTo(cp1.dx, cp1.dy, cp2.dx, cp2.dy, end.dx, end.dy);
-  }
+  // === Build methods derive from segments (overridable) ===
+  // - buildPath(start, segments) → Path
+  // - buildHitTestRects(start, segments, tolerance) → List<Rect>
+  // - extractBendPoints(start, segments) → List<Offset>
 
   /// Adjusts a control point to ensure the curve stays outside node bounds.
   ///
@@ -356,68 +154,6 @@ class BezierConnectionStyle extends ConnectionStyle {
         return controlPoint;
     }
   }
-
-  /// Calculates a control point for smooth bezier curves.
-  ///
-  /// The control point extends from [anchor] in the direction the port faces,
-  /// with distance determined by:
-  /// - [portExtension]: Minimum extension from the port (ensures curve departs smoothly)
-  /// - [curvature]: Additional pull based on perpendicular distance to target
-  ///
-  /// This creates gentle S-curves where:
-  /// - curvature=0: Nearly straight lines (only portExtension offset)
-  /// - curvature=0.5: Moderate curves (default)
-  /// - curvature=1: More pronounced curves
-  Offset _getControlPoint({
-    required Offset anchor,
-    required Offset target,
-    required PortPosition position,
-    required double portExtension,
-    required double curvature,
-  }) {
-    // Calculate the perpendicular distance (the distance that creates the curve)
-    final double perpDistance;
-    final bool isForwardFlow;
-
-    switch (position) {
-      case PortPosition.right:
-        perpDistance = (target.dy - anchor.dy).abs();
-        isForwardFlow = target.dx >= anchor.dx;
-      case PortPosition.left:
-        perpDistance = (target.dy - anchor.dy).abs();
-        isForwardFlow = target.dx <= anchor.dx;
-      case PortPosition.bottom:
-        perpDistance = (target.dx - anchor.dx).abs();
-        isForwardFlow = target.dy >= anchor.dy;
-      case PortPosition.top:
-        perpDistance = (target.dx - anchor.dx).abs();
-        isForwardFlow = target.dy <= anchor.dy;
-    }
-
-    // Calculate control point offset
-    // Base: portExtension ensures minimum straight departure from port
-    // Additional: scaled by curvature and perpendicular distance for smooth S-curves
-    final double offset;
-    if (isForwardFlow) {
-      // Forward flow: use portExtension + curvature-based addition
-      // The perpendicular distance determines how much extra pull we need
-      final curvatureAddition = perpDistance * curvature * 0.3;
-      offset = portExtension + curvatureAddition;
-    } else {
-      // Loopback: need more extension to route around
-      // Use sqrt for gentler scaling on large distances
-      final loopbackAddition = curvature * 8 * math.sqrt(perpDistance + 10);
-      offset = math.max(portExtension, portExtension + loopbackAddition);
-    }
-
-    // Apply offset in the direction the port faces
-    return switch (position) {
-      PortPosition.right => Offset(anchor.dx + offset, anchor.dy),
-      PortPosition.left => Offset(anchor.dx - offset, anchor.dy),
-      PortPosition.bottom => Offset(anchor.dx, anchor.dy + offset),
-      PortPosition.top => Offset(anchor.dx, anchor.dy - offset),
-    };
-  }
 }
 
 /// Custom bezier connection style with user-controlled parameters
@@ -442,26 +178,25 @@ class CustomBezierConnectionStyle extends BezierConnectionStyle {
   String get displayName => 'Custom Bezier';
 
   @override
-  Path createPath(ConnectionPathParameters params) {
-    final path = Path();
-    path.moveTo(params.start.dx, params.start.dy);
-
-    // Use custom curvature factor
-    final adjustedCurvature = params.curvature * customCurvatureFactor;
-
-    _createBezierPath(
-      path,
-      params.start,
-      params.end,
-      adjustedCurvature,
-      params.sourcePort,
-      params.targetPort,
+  ({Offset start, List<PathSegment> segments}) createSegments(
+    ConnectionPathParameters params,
+  ) {
+    // Use custom curvature factor by creating modified params
+    final adjustedParams = ConnectionPathParameters(
+      start: params.start,
+      end: params.end,
+      curvature: params.curvature * customCurvatureFactor,
+      sourcePort: params.sourcePort,
+      targetPort: params.targetPort,
+      cornerRadius: params.cornerRadius,
+      offset: params.offset,
+      backEdgeGap: params.backEdgeGap,
+      controlPoints: params.controlPoints,
       sourceNodeBounds: params.sourceNodeBounds,
       targetNodeBounds: params.targetNodeBounds,
-      portExtension: params.offset,
     );
 
-    return path;
+    return super.createSegments(adjustedParams);
   }
 
   @override

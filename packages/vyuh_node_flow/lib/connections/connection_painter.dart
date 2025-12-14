@@ -11,7 +11,7 @@ import 'connection_path_cache.dart';
 import 'connection_style_overrides.dart';
 import 'connection_theme.dart';
 import 'endpoint_painter.dart';
-import 'styles/connection_path_calculator.dart';
+import 'styles/connection_style_base.dart';
 import 'styles/endpoint_position_calculator.dart';
 
 class ConnectionPainter {
@@ -359,9 +359,8 @@ class ConnectionPainter {
         : theme.connectionTheme;
     final connectionStyle = connectionTheme.style;
 
-    // Create connection path
-    final connectionPath = ConnectionPathCalculator.createConnectionPath(
-      style: connectionStyle,
+    // Create connection path parameters and generate path from segments
+    final pathParams = ConnectionPathParameters(
       start: source.linePos,
       end: target.linePos,
       curvature: connectionTheme.bezierCurvature,
@@ -372,6 +371,11 @@ class ConnectionPainter {
       backEdgeGap: connectionTheme.backEdgeGap,
       sourceNodeBounds: sourceNodeBounds,
       targetNodeBounds: targetNodeBounds,
+    );
+    final segmentResult = connectionStyle.createSegments(pathParams);
+    final connectionPath = connectionStyle.buildPath(
+      segmentResult.start,
+      segmentResult.segments,
     );
 
     // Configure paint for the connection line

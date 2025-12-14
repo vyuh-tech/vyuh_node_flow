@@ -125,7 +125,6 @@ export 'connections/connection_style_overrides.dart';
 export 'connections/connection_anchor.dart';
 export 'connections/connection_endpoint.dart';
 export 'connections/connection_label.dart';
-export 'connections/styles/connection_path_calculator.dart';
 export 'connections/styles/connection_style_base.dart';
 export 'connections/styles/connection_styles.dart';
 export 'connections/styles/editable_path_connection_style.dart';

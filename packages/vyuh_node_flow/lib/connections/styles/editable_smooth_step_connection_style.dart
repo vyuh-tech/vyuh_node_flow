@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import 'connection_style_base.dart';
 import 'editable_path_connection_style.dart';
-import 'smoothstep_path_calculator.dart';
+import 'waypoint_builder.dart';
 
 /// An editable connection style that creates smooth step paths with rounded corners.
 ///
@@ -19,15 +19,10 @@ import 'smoothstep_path_calculator.dart';
 /// - **Maintain orthogonal routing**: All segments remain horizontal or vertical
 /// - **Smooth corners**: Configurable corner radius for rounded turns
 ///
-/// ## Path Behavior
+/// ## Segment-Based Architecture
 ///
-/// ### Without Control Points (Algorithmic Mode)
-/// Uses the standard smooth step algorithm to automatically calculate an optimal
-/// path between the source and target ports based on their positions.
-///
-/// ### With Control Points (Manual Mode)
-/// Creates a path that passes through all control points while maintaining the
-/// smooth step visual style (90-degree turns with rounded corners).
+/// This style implements [createSegmentsThroughWaypoints] as the primary method.
+/// All path rendering, hit testing, and bend detection derive from the segments.
 ///
 /// ## Usage Example
 ///
@@ -49,7 +44,7 @@ import 'smoothstep_path_calculator.dart';
 ///
 /// See also:
 /// - [EditablePathConnectionStyle] for the base editable path functionality
-/// - [SmoothstepPathCalculator] for the underlying path algorithm
+/// - [WaypointBuilder] for the underlying path algorithm
 class EditableSmoothStepConnectionStyle extends EditablePathConnectionStyle {
   /// Creates an editable smooth step connection style.
   ///
@@ -67,41 +62,59 @@ class EditableSmoothStepConnectionStyle extends EditablePathConnectionStyle {
   String get displayName => 'Editable Smooth Step';
 
   @override
-  Path createDefaultPath(ConnectionPathParameters params) {
-    // Use the standard smooth step algorithm when no control points exist
-    return SmoothstepPathCalculator.calculatePath(
+  ({Offset start, List<PathSegment> segments}) createDefaultSegments(
+    ConnectionPathParameters params,
+  ) {
+    // Use WaypointBuilder for all routing scenarios
+    final waypoints = WaypointBuilder.calculateWaypoints(
       start: params.start,
       end: params.end,
       sourcePosition: params.sourcePosition,
       targetPosition: params.targetPosition,
       offset: params.offset,
-      cornerRadius: params.cornerRadius,
+      backEdgeGap: params.backEdgeGap,
+      sourceNodeBounds: params.sourceNodeBounds,
+      targetNodeBounds: params.targetNodeBounds,
     );
+
+    final optimized = WaypointBuilder.optimizeWaypoints(waypoints);
+    final effectiveCornerRadius =
+        params.cornerRadius > 0 ? params.cornerRadius : defaultCornerRadius;
+    final segments = WaypointBuilder.waypointsToSegments(
+      optimized,
+      cornerRadius: effectiveCornerRadius,
+    );
+
+    return (start: params.start, segments: segments);
   }
 
   @override
-  Path createPathThroughWaypoints(
+  ({Offset start, List<PathSegment> segments}) createSegmentsThroughWaypoints(
     List<Offset> waypoints,
     ConnectionPathParameters params,
   ) {
     if (waypoints.isEmpty) {
-      return createDefaultPath(params);
+      return createDefaultSegments(params);
     }
 
     // If only start and end, use default path
     if (waypoints.length == 2) {
-      return createDefaultPath(params);
+      return createDefaultSegments(params);
     }
 
     // Create orthogonal path through all waypoints
     // We need to convert the arbitrary control points into orthogonal segments
     final orthogonalWaypoints = _createOrthogonalWaypoints(waypoints);
 
-    // Generate smooth path with rounded corners
-    return _generateSmoothPath(
+    // Generate segments with rounded corners
+    final effectiveCornerRadius =
+        params.cornerRadius > 0 ? params.cornerRadius : defaultCornerRadius;
+    final segments = _generateSmoothSegments(
       orthogonalWaypoints,
-      params.cornerRadius > 0 ? params.cornerRadius : defaultCornerRadius,
+      effectiveCornerRadius,
     );
+
+    return (start: waypoints.first, segments: segments);
   }
 
   /// Converts arbitrary waypoints into orthogonal (horizontal/vertical) segments.
@@ -191,33 +204,35 @@ class EditableSmoothStepConnectionStyle extends EditablePathConnectionStyle {
     return optimized;
   }
 
-  /// Generates a smooth path with rounded corners through waypoints.
+  /// Generates segments with rounded corners through waypoints.
   ///
-  /// This creates the final Path object with quadratic bezier curves at corners
+  /// This creates PathSegments with quadratic bezier curves at corners
   /// to create the smooth step appearance.
-  Path _generateSmoothPath(List<Offset> waypoints, double cornerRadius) {
+  List<PathSegment> _generateSmoothSegments(
+    List<Offset> waypoints,
+    double cornerRadius,
+  ) {
     if (waypoints.length < 2) {
-      return Path();
+      return [];
     }
-
-    final path = Path();
-    path.moveTo(waypoints.first.dx, waypoints.first.dy);
 
     if (waypoints.length == 2) {
       // Simple direct line
-      path.lineTo(waypoints.last.dx, waypoints.last.dy);
-      return path;
+      return [StraightSegment(end: waypoints.last)];
     }
 
-    // If corner radius is 0, just draw straight lines
+    // If corner radius is 0, just create straight segments
     if (cornerRadius == 0) {
+      final segments = <PathSegment>[];
       for (int i = 1; i < waypoints.length; i++) {
-        path.lineTo(waypoints[i].dx, waypoints[i].dy);
+        segments.add(StraightSegment(end: waypoints[i]));
       }
-      return path;
+      return segments;
     }
 
-    // Draw path with rounded corners at waypoints
+    // Generate segments with rounded corners at waypoints
+    final segments = <PathSegment>[];
+
     for (int i = 1; i < waypoints.length - 1; i++) {
       final prev = waypoints[i - 1];
       final current = waypoints[i];
@@ -229,7 +244,7 @@ class EditableSmoothStepConnectionStyle extends EditablePathConnectionStyle {
 
       // Skip if vectors are zero (duplicate points)
       if (incomingVector.distance < 0.01 || outgoingVector.distance < 0.01) {
-        path.lineTo(current.dx, current.dy);
+        segments.add(StraightSegment(end: current));
         continue;
       }
 
@@ -251,8 +266,8 @@ class EditableSmoothStepConnectionStyle extends EditablePathConnectionStyle {
         final actualRadius = math.min(cornerRadius, maxRadius);
 
         if (actualRadius < 1.0) {
-          // Too small for a curve, just draw straight lines
-          path.lineTo(current.dx, current.dy);
+          // Too small for a curve, just add straight segment
+          segments.add(StraightSegment(end: current));
           continue;
         }
 
@@ -264,41 +279,24 @@ class EditableSmoothStepConnectionStyle extends EditablePathConnectionStyle {
         final cornerStart = current - (incomingDirection * actualRadius);
         final cornerEnd = current + (outgoingDirection * actualRadius);
 
-        // Draw line to corner start
-        path.lineTo(cornerStart.dx, cornerStart.dy);
+        // Add straight segment to corner start
+        segments.add(StraightSegment(end: cornerStart));
 
-        // Draw quadratic bezier curve for the corner
-        path.quadraticBezierTo(
-          current.dx,
-          current.dy,
-          cornerEnd.dx,
-          cornerEnd.dy,
-        );
+        // Add quadratic bezier curve for the corner
+        segments.add(QuadraticSegment(
+          controlPoint: current,
+          end: cornerEnd,
+        ));
       } else {
-        // Not a perpendicular corner, just draw straight line
-        path.lineTo(current.dx, current.dy);
+        // Not a perpendicular corner, just add straight segment
+        segments.add(StraightSegment(end: current));
       }
     }
 
-    // Draw line to the last point
-    path.lineTo(waypoints.last.dx, waypoints.last.dy);
+    // Add final segment to the last point
+    segments.add(StraightSegment(end: waypoints.last));
 
-    return path;
-  }
-
-  @override
-  bool get hasExactBendPoints => true;
-
-  @override
-  List<Offset>? getExactBendPoints(ConnectionPathParameters params) {
-    // Return the waypoints (without start and end) for bend detection
-    return SmoothstepPathCalculator.getBendPoints(
-      start: params.start,
-      end: params.end,
-      sourcePosition: params.sourcePosition,
-      targetPosition: params.targetPosition,
-      offset: params.offset,
-    );
+    return segments;
   }
 
   @override

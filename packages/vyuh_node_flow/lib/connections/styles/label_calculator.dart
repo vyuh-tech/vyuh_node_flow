@@ -9,7 +9,6 @@ import '../label_theme.dart';
 import '../../nodes/node.dart';
 import '../../ports/port.dart';
 import 'connection_style_base.dart';
-import 'connection_path_calculator.dart';
 import 'endpoint_position_calculator.dart';
 
 /// Utility class for calculating connection label positions.
@@ -133,22 +132,29 @@ class LabelCalculator {
 
       // Get or create the connection path
       // Use cache if provided, otherwise create a new path
-      final connectionPath = pathCache != null
-          ? pathCache.getOrCreatePath(
-              connection: connection,
-              sourceNode: sourceNode,
-              targetNode: targetNode,
-              connectionStyle: connectionStyle,
-            )
-          : ConnectionPathCalculator.createConnectionPath(
-              style: connectionStyle,
-              start: source.linePos,
-              end: target.linePos,
-              curvature: curvature,
-              sourcePort: sourcePort,
-              targetPort: targetPort,
-              offset: portExtension,
-            );
+      Path? connectionPath;
+      if (pathCache != null) {
+        connectionPath = pathCache.getOrCreatePath(
+          connection: connection,
+          sourceNode: sourceNode,
+          targetNode: targetNode,
+          connectionStyle: connectionStyle,
+        );
+      } else {
+        final pathParams = ConnectionPathParameters(
+          start: source.linePos,
+          end: target.linePos,
+          curvature: curvature,
+          sourcePort: sourcePort,
+          targetPort: targetPort,
+          offset: portExtension,
+        );
+        final segmentResult = connectionStyle.createSegments(pathParams);
+        connectionPath = connectionStyle.buildPath(
+          segmentResult.start,
+          segmentResult.segments,
+        );
+      }
 
       if (connectionPath == null) {
         return [];
@@ -204,14 +210,18 @@ class LabelCalculator {
   }) {
     try {
       // Create the connection path
-      final connectionPath = ConnectionPathCalculator.createConnectionPath(
-        style: connectionStyle,
+      final pathParams = ConnectionPathParameters(
         start: start,
         end: end,
         curvature: curvature,
         sourcePort: sourcePort,
         targetPort: targetPort,
         offset: portExtension,
+      );
+      final segmentResult = connectionStyle.createSegments(pathParams);
+      final connectionPath = connectionStyle.buildPath(
+        segmentResult.start,
+        segmentResult.segments,
       );
 
       final pathMetricsList = connectionPath.computeMetrics().toList();
