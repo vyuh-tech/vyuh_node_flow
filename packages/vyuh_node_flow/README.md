@@ -1454,6 +1454,88 @@ connectionTheme: ConnectionTheme(
 // Note: smoothstep is equivalent to step with cornerRadius: 8.0
 ```
 
+<details>
+<summary><strong>Creating Custom Connection Styles</strong></summary>
+
+Connection styles use a **segment-based architecture** where the style's only
+job is to create path segments. Everything else (path rendering, hit testing,
+bend points) is derived from those segments.
+
+```dart
+/// Custom connection style example
+class WavyConnectionStyle extends ConnectionStyle {
+  const WavyConnectionStyle();
+
+  @override
+  String get id => 'wavy';
+
+  @override
+  String get displayName => 'Wavy';
+
+  /// The PRIMARY method - create segments from parameters
+  @override
+  ({Offset start, List<PathSegment> segments}) createSegments(
+    ConnectionPathParameters params,
+  ) {
+    // Create your custom segments here
+    // Available segment types:
+    // - StraightSegment(end: Offset)
+    // - QuadraticSegment(controlPoint: Offset, end: Offset)
+    // - CubicSegment(controlPoint1: Offset, controlPoint2: Offset, end: Offset)
+
+    return (
+      start: params.start,
+      segments: [
+        // Your custom segment logic
+        CubicSegment(
+          controlPoint1: Offset(params.start.dx + 50, params.start.dy - 20),
+          controlPoint2: Offset(params.end.dx - 50, params.end.dy + 20),
+          end: params.end,
+        ),
+      ],
+    );
+  }
+
+  // Optional: Override build methods for custom rendering
+  @override
+  Path buildPath(Offset start, List<PathSegment> segments) {
+    // Custom path building logic
+    return super.buildPath(start, segments);
+  }
+
+  @override
+  List<Rect> buildHitTestRects(
+    Offset start,
+    List<PathSegment> segments,
+    double tolerance,
+  ) {
+    // Custom hit test geometry
+    return super.buildHitTestRects(start, segments, tolerance);
+  }
+}
+
+// Use your custom style
+connectionTheme: ConnectionTheme(
+  style: const WavyConnectionStyle(),
+  // ...
+)
+```
+
+**Architecture Overview:**
+
+```
+style.createSegments(params) → (start, segments)  // Call ONCE
+  ↓
+  ├─→ style.buildPath(start, segments) → Path
+  ├─→ style.buildHitTestRects(start, segments, tolerance) → List<Rect>
+  └─→ style.extractBendPoints(start, segments) → List<Offset>
+```
+
+This design eliminates redundant calculations - segments are computed once and
+all derived outputs (path, hit testing, bend points) use the same cached segments.
+
+</details>
+
 ### Connection Animation Effects
 
 Add visual effects to connections to show flow direction, data movement, or

@@ -1,52 +1,68 @@
 ## 0.8.4
 
- - **FEAT**: simplifying connection styles.
- - **FEAT**: improved connection routing based on path-segment primitives of straight, quadratic, bezier, which are also used to construct the hit-test rects. Also introduced loopback routing for all styles. Better port snapping for temporary connections. Improved port hit testing by adding it to the spatial index.
- - **FEAT**: improved port hit testing by adding it to the spatial index.
- - **FEAT**: improved connection routing based on path-segment primitives of straight, quadratic, bezier, which are also used to construct the hit-test rects. Also introduced loopback routing for all styles. Better port snapping for temporary connections.
+- **FEAT**: simplifying connection styles.
+- **FEAT**: improved connection routing based on path-segment primitives of
+  straight, quadratic, bezier, which are also used to construct the hit-test
+  rects. Also introduced loopback routing for all styles. Better port snapping
+  for temporary connections. Improved port hit testing by adding it to the
+  spatial index.
 
 ## 0.8.3
 
- - **FEAT**: improved port hit testing by adding it to the spatial index.
- - **FEAT**: improved connection routing based on path-segment primitives of straight, quadratic, bezier, which are also used to construct the hit-test rects. Also introduced loopback routing for all styles. Better port snapping for temporary connections.
+- **FEAT**: improved port hit testing by adding it to the spatial index.
+- **FEAT**: improved connection routing based on path-segment primitives of
+  straight, quadratic, bezier, which are also used to construct the hit-test
+  rects. Also introduced loopback routing for all styles. Better port snapping
+  for temporary connections.
 
 ## 0.8.2
 
- - **FIX**: respecting render order when detecting events, esp. around ports and nodes that are overlapping.
- - **FEAT**: add debug visualization for spatial index and tracking systems.
- - **FEAT**: migrate layout logic to hit testing, remove `NodeFlowLayoutDelegate`.
- - **FEAT**: migrate layout logic to hit testing, remove `NodeFlowLayoutDelegate`.
- - **FEAT**: centralize interaction handling via hit testing, remove redundant node event callbacks.
+- **FIX**: respecting render order when detecting events, esp. around ports and
+  nodes that are overlapping.
+- **FEAT**: add debug visualization for spatial index and tracking systems.
+- **FEAT**: migrate layout logic to hit testing, remove
+  `NodeFlowLayoutDelegate`.
+- **FEAT**: migrate layout logic to hit testing, remove
+  `NodeFlowLayoutDelegate`.
+- **FEAT**: centralize interaction handling via hit testing, remove redundant
+  node event callbacks.
 
 ## 0.8.1
 
- - **FIX**: respecting render order when detecting events, esp. around ports and nodes that are overlapping.
- - **FEAT**: migrate layout logic to hit testing, remove `NodeFlowLayoutDelegate`.
- - **FEAT**: centralize interaction handling via hit testing, remove redundant node event callbacks.
+- **FIX**: respecting render order when detecting events, esp. around ports and
+  nodes that are overlapping.
+- **FEAT**: migrate layout logic to hit testing, remove
+  `NodeFlowLayoutDelegate`.
+- **FEAT**: centralize interaction handling via hit testing, remove redundant
+  node event callbacks.
 
 ## 0.8.0
 
- - **FEAT**: added spatial indexing, added a custom size observer to avoid side effects in build method.
+- **FEAT**: added spatial indexing, added a custom size observer to avoid side
+  effects in build method.
 
 ## 0.7.2
 
- - **FEAT**: Restructure the grid components and annotations by splitting into separate files.
+- **FEAT**: Restructure the grid components and annotations by splitting into
+  separate files.
 
 ## 0.7.1
 
- - **FEAT**: Add startGap and endGap support for connections.
+- **FEAT**: Add startGap and endGap support for connections.
 
 ## 0.7.0
 
- - **FEAT**: Add animation support for temporary connections and update connection rendering logic, Add configurable gaps, colors, and borders for connection endpoints.
+- **FEAT**: Add animation support for temporary connections and update
+  connection rendering logic, Add configurable gaps, colors, and borders for
+  connection endpoints.
 
 ## 0.6.0
 
- - **FEAT**: Refactor port positioning and size cascade system.
+- **FEAT**: Refactor port positioning and size cascade system.
 
 ## 0.5.1
 
- - **FEAT**: readme update to include section on theming.
+- **FEAT**: readme update to include section on theming.
 
 ## 0.5.0
 
