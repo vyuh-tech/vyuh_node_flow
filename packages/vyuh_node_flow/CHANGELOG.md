@@ -1,3 +1,7 @@
+## 0.8.5+1
+
+ - **FIX**: analysis fixes.
+
 ## 0.8.5
 
  - **FEAT**: more real-time debug view of spatial index, minor optimization in hit-test segment generation for step style connections.
