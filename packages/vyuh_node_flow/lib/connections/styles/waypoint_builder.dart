@@ -1532,11 +1532,13 @@ class WaypointBuilder {
 
         // Add quadratic curve for the corner
         // Skip hit test rects - corner is already covered by adjacent straight segments
-        segments.add(QuadraticSegment(
-          controlPoint: current,
-          end: cornerEnd,
-          generateHitTestRects: false,
-        ));
+        segments.add(
+          QuadraticSegment(
+            controlPoint: current,
+            end: cornerEnd,
+            generateHitTestRects: false,
+          ),
+        );
       } else {
         // Not a perpendicular corner - straight line
         segments.add(StraightSegment(end: current));

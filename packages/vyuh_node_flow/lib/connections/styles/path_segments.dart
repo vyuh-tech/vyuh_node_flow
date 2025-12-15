@@ -72,10 +72,7 @@ sealed class PathSegment {
 /// - Horizontal and vertical routing segments
 /// - Diagonal connections
 class StraightSegment extends PathSegment {
-  const StraightSegment({
-    required super.end,
-    super.generateHitTestRects,
-  });
+  const StraightSegment({required super.end, super.generateHitTestRects});
 
   @override
   List<Rect> getHitTestRects(Offset start, double tolerance) {
