@@ -21,6 +21,7 @@ import '../ports/port.dart';
 import '../ports/port_widget.dart';
 import '../shared/flutter_actions_integration.dart';
 import '../shared/spatial/graph_spatial_index.dart';
+import '../shared/unbounded_widgets.dart';
 import 'canvas_transform_provider.dart';
 import 'layers/attribution_overlay.dart';
 import 'layers/connection_control_points_layer.dart';
@@ -512,7 +513,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                             child: child,
                           );
                         },
-                        child: SizedBox(
+                        child: UnboundedSizedBox(
                           width: constraints.maxWidth,
                           height: constraints.maxHeight,
                           child: AnimatedBuilder(
@@ -523,7 +524,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                                 child: child!,
                               );
                             },
-                            child: Stack(
+                            child: UnboundedStack(
                               clipBehavior: Clip.none,
                               children: [
                                 // Background grid

@@ -5,6 +5,7 @@ import '../../connections/connection.dart';
 import '../../nodes/node.dart';
 import '../../nodes/node_widget.dart';
 import '../../ports/port_widget.dart';
+import '../../shared/unbounded_widgets.dart';
 import '../node_flow_controller.dart';
 
 /// Nodes layer widget that renders all nodes with optimized reactivity.
@@ -45,7 +46,7 @@ class NodesLayer<T> extends StatelessWidget {
             // Use cached sorted nodes - sorting only happens when nodes change or zIndex changes
             final nodesList = controller.sortedNodes;
 
-            return Stack(
+            return UnboundedStack(
               clipBehavior: Clip.none,
               children: [
                 for (final node in nodesList)

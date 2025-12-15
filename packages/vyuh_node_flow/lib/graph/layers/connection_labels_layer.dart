@@ -8,6 +8,7 @@ import '../../connections/connection.dart';
 import '../../connections/connection_label.dart';
 import '../../connections/label_theme.dart';
 import '../../connections/styles/label_calculator.dart';
+import '../../shared/unbounded_widgets.dart';
 import '../node_flow_controller.dart';
 import '../node_flow_theme.dart';
 
@@ -21,23 +22,29 @@ import '../node_flow_theme.dart';
 /// - [connection]: The connection containing this label
 /// - [label]: The label being rendered
 /// - [position]: The calculated position rect for the label (includes size)
+/// - [onTap]: Optional tap callback that handles selection with modifier key support.
+///   Custom widgets can use this to get the standard selection behavior, or ignore
+///   it to implement custom tap handling.
 ///
 /// Example:
 /// ```dart
-/// LabelBuilder myLabelBuilder = (context, connection, label, position) {
-///   return Container(
-///     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-///     decoration: BoxDecoration(
-///       color: Colors.amber.shade100,
-///       borderRadius: BorderRadius.circular(12),
-///     ),
-///     child: Row(
-///       mainAxisSize: MainAxisSize.min,
-///       children: [
-///         Icon(Icons.bolt, size: 14),
-///         SizedBox(width: 4),
-///         Text(label.text),
-///       ],
+/// LabelBuilder myLabelBuilder = (context, connection, label, position, onTap) {
+///   return GestureDetector(
+///     onTap: onTap, // Use the provided tap handler for selection
+///     child: Container(
+///       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+///       decoration: BoxDecoration(
+///         color: Colors.amber.shade100,
+///         borderRadius: BorderRadius.circular(12),
+///       ),
+///       child: Row(
+///         mainAxisSize: MainAxisSize.min,
+///         children: [
+///           Icon(Icons.bolt, size: 14),
+///           SizedBox(width: 4),
+///           Text(label.text),
+///         ],
+///       ),
 ///     ),
 ///   );
 /// };
@@ -48,6 +55,7 @@ typedef LabelBuilder =
       Connection connection,
       ConnectionLabel label,
       Rect position,
+      VoidCallback? onTap,
     );
 
 /// Layer that renders connection labels independently from connection lines
@@ -84,7 +92,7 @@ class ConnectionLabelsLayer<T> extends StatelessWidget {
             return connection.labels.isNotEmpty;
           }).toList();
 
-          return Stack(
+          return UnboundedStack(
             clipBehavior: Clip.none,
             children: connectionsWithLabels.map((connection) {
               return _ConnectionLabelWidget<T>(
@@ -214,9 +222,9 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
       final label = labels[i];
       final rect = labelRects[i];
 
-      // Use custom label builder if provided
+      // Use custom label builder if provided, passing onLabelTap for selection handling
       final labelWidget = labelBuilder != null
-          ? labelBuilder!(context, connection, label, rect)
+          ? labelBuilder!(context, connection, label, rect, onLabelTap)
           : _TappableLabelWidget(
               text: label.text,
               labelTheme: labelTheme,
@@ -237,7 +245,7 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
       );
     }
 
-    return Stack(clipBehavior: Clip.none, children: labelWidgets);
+    return UnboundedStack(clipBehavior: Clip.none, children: labelWidgets);
   }
 }
 

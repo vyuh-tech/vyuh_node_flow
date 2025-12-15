@@ -41,8 +41,16 @@ class NodeFlowActionDispatcher<T> extends Action<NodeFlowActionIntent<T>> {
   /// Checks if the action specified in the intent can currently be executed.
   ///
   /// Looks up the action by ID and checks its canExecute status.
+  /// Also checks that the canvas has focus - shortcuts should not fire
+  /// when focus is on other elements (like text fields in label editors).
   @override
   bool isEnabled(NodeFlowActionIntent<T> intent) {
+    // Don't enable shortcuts if canvas doesn't have focus
+    // This prevents shortcuts from firing when editing labels or other text inputs
+    if (!controller.canvasFocusNode.hasFocus) {
+      return false;
+    }
+
     final action = controller.shortcuts.getAction(intent.actionId);
     return action?.canExecute(controller) ?? false;
   }
