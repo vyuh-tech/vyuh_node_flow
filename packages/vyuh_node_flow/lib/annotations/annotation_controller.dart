@@ -229,64 +229,6 @@ class AnnotationController<T> {
   /// Get all currently selected annotation IDs
   Set<String> get selectedAnnotationIds => _selectedAnnotationIds;
 
-  // @nodoc - Internal framework use only - do not use in user code
-  void internalStartAnnotationDrag(
-    String annotationId,
-    Offset pointerPosition,
-  ) {
-    final annotation = _annotations[annotationId];
-    if (annotation?.isInteractive == true) {
-      runInAction(() {
-        _draggedAnnotationId.value = annotationId;
-        _lastPointerPosition.value = pointerPosition;
-        _annotationCursor.value = SystemMouseCursors.grabbing;
-
-        // IMPORTANT: Always ensure proper selection when dragging starts
-        // This handles the case where annotation was selected via Cmd+click with nodes also selected
-        if (!_selectedAnnotationIds.contains(annotationId)) {
-          // Annotation not selected - select it (this will clear other selections)
-          internalSelectAnnotation(annotationId);
-        } else {
-          // Annotation already selected - but still need to clear other selections for clean drag
-          _clearNodeAndConnectionSelections();
-        }
-      });
-    }
-  }
-
-  // @nodoc - Internal framework use only - do not use in user code
-  void internalMoveAnnotationDrag(
-    Offset newPointerPosition,
-    Offset graphDelta,
-    Map<String, Node<T>> nodes,
-  ) {
-    final draggedId = _draggedAnnotationId.value;
-    if (draggedId == null || _lastPointerPosition.value == null) return;
-
-    runInAction(() {
-      // Move the dragged annotation - use EXACT same logic as nodes
-      final annotation = _annotations[draggedId];
-      if (annotation != null) {
-        final newPosition = annotation.currentPosition + graphDelta;
-        annotation.setPosition(newPosition);
-        // Update visual position with snapping (identical to node behavior)
-        annotation.setVisualPosition(
-          _parentController.config.snapAnnotationsToGridIfEnabled(newPosition),
-        );
-
-        // Mark annotation dirty (deferred during drag)
-        _parentController.internalMarkAnnotationDirty(draggedId);
-
-        // If this is a group annotation, move all dependent nodes
-        if (annotation is GroupAnnotation && annotation.hasAnyDependencies) {
-          _moveGroupDependentNodes(annotation, graphDelta, nodes);
-        }
-      }
-
-      _lastPointerPosition.value = newPointerPosition;
-    });
-  }
-
   /// Check if a node intersects with any group annotation
   /// Returns the first intersecting group, or null if none found
   GroupAnnotation? findIntersectingGroup(String nodeId) {
@@ -399,7 +341,7 @@ class AnnotationController<T> {
             // Update both position and visual position (like regular node drag)
             node.position.value = newPosition;
             final snappedPosition = _parentController.config
-                .snapAnnotationsToGridIfEnabled(newPosition);
+                .snapToGridIfEnabled(newPosition);
             node.setVisualPosition(snappedPosition);
           }
         }
@@ -422,6 +364,10 @@ class AnnotationController<T> {
       _draggedAnnotationId.value = null;
       _lastPointerPosition.value = null;
       _annotationCursor.value = SystemMouseCursors.basic;
+
+      // Re-enable panning after annotation drag ends
+      _parentController.interaction.panEnabled.value = true;
+
       // Safety reset: ensure flag is cleared when drag ends
       if (_isMovingGroupNodes) {
         _isMovingGroupNodes = false;
@@ -429,6 +375,61 @@ class AnnotationController<T> {
     });
     // Note: Spatial index update is handled by MobX reaction in _setupSpatialIndexReactions()
     // which fires when draggedAnnotationId becomes null
+  }
+
+  // ============================================================
+  // Widget-Level Drag Methods (no pointer position required)
+  // ============================================================
+
+  /// Starts an annotation drag from widget gesture handler.
+  /// @nodoc - Internal framework use only - do not use in user code
+  void internalStartAnnotationDrag(String annotationId) {
+    final annotation = _annotations[annotationId];
+    if (annotation?.isInteractive == true) {
+      runInAction(() {
+        _draggedAnnotationId.value = annotationId;
+        _annotationCursor.value = SystemMouseCursors.grabbing;
+
+        // Disable panning during annotation drag
+        _parentController.interaction.panEnabled.value = false;
+
+        // IMPORTANT: Always ensure proper selection when dragging starts
+        if (!_selectedAnnotationIds.contains(annotationId)) {
+          internalSelectAnnotation(annotationId);
+        } else {
+          _clearNodeAndConnectionSelections();
+        }
+      });
+    }
+  }
+
+  /// Moves annotation during drag (delta already in graph coordinates).
+  /// @nodoc - Internal framework use only - do not use in user code
+  void internalMoveAnnotationDrag(
+    Offset graphDelta,
+    Map<String, Node<T>> nodes,
+  ) {
+    final draggedId = _draggedAnnotationId.value;
+    if (draggedId == null) return;
+
+    runInAction(() {
+      final annotation = _annotations[draggedId];
+      if (annotation != null) {
+        final newPosition = annotation.currentPosition + graphDelta;
+        annotation.setPosition(newPosition);
+        annotation.setVisualPosition(
+          _parentController.config.snapAnnotationsToGridIfEnabled(newPosition),
+        );
+
+        // Mark annotation dirty (deferred during drag)
+        _parentController.internalMarkAnnotationDirty(draggedId);
+
+        // If this is a group annotation, move all dependent nodes
+        if (annotation is GroupAnnotation && annotation.hasAnyDependencies) {
+          _moveGroupDependentNodes(annotation, graphDelta, nodes);
+        }
+      }
+    });
   }
 
   // Dependency management

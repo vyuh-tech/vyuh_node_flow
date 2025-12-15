@@ -118,46 +118,45 @@ export 'annotations/annotation.dart';
 export 'annotations/annotation_layer.dart';
 export 'annotations/annotation_theme.dart';
 export 'annotations/annotation_widget.dart';
-export 'connections/effects/effects.dart';
 // Connections
 export 'connections/connection.dart';
-export 'connections/connection_style_overrides.dart';
 export 'connections/connection_anchor.dart';
 export 'connections/connection_endpoint.dart';
 export 'connections/connection_label.dart';
+export 'connections/connection_painter.dart' show ConnectionPainter;
+export 'connections/connection_style_overrides.dart';
+export 'connections/connection_theme.dart';
+export 'connections/connection_validation.dart';
+export 'connections/connections_canvas.dart';
+export 'connections/effects/effects.dart';
+export 'connections/label_theme.dart';
 export 'connections/styles/connection_style_base.dart';
 export 'connections/styles/connection_styles.dart';
 export 'connections/styles/editable_path_connection_style.dart';
 export 'connections/styles/editable_smooth_step_connection_style.dart';
-export 'connections/connection_theme.dart';
-export 'connections/connection_validation.dart';
-export 'connections/connections_canvas.dart';
 export 'connections/styles/endpoint_position_calculator.dart';
 export 'connections/styles/label_calculator.dart';
 export 'connections/styles/waypoint_builder.dart';
-export 'connections/label_theme.dart';
 export 'connections/temporary_connection.dart';
 // Core
 export 'graph/cursor_theme.dart';
 export 'graph/graph.dart'; // Needed for examples and serialization
-export 'grid/grid_styles.dart';
-export 'grid/grid_theme.dart';
+export 'graph/layers/connection_labels_layer.dart' show LabelBuilder;
+export 'graph/layers/spatial_index_debug_layer.dart';
 export 'graph/node_flow_actions.dart';
 export 'graph/node_flow_config.dart';
 export 'graph/node_flow_controller.dart';
-export 'graph/layers/connection_labels_layer.dart' show LabelBuilder;
-export 'shared/spatial/graph_spatial_index.dart'
-    show GraphSpatialIndex, HitTestResult, HitTarget;
 export 'graph/node_flow_editor.dart';
 export 'graph/node_flow_events.dart';
 export 'graph/node_flow_minimap.dart';
 export 'graph/node_flow_theme.dart';
 export 'graph/node_flow_viewer.dart';
 export 'graph/selection_theme.dart';
-export 'grid/spatial_index_debug_painter.dart';
-export 'graph/layers/spatial_index_debug_layer.dart';
-export 'grid/styles/grid_style.dart';
 export 'graph/viewport.dart';
+export 'grid/grid_styles.dart';
+export 'grid/grid_theme.dart';
+export 'grid/spatial_index_debug_painter.dart';
+export 'grid/styles/grid_style.dart';
 // Nodes
 export 'nodes/interaction_state.dart';
 export 'nodes/node.dart'; // Needed for Node class in examples
@@ -176,11 +175,14 @@ export 'nodes/shapes/hexagon_shape.dart';
 export 'ports/port.dart';
 export 'ports/port_theme.dart';
 export 'ports/port_widget.dart'; // Also exports PortBuilder typedef
-// Marker Shapes (for ports and connection endpoints)
-export 'shared/shapes/marker_shape.dart';
-export 'shared/shapes/marker_shapes.dart';
 // Shared Utilities
 export 'shared/flutter_actions_integration.dart';
 export 'shared/json_converters.dart';
+// Marker Shapes (for ports and connection endpoints)
+export 'shared/shapes/marker_shape.dart';
+export 'shared/shapes/marker_shapes.dart';
 // Widgets
 export 'shared/shortcuts_viewer_dialog.dart';
+export 'shared/spatial/graph_spatial_index.dart'
+    show GraphSpatialIndex, HitTestResult, HitTarget;
+export 'shared/unbounded_widgets.dart';

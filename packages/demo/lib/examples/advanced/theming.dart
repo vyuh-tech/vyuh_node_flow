@@ -285,32 +285,34 @@ class _ThemingExampleState extends State<ThemingExample> {
   /// Custom port builder that colors ports based on whether they're input or output
   Widget _buildCustomPort(
     BuildContext context,
+    NodeFlowController<Map<String, dynamic>> controller,
     Node<Map<String, dynamic>> node,
     Port port,
     bool isOutput,
     bool isConnected,
-    bool isHighlighted,
+    Rect nodeBounds,
   ) {
     final portTheme = _theme.portTheme;
 
     // Use different colors for input vs output ports
+    // Note: Highlighting is handled via Port.highlighted observable
     final baseColor = isOutput ? Colors.green : Colors.blue;
-    final color = isHighlighted
-        ? baseColor.shade700
-        : isConnected
-        ? baseColor.shade400
-        : baseColor.shade200;
+    final color = isConnected ? baseColor.shade400 : baseColor.shade200;
 
     return PortWidget(
       port: port,
       theme: portTheme,
+      controller: controller,
+      nodeId: node.id,
+      isOutput: isOutput,
+      nodeBounds: nodeBounds,
       isConnected: isConnected,
-      isHighlighted: isHighlighted,
       color: color,
       connectedColor: baseColor.shade400,
-      snappingColor: baseColor.shade700,
+      highlightColor: baseColor.shade300,
+      highlightBorderColor: baseColor.shade900,
       borderColor: baseColor.shade800,
-      borderWidth: isHighlighted ? 2.0 : 1.0,
+      borderWidth: 1.0,
     );
   }
 
@@ -320,6 +322,7 @@ class _ThemingExampleState extends State<ThemingExample> {
     Connection connection,
     ConnectionLabel label,
     Rect position,
+    void Function()? onTap,
   ) {
     final labelTheme = _theme.labelTheme;
 

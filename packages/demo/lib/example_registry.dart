@@ -22,10 +22,11 @@ import 'examples/advanced/workbench.dart';
 import 'examples/basics/callbacks.dart';
 import 'examples/basics/controlling_nodes.dart';
 import 'examples/basics/dynamic_ports.dart';
+// Connections examples
+import 'examples/basics/interactive_widgets.dart';
 import 'examples/basics/minimap.dart';
 import 'examples/basics/node_shapes.dart';
 import 'examples/basics/port_labels.dart';
-// Connections examples
 import 'examples/basics/ports.dart';
 import 'examples/basics/simple.dart';
 
@@ -100,6 +101,14 @@ class ExampleRegistry {
               'Real-time event logging for all node, connection, and annotation lifecycle events',
           icon: Icons.monitor_heart,
           builder: (_) => const CallbacksExample(),
+        ),
+        Example(
+          id: 'interactive-widgets',
+          title: 'Interactive Node Widgets',
+          description:
+              'Test buttons, text fields, and sliders inside nodes - drag nodes outside bounds to verify gestures work',
+          icon: Icons.touch_app,
+          builder: (_) => const InteractiveWidgetsExample(),
         ),
       ],
     ),

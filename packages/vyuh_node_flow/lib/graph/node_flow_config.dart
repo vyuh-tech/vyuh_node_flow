@@ -10,7 +10,7 @@ class NodeFlowConfig {
     bool snapToGrid = false,
     bool snapAnnotationsToGrid = false,
     double gridSize = 20.0,
-    double portSnapDistance = 10.0,
+    double portSnapDistance = 8.0,
     double minZoom = 0.5,
     double maxZoom = 2.0,
     bool showMinimap = false,
@@ -42,7 +42,7 @@ class NodeFlowConfig {
   final gridSize = Observable<double>(20.0);
 
   /// Distance threshold for port snapping during connection
-  final portSnapDistance = Observable<double>(10.0);
+  final portSnapDistance = Observable<double>(8.0);
 
   /// Minimum allowed zoom level
   final minZoom = Observable<double>(0.5);

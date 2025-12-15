@@ -3,6 +3,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 
 import '../../connections/connection.dart';
+import '../../shared/unbounded_widgets.dart';
 import '../node_flow_controller.dart';
 import '../node_flow_theme.dart';
 
@@ -26,7 +27,7 @@ class ConnectionControlPointsLayer<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned.fill(
+    return UnboundedPositioned.fill(
       child: Observer(
         builder: (context) {
           // Observe connections list changes
@@ -41,7 +42,7 @@ class ConnectionControlPointsLayer<T> extends StatelessWidget {
             return const SizedBox.shrink();
           }
 
-          return Stack(
+          return UnboundedStack(
             clipBehavior: Clip.none,
             children: connectionsWithControlPoints.map((connection) {
               return _ConnectionControlPointsWidget<T>(
@@ -103,7 +104,7 @@ class _ConnectionControlPointsWidget<T> extends StatelessWidget {
           );
         }
 
-        return Stack(clipBehavior: Clip.none, children: widgets);
+        return UnboundedStack(clipBehavior: Clip.none, children: widgets);
       },
     );
   }

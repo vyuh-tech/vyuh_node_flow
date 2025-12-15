@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:mobx/mobx.dart';
 
 import '../shared/json_converters.dart';
 import '../shared/shapes/marker_shape.dart';
@@ -17,29 +18,26 @@ const Size defaultPortSize = Size(9, 9);
 ///
 /// Example:
 /// ```dart
-/// // Create a source port (output only)
+/// // Create an output port
 /// Port sourcePort = Port(
 ///   id: 'output-1',
 ///   name: 'Result',
-///   type: PortType.source,
+///   type: PortType.output,
 /// );
 ///
-/// // Create a target port (input only)
+/// // Create an input port
 /// Port targetPort = Port(
 ///   id: 'input-1',
 ///   name: 'Value',
-///   type: PortType.target,
+///   type: PortType.input,
 /// );
 /// ```
 enum PortType {
-  /// Port can only emit connections (output port)
-  source,
-
   /// Port can only receive connections (input port)
-  target,
+  input,
 
-  /// Port can both emit and receive connections
-  both,
+  /// Port can only emit connections (output port)
+  output,
 }
 
 /// Represents a connection point on a node in the flow editor.
@@ -60,7 +58,7 @@ enum PortType {
 /// final outputPort = Port(
 ///   id: 'output-1',
 ///   name: 'Result',
-///   type: PortType.source,
+///   type: PortType.output,
 ///   position: PortPosition.right,
 /// );
 ///
@@ -68,22 +66,21 @@ enum PortType {
 /// final inputPort = Port(
 ///   id: 'input-1',
 ///   name: 'Data',
-///   type: PortType.target,
+///   type: PortType.input,
 ///   position: PortPosition.left,
 ///   multiConnections: true,
 ///   maxConnections: 5,
 ///   tooltip: 'Accepts up to 5 connections',
 /// );
 ///
-/// // Create a bidirectional port with custom styling
-/// final bothPort = Port(
-///   id: 'io-1',
-///   name: 'I/O',
-///   type: PortType.both,
+/// // Create a top port with custom styling
+/// final topPort = Port(
+///   id: 'top-1',
+///   name: 'Config',
 ///   position: PortPosition.top,
 ///   shape: MarkerShapes.diamond,
 ///   size: Size(12, 12),
-///   offset: Offset(10, 0),
+///   offset: Offset(75, 0), // Centered on a 150px wide node
 /// );
 /// ```
 @JsonSerializable()
@@ -101,7 +98,8 @@ class Port extends Equatable {
   /// - [offset]: Position where the CENTER of the port should be. For left/right
   ///   ports, offset.dy is the vertical center. For top/bottom ports, offset.dx
   ///   is the horizontal center. (default: zero)
-  /// - [type]: Whether the port is a source, target, or both (default: both)
+  /// - [type]: Whether the port is a source, target, or both (default: inferred from position -
+  ///   left/top → target, right/bottom → source)
   /// - [shape]: Visual shape of the port (null = use theme default)
   /// - [size]: Size of the port in logical pixels (null = use theme default)
   /// - [tooltip]: Optional tooltip text displayed on hover
@@ -109,20 +107,32 @@ class Port extends Equatable {
   /// - [maxConnections]: Maximum number of connections allowed (null for unlimited)
   /// - [showLabel]: Whether to display the port's label (default: false)
 
-  const Port({
+  Port({
     required this.id,
     required this.name,
     this.multiConnections = false,
     this.position = PortPosition.left,
     this.offset = Offset.zero,
-    this.type = PortType.both,
+    PortType? type,
     this.shape,
     this.size,
     this.tooltip,
     this.isConnectable = true,
     this.maxConnections,
     this.showLabel = false,
-  });
+  }) : type = type ?? _inferTypeFromPosition(position);
+
+  /// Infers the port type from its position.
+  ///
+  /// Convention:
+  /// - Left/Top ports → input
+  /// - Right/Bottom ports → output
+  static PortType _inferTypeFromPosition(PortPosition position) {
+    return switch (position) {
+      PortPosition.left || PortPosition.top => PortType.input,
+      PortPosition.right || PortPosition.bottom => PortType.output,
+    };
+  }
 
   /// Unique identifier for this port.
   ///
@@ -221,17 +231,24 @@ class Port extends Equatable {
   /// Label visibility may also be affected by zoom level based on theme settings.
   final bool showLabel;
 
-  /// Whether this port can act as a source (output) for connections.
+  /// Observable for the port's highlighted state.
   ///
-  /// Returns true if the port type is [PortType.source] or [PortType.both].
-  /// Use this to determine if connections can originate from this port.
-  bool get isSource => type == PortType.source || type == PortType.both;
+  /// This is set externally during connection drag operations to indicate
+  /// that this port is a potential connection target. Not serialized.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final Observable<bool> highlighted = Observable(false);
 
-  /// Whether this port can act as a target (input) for connections.
+  /// Whether this port can act as an output for connections.
   ///
-  /// Returns true if the port type is [PortType.target] or [PortType.both].
+  /// Returns true if the port type is [PortType.output].
+  /// Use this to determine if connections can originate from this port.
+  bool get isOutput => type == PortType.output;
+
+  /// Whether this port can act as an input for connections.
+  ///
+  /// Returns true if the port type is [PortType.input].
   /// Use this to determine if connections can terminate at this port.
-  bool get isTarget => type == PortType.target || type == PortType.both;
+  bool get isInput => type == PortType.input;
 
   /// Creates a copy of this port with the specified properties replaced.
   ///
@@ -243,7 +260,7 @@ class Port extends Equatable {
   /// final originalPort = Port(
   ///   id: 'port-1',
   ///   name: 'Input',
-  ///   type: PortType.target,
+  ///   type: PortType.input,
   /// );
   ///
   /// final modifiedPort = originalPort.copyWith(
@@ -347,8 +364,15 @@ enum PortPosition {
   bottom,
 }
 
-/// Extension on PortPosition to convert to ShapeDirection
+/// Extension on PortPosition providing centralized port geometry calculations.
+///
+/// All port position-related calculations should use these methods to ensure
+/// consistency across the codebase. This includes:
+/// - Connection attachment points
+/// - Visual center positions
+/// - Widget origin positions
 extension PortPositionExtension on PortPosition {
+  /// Converts to [ShapeDirection] for shape-based calculations.
   ShapeDirection toOrientation() {
     switch (this) {
       case PortPosition.left:
@@ -360,5 +384,120 @@ extension PortPositionExtension on PortPosition {
       case PortPosition.bottom:
         return ShapeDirection.bottom;
     }
+  }
+
+  /// Returns the offset from port's top-left to the connection attachment point.
+  ///
+  /// Connections attach at the port's outer edge (the edge aligned with
+  /// the node boundary):
+  /// - Left port: left edge, vertically centered
+  /// - Right port: right edge, vertically centered
+  /// - Top port: horizontally centered, top edge
+  /// - Bottom port: horizontally centered, bottom edge
+  ///
+  /// ```
+  /// Left port:     Right port:    Top port:      Bottom port:
+  /// ●───┐          ┌───●          ──●──          ┌───┐
+  /// │   │          │   │          │   │          │   │
+  /// └───┘          └───┘          └───┘          ──●──
+  /// ```
+  Offset connectionOffset(Size portSize) {
+    return switch (this) {
+      PortPosition.left => Offset(0, portSize.height / 2),
+      PortPosition.right => Offset(portSize.width, portSize.height / 2),
+      PortPosition.top => Offset(portSize.width / 2, 0),
+      PortPosition.bottom => Offset(portSize.width / 2, portSize.height),
+    };
+  }
+
+  /// Calculates the port widget's top-left origin position relative to an anchor.
+  ///
+  /// Ports are positioned so their outer edge aligns with the node/shape boundary
+  /// at the anchor point, extending inward. The port is centered on the
+  /// perpendicular axis.
+  ///
+  /// Parameters:
+  /// - [anchorOffset]: The anchor position on the node boundary
+  /// - [portSize]: The size of the port widget
+  /// - [portAdjustment]: Additional offset adjustment from the port model
+  /// - [useAnchorForPerpendicularAxis]: If true, uses anchor position for
+  ///   the perpendicular axis (shaped nodes). If false, uses portAdjustment
+  ///   directly (rectangular nodes).
+  ///
+  /// Returns the top-left corner position of the port widget relative to
+  /// the node's origin.
+  Offset calculateOrigin({
+    required Offset anchorOffset,
+    required Size portSize,
+    required Offset portAdjustment,
+    required bool useAnchorForPerpendicularAxis,
+  }) {
+    switch (this) {
+      case PortPosition.left:
+        // Port left edge at anchor x, centered vertically
+        final baseY = useAnchorForPerpendicularAxis
+            ? anchorOffset.dy
+            : portAdjustment.dy;
+        return Offset(
+          anchorOffset.dx + portAdjustment.dx,
+          baseY -
+              portSize.height / 2 +
+              (useAnchorForPerpendicularAxis ? portAdjustment.dy : 0),
+        );
+      case PortPosition.right:
+        // Port right edge at anchor x, centered vertically
+        final baseY = useAnchorForPerpendicularAxis
+            ? anchorOffset.dy
+            : portAdjustment.dy;
+        return Offset(
+          anchorOffset.dx - portSize.width + portAdjustment.dx,
+          baseY -
+              portSize.height / 2 +
+              (useAnchorForPerpendicularAxis ? portAdjustment.dy : 0),
+        );
+      case PortPosition.top:
+        // Port top edge at anchor y, centered horizontally
+        final baseX = useAnchorForPerpendicularAxis
+            ? anchorOffset.dx
+            : portAdjustment.dx;
+        return Offset(
+          baseX -
+              portSize.width / 2 +
+              (useAnchorForPerpendicularAxis ? portAdjustment.dx : 0),
+          anchorOffset.dy + portAdjustment.dy,
+        );
+      case PortPosition.bottom:
+        // Port bottom edge at anchor y, centered horizontally
+        final baseX = useAnchorForPerpendicularAxis
+            ? anchorOffset.dx
+            : portAdjustment.dx;
+        return Offset(
+          baseX -
+              portSize.width / 2 +
+              (useAnchorForPerpendicularAxis ? portAdjustment.dx : 0),
+          anchorOffset.dy - portSize.height + portAdjustment.dy,
+        );
+    }
+  }
+
+  /// Whether the perpendicular axis is horizontal (left/right ports)
+  /// or vertical (top/bottom ports).
+  bool get isHorizontal =>
+      this == PortPosition.left || this == PortPosition.right;
+
+  /// Whether the perpendicular axis is vertical (top/bottom ports).
+  bool get isVertical =>
+      this == PortPosition.top || this == PortPosition.bottom;
+
+  /// Returns the outward normal direction for this port position.
+  ///
+  /// The normal points outward from the node boundary.
+  Offset get normal {
+    return switch (this) {
+      PortPosition.left => const Offset(-1, 0),
+      PortPosition.right => const Offset(1, 0),
+      PortPosition.top => const Offset(0, -1),
+      PortPosition.bottom => const Offset(0, 1),
+    };
   }
 }

@@ -976,6 +976,31 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
+  /// Converts a global screen position to graph coordinates.
+  ///
+  /// This method handles the full conversion from global screen coordinates
+  /// (e.g., from gesture events) to graph coordinates, accounting for:
+  /// - Canvas position on screen (via canvasKey's RenderBox)
+  /// - Viewport pan offset
+  /// - Viewport zoom level
+  ///
+  /// Use this method when you have a global position (like `details.globalPosition`
+  /// from a gesture callback) and need to convert it to graph coordinates.
+  ///
+  /// Parameters:
+  /// - [globalPosition]: Position in global screen coordinates
+  ///
+  /// Returns: The corresponding position in graph coordinates
+  Offset globalToGraph(Offset globalPosition) {
+    // Convert global to canvas-local using the canvas's RenderBox
+    final renderBox =
+        canvasKey.currentContext?.findRenderObject() as RenderBox?;
+    final canvasLocal =
+        renderBox?.globalToLocal(globalPosition) ?? globalPosition;
+    // Then convert canvas-local to graph coordinates
+    return viewport.screenToGraph(canvasLocal);
+  }
+
   /// Gets the current mouse position in world coordinates.
   ///
   /// Returns `null` if the mouse is outside the canvas area.
@@ -2745,5 +2770,863 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   /// This is a delegating method for the editor's hit testing
   Annotation? hitTestAnnotations(Offset graphPosition) {
     return annotations.internalHitTestAnnotations(graphPosition);
+  }
+
+  /// Hit test for a port at the given graph position.
+  ///
+  /// Returns a record containing (nodeId, portId, isOutput) if a port is found
+  /// at the position, otherwise returns null.
+  ///
+  /// This is useful for finding target ports during connection drag operations.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = controller.hitTestPort(graphPosition);
+  /// if (result != null) {
+  ///   print('Found port ${result.portId} on node ${result.nodeId}');
+  /// }
+  /// ```
+  ({String nodeId, String portId, bool isOutput})? hitTestPort(
+    Offset graphPosition,
+  ) {
+    final result = _spatialIndex.hitTestPort(graphPosition);
+    if (result != null && result.portId != null) {
+      return (
+        nodeId: result.nodeId!,
+        portId: result.portId!,
+        isOutput: result.isOutput ?? false,
+      );
+    }
+    return null;
+  }
+
+  // ===========================================================================
+  // Widget-Level Drag API
+  // ===========================================================================
+  //
+  // These methods are designed to be called directly by widgets (NodeWidget,
+  // PortWidget, AnnotationWidget) to handle drag operations. This eliminates
+  // callback chains and gives widgets direct controller access.
+
+  // ---------------------------------------------------------------------------
+  // Node Drag Operations
+  // ---------------------------------------------------------------------------
+
+  /// Starts a node drag operation.
+  ///
+  /// Call this from NodeWidget's GestureDetector.onPanStart. If the node is
+  /// part of a selection, all selected nodes will be dragged together.
+  ///
+  /// This method:
+  /// - Selects the node if not already selected
+  /// - Brings the node to front (increases z-index)
+  /// - Sets up drag state and cursor
+  /// - Disables canvas panning during drag
+  /// - Fires the drag start event
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node being dragged
+  /// - [cursor]: The cursor to display during drag (optional, defaults to grabbing)
+  void startNodeDrag(String nodeId, {MouseCursor? cursor}) {
+    final wasSelected = selectedNodeIds.contains(nodeId);
+
+    // Select node if not already selected
+    if (!wasSelected) {
+      selectNode(nodeId);
+    }
+
+    // Bring node to front
+    bringNodeToFront(nodeId);
+
+    runInAction(() {
+      // Set drag state
+      interaction.draggedNodeId.value = nodeId;
+
+      // Cursor is handled by widgets via their MouseRegion
+
+      // Disable panning during node drag
+      interaction.panEnabled.value = false;
+
+      // Update visual dragging state on all affected nodes
+      // Re-check selection since we might have just selected the node
+      final nodeIds = selectedNodeIds.contains(nodeId)
+          ? selectedNodeIds.toList()
+          : [nodeId];
+      for (final id in nodeIds) {
+        _nodes[id]?.dragging.value = true;
+      }
+    });
+
+    // Fire drag start event
+    final node = _nodes[nodeId];
+    if (node != null) {
+      events.node?.onDragStart?.call(node);
+    }
+  }
+
+  /// Moves nodes during a drag operation.
+  ///
+  /// Call this from NodeWidget's GestureDetector.onPanUpdate. The delta
+  /// is already in graph coordinates since GestureDetector is inside
+  /// InteractiveViewer's transformed space - no conversion needed.
+  ///
+  /// Parameters:
+  /// - [graphDelta]: The movement delta in graph coordinates
+  void moveNodeDrag(Offset graphDelta) {
+    final draggedNodeId = interaction.draggedNodeId.value;
+    if (draggedNodeId == null) return;
+
+    // Collect nodes that will be moved for event firing
+    final movedNodes = <Node<T>>[];
+
+    runInAction(() {
+      // Update node positions and visual positions
+      if (selectedNodeIds.contains(draggedNodeId)) {
+        // Move all selected nodes
+        for (final nodeId in selectedNodeIds) {
+          final node = _nodes[nodeId];
+          if (node != null) {
+            final newPosition = node.position.value + graphDelta;
+            node.position.value = newPosition;
+            // Update visual position with snapping
+            node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
+            movedNodes.add(node);
+          }
+        }
+        // Update drag-to-group highlight for the dragged node (Command+drag only)
+        final isCommandPressed = HardwareKeyboard.instance.isMetaPressed;
+        annotations.updateDragHighlight(draggedNodeId, isCommandPressed);
+      } else {
+        // Move single node
+        final node = _nodes[draggedNodeId];
+        if (node != null) {
+          final newPosition = node.position.value + graphDelta;
+          node.position.value = newPosition;
+          // Update visual position with snapping
+          node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
+          movedNodes.add(node);
+          // Update drag-to-group highlight (Command+drag only)
+          final isCommandPressed = HardwareKeyboard.instance.isMetaPressed;
+          annotations.updateDragHighlight(draggedNodeId, isCommandPressed);
+        }
+      }
+    });
+
+    // Mark moved nodes dirty for spatial index
+    internalMarkNodesDirty(movedNodes.map((n) => n.id));
+
+    // Fire drag event for all moved nodes
+    for (final node in movedNodes) {
+      events.node?.onDrag?.call(node);
+    }
+  }
+
+  /// Ends a node drag operation.
+  ///
+  /// Call this from NodeWidget's GestureDetector.onPanEnd.
+  void endNodeDrag() {
+    // Capture dragged nodes before clearing state
+    final draggedNodes = <Node<T>>[];
+    final draggedNodeIds = <String>[];
+    for (final node in _nodes.values) {
+      if (node.dragging.value) {
+        draggedNodes.add(node);
+        draggedNodeIds.add(node.id);
+      }
+    }
+
+    runInAction(() {
+      // Clear dragging state on nodes
+      for (final node in draggedNodes) {
+        node.dragging.value = false;
+      }
+
+      // Handle Command+drag group operations (add/remove from groups)
+      final isCommandPressed = HardwareKeyboard.instance.isMetaPressed;
+      for (final nodeId in draggedNodeIds) {
+        annotations.handleCommandDragGroupOperation(nodeId, isCommandPressed);
+      }
+
+      // Clear drag highlight and drag state
+      annotations.clearDragHighlight();
+      interaction.draggedNodeId.value = null;
+      interaction.lastPointerPosition.value = null;
+    });
+
+    // Rebuild connection segments with accurate path bounds after drag ends
+    if (draggedNodeIds.isNotEmpty) {
+      rebuildConnectionSegmentsForNodes(draggedNodeIds);
+    }
+
+    // Fire drag stop event for all dragged nodes
+    for (final node in draggedNodes) {
+      events.node?.onDragStop?.call(node);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Connection Drag Operations
+  // ---------------------------------------------------------------------------
+
+  /// Validates whether a connection can start from the specified port.
+  ///
+  /// This method checks:
+  /// 1. Port exists and is connectable
+  /// 2. Direction compatibility (output can emit, input can receive)
+  /// 3. Max connections not exceeded (for source ports)
+  /// 4. Custom validation via [ConnectionEvents.onBeforeStart] callback
+  ///
+  /// Returns a [ConnectionValidationResult] indicating if the connection can start.
+  ConnectionValidationResult canStartConnection({
+    required String nodeId,
+    required String portId,
+    required bool isOutput,
+  }) {
+    final node = _nodes[nodeId];
+    if (node == null) {
+      return const ConnectionValidationResult.deny(reason: 'Node not found');
+    }
+
+    final port = node.allPorts.where((p) => p.id == portId).firstOrNull;
+    if (port == null) {
+      return const ConnectionValidationResult.deny(reason: 'Port not found');
+    }
+
+    // Port must be connectable
+    if (!port.isConnectable) {
+      return const ConnectionValidationResult.deny(
+        reason: 'Port is not connectable',
+      );
+    }
+
+    // Direction check: output ports must be able to emit
+    // input ports must be able to receive
+    if (isOutput && !port.isOutput) {
+      return const ConnectionValidationResult.deny(
+        reason: 'Port cannot emit connections',
+      );
+    }
+    if (!isOutput && !port.isInput) {
+      return const ConnectionValidationResult.deny(
+        reason: 'Port cannot receive connections',
+      );
+    }
+
+    // Get existing connections for this port
+    final existingConnections = _connections
+        .where(
+          (conn) => isOutput
+              ? (conn.sourceNodeId == nodeId && conn.sourcePortId == portId)
+              : (conn.targetNodeId == nodeId && conn.targetPortId == portId),
+        )
+        .map((c) => c.id)
+        .toList();
+
+    // Check max connections for source port (output side)
+    // Note: For input ports starting a drag, they become the target,
+    // so we check source (output) max connections
+    if (isOutput && port.maxConnections != null) {
+      // If port doesn't allow multi-connections, we'll remove existing on drag
+      // So only block if multi-connections is allowed but max is reached
+      if (port.multiConnections &&
+          existingConnections.length >= port.maxConnections!) {
+        return const ConnectionValidationResult.deny(
+          reason: 'Maximum connections reached',
+        );
+      }
+    }
+
+    // Call custom validation callback if provided
+    final onBeforeStart = events.connection?.onBeforeStart;
+    if (onBeforeStart != null) {
+      final context = ConnectionStartContext<T>(
+        sourceNode: node,
+        sourcePort: port,
+        existingConnections: existingConnections,
+      );
+      final result = onBeforeStart(context);
+      if (!result.allowed) {
+        return result;
+      }
+    }
+
+    return const ConnectionValidationResult.allow();
+  }
+
+  /// Starts a connection drag from a port.
+  ///
+  /// Call this from PortWidget's GestureDetector.onPanStart.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node containing the port
+  /// - [portId]: The ID of the port being dragged from
+  /// - [isOutput]: Whether this is an output port
+  /// - [startPoint]: The starting point in graph coordinates
+  /// - [nodeBounds]: The bounds of the source node in graph coordinates
+  ///
+  /// Returns the validation result. Check [ConnectionValidationResult.allowed]
+  /// to determine if the drag started successfully.
+  ConnectionValidationResult startConnectionDrag({
+    required String nodeId,
+    required String portId,
+    required bool isOutput,
+    required Offset startPoint,
+    required Rect nodeBounds,
+    Offset? initialScreenPosition,
+  }) {
+    // Validate source port before starting
+    final validationResult = canStartConnection(
+      nodeId: nodeId,
+      portId: portId,
+      isOutput: isOutput,
+    );
+    if (!validationResult.allowed) {
+      return validationResult;
+    }
+
+    // Fire connection start event
+    events.connection?.onConnectStart?.call(nodeId, portId, isOutput);
+
+    // Check if we need to remove existing connections
+    // (for ports that don't allow multiple connections)
+    final node = getNode(nodeId);
+    if (node != null) {
+      final port = node.allPorts.where((p) => p.id == portId).firstOrNull;
+      if (port != null && !port.multiConnections) {
+        // Remove existing connections from this port
+        final connectionsToRemove = _connections
+            .where(
+              (conn) => isOutput
+                  ? (conn.sourceNodeId == nodeId && conn.sourcePortId == portId)
+                  : (conn.targetNodeId == nodeId &&
+                        conn.targetPortId == portId),
+            )
+            .toList();
+        runInAction(() {
+          for (final connection in connectionsToRemove) {
+            removeConnection(connection.id);
+          }
+        });
+      }
+    }
+
+    // Create temporary connection
+    // Use the initial screen position (converted to graph) for initialCurrentPoint
+    // to avoid a sudden jump from port position to mouse position on first move.
+    // Note: initialScreenPosition is in global coordinates, so we use globalToGraph.
+    final initialCurrentPoint = initialScreenPosition != null
+        ? globalToGraph(initialScreenPosition)
+        : startPoint;
+
+    runInAction(() {
+      // Disable panning during connection drag so InteractiveViewer
+      // doesn't steal the gesture from PortWidget's GestureDetector
+      interaction.panEnabled.value = false;
+
+      // Cursor is handled reactively via Observer in widget MouseRegions
+      interaction.temporaryConnection.value = TemporaryConnection(
+        startNodeId: nodeId,
+        startPortId: portId,
+        isStartFromOutput: isOutput,
+        startPoint: startPoint,
+        initialCurrentPoint: initialCurrentPoint,
+        startNodeBounds: nodeBounds,
+      );
+    });
+
+    return validationResult;
+  }
+
+  /// Validates whether a connection can be made from the current drag state
+  /// to the specified target port.
+  ///
+  /// This method checks:
+  /// 1. Not connecting a port to itself (same node + same port is invalid,
+  ///    but same node with different ports is OK for self-loops)
+  /// 2. Direction compatibility (output→input or input←output)
+  /// 3. Port is connectable
+  /// 4. No duplicate connections
+  /// 5. Max connections limit not exceeded
+  /// 6. Custom validation via [ConnectionEvents.onBeforeComplete] callback
+  ///    (only when [skipCustomValidation] is false)
+  ///
+  /// The [skipCustomValidation] parameter allows skipping the expensive custom
+  /// validation callback during drag updates. This is useful for hover feedback
+  /// where only basic structural validation is needed. The full validation
+  /// including custom callbacks runs at connection completion time.
+  ///
+  /// Returns a [ConnectionValidationResult] indicating if the connection is valid.
+  ConnectionValidationResult canConnect({
+    required String targetNodeId,
+    required String targetPortId,
+    bool skipCustomValidation = false,
+  }) {
+    final temp = interaction.temporaryConnection.value;
+    if (temp == null) {
+      return const ConnectionValidationResult.deny(
+        reason: 'No active connection drag',
+      );
+    }
+
+    // 1. Cannot connect a port to itself
+    // Same node is OK (self-loops), but same port on same node is NOT
+    if (temp.startNodeId == targetNodeId && temp.startPortId == targetPortId) {
+      return const ConnectionValidationResult.deny(
+        reason: 'Cannot connect a port to itself',
+      );
+    }
+
+    // Get target node first (needed for direction check)
+    final targetNode = _nodes[targetNodeId];
+    if (targetNode == null) {
+      return const ConnectionValidationResult.deny(
+        reason: 'Target node not found',
+      );
+    }
+
+    // 2. Cannot connect same direction ports (output→output or input→input)
+    // Determine if target port is in outputPorts or inputPorts list
+    final targetIsOutput = targetNode.outputPorts.any(
+      (p) => p.id == targetPortId,
+    );
+    if (temp.isStartFromOutput == targetIsOutput) {
+      return ConnectionValidationResult.deny(
+        reason: targetIsOutput
+            ? 'Cannot connect output to output'
+            : 'Cannot connect input to input',
+      );
+    }
+
+    // Get source node and port
+    final sourceNode = _nodes[temp.startNodeId];
+    if (sourceNode == null) {
+      return const ConnectionValidationResult.deny(
+        reason: 'Source node not found',
+      );
+    }
+    final sourcePort = sourceNode.allPorts
+        .where((p) => p.id == temp.startPortId)
+        .firstOrNull;
+    if (sourcePort == null) {
+      return const ConnectionValidationResult.deny(
+        reason: 'Source port not found',
+      );
+    }
+
+    // Get target port (targetNode already looked up above)
+    final targetPort = targetNode.allPorts
+        .where((p) => p.id == targetPortId)
+        .firstOrNull;
+    if (targetPort == null) {
+      return const ConnectionValidationResult.deny(
+        reason: 'Target port not found',
+      );
+    }
+
+    // 2. Both ports must be connectable
+    if (!sourcePort.isConnectable) {
+      return const ConnectionValidationResult.deny(
+        reason: 'Source port is not connectable',
+      );
+    }
+    if (!targetPort.isConnectable) {
+      return const ConnectionValidationResult.deny(
+        reason: 'Target port is not connectable',
+      );
+    }
+
+    // 3. Direction compatibility (port type check)
+    // If started from output, target must be able to accept input
+    // If started from input, target must be able to emit output
+    if (temp.isStartFromOutput) {
+      if (!targetPort.isInput) {
+        return const ConnectionValidationResult.deny(
+          reason: 'Target port cannot receive connections',
+        );
+      }
+    } else {
+      if (!targetPort.isOutput) {
+        return const ConnectionValidationResult.deny(
+          reason: 'Target port cannot emit connections',
+        );
+      }
+    }
+
+    // Determine actual source/target for duplicate and max connection checks
+    final Node<T> actualSourceNode;
+    final Port actualSourcePort;
+    final Node<T> actualTargetNode;
+    final Port actualTargetPort;
+
+    if (temp.isStartFromOutput) {
+      actualSourceNode = sourceNode;
+      actualSourcePort = sourcePort;
+      actualTargetNode = targetNode;
+      actualTargetPort = targetPort;
+    } else {
+      actualSourceNode = targetNode;
+      actualSourcePort = targetPort;
+      actualTargetNode = sourceNode;
+      actualTargetPort = sourcePort;
+    }
+
+    // Get existing connections for both ports
+    final existingSourceConnections = _connections
+        .where(
+          (conn) =>
+              conn.sourceNodeId == actualSourceNode.id &&
+              conn.sourcePortId == actualSourcePort.id,
+        )
+        .map((c) => c.id)
+        .toList();
+    final existingTargetConnections = _connections
+        .where(
+          (conn) =>
+              conn.targetNodeId == actualTargetNode.id &&
+              conn.targetPortId == actualTargetPort.id,
+        )
+        .map((c) => c.id)
+        .toList();
+
+    // 4. No duplicate connections
+    final duplicateExists = _connections.any(
+      (conn) =>
+          conn.sourceNodeId == actualSourceNode.id &&
+          conn.sourcePortId == actualSourcePort.id &&
+          conn.targetNodeId == actualTargetNode.id &&
+          conn.targetPortId == actualTargetPort.id,
+    );
+    if (duplicateExists) {
+      return const ConnectionValidationResult.deny(
+        reason: 'Connection already exists',
+      );
+    }
+
+    // 5. Max connections limit (only check target port since it receives the connection)
+    if (actualTargetPort.maxConnections != null) {
+      if (existingTargetConnections.length >=
+          actualTargetPort.maxConnections!) {
+        return const ConnectionValidationResult.deny(
+          reason: 'Target port has maximum connections',
+        );
+      }
+    }
+
+    // 6. Call custom validation callback if provided (skip during drag for performance)
+    if (!skipCustomValidation) {
+      final onBeforeComplete = events.connection?.onBeforeComplete;
+      if (onBeforeComplete != null) {
+        final context = ConnectionCompleteContext<T>(
+          sourceNode: actualSourceNode,
+          sourcePort: actualSourcePort,
+          targetNode: actualTargetNode,
+          targetPort: actualTargetPort,
+          existingSourceConnections: existingSourceConnections,
+          existingTargetConnections: existingTargetConnections,
+        );
+        final result = onBeforeComplete(context);
+        if (!result.allowed) {
+          return result;
+        }
+      }
+    }
+
+    return const ConnectionValidationResult.allow();
+  }
+
+  /// Updates a connection drag with the current position.
+  ///
+  /// Call this from PortWidget's GestureDetector.onPanUpdate.
+  ///
+  /// Parameters:
+  /// - [graphPosition]: Current pointer position in graph coordinates
+  /// - [targetNodeId]: ID of node being hovered (null if none)
+  /// - [targetPortId]: ID of port being hovered (null if none)
+  /// - [targetNodeBounds]: Bounds of hovered node (null if none)
+  void updateConnectionDrag({
+    required Offset graphPosition,
+    String? targetNodeId,
+    String? targetPortId,
+    Rect? targetNodeBounds,
+  }) {
+    final temp = interaction.temporaryConnection.value;
+    if (temp == null) return;
+
+    // Validate target port before highlighting
+    // Only highlight valid connection targets
+    // Skip custom validation during drag for performance - full validation runs at completion
+    final isValidTarget =
+        targetNodeId != null &&
+        targetPortId != null &&
+        canConnect(
+          targetNodeId: targetNodeId,
+          targetPortId: targetPortId,
+          skipCustomValidation: true,
+        ).allowed;
+
+    // If target is invalid, treat as no target
+    final validTargetNodeId = isValidTarget ? targetNodeId : null;
+    final validTargetPortId = isValidTarget ? targetPortId : null;
+    final validTargetBounds = isValidTarget ? targetNodeBounds : null;
+
+    runInAction(() {
+      // Handle port highlighting when target port changes
+      final prevNodeId = temp.targetNodeId;
+      final prevPortId = temp.targetPortId;
+      final targetChanged =
+          prevNodeId != validTargetNodeId || prevPortId != validTargetPortId;
+
+      if (targetChanged) {
+        // Reset previous port's highlighted state
+        if (prevNodeId != null && prevPortId != null) {
+          final prevNode = _nodes[prevNodeId];
+          if (prevNode != null) {
+            final prevPort = prevNode.allPorts
+                .where((p) => p.id == prevPortId)
+                .firstOrNull;
+            prevPort?.highlighted.value = false;
+          }
+        }
+
+        // Set new port's highlighted state (only if valid target)
+        if (validTargetNodeId != null && validTargetPortId != null) {
+          final newNode = _nodes[validTargetNodeId];
+          if (newNode != null) {
+            final newPort = newNode.allPorts
+                .where((p) => p.id == validTargetPortId)
+                .firstOrNull;
+            newPort?.highlighted.value = true;
+          }
+        }
+      }
+
+      // Update connection endpoint - snap to target port if we have a valid one
+      if (validTargetNodeId != null && validTargetPortId != null) {
+        // Snap to the target port's connection point
+        final targetNode = _nodes[validTargetNodeId];
+        if (targetNode != null) {
+          final targetPort = targetNode.allPorts
+              .where((p) => p.id == validTargetPortId)
+              .firstOrNull;
+          if (targetPort != null) {
+            // Calculate the actual connection point on the target port
+            assert(
+              _theme != null,
+              'Theme must be set for connection operations',
+            );
+            final effectivePortSize = _theme!.portTheme.resolveSize(targetPort);
+            final snapPoint = targetNode.getConnectionPoint(
+              validTargetPortId,
+              portSize: effectivePortSize,
+              shape: nodeShapeBuilder?.call(targetNode),
+            );
+            temp.currentPoint = snapPoint;
+          } else {
+            temp.currentPoint = graphPosition;
+          }
+        } else {
+          temp.currentPoint = graphPosition;
+        }
+      } else {
+        // No valid target - follow mouse
+        temp.currentPoint = graphPosition;
+      }
+
+      if (temp.targetNodeId != validTargetNodeId) {
+        temp.targetNodeId = validTargetNodeId;
+      }
+      if (temp.targetPortId != validTargetPortId) {
+        temp.targetPortId = validTargetPortId;
+      }
+      if (temp.targetNodeBounds != validTargetBounds) {
+        temp.targetNodeBounds = validTargetBounds;
+      }
+    });
+  }
+
+  /// Completes a connection drag by creating the connection.
+  ///
+  /// Call this from PortWidget's GestureDetector.onPanEnd when over a valid target.
+  ///
+  /// Parameters:
+  /// - [targetNodeId]: The ID of the target node
+  /// - [targetPortId]: The ID of the target port
+  ///
+  /// Returns the created connection, or null if creation failed.
+  Connection? completeConnectionDrag({
+    required String targetNodeId,
+    required String targetPortId,
+  }) {
+    final temp = interaction.temporaryConnection.value;
+    if (temp == null) {
+      // Fire connection end event with failure
+      events.connection?.onConnectEnd?.call(false);
+      return null;
+    }
+
+    // Validate connection before creating
+    final validationResult = canConnect(
+      targetNodeId: targetNodeId,
+      targetPortId: targetPortId,
+    );
+    if (!validationResult.allowed) {
+      cancelConnectionDrag();
+      return null;
+    }
+
+    // Reset highlighted port
+    final highlightedNode = _nodes[targetNodeId];
+    if (highlightedNode != null) {
+      final highlightedPort = highlightedNode.allPorts
+          .where((p) => p.id == targetPortId)
+          .firstOrNull;
+      if (highlightedPort != null) {
+        runInAction(() => highlightedPort.highlighted.value = false);
+      }
+    }
+
+    // Determine actual source/target based on port direction:
+    // - If started from output: start is source, target is target
+    // - If started from input: target is source, start is target
+    final String sourceNodeId;
+    final String sourcePortId;
+    final String actualTargetNodeId;
+    final String actualTargetPortId;
+
+    if (temp.isStartFromOutput) {
+      // Output → Input: start is source, target is target
+      sourceNodeId = temp.startNodeId;
+      sourcePortId = temp.startPortId;
+      actualTargetNodeId = targetNodeId;
+      actualTargetPortId = targetPortId;
+    } else {
+      // Input ← Output: target is source, start is target
+      sourceNodeId = targetNodeId;
+      sourcePortId = targetPortId;
+      actualTargetNodeId = temp.startNodeId;
+      actualTargetPortId = temp.startPortId;
+    }
+
+    // Check if target port allows multiple connections
+    final targetNode = _nodes[actualTargetNodeId];
+    if (targetNode != null) {
+      final targetPort = targetNode.allPorts
+          .where((p) => p.id == actualTargetPortId)
+          .firstOrNull;
+      if (targetPort != null && !targetPort.multiConnections) {
+        // Remove existing connections to target port
+        final connectionsToRemove = _connections
+            .where(
+              (conn) =>
+                  conn.targetNodeId == actualTargetNodeId &&
+                  conn.targetPortId == actualTargetPortId,
+            )
+            .toList();
+        runInAction(() {
+          for (final connection in connectionsToRemove) {
+            removeConnection(connection.id);
+          }
+        });
+      }
+    }
+
+    // Create the new connection
+    final createdConnection = runInAction(() {
+      final connection = Connection(
+        id: '${sourceNodeId}_${sourcePortId}_${actualTargetNodeId}_$actualTargetPortId',
+        sourceNodeId: sourceNodeId,
+        sourcePortId: sourcePortId,
+        targetNodeId: actualTargetNodeId,
+        targetPortId: actualTargetPortId,
+      );
+      addConnection(connection);
+
+      // Clear temporary connection state and re-enable panning
+      // Cursor is derived from state via Observer in widget MouseRegions
+      interaction.temporaryConnection.value = null;
+      interaction.panEnabled.value = true;
+
+      return connection;
+    });
+
+    // Fire connection end event with success
+    events.connection?.onConnectEnd?.call(true);
+
+    return createdConnection;
+  }
+
+  /// Cancels a connection drag without creating a connection.
+  ///
+  /// Call this from PortWidget's GestureDetector.onPanEnd when not over a valid target,
+  /// or from onPanCancel when the gesture is interrupted.
+  void cancelConnectionDrag() {
+    // Reset highlighted port before canceling
+    final temp = interaction.temporaryConnection.value;
+    if (temp != null &&
+        temp.targetNodeId != null &&
+        temp.targetPortId != null) {
+      final targetNode = _nodes[temp.targetNodeId!];
+      if (targetNode != null) {
+        final targetPort = targetNode.allPorts
+            .where((p) => p.id == temp.targetPortId)
+            .firstOrNull;
+        if (targetPort != null) {
+          runInAction(() => targetPort.highlighted.value = false);
+        }
+      }
+    }
+
+    interaction.cancelConnection();
+
+    // Re-enable panning after connection drag ends
+    // Cursor is derived from state via Observer in widget MouseRegions
+    runInAction(() {
+      interaction.panEnabled.value = true;
+    });
+
+    // Fire connection end event with failure
+    events.connection?.onConnectEnd?.call(false);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Annotation Drag Operations
+  // ---------------------------------------------------------------------------
+
+  /// Starts an annotation drag operation.
+  ///
+  /// Call this from AnnotationWidget's GestureDetector.onPanStart.
+  ///
+  /// Parameters:
+  /// - [annotationId]: The ID of the annotation being dragged
+  void startAnnotationDrag(String annotationId) {
+    // Disable panning during annotation drag so InteractiveViewer
+    // doesn't steal the gesture from AnnotationWidget's GestureDetector
+    runInAction(() {
+      interaction.panEnabled.value = false;
+    });
+    annotations.internalStartAnnotationDrag(annotationId);
+  }
+
+  /// Moves an annotation during a drag operation.
+  ///
+  /// Call this from AnnotationWidget's GestureDetector.onPanUpdate. The delta
+  /// is already in graph coordinates since GestureDetector is inside
+  /// InteractiveViewer's transformed space - no conversion needed.
+  ///
+  /// Parameters:
+  /// - [graphDelta]: The movement delta in graph coordinates
+  void moveAnnotationDrag(Offset graphDelta) {
+    annotations.internalMoveAnnotationDrag(graphDelta, _nodes);
+  }
+
+  /// Ends an annotation drag operation.
+  ///
+  /// Call this from AnnotationWidget's GestureDetector.onPanEnd.
+  void endAnnotationDrag() {
+    annotations.internalEndAnnotationDrag();
+    // Re-enable panning after annotation drag ends
+    runInAction(() {
+      interaction.panEnabled.value = true;
+    });
   }
 }

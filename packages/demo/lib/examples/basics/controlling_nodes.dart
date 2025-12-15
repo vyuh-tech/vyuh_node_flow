@@ -105,13 +105,13 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
           'colorType': 'primary',
           'size': const Size(120, 70),
           'inputPorts': const <Port>[],
-          'outputPorts': const [
+          'outputPorts': [
             Port(
               id: 'output',
               name: 'Out',
               position: PortPosition.right,
               offset: Offset(2, 35),
-              type: PortType.source,
+              type: PortType.output,
             ),
           ],
         };
@@ -120,22 +120,22 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
           'label': 'Process',
           'colorType': 'primaryContainer',
           'size': const Size(150, 80),
-          'inputPorts': const [
+          'inputPorts': [
             Port(
               id: 'input',
               name: 'In',
               position: PortPosition.left,
               offset: Offset(-2, 40),
-              type: PortType.target,
+              type: PortType.input,
             ),
           ],
-          'outputPorts': const [
+          'outputPorts': [
             Port(
               id: 'output',
               name: 'Out',
               position: PortPosition.right,
               offset: Offset(2, 40),
-              type: PortType.source,
+              type: PortType.output,
             ),
           ],
         };
@@ -144,36 +144,36 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
           'label': 'Decision',
           'colorType': 'secondaryContainer',
           'size': const Size(140, 100),
-          'inputPorts': const [
+          'inputPorts': [
             Port(
               id: 'input-left',
               name: 'In',
               position: PortPosition.left,
               offset: Offset(-2, 50),
-              type: PortType.target,
+              type: PortType.input,
             ),
             Port(
               id: 'input-top',
               name: 'In',
               position: PortPosition.top,
               offset: Offset(70, -2),
-              type: PortType.target,
+              type: PortType.input,
             ),
           ],
-          'outputPorts': const [
+          'outputPorts': [
             Port(
               id: 'yes',
               name: 'Yes',
               position: PortPosition.right,
               offset: Offset(2, 50),
-              type: PortType.source,
+              type: PortType.output,
             ),
             Port(
               id: 'no',
               name: 'No',
               position: PortPosition.bottom,
               offset: Offset(70, 2),
-              type: PortType.source,
+              type: PortType.output,
             ),
           ],
         };
@@ -182,13 +182,13 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
           'label': 'Output',
           'colorType': 'tertiaryContainer',
           'size': const Size(120, 70),
-          'inputPorts': const [
+          'inputPorts': [
             Port(
               id: 'input',
               name: 'In',
               position: PortPosition.left,
               offset: Offset(-2, 35),
-              type: PortType.target,
+              type: PortType.input,
             ),
           ],
           'outputPorts': const <Port>[],

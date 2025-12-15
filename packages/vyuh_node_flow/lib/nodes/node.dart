@@ -178,9 +178,11 @@ class Node<T> {
 
   /// Gets the visual position where a port should be rendered within the node container.
   ///
-  /// This calculates the local position of a port within the node's coordinate space.
-  /// The port's outer edge aligns with the node/shape boundary, and the port extends
-  /// inward. For example, a left port's left edge aligns with the node's left edge.
+  /// Gets the visual origin (top-left corner) of a port within this node's
+  /// local coordinate space.
+  ///
+  /// The origin is where the port widget's top-left corner should be positioned.
+  /// Port widgets are positioned so their outer edge aligns with the node boundary.
   ///
   /// Parameters:
   /// * [portId] - The unique identifier of the port
@@ -189,18 +191,12 @@ class Node<T> {
   ///
   /// Returns the [Offset] where the port widget's top-left corner should be positioned.
   ///
-  /// **Shaped nodes**: Ports positioned at shape boundary anchors.
-  /// - Anchor gives the exact point on the shape boundary (e.g., diamond's left tip)
-  /// - Port edge aligns with anchor, port extends inward
-  /// - port.offset adjusts from this base position (usually Offset.zero)
-  ///
-  /// **Rectangular nodes**: Ports positioned using absolute offset.
-  /// - port.offset.dy = vertical position for left/right ports
-  /// - port.offset.dx = horizontal position for top/bottom ports
-  /// - Port edge aligns with node edge, port extends inward
-  ///
   /// Throws [ArgumentError] if no port with the given [portId] is found.
-  Offset getVisualPortPosition(
+  ///
+  /// See also:
+  /// - [getConnectionPoint] for the connection attachment position
+  /// - [getPortCenter] for the visual center position
+  Offset getVisualPortOrigin(
     String portId, {
     required Size portSize,
     NodeShape? shape,
@@ -227,49 +223,13 @@ class Node<T> {
       anchorOffset = _fallbackAnchor(port.position).offset;
     }
 
-    // Port positioning:
-    // - Port outer edge aligns with shape/node boundary at anchor point
-    // - Port extends INWARD from the boundary
-    // - Port is centered on the perpendicular axis
-    // - port.offset provides adjustment from this base position
-    //
-    // For shaped nodes: anchor.dy/dx gives the center position, port.offset adjusts
-    // For rectangular nodes: port.offset gives the center position directly
-
-    switch (port.position) {
-      case PortPosition.left:
-        // Port left edge at anchor x (shape/node left boundary)
-        // Port centered vertically at anchor y (shaped) or offset.dy (rectangular)
-        final baseY = shape != null ? anchorOffset.dy : port.offset.dy;
-        return Offset(
-          anchorOffset.dx + port.offset.dx,
-          baseY - portSize.height / 2 + (shape != null ? port.offset.dy : 0),
-        );
-      case PortPosition.right:
-        // Port right edge at anchor x (shape/node right boundary)
-        // Port centered vertically at anchor y (shaped) or offset.dy (rectangular)
-        final baseY = shape != null ? anchorOffset.dy : port.offset.dy;
-        return Offset(
-          anchorOffset.dx - portSize.width + port.offset.dx,
-          baseY - portSize.height / 2 + (shape != null ? port.offset.dy : 0),
-        );
-      case PortPosition.top:
-        // Port top edge at anchor y (shape/node top boundary)
-        // Port centered horizontally at anchor x (shaped) or offset.dx (rectangular)
-        final baseX = shape != null ? anchorOffset.dx : port.offset.dx;
-        return Offset(
-          baseX - portSize.width / 2 + (shape != null ? port.offset.dx : 0),
-          anchorOffset.dy + port.offset.dy,
-        );
-      case PortPosition.bottom:
-        // Port bottom edge at anchor y (shape/node bottom boundary)
-        // Port centered horizontally at anchor x (shaped) or offset.dx (rectangular)
-        final baseX = shape != null ? anchorOffset.dx : port.offset.dx;
-        return Offset(
-          baseX - portSize.width / 2 + (shape != null ? port.offset.dx : 0),
-          anchorOffset.dy - portSize.height + port.offset.dy,
-        );
-    }
+    // Use centralized calculation from PortPosition extension
+    return port.position.calculateOrigin(
+      anchorOffset: anchorOffset,
+      portSize: portSize,
+      portAdjustment: port.offset,
+      useAnchorForPerpendicularAxis: shape != null,
+    );
   }
 
   /// Creates a fallback anchor for a port position.
@@ -311,21 +271,24 @@ class Node<T> {
     }
   }
 
-  /// Gets the connection point for a port where line endpoints should attach.
+  /// Gets the connection attachment point for a port in graph coordinates.
   ///
-  /// Connections attach at the port's outer edge since ports are edge-aligned
-  /// with the node/shape boundary. This method returns absolute coordinates
-  /// in the graph coordinate space.
+  /// This is where connection lines should attach to the port. The connection
+  /// point is at the port's outer edge (the edge aligned with the node boundary).
   ///
   /// Parameters:
   /// * [portId] - The unique identifier of the port
   /// * [portSize] - The size of the port widget (width x height)
   /// * [shape] - Optional shape to use for port position calculation
   ///
-  /// Returns the absolute [Offset] where connection lines should attach.
+  /// Returns the absolute [Offset] in graph coordinates where connections attach.
   ///
   /// Throws [ArgumentError] if no port with the given [portId] is found.
-  Offset getPortPosition(
+  ///
+  /// See also:
+  /// - [getVisualPortOrigin] for the port widget's top-left position
+  /// - [getPortCenter] for the visual center position
+  Offset getConnectionPoint(
     String portId, {
     required Size portSize,
     NodeShape? shape,
@@ -339,23 +302,53 @@ class Node<T> {
       throw ArgumentError('Port $portId not found');
     }
 
-    // Calculate connection point offset based on port position.
-    // Connections attach at the port's outer edge (aligned with node/shape boundary):
-    // - Left: left edge of port widget (x=0, y=center)
-    // - Right: right edge of port widget (x=portSize.width, y=center)
-    // - Top: top edge of port widget (x=center, y=0)
-    // - Bottom: bottom edge of port widget (x=center, y=portSize.height)
-    final Offset connectionOffset = switch (port.position) {
-      PortPosition.left => Offset(0, portSize.height / 2),
-      PortPosition.right => Offset(portSize.width, portSize.height / 2),
-      PortPosition.top => Offset(portSize.width / 2, 0),
-      PortPosition.bottom => Offset(portSize.width / 2, portSize.height),
-    };
+    // Use centralized calculation from PortPosition extension
+    final connectionOffset = port.position.connectionOffset(portSize);
 
     // Convert from node coordinates to absolute graph coordinates
     return visualPosition.value +
-        getVisualPortPosition(portId, portSize: portSize, shape: shape) +
+        getVisualPortOrigin(portId, portSize: portSize, shape: shape) +
         connectionOffset;
+  }
+
+  /// Gets the visual center of a port in graph coordinates.
+  ///
+  /// This is the center of the port widget, used for hit testing bounds
+  /// and visual highlighting.
+  ///
+  /// Parameters:
+  /// * [portId] - The unique identifier of the port
+  /// * [portSize] - The size of the port widget (width x height)
+  /// * [shape] - Optional shape to use for port position calculation
+  ///
+  /// Returns the absolute [Offset] of the port's visual center in graph coordinates.
+  ///
+  /// Throws [ArgumentError] if no port with the given [portId] is found.
+  ///
+  /// See also:
+  /// - [getVisualPortOrigin] for the port widget's top-left position
+  /// - [getConnectionPoint] for the connection attachment position
+  Offset getPortCenter(
+    String portId, {
+    required Size portSize,
+    NodeShape? shape,
+  }) {
+    final port = [
+      ...inputPorts,
+      ...outputPorts,
+    ].cast<Port?>().firstWhere((p) => p?.id == portId, orElse: () => null);
+
+    if (port == null) {
+      throw ArgumentError('Port $portId not found');
+    }
+
+    // Center offset is simply half the port size (doesn't depend on port position)
+    final centerOffset = Offset(portSize.width / 2, portSize.height / 2);
+
+    // Convert from node coordinates to absolute graph coordinates
+    return visualPosition.value +
+        getVisualPortOrigin(portId, portSize: portSize, shape: shape) +
+        centerOffset;
   }
 
   /// Gets the capsule flat side orientation for a port.

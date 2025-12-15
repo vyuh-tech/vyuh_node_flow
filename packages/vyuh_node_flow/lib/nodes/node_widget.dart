@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../connections/connection.dart';
+import '../graph/cursor_theme.dart';
+import '../graph/node_flow_controller.dart';
 import '../graph/node_flow_theme.dart';
 import '../nodes/node.dart';
 import '../nodes/node_shape.dart';
@@ -10,6 +12,7 @@ import '../nodes/node_shape_painter.dart';
 import '../nodes/node_theme.dart';
 import '../ports/port.dart';
 import '../ports/port_widget.dart';
+import '../shared/unbounded_widgets.dart';
 
 /// A unified node widget that handles positioning, rendering, and interactions.
 ///
@@ -19,10 +22,11 @@ import '../ports/port_widget.dart';
 /// * Rendering ports at appropriate positions
 /// * Applying theme-based or custom styling
 /// * Reactive updates via MobX observables
+/// * Gesture handling (tap, double-tap, drag, context menu, hover)
 ///
-/// Note: Tap, double-tap, context menu, and hover events are handled at the
-/// Listener level in NodeFlowEditor using hit testing. This ensures events
-/// work correctly regardless of node position on the canvas.
+/// The widget handles all user interactions directly via [GestureDetector] and
+/// [MouseRegion], allowing nested widgets inside nodes to also receive gestures
+/// through Flutter's gesture arena.
 ///
 /// The widget supports two usage patterns:
 /// 1. **Custom content**: Provide a [child] widget for complete control over node appearance
@@ -63,7 +67,6 @@ class NodeWidget<T> extends StatelessWidget {
   /// * [connections] - List of connections for determining port connection state
   /// * [onPortTap] - Callback when a port is tapped
   /// * [onPortHover] - Callback when a port is hovered
-  /// * [hoveredPortInfo] - Information about the currently hovered port
   /// * [backgroundColor] - Custom background color (overrides theme)
   /// * [selectedBackgroundColor] - Custom selected background color (overrides theme)
   /// * [borderColor] - Custom border color (overrides theme)
@@ -73,15 +76,22 @@ class NodeWidget<T> extends StatelessWidget {
   /// * [borderRadius] - Custom border radius (overrides theme)
   /// * [padding] - Custom padding (overrides theme)
   /// * [portBuilder] - Optional builder for customizing port widgets
+  /// * [onTap] - Callback when node is tapped
+  /// * [onDoubleTap] - Callback when node is double-tapped
+  /// * [onContextMenu] - Callback when node is right-clicked
+  /// * [onMouseEnter] - Callback when mouse enters node
+  /// * [onMouseLeave] - Callback when mouse leaves node
+  /// * [controller] - Controller for direct drag handling (required)
   const NodeWidget({
     super.key,
     required this.node,
+    required this.controller,
     this.child,
     this.shape,
     this.connections = const [],
     this.onPortTap,
     this.onPortHover,
-    this.hoveredPortInfo,
+    this.onPortContextMenu,
     this.backgroundColor,
     this.selectedBackgroundColor,
     this.borderColor,
@@ -91,6 +101,12 @@ class NodeWidget<T> extends StatelessWidget {
     this.borderRadius,
     this.padding,
     this.portBuilder,
+    this.onTap,
+    this.onDoubleTap,
+    this.onContextMenu,
+    this.onMouseEnter,
+    this.onMouseLeave,
+    this.portSnapDistance = 8.0,
   });
 
   /// Creates a node widget with default content layout.
@@ -103,11 +119,12 @@ class NodeWidget<T> extends StatelessWidget {
   const NodeWidget.defaultStyle({
     super.key,
     required this.node,
+    required this.controller,
     this.shape,
     this.connections = const [],
     this.onPortTap,
     this.onPortHover,
-    this.hoveredPortInfo,
+    this.onPortContextMenu,
     this.backgroundColor,
     this.selectedBackgroundColor,
     this.borderColor,
@@ -117,6 +134,12 @@ class NodeWidget<T> extends StatelessWidget {
     this.borderRadius,
     this.padding,
     this.portBuilder,
+    this.onTap,
+    this.onDoubleTap,
+    this.onContextMenu,
+    this.onMouseEnter,
+    this.onMouseLeave,
+    this.portSnapDistance = 8.0,
   }) : child = null;
 
   /// The node data model to render.
@@ -136,6 +159,15 @@ class NodeWidget<T> extends StatelessWidget {
   /// List of connections for determining which ports are connected.
   final List<Connection> connections;
 
+  /// Controller for direct drag handling.
+  ///
+  /// The widget calls controller methods directly for:
+  /// - Node drag operations (start, move, end)
+  /// - Port connection drag operations (delegated to PortWidget)
+  ///
+  /// This eliminates callback chains and simplifies event handling.
+  final NodeFlowController<T> controller;
+
   /// Callback invoked when a port is tapped.
   ///
   /// Parameters: (nodeId, portId, isOutput)
@@ -146,10 +178,16 @@ class NodeWidget<T> extends StatelessWidget {
   /// Parameters: (nodeId, portId, isHover)
   final void Function(String nodeId, String portId, bool isHover)? onPortHover;
 
-  /// Information about the currently hovered port.
+  /// Callback invoked when a port is right-clicked (context menu).
   ///
-  /// Used for highlighting ports during connection creation.
-  final ({String nodeId, String portId, bool isOutput})? hoveredPortInfo;
+  /// Parameters: (nodeId, portId, isOutput, globalPosition)
+  final void Function(
+    String nodeId,
+    String portId,
+    bool isOutput,
+    Offset globalPosition,
+  )?
+  onPortContextMenu;
 
   /// Custom background color.
   ///
@@ -203,6 +241,26 @@ class NodeWidget<T> extends StatelessWidget {
   /// The returned widget replaces the default [PortWidget].
   final PortBuilder<T>? portBuilder;
 
+  /// Callback invoked when the node is tapped.
+  final VoidCallback? onTap;
+
+  /// Callback invoked when the node is double-tapped.
+  final VoidCallback? onDoubleTap;
+
+  /// Callback invoked when the node is right-clicked (context menu).
+  ///
+  /// The [Offset] parameter is the global position of the tap.
+  final void Function(Offset globalPosition)? onContextMenu;
+
+  /// Callback invoked when the mouse enters the node bounds.
+  final VoidCallback? onMouseEnter;
+
+  /// Callback invoked when the mouse leaves the node bounds.
+  final VoidCallback? onMouseLeave;
+
+  /// Distance around ports that expands the hit area for easier targeting.
+  final double portSnapDistance;
+
   @override
   Widget build(BuildContext context) {
     final theme =
@@ -216,31 +274,67 @@ class NodeWidget<T> extends StatelessWidget {
         final isSelected = node.isSelected;
         final size = node.size.value;
 
-        // Note: Tap, double-tap, context menu, and hover events are handled
-        // at the Listener level in NodeFlowEditor using hit testing. This
-        // ensures events work even when nodes are dragged outside the viewport.
         return Positioned(
           left: position.dx,
           top: position.dy,
-          child: SizedBox(
+          child: UnboundedSizedBox(
             width: size.width,
             height: size.height,
-            child: Stack(
+            child: UnboundedStack(
               clipBehavior: Clip.none, // Allow ports to overflow the bounds
               children: [
-                // Main node visual - either shaped or rectangular
+                // Main node visual with gesture handling
+                // Note: Tap/selection is handled at the editor's Listener level
+                // (in _handlePointerDown) for immediate response.
+                // GestureDetector only wraps the node visual, NOT the ports.
+                // This allows ports to handle their own gestures (like connection drag)
+                // without interference from node drag gestures.
                 Positioned.fill(
-                  child: shape != null
-                      ? _buildShapedNode(nodeTheme, isSelected)
-                      : _buildRectangularNode(nodeTheme, isSelected),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onDoubleTap: onDoubleTap,
+                    onSecondaryTapUp: onContextMenu != null
+                        ? (details) => onContextMenu!(details.globalPosition)
+                        : null,
+                    // Node drag via controller (delta is already in graph coordinates
+                    // since GestureDetector is inside InteractiveViewer's transformed space)
+                    onPanStart: (_) => controller.startNodeDrag(node.id),
+                    onPanUpdate: (details) =>
+                        controller.moveNodeDrag(details.delta),
+                    onPanEnd: (_) => controller.endNodeDrag(),
+                    // Observer.withBuiltChild ensures only MouseRegion rebuilds when
+                    // interaction state changes, not the entire node subtree
+                    child: Observer.withBuiltChild(
+                      builder: (context, child) {
+                        // Derive cursor from interaction state
+                        final cursor = theme.cursorTheme.cursorFor(
+                          ElementType.node,
+                          controller.interaction,
+                        );
+                        return MouseRegion(
+                          cursor: cursor,
+                          onEnter: onMouseEnter != null
+                              ? (_) => onMouseEnter!()
+                              : null,
+                          onExit: onMouseLeave != null
+                              ? (_) => onMouseLeave!()
+                              : null,
+                          child: child,
+                        );
+                      },
+                      child: shape != null
+                          ? _buildShapedNode(nodeTheme, isSelected)
+                          : _buildRectangularNode(nodeTheme, isSelected),
+                    ),
+                  ),
                 ),
 
-                // Input ports (positioned on edges of padded container)
+                // Input ports (positioned on edges - OUTSIDE node's GestureDetector)
                 ...node.inputPorts.map(
                   (port) => _buildPort(context, port, false, nodeTheme),
                 ),
 
-                // Output ports (positioned on edges of padded container)
+                // Output ports (positioned on edges - OUTSIDE node's GestureDetector)
                 ...node.outputPorts.map(
                   (port) => _buildPort(context, port, true, nodeTheme),
                 ),
@@ -323,37 +417,55 @@ class NodeWidget<T> extends StatelessWidget {
         Theme.of(context).extension<NodeFlowTheme>() ?? NodeFlowTheme.light;
     final portTheme = theme.portTheme;
     final isConnected = _isPortConnected(port.id, isOutput);
-    final isHighlighted = _isPortHighlighted(port.id, isOutput);
 
     // Get the visual position from the Node model
     // Use cascade: port.size → theme.size
     final effectivePortSize = port.size ?? portTheme.size;
-    final visualPosition = node.getVisualPortPosition(
+    final visualPosition = node.getVisualPortOrigin(
       port.id,
       portSize: effectivePortSize,
       shape: shape,
     );
 
+    // Calculate node bounds once for both custom and default port builders
+    final nodeBounds = Rect.fromLTWH(
+      node.position.value.dx,
+      node.position.value.dy,
+      node.size.value.width,
+      node.size.value.height,
+    );
+
     // Use custom port builder if provided
+    // Note: Highlighting is handled via Port.highlighted observable
     final portWidget = portBuilder != null
         ? portBuilder!(
             context,
+            controller,
             node,
             port,
             isOutput,
             isConnected,
-            isHighlighted,
+            nodeBounds,
           )
-        : PortWidget(
+        : PortWidget<T>(
             port: port,
             theme: portTheme,
             isConnected: isConnected,
-            isHighlighted: isHighlighted,
+            snapDistance: portSnapDistance,
+            // Controller for connection drag handling
+            controller: controller,
+            nodeId: node.id,
+            isOutput: isOutput,
+            nodeBounds: nodeBounds,
+            // Event callbacks for external handling
             onTap: onPortTap != null
                 ? (p) => onPortTap!(node.id, p.id, isOutput)
                 : null,
             onHover: onPortHover != null
                 ? (data) => onPortHover!(node.id, data.$1.id, data.$2)
+                : null,
+            onContextMenu: onPortContextMenu != null
+                ? (pos) => onPortContextMenu!(node.id, port.id, isOutput, pos)
                 : null,
           );
 
@@ -383,20 +495,6 @@ class NodeWidget<T> extends StatelessWidget {
             connection.targetPortId == portId;
       }
     });
-  }
-
-  /// Checks if a port is highlighted (being hovered during connection drag).
-  ///
-  /// Parameters:
-  /// * [portId] - The ID of the port to check
-  /// * [isOutput] - Whether the port is an output port
-  ///
-  /// Returns true if this port is currently being hovered as a potential
-  /// connection target during a connection drag operation.
-  bool _isPortHighlighted(String portId, bool isOutput) {
-    return hoveredPortInfo?.nodeId == node.id &&
-        hoveredPortInfo?.portId == portId &&
-        hoveredPortInfo?.isOutput == isOutput;
   }
 
   /// Builds a shaped node using CustomPaint and ClipPath.

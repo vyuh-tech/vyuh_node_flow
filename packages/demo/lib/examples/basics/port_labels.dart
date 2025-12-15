@@ -36,12 +36,12 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
       position: const Offset(100, 100),
       size: const Size(180, 180),
       data: 'All Positions',
-      inputPorts: const [
+      inputPorts: [
         Port(
           id: 'input-left',
           name: 'Left Input',
           position: PortPosition.left,
-          type: PortType.target,
+          type: PortType.input,
           offset: Offset(-2, 90), // Vertical center
           showLabel: true,
         ),
@@ -49,17 +49,17 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           id: 'input-top',
           name: 'Top',
           position: PortPosition.top,
-          type: PortType.target,
+          type: PortType.input,
           offset: Offset(90, -2), // Horizontal center
           showLabel: true,
         ),
       ],
-      outputPorts: const [
+      outputPorts: [
         Port(
           id: 'output-right',
           name: 'Right Output',
           position: PortPosition.right,
-          type: PortType.source,
+          type: PortType.output,
           offset: Offset(2, 90), // Vertical center
           showLabel: true,
         ),
@@ -67,7 +67,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           id: 'output-bottom',
           name: 'Bottom',
           position: PortPosition.bottom,
-          type: PortType.source,
+          type: PortType.output,
           offset: Offset(90, 2), // Horizontal center
           showLabel: true,
         ),
@@ -81,12 +81,12 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
       position: const Offset(400, 100),
       size: const Size(160, 230),
       data: 'Port Shapes',
-      inputPorts: const [
+      inputPorts: [
         Port(
           id: 'circle-input',
           name: 'Circle',
           position: PortPosition.left,
-          type: PortType.target,
+          type: PortType.input,
           offset: Offset(-2, 20),
           shape: MarkerShapes.circle,
           showLabel: true,
@@ -95,7 +95,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           id: 'rectangle-input',
           name: 'Rectangle',
           position: PortPosition.left,
-          type: PortType.target,
+          type: PortType.input,
           offset: Offset(-2, 50),
           shape: MarkerShapes.rectangle,
           showLabel: true,
@@ -104,7 +104,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           id: 'diamond-input',
           name: 'Diamond',
           position: PortPosition.left,
-          type: PortType.target,
+          type: PortType.input,
           offset: Offset(-2, 80),
           shape: MarkerShapes.diamond,
           showLabel: true,
@@ -113,18 +113,18 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           id: 'triangle-input',
           name: 'Triangle',
           position: PortPosition.left,
-          type: PortType.target,
+          type: PortType.input,
           offset: Offset(-2, 110),
           shape: MarkerShapes.triangle,
           showLabel: true,
         ),
       ],
-      outputPorts: const [
+      outputPorts: [
         Port(
           id: 'capsule-output',
           name: 'Capsule',
           position: PortPosition.right,
-          type: PortType.source,
+          type: PortType.output,
           offset: Offset(2, 115), // Vertical center of 230 height
           shape: MarkerShapes.capsuleHalf,
           showLabel: true,
@@ -145,7 +145,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           id: 'input-$i',
           name: 'Input ${i + 1}',
           position: PortPosition.left,
-          type: PortType.target,
+          type: PortType.input,
           offset: Offset(-2, 20 + (i * 30.0)), // Starting 20, separation 30
           showLabel: true,
         ),
@@ -156,7 +156,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           id: 'output-$i',
           name: 'Out ${i + 1}',
           position: PortPosition.right,
-          type: PortType.source,
+          type: PortType.output,
           offset: Offset(2, 20 + (i * 30.0)), // Starting 20, separation 30
           showLabel: true,
         ),
@@ -170,12 +170,12 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
       position: const Offset(400, 350),
       size: const Size(160, 140),
       data: 'Mixed Labels',
-      inputPorts: const [
+      inputPorts: [
         Port(
           id: 'labeled-input',
           name: 'With Label',
           position: PortPosition.left,
-          type: PortType.target,
+          type: PortType.input,
           offset: Offset(-2, 20), // Starting offset
           showLabel: true, // Label enabled
         ),
@@ -183,17 +183,17 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           id: 'unlabeled-input',
           name: 'No Label',
           position: PortPosition.left,
-          type: PortType.target,
+          type: PortType.input,
           offset: Offset(-2, 50), // 20 + 30 separation
           showLabel: false, // Label disabled
         ),
       ],
-      outputPorts: const [
+      outputPorts: [
         Port(
           id: 'labeled-output',
           name: 'With Label',
           position: PortPosition.right,
-          type: PortType.source,
+          type: PortType.output,
           offset: Offset(2, 20), // Starting offset
           showLabel: true,
         ),
@@ -201,7 +201,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           id: 'unlabeled-output',
           name: 'No Label',
           position: PortPosition.right,
-          type: PortType.source,
+          type: PortType.output,
           offset: Offset(2, 50), // 20 + 30 separation
           showLabel: false,
         ),

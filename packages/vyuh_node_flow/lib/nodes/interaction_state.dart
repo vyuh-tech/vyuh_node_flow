@@ -67,18 +67,38 @@ class InteractionState {
   ///
   /// Used to prevent flickering during toggle selection mode.
   Set<String> _previouslyIntersecting = <String>{};
-
-  /// Observable current mouse cursor.
-  ///
-  /// Changes based on the current interaction state (e.g., dragging, resizing).
-  final Observable<MouseCursor> currentCursor = Observable(
-    SystemMouseCursors.basic,
-  );
-
   /// Observable flag for whether panning is enabled.
   ///
   /// When false, pan gestures are disabled (e.g., during node dragging).
   final Observable<bool> panEnabled = Observable(true);
+
+  /// Observable flag for whether the viewport is currently being interacted with.
+  ///
+  /// True during canvas panning/zooming via InteractiveViewer.
+  /// This is used to suppress hover effects on ports during viewport interactions,
+  /// preventing stale highlights when the mouse passes over ports during pan gestures.
+  final Observable<bool> isViewportInteracting = Observable(false);
+
+  /// Observable flag for whether the viewport is currently zooming.
+  ///
+  /// True when a pinch-to-zoom or scroll-to-zoom gesture is in progress.
+  /// Used to show appropriate zoom cursor instead of drag cursor.
+  final Observable<bool> isZooming = Observable(false);
+
+  /// Observable flag for zoom direction.
+  ///
+  /// True when zooming in, false when zooming out.
+  /// Only meaningful when [isZooming] is true.
+  final Observable<bool> isZoomingIn = Observable(true);
+
+  /// Checks if a connection is currently being created.
+  ///
+  /// Returns true when the user is dragging from a port to create a connection.
+  /// Used by widgets to set their cursor during connection operations.
+  ///
+  /// Note: When accessed inside an Observer, this will track [temporaryConnection]
+  /// changes since it accesses [temporaryConnection.value] internally.
+  bool get isCreatingConnection => temporaryConnection.value != null;
 
   /// Gets the ID of the currently dragged node.
   ///
@@ -89,11 +109,6 @@ class InteractionState {
   ///
   /// Returns null if no pointer position has been recorded.
   Offset? get currentPointerPosition => lastPointerPosition.value;
-
-  /// Checks if a connection is currently being created.
-  ///
-  /// Returns true when the user is dragging from a port to create a connection.
-  bool get isCreatingConnection => temporaryConnection.value != null;
 
   /// Gets the starting node ID of the temporary connection.
   ///
@@ -115,13 +130,26 @@ class InteractionState {
   /// Returns null if no selection is active.
   Offset? get selectionStart => selectionStartPoint.value;
 
-  /// Gets the current mouse cursor.
-  MouseCursor get cursor => currentCursor.value;
-
   /// Gets whether panning is enabled.
   ///
   /// Returns false during interactions that should disable panning.
   bool get isPanEnabled => panEnabled.value;
+
+  /// Gets whether the viewport is currently being interacted with (panning/zooming).
+  ///
+  /// Returns true during active canvas pan/zoom gestures.
+  bool get isViewportDragging => isViewportInteracting.value;
+
+  /// Gets whether the viewport is currently zooming.
+  ///
+  /// Returns true during pinch-to-zoom or scroll-to-zoom gestures.
+  bool get isViewportZooming => isZooming.value;
+
+  /// Gets the zoom direction.
+  ///
+  /// Returns true when zooming in, false when zooming out.
+  /// Only meaningful when [isViewportZooming] is true.
+  bool get isViewportZoomingIn => isZoomingIn.value;
 
   /// Sets the currently dragged node.
   ///
@@ -149,16 +177,13 @@ class InteractionState {
   /// multiple related state properties in a single action.
   ///
   /// Parameters:
-  /// * [cursor] - New mouse cursor to set
   /// * [panEnabled] - Whether panning should be enabled
   /// * [temporaryConnection] - New temporary connection state
   void update({
-    MouseCursor? cursor,
     bool? panEnabled,
     TemporaryConnection? temporaryConnection,
   }) {
     runInAction(() {
-      if (cursor != null) currentCursor.value = cursor;
       if (panEnabled != null) this.panEnabled.value = panEnabled;
       if (temporaryConnection != null) {
         this.temporaryConnection.value = temporaryConnection;
@@ -251,8 +276,9 @@ class InteractionState {
 
   /// Resets all interaction state to default values.
   ///
-  /// Clears all ongoing interactions and resets the cursor and pan state.
+  /// Clears all ongoing interactions and resets the pan state.
   /// This is useful when canceling all interactions or resetting the editor.
+  /// Note: Cursor is derived from state, so clearing state automatically resets cursor.
   void resetState() {
     runInAction(() {
       draggedNodeId.value = null;
@@ -260,8 +286,20 @@ class InteractionState {
       temporaryConnection.value = null;
       selectionStartPoint.value = null;
       selectionRectangle.value = null;
-      currentCursor.value = SystemMouseCursors.basic;
       panEnabled.value = true;
+      isViewportInteracting.value = false;
+      isZooming.value = false;
+      isZoomingIn.value = true;
+    });
+  }
+
+  /// Sets the viewport interaction state.
+  ///
+  /// Parameters:
+  /// * [interacting] - Whether the viewport is being interacted with
+  void setViewportInteracting(bool interacting) {
+    runInAction(() {
+      isViewportInteracting.value = interacting;
     });
   }
 }

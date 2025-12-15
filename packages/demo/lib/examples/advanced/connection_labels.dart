@@ -164,8 +164,8 @@ class _ConnectionLabelsStore {
         position: const Offset(100, 150),
         data: {'label': 'Source Node'},
         size: const Size(150, 80),
-        inputPorts: const [],
-        outputPorts: const [
+        inputPorts: [],
+        outputPorts: [
           Port(
             id: 'out-1',
             name: 'Out',
@@ -180,7 +180,7 @@ class _ConnectionLabelsStore {
         position: const Offset(400, 150),
         data: {'label': 'Target Node'},
         size: const Size(150, 80),
-        inputPorts: const [
+        inputPorts: [
           Port(
             id: 'in-1',
             name: 'In',
@@ -188,7 +188,7 @@ class _ConnectionLabelsStore {
             offset: Offset(-2, 40),
           ),
         ],
-        outputPorts: const [],
+        outputPorts: [],
       ),
       Node<Map<String, dynamic>>(
         id: 'node-3',
@@ -196,8 +196,8 @@ class _ConnectionLabelsStore {
         position: const Offset(100, 300),
         data: {'label': 'Input A'},
         size: const Size(150, 80),
-        inputPorts: const [],
-        outputPorts: const [
+        inputPorts: [],
+        outputPorts: [
           Port(
             id: 'out-3',
             name: 'Out',
@@ -212,7 +212,7 @@ class _ConnectionLabelsStore {
         position: const Offset(400, 300),
         data: {'label': 'Output B'},
         size: const Size(150, 80),
-        inputPorts: const [
+        inputPorts: [
           Port(
             id: 'in-4',
             name: 'In',
@@ -220,7 +220,7 @@ class _ConnectionLabelsStore {
             offset: Offset(-2, 40),
           ),
         ],
-        outputPorts: const [],
+        outputPorts: [],
       ),
     ];
 
