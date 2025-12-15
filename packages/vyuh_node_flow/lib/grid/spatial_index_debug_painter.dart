@@ -9,8 +9,8 @@ import '../shared/spatial/spatial_grid.dart';
 /// This painter draws the spatial hashing grid used for efficient hit testing
 /// and spatial queries. Each cell shows:
 /// - Grid cell boundary
-/// - Cell coordinates in top-left as `[x, y]` with green background when mouse is in cell
-/// - Object counts below as vertical list: `N: X`, `C: X`, `P: X` (nodes, connections, ports)
+/// - Cell coordinates in top-left as `x, y` with green background when mouse is in cell
+/// - Object counts below as vertical list: `N: X`, `P: X`, `C: X` (nodes, ports, connections)
 ///
 /// The spatial index grid is typically much larger than the visual grid
 /// (default 500px vs 20px) because it's optimized for query performance,
@@ -142,7 +142,7 @@ class SpatialIndexDebugPainter extends CustomPainter {
       }
     }
 
-    // Pass 3: Draw labels on top of everything
+    // Pass 3: Draw labels on top of grid cells
     for (int cellX = startCellX; cellX <= endCellX; cellX++) {
       for (int cellY = startCellY; cellY <= endCellY; cellY++) {
         final bounds = spatialIndex.cellBounds(cellX, cellY);
@@ -160,6 +160,62 @@ class SpatialIndexDebugPainter extends CustomPainter {
           zoom,
         );
       }
+    }
+
+    // Pass 4-6: Draw element bounds in order: connections → nodes → ports
+    _drawConnectionSegments(canvas, zoom);
+    _drawNodeBounds(canvas, zoom);
+    _drawPortSnapZones(canvas, zoom);
+  }
+
+  void _drawConnectionSegments(Canvas canvas, double zoom) {
+    final segmentColor = theme.getSegmentColor(0); // connections = index 0
+    final fillPaint = Paint()
+      ..color = segmentColor.withValues(alpha: 0.15)
+      ..style = PaintingStyle.fill;
+
+    final borderPaint = Paint()
+      ..color = segmentColor.withValues(alpha: 0.6)
+      ..strokeWidth = 0.5 / zoom
+      ..style = PaintingStyle.stroke;
+
+    for (final segment in spatialIndex.connectionSegmentItems) {
+      canvas.drawRect(segment.bounds, fillPaint);
+      canvas.drawRect(segment.bounds, borderPaint);
+    }
+  }
+
+  void _drawNodeBounds(Canvas canvas, double zoom) {
+    final segmentColor = theme.getSegmentColor(1); // nodes = index 1
+    final fillPaint = Paint()
+      ..color = segmentColor.withValues(alpha: 0.15)
+      ..style = PaintingStyle.fill;
+
+    final borderPaint = Paint()
+      ..color = segmentColor.withValues(alpha: 0.6)
+      ..strokeWidth = 1.0 / zoom
+      ..style = PaintingStyle.stroke;
+
+    for (final nodeItem in spatialIndex.nodeItems) {
+      canvas.drawRect(nodeItem.bounds, fillPaint);
+      canvas.drawRect(nodeItem.bounds, borderPaint);
+    }
+  }
+
+  void _drawPortSnapZones(Canvas canvas, double zoom) {
+    final segmentColor = theme.getSegmentColor(2); // ports = index 2
+    final fillPaint = Paint()
+      ..color = segmentColor.withValues(alpha: 0.15)
+      ..style = PaintingStyle.fill;
+
+    final borderPaint = Paint()
+      ..color = segmentColor.withValues(alpha: 0.6)
+      ..strokeWidth = 1.0 / zoom
+      ..style = PaintingStyle.stroke;
+
+    for (final portItem in spatialIndex.portItems) {
+      canvas.drawRect(portItem.bounds, fillPaint);
+      canvas.drawRect(portItem.bounds, borderPaint);
     }
   }
 
@@ -183,8 +239,8 @@ class SpatialIndexDebugPainter extends CustomPainter {
     final paddingV = 3 / zoom;
     final lineSpacing = 2 / zoom;
 
-    // Coordinate label: [x, y]
-    final coordText = '[$cellX, $cellY]';
+    // Coordinate label: x, y
+    final coordText = '$cellX, $cellY';
 
     final textStyle = TextStyle(
       color: theme.labelColor,
@@ -233,14 +289,14 @@ class SpatialIndexDebugPainter extends CustomPainter {
       Offset(coordBgRect.left + paddingH, coordBgRect.top + paddingV),
     );
 
-    // Draw stats label if cell has objects (N:, C:, P: as vertical list)
+    // Draw stats label if cell has objects (N:, P:, C: as vertical list)
     if (cellInfo != null && !cellInfo.isEmpty) {
       final stats = <String>[];
       if (cellInfo.nodeCount > 0) stats.add('N: ${cellInfo.nodeCount}');
+      if (cellInfo.portCount > 0) stats.add('P: ${cellInfo.portCount}');
       if (cellInfo.connectionCount > 0) {
         stats.add('C: ${cellInfo.connectionCount}');
       }
-      if (cellInfo.portCount > 0) stats.add('P: ${cellInfo.portCount}');
 
       if (stats.isNotEmpty) {
         // Create painters for each stat line to measure widths
@@ -304,9 +360,10 @@ class SpatialIndexDebugPainter extends CustomPainter {
 /// connection hit testing areas, and other debug visualizations.
 ///
 /// The theme uses semantic names:
-/// - **color/borderColor**: Reddish tones for general debug overlays (hit test regions, etc.)
-/// - **activeColor/activeBorderColor**: Greenish tones for active/highlighted areas
-/// - **indicatorColor/indicatorInactiveColor**: State indicators (mouse position, etc.)
+/// - **color/borderColor**: Reddish tones for inactive grid cells
+/// - **activeColor/activeBorderColor**: Greenish tones for active grid cells
+/// - **segmentColors**: Colors for spatial segments in Z-order (connections, nodes, ports)
+/// - **indicatorColor**: Mouse position indicator
 /// - **labelColor/labelBackgroundColor**: Text labels
 ///
 /// Border colors are opaque, fill colors can be transparent.
@@ -321,19 +378,26 @@ class DebugTheme {
     this.labelColor = const Color(0xCCDDDDDD),
     this.labelBackgroundColor = const Color(0xDD1A1A1A),
     this.indicatorColor = const Color(0xFF00DD00),
-    this.indicatorInactiveColor = const Color(0xFF666666),
+    this.segmentColors = _defaultSegmentColors,
   });
 
-  /// Fill color for debug overlays (hit test regions, etc.). Reddish tone, can be transparent.
+  /// Default segment colors: red (connections), blue (nodes), green (ports)
+  static const _defaultSegmentColors = [
+    Color(0xFFCC4444), // connections (red)
+    Color(0xFF4488FF), // nodes (blue)
+    Color(0xFF44CC44), // ports (green)
+  ];
+
+  /// Fill color for inactive grid cells. Reddish tone, can be transparent.
   final Color color;
 
-  /// Border color for debug overlays. Reddish tone, opaque.
+  /// Border color for inactive grid cells. Reddish tone, opaque.
   final Color borderColor;
 
-  /// Fill color for active/highlighted areas (active cells, etc.). Greenish tone, can be transparent.
+  /// Fill color for active grid cells. Greenish tone, can be transparent.
   final Color activeColor;
 
-  /// Border color for active/highlighted areas. Greenish tone, opaque.
+  /// Border color for active grid cells. Greenish tone, opaque.
   final Color activeBorderColor;
 
   /// Text color for labels.
@@ -345,8 +409,22 @@ class DebugTheme {
   /// Color for active indicators (mouse in cell, etc.). Opaque.
   final Color indicatorColor;
 
-  /// Color for inactive indicators. Opaque.
-  final Color indicatorInactiveColor;
+  /// Colors for spatial segments in Z-order (lowest to highest).
+  ///
+  /// Index 0: connections (drawn first, lowest Z)
+  /// Index 1: nodes (drawn second)
+  /// Index 2: ports (drawn last, highest Z)
+  ///
+  /// If fewer colors are provided, the last color is used for higher indices.
+  final List<Color> segmentColors;
+
+  /// Gets the segment color for a given index.
+  ///
+  /// If the index exceeds the available colors, returns the last color.
+  Color getSegmentColor(int index) {
+    if (segmentColors.isEmpty) return _defaultSegmentColors[0];
+    return segmentColors[index.clamp(0, segmentColors.length - 1)];
+  }
 
   /// Light theme variant for debug visualization.
   static const light = DebugTheme(
@@ -357,7 +435,11 @@ class DebugTheme {
     labelColor: Color(0xFFFFFFFF),
     labelBackgroundColor: Color(0xCC333333),
     indicatorColor: Color(0xFF44DD44),
-    indicatorInactiveColor: Color(0xFFAAAAAA),
+    segmentColors: [
+      Color(0xFFDD6666), // connections (red)
+      Color(0xFF6699FF), // nodes (blue)
+      Color(0xFF66DD66), // ports (green)
+    ],
   );
 
   /// Dark theme variant for debug visualization.
@@ -369,7 +451,11 @@ class DebugTheme {
     labelColor: Color(0xCCDDDDDD),
     labelBackgroundColor: Color(0xDD1A1A1A),
     indicatorColor: Color(0xFF00FF00),
-    indicatorInactiveColor: Color(0xFF666666),
+    segmentColors: [
+      Color(0xFFCC4444), // connections (red)
+      Color(0xFF4488FF), // nodes (blue)
+      Color(0xFF44CC44), // ports (green)
+    ],
   );
 
   DebugTheme copyWith({
@@ -380,7 +466,7 @@ class DebugTheme {
     Color? labelColor,
     Color? labelBackgroundColor,
     Color? indicatorColor,
-    Color? indicatorInactiveColor,
+    List<Color>? segmentColors,
   }) {
     return DebugTheme(
       color: color ?? this.color,
@@ -390,23 +476,29 @@ class DebugTheme {
       labelColor: labelColor ?? this.labelColor,
       labelBackgroundColor: labelBackgroundColor ?? this.labelBackgroundColor,
       indicatorColor: indicatorColor ?? this.indicatorColor,
-      indicatorInactiveColor:
-          indicatorInactiveColor ?? this.indicatorInactiveColor,
+      segmentColors: segmentColors ?? this.segmentColors,
     );
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is DebugTheme &&
-        other.color == color &&
-        other.borderColor == borderColor &&
-        other.activeColor == activeColor &&
-        other.activeBorderColor == activeBorderColor &&
-        other.labelColor == labelColor &&
-        other.labelBackgroundColor == labelBackgroundColor &&
-        other.indicatorColor == indicatorColor &&
-        other.indicatorInactiveColor == indicatorInactiveColor;
+    if (other is! DebugTheme) return false;
+    if (other.color != color ||
+        other.borderColor != borderColor ||
+        other.activeColor != activeColor ||
+        other.activeBorderColor != activeBorderColor ||
+        other.labelColor != labelColor ||
+        other.labelBackgroundColor != labelBackgroundColor ||
+        other.indicatorColor != indicatorColor) {
+      return false;
+    }
+    // Compare segment colors list
+    if (other.segmentColors.length != segmentColors.length) return false;
+    for (int i = 0; i < segmentColors.length; i++) {
+      if (other.segmentColors[i] != segmentColors[i]) return false;
+    }
+    return true;
   }
 
   @override
@@ -418,6 +510,6 @@ class DebugTheme {
     labelColor,
     labelBackgroundColor,
     indicatorColor,
-    indicatorInactiveColor,
+    Object.hashAll(segmentColors),
   );
 }

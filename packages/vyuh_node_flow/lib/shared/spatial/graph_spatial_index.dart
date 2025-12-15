@@ -502,6 +502,21 @@ class GraphSpatialIndex<T> {
       _nodePortIds.values.fold(0, (sum, list) => sum + list.length);
   SpatialIndexStats get stats => _grid.stats;
 
+  /// Gets all port spatial items for debug visualization.
+  ///
+  /// Returns port bounds (inflated snap zones) that can be drawn
+  /// to visualize the snap hit areas.
+  Iterable<PortSpatialItem> get portItems =>
+      _grid.objects.whereType<PortSpatialItem>();
+
+  /// Gets all node spatial items for debug visualization.
+  Iterable<NodeSpatialItem> get nodeItems =>
+      _grid.objects.whereType<NodeSpatialItem>();
+
+  /// Gets all connection segment items for debug visualization.
+  Iterable<ConnectionSegmentItem> get connectionSegmentItems =>
+      _grid.objects.whereType<ConnectionSegmentItem>();
+
   /// The grid size used for spatial hashing (default: 500.0 pixels).
   double get gridSize => _grid.gridSize;
 
@@ -539,13 +554,12 @@ class GraphSpatialIndex<T> {
     final candidates = <({PortSpatialItem item, double distance})>[];
 
     for (final portItem in nearbyPorts) {
-      // Calculate distance from point to port center
+      // Calculate distance from point to port center (used for sorting only)
       final portCenter = portItem.bounds.center;
       final distance = (point - portCenter).distance;
 
-      if (distance <= portSnapDistance) {
-        candidates.add((item: portItem, distance: distance));
-      }
+      // No distance check needed - spatial query already filtered by snap bounds
+      candidates.add((item: portItem, distance: distance));
     }
 
     if (candidates.isEmpty) return null;

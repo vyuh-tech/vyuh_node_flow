@@ -500,6 +500,11 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
       interaction.draggedNodeId.value != null ||
       annotations.draggedAnnotationId != null;
 
+  /// Checks if spatial index updates should be deferred.
+  /// Updates are deferred during drag UNLESS debug mode is on (for live visualization).
+  bool get _shouldDeferSpatialUpdates =>
+      _isAnyDragInProgress && !(_theme?.debugMode ?? false);
+
   /// Flushes all pending spatial index updates.
   /// Called when drag operations end.
   void _flushPendingSpatialUpdates() {
@@ -624,9 +629,10 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
 
   // @nodoc - Internal framework use only - do not use in user code
   /// Marks a node as needing spatial index update.
-  /// If no drag is in progress, updates immediately. Otherwise, defers until drag ends.
+  /// If no drag is in progress (or debug mode is on), updates immediately.
+  /// Otherwise, defers until drag ends.
   void internalMarkNodeDirty(String nodeId) {
-    if (_isAnyDragInProgress) {
+    if (_shouldDeferSpatialUpdates) {
       _pendingNodeUpdates.add(nodeId);
       // Also mark connected connections as dirty
       final connectedIds = _connectionsByNodeId[nodeId];
@@ -646,7 +652,7 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
   // @nodoc - Internal framework use only - do not use in user code
   /// Marks multiple nodes as needing spatial index update.
   void internalMarkNodesDirty(Iterable<String> nodeIds) {
-    if (_isAnyDragInProgress) {
+    if (_shouldDeferSpatialUpdates) {
       _pendingNodeUpdates.addAll(nodeIds);
       // Also mark connected connections as dirty
       for (final nodeId in nodeIds) {
@@ -672,7 +678,7 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
   // @nodoc - Internal framework use only - do not use in user code
   /// Marks an annotation as needing spatial index update.
   void internalMarkAnnotationDirty(String annotationId) {
-    if (_isAnyDragInProgress) {
+    if (_shouldDeferSpatialUpdates) {
       _pendingAnnotationUpdates.add(annotationId);
     } else {
       final annotation = annotations.annotations[annotationId];

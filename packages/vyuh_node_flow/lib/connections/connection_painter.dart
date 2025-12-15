@@ -86,11 +86,6 @@ class ConnectionPainter {
       animationValue: animationValue,
       styleOverrides: styleOverrides,
     );
-
-    // Draw debug visualization if enabled
-    if (theme.debugMode) {
-      _drawDebugVisualization(canvas, connection);
-    }
   }
 
   /// Draw connection using path
@@ -541,36 +536,5 @@ class ConnectionPainter {
   /// Get cache statistics for debugging
   Map<String, dynamic> getCacheStats() {
     return _pathCache.getStats();
-  }
-
-  /// Draw debug visualization for connection hit testing areas
-  void _drawDebugVisualization(Canvas canvas, Connection connection) {
-    // Get the hit test path for debugging
-    final hitTestPath = _pathCache.getHitTestPath(connection.id);
-    final originalPath = _pathCache.getOriginalPath(connection.id);
-
-    if (hitTestPath == null || originalPath == null) return;
-
-    final debugTheme = theme.debugTheme;
-
-    // Debug paint for hit test area (semi-transparent overlay)
-    final hitAreaPaint = Paint()
-      ..color = debugTheme.color
-      ..style = PaintingStyle.fill;
-
-    // Debug paint for hit test border (visible outline)
-    final hitBorderPaint = Paint()
-      ..color = debugTheme.borderColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.5;
-
-    // Draw hit test area (filled)
-    canvas.drawPath(hitTestPath, hitAreaPaint);
-
-    // Draw hit test border (outline)
-    canvas.drawPath(hitTestPath, hitBorderPaint);
-
-    // Draw original geometric path (for comparison)
-    canvas.drawPath(originalPath, hitBorderPaint);
   }
 }

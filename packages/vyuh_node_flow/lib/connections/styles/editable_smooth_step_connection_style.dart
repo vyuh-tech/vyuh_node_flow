@@ -285,7 +285,12 @@ class EditableSmoothStepConnectionStyle extends EditablePathConnectionStyle {
         segments.add(StraightSegment(end: cornerStart));
 
         // Add quadratic bezier curve for the corner
-        segments.add(QuadraticSegment(controlPoint: current, end: cornerEnd));
+        // Skip hit test rects - corner is already covered by adjacent straight segments
+        segments.add(QuadraticSegment(
+          controlPoint: current,
+          end: cornerEnd,
+          generateHitTestRects: false,
+        ));
       } else {
         // Not a perpendicular corner, just add straight segment
         segments.add(StraightSegment(end: current));

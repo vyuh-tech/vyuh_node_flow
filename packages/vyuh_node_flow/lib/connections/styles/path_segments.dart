@@ -21,15 +21,22 @@ import 'dart:ui';
 ///   QuadraticSegment(
 ///     controlPoint: Offset(100, 75),
 ///     end: Offset(100, 100),
+///     generateHitTestRects: false,  // Corner already covered by adjacent segments
 ///   ),  // Rounded corner
 ///   StraightSegment(end: Offset(60, 100)), // Vertical segment
 /// ];
 /// ```
 sealed class PathSegment {
-  const PathSegment({required this.end});
+  const PathSegment({required this.end, this.generateHitTestRects = true});
 
   /// The endpoint of this segment.
   final Offset end;
+
+  /// Whether to generate hit test rectangles for this segment.
+  ///
+  /// Set to `false` for segments that are already covered by adjacent
+  /// segments' hit areas (e.g., small corner curves in step connections).
+  final bool generateHitTestRects;
 
   /// Multiplier for determining maximum hit test rectangle size.
   ///
@@ -65,10 +72,15 @@ sealed class PathSegment {
 /// - Horizontal and vertical routing segments
 /// - Diagonal connections
 class StraightSegment extends PathSegment {
-  const StraightSegment({required super.end});
+  const StraightSegment({
+    required super.end,
+    super.generateHitTestRects,
+  });
 
   @override
   List<Rect> getHitTestRects(Offset start, double tolerance) {
+    if (!generateHitTestRects) return [];
+
     final dx = end.dx - start.dx;
     final dy = end.dy - start.dy;
     final length = math.sqrt(dx * dx + dy * dy);
@@ -174,13 +186,19 @@ class StraightSegment extends PathSegment {
 /// - Rounded corners in step/smoothstep connections
 /// - Simple curved transitions
 class QuadraticSegment extends PathSegment {
-  const QuadraticSegment({required this.controlPoint, required super.end});
+  const QuadraticSegment({
+    required this.controlPoint,
+    required super.end,
+    super.generateHitTestRects,
+  });
 
   /// The control point that defines the curve shape.
   final Offset controlPoint;
 
   @override
   List<Rect> getHitTestRects(Offset start, double tolerance) {
+    if (!generateHitTestRects) return [];
+
     // For quadratic bezier (typically small rounded corners), a single
     // bounding rectangle that encompasses start, control point, and end
     // is sufficient. No need for curve sampling.
@@ -219,6 +237,7 @@ class CubicSegment extends PathSegment {
     required this.controlPoint2,
     required super.end,
     this.curvature = 0.5,
+    super.generateHitTestRects,
   });
 
   /// First control point (influences the curve near the start).
@@ -233,6 +252,8 @@ class CubicSegment extends PathSegment {
 
   @override
   List<Rect> getHitTestRects(Offset start, double tolerance) {
+    if (!generateHitTestRects) return [];
+
     // Maximum perpendicular expansion allowed (same constraint as StraightSegment)
     final maxPerpExpansion = PathSegment.maxHitTestSize(tolerance);
 
