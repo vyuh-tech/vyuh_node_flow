@@ -1,3 +1,7 @@
+## 0.8.5
+
+ - **FEAT**: more real-time debug view of spatial index, minor optimization in hit-test segment generation for step style connections.
+
 ## 0.8.4+3
 
  - Fixed analysis issues and updated readme
