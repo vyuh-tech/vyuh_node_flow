@@ -79,17 +79,10 @@ class InteractionState {
   /// preventing stale highlights when the mouse passes over ports during pan gestures.
   final Observable<bool> isViewportInteracting = Observable(false);
 
-  /// Observable flag for whether the viewport is currently zooming.
+  /// Observable flag for whether the cursor is hovering over a connection.
   ///
-  /// True when a pinch-to-zoom or scroll-to-zoom gesture is in progress.
-  /// Used to show appropriate zoom cursor instead of drag cursor.
-  final Observable<bool> isZooming = Observable(false);
-
-  /// Observable flag for zoom direction.
-  ///
-  /// True when zooming in, false when zooming out.
-  /// Only meaningful when [isZooming] is true.
-  final Observable<bool> isZoomingIn = Observable(true);
+  /// Used to show a click cursor when hovering over connection segments.
+  final Observable<bool> hoveringConnection = Observable(false);
 
   /// Checks if a connection is currently being created.
   ///
@@ -140,16 +133,10 @@ class InteractionState {
   /// Returns true during active canvas pan/zoom gestures.
   bool get isViewportDragging => isViewportInteracting.value;
 
-  /// Gets whether the viewport is currently zooming.
+  /// Gets whether the cursor is hovering over a connection.
   ///
-  /// Returns true during pinch-to-zoom or scroll-to-zoom gestures.
-  bool get isViewportZooming => isZooming.value;
-
-  /// Gets the zoom direction.
-  ///
-  /// Returns true when zooming in, false when zooming out.
-  /// Only meaningful when [isViewportZooming] is true.
-  bool get isViewportZoomingIn => isZoomingIn.value;
+  /// Used to determine if a click cursor should be shown.
+  bool get isHoveringConnection => hoveringConnection.value;
 
   /// Sets the currently dragged node.
   ///
@@ -288,8 +275,7 @@ class InteractionState {
       selectionRectangle.value = null;
       panEnabled.value = true;
       isViewportInteracting.value = false;
-      isZooming.value = false;
-      isZoomingIn.value = true;
+      hoveringConnection.value = false;
     });
   }
 
@@ -300,6 +286,16 @@ class InteractionState {
   void setViewportInteracting(bool interacting) {
     runInAction(() {
       isViewportInteracting.value = interacting;
+    });
+  }
+
+  /// Sets the connection hover state.
+  ///
+  /// Parameters:
+  /// * [hovering] - Whether the cursor is hovering over a connection
+  void setHoveringConnection(bool hovering) {
+    runInAction(() {
+      hoveringConnection.value = hovering;
     });
   }
 }

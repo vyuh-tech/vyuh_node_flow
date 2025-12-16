@@ -8,8 +8,7 @@ import '../nodes/interaction_state.dart';
 /// - Default canvas cursor (idle state)
 /// - Cursor when drawing a selection rectangle
 /// - Cursor when dragging nodes or panning
-/// - Cursor when zooming in/out
-/// - Cursor when hovering over nodes
+/// - Cursor when hovering over nodes or connections
 /// - Cursor when hovering over ports
 ///
 /// Example:
@@ -24,8 +23,6 @@ class CursorTheme {
     required this.canvasCursor,
     required this.selectionCursor,
     required this.dragCursor,
-    required this.zoomInCursor,
-    required this.zoomOutCursor,
     required this.nodeCursor,
     required this.portCursor,
   });
@@ -45,15 +42,9 @@ class CursorTheme {
   /// Typically a grabbing hand cursor to indicate active movement.
   final SystemMouseCursor dragCursor;
 
-  /// Mouse cursor when zooming in on the canvas.
-  final SystemMouseCursor zoomInCursor;
-
-  /// Mouse cursor when zooming out on the canvas.
-  final SystemMouseCursor zoomOutCursor;
-
-  /// Mouse cursor when hovering over nodes.
+  /// Mouse cursor when hovering over nodes or connections.
   ///
-  /// Indicates that the node is interactive and can be selected or moved.
+  /// Indicates that the element is interactive and can be selected.
   final SystemMouseCursor nodeCursor;
 
   /// Mouse cursor when hovering over ports or creating connections.
@@ -66,8 +57,6 @@ class CursorTheme {
     SystemMouseCursor? canvasCursor,
     SystemMouseCursor? selectionCursor,
     SystemMouseCursor? dragCursor,
-    SystemMouseCursor? zoomInCursor,
-    SystemMouseCursor? zoomOutCursor,
     SystemMouseCursor? nodeCursor,
     SystemMouseCursor? portCursor,
   }) {
@@ -75,8 +64,6 @@ class CursorTheme {
       canvasCursor: canvasCursor ?? this.canvasCursor,
       selectionCursor: selectionCursor ?? this.selectionCursor,
       dragCursor: dragCursor ?? this.dragCursor,
-      zoomInCursor: zoomInCursor ?? this.zoomInCursor,
-      zoomOutCursor: zoomOutCursor ?? this.zoomOutCursor,
       nodeCursor: nodeCursor ?? this.nodeCursor,
       portCursor: portCursor ?? this.portCursor,
     );
@@ -88,15 +75,12 @@ class CursorTheme {
   /// - Canvas: grab hand (indicates pannable)
   /// - Selection: precise crosshair (for accurate selection)
   /// - Drag: grabbing hand (active movement)
-  /// - Zoom in/out: system zoom cursors
-  /// - Node: click pointer (interactive element)
+  /// - Node/Connection: click pointer (interactive element)
   /// - Port: precise crosshair (connection targeting)
   static const light = CursorTheme(
     canvasCursor: SystemMouseCursors.grab,
     selectionCursor: SystemMouseCursors.precise,
     dragCursor: SystemMouseCursors.grabbing,
-    zoomInCursor: SystemMouseCursors.zoomIn,
-    zoomOutCursor: SystemMouseCursors.zoomOut,
     nodeCursor: SystemMouseCursors.click,
     portCursor: SystemMouseCursors.precise,
   );
@@ -109,8 +93,6 @@ class CursorTheme {
     canvasCursor: SystemMouseCursors.grab,
     selectionCursor: SystemMouseCursors.precise,
     dragCursor: SystemMouseCursors.grabbing,
-    zoomInCursor: SystemMouseCursors.zoomIn,
-    zoomOutCursor: SystemMouseCursors.zoomOut,
     nodeCursor: SystemMouseCursors.click,
     portCursor: SystemMouseCursors.precise,
   );
@@ -153,9 +135,9 @@ extension CursorThemeExtension on CursorTheme {
   /// The cursor is derived purely from state - there are no side effects.
   /// Priority is given to global interaction states:
   /// 1. Connection dragging → [portCursor]
-  /// 2. Zooming → [zoomInCursor] or [zoomOutCursor] based on direction
-  /// 3. Viewport dragging (panning) → [dragCursor]
-  /// 4. Drawing selection → [selectionCursor]
+  /// 2. Viewport dragging (panning) → [dragCursor]
+  /// 3. Drawing selection → [selectionCursor]
+  /// 4. Hovering over connection → [nodeCursor]
   /// 5. Element-specific cursor based on [elementType]
   ///
   /// For annotations, an additional [isInteractive] parameter determines
@@ -166,16 +148,15 @@ extension CursorThemeExtension on CursorTheme {
     bool isInteractive = true,
   }) {
     final isConnecting = interaction.isCreatingConnection;
-    final isZooming = interaction.isViewportZooming;
-    final isZoomingIn = interaction.isViewportZoomingIn;
     final isViewportDragging = interaction.isViewportDragging;
     final isDrawingSelection = interaction.isDrawingSelection;
+    final isHoveringConnection = interaction.isHoveringConnection;
 
-    return switch ((isConnecting, isZooming, isViewportDragging, isDrawingSelection)) {
+    return switch ((isConnecting, isViewportDragging, isDrawingSelection, isHoveringConnection)) {
       (true, _, _, _) => portCursor,
-      (_, true, _, _) => isZoomingIn ? zoomInCursor : zoomOutCursor,
-      (_, _, true, _) => dragCursor,
-      (_, _, _, true) => selectionCursor,
+      (_, true, _, _) => dragCursor,
+      (_, _, true, _) => selectionCursor,
+      (_, _, _, true) => nodeCursor,
       _ => switch (elementType) {
         ElementType.canvas => canvasCursor,
         ElementType.node => nodeCursor,

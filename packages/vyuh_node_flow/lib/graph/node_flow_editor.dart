@@ -366,9 +366,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   // Shift key tracking for selection mode cursor
   bool _isShiftPressed = false;
 
-  // Zoom tracking for cursor feedback
-  double? _zoomAtInteractionStart;
-
   @override
   void initState() {
     super.initState();
@@ -822,11 +819,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
   // Event handlers
   void _onInteractionStart(ScaleStartDetails details) {
-    // Capture initial zoom for detecting zoom direction during interaction
     final transform = _transformationController.value;
     final translation = transform.getTranslation();
     final scale = transform.getMaxScaleOnAxis();
-    _zoomAtInteractionStart = scale;
 
     // Mark viewport as being interacted with (for suppressing port hover during pan)
     // Cursor is handled reactively via Observer in the canvas MouseRegion
@@ -849,18 +844,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     final translation = transform.getTranslation();
     final currentZoom = transform.getMaxScaleOnAxis();
 
-    // Detect zoom by comparing current zoom with zoom at interaction start
-    // This works reliably for both pinch-to-zoom and trackpad scroll zoom
-    final initialZoom = _zoomAtInteractionStart ?? currentZoom;
-    final zoomDelta = currentZoom - initialZoom;
-    final isZooming = zoomDelta.abs() > 0.001;
-    final isZoomingIn = zoomDelta > 0;
-
-    runInAction(() {
-      widget.controller.interaction.isZooming.value = isZooming;
-      widget.controller.interaction.isZoomingIn.value = isZoomingIn;
-    });
-
     final viewport = GraphViewport(
       x: translation.x,
       y: translation.y,
@@ -873,12 +856,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   }
 
   void _onInteractionEnd(ScaleEndDetails details) {
-    // Mark viewport interaction as complete and reset zoom state
+    // Mark viewport interaction as complete
     // Cursor is handled reactively via Observer in the canvas MouseRegion
     runInAction(() {
       widget.controller.interaction.isViewportInteracting.value = false;
-      widget.controller.interaction.isZooming.value = false;
-      widget.controller.interaction.isZoomingIn.value = true;
     });
 
     // Update viewport in store when interaction ends to keep store in sync

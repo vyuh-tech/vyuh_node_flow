@@ -104,6 +104,11 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
     // Update tracking state
     _lastHoverHitType = currentHitType;
     _lastHoveredEntityId = currentEntityId;
+
+    // Update connection hover state for cursor feedback
+    widget.controller.interaction.setHoveringConnection(
+      currentHitType == HitTarget.connection,
+    );
   }
 
   /// Fires mouse leave event for the previously hovered entity.
