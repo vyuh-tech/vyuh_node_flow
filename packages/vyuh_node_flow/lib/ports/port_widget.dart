@@ -376,8 +376,9 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
               child: Observer.withBuiltChild(
                 builder: (context, child) {
                   // Derive cursor from interaction state
-                  final cursorTheme =
-                      Theme.of(context).extension<NodeFlowTheme>()!.cursorTheme;
+                  final cursorTheme = Theme.of(
+                    context,
+                  ).extension<NodeFlowTheme>()!.cursorTheme;
                   final cursor = cursorTheme.cursorFor(
                     ElementType.port,
                     widget.controller.interaction,

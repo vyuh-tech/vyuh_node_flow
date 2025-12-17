@@ -152,7 +152,12 @@ extension CursorThemeExtension on CursorTheme {
     final isDrawingSelection = interaction.isDrawingSelection;
     final isHoveringConnection = interaction.isHoveringConnection;
 
-    return switch ((isConnecting, isViewportDragging, isDrawingSelection, isHoveringConnection)) {
+    return switch ((
+      isConnecting,
+      isViewportDragging,
+      isDrawingSelection,
+      isHoveringConnection,
+    )) {
       (true, _, _, _) => portCursor,
       (_, true, _, _) => dragCursor,
       (_, _, true, _) => selectionCursor,

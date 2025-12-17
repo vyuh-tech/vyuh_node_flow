@@ -76,9 +76,7 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
       position: const Offset(100, 280),
       data: {'label': 'Diamond\nDecision'},
       size: const Size(140, 100),
-      inputPorts: [
-        Port(id: 'input', name: 'In', position: PortPosition.top),
-      ],
+      inputPorts: [Port(id: 'input', name: 'In', position: PortPosition.top)],
       outputPorts: [
         Port(id: 'output-yes', name: 'Yes', position: PortPosition.right),
         Port(id: 'output-no', name: 'No', position: PortPosition.bottom),
@@ -93,9 +91,7 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
       position: const Offset(300, 280),
       data: {'label': 'Hexagon\nPreparation'},
       size: const Size(160, 100),
-      inputPorts: [
-        Port(id: 'input', name: 'In', position: PortPosition.left),
-      ],
+      inputPorts: [Port(id: 'input', name: 'In', position: PortPosition.left)],
       outputPorts: [
         Port(id: 'output', name: 'Out', position: PortPosition.right),
       ],
@@ -109,9 +105,7 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
       position: const Offset(500, 280),
       data: {'label': 'Vertical\nHexagon'},
       size: const Size(120, 150),
-      inputPorts: [
-        Port(id: 'input', name: 'In', position: PortPosition.top),
-      ],
+      inputPorts: [Port(id: 'input', name: 'In', position: PortPosition.top)],
       outputPorts: [
         Port(id: 'output', name: 'Out', position: PortPosition.bottom),
       ],

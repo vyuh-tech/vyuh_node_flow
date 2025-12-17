@@ -67,6 +67,7 @@ class InteractionState {
   ///
   /// Used to prevent flickering during toggle selection mode.
   Set<String> _previouslyIntersecting = <String>{};
+
   /// Observable flag for whether panning is enabled.
   ///
   /// When false, pan gestures are disabled (e.g., during node dragging).
@@ -166,10 +167,7 @@ class InteractionState {
   /// Parameters:
   /// * [panEnabled] - Whether panning should be enabled
   /// * [temporaryConnection] - New temporary connection state
-  void update({
-    bool? panEnabled,
-    TemporaryConnection? temporaryConnection,
-  }) {
+  void update({bool? panEnabled, TemporaryConnection? temporaryConnection}) {
     runInAction(() {
       if (panEnabled != null) this.panEnabled.value = panEnabled;
       if (temporaryConnection != null) {

@@ -139,8 +139,9 @@ class AnnotationWidget extends StatelessWidget {
             child: Observer.withBuiltChild(
               builder: (context, child) {
                 // Derive cursor from interaction state
-                final cursorTheme =
-                    Theme.of(context).extension<NodeFlowTheme>()!.cursorTheme;
+                final cursorTheme = Theme.of(
+                  context,
+                ).extension<NodeFlowTheme>()!.cursorTheme;
                 final cursor = cursorTheme.cursorFor(
                   ElementType.annotation,
                   controller.interaction,
