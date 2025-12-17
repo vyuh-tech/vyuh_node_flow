@@ -166,6 +166,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           id: 'in-bottom',
           name: 'Bottom',
           position: PortPosition.bottom,
+          type: PortType.input,
           offset: const Offset(75, 2), // Horizontal center at mid-width
           shape: _selectedPortShape,
           showLabel: true,

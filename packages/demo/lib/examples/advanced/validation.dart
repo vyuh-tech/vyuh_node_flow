@@ -196,7 +196,17 @@ class _ConnectionValidationExampleState
   ConnectionValidationResult _onBeforeCompleteConnection(
     ConnectionCompleteContext<String> context,
   ) {
-    // Example 1: Prevent any connections to locked nodes
+    // Example 1: Prevent any connections to/from locked nodes
+    // Note: We must check BOTH sourceNode and targetNode because:
+    // - Dragging OUTPUT→INPUT: targetNode is the drop target
+    // - Dragging INPUT→OUTPUT: sourceNode is the drop target (direction swapped)
+    if (context.sourceNode.type == 'locked') {
+      _showMessage('Cannot connect from locked nodes!');
+      return const ConnectionValidationResult.deny(
+        reason: 'Source node is locked',
+        showMessage: true,
+      );
+    }
     if (context.targetNode.type == 'locked') {
       _showMessage('Cannot connect to locked nodes!');
       return const ConnectionValidationResult.deny(
