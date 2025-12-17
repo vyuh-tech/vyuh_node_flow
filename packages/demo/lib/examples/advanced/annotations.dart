@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../shared/ui_widgets.dart';
@@ -22,10 +23,7 @@ class _AnnotationExampleState extends State<AnnotationExample> {
     super.initState();
     _theme = NodeFlowTheme.light;
     controller = NodeFlowController<Map<String, dynamic>>(
-      config: NodeFlowConfig.defaultConfig.copyWith(
-        snapToGrid: true,
-        snapAnnotationsToGrid: false, // Independent annotation snapping control
-      ),
+      config: NodeFlowConfig.defaultConfig,
     );
     _setupExampleGraph();
 
@@ -162,7 +160,7 @@ class _AnnotationExampleState extends State<AnnotationExample> {
     );
 
     // 2. Group annotation (surrounds nodes)
-    controller.createGroupAnnotation(
+    controller.createGroupAnnotationAroundNodes(
       title: 'Core Processes',
       nodeIds: {'node1', 'node2'},
       color: Colors.blue.shade300,
@@ -184,19 +182,17 @@ class _AnnotationExampleState extends State<AnnotationExample> {
       tooltip: 'Info: This process takes ~5 minutes',
     );
 
-    // 4. Sticky note linked to a node (follows node movements)
-    final linkedSticky = controller.createStickyNote(
+    // 4. Simple sticky note near a node
+    controller.createStickyNote(
       position: const Offset(250, 350),
-      text: 'Linked to Process C\nMoves with the node!',
+      text: 'Note for Process C\nContext and details here',
       width: 180,
       height: 80,
       color: Colors.green.shade200,
-      offset: Offset(50, 100),
     );
-    controller.annotations.addNodeDependency(linkedSticky.id, 'node3');
 
     // 5. Another group for demonstration
-    final group2 = controller.createGroupAnnotation(
+    final group2 = controller.createGroupAnnotationAroundNodes(
       title: 'All Processes',
       nodeIds: {'node1', 'node2', 'node3'},
       color: Colors.purple.shade300,
@@ -282,6 +278,24 @@ class _AnnotationExampleState extends State<AnnotationExample> {
           onPressed: _createRandomGroup,
         ),
         const SizedBox(height: 24),
+        // Show behavior selector when a group is selected
+        Observer(
+          builder: (_) {
+            final selected = controller.annotations.selectedAnnotation;
+            if (selected is! GroupAnnotation) {
+              return const SizedBox.shrink();
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SectionTitle('Group Behavior'),
+                const SizedBox(height: 8),
+                _GroupBehaviorSelector(group: selected, controller: controller),
+                const SizedBox(height: 24),
+              ],
+            );
+          },
+        ),
         const SectionTitle('Visibility'),
         const SizedBox(height: 8),
         ControlButton(
@@ -345,7 +359,7 @@ class _AnnotationExampleState extends State<AnnotationExample> {
       return;
     }
 
-    controller.createGroupAnnotation(
+    controller.createGroupAnnotationAroundNodes(
       title: 'Group ${DateTime.now().second}',
       nodeIds: nodeIdsToGroup,
       color: Colors
@@ -365,5 +379,121 @@ class _AnnotationExampleState extends State<AnnotationExample> {
   void dispose() {
     controller.dispose();
     super.dispose();
+  }
+}
+
+/// Widget for selecting group behavior
+class _GroupBehaviorSelector extends StatelessWidget {
+  const _GroupBehaviorSelector({required this.group, required this.controller});
+
+  final GroupAnnotation group;
+  final NodeFlowController<Map<String, dynamic>> controller;
+
+  void _changeBehavior(GroupBehavior newBehavior) {
+    // If switching from bounds, capture currently contained nodes
+    Set<String>? captureNodes;
+    if (group.behavior == GroupBehavior.bounds &&
+        newBehavior != GroupBehavior.bounds) {
+      captureNodes = controller.annotations.findContainedNodes(group);
+    }
+
+    // Create node lookup for fitToNodes
+    NodeLookup? nodeLookup;
+    if (newBehavior == GroupBehavior.explicit) {
+      nodeLookup = (nodeId) => controller.nodes[nodeId];
+    }
+
+    group.setBehavior(
+      newBehavior,
+      captureContainedNodes: captureNodes,
+      nodeLookup: nodeLookup,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Observer(
+      builder: (_) {
+        final currentBehavior = group.behavior;
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _BehaviorOption(
+                behavior: GroupBehavior.bounds,
+                currentBehavior: currentBehavior,
+                label: 'Bounds',
+                onTap: () => _changeBehavior(GroupBehavior.bounds),
+              ),
+              _BehaviorOption(
+                behavior: GroupBehavior.explicit,
+                currentBehavior: currentBehavior,
+                label: 'Explicit',
+                onTap: () => _changeBehavior(GroupBehavior.explicit),
+              ),
+              _BehaviorOption(
+                behavior: GroupBehavior.parent,
+                currentBehavior: currentBehavior,
+                label: 'Parent',
+                onTap: () => _changeBehavior(GroupBehavior.parent),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _BehaviorOption extends StatelessWidget {
+  const _BehaviorOption({
+    required this.behavior,
+    required this.currentBehavior,
+    required this.label,
+    required this.onTap,
+  });
+
+  final GroupBehavior behavior;
+  final GroupBehavior currentBehavior;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = behavior == currentBehavior;
+    final theme = Theme.of(context);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: isSelected
+                      ? theme.colorScheme.onPrimary
+                      : theme.colorScheme.onSurface,
+                  fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                ),
+              ),
+            ),
+            if (isSelected)
+              Icon(Icons.check, size: 18, color: theme.colorScheme.onPrimary),
+          ],
+        ),
+      ),
+    );
   }
 }

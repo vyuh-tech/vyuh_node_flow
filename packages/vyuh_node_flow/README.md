@@ -2403,9 +2403,9 @@ controller.showShortcutsDialog(context);
 
 </details>
 
-### Feature Toggles
+### Behavior Modes
 
-Control which interactions are enabled:
+Control interaction capabilities using behavior modes:
 
 ```dart
 NodeFlowEditor<T>(
@@ -2413,14 +2413,41 @@ NodeFlowEditor<T>(
   theme: theme,
   nodeBuilder: _buildNode,
 
-  enablePanning: true, // Pan with space+drag or right-click
-  enableZooming: true, // Zoom with mouse wheel
-  enableSelection: true, // Select nodes and connections
-  enableNodeDragging: true, // Drag nodes to reposition
-  enableConnectionCreation: true, // Create connections by dragging
+  // Behavior mode controls all CRUD and interaction capabilities
+  behavior: NodeFlowBehavior.design, // Full editing (default)
+
+  // Additional options
   scrollToZoom: true, // Zoom with trackpad scroll
   showAnnotations: true, // Display annotation layer
 )
+```
+
+**Available behavior modes:**
+
+| Mode | Description | Capabilities |
+|------|-------------|--------------|
+| `design` | Full editing mode | Create, update, delete, drag, select, pan, zoom |
+| `preview` | Read-only with navigation | Drag nodes, select, pan, zoom (no create/update/delete) |
+| `present` | Display only | No interactions allowed |
+
+**Behavior capabilities:**
+
+- `canCreate` - Add new nodes, connections, annotations
+- `canUpdate` - Edit labels, waypoints, properties
+- `canDelete` - Remove elements
+- `canDrag` - Move nodes and annotations
+- `canSelect` - Select elements
+- `canPan` - Pan the viewport
+- `canZoom` - Zoom the viewport
+
+```dart
+// Check behavior capabilities
+if (controller.behavior.canCreate) {
+  // Allow connection creation
+}
+
+// Programmatically change behavior
+controller.setBehavior(NodeFlowBehavior.preview);
 ```
 
 ---
@@ -2473,14 +2500,23 @@ NodeFlowViewer<T>(
   controller: controller,
   theme: theme,
   nodeBuilder: _buildNode,
-  enablePanning: true,
-  enableZooming: true,
   scrollToZoom: true,
 );
 ```
 
-The viewer supports panning and zooming but prevents editing, making it perfect
-for displaying workflows, process diagrams, or results.
+The viewer uses `preview` behavior internally, allowing navigation (pan, zoom,
+select, drag) but preventing structural changes (create, update, delete).
+
+For a fully non-interactive display, use `NodeFlowEditor` with `present` mode:
+
+```dart
+NodeFlowEditor<T>(
+  controller: controller,
+  theme: theme,
+  nodeBuilder: _buildNode,
+  behavior: NodeFlowBehavior.present, // Display only, no interactions
+);
+```
 
 ---
 

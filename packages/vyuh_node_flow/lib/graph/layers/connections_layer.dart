@@ -26,9 +26,10 @@ class ConnectionsLayer<T> extends StatelessWidget {
               controller.connections.length;
               controller.selectedConnectionIds.length;
 
-              // Force tracking of node positions during drag for connection updates
+              // Force tracking of node positions and visibility for connection updates
               for (final node in controller.nodes.values) {
                 node.position.value; // Trigger observation
+                node.isVisible; // Observe visibility changes
               }
 
               // Force tracking of animation effects and control points on connections
@@ -41,10 +42,8 @@ class ConnectionsLayer<T> extends StatelessWidget {
                 }
               }
 
-              // Get theme from context - this ensures automatic rebuilds when theme changes
-              final theme =
-                  Theme.of(context).extension<NodeFlowTheme>() ??
-                  NodeFlowTheme.light;
+              // Use controller's theme as single source of truth
+              final theme = controller.theme ?? NodeFlowTheme.light;
 
               return CustomPaint(
                 painter: ConnectionsCanvas<T>(

@@ -147,9 +147,14 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        // Observe node positions to trigger rebuilds when nodes move
+        // Observe node positions and visibility to trigger rebuilds
         sourceNode.position.value;
         targetNode.position.value;
+
+        // Skip rendering if either node is hidden
+        if (!sourceNode.isVisible || !targetNode.isVisible) {
+          return const SizedBox.shrink();
+        }
 
         // Observe connection labels changes
         final labels = connection.labels;
@@ -166,9 +171,8 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        // Get theme from context - this ensures automatic rebuilds when theme changes
-        final currentTheme =
-            Theme.of(context).extension<NodeFlowTheme>() ?? NodeFlowTheme.light;
+        // Use controller's theme as single source of truth
+        final currentTheme = controller.theme ?? NodeFlowTheme.light;
 
         // Get the effective connection style (per-connection override or theme default)
         final effectiveStyle = connection.getEffectiveStyle(

@@ -32,8 +32,22 @@ class AnnotationController<T> {
     null,
   ); // Group highlighted during node drag
 
+  // Resize state
+  final Observable<String?> _resizingGroupId = Observable(null);
+  final Observable<ResizeHandlePosition?> _resizeHandlePosition = Observable(
+    null,
+  );
+  Offset? _resizeStartPosition;
+  Size? _resizeStartSize;
+
   // Reaction disposers for cleanup
   final List<ReactionDisposer> _disposers = [];
+
+  // Per-annotation reaction disposers (for annotations that track nodes)
+  final Map<String, List<ReactionDisposer>> _annotationDisposers = {};
+
+  // Track previous node IDs to detect additions/deletions
+  Set<String> _previousNodeIds = {};
 
   // Computed property to track if we have any annotation selected
   late final Computed<bool> _hasSelection = Computed(
@@ -64,17 +78,21 @@ class AnnotationController<T> {
 
   String? get highlightedGroupId => _highlightedGroupId.value;
 
+  String? get resizingGroupId => _resizingGroupId.value;
+
+  bool get isResizing => _resizingGroupId.value != null;
+
   // Computed sorted annotations by z-index
   late final Computed<List<Annotation>> _sortedAnnotations = Computed(() {
     final annotationsList = _annotations.values.toList();
 
     // Trigger observation of all zIndex values for existing annotations
     for (final annotation in annotationsList) {
-      annotation.zIndex.value; // Observe zIndex changes
+      annotation.zIndex; // Observe zIndex changes
     }
 
     // Sort by zIndex ascending (lower zIndex = rendered first = behind)
-    annotationsList.sort((a, b) => a.zIndex.value.compareTo(b.zIndex.value));
+    annotationsList.sort((a, b) => a.zIndex.compareTo(b.zIndex));
 
     return annotationsList;
   });
@@ -91,41 +109,34 @@ class AnnotationController<T> {
 
       // Only assign z-index if annotation doesn't have a meaningful one set
       // This preserves z-index values from loaded workflows while providing defaults for new annotations
-      if (annotation.zIndex.value == -1) {
+      if (annotation.zIndex == -1) {
         // Find the current maximum z-index and add 1
         if (_annotations.length > 1) {
           final existingAnnotations = _annotations.values
               .where((a) => a.id != annotation.id)
               .toList();
           final maxZIndex = existingAnnotations
-              .map((a) => a.zIndex.value)
+              .map((a) => a.zIndex)
               .fold(-1, math.max);
-          annotation.setZIndex(maxZIndex + 1);
+          annotation.zIndex = maxZIndex + 1;
         } else {
           // First annotation gets z-index 0
-          annotation.setZIndex(0);
+          annotation.zIndex = 0;
         }
       }
 
       // Initialize visual position with snapping (identical to node behavior)
-      annotation.setVisualPosition(
-        _parentController.config.snapAnnotationsToGridIfEnabled(
-          annotation.currentPosition,
-        ),
-      );
+      annotation.visualPosition = _parentController.config
+          .snapAnnotationsToGridIfEnabled(annotation.position);
 
-      // If this is a group annotation with dependencies, calculate initial bounds
-      if (annotation is GroupAnnotation && annotation.hasAnyDependencies) {
-        final dependentNodes = annotation.dependencies
-            .map((nodeId) => _parentController.nodes[nodeId])
-            .where((node) => node != null)
-            .cast<Node<T>>()
-            .toList();
-
-        if (dependentNodes.isNotEmpty) {
-          _updateGroupAnnotation(annotation, dependentNodes);
-        }
+      // Set up node monitoring reactions if requested
+      if (annotation.monitorNodes) {
+        _setupNodeMonitoringForAnnotation(annotation);
       }
+
+      // Watch for monitorNodes state changes (e.g., behavior changes in GroupAnnotation)
+      // MobX tracks the underlying observable through the getter chain
+      _setupMonitorNodesChangeReaction(annotation);
     });
   }
 
@@ -136,6 +147,9 @@ class AnnotationController<T> {
 
       // Remove from spatial index
       _parentController._spatialIndex.removeAnnotation(annotationId);
+
+      // Dispose node monitoring reactions for this annotation
+      _disposeNodeMonitoringForAnnotation(annotationId);
 
       // Clear drag state if removing the dragged annotation
       if (_draggedAnnotationId.value == annotationId) {
@@ -164,13 +178,13 @@ class AnnotationController<T> {
           _selectedAnnotationIds.remove(annotationId);
           final annotation = _annotations[annotationId];
           if (annotation != null) {
-            annotation.setSelected(false);
+            annotation.selected = false;
           }
         } else {
           _selectedAnnotationIds.add(annotationId);
           final annotation = _annotations[annotationId];
           if (annotation != null) {
-            annotation.setSelected(true);
+            annotation.selected = true;
           }
           // Note: Removed auto-bring-to-front to allow manual z-index management
         }
@@ -179,7 +193,7 @@ class AnnotationController<T> {
         for (final id in _selectedAnnotationIds) {
           final annotation = _annotations[id];
           if (annotation != null) {
-            annotation.setSelected(false);
+            annotation.selected = false;
           }
         }
 
@@ -188,14 +202,13 @@ class AnnotationController<T> {
 
         final annotation = _annotations[annotationId];
         if (annotation != null) {
-          annotation.setSelected(true);
+          annotation.selected = true;
         }
 
         // IMPORTANT: Clear nodes and connections when selecting annotation (unified selection)
         _clearNodeAndConnectionSelections();
 
         // NOTE: Auto-bring-to-front removed to preserve manual z-index management
-        // Previously would set annotation.setZIndex(_annotations.length) here
       }
     });
   }
@@ -214,7 +227,7 @@ class AnnotationController<T> {
       for (final id in _selectedAnnotationIds) {
         final annotation = _annotations[id];
         if (annotation != null) {
-          annotation.setSelected(false);
+          annotation.selected = false;
         }
       }
       _selectedAnnotationIds.clear();
@@ -244,11 +257,11 @@ class AnnotationController<T> {
 
     for (final annotation in _annotations.values) {
       if (annotation is GroupAnnotation &&
-          annotation.currentIsVisible &&
-          !annotation.dependencies.contains(nodeId)) {
+          annotation.isVisible &&
+          !annotation.hasNode(nodeId)) {
         final groupRect = Rect.fromLTWH(
-          annotation.visualPosition.value.dx,
-          annotation.visualPosition.value.dy,
+          annotation.visualPosition.dx,
+          annotation.visualPosition.dy,
           annotation.size.width,
           annotation.size.height,
         );
@@ -275,8 +288,8 @@ class AnnotationController<T> {
 
     if (intersectingGroup != null) {
       // Node intersects with a group - add it if not already in group
-      if (!intersectingGroup.dependencies.contains(nodeId)) {
-        addNodeDependency(intersectingGroup.id, nodeId);
+      if (!intersectingGroup.hasNode(nodeId)) {
+        intersectingGroup.addNode(nodeId);
       }
     }
     // Note: Ungroup functionality via Command+drag has been removed
@@ -317,49 +330,13 @@ class AnnotationController<T> {
     return _highlightedGroupId.value == groupId;
   }
 
-  void _moveGroupDependentNodes(
-    GroupAnnotation groupAnnotation,
-    Offset delta,
-    Map<String, Node<T>> nodes,
-  ) {
-    // Check if already moving to prevent nested calls
-    if (_isMovingGroupNodes) {
-      return;
-    }
-
-    // Temporarily disable group updates to prevent cycles
-    _isMovingGroupNodes = true;
-
-    try {
-      // Use runInAction to ensure proper MobX batching
-      runInAction(() {
-        for (final nodeId in groupAnnotation.dependencies) {
-          final node = nodes[nodeId];
-          if (node != null) {
-            final newPosition = node.position.value + delta;
-
-            // Update both position and visual position (like regular node drag)
-            node.position.value = newPosition;
-            final snappedPosition = _parentController.config
-                .snapToGridIfEnabled(newPosition);
-            node.setVisualPosition(snappedPosition);
-          }
-        }
-      });
-
-      // Mark dependent nodes dirty (deferred during annotation drag)
-      _parentController.internalMarkNodesDirty(groupAnnotation.dependencies);
-    } catch (e) {
-      // Force reset flag in error case
-      _isMovingGroupNodes = false;
-      rethrow; // Re-throw to maintain error propagation
-    } finally {
-      _isMovingGroupNodes = false;
-    }
-  }
-
   // @nodoc - Internal framework use only - do not use in user code
   void internalEndAnnotationDrag() {
+    // Notify all selected annotations that drag is ending
+    for (final id in _selectedAnnotationIds) {
+      _annotations[id]?.onDragEnd();
+    }
+
     runInAction(() {
       _draggedAnnotationId.value = null;
       _lastPointerPosition.value = null;
@@ -399,11 +376,21 @@ class AnnotationController<T> {
         } else {
           _clearNodeAndConnectionSelections();
         }
+
+        // Notify all selected annotations that drag is starting
+        final context = _createDragContext();
+        for (final id in _selectedAnnotationIds) {
+          _annotations[id]?.onDragStart(context);
+        }
       });
     }
   }
 
-  /// Moves annotation during drag (delta already in graph coordinates).
+  /// Moves all selected annotations during drag (delta already in graph coordinates).
+  ///
+  /// Similar to node multi-select drag, when any selected annotation is dragged,
+  /// all selected annotations move together.
+  ///
   /// @nodoc - Internal framework use only - do not use in user code
   void internalMoveAnnotationDrag(
     Offset graphDelta,
@@ -412,219 +399,242 @@ class AnnotationController<T> {
     final draggedId = _draggedAnnotationId.value;
     if (draggedId == null) return;
 
+    // Move all selected annotations, not just the dragged one
+    final selectedIds = _selectedAnnotationIds.toList();
+    if (selectedIds.isEmpty) return;
+
+    final context = _createDragContext();
+
     runInAction(() {
-      final annotation = _annotations[draggedId];
-      if (annotation != null) {
-        final newPosition = annotation.currentPosition + graphDelta;
-        annotation.setPosition(newPosition);
-        annotation.setVisualPosition(
-          _parentController.config.snapAnnotationsToGridIfEnabled(newPosition),
-        );
+      for (final annotationId in selectedIds) {
+        final annotation = _annotations[annotationId];
+        if (annotation != null) {
+          final newPosition = annotation.position + graphDelta;
+          annotation.position = newPosition;
+          annotation.visualPosition = _parentController.config
+              .snapAnnotationsToGridIfEnabled(newPosition);
 
-        // Mark annotation dirty (deferred during drag)
-        _parentController.internalMarkAnnotationDirty(draggedId);
+          // Mark annotation dirty (deferred during drag)
+          _parentController.internalMarkAnnotationDirty(annotationId);
 
-        // If this is a group annotation, move all dependent nodes
-        if (annotation is GroupAnnotation && annotation.hasAnyDependencies) {
-          _moveGroupDependentNodes(annotation, graphDelta, nodes);
+          // Let the annotation handle its own drag behavior (e.g., moving contained nodes)
+          annotation.onDragMove(graphDelta, context);
         }
       }
     });
   }
 
-  // Dependency management
-  void addNodeDependency(
-    String annotationId,
-    String nodeId, {
-    AnnotationBehavior type = AnnotationBehavior.follow,
-  }) {
-    final annotation = _annotations[annotationId];
-    if (annotation != null) {
-      annotation.addDependency(nodeId);
+  // ============================================================
+  // Group Resize Methods
+  // ============================================================
 
-      // If this is a group, update its bounds immediately
-      if (annotation is GroupAnnotation) {
-        final dependentNodes = annotation.dependencies
-            .map((id) => _parentController.nodes[id])
-            .where((node) => node != null)
-            .cast<Node<T>>()
-            .toList();
+  /// Starts a group resize operation from the specified handle position.
+  void startGroupResize(String groupId, ResizeHandlePosition handlePosition) {
+    final annotation = _annotations[groupId];
+    if (annotation is! GroupAnnotation) return;
 
-        if (dependentNodes.isNotEmpty) {
-          _updateGroupAnnotation(annotation, dependentNodes);
+    runInAction(() {
+      _resizingGroupId.value = groupId;
+      _resizeHandlePosition.value = handlePosition;
+      _resizeStartPosition = annotation.position;
+      _resizeStartSize = annotation.size;
+
+      // Disable panning during resize
+      _parentController.interaction.panEnabled.value = false;
+
+      // Set cursor override to lock cursor during resize
+      _parentController.interaction.setCursorOverride(handlePosition.cursor);
+    });
+  }
+
+  /// Updates the group size during a resize operation.
+  void updateGroupResize(Offset delta) {
+    final groupId = _resizingGroupId.value;
+    final handlePosition = _resizeHandlePosition.value;
+    if (groupId == null || handlePosition == null) return;
+
+    final annotation = _annotations[groupId];
+    if (annotation is! GroupAnnotation) return;
+
+    final startPos = _resizeStartPosition;
+    final startSize = _resizeStartSize;
+    if (startPos == null || startSize == null) return;
+
+    runInAction(() {
+      // Calculate new position and size based on handle being dragged
+      var newX = annotation.position.dx;
+      var newY = annotation.position.dy;
+      var newWidth = annotation.size.width;
+      var newHeight = annotation.size.height;
+
+      switch (handlePosition) {
+        case ResizeHandlePosition.topLeft:
+          newX += delta.dx;
+          newY += delta.dy;
+          newWidth -= delta.dx;
+          newHeight -= delta.dy;
+        case ResizeHandlePosition.topCenter:
+          newY += delta.dy;
+          newHeight -= delta.dy;
+        case ResizeHandlePosition.topRight:
+          newY += delta.dy;
+          newWidth += delta.dx;
+          newHeight -= delta.dy;
+        case ResizeHandlePosition.centerLeft:
+          newX += delta.dx;
+          newWidth -= delta.dx;
+        case ResizeHandlePosition.centerRight:
+          newWidth += delta.dx;
+        case ResizeHandlePosition.bottomLeft:
+          newX += delta.dx;
+          newWidth -= delta.dx;
+          newHeight += delta.dy;
+        case ResizeHandlePosition.bottomCenter:
+          newHeight += delta.dy;
+        case ResizeHandlePosition.bottomRight:
+          newWidth += delta.dx;
+          newHeight += delta.dy;
+      }
+
+      // Apply minimum size constraints
+      const minWidth = 100.0;
+      const minHeight = 60.0;
+
+      // If new size would be below minimum, adjust position back
+      if (newWidth < minWidth) {
+        if (handlePosition == ResizeHandlePosition.topLeft ||
+            handlePosition == ResizeHandlePosition.centerLeft ||
+            handlePosition == ResizeHandlePosition.bottomLeft) {
+          newX = annotation.position.dx + annotation.size.width - minWidth;
         }
+        newWidth = minWidth;
+      }
+
+      if (newHeight < minHeight) {
+        if (handlePosition == ResizeHandlePosition.topLeft ||
+            handlePosition == ResizeHandlePosition.topCenter ||
+            handlePosition == ResizeHandlePosition.topRight) {
+          newY = annotation.position.dy + annotation.size.height - minHeight;
+        }
+        newHeight = minHeight;
+      }
+
+      // Update position if changed
+      final newPosition = Offset(newX, newY);
+      if (newPosition != annotation.position) {
+        annotation.position = newPosition;
+        annotation.visualPosition = _parentController.config
+            .snapAnnotationsToGridIfEnabled(newPosition);
+      }
+
+      // Update size
+      annotation.setSize(Size(newWidth, newHeight));
+
+      // Mark annotation dirty
+      _parentController.internalMarkAnnotationDirty(groupId);
+    });
+  }
+
+  /// Ends a group resize operation.
+  void endGroupResize() {
+    runInAction(() {
+      _resizingGroupId.value = null;
+      _resizeHandlePosition.value = null;
+      _resizeStartPosition = null;
+      _resizeStartSize = null;
+
+      // Re-enable panning
+      _parentController.interaction.panEnabled.value = true;
+
+      // Clear cursor override
+      _parentController.interaction.setCursorOverride(null);
+    });
+  }
+
+  // ============================================================
+  // Fluid Group Containment
+  // ============================================================
+
+  /// Finds all nodes that are completely contained within a group's bounds.
+  ///
+  /// This implements the fluid containment rule: a node is part of a group
+  /// if and only if its bounding box is completely within the group's bounds.
+  Set<String> findContainedNodes(GroupAnnotation group) {
+    return _findNodesInBounds(group.bounds);
+  }
+
+  /// Finds all node IDs whose bounds are completely contained within the given rect.
+  Set<String> _findNodesInBounds(Rect bounds) {
+    final containedNodeIds = <String>{};
+
+    for (final entry in _parentController.nodes.entries) {
+      final node = entry.value;
+      final nodeRect = Rect.fromLTWH(
+        node.visualPosition.value.dx,
+        node.visualPosition.value.dy,
+        node.size.value.width,
+        node.size.value.height,
+      );
+
+      // Node must be completely inside the bounds
+      if (bounds.contains(nodeRect.topLeft) &&
+          bounds.contains(nodeRect.bottomRight)) {
+        containedNodeIds.add(entry.key);
       }
     }
+
+    return containedNodeIds;
   }
 
-  void removeNodeDependency(String annotationId, String nodeId) {
-    final annotation = _annotations[annotationId];
-    if (annotation != null) {
-      annotation.removeDependency(nodeId);
-
-      // If this is a group, update its bounds immediately
-      if (annotation is GroupAnnotation) {
-        final dependentNodes = annotation.dependencies
-            .map((id) => _parentController.nodes[id])
-            .where((node) => node != null)
-            .cast<Node<T>>()
-            .toList();
-
-        if (dependentNodes.isNotEmpty) {
-          _updateGroupAnnotation(annotation, dependentNodes);
-        }
-      }
-    }
-  }
-
-  void clearNodeDependencies(String annotationId) {
-    final annotation = _annotations[annotationId];
-    if (annotation != null) {
-      annotation.clearDependencies();
-    }
-  }
-
-  // Get annotations that depend on a specific node
-  List<Annotation> getAnnotationsDependingOnNode(String nodeId) {
-    return _annotations.values
-        .where((annotation) => annotation.hasDependency(nodeId))
-        .toList();
-  }
-
-  // @nodoc - Internal framework use only - do not use in user code
-  void internalUpdateDependentAnnotations(Map<String, Node<T>> nodes) {
-    // Skip updates if we're currently moving group nodes to prevent cycles
+  /// Moves nodes by a given delta, handling position and visual position with snapping.
+  void _moveNodesByDelta(Set<String> nodeIds, Offset delta) {
+    // Check if already moving to prevent nested calls
     if (_isMovingGroupNodes) {
       return;
     }
 
-    for (final annotation in _annotations.values) {
-      if (annotation.hasAnyDependencies) {
-        _updateAnnotationForDependencies(annotation, nodes);
-      }
-    }
-  }
+    if (nodeIds.isEmpty) return;
 
-  void _updateAnnotationForDependencies(
-    Annotation annotation,
-    Map<String, Node<T>> nodes,
-  ) {
-    final dependentNodes = annotation.dependencies
-        .map((nodeId) => nodes[nodeId])
-        .where((node) => node != null)
-        .cast<Node<T>>()
-        .toList();
+    // Temporarily disable updates to prevent cycles
+    _isMovingGroupNodes = true;
 
-    if (dependentNodes.isEmpty) return;
-
-    if (annotation is GroupAnnotation) {
-      _updateGroupAnnotation(annotation, dependentNodes);
-    } else {
-      // For other annotation types, follow the center of dependent nodes
-      _updateFollowingAnnotation(annotation, dependentNodes);
-    }
-  }
-
-  void _updateGroupAnnotation(
-    GroupAnnotation groupAnnotation,
-    List<Node<T>> dependentNodes,
-  ) {
-    if (dependentNodes.isEmpty) return;
-
-    // Calculate bounding box of all dependent nodes
-    double minX = double.infinity;
-    double minY = double.infinity;
-    double maxX = double.negativeInfinity;
-    double maxY = double.negativeInfinity;
-
-    for (final node in dependentNodes) {
-      // Use visual position (what's actually rendered) not logical position!
-      final pos = node.visualPosition.value;
-      final size = node.size.value;
-
-      minX = math.min(minX, pos.dx);
-      minY = math.min(minY, pos.dy);
-      maxX = math.max(maxX, pos.dx + size.width);
-      maxY = math.max(maxY, pos.dy + size.height);
-    }
-
-    // Add padding around the nodes
-    final padding = groupAnnotation.padding;
-    minX -= padding.left;
-    minY -= padding.top;
-    maxX += padding.right;
-    maxY += padding.bottom;
-
-    final newPosition = Offset(minX, minY);
-    final newSize = Size(maxX - minX, maxY - minY);
-
-    // Only update if there's a meaningful change to avoid unnecessary updates
-    final currentPosition = groupAnnotation.currentPosition;
-    final currentSize = groupAnnotation.size;
-
-    const tolerance = 0.1; // Pixel tolerance
-    if ((newPosition - currentPosition).distance > tolerance ||
-        (newSize.width - currentSize.width).abs() > tolerance ||
-        (newSize.height - currentSize.height).abs() > tolerance) {
-      // Update group annotation position and size
+    try {
       runInAction(() {
-        groupAnnotation.setPosition(newPosition);
-        // Update visual position with snapping (must match node behavior!)
-        groupAnnotation.setVisualPosition(
-          _parentController.config.snapAnnotationsToGridIfEnabled(newPosition),
-        );
-        groupAnnotation.updateCalculatedSize(newSize);
+        for (final nodeId in nodeIds) {
+          final node = _parentController.nodes[nodeId];
+          if (node != null) {
+            final newPosition = node.position.value + delta;
+
+            // Update both position and visual position
+            node.position.value = newPosition;
+            final snappedPosition = _parentController.config
+                .snapToGridIfEnabled(newPosition);
+            node.setVisualPosition(snappedPosition);
+          }
+        }
       });
-      // Mark annotation dirty
-      _parentController.internalMarkAnnotationDirty(groupAnnotation.id);
+
+      // Mark nodes dirty (deferred during drag)
+      _parentController.internalMarkNodesDirty(nodeIds);
+    } finally {
+      _isMovingGroupNodes = false;
     }
   }
 
-  void _updateFollowingAnnotation(
-    Annotation annotation,
-    List<Node<T>> dependentNodes,
-  ) {
-    // Calculate center point of dependent nodes
-    double totalX = 0;
-    double totalY = 0;
-    int count = 0;
-
-    for (final node in dependentNodes) {
-      // Use visual position (what's actually rendered) not logical position!
-      final pos = node.visualPosition.value;
-      final size = node.size.value;
-      totalX += pos.dx + size.width / 2;
-      totalY += pos.dy + size.height / 2;
-      count++;
-    }
-
-    if (count > 0) {
-      final centerX = totalX / count;
-      final centerY = totalY / count;
-
-      // Position annotation relative to center, accounting for its own size and offset
-      final annotationCenterOffset = Offset(
-        centerX - annotation.size.width / 2 + annotation.offset.dx,
-        centerY - annotation.size.height / 2 + annotation.offset.dy,
-      );
-
-      annotation.setPosition(annotationCenterOffset);
-      // Update visual position with snapping (must match node behavior!)
-      annotation.setVisualPosition(
-        _parentController.config.snapAnnotationsToGridIfEnabled(
-          annotationCenterOffset,
-        ),
-      );
-      // Mark annotation dirty
-      _parentController.internalMarkAnnotationDirty(annotation.id);
-    }
+  /// Creates a drag context for annotation lifecycle methods.
+  AnnotationDragContext _createDragContext() {
+    return AnnotationDragContext(
+      moveNodes: _moveNodesByDelta,
+      findNodesInBounds: _findNodesInBounds,
+      getNode: (nodeId) => _parentController._nodes[nodeId],
+    );
   }
 
   // @nodoc - Internal framework use only - do not use in user code
   Annotation? internalHitTestAnnotations(Offset point) {
     // Test in reverse z-order (highest z-index first)
     for (final annotation in sortedAnnotations.reversed) {
-      if (annotation.currentIsVisible && annotation.containsPoint(point)) {
+      if (annotation.isVisible && annotation.containsPoint(point)) {
         return annotation;
       }
     }
@@ -644,31 +654,73 @@ class AnnotationController<T> {
     double width = 200.0,
     double height = 100.0,
     Color color = Colors.yellow,
-    Offset offset = Offset.zero,
   }) {
-    // Create annotation with actual position (same as nodes)
-    final annotation = StickyAnnotation(
+    return StickyAnnotation(
       id: id,
       position: position,
       text: text,
       width: width,
       height: height,
       color: color,
-      offset: offset,
     );
-
-    return annotation;
   }
 
+  /// Gets the single selected annotation, if exactly one is selected.
+  ///
+  /// Returns `null` if no annotations are selected or multiple are selected.
+  Annotation? get selectedAnnotation {
+    if (_selectedAnnotationIds.length != 1) return null;
+    return _annotations[_selectedAnnotationIds.first];
+  }
+
+  /// Creates a new group annotation with the specified position and size.
+  ///
+  /// Groups are now manually sized and use fluid containment - any node
+  /// completely within the group's bounds is considered part of the group.
+  ///
+  /// ## Parameters
+  /// - [id]: Unique identifier for the group
+  /// - [title]: Display title shown in the group header
+  /// - [position]: Top-left position of the group
+  /// - [size]: Width and height of the group (minimum 100x60)
+  /// - [color]: Color for the group header and background tint
   GroupAnnotation createGroupAnnotation({
     required String id,
     required String title,
+    required Offset position,
+    required Size size,
+    Color color = Colors.blue,
+  }) {
+    final groupAnnotation = GroupAnnotation(
+      id: id,
+      position: position,
+      size: size,
+      title: title,
+      color: color,
+    );
+
+    return groupAnnotation;
+  }
+
+  /// Creates a group annotation that surrounds the specified nodes.
+  ///
+  /// This is a convenience method that calculates the bounding box of the
+  /// given nodes and creates a group that encompasses them with padding.
+  ///
+  /// ## Parameters
+  /// - [id]: Unique identifier for the group
+  /// - [title]: Display title shown in the group header
+  /// - [nodeIds]: Set of node IDs to surround
+  /// - [padding]: Space between the group boundary and the nodes
+  /// - [color]: Color for the group header and background tint
+  GroupAnnotation createGroupAnnotationAroundNodes({
+    required String id,
+    required String title,
     required Set<String> nodeIds,
-    required Map<String, Node<T>> nodes,
     EdgeInsets padding = const EdgeInsets.all(20.0),
     Color color = Colors.blue,
   }) {
-    // Calculate initial position and size based on dependent nodes
+    final nodes = _parentController.nodes;
     final dependentNodes = nodeIds
         .map((nodeId) => nodes[nodeId])
         .where((node) => node != null)
@@ -676,7 +728,7 @@ class AnnotationController<T> {
         .toList();
 
     Offset initialPosition = Offset.zero;
-    Size initialSize = const Size(100, 100);
+    Size initialSize = const Size(200, 150);
 
     if (dependentNodes.isNotEmpty) {
       // Calculate bounding box of all dependent nodes
@@ -686,7 +738,6 @@ class AnnotationController<T> {
       double maxY = double.negativeInfinity;
 
       for (final node in dependentNodes) {
-        // Use visual position (what's actually rendered) not logical position!
         final pos = node.visualPosition.value;
         final size = node.size.value;
 
@@ -706,19 +757,13 @@ class AnnotationController<T> {
       initialSize = Size(maxX - minX, maxY - minY);
     }
 
-    final groupAnnotation = GroupAnnotation(
+    return GroupAnnotation(
       id: id,
       position: initialPosition,
+      size: initialSize,
       title: title,
-      padding: padding,
       color: color,
-      dependencies: nodeIds,
     );
-
-    // Set the initial calculated size
-    groupAnnotation.updateCalculatedSize(initialSize);
-
-    return groupAnnotation;
   }
 
   MarkerAnnotation createMarkerAnnotation({
@@ -728,20 +773,15 @@ class AnnotationController<T> {
     double size = 24.0,
     Color color = Colors.red,
     String? tooltip,
-    Offset offset = Offset.zero,
   }) {
-    // Create annotation with actual position (same as nodes)
-    final annotation = MarkerAnnotation(
+    return MarkerAnnotation(
       id: id,
       position: position,
       markerType: markerType,
       markerSize: size,
       color: color,
       tooltip: tooltip,
-      offset: offset,
     );
-
-    return annotation;
   }
 
   // Setup reactive dependencies
@@ -755,8 +795,8 @@ class AnnotationController<T> {
         runInAction(() {
           for (final annotation in _annotations.values) {
             final shouldBeSelected = selectedIds.contains(annotation.id);
-            if (annotation.currentSelected != shouldBeSelected) {
-              annotation.setSelected(shouldBeSelected);
+            if (annotation.selected != shouldBeSelected) {
+              annotation.selected = shouldBeSelected;
             }
           }
         });
@@ -764,53 +804,197 @@ class AnnotationController<T> {
     );
     _disposers.add(disposer);
 
-    // Auto-update group annotations when nodes change
-    final nodeUpdateDisposer = reaction(
-      (_) {
-        // Observe all node positions and sizes for groups
-        final nodePositions = <String, Offset>{};
-        final nodeSizes = <String, Size>{};
+    // Global reaction for node additions/deletions
+    final nodeMapDisposer = reaction(
+      (_) => _parentController._nodes.keys.toSet(),
+      (Set<String> currentNodeIds) {
+        // Skip if we're currently moving nodes during annotation drag
+        if (_isMovingGroupNodes) return;
 
-        for (final annotation in _annotations.values) {
-          if (annotation is GroupAnnotation && annotation.hasAnyDependencies) {
-            for (final nodeId in annotation.dependencies) {
-              final node = _parentController.nodes[nodeId];
-              if (node != null) {
-                nodePositions[nodeId] = node.visualPosition.value;
-                nodeSizes[nodeId] = node.size.value;
-              }
-            }
-          }
+        final context = _createDragContext();
+
+        // Detect deleted nodes
+        final deletedIds = _previousNodeIds.difference(currentNodeIds);
+        if (deletedIds.isNotEmpty) {
+          _notifyAnnotationsOfNodeDeletions(deletedIds, context);
         }
 
-        return {'positions': nodePositions, 'sizes': nodeSizes};
-      },
-      (_) {
-        // Update all group annotations
-        for (final annotation in _annotations.values) {
-          if (annotation is GroupAnnotation && annotation.hasAnyDependencies) {
-            final dependentNodes = annotation.dependencies
-                .map((id) => _parentController.nodes[id])
-                .where((node) => node != null)
-                .cast<Node<T>>()
-                .toList();
+        // Detect added nodes
+        final addedIds = currentNodeIds.difference(_previousNodeIds);
+        if (addedIds.isNotEmpty) {
+          _notifyAnnotationsOfNodeAdditions(addedIds, context);
+        }
 
-            if (dependentNodes.isNotEmpty) {
-              _updateGroupAnnotation(annotation, dependentNodes);
-            }
+        _previousNodeIds = currentNodeIds;
+      },
+      fireImmediately: true,
+    );
+    _disposers.add(nodeMapDisposer);
+  }
+
+  // ============================================================
+  // Node Monitoring for Annotations
+  // ============================================================
+
+  /// Sets up MobX reactions to monitor node changes for an annotation.
+  /// Only called when `annotation.monitorNodes` returns `true`.
+  void _setupNodeMonitoringForAnnotation(Annotation annotation) {
+    final disposers = <ReactionDisposer>[];
+
+    // Watch positions of monitored nodes
+    final positionDisposer = reaction(
+      (_) {
+        // Observe positions of only monitored nodes
+        final positions = <String, Offset>{};
+        for (final nodeId in annotation.monitoredNodeIds) {
+          final node = _parentController._nodes[nodeId];
+          if (node != null) {
+            positions[nodeId] = node.position.value;
           }
+        }
+        return positions;
+      },
+      (Map<String, Offset> positions) {
+        // Skip if we're moving nodes during annotation drag
+        if (_isMovingGroupNodes) return;
+
+        final context = _createDragContext();
+        for (final entry in positions.entries) {
+          annotation.onNodeMoved(entry.key, entry.value, context);
         }
       },
     );
-    _disposers.add(nodeUpdateDisposer);
+    disposers.add(positionDisposer);
+
+    // Watch sizes of monitored nodes
+    final sizeDisposer = reaction(
+      (_) {
+        // Observe sizes of only monitored nodes
+        final sizes = <String, Size>{};
+        for (final nodeId in annotation.monitoredNodeIds) {
+          final node = _parentController._nodes[nodeId];
+          if (node != null) {
+            sizes[nodeId] = node.size.value;
+          }
+        }
+        return sizes;
+      },
+      (Map<String, Size> sizes) {
+        // Skip if we're moving nodes during annotation drag
+        if (_isMovingGroupNodes) return;
+
+        final context = _createDragContext();
+        for (final entry in sizes.entries) {
+          annotation.onNodeResized(entry.key, entry.value, context);
+        }
+      },
+    );
+    disposers.add(sizeDisposer);
+
+    _annotationDisposers[annotation.id] = disposers;
+  }
+
+  /// Disposes MobX reactions for an annotation.
+  void _disposeNodeMonitoringForAnnotation(String annotationId) {
+    final disposers = _annotationDisposers.remove(annotationId);
+    if (disposers != null) {
+      for (final disposer in disposers) {
+        disposer();
+      }
+    }
+  }
+
+  /// Sets up a reaction to watch for monitorNodes state changes.
+  ///
+  /// When the observable changes, checks [annotation.monitorNodes] and
+  /// sets up or disposes node monitoring reactions accordingly.
+  void _setupMonitorNodesChangeReaction(Annotation annotation) {
+    final disposers = _annotationDisposers[annotation.id] ?? [];
+
+    final monitorChangeDisposer = reaction((_) => annotation.monitorNodes, (_) {
+      // Dispose existing node monitoring reactions (keep the change reaction)
+      final existingDisposers = _annotationDisposers[annotation.id];
+      if (existingDisposers != null && existingDisposers.length > 1) {
+        // Dispose all except the last one (the change reaction itself)
+        final nodeDisposers = existingDisposers.sublist(
+          0,
+          existingDisposers.length - 1,
+        );
+        for (final d in nodeDisposers) {
+          d();
+        }
+        // Keep only the change reaction
+        _annotationDisposers[annotation.id] = [existingDisposers.last];
+      }
+
+      // Set up new reactions if monitoring is now enabled
+      if (annotation.monitorNodes) {
+        _setupNodeMonitoringForAnnotation(annotation);
+      }
+    });
+    disposers.add(monitorChangeDisposer);
+    _annotationDisposers[annotation.id] = disposers;
+  }
+
+  // ============================================================
+  // Node Lifecycle Notification Helpers
+  // ============================================================
+
+  void _notifyAnnotationsOfNodeDeletions(
+    Set<String> deletedIds,
+    AnnotationDragContext context,
+  ) {
+    final annotationsToRemove = <String>[];
+
+    for (final annotation in _annotations.values) {
+      if (annotation.monitorNodes) {
+        annotation.onNodesDeleted(deletedIds, context);
+
+        // Check if annotation wants to be removed
+        if (annotation.shouldRemoveWhenEmpty && annotation.isEmpty) {
+          annotationsToRemove.add(annotation.id);
+        }
+      }
+    }
+
+    // Remove empty annotations
+    for (final annotationId in annotationsToRemove) {
+      removeAnnotation(annotationId);
+    }
+  }
+
+  void _notifyAnnotationsOfNodeAdditions(
+    Set<String> addedIds,
+    AnnotationDragContext context,
+  ) {
+    for (final nodeId in addedIds) {
+      final node = _parentController._nodes[nodeId];
+      if (node == null) continue;
+
+      final nodeBounds = node.getBounds();
+      for (final annotation in _annotations.values) {
+        if (annotation.monitorNodes) {
+          annotation.onNodeAdded(nodeId, nodeBounds, context);
+        }
+      }
+    }
   }
 
   // Cleanup
   void dispose() {
+    // Dispose global reactions
     for (final disposer in _disposers) {
       disposer();
     }
     _disposers.clear();
+
+    // Dispose per-annotation reactions
+    for (final disposers in _annotationDisposers.values) {
+      for (final disposer in disposers) {
+        disposer();
+      }
+    }
+    _annotationDisposers.clear();
   }
 
   // Bulk operations
@@ -828,14 +1012,11 @@ class AnnotationController<T> {
       for (final annotationId in _selectedAnnotationIds) {
         final annotation = _annotations[annotationId];
         if (annotation?.isInteractive == true) {
-          final newPosition = annotation!.currentPosition + delta;
-          annotation.setPosition(newPosition);
+          final newPosition = annotation!.position + delta;
+          annotation.position = newPosition;
           // Update visual position with snapping (identical to node behavior)
-          annotation.setVisualPosition(
-            _parentController.config.snapAnnotationsToGridIfEnabled(
-              newPosition,
-            ),
-          );
+          annotation.visualPosition = _parentController.config
+              .snapAnnotationsToGridIfEnabled(newPosition);
           movedAnnotationIds.add(annotationId);
         }
       }
@@ -850,14 +1031,14 @@ class AnnotationController<T> {
   void setAnnotationVisibility(String annotationId, bool visible) {
     final annotation = _annotations[annotationId];
     if (annotation != null) {
-      annotation.setVisible(visible);
+      annotation.isVisible = visible;
     }
   }
 
   void hideAllAnnotations() {
     runInAction(() {
       for (final annotation in _annotations.values) {
-        annotation.setVisible(false);
+        annotation.isVisible = false;
       }
     });
   }
@@ -865,7 +1046,7 @@ class AnnotationController<T> {
   void showAllAnnotations() {
     runInAction(() {
       for (final annotation in _annotations.values) {
-        annotation.setVisible(true);
+        annotation.isVisible = true;
       }
     });
   }
@@ -875,9 +1056,9 @@ class AnnotationController<T> {
     final annotation = _annotations[annotationId];
     if (annotation != null) {
       final maxZIndex = _annotations.values
-          .map((a) => a.zIndex.value)
+          .map((a) => a.zIndex)
           .fold(0, math.max);
-      annotation.setZIndex(maxZIndex + 1);
+      annotation.zIndex = maxZIndex + 1;
     }
   }
 
@@ -885,9 +1066,9 @@ class AnnotationController<T> {
     final annotation = _annotations[annotationId];
     if (annotation != null) {
       final minZIndex = _annotations.values
-          .map((a) => a.zIndex.value)
+          .map((a) => a.zIndex)
           .fold(0, math.min);
-      annotation.setZIndex(minZIndex - 1);
+      annotation.zIndex = minZIndex - 1;
     }
   }
 
@@ -898,13 +1079,13 @@ class AnnotationController<T> {
     // Sort all annotations by z-index AND id to ensure consistent ordering
     final sortedAnnotations = _annotations.values.toList()
       ..sort((a, b) {
-        final zComparison = a.zIndex.value.compareTo(b.zIndex.value);
+        final zComparison = a.zIndex.compareTo(b.zIndex);
         return zComparison != 0 ? zComparison : a.id.compareTo(b.id);
       });
 
     // Always normalize z-indexes to sequential values first
     for (int i = 0; i < sortedAnnotations.length; i++) {
-      sortedAnnotations[i].setZIndex(i);
+      sortedAnnotations[i].zIndex = i;
     }
 
     // Find current annotation's position after normalization
@@ -914,8 +1095,8 @@ class AnnotationController<T> {
     if (currentIndex < sortedAnnotations.length - 1) {
       final nextAnnotation = sortedAnnotations[currentIndex + 1];
       // Simple swap of adjacent positions
-      annotation.setZIndex(currentIndex + 1);
-      nextAnnotation.setZIndex(currentIndex);
+      annotation.zIndex = currentIndex + 1;
+      nextAnnotation.zIndex = currentIndex;
     }
   }
 
@@ -926,13 +1107,13 @@ class AnnotationController<T> {
     // Sort all annotations by z-index AND id to ensure consistent ordering
     final sortedAnnotations = _annotations.values.toList()
       ..sort((a, b) {
-        final zComparison = a.zIndex.value.compareTo(b.zIndex.value);
+        final zComparison = a.zIndex.compareTo(b.zIndex);
         return zComparison != 0 ? zComparison : a.id.compareTo(b.id);
       });
 
     // Always normalize z-indexes to sequential values first
     for (int i = 0; i < sortedAnnotations.length; i++) {
-      sortedAnnotations[i].setZIndex(i);
+      sortedAnnotations[i].zIndex = i;
     }
 
     // Find current annotation's position after normalization
@@ -942,8 +1123,8 @@ class AnnotationController<T> {
     if (currentIndex > 0) {
       final prevAnnotation = sortedAnnotations[currentIndex - 1];
       // Simple swap of adjacent positions
-      annotation.setZIndex(currentIndex - 1);
-      prevAnnotation.setZIndex(currentIndex);
+      annotation.zIndex = currentIndex - 1;
+      prevAnnotation.zIndex = currentIndex;
     }
   }
 

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
-/// Position options for minimap placement
-enum CornerPosition { topLeft, topRight, bottomLeft, bottomRight }
-
-/// Reactive configuration class for NodeFlow properties
+/// Reactive configuration class for NodeFlow behavioral properties.
+///
+/// Visual properties like minimap appearance, colors, and styling are
+/// configured through [NodeFlowTheme] and [MinimapTheme].
 class NodeFlowConfig {
   NodeFlowConfig({
     bool snapToGrid = false,
@@ -15,8 +15,6 @@ class NodeFlowConfig {
     double maxZoom = 2.0,
     bool showMinimap = false,
     bool isMinimapInteractive = true,
-    CornerPosition minimapPosition = CornerPosition.bottomRight,
-    Size minimapSize = const Size(200, 150),
     this.showAttribution = true,
   }) {
     runInAction(() {
@@ -27,8 +25,7 @@ class NodeFlowConfig {
       this.minZoom.value = minZoom;
       this.maxZoom.value = maxZoom;
       this.showMinimap.value = showMinimap;
-      this.minimapPosition.value = minimapPosition;
-      this.minimapSize.value = minimapSize;
+      this.isMinimapInteractive.value = isMinimapInteractive;
     });
   }
 
@@ -55,12 +52,6 @@ class NodeFlowConfig {
 
   /// Whether the minimap can be interacted with
   final isMinimapInteractive = Observable<bool>(true);
-
-  /// Position of the minimap
-  final minimapPosition = Observable<CornerPosition>(CornerPosition.topRight);
-
-  /// Size of the minimap
-  final minimapSize = Observable<Size>(const Size(200, 150));
 
   /// Whether to show attribution label
   final bool showAttribution;
@@ -95,20 +86,6 @@ class NodeFlowConfig {
     });
   }
 
-  /// Set minimap position
-  void setCornerPosition(CornerPosition position) {
-    runInAction(() {
-      minimapPosition.value = position;
-    });
-  }
-
-  /// Set minimap size
-  void setMinimapSize(Size size) {
-    runInAction(() {
-      minimapSize.value = size;
-    });
-  }
-
   /// Update multiple properties at once
   void update({
     bool? snapToGrid,
@@ -118,8 +95,7 @@ class NodeFlowConfig {
     double? minZoom,
     double? maxZoom,
     bool? showMinimap,
-    CornerPosition? minimapPosition,
-    Size? minimapSize,
+    bool? isMinimapInteractive,
   }) {
     runInAction(() {
       if (snapToGrid != null) this.snapToGrid.value = snapToGrid;
@@ -133,10 +109,9 @@ class NodeFlowConfig {
       if (minZoom != null) this.minZoom.value = minZoom;
       if (maxZoom != null) this.maxZoom.value = maxZoom;
       if (showMinimap != null) this.showMinimap.value = showMinimap;
-      if (minimapPosition != null) {
-        this.minimapPosition.value = minimapPosition;
+      if (isMinimapInteractive != null) {
+        this.isMinimapInteractive.value = isMinimapInteractive;
       }
-      if (minimapSize != null) this.minimapSize.value = minimapSize;
     });
   }
 
@@ -176,8 +151,6 @@ class NodeFlowConfig {
     double? maxZoom,
     bool? showMinimap,
     bool? isMinimapInteractive,
-    CornerPosition? minimapPosition,
-    Size? minimapSize,
     bool? showAttribution,
   }) {
     return NodeFlowConfig(
@@ -191,8 +164,6 @@ class NodeFlowConfig {
       showMinimap: showMinimap ?? this.showMinimap.value,
       isMinimapInteractive:
           isMinimapInteractive ?? this.isMinimapInteractive.value,
-      minimapPosition: minimapPosition ?? this.minimapPosition.value,
-      minimapSize: minimapSize ?? this.minimapSize.value,
       showAttribution: showAttribution ?? this.showAttribution,
     );
   }

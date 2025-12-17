@@ -95,15 +95,12 @@ class MarkerAnnotation extends Annotation {
     bool isVisible = true,
     super.selected = false,
     super.isInteractive = true,
-    Set<String> dependencies = const {},
-    super.offset = Offset.zero,
     super.metadata,
   }) : super(
          type: 'marker',
          initialPosition: position,
          initialZIndex: zIndex,
          initialIsVisible: isVisible,
-         initialDependencies: dependencies,
        );
 
   /// The type of marker, determining its icon and semantic meaning.
@@ -164,20 +161,18 @@ class MarkerAnnotation extends Annotation {
     int? zIndex,
     bool? isVisible,
     bool? isInteractive,
-    Set<String>? dependencies,
     Map<String, dynamic>? metadata,
   }) {
     return MarkerAnnotation(
       id: id ?? this.id,
-      position: position ?? currentPosition,
+      position: position ?? this.position,
       markerType: markerType ?? this.markerType,
       markerSize: size ?? markerSize,
       color: color ?? this.color,
       tooltip: tooltip ?? this.tooltip,
-      zIndex: zIndex ?? currentZIndex,
-      isVisible: isVisible ?? currentIsVisible,
+      zIndex: zIndex ?? this.zIndex,
+      isVisible: isVisible ?? this.isVisible,
       isInteractive: isInteractive ?? this.isInteractive,
-      dependencies: dependencies ?? this.dependencies.toSet(),
       metadata: metadata ?? this.metadata,
     );
   }
@@ -193,7 +188,7 @@ class MarkerAnnotation extends Annotation {
       orElse: () => MarkerType.info,
     );
 
-    final annotation = MarkerAnnotation(
+    return MarkerAnnotation(
       id: json['id'] as String,
       position: Offset(
         (json['x'] as num).toDouble(),
@@ -206,27 +201,23 @@ class MarkerAnnotation extends Annotation {
       zIndex: json['zIndex'] as int? ?? 0,
       isVisible: json['isVisible'] as bool? ?? true,
       isInteractive: json['isInteractive'] as bool? ?? true,
-      dependencies:
-          (json['dependencies'] as List?)?.cast<String>().toSet() ?? {},
       metadata: json['metadata'] as Map<String, dynamic>? ?? {},
     );
-    return annotation;
   }
 
   @override
   Map<String, dynamic> toJson() => {
     'id': id,
     'type': type,
-    'x': currentPosition.dx,
-    'y': currentPosition.dy,
+    'x': position.dx,
+    'y': position.dy,
     'markerType': markerType.name,
     'markerSize': markerSize,
     'color': color.toARGB32(),
     'tooltip': tooltip,
-    'zIndex': currentZIndex,
-    'isVisible': currentIsVisible,
+    'zIndex': zIndex,
+    'isVisible': isVisible,
     'isInteractive': isInteractive,
-    'dependencies': dependencies.toList(),
     'metadata': metadata,
   };
 
@@ -236,11 +227,8 @@ class MarkerAnnotation extends Annotation {
       (json['x'] as num).toDouble(),
       (json['y'] as num).toDouble(),
     );
-    setPosition(newPosition);
-    // Visual position will be set by controller with snapping
-    setZIndex(json['zIndex'] as int? ?? 0);
-    setVisible(json['isVisible'] as bool? ?? true);
-    dependencies.clear();
-    dependencies.addAll((json['dependencies'] as List?)?.cast<String>() ?? []);
+    position = newPosition;
+    zIndex = json['zIndex'] as int? ?? 0;
+    isVisible = json['isVisible'] as bool? ?? true;
   }
 }

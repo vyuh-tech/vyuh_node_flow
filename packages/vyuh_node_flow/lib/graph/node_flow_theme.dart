@@ -9,6 +9,8 @@ import '../grid/spatial_index_debug_painter.dart';
 import '../nodes/node_theme.dart';
 import '../ports/port_theme.dart';
 import 'cursor_theme.dart';
+import 'minimap_theme.dart';
+import 'resizer_theme.dart';
 import 'selection_theme.dart';
 
 /// Theme configuration for the node flow editor.
@@ -31,6 +33,7 @@ import 'selection_theme.dart';
 /// - [gridTheme]: Grid background appearance
 /// - [selectionTheme]: Selection rectangle and indicator colors
 /// - [cursorTheme]: Mouse cursor styles for different interactions
+/// - [resizerTheme]: Resize handle appearance for nodes and annotations
 ///
 /// Two built-in themes are provided:
 /// - [NodeFlowTheme.light]: Light color scheme suitable for bright backgrounds
@@ -70,6 +73,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     required this.gridTheme,
     required this.selectionTheme,
     required this.cursorTheme,
+    required this.minimapTheme,
+    required this.resizerTheme,
     this.backgroundColor = Colors.white,
     this.debugMode = false,
     this.debugTheme = DebugTheme.light,
@@ -109,6 +114,12 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   /// Theme for mouse cursor styles.
   final CursorTheme cursorTheme;
 
+  /// Theme for minimap appearance (size, colors, position).
+  final MinimapTheme minimapTheme;
+
+  /// Theme for resize handles used by nodes and annotations.
+  final ResizerTheme resizerTheme;
+
   /// Background color of the canvas.
   final Color backgroundColor;
 
@@ -134,6 +145,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     GridTheme? gridTheme,
     SelectionTheme? selectionTheme,
     CursorTheme? cursorTheme,
+    MinimapTheme? minimapTheme,
+    ResizerTheme? resizerTheme,
     Color? backgroundColor,
     bool? debugMode,
     DebugTheme? debugTheme,
@@ -151,6 +164,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
       gridTheme: gridTheme ?? this.gridTheme,
       selectionTheme: selectionTheme ?? this.selectionTheme,
       cursorTheme: cursorTheme ?? this.cursorTheme,
+      minimapTheme: minimapTheme ?? this.minimapTheme,
+      resizerTheme: resizerTheme ?? this.resizerTheme,
       backgroundColor: backgroundColor ?? this.backgroundColor,
       debugMode: debugMode ?? this.debugMode,
       debugTheme: debugTheme ?? this.debugTheme,
@@ -182,6 +197,10 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
       // SelectionTheme doesn't support lerp
       cursorTheme: t < 0.5 ? cursorTheme : other.cursorTheme,
       // CursorTheme doesn't support lerp
+      minimapTheme: t < 0.5 ? minimapTheme : other.minimapTheme,
+      // MinimapTheme doesn't support lerp
+      resizerTheme: t < 0.5 ? resizerTheme : other.resizerTheme,
+      // ResizerTheme doesn't support lerp
       backgroundColor:
           Color.lerp(backgroundColor, other.backgroundColor, t) ??
           backgroundColor,
@@ -213,6 +232,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     gridTheme: GridTheme.light,
     selectionTheme: SelectionTheme.light,
     cursorTheme: CursorTheme.light,
+    minimapTheme: MinimapTheme.light,
+    resizerTheme: ResizerTheme.light,
     backgroundColor: Colors.white,
     debugTheme: DebugTheme.light,
   );
@@ -239,6 +260,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     gridTheme: GridTheme.dark,
     selectionTheme: SelectionTheme.dark,
     cursorTheme: CursorTheme.dark,
+    minimapTheme: MinimapTheme.dark,
+    resizerTheme: ResizerTheme.dark,
     backgroundColor: const Color(0xFF1A1A1A),
     debugTheme: DebugTheme.dark,
   );

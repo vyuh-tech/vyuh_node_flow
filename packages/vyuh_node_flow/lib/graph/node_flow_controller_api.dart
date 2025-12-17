@@ -1,595 +1,6 @@
 part of 'node_flow_controller.dart';
 
 extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
-  // Node operations
-
-  /// Adds a new node to the graph.
-  ///
-  /// The node's position will be automatically snapped to the grid if snap-to-grid
-  /// is enabled in the controller's configuration.
-  ///
-  /// Triggers the `onNodeCreated` callback after successful addition.
-  ///
-  /// Example:
-  /// ```dart
-  /// final node = Node<MyData>(
-  ///   id: 'node1',
-  ///   type: 'process',
-  ///   position: Offset(100, 100),
-  ///   data: MyData(),
-  /// );
-  /// controller.addNode(node);
-  /// ```
-  void addNode(Node<T> node) {
-    runInAction(() {
-      _nodes[node.id] = node;
-      // Initialize visual position with snapping
-      node.setVisualPosition(_config.snapToGridIfEnabled(node.position.value));
-      // Note: Spatial index is auto-synced via MobX reaction
-    });
-    // Fire event after successful addition
-    events.node?.onCreated?.call(node);
-  }
-
-  /// Adds an input port to an existing node.
-  ///
-  /// Does nothing if the node with [nodeId] doesn't exist.
-  ///
-  /// Parameters:
-  /// - [nodeId]: The ID of the node to add the port to
-  /// - [port]: The port to add
-  void addInputPort(String nodeId, Port port) {
-    final node = _nodes[nodeId];
-    if (node == null) return;
-
-    node.addInputPort(port);
-  }
-
-  /// Adds an output port to an existing node.
-  ///
-  /// Does nothing if the node with [nodeId] doesn't exist.
-  ///
-  /// Parameters:
-  /// - [nodeId]: The ID of the node to add the port to
-  /// - [port]: The port to add
-  void addOutputPort(String nodeId, Port port) {
-    final node = _nodes[nodeId];
-    if (node == null) return;
-
-    node.addOutputPort(port);
-  }
-
-  /// Removes a port from a node and all connections involving that port.
-  ///
-  /// This method will:
-  /// 1. Remove all connections where this port is the source or target
-  /// 2. Remove the port from the node
-  ///
-  /// Does nothing if the node with [nodeId] doesn't exist.
-  ///
-  /// Parameters:
-  /// - [nodeId]: The ID of the node containing the port
-  /// - [portId]: The ID of the port to remove
-  void removePort(String nodeId, String portId) {
-    final node = _nodes[nodeId];
-    if (node == null) return;
-
-    runInAction(() {
-      // Find connections involving this port
-      final connectionsToRemove = _connections
-          .where(
-            (c) =>
-                (c.sourceNodeId == nodeId && c.sourcePortId == portId) ||
-                (c.targetNodeId == nodeId && c.targetPortId == portId),
-          )
-          .toList();
-
-      // Remove from spatial index and path cache
-      for (final connection in connectionsToRemove) {
-        _spatialIndex.removeConnection(connection.id);
-        _connectionPainter?.removeConnectionFromCache(connection.id);
-      }
-
-      // Remove from connections list
-      _connections.removeWhere(
-        (c) =>
-            (c.sourceNodeId == nodeId && c.sourcePortId == portId) ||
-            (c.targetNodeId == nodeId && c.targetPortId == portId),
-      );
-
-      // Remove the port using the node's dynamic method
-      node.removePort(portId);
-    });
-  }
-
-  /// Sets the input and/or output ports of a node.
-  ///
-  /// This replaces the existing ports with the provided lists. Pass `null` to
-  /// leave a port type unchanged.
-  ///
-  /// Does nothing if the node with [nodeId] doesn't exist.
-  ///
-  /// Parameters:
-  /// - [nodeId]: The ID of the node to update
-  /// - [inputPorts]: New list of input ports (optional)
-  /// - [outputPorts]: New list of output ports (optional)
-  ///
-  /// Example:
-  /// ```dart
-  /// controller.setNodePorts(
-  ///   'node1',
-  ///   inputPorts: [Port(id: 'in1', label: 'Input')],
-  ///   outputPorts: [Port(id: 'out1', label: 'Output')],
-  /// );
-  /// ```
-  void setNodePorts(
-    String nodeId, {
-    List<Port>? inputPorts,
-    List<Port>? outputPorts,
-  }) {
-    final node = _nodes[nodeId];
-    if (node == null) return;
-
-    runInAction(() {
-      // Update input ports if provided
-      if (inputPorts != null) {
-        node.inputPorts.clear();
-        node.inputPorts.addAll(inputPorts);
-      }
-
-      // Update output ports if provided
-      if (outputPorts != null) {
-        node.outputPorts.clear();
-        node.outputPorts.addAll(outputPorts);
-      }
-    });
-  }
-
-  /// Sets the size of a node.
-  ///
-  /// Updates the node's size which will trigger reactive updates in the UI
-  /// and automatically adjust port positions and connections.
-  ///
-  /// Does nothing if the node with [nodeId] doesn't exist.
-  ///
-  /// Parameters:
-  /// - [nodeId]: The ID of the node to resize
-  /// - [size]: The new size for the node
-  ///
-  /// Example:
-  /// ```dart
-  /// controller.setNodeSize('node1', Size(200, 150));
-  /// ```
-  void setNodeSize(String nodeId, Size size) {
-    final node = _nodes[nodeId];
-    if (node == null) return;
-
-    runInAction(() {
-      node.size.value = size;
-    });
-    internalMarkNodeDirty(nodeId);
-  }
-
-  /// Removes a node from the graph along with all its connections.
-  ///
-  /// This method will:
-  /// 1. Remove the node from the graph
-  /// 2. Remove it from the selection if selected
-  /// 3. Remove all connections involving this node
-  /// 4. Remove the node from any group annotations
-  /// 5. Delete empty group annotations that no longer contain any nodes
-  ///
-  /// Triggers the `onNodeDeleted` callback after successful removal.
-  ///
-  /// Parameters:
-  /// - [nodeId]: The ID of the node to remove
-  void removeNode(String nodeId) {
-    final nodeToDelete = _nodes[nodeId]; // Capture before deletion
-    runInAction(() {
-      _nodes.remove(nodeId);
-      _selectedNodeIds.remove(nodeId);
-      // Remove from spatial index
-      _spatialIndex.removeNode(nodeId);
-
-      // Remove connections involving this node from spatial index first
-      final connectionsToRemove = _connections
-          .where((c) => c.sourceNodeId == nodeId || c.targetNodeId == nodeId)
-          .toList();
-      for (final connection in connectionsToRemove) {
-        _spatialIndex.removeConnection(connection.id);
-        // Also remove from path cache to prevent stale rendering
-        _connectionPainter?.removeConnectionFromCache(connection.id);
-      }
-
-      // Then remove from connections list
-      _connections.removeWhere(
-        (c) => c.sourceNodeId == nodeId || c.targetNodeId == nodeId,
-      );
-
-      // Clean up empty group annotations
-      // Find all group annotations that contain this node
-      final groupsToCheck = <String>[];
-      for (final annotation in annotations.annotations.values) {
-        if (annotation is GroupAnnotation &&
-            annotation.dependencies.contains(nodeId)) {
-          // Remove the node from the group's dependencies
-          annotation.dependencies.remove(nodeId);
-          groupsToCheck.add(annotation.id);
-        }
-      }
-
-      // Remove any groups that are now empty
-      for (final groupId in groupsToCheck) {
-        final group = annotations.getAnnotation(groupId);
-        if (group is GroupAnnotation && group.dependencies.isEmpty) {
-          annotations.removeAnnotation(groupId);
-        }
-      }
-    });
-    // Fire event after successful removal
-    if (nodeToDelete != null) {
-      events.node?.onDeleted?.call(nodeToDelete);
-    }
-  }
-
-  /// Moves a node by the specified delta.
-  ///
-  /// The node's new position will be automatically snapped to the grid if
-  /// snap-to-grid is enabled in the controller's configuration.
-  ///
-  /// Does nothing if the node doesn't exist.
-  ///
-  /// Parameters:
-  /// - [nodeId]: The ID of the node to move
-  /// - [delta]: The offset to move the node by
-  void moveNode(String nodeId, Offset delta) {
-    final node = _nodes[nodeId];
-    if (node != null) {
-      runInAction(() {
-        final newPosition = node.position.value + delta;
-        node.position.value = newPosition;
-        // Update visual position with snapping
-        node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
-      });
-      internalMarkNodeDirty(nodeId);
-    }
-  }
-
-  /// Moves all selected nodes by the specified delta.
-  ///
-  /// The nodes' new positions will be automatically snapped to the grid if
-  /// snap-to-grid is enabled in the controller's configuration.
-  ///
-  /// Does nothing if no nodes are selected.
-  ///
-  /// Parameters:
-  /// - [delta]: The offset to move the selected nodes by
-  void moveSelectedNodes(Offset delta) {
-    final nodeIds = _selectedNodeIds.toList();
-    if (nodeIds.isEmpty) return;
-
-    runInAction(() {
-      for (final nodeId in nodeIds) {
-        final node = _nodes[nodeId];
-        if (node != null) {
-          final newPosition = node.position.value + delta;
-          node.position.value = newPosition;
-          // Update visual position with snapping
-          node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
-        }
-      }
-    });
-    internalMarkNodesDirty(nodeIds);
-  }
-
-  /// Rebuilds connection spatial index using accurate path segments.
-  /// Call this after drag ends to restore accurate hit-testing.
-  void rebuildConnectionSegmentsForNodes(List<String> nodeIds) {
-    if (!isConnectionPainterInitialized || _theme == null) return;
-
-    final nodeIdSet = nodeIds.toSet();
-    final pathCache = _connectionPainter!.pathCache;
-    final connectionStyle = _theme!.connectionTheme.style;
-
-    for (final connection in _connections) {
-      if (nodeIdSet.contains(connection.sourceNodeId) ||
-          nodeIdSet.contains(connection.targetNodeId)) {
-        final sourceNode = _nodes[connection.sourceNodeId];
-        final targetNode = _nodes[connection.targetNodeId];
-        if (sourceNode == null || targetNode == null) continue;
-
-        final segments = pathCache.getOrCreateSegmentBounds(
-          connection: connection,
-          sourceNode: sourceNode,
-          targetNode: targetNode,
-          connectionStyle: connectionStyle,
-        );
-        _spatialIndex.updateConnection(connection, segments);
-      }
-    }
-  }
-
-  /// Rebuilds the entire connection spatial index using accurate path segments.
-  void rebuildAllConnectionSegments() {
-    if (!isConnectionPainterInitialized || _theme == null) return;
-
-    final pathCache = _connectionPainter!.pathCache;
-    final connectionStyle = _theme!.connectionTheme.style;
-
-    _spatialIndex.rebuildConnectionsWithSegments(_connections, (connection) {
-      final sourceNode = _nodes[connection.sourceNodeId];
-      final targetNode = _nodes[connection.targetNodeId];
-      if (sourceNode == null || targetNode == null) return [];
-
-      return pathCache.getOrCreateSegmentBounds(
-        connection: connection,
-        sourceNode: sourceNode,
-        targetNode: targetNode,
-        connectionStyle: connectionStyle,
-      );
-    });
-  }
-
-  /// Rebuilds spatial index for a single connection using accurate path segments.
-  /// Call this after control point changes to restore accurate hit-testing.
-  void _rebuildSingleConnectionSpatialIndex(Connection connection) {
-    if (!isConnectionPainterInitialized || _theme == null) return;
-
-    final sourceNode = _nodes[connection.sourceNodeId];
-    final targetNode = _nodes[connection.targetNodeId];
-    if (sourceNode == null || targetNode == null) return;
-
-    final pathCache = _connectionPainter!.pathCache;
-    final connectionStyle = _theme!.connectionTheme.style;
-
-    final segments = pathCache.getOrCreateSegmentBounds(
-      connection: connection,
-      sourceNode: sourceNode,
-      targetNode: targetNode,
-      connectionStyle: connectionStyle,
-    );
-    _spatialIndex.updateConnection(connection, segments);
-  }
-
-  // Selection operations
-
-  /// Selects a node in the graph.
-  ///
-  /// Automatically clears selections of other element types (connections, annotations).
-  /// Requests canvas focus if not already focused.
-  ///
-  /// Triggers the `onNodeSelected` callback after selection changes.
-  ///
-  /// Parameters:
-  /// - [nodeId]: The ID of the node to select
-  /// - [toggle]: If `true`, toggles the node's selection state. If `false` (default),
-  ///   clears other node selections and selects only this node.
-  ///
-  /// Example:
-  /// ```dart
-  /// // Select single node
-  /// controller.selectNode('node1');
-  ///
-  /// // Toggle node selection (for multi-select)
-  /// controller.selectNode('node2', toggle: true);
-  /// ```
-  void selectNode(String nodeId, {bool toggle = false}) {
-    runInAction(() {
-      // Clear other element types' selections
-      clearConnectionSelection();
-      annotations.clearAnnotationSelection();
-
-      if (toggle) {
-        if (_selectedNodeIds.contains(nodeId)) {
-          _selectedNodeIds.remove(nodeId);
-          final node = _nodes[nodeId];
-          if (node != null) {
-            node.selected.value = false;
-          }
-        } else {
-          _selectedNodeIds.add(nodeId);
-          final node = _nodes[nodeId];
-          if (node != null) {
-            node.selected.value = true;
-          }
-        }
-      } else {
-        // Clear previous node selection
-        clearNodeSelection();
-
-        // Select new node
-        _selectedNodeIds.add(nodeId);
-        final node = _nodes[nodeId];
-        if (node != null) {
-          node.selected.value = true;
-        }
-      }
-    });
-
-    // Fire selection callback with current selection state
-    final selectedNode = _selectedNodeIds.contains(nodeId)
-        ? _nodes[nodeId]
-        : null;
-    events.node?.onSelected?.call(selectedNode);
-
-    if (!canvasFocusNode.hasFocus) {
-      canvasFocusNode.requestFocus();
-    }
-  }
-
-  /// Selects multiple nodes in the graph.
-  ///
-  /// Automatically clears selections of other element types (connections, annotations).
-  /// Requests canvas focus if not already focused.
-  ///
-  /// Parameters:
-  /// - [nodeIds]: List of node IDs to select
-  /// - [toggle]: If `true`, toggles each node's selection state. If `false` (default),
-  ///   replaces current selection with the provided nodes.
-  ///
-  /// Example:
-  /// ```dart
-  /// // Replace selection with multiple nodes
-  /// controller.selectNodes(['node1', 'node2', 'node3']);
-  ///
-  /// // Toggle multiple nodes (for multi-select)
-  /// controller.selectNodes(['node4', 'node5'], toggle: true);
-  /// ```
-  void selectNodes(List<String> nodeIds, {bool toggle = false}) {
-    runInAction(() {
-      // Clear other element types' selections
-      clearConnectionSelection();
-      annotations.clearAnnotationSelection();
-
-      if (toggle) {
-        // Cmd+drag: toggle selection state of intersecting nodes
-        for (final nodeId in nodeIds) {
-          final node = _nodes[nodeId];
-          if (node != null) {
-            if (_selectedNodeIds.contains(nodeId)) {
-              // Node is selected, deselect it
-              _selectedNodeIds.remove(nodeId);
-              node.selected.value = false;
-            } else {
-              // Node is not selected, select it
-              _selectedNodeIds.add(nodeId);
-              node.selected.value = true;
-            }
-          }
-        }
-      } else {
-        // Shift+drag: replace selection with intersecting nodes
-        clearNodeSelection();
-
-        for (final nodeId in nodeIds) {
-          _selectedNodeIds.add(nodeId);
-          final node = _nodes[nodeId];
-          if (node != null) {
-            node.selected.value = true;
-          }
-        }
-      }
-    });
-
-    // Request focus only if canvas doesn't already have it
-    if (!canvasFocusNode.hasFocus) {
-      canvasFocusNode.requestFocus();
-    }
-  }
-
-  /// Selects a connection in the graph.
-  ///
-  /// Automatically clears selections of other element types (nodes, annotations).
-  /// Requests canvas focus if not already focused.
-  ///
-  /// Triggers the `onConnectionSelected` callback after selection changes.
-  ///
-  /// Parameters:
-  /// - [connectionId]: The ID of the connection to select
-  /// - [toggle]: If `true`, toggles the connection's selection state. If `false`
-  ///   (default), clears other connection selections and selects only this connection.
-  void selectConnection(String connectionId, {bool toggle = false}) {
-    runInAction(() {
-      // Clear other element types' selections
-      clearNodeSelection();
-      annotations.clearAnnotationSelection();
-
-      // Find the connection - if it doesn't exist, we can't select it
-      final connection = _connections.firstWhere((c) => c.id == connectionId);
-
-      if (toggle) {
-        if (_selectedConnectionIds.contains(connectionId)) {
-          _selectedConnectionIds.remove(connectionId);
-          connection.selected = false;
-        } else {
-          _selectedConnectionIds.add(connectionId);
-          connection.selected = true;
-        }
-      } else {
-        // Clear previous connection selection
-        clearConnectionSelection();
-
-        // Select new connection
-        _selectedConnectionIds.add(connectionId);
-        connection.selected = true;
-      }
-    });
-
-    // Fire selection callback with current selection state
-    final selectedConnection = _selectedConnectionIds.contains(connectionId)
-        ? _connections.firstWhere((c) => c.id == connectionId)
-        : null;
-    events.connection?.onSelected?.call(selectedConnection);
-
-    if (!canvasFocusNode.hasFocus) {
-      canvasFocusNode.requestFocus();
-    }
-  }
-
-  /// Clears all node selections.
-  ///
-  /// Triggers the `onNodeSelected` callback with `null` to indicate no selection.
-  ///
-  /// Does nothing if no nodes are currently selected.
-  void clearNodeSelection() {
-    if (_selectedNodeIds.isEmpty) return;
-
-    for (final id in _selectedNodeIds) {
-      final node = _nodes[id];
-      if (node != null) {
-        node.selected.value = false;
-        // Keep z-index elevated (don't reset)
-      }
-    }
-    _selectedNodeIds.clear();
-
-    // Fire selection event with null to indicate no selection
-    events.node?.onSelected?.call(null);
-  }
-
-  /// Clears all connection selections.
-  ///
-  /// Triggers the `onConnectionSelected` callback with `null` to indicate no selection.
-  ///
-  /// Does nothing if no connections are currently selected.
-  void clearConnectionSelection() {
-    if (_selectedConnectionIds.isEmpty) return;
-
-    for (final id in _selectedConnectionIds) {
-      // Find and clear the selected state of each connection
-      for (final connection in _connections) {
-        if (connection.id == id) {
-          connection.selected = false;
-          break;
-        }
-      }
-    }
-    _selectedConnectionIds.clear();
-
-    // Fire selection event with null to indicate no selection
-    events.connection?.onSelected?.call(null);
-  }
-
-  /// Clears all selections (nodes, connections, and annotations).
-  ///
-  /// This is a convenience method that calls `clearNodeSelection`,
-  /// `clearConnectionSelection`, and `clearAnnotationSelection`.
-  ///
-  /// Does nothing if there are no active selections.
-  void clearSelection() {
-    if (_selectedNodeIds.isEmpty &&
-        _selectedConnectionIds.isEmpty &&
-        !annotations.hasAnnotationSelection) {
-      return;
-    }
-
-    runInAction(() {
-      clearNodeSelection();
-      clearConnectionSelection();
-      annotations.clearAnnotationSelection();
-    });
-  }
-
   // Graph loading with annotation support
 
   /// Loads a complete graph into the controller.
@@ -653,9 +64,6 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       (connection) => _calculateConnectionBounds(connection) ?? Rect.zero,
     );
     _spatialIndex.rebuildFromAnnotations(annotations.annotations.values);
-
-    // Update dependent annotations after loading
-    annotations.internalUpdateDependentAnnotations(_nodes);
   }
 
   // Export graph with annotations
@@ -682,265 +90,6 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       annotations: annotations.sortedAnnotations,
       viewport: _viewport.value,
     );
-  }
-
-  // Connection operations
-
-  /// Adds a connection between two ports.
-  ///
-  /// Triggers the `onConnectionCreated` callback after successful addition.
-  ///
-  /// Parameters:
-  /// - [connection]: The connection to add
-  ///
-  /// Example:
-  /// ```dart
-  /// final connection = Connection(
-  ///   id: 'conn1',
-  ///   sourceNodeId: 'node1',
-  ///   sourcePortId: 'out1',
-  ///   targetNodeId: 'node2',
-  ///   targetPortId: 'in1',
-  /// );
-  /// controller.addConnection(connection);
-  /// ```
-  void addConnection(Connection connection) {
-    runInAction(() {
-      _connections.add(connection);
-      // Note: Spatial index is auto-synced via MobX reaction
-    });
-    // Fire event after successful addition
-    events.connection?.onCreated?.call(connection);
-  }
-
-  /// Calculates the bounding box for a connection based on its source and target nodes.
-  Rect? _calculateConnectionBounds(Connection connection) {
-    final sourceNode = _nodes[connection.sourceNodeId];
-    final targetNode = _nodes[connection.targetNodeId];
-    if (sourceNode == null || targetNode == null) return null;
-
-    final sourcePos = sourceNode.position.value;
-    final sourceSize = sourceNode.size.value;
-    final targetPos = targetNode.position.value;
-    final targetSize = targetNode.size.value;
-
-    final sourceCenter =
-        sourcePos + Offset(sourceSize.width / 2, sourceSize.height / 2);
-    final targetCenter =
-        targetPos + Offset(targetSize.width / 2, targetSize.height / 2);
-
-    // Create bounding box with padding for bezier curves
-    const padding = 50.0;
-    final minX =
-        (sourceCenter.dx < targetCenter.dx
-            ? sourceCenter.dx
-            : targetCenter.dx) -
-        padding;
-    final maxX =
-        (sourceCenter.dx > targetCenter.dx
-            ? sourceCenter.dx
-            : targetCenter.dx) +
-        padding;
-    final minY =
-        (sourceCenter.dy < targetCenter.dy
-            ? sourceCenter.dy
-            : targetCenter.dy) -
-        padding;
-    final maxY =
-        (sourceCenter.dy > targetCenter.dy
-            ? sourceCenter.dy
-            : targetCenter.dy) +
-        padding;
-
-    return Rect.fromLTRB(minX, minY, maxX, maxY);
-  }
-
-  /// Removes a connection from the graph.
-  ///
-  /// Also removes the connection from the selection set if it was selected.
-  ///
-  /// Triggers the `onConnectionDeleted` callback after successful removal.
-  ///
-  /// Parameters:
-  /// - [connectionId]: The ID of the connection to remove
-  ///
-  /// Throws [ArgumentError] if the connection doesn't exist.
-  void removeConnection(String connectionId) {
-    final connectionToDelete = _connections.firstWhere(
-      (c) => c.id == connectionId,
-      orElse: () => throw ArgumentError('Connection $connectionId not found'),
-    );
-    runInAction(() {
-      _connections.removeWhere((c) => c.id == connectionId);
-      _selectedConnectionIds.remove(connectionId);
-      // Remove from spatial index
-      _spatialIndex.removeConnection(connectionId);
-    });
-
-    // Remove cached path to prevent stale rendering
-    _connectionPainter?.removeConnectionFromCache(connectionId);
-
-    // Fire event after successful removal
-    events.connection?.onDeleted?.call(connectionToDelete);
-  }
-
-  // Control point operations
-
-  /// Adds a control point to a connection at the specified position.
-  ///
-  /// Control points are intermediate waypoints that define the path of
-  /// editable connections. The new control point is inserted at the given
-  /// index in the control points list.
-  ///
-  /// Automatically invalidates the connection's cached path to trigger a repaint.
-  ///
-  /// Does nothing if the connection doesn't exist.
-  ///
-  /// Parameters:
-  /// - [connectionId]: The ID of the connection to modify
-  /// - [position]: The position of the new control point in graph coordinates
-  /// - [index]: The index where the control point should be inserted.
-  ///   If null, appends to the end of the control points list.
-  ///
-  /// Example:
-  /// ```dart
-  /// // Add a control point at the end
-  /// controller.addControlPoint('conn1', Offset(150, 200));
-  ///
-  /// // Insert a control point at a specific index
-  /// controller.addControlPoint('conn1', Offset(100, 150), index: 0);
-  /// ```
-  void addControlPoint(String connectionId, Offset position, {int? index}) {
-    final connection = _connections.firstWhere(
-      (c) => c.id == connectionId,
-      orElse: () => throw ArgumentError('Connection $connectionId not found'),
-    );
-
-    runInAction(() {
-      final controlPoints = List<Offset>.from(connection.controlPoints);
-
-      if (index != null && index >= 0 && index <= controlPoints.length) {
-        controlPoints.insert(index, position);
-      } else {
-        controlPoints.add(position);
-      }
-
-      connection.controlPoints = controlPoints;
-    });
-
-    // Invalidate cached path and rebuild spatial index
-    _connectionPainter?.pathCache.removeConnection(connectionId);
-    _rebuildSingleConnectionSpatialIndex(connection);
-  }
-
-  /// Updates the position of a control point on a connection.
-  ///
-  /// This method is typically called during drag operations to move an
-  /// existing control point to a new position.
-  ///
-  /// Automatically invalidates the connection's cached path to trigger a repaint.
-  ///
-  /// Does nothing if the connection doesn't exist or if the index is out of bounds.
-  ///
-  /// Parameters:
-  /// - [connectionId]: The ID of the connection to modify
-  /// - [index]: The index of the control point to update
-  /// - [position]: The new position of the control point in graph coordinates
-  ///
-  /// Example:
-  /// ```dart
-  /// // Move the first control point to a new position
-  /// controller.updateControlPoint('conn1', 0, Offset(180, 220));
-  /// ```
-  void updateControlPoint(String connectionId, int index, Offset position) {
-    final connection = _connections.firstWhere(
-      (c) => c.id == connectionId,
-      orElse: () => throw ArgumentError('Connection $connectionId not found'),
-    );
-
-    if (index < 0 || index >= connection.controlPoints.length) {
-      return; // Invalid index
-    }
-
-    runInAction(() {
-      final controlPoints = List<Offset>.from(connection.controlPoints);
-      controlPoints[index] = position;
-      connection.controlPoints = controlPoints;
-    });
-
-    // Invalidate cached path and rebuild spatial index
-    _connectionPainter?.pathCache.removeConnection(connectionId);
-    _rebuildSingleConnectionSpatialIndex(connection);
-  }
-
-  /// Removes a control point from a connection.
-  ///
-  /// Deletes the control point at the specified index. If this results in
-  /// an empty control points list, the connection will revert to using its
-  /// default algorithmic path.
-  ///
-  /// Automatically invalidates the connection's cached path to trigger a repaint.
-  ///
-  /// Does nothing if the connection doesn't exist or if the index is out of bounds.
-  ///
-  /// Parameters:
-  /// - [connectionId]: The ID of the connection to modify
-  /// - [index]: The index of the control point to remove
-  ///
-  /// Example:
-  /// ```dart
-  /// // Remove the second control point
-  /// controller.removeControlPoint('conn1', 1);
-  /// ```
-  void removeControlPoint(String connectionId, int index) {
-    final connection = _connections.firstWhere(
-      (c) => c.id == connectionId,
-      orElse: () => throw ArgumentError('Connection $connectionId not found'),
-    );
-
-    if (index < 0 || index >= connection.controlPoints.length) {
-      return; // Invalid index
-    }
-
-    runInAction(() {
-      final controlPoints = List<Offset>.from(connection.controlPoints);
-      controlPoints.removeAt(index);
-      connection.controlPoints = controlPoints;
-    });
-
-    // Invalidate cached path and rebuild spatial index
-    _connectionPainter?.pathCache.removeConnection(connectionId);
-    _rebuildSingleConnectionSpatialIndex(connection);
-  }
-
-  /// Clears all control points from a connection.
-  ///
-  /// This reverts the connection to using its default algorithmic path.
-  ///
-  /// Automatically invalidates the connection's cached path to trigger a repaint.
-  ///
-  /// Does nothing if the connection doesn't exist.
-  ///
-  /// Parameters:
-  /// - [connectionId]: The ID of the connection to modify
-  ///
-  /// Example:
-  /// ```dart
-  /// controller.clearControlPoints('conn1');
-  /// ```
-  void clearControlPoints(String connectionId) {
-    final connection = _connections.firstWhere(
-      (c) => c.id == connectionId,
-      orElse: () => throw ArgumentError('Connection $connectionId not found'),
-    );
-
-    runInAction(() {
-      connection.controlPoints = [];
-    });
-
-    // Invalidate cached path and rebuild spatial index
-    _connectionPainter?.pathCache.removeConnection(connectionId);
-    _rebuildSingleConnectionSpatialIndex(connection);
   }
 
   // Viewport operations
@@ -1232,7 +381,6 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     double width = 200.0,
     double height = 100.0,
     Color color = const Color(0xFFFFF59D), // Light yellow
-    Offset offset = Offset.zero,
   }) {
     final annotation = annotations.createStickyAnnotation(
       id: id ?? 'sticky-${DateTime.now().millisecondsSinceEpoch}',
@@ -1241,7 +389,6 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       width: width,
       height: height,
       color: color,
-      offset: offset,
     );
     addAnnotation(annotation);
     return annotation;
@@ -1265,23 +412,63 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   /// ```dart
   /// controller.createGroupAnnotation(
   ///   title: 'Input Processing',
-  ///   nodeIds: {'node1', 'node2', 'node3'},
-  ///   color: Colors.blue.withOpacity(0.2),
+  ///   position: Offset(100, 100),
+  ///   size: Size(400, 300),
+  ///   color: Colors.blue,
   /// );
   /// ```
   GroupAnnotation createGroupAnnotation({
+    required String title,
+    required Offset position,
+    required Size size,
+    String? id,
+    Color color = const Color(0xFF2196F3), // Blue
+  }) {
+    final annotation = annotations.createGroupAnnotation(
+      id: id ?? 'group-${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      position: position,
+      size: size,
+      color: color,
+    );
+    addAnnotation(annotation);
+    return annotation;
+  }
+
+  /// Creates and adds a group annotation that surrounds the specified nodes.
+  ///
+  /// This is a convenience method that calculates the bounding box of the
+  /// given nodes and creates a group that encompasses them with padding.
+  ///
+  /// Parameters:
+  /// - [title]: Display title for the group header
+  /// - [nodeIds]: Set of node IDs to surround
+  /// - [id]: Optional custom ID (auto-generated if not provided)
+  /// - [padding]: Space between the group boundary and the nodes (default: 20.0)
+  /// - [color]: Background color of the group (default: blue)
+  ///
+  /// Returns the created [GroupAnnotation].
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.createGroupAnnotationAroundNodes(
+  ///   title: 'Input Processing',
+  ///   nodeIds: {'node1', 'node2', 'node3'},
+  ///   padding: EdgeInsets.all(30),
+  ///   color: Colors.blue,
+  /// );
+  /// ```
+  GroupAnnotation createGroupAnnotationAroundNodes({
     required String title,
     required Set<String> nodeIds,
     String? id,
     EdgeInsets padding = const EdgeInsets.all(20.0),
     Color color = const Color(0xFF2196F3), // Blue
   }) {
-    final annotation = annotations.createGroupAnnotation(
+    final annotation = annotations.createGroupAnnotationAroundNodes(
       id: id ?? 'group-${DateTime.now().millisecondsSinceEpoch}',
       title: title,
       nodeIds: nodeIds,
-      nodes: _nodes,
-      // Pass the nodes map for initial positioning
       padding: padding,
       color: color,
     );
@@ -1321,7 +508,6 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     double size = 24.0,
     Color color = const Color(0xFFF44336), // Red
     String? tooltip,
-    Offset offset = Offset.zero,
   }) {
     final annotation = annotations.createMarkerAnnotation(
       id: id ?? 'marker-${DateTime.now().millisecondsSinceEpoch}',
@@ -1330,7 +516,6 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       size: size,
       color: color,
       tooltip: tooltip,
-      offset: offset,
     );
     addAnnotation(annotation);
     return annotation;
@@ -3074,6 +2259,13 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     required Rect nodeBounds,
     Offset? initialScreenPosition,
   }) {
+    // Check if connection creation is allowed by current behavior
+    if (!behavior.canCreate) {
+      return const ConnectionValidationResult.deny(
+        reason: 'Connection creation is disabled in current behavior mode',
+      );
+    }
+
     // Validate source port before starting
     final validationResult = canStartConnection(
       nodeId: nodeId,

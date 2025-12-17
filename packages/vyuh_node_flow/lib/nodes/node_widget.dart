@@ -263,12 +263,17 @@ class NodeWidget<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme =
-        Theme.of(context).extension<NodeFlowTheme>() ?? NodeFlowTheme.light;
+    // Use controller's theme as single source of truth
+    final theme = controller.theme ?? NodeFlowTheme.light;
     final nodeTheme = theme.nodeTheme;
 
     return Observer(
       builder: (context) {
+        // Check visibility first - return nothing if hidden
+        if (!node.isVisible) {
+          return const SizedBox.shrink();
+        }
+
         // Use visual position for rendering
         final position = node.visualPosition.value;
         final isSelected = node.isSelected;
@@ -413,8 +418,8 @@ class NodeWidget<T> extends StatelessWidget {
     bool isOutput,
     NodeTheme nodeTheme,
   ) {
-    final theme =
-        Theme.of(context).extension<NodeFlowTheme>() ?? NodeFlowTheme.light;
+    // Use controller's theme as single source of truth
+    final theme = controller.theme ?? NodeFlowTheme.light;
     final portTheme = theme.portTheme;
     final isConnected = _isPortConnected(port.id, isOutput);
 

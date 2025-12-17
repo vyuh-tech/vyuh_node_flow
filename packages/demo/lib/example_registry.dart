@@ -17,6 +17,7 @@ import 'examples/advanced/shortcuts.dart';
 import 'examples/advanced/theming.dart';
 import 'examples/advanced/validation.dart';
 import 'examples/advanced/viewer.dart';
+import 'examples/advanced/visibility.dart';
 import 'examples/advanced/workbench.dart';
 // Basics examples
 import 'examples/basics/callbacks.dart';
@@ -190,6 +191,14 @@ class ExampleRegistry {
           description: 'Display graphs in read-only mode without editing',
           icon: Icons.visibility,
           builder: (_) => const ViewerExample(),
+        ),
+        Example(
+          id: 'visibility',
+          title: 'Visibility Toggling',
+          description:
+              'Show/hide nodes and annotations with eye icon controls in a side panel',
+          icon: Icons.visibility_off,
+          builder: (_) => const VisibilityExample(),
         ),
         Example(
           id: 'validation',

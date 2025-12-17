@@ -49,8 +49,7 @@ class _ViewerExampleState extends State<ViewerExample> {
       controller: _controller,
       nodeBuilder: _buildNode,
       theme: NodeFlowTheme.light,
-      enablePanning: true,
-      enableZooming: true,
+      // Uses NodeFlowBehavior.preview by default (pan, zoom, select, drag)
       scrollToZoom: true,
       showAnnotations: false,
     );

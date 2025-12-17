@@ -11,6 +11,7 @@ import '../connections/connection.dart';
 import '../connections/connection_style_overrides.dart';
 import '../graph/cursor_theme.dart';
 import '../graph/hit_test_result.dart';
+import '../graph/node_flow_behavior.dart';
 import '../graph/node_flow_controller.dart';
 import '../graph/node_flow_events.dart';
 import '../graph/node_flow_theme.dart';
@@ -73,12 +74,7 @@ class NodeFlowEditor<T> extends StatefulWidget {
     this.labelBuilder,
     this.connectionStyleResolver,
     this.events,
-    this.enablePanning = true,
-    this.enableZooming = true,
-    this.enableSelection = true,
-    this.enableNodeDragging = true,
-    this.enableConnectionCreation = true,
-    this.enableNodeDeletion = true,
+    this.behavior = NodeFlowBehavior.design,
     this.scrollToZoom = true,
     this.showAnnotations = true,
   });
@@ -286,39 +282,13 @@ class NodeFlowEditor<T> extends StatefulWidget {
   /// ```
   final NodeFlowEvents<T>? events;
 
-  /// Whether to enable viewport panning with mouse/trackpad drag.
+  /// The behavior mode for the canvas.
   ///
-  /// When `true`, dragging on empty canvas will pan the viewport.
-  /// Defaults to `true`.
-  final bool enablePanning;
-
-  /// Whether to enable zoom controls (pinch-to-zoom, scroll wheel zoom).
-  ///
-  /// Defaults to `true`.
-  final bool enableZooming;
-
-  /// Whether to enable selection operations (shift+drag selection rectangle).
-  ///
-  /// Defaults to `true`.
-  final bool enableSelection;
-
-  /// Whether to enable dragging nodes with the mouse.
-  ///
-  /// When `false`, nodes cannot be moved but can still be selected.
-  /// Defaults to `true`.
-  final bool enableNodeDragging;
-
-  /// Whether to enable creating connections by dragging from ports.
-  ///
-  /// Defaults to `true`.
-  final bool enableConnectionCreation;
-
-  /// Whether to enable node deletion via keyboard shortcuts (Delete/Backspace) and API.
-  ///
-  /// When `false`, nodes cannot be deleted through keyboard shortcuts.
-  /// Programmatic deletion via controller.removeNode() is still possible.
-  /// Defaults to `true`.
-  final bool enableNodeDeletion;
+  /// Controls what operations are allowed:
+  /// - [NodeFlowBehavior.design]: Full editing (default)
+  /// - [NodeFlowBehavior.preview]: View and drag, no structural changes
+  /// - [NodeFlowBehavior.present]: Display only, no interaction
+  final NodeFlowBehavior behavior;
 
   /// Whether trackpad scroll gestures should cause zooming.
   ///
@@ -372,8 +342,8 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
     // Note: Controller only needs config, theme is handled by editor
 
-    // Set UI interaction flags
-    widget.controller.setNodeDeletion(widget.enableNodeDeletion);
+    // Set behavior mode on controller
+    widget.controller.setBehavior(widget.behavior);
 
     _transformationController = TransformationController();
 
@@ -424,9 +394,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     super.didUpdateWidget(oldWidget);
     // Theme is handled by editor, config is immutable in controller
 
-    // Update UI interaction flags if they changed
-    if (oldWidget.enableNodeDeletion != widget.enableNodeDeletion) {
-      widget.controller.setNodeDeletion(widget.enableNodeDeletion);
+    // Update behavior mode if it changed
+    if (oldWidget.behavior != widget.behavior) {
+      widget.controller.setBehavior(widget.behavior);
     }
 
     // Update node shape builder if it changed
@@ -506,7 +476,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                             minScale: widget.controller.config.minZoom.value,
                             maxScale: widget.controller.config.maxZoom.value,
                             panEnabled: widget.controller.panEnabled,
-                            scaleEnabled: widget.enableZooming,
+                            scaleEnabled: widget.behavior.canZoom,
                             trackpadScrollCausesScale: widget.scrollToZoom,
                             onInteractionStart: _onInteractionStart,
                             onInteractionUpdate: _onInteractionUpdate,
@@ -762,7 +732,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
   void _updatePanState() {
     final newPanEnabled =
-        widget.enablePanning &&
+        widget.behavior.canPan &&
         widget.controller.draggedNodeId == null &&
         !widget.controller.isConnecting &&
         !widget.controller.isDrawingSelection;
@@ -885,9 +855,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     }
 
     // Early return if all interactions are disabled
-    if (!widget.enableSelection &&
-        !widget.enableNodeDragging &&
-        !widget.enableConnectionCreation) {
+    if (!widget.behavior.canSelect &&
+        !widget.behavior.canDrag &&
+        !widget.behavior.canCreate) {
       return;
     }
 
@@ -911,11 +881,11 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // CRITICAL: If pointer is on a port, disable pan IMMEDIATELY (before gesture arena)
     // This prevents InteractiveViewer from competing for the drag gesture.
     // The pan will be re-enabled in _handlePointerUp or when connection completes.
-    if (hitResult.isPort && widget.enableConnectionCreation) {
+    if (hitResult.isPort && widget.behavior.canCreate) {
       widget.controller._updateInteractionState(panEnabled: false);
     }
 
-    if (HardwareKeyboard.instance.isShiftPressed && widget.enableSelection) {
+    if (HardwareKeyboard.instance.isShiftPressed && widget.behavior.canSelect) {
       _startSelectionDrag(event.localPosition);
       return;
     }
@@ -934,9 +904,15 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
           final isCmd = HardwareKeyboard.instance.isMetaPressed;
           final isCtrl = HardwareKeyboard.instance.isControlPressed;
           final toggle = isCmd || isCtrl;
+          final isAlreadySelected = widget.controller.isNodeSelected(node.id);
 
-          // Select the node immediately
-          widget.controller.selectNode(node.id, toggle: toggle);
+          // If node is already selected and no modifier keys, preserve multi-selection
+          // for dragging. Only change selection if:
+          // - Node is not selected (click to select)
+          // - Modifier keys are pressed (toggle mode)
+          if (!isAlreadySelected || toggle) {
+            widget.controller.selectNode(node.id, toggle: toggle);
+          }
 
           // Fire user callback
           widget.controller.events.node?.onTap?.call(node);
@@ -970,9 +946,16 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
           final isCmd = HardwareKeyboard.instance.isMetaPressed;
           final isCtrl = HardwareKeyboard.instance.isControlPressed;
           final toggle = isCmd || isCtrl;
+          final isAlreadySelected = widget.controller.annotations
+              .isAnnotationSelected(annotation.id);
 
-          // Select the annotation immediately
-          widget.controller.selectAnnotation(annotation.id, toggle: toggle);
+          // If annotation is already selected and no modifier keys, preserve selection
+          // for dragging. Only change selection if:
+          // - Annotation is not selected (click to select)
+          // - Modifier keys are pressed (toggle mode)
+          if (!isAlreadySelected || toggle) {
+            widget.controller.selectAnnotation(annotation.id, toggle: toggle);
+          }
 
           // Fire user callback
           widget.controller.events.annotation?.onTap?.call(annotation);

@@ -15,23 +15,50 @@ class MinimapExample extends StatefulWidget {
 
 class _MinimapExampleState extends State<MinimapExample> {
   late final NodeFlowController<Map<String, dynamic>> _controller;
+  late NodeFlowTheme _theme;
+
+  // Track minimap settings for dynamic updates
+  MinimapPosition _minimapPosition = MinimapPosition.bottomRight;
+  Size _minimapSize = const Size(200, 150);
 
   @override
   void initState() {
     super.initState();
     _controller = NodeFlowController<Map<String, dynamic>>(
-      config: NodeFlowConfig(
-        showMinimap: true,
-        isMinimapInteractive: true,
-        minimapPosition: CornerPosition.bottomRight,
-        minimapSize: const Size(200, 150),
-      ),
+      config: NodeFlowConfig(showMinimap: true, isMinimapInteractive: true),
     );
 
+    _theme = _buildTheme();
     _createLargeGraph();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.fitToView();
+    });
+  }
+
+  NodeFlowTheme _buildTheme() {
+    return NodeFlowTheme.light.copyWith(
+      connectionTheme: ConnectionTheme.light.copyWith(
+        style: ConnectionStyles.smoothstep,
+      ),
+      minimapTheme: MinimapTheme.light.copyWith(
+        position: _minimapPosition,
+        size: _minimapSize,
+      ),
+    );
+  }
+
+  void _updateMinimapPosition(MinimapPosition position) {
+    setState(() {
+      _minimapPosition = position;
+      _theme = _buildTheme();
+    });
+  }
+
+  void _updateMinimapSize(Size size) {
+    setState(() {
+      _minimapSize = size;
+      _theme = _buildTheme();
     });
   }
 
@@ -167,11 +194,7 @@ class _MinimapExampleState extends State<MinimapExample> {
       child: NodeFlowEditor<Map<String, dynamic>>(
         controller: _controller,
         nodeBuilder: _buildNode,
-        theme: NodeFlowTheme.light.copyWith(
-          connectionTheme: ConnectionTheme.light.copyWith(
-            style: ConnectionStyles.smoothstep,
-          ),
-        ),
+        theme: _theme,
       ),
       children: [
         const Text(
@@ -258,34 +281,35 @@ class _MinimapExampleState extends State<MinimapExample> {
         const SectionTitle('Position'),
         const SizedBox(height: 12),
         Observer(
-          builder: (_) => Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children:
-                [
-                  ('Top Left', CornerPosition.topLeft),
-                  ('Top Right', CornerPosition.topRight),
-                  ('Bottom Left', CornerPosition.bottomLeft),
-                  ('Bottom Right', CornerPosition.bottomRight),
-                ].map((entry) {
-                  final (name, position) = entry;
-                  return ChoiceChip(
-                    label: Text(name, style: const TextStyle(fontSize: 11)),
-                    selected:
-                        _controller.config.minimapPosition.value == position,
-                    onSelected: _controller.config.showMinimap.value
-                        ? (selected) {
-                            if (selected) {
-                              runInAction(() {
-                                _controller.config.minimapPosition.value =
-                                    position;
-                              });
+          builder: (_) {
+            // Observe showMinimap for enabling/disabling
+            final showMinimap = _controller.config.showMinimap.value;
+
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children:
+                  [
+                    ('Top Left', MinimapPosition.topLeft),
+                    ('Top Right', MinimapPosition.topRight),
+                    ('Bottom Left', MinimapPosition.bottomLeft),
+                    ('Bottom Right', MinimapPosition.bottomRight),
+                  ].map((entry) {
+                    final (name, position) = entry;
+                    return ChoiceChip(
+                      label: Text(name, style: const TextStyle(fontSize: 11)),
+                      selected: _minimapPosition == position,
+                      onSelected: showMinimap
+                          ? (selected) {
+                              if (selected) {
+                                _updateMinimapPosition(position);
+                              }
                             }
-                          }
-                        : null,
-                  );
-                }).toList(),
-          ),
+                          : null,
+                    );
+                  }).toList(),
+            );
+          },
         ),
       ],
     );
@@ -299,7 +323,6 @@ class _MinimapExampleState extends State<MinimapExample> {
         const SizedBox(height: 12),
         Observer(
           builder: (_) {
-            final minimapSize = _controller.config.minimapSize.value;
             final showMinimap = _controller.config.showMinimap.value;
 
             return Column(
@@ -312,19 +335,16 @@ class _MinimapExampleState extends State<MinimapExample> {
                     ),
                     Expanded(
                       child: Slider(
-                        value: minimapSize.width,
+                        value: _minimapSize.width,
                         min: 100,
                         max: 400,
                         divisions: 30,
-                        label: minimapSize.width.toStringAsFixed(0),
+                        label: _minimapSize.width.toStringAsFixed(0),
                         onChanged: showMinimap
                             ? (value) {
-                                runInAction(() {
-                                  _controller.config.minimapSize.value = Size(
-                                    value,
-                                    minimapSize.height,
-                                  );
-                                });
+                                _updateMinimapSize(
+                                  Size(value, _minimapSize.height),
+                                );
                               }
                             : null,
                       ),
@@ -332,7 +352,7 @@ class _MinimapExampleState extends State<MinimapExample> {
                     SizedBox(
                       width: 40,
                       child: Text(
-                        minimapSize.width.toStringAsFixed(0),
+                        _minimapSize.width.toStringAsFixed(0),
                         style: const TextStyle(fontSize: 11),
                         textAlign: TextAlign.right,
                       ),
@@ -347,19 +367,16 @@ class _MinimapExampleState extends State<MinimapExample> {
                     ),
                     Expanded(
                       child: Slider(
-                        value: minimapSize.height,
+                        value: _minimapSize.height,
                         min: 75,
                         max: 300,
                         divisions: 30,
-                        label: minimapSize.height.toStringAsFixed(0),
+                        label: _minimapSize.height.toStringAsFixed(0),
                         onChanged: showMinimap
                             ? (value) {
-                                runInAction(() {
-                                  _controller.config.minimapSize.value = Size(
-                                    minimapSize.width,
-                                    value,
-                                  );
-                                });
+                                _updateMinimapSize(
+                                  Size(_minimapSize.width, value),
+                                );
                               }
                             : null,
                       ),
@@ -367,7 +384,7 @@ class _MinimapExampleState extends State<MinimapExample> {
                     SizedBox(
                       width: 40,
                       child: Text(
-                        minimapSize.height.toStringAsFixed(0),
+                        _minimapSize.height.toStringAsFixed(0),
                         style: const TextStyle(fontSize: 11),
                         textAlign: TextAlign.right,
                       ),

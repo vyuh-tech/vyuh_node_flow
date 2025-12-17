@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../graph/node_flow_controller.dart';
+import 'minimap_theme.dart';
 
 /// A minimap widget that provides an overview of the entire node flow graph.
 ///
@@ -15,17 +16,16 @@ import '../graph/node_flow_controller.dart';
 /// - Displays all nodes as simplified rectangles
 /// - Shows current viewport bounds as a highlighted region
 /// - Interactive navigation: click to jump, drag to pan
-/// - Customizable appearance (colors, size, border radius)
+/// - Customizable appearance via [MinimapTheme]
 /// - Reactive updates via MobX when graph changes
 ///
 /// Example:
 /// ```dart
 /// NodeFlowMinimap<MyData>(
 ///   controller: controller,
-///   size: Size(200, 150),
-///   backgroundColor: Colors.white,
-///   nodeColor: Colors.blue,
-///   viewportColor: Colors.green,
+///   theme: MinimapTheme.light.copyWith(
+///     nodeColor: Colors.blue,
+///   ),
 ///   interactive: true,
 /// )
 /// ```
@@ -36,13 +36,7 @@ class NodeFlowMinimap<T> extends StatefulWidget {
   const NodeFlowMinimap({
     super.key,
     required this.controller,
-    this.size = const Size(200, 150),
-    this.backgroundColor,
-    this.nodeColor,
-    this.viewportColor,
-    this.borderRadius = 4.0,
-    this.padding = const EdgeInsets.all(4.0),
-    this.showViewport = true,
+    this.theme = MinimapTheme.light,
     this.interactive = true,
   });
 
@@ -52,46 +46,10 @@ class NodeFlowMinimap<T> extends StatefulWidget {
   /// connections, or viewport change.
   final NodeFlowController<T> controller;
 
-  /// The size of the minimap widget in pixels.
+  /// Theme configuration for the minimap appearance.
   ///
-  /// Defaults to 200x150. Larger sizes provide more detail but take more
-  /// screen space.
-  final Size size;
-
-  /// Background color of the minimap.
-  ///
-  /// If null, uses the theme's surface color.
-  final Color? backgroundColor;
-
-  /// Color used to draw nodes in the minimap.
-  ///
-  /// If null, uses the theme's primary color. Nodes are drawn as small
-  /// filled rectangles.
-  final Color? nodeColor;
-
-  /// Color used for the viewport indicator.
-  ///
-  /// If null, uses the theme's primary color. The viewport is drawn as a
-  /// semi-transparent rectangle with a border.
-  final Color? viewportColor;
-
-  /// Border radius for the minimap widget corners.
-  ///
-  /// Defaults to 4.0. Applied to both the minimap container and viewport
-  /// indicator for visual consistency.
-  final double borderRadius;
-
-  /// Internal padding between minimap edge and content.
-  ///
-  /// Defaults to EdgeInsets.all(4.0). Provides spacing between the border
-  /// and the graph visualization.
-  final EdgeInsets padding;
-
-  /// Whether to show the viewport indicator rectangle.
-  ///
-  /// When true, displays a highlighted region showing the currently visible
-  /// portion of the graph. Defaults to true.
-  final bool showViewport;
+  /// Controls size, colors, border radius, padding, and viewport indicator.
+  final MinimapTheme theme;
 
   /// Whether the minimap responds to user interaction.
   ///
@@ -108,20 +66,23 @@ class _NodeFlowMinimapState<T> extends State<NodeFlowMinimap<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final minimapTheme = widget.theme;
 
     return Container(
-      width: widget.size.width,
-      height: widget.size.height,
+      width: minimapTheme.size.width,
+      height: minimapTheme.size.height,
       decoration: BoxDecoration(
-        color: widget.backgroundColor ?? theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(widget.borderRadius),
-        border: Border.all(color: theme.colorScheme.outline, width: 1.0),
+        color: minimapTheme.backgroundColor,
+        borderRadius: BorderRadius.circular(minimapTheme.borderRadius),
+        border: Border.all(
+          color: minimapTheme.borderColor,
+          width: minimapTheme.borderWidth,
+        ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(widget.borderRadius),
+        borderRadius: BorderRadius.circular(minimapTheme.borderRadius),
         child: Padding(
-          padding: widget.padding,
+          padding: minimapTheme.padding,
           child: Stack(
             children: [
               // Minimap rendering with Observer for reactive updates
@@ -136,11 +97,7 @@ class _NodeFlowMinimapState<T> extends State<NodeFlowMinimap<T>> {
                   return CustomPaint(
                     painter: MinimapPainter<T>(
                       controller: widget.controller,
-                      nodeColor: widget.nodeColor ?? theme.colorScheme.primary,
-                      viewportColor:
-                          widget.viewportColor ?? theme.colorScheme.primary,
-                      borderRadius: widget.borderRadius,
-                      showViewport: widget.showViewport,
+                      theme: minimapTheme,
                     ),
                     size: Size.infinite,
                   );
@@ -205,9 +162,10 @@ class _NodeFlowMinimapState<T> extends State<NodeFlowMinimap<T>> {
     final bounds = widget.controller.nodesBounds;
     if (bounds.isEmpty) return;
 
+    final theme = widget.theme;
     final availableSize = Size(
-      widget.size.width - widget.padding.horizontal,
-      widget.size.height - widget.padding.vertical,
+      theme.size.width - theme.padding.horizontal,
+      theme.size.height - theme.padding.vertical,
     );
 
     // Calculate scale to fit bounds in minimap
@@ -223,8 +181,8 @@ class _NodeFlowMinimapState<T> extends State<NodeFlowMinimap<T>> {
 
     // Account for padding
     final adjustedPosition = Offset(
-      localPosition.dx - widget.padding.left,
-      localPosition.dy - widget.padding.top,
+      localPosition.dx - theme.padding.left,
+      localPosition.dy - theme.padding.top,
     );
 
     // Convert cursor position to graph coordinates
@@ -256,15 +214,16 @@ class _NodeFlowMinimapState<T> extends State<NodeFlowMinimap<T>> {
     final bounds = widget.controller.nodesBounds;
     if (bounds.isEmpty) return Offset.zero;
 
+    final theme = widget.theme;
     // Account for padding
     final adjustedPosition = Offset(
-      localPosition.dx - widget.padding.left,
-      localPosition.dy - widget.padding.top,
+      localPosition.dx - theme.padding.left,
+      localPosition.dy - theme.padding.top,
     );
 
     final availableSize = Size(
-      widget.size.width - widget.padding.horizontal,
-      widget.size.height - widget.padding.vertical,
+      theme.size.width - theme.padding.horizontal,
+      theme.size.height - theme.padding.vertical,
     );
 
     // Calculate scale to fit bounds in minimap
@@ -295,28 +254,13 @@ class _NodeFlowMinimapState<T> extends State<NodeFlowMinimap<T>> {
 /// The painter automatically scales and centers the graph to fit within
 /// the minimap bounds while maintaining aspect ratio.
 class MinimapPainter<T> extends CustomPainter {
-  const MinimapPainter({
-    required this.controller,
-    required this.nodeColor,
-    required this.viewportColor,
-    required this.borderRadius,
-    this.showViewport = true,
-  });
+  const MinimapPainter({required this.controller, required this.theme});
 
   /// The controller providing access to graph data.
   final NodeFlowController<T> controller;
 
-  /// Color to use when drawing node rectangles.
-  final Color nodeColor;
-
-  /// Color to use when drawing the viewport indicator.
-  final Color viewportColor;
-
-  /// Border radius for the viewport indicator rectangle.
-  final double borderRadius;
-
-  /// Whether to render the viewport indicator.
-  final bool showViewport;
+  /// Theme configuration for minimap appearance.
+  final MinimapTheme theme;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -343,7 +287,7 @@ class MinimapPainter<T> extends CustomPainter {
     _drawNodes(canvas);
 
     // Draw viewport indicator
-    if (showViewport) {
+    if (theme.showViewport) {
       _drawViewport(canvas, scale, offsetX, offsetY, size);
     }
 
@@ -352,7 +296,7 @@ class MinimapPainter<T> extends CustomPainter {
 
   void _drawNodes(Canvas canvas) {
     final paint = Paint()
-      ..color = nodeColor
+      ..color = theme.nodeColor
       ..style = PaintingStyle.fill;
 
     for (final node in controller.nodes.values) {
@@ -364,7 +308,7 @@ class MinimapPainter<T> extends CustomPainter {
       );
 
       canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, const Radius.circular(2)),
+        RRect.fromRectAndRadius(rect, Radius.circular(theme.nodeBorderRadius)),
         paint,
       );
     }
@@ -409,18 +353,22 @@ class MinimapPainter<T> extends CustomPainter {
 
     if (!clippedRect.isEmpty) {
       final paint = Paint()
-        ..color = viewportColor.withValues(alpha: 0.1)
+        ..color = theme.viewportColor.withValues(
+          alpha: theme.viewportFillOpacity,
+        )
         ..style = PaintingStyle.fill;
 
       final borderPaint = Paint()
-        ..color = viewportColor.withValues(alpha: 0.4)
+        ..color = theme.viewportColor.withValues(
+          alpha: theme.viewportBorderOpacity,
+        )
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.0;
 
       // Use the same border radius as the minimap widget
       final rrect = RRect.fromRectAndRadius(
         clippedRect,
-        Radius.circular(borderRadius),
+        Radius.circular(theme.borderRadius),
       );
 
       canvas.drawRRect(rrect, paint);
@@ -432,11 +380,7 @@ class MinimapPainter<T> extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant MinimapPainter<T> oldDelegate) {
-    return oldDelegate.controller != controller ||
-        oldDelegate.nodeColor != nodeColor ||
-        oldDelegate.viewportColor != viewportColor ||
-        oldDelegate.borderRadius != borderRadius ||
-        oldDelegate.showViewport != showViewport;
+    return oldDelegate.controller != controller || oldDelegate.theme != theme;
   }
 }
 

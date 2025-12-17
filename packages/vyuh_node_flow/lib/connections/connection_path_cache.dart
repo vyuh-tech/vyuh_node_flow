@@ -21,6 +21,8 @@ class _CachedConnectionPath {
     required this.endGap,
     required this.sourceNodeSize,
     required this.targetNodeSize,
+    required this.sourcePortOffset,
+    required this.targetPortOffset,
   });
 
   /// The original geometric path for drawing
@@ -43,6 +45,10 @@ class _CachedConnectionPath {
   /// Cached node sizes for invalidation (used for node-aware routing)
   final Size sourceNodeSize;
   final Size targetNodeSize;
+
+  /// Cached port offsets for invalidation (used when ports are reordered)
+  final Offset sourcePortOffset;
+  final Offset targetPortOffset;
 }
 
 /// Manages connection path caching and hit testing
@@ -109,6 +115,11 @@ class ConnectionPathCache {
     required Offset testPoint,
     double? tolerance,
   }) {
+    // Skip hit testing for hidden connections
+    if (!sourceNode.isVisible || !targetNode.isVisible) {
+      return false;
+    }
+
     final hitTolerance = tolerance ?? defaultHitTolerance;
     final connectionStyle = theme.connectionTheme.style;
 
@@ -117,11 +128,19 @@ class ConnectionPathCache {
     final currentSourcePos = sourceNode.position.value;
     final currentTargetPos = targetNode.position.value;
 
-    // Check if cache is valid (positions match)
+    // Get current port offsets for cache invalidation
+    final sourcePort = _findPort(sourceNode, connection.sourcePortId);
+    final targetPort = _findPort(targetNode, connection.targetPortId);
+    final currentSourcePortOffset = sourcePort?.offset ?? Offset.zero;
+    final currentTargetPortOffset = targetPort?.offset ?? Offset.zero;
+
+    // Check if cache is valid (positions and port offsets match)
     final cacheValid =
         cachedPath != null &&
         cachedPath.sourcePosition == currentSourcePos &&
-        cachedPath.targetPosition == currentTargetPos;
+        cachedPath.targetPosition == currentTargetPos &&
+        cachedPath.sourcePortOffset == currentSourcePortOffset &&
+        cachedPath.targetPortOffset == currentTargetPortOffset;
 
     if (cacheValid) {
       // Use the pre-computed hit test path (already expanded for tolerance)
@@ -168,6 +187,11 @@ class ConnectionPathCache {
     required Node targetNode,
     required ConnectionStyle connectionStyle,
   }) {
+    // Skip path creation for hidden connections
+    if (!sourceNode.isVisible || !targetNode.isVisible) {
+      return null;
+    }
+
     final currentSourcePos = sourceNode.position.value;
     final currentTargetPos = targetNode.position.value;
     final currentSourceSize = sourceNode.size.value;
@@ -176,7 +200,13 @@ class ConnectionPathCache {
     final currentStartGap = connection.startGap ?? connectionTheme.startGap;
     final currentEndGap = connection.endGap ?? connectionTheme.endGap;
 
-    // Check if cache needs updating (including node sizes for node-aware routing)
+    // Get current port offsets for cache invalidation
+    final sourcePort = _findPort(sourceNode, connection.sourcePortId);
+    final targetPort = _findPort(targetNode, connection.targetPortId);
+    final currentSourcePortOffset = sourcePort?.offset ?? Offset.zero;
+    final currentTargetPortOffset = targetPort?.offset ?? Offset.zero;
+
+    // Check if cache needs updating (including node sizes and port offsets)
     final existing = _getCachedPath(connection.id);
     if (existing != null &&
         existing.sourcePosition == currentSourcePos &&
@@ -184,7 +214,9 @@ class ConnectionPathCache {
         existing.startGap == currentStartGap &&
         existing.endGap == currentEndGap &&
         existing.sourceNodeSize == currentSourceSize &&
-        existing.targetNodeSize == currentTargetSize) {
+        existing.targetNodeSize == currentTargetSize &&
+        existing.sourcePortOffset == currentSourcePortOffset &&
+        existing.targetPortOffset == currentTargetPortOffset) {
       return existing.originalPath; // Cache hit
     }
 
@@ -201,6 +233,17 @@ class ConnectionPathCache {
     );
 
     return newPath?.originalPath;
+  }
+
+  /// Helper to find a port in a node by ID
+  Port? _findPort(Node node, String portId) {
+    for (final port in node.inputPorts) {
+      if (port.id == portId) return port;
+    }
+    for (final port in node.outputPorts) {
+      if (port.id == portId) return port;
+    }
+    return null;
   }
 
   /// Create and cache a new connection path
@@ -338,6 +381,8 @@ class ConnectionPathCache {
       endGap: endGap,
       sourceNodeSize: sourceNode.size.value,
       targetNodeSize: targetNode.size.value,
+      sourcePortOffset: sourcePort.offset,
+      targetPortOffset: targetPort.offset,
     );
 
     _pathCache[connection.id] = cachedPath;
@@ -389,6 +434,11 @@ class ConnectionPathCache {
     required Node targetNode,
     required ConnectionStyle connectionStyle,
   }) {
+    // Skip segment bounds creation for hidden connections
+    if (!sourceNode.isVisible || !targetNode.isVisible) {
+      return [];
+    }
+
     final currentSourcePos = sourceNode.position.value;
     final currentTargetPos = targetNode.position.value;
     final currentSourceSize = sourceNode.size.value;
@@ -397,7 +447,13 @@ class ConnectionPathCache {
     final currentStartGap = connection.startGap ?? connectionTheme.startGap;
     final currentEndGap = connection.endGap ?? connectionTheme.endGap;
 
-    // Check if cache is valid (including node sizes for node-aware routing)
+    // Get current port offsets for cache invalidation
+    final sourcePort = _findPort(sourceNode, connection.sourcePortId);
+    final targetPort = _findPort(targetNode, connection.targetPortId);
+    final currentSourcePortOffset = sourcePort?.offset ?? Offset.zero;
+    final currentTargetPortOffset = targetPort?.offset ?? Offset.zero;
+
+    // Check if cache is valid (including node sizes and port offsets)
     final existing = _getCachedPath(connection.id);
     if (existing != null &&
         existing.sourcePosition == currentSourcePos &&
@@ -405,7 +461,9 @@ class ConnectionPathCache {
         existing.startGap == currentStartGap &&
         existing.endGap == currentEndGap &&
         existing.sourceNodeSize == currentSourceSize &&
-        existing.targetNodeSize == currentTargetSize) {
+        existing.targetNodeSize == currentTargetSize &&
+        existing.sourcePortOffset == currentSourcePortOffset &&
+        existing.targetPortOffset == currentTargetPortOffset) {
       return existing.segmentBounds;
     }
 

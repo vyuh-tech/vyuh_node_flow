@@ -48,6 +48,7 @@ class Node<T> {
   /// * [inputPorts] - List of input ports for incoming connections
   /// * [outputPorts] - List of output ports for outgoing connections
   /// * [initialZIndex] - Initial stacking order, higher values appear on top
+  /// * [visible] - Initial visibility state, defaults to true
   Node({
     required this.id,
     required this.type,
@@ -57,6 +58,7 @@ class Node<T> {
     List<Port> inputPorts = const [],
     List<Port> outputPorts = const [],
     int initialZIndex = 0,
+    bool visible = true,
   }) : size = Observable(size ?? const Size(150, 100)),
        position = Observable(position),
        visualPosition = Observable(position),
@@ -64,6 +66,7 @@ class Node<T> {
        zIndex = Observable(initialZIndex),
        selected = Observable(false),
        dragging = Observable(false),
+       _isVisible = Observable(visible),
        inputPorts = ObservableList.of(inputPorts),
        outputPorts = ObservableList.of(outputPorts);
 
@@ -124,6 +127,12 @@ class Node<T> {
   @JsonKey(includeFromJson: false, includeToJson: false)
   final Observable<bool> dragging;
 
+  /// Observable visibility state.
+  ///
+  /// When false, the node is hidden from the canvas and its ports
+  /// cannot participate in connections.
+  final Observable<bool> _isVisible;
+
   /// Observable visual position for rendering.
   ///
   /// This may differ from [position] when snap-to-grid is enabled.
@@ -161,6 +170,17 @@ class Node<T> {
   ///
   /// Updates are wrapped in [runInAction] to ensure proper state management.
   set isDragging(bool value) => runInAction(() => dragging.value = value);
+
+  /// Gets the current visibility state.
+  ///
+  /// Returns true if the node is visible on the canvas.
+  /// When false, the node is hidden and its ports cannot participate in connections.
+  bool get isVisible => _isVisible.value;
+
+  /// Sets the visibility state in a MobX action.
+  ///
+  /// Updates are wrapped in [runInAction] to ensure proper state management.
+  set isVisible(bool value) => runInAction(() => _isVisible.value = value);
 
   /// Updates the visual position based on the actual position and snapping rules.
   ///
@@ -614,6 +634,7 @@ class Node<T> {
                 .toList() ??
             const [],
         initialZIndex: (json['zIndex'] as num?)?.toInt() ?? 0,
+        visible: (json['isVisible'] as bool?) ?? true,
       )
       // Set the observable values after construction
       ..position.value = json['position'] != null
@@ -644,5 +665,6 @@ class Node<T> {
     'position': const OffsetConverter().toJson(position.value),
     'zIndex': zIndex.value,
     'selected': selected.value,
+    'isVisible': _isVisible.value,
   };
 }

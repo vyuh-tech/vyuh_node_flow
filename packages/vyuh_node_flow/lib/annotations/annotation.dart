@@ -1,14 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
-import 'group_annotation.dart';
-import 'marker_annotation.dart';
-import 'sticky_annotation.dart';
+import '../nodes/node.dart';
+import 'annotation_drag_context.dart';
 
-export 'annotation_dependency.dart';
+export 'annotation_drag_context.dart';
 export 'group_annotation.dart';
 export 'marker_annotation.dart';
 export 'sticky_annotation.dart';
+
+/// The rendering layer for an annotation.
+///
+/// Annotations are rendered in two layers relative to nodes:
+/// - [background]: Behind nodes (e.g., group boxes)
+/// - [foreground]: Above nodes and connections (e.g., sticky notes, markers)
+enum AnnotationRenderLayer {
+  /// Rendered behind nodes.
+  ///
+  /// Use this for annotations that should appear as backgrounds or containers,
+  /// such as [GroupAnnotation].
+  background,
+
+  /// Rendered above nodes and connections.
+  ///
+  /// Use this for annotations that should overlay the canvas content,
+  /// such as [StickyAnnotation] and [MarkerAnnotation].
+  foreground,
+}
+
+/// Callback type for looking up nodes by ID.
+///
+/// Used by annotations that need to access node data during lifecycle
+/// operations like fitting bounds or responding to node changes.
+typedef NodeLookup = Node? Function(String nodeId);
 
 /// Base annotation class that can be placed in the node flow
 ///
@@ -78,8 +102,6 @@ abstract class Annotation {
     bool initialIsVisible = true,
     bool selected = false,
     this.isInteractive = true,
-    Set<String> initialDependencies = const {},
-    this.offset = Offset.zero,
     this.metadata = const {},
   }) {
     _position = Observable(initialPosition);
@@ -89,7 +111,6 @@ abstract class Annotation {
     _zIndex = Observable(initialZIndex);
     _isVisible = Observable(initialIsVisible);
     _selected = Observable(selected);
-    _dependencies = ObservableSet.of(initialDependencies);
   }
 
   /// Unique identifier for this annotation.
@@ -110,82 +131,62 @@ abstract class Annotation {
   /// This metadata is automatically serialized and deserialized with the annotation.
   final Map<String, dynamic> metadata;
 
-  /// Offset from dependent node position (for following annotations).
+  /// The rendering layer for this annotation.
   ///
-  /// When an annotation follows a node (via dependencies), this offset determines
-  /// how far from the node's center the annotation should be positioned.
-  /// Default is [Offset.zero] for centered positioning.
-  final Offset offset;
+  /// Determines whether the annotation is rendered behind nodes ([AnnotationRenderLayer.background])
+  /// or above nodes and connections ([AnnotationRenderLayer.foreground]).
+  ///
+  /// Override in subclasses to specify the layer. Default is [AnnotationRenderLayer.foreground].
+  /// [GroupAnnotation] overrides this to return [AnnotationRenderLayer.background].
+  AnnotationRenderLayer get layer => AnnotationRenderLayer.foreground;
 
-  // Observable properties for reactivity - these are observed by the framework
-  // for automatic UI updates when properties change
+  // Internal observables for MobX reactivity
   late final Observable<Offset> _position;
   late final Observable<Offset> _visualPosition;
   late final Observable<int> _zIndex;
   late final Observable<bool> _isVisible;
   late final Observable<bool> _selected;
-  late final ObservableSet<String> _dependencies;
 
-  /// Reactive observable for the annotation's logical position.
+  /// The annotation's logical position (before grid snapping).
   ///
-  /// This is the "true" position of the annotation before any grid snapping.
-  /// The framework observes this for automatic UI updates.
-  Observable<Offset> get position => _position;
+  /// Reading this inside an `Observer` widget automatically tracks changes.
+  /// The visual position (after snapping) is [visualPosition].
+  Offset get position => _position.value;
 
-  /// Reactive observable for the annotation's visual position.
+  set position(Offset value) => runInAction(() => _position.value = value);
+
+  /// The annotation's visual position (after grid snapping).
   ///
-  /// This is the snapped position that's actually rendered on screen.
-  /// When grid snapping is enabled, this may differ from [position].
-  Observable<Offset> get visualPosition => _visualPosition;
+  /// This is what's actually rendered on screen.
+  /// Reading this inside an `Observer` widget automatically tracks changes.
+  Offset get visualPosition => _visualPosition.value;
 
-  /// Reactive observable for the annotation's z-index (rendering order).
+  set visualPosition(Offset value) =>
+      runInAction(() => _visualPosition.value = value);
+
+  /// The annotation's z-index (rendering order within its layer).
   ///
-  /// Lower values are rendered first (behind), higher values are rendered last (in front).
-  /// Group annotations typically have negative z-index to appear behind nodes.
-  Observable<int> get zIndex => _zIndex;
+  /// Lower values render first (behind), higher values render last (in front).
+  /// Reading this inside an `Observer` widget automatically tracks changes.
+  int get zIndex => _zIndex.value;
 
-  /// Reactive observable for the annotation's visibility state.
+  set zIndex(int value) => runInAction(() => _zIndex.value = value);
+
+  /// Whether the annotation is visible.
   ///
   /// When false, the annotation is hidden from the canvas.
-  Observable<bool> get isVisible => _isVisible;
+  /// Reading this inside an `Observer` widget automatically tracks changes.
+  bool get isVisible => _isVisible.value;
 
-  /// Reactive observable for the annotation's selection state.
-  ///
-  /// When true, the annotation displays selection feedback (border/highlight).
-  Observable<bool> get selected => _selected;
+  set isVisible(bool value) => runInAction(() => _isVisible.value = value);
 
-  /// Reactive observable set of node IDs this annotation depends on.
+  /// Whether the annotation is currently selected.
   ///
-  /// For group annotations, these are the nodes contained within the group.
-  /// For following annotations, these are the nodes the annotation tracks.
-  ObservableSet<String> get dependencies => _dependencies;
+  /// When true, displays selection visual feedback.
+  /// Reading this inside an `Observer` widget automatically tracks changes.
+  bool get selected => _selected.value;
 
-  /// The current logical position value (non-reactive).
-  ///
-  /// Use this for calculations where you don't need reactive updates.
-  /// For reactive access, use [position] instead.
-  Offset get currentPosition => _position.value;
-
-  /// The current visual (snapped) position value (non-reactive).
-  ///
-  /// This is what's actually rendered on screen after grid snapping.
-  /// For reactive access, use [visualPosition] instead.
-  Offset get currentVisualPosition => _visualPosition.value;
-
-  /// The current z-index value (non-reactive).
-  ///
-  /// For reactive access, use [zIndex] instead.
-  int get currentZIndex => _zIndex.value;
-
-  /// The current visibility state (non-reactive).
-  ///
-  /// For reactive access, use [isVisible] instead.
-  bool get currentIsVisible => _isVisible.value;
-
-  /// The current selection state (non-reactive).
-  ///
-  /// For reactive access, use [selected] instead.
-  bool get currentSelected => _selected.value;
+  set selected(bool value) => runInAction(() => _selected.value = value);
 
   /// Whether this annotation responds to user interactions.
   ///
@@ -233,109 +234,17 @@ abstract class Annotation {
 
   /// Automatically calculated bounding rectangle for hit testing.
   ///
-  /// Based on [currentVisualPosition] and [size]. The framework uses this
+  /// Based on [visualPosition] and [size]. The framework uses this
   /// for automatic hit testing in [containsPoint].
   ///
   /// You typically don't need to override this unless you have a custom shape
   /// that requires non-rectangular hit testing.
   Rect get bounds => Rect.fromLTWH(
-    currentVisualPosition.dx,
-    currentVisualPosition.dy,
+    visualPosition.dx,
+    visualPosition.dy,
     size.width,
     size.height,
   );
-
-  /// Sets the annotation's logical position.
-  ///
-  /// This is the "true" position before grid snapping. The framework will
-  /// automatically update [visualPosition] with the snapped value.
-  ///
-  /// Use this when programmatically positioning annotations.
-  void setPosition(Offset newPosition) {
-    runInAction(() {
-      _position.value = newPosition;
-    });
-  }
-
-  /// Updates the visual position (used for rendering with grid snapping).
-  ///
-  /// This is called by the framework to set the snapped position that's
-  /// actually rendered on screen. This should match node behavior exactly
-  /// for consistent grid alignment.
-  ///
-  /// Generally, you don't need to call this directly - the framework handles
-  /// it automatically when you call [setPosition].
-  void setVisualPosition(Offset snappedPosition) {
-    runInAction(() {
-      _visualPosition.value = snappedPosition;
-    });
-  }
-
-  /// Sets the annotation's z-index (rendering order).
-  ///
-  /// Lower values are rendered first (behind), higher values last (in front).
-  /// Group annotations typically use negative z-index (e.g., -1) to appear
-  /// behind nodes.
-  void setZIndex(int newZIndex) {
-    runInAction(() {
-      _zIndex.value = newZIndex;
-    });
-  }
-
-  /// Sets the annotation's visibility state.
-  ///
-  /// When set to false, the annotation is hidden from the canvas but remains
-  /// in the controller's annotation collection.
-  void setVisible(bool visible) {
-    runInAction(() {
-      _isVisible.value = visible;
-    });
-  }
-
-  /// Sets the annotation's selection state.
-  ///
-  /// When true, the annotation displays selection visual feedback (border/highlight).
-  /// This is typically managed by the framework, but can be called directly for
-  /// custom selection logic.
-  void setSelected(bool selected) {
-    runInAction(() {
-      _selected.value = selected;
-    });
-  }
-
-  /// Adds a node dependency to this annotation.
-  ///
-  /// For group annotations, the node will be contained within the group.
-  /// For following annotations, the annotation will track the node's position.
-  void addDependency(String nodeId) {
-    _dependencies.add(nodeId);
-  }
-
-  /// Removes a node dependency from this annotation.
-  ///
-  /// The annotation will no longer track or contain the specified node.
-  void removeDependency(String nodeId) {
-    _dependencies.remove(nodeId);
-  }
-
-  /// Clears all node dependencies from this annotation.
-  ///
-  /// The annotation becomes independent and will not track any nodes.
-  void clearDependencies() {
-    _dependencies.clear();
-  }
-
-  /// Checks if this annotation depends on a specific node.
-  ///
-  /// Returns true if the node ID is in the annotation's dependencies.
-  bool hasDependency(String nodeId) {
-    return _dependencies.contains(nodeId);
-  }
-
-  /// Whether this annotation has any node dependencies.
-  ///
-  /// Returns true if the annotation depends on at least one node.
-  bool get hasAnyDependencies => _dependencies.isNotEmpty;
 
   /// Automatic hit testing based on position and size.
   ///
@@ -361,6 +270,219 @@ abstract class Annotation {
     return bounds.contains(point);
   }
 
+  // ============================================================
+  // Drag Lifecycle Methods
+  // ============================================================
+
+  /// Called when a drag operation starts on this annotation.
+  ///
+  /// Override this method to perform setup when the user begins dragging
+  /// this annotation. Use the [context] to capture state, such as which
+  /// nodes are contained within a group annotation.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// Set<String>? _containedNodeIds;
+  ///
+  /// @override
+  /// void onDragStart(AnnotationDragContext context) {
+  ///   _containedNodeIds = context.findNodesInBounds(bounds);
+  /// }
+  /// ```
+  void onDragStart(AnnotationDragContext context) {
+    // Default implementation does nothing
+  }
+
+  /// Called during drag with the movement delta.
+  ///
+  /// Override this method to perform actions while the annotation is being
+  /// dragged. Use the [context] to move related nodes or perform other
+  /// operations. The [delta] is in graph coordinates.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// @override
+  /// void onDragMove(Offset delta, AnnotationDragContext context) {
+  ///   if (_containedNodeIds != null && _containedNodeIds!.isNotEmpty) {
+  ///     context.moveNodes(_containedNodeIds!, delta);
+  ///   }
+  /// }
+  /// ```
+  void onDragMove(Offset delta, AnnotationDragContext context) {
+    // Default implementation does nothing
+  }
+
+  /// Called when a drag operation ends on this annotation.
+  ///
+  /// Override this method to perform cleanup after dragging completes.
+  /// This is called whether the drag ended normally or was cancelled.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// @override
+  /// void onDragEnd() {
+  ///   _containedNodeIds = null;
+  /// }
+  /// ```
+  void onDragEnd() {
+    // Default implementation does nothing
+  }
+
+  // ============================================================
+  // Node Lifecycle Methods
+  // ============================================================
+
+  /// Called when nodes are deleted from the graph.
+  ///
+  /// Override this method to respond when nodes that this annotation
+  /// tracks or contains are deleted.
+  ///
+  /// The [context] provides access to remaining nodes for operations
+  /// like refitting bounds.
+  ///
+  /// For [GroupAnnotation], this removes nodes from explicit membership
+  /// and triggers a refit for explicit behavior.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// @override
+  /// void onNodesDeleted(Set<String> nodeIds, AnnotationDragContext context) {
+  ///   final removed = _trackedNodeIds.intersection(nodeIds);
+  ///   _trackedNodeIds.removeAll(removed);
+  ///   if (removed.isNotEmpty) {
+  ///     _refitBounds(context);
+  ///   }
+  /// }
+  /// ```
+  void onNodesDeleted(Set<String> nodeIds, AnnotationDragContext context) {
+    // Default implementation does nothing
+  }
+
+  /// Called when a node's position changes.
+  ///
+  /// Override this method to respond when a tracked node moves.
+  /// The [nodeId] is the node that moved, [newPosition] is its new position.
+  /// The [context] provides access to node data for operations like refitting.
+  ///
+  /// For [GroupAnnotation] with explicit behavior, this triggers a refit.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// @override
+  /// void onNodeMoved(String nodeId, Offset newPosition, AnnotationDragContext context) {
+  ///   if (_trackedNodeIds.contains(nodeId)) {
+  ///     _updateBoundsForNode(nodeId, newPosition);
+  ///   }
+  /// }
+  /// ```
+  void onNodeMoved(
+    String nodeId,
+    Offset newPosition,
+    AnnotationDragContext context,
+  ) {
+    // Default implementation does nothing
+  }
+
+  /// Called when a new node is added to the graph.
+  ///
+  /// Override this method to respond when nodes are added.
+  /// Return `true` if the annotation took action (e.g., auto-added to group).
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// @override
+  /// bool onNodeAdded(String nodeId, Rect nodeBounds, AnnotationDragContext context) {
+  ///   if (bounds.contains(nodeBounds.center)) {
+  ///     addNode(nodeId);
+  ///     return true;
+  ///   }
+  ///   return false;
+  /// }
+  /// ```
+  bool onNodeAdded(
+    String nodeId,
+    Rect nodeBounds,
+    AnnotationDragContext context,
+  ) {
+    // Default implementation does nothing
+    return false;
+  }
+
+  /// Called when a node's size changes.
+  ///
+  /// Override this method to respond when a tracked node is resized.
+  /// For [GroupAnnotation] with explicit behavior, this triggers a refit.
+  void onNodeResized(
+    String nodeId,
+    Size newSize,
+    AnnotationDragContext context,
+  ) {
+    // Default implementation does nothing
+  }
+
+  /// Called when a node's visibility changes.
+  ///
+  /// Override this method to respond when a tracked node becomes
+  /// visible or hidden.
+  void onNodeVisibilityChanged(String nodeId, bool isVisible) {
+    // Default implementation does nothing
+  }
+
+  /// Called when the node selection changes.
+  ///
+  /// Override to respond when nodes are selected or deselected.
+  /// The [selectedNodeIds] contains all currently selected node IDs.
+  void onSelectionChanged(Set<String> selectedNodeIds) {
+    // Default implementation does nothing
+  }
+
+  /// Whether this annotation should receive automatic node lifecycle callbacks.
+  ///
+  /// When `true`, the annotation controller sets up MobX reactions to
+  /// automatically monitor node changes and call the lifecycle methods:
+  /// - [onNodeDeleted] / [onNodesDeleted] when nodes are removed
+  /// - [onNodeAdded] when nodes are added
+  /// - [onNodeMoved] when node positions change
+  /// - [onNodeResized] when node sizes change
+  ///
+  /// Returns `false` by default. [GroupAnnotation] returns `true` for
+  /// explicit and parent behaviors.
+  bool get monitorNodes => false;
+
+  /// Whether this annotation is considered "empty" and has no content.
+  ///
+  /// Override to define what "empty" means for your annotation type.
+  /// For [GroupAnnotation] with explicit/parent behavior, this returns
+  /// `true` when there are no member nodes.
+  ///
+  /// Returns `false` by default (annotations are not considered empty).
+  bool get isEmpty => false;
+
+  /// Whether this annotation should be automatically removed when empty.
+  ///
+  /// Override to return `true` if your annotation should be deleted
+  /// when [isEmpty] becomes true (e.g., after all member nodes are deleted).
+  ///
+  /// Returns `false` by default. [GroupAnnotation] returns `true` for
+  /// explicit behavior only.
+  bool get shouldRemoveWhenEmpty => false;
+
+  /// The set of node IDs that this annotation monitors for position/size changes.
+  ///
+  /// When [monitorNodes] is `true`, the annotation controller sets up MobX
+  /// reactions to watch these specific node IDs. Override to return the
+  /// nodes your annotation cares about.
+  ///
+  /// Returns an empty set by default. [GroupAnnotation] returns its
+  /// [nodeIds] for explicit and parent behaviors.
+  Set<String> get monitoredNodeIds => const {};
+
   /// Serializes this annotation to JSON.
   ///
   /// Implement this to define how your custom annotation is persisted.
@@ -380,37 +502,4 @@ abstract class Annotation {
   ///
   /// You typically update position, visibility, z-index, and any custom properties.
   void fromJson(Map<String, dynamic> json);
-
-  /// Factory method for creating annotations from JSON based on type.
-  ///
-  /// This is used by the framework when deserializing saved workflows.
-  /// It reads the 'type' field and creates the appropriate annotation subclass.
-  ///
-  /// To support custom annotation types, you'll need to extend this method
-  /// or provide your own deserialization logic.
-  ///
-  /// ## Parameters
-  /// - [json]: The JSON map containing the annotation data
-  ///
-  /// ## Returns
-  /// An [Annotation] instance of the appropriate subclass
-  ///
-  /// ## Throws
-  /// - [ArgumentError] if the annotation type is unknown
-  static Annotation fromJsonByType(Map<String, dynamic> json) {
-    final type = json['type'] as String;
-    switch (type) {
-      case 'sticky':
-        return StickyAnnotation.fromJsonMap(json);
-      case 'group':
-        return GroupAnnotation.fromJsonMap(json);
-      case 'checklist_group':
-        // This would need to be imported, but for now we'll use regular group
-        return GroupAnnotation.fromJsonMap(json);
-      case 'marker':
-        return MarkerAnnotation.fromJsonMap(json);
-      default:
-        throw ArgumentError('Unknown annotation type: $type');
-    }
-  }
 }

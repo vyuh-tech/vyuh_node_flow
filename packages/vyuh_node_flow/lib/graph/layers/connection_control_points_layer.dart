@@ -76,6 +76,19 @@ class _ConnectionControlPointsWidget<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Observer(
       builder: (context) {
+        // Check if either endpoint node is hidden
+        final sourceNode = controller.getNode(connection.sourceNodeId);
+        final targetNode = controller.getNode(connection.targetNodeId);
+
+        if (sourceNode == null || targetNode == null) {
+          return const SizedBox.shrink();
+        }
+
+        // Skip rendering if either node is hidden
+        if (!sourceNode.isVisible || !targetNode.isVisible) {
+          return const SizedBox.shrink();
+        }
+
         // Observe control points changes
         final controlPoints = connection.controlPoints;
 
@@ -83,9 +96,8 @@ class _ConnectionControlPointsWidget<T> extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        // Get theme from context
-        final theme =
-            Theme.of(context).extension<NodeFlowTheme>() ?? NodeFlowTheme.light;
+        // Use controller's theme as single source of truth
+        final theme = controller.theme ?? NodeFlowTheme.light;
 
         // Build widgets for each control point
         final widgets = <Widget>[];

@@ -22,8 +22,13 @@ import '../ports/port.dart';
 import '../shared/shortcuts_viewer_dialog.dart';
 import '../shared/spatial/graph_spatial_index.dart';
 import 'node_flow_actions.dart';
+import 'node_flow_behavior.dart';
 
 part '../annotations/annotation_controller.dart';
+part 'api/connection_api.dart';
+// Domain-specific API extensions
+part 'api/node_api.dart';
+part 'api/selection_api.dart';
 part 'node_flow_controller_api.dart';
 
 /// Alignment options for node alignment operations
@@ -159,18 +164,27 @@ class NodeFlowController<T> {
   /// ```
   FocusNode get canvasFocusNode => _canvasFocusNode;
 
-  // UI interaction flags
-  final Observable<bool> _enableNodeDeletion = Observable(true);
+  // Behavior mode
+  final Observable<NodeFlowBehavior> _behavior = Observable(
+    NodeFlowBehavior.design,
+  );
 
-  /// Whether node deletion via keyboard shortcuts is enabled.
+  /// The current behavior mode determining what interactions are allowed.
   ///
-  /// When `false`, the Delete/Backspace keyboard shortcuts will not delete nodes.
-  /// Programmatic deletion via `removeNode()` is still possible regardless of this setting.
-  bool get enableNodeDeletion => _enableNodeDeletion.value;
+  /// Use this to check capabilities:
+  /// ```dart
+  /// if (controller.behavior.canDelete) {
+  ///   // Allow deletion
+  /// }
+  /// ```
+  NodeFlowBehavior get behavior => _behavior.value;
 
-  /// Sets whether node deletion via keyboard shortcuts is enabled.
-  void setNodeDeletion(bool value) {
-    runInAction(() => _enableNodeDeletion.value = value);
+  /// Sets the behavior mode for the canvas.
+  ///
+  /// This controls what CRUD operations are allowed on nodes, ports,
+  /// connections, and annotations.
+  void setBehavior(NodeFlowBehavior value) {
+    runInAction(() => _behavior.value = value);
   }
 
   // Core data structures
@@ -341,16 +355,9 @@ class NodeFlowController<T> {
         return _nodes.values.map((node) => node.visualPosition.value).toList();
       },
       (_) {
-        // Update dependent annotations
-        annotations.internalUpdateDependentAnnotations(_nodes);
+        // Node positions observed - annotations monitor nodes via their own reactions
       },
     );
-
-    // Update annotations when nodes are added/removed
-    reaction((_) => _nodes.keys.toSet(), (_) {
-      // Update dependent annotations when node set changes
-      annotations.internalUpdateDependentAnnotations(_nodes);
-    });
   }
 
   void _setupSelectionReactions() {
@@ -441,6 +448,22 @@ class NodeFlowController<T> {
     ) {
       _spatialIndex.rebuildFromAnnotations(annotations.annotations.values);
     }, fireImmediately: false);
+
+    // === NODE VISIBILITY CHANGE SYNC ===
+    // When node visibility changes, rebuild connection segments
+    // (connections are visible only when both endpoint nodes are visible)
+    reaction(
+      (_) {
+        // Create a signature of all node visibility states
+        return _nodes.values.map((n) => (n.id, n.isVisible)).toList();
+      },
+      (_) {
+        // Rebuild connection spatial index segments
+        // Hidden connections will return empty segments from the path cache
+        rebuildAllConnectionSegments();
+      },
+      fireImmediately: false,
+    );
   }
 
   /// Gets the connection painter used for rendering and hit-testing connections.
@@ -574,6 +597,7 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
       conn.bezierCurvature,
       conn.cornerRadius,
       conn.portExtension,
+      conn.backEdgeGap,
       conn.startGap,
       conn.endGap,
       conn.hitTolerance,

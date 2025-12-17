@@ -134,19 +134,27 @@ extension CursorThemeExtension on CursorTheme {
   ///
   /// The cursor is derived purely from state - there are no side effects.
   /// Priority is given to global interaction states:
-  /// 1. Connection dragging → [portCursor]
-  /// 2. Viewport dragging (panning) → [dragCursor]
-  /// 3. Drawing selection → [selectionCursor]
-  /// 4. Hovering over connection → [nodeCursor]
-  /// 5. Element-specific cursor based on [elementType]
+  /// 1. **Cursor override** (highest priority) - for exclusive operations like resizing
+  /// 2. Connection dragging → [portCursor]
+  /// 3. Viewport dragging (panning) → [dragCursor]
+  /// 4. Drawing selection → [selectionCursor]
+  /// 5. Hovering over connection → [nodeCursor]
+  /// 6. Element-specific cursor based on [elementType]
   ///
   /// For annotations, an additional [isInteractive] parameter determines
   /// whether to show [nodeCursor] or [canvasCursor].
-  SystemMouseCursor cursorFor(
+  MouseCursor cursorFor(
     ElementType elementType,
     InteractionState interaction, {
     bool isInteractive = true,
   }) {
+    // Check for cursor override first (highest priority)
+    // Used by exclusive operations like resizing that lock the cursor
+    final override = interaction.currentCursorOverride;
+    if (override != null) {
+      return override;
+    }
+
     final isConnecting = interaction.isCreatingConnection;
     final isViewportDragging = interaction.isViewportDragging;
     final isDrawingSelection = interaction.isDrawingSelection;

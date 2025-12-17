@@ -279,7 +279,7 @@ class _ConnectionValidationExampleState
             },
           ),
         ),
-        enableNodeDeletion: false,
+        // Uses NodeFlowBehavior.design by default (full editing)
       ),
       children: [
         const SectionTitle('Connection Rules'),

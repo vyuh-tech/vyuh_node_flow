@@ -9,7 +9,6 @@ import 'annotation.dart';
 /// - Custom text content
 /// - Configurable size and color
 /// - Free movement and positioning
-/// - Optional node dependencies for tracking
 ///
 /// ## Example
 ///
@@ -36,15 +35,12 @@ class StickyAnnotation extends Annotation {
     bool isVisible = true,
     super.selected = false,
     super.isInteractive = true,
-    Set<String> dependencies = const {},
-    super.offset = Offset.zero,
     super.metadata,
   }) : super(
          type: 'sticky',
          initialPosition: position,
          initialZIndex: zIndex,
          initialIsVisible: isVisible,
-         initialDependencies: dependencies,
        );
 
   /// The text content displayed in the sticky note.
@@ -101,22 +97,18 @@ class StickyAnnotation extends Annotation {
     int? zIndex,
     bool? isVisible,
     bool? isInteractive,
-    Set<String>? dependencies,
-    Offset? offset,
     Map<String, dynamic>? metadata,
   }) {
     return StickyAnnotation(
       id: id ?? this.id,
-      position: position ?? currentPosition,
+      position: position ?? this.position,
       text: text ?? this.text,
       width: width ?? this.width,
       height: height ?? this.height,
       color: color ?? this.color,
-      zIndex: zIndex ?? currentZIndex,
-      isVisible: isVisible ?? currentIsVisible,
+      zIndex: zIndex ?? this.zIndex,
+      isVisible: isVisible ?? this.isVisible,
       isInteractive: isInteractive ?? this.isInteractive,
-      dependencies: dependencies ?? this.dependencies.toSet(),
-      offset: offset ?? this.offset,
       metadata: metadata ?? this.metadata,
     );
   }
@@ -139,14 +131,6 @@ class StickyAnnotation extends Annotation {
       zIndex: json['zIndex'] as int? ?? 0,
       isVisible: json['isVisible'] as bool? ?? true,
       isInteractive: json['isInteractive'] as bool? ?? true,
-      dependencies:
-          (json['dependencies'] as List?)?.cast<String>().toSet() ?? {},
-      offset: json['offsetX'] != null && json['offsetY'] != null
-          ? Offset(
-              (json['offsetX'] as num).toDouble(),
-              (json['offsetY'] as num).toDouble(),
-            )
-          : Offset.zero,
       metadata: json['metadata'] as Map<String, dynamic>? ?? {},
     );
   }
@@ -155,18 +139,15 @@ class StickyAnnotation extends Annotation {
   Map<String, dynamic> toJson() => {
     'id': id,
     'type': type,
-    'x': currentPosition.dx,
-    'y': currentPosition.dy,
+    'x': position.dx,
+    'y': position.dy,
     'text': text,
     'width': width,
     'height': height,
     'color': color.toARGB32(),
-    'zIndex': currentZIndex,
-    'isVisible': currentIsVisible,
+    'zIndex': zIndex,
+    'isVisible': isVisible,
     'isInteractive': isInteractive,
-    'dependencies': dependencies.toList(),
-    'offsetX': offset.dx,
-    'offsetY': offset.dy,
     'metadata': metadata,
   };
 
@@ -176,11 +157,8 @@ class StickyAnnotation extends Annotation {
       (json['x'] as num).toDouble(),
       (json['y'] as num).toDouble(),
     );
-    setPosition(newPosition);
-    // Visual position will be set by controller with snapping
-    setZIndex(json['zIndex'] as int? ?? 0);
-    setVisible(json['isVisible'] as bool? ?? true);
-    dependencies.clear();
-    dependencies.addAll((json['dependencies'] as List?)?.cast<String>() ?? []);
+    position = newPosition;
+    zIndex = json['zIndex'] as int? ?? 0;
+    isVisible = json['isVisible'] as bool? ?? true;
   }
 }

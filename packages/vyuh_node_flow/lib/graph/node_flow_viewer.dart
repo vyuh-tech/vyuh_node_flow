@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../connections/connection.dart';
 import '../nodes/node.dart';
+import 'node_flow_behavior.dart';
 import 'node_flow_config.dart';
 import 'node_flow_controller.dart';
 import 'node_flow_editor.dart';
@@ -9,22 +10,18 @@ import 'node_flow_events.dart';
 import 'node_flow_theme.dart';
 import 'viewport.dart';
 
-/// A simplified read-only viewer for node flow graphs.
+/// A simplified viewer for node flow graphs.
 ///
-/// This widget provides a read-only view of a node flow graph with pan and zoom
-/// capabilities but no editing functionality. It is a wrapper around [NodeFlowEditor]
-/// configured for display-only purposes.
+/// This widget provides a read-only view of a node flow graph. It is a wrapper
+/// around [NodeFlowEditor] configured with [NodeFlowBehavior.preview], which
+/// allows navigation (pan, zoom, select, drag) but prevents structural changes
+/// (create, update, delete).
 ///
-/// Use this widget when you need to display a graph without allowing users to:
-/// - Drag or move nodes
-/// - Create or delete connections
-/// - Modify the graph structure
+/// For full editing capabilities, use [NodeFlowEditor] with
+/// [NodeFlowBehavior.design].
 ///
-/// Users can still:
-/// - Pan the viewport (if [enablePanning] is true)
-/// - Zoom in/out (if [enableZooming] is true)
-/// - Select items (if [allowSelection] is true)
-/// - Tap on nodes/connections (with callbacks)
+/// For a completely non-interactive display, use [NodeFlowEditor] with
+/// [NodeFlowBehavior.present].
 ///
 /// Example:
 /// ```dart
@@ -34,9 +31,6 @@ import 'viewport.dart';
 ///   nodeBuilder: (context, node) {
 ///     return Text(node.data.toString());
 ///   },
-///   enablePanning: true,
-///   enableZooming: true,
-///   allowSelection: true,
 ///   onNodeTap: (node) {
 ///     print('Tapped: ${node?.id}');
 ///   },
@@ -61,11 +55,8 @@ class NodeFlowViewer<T> extends StatelessWidget {
     required this.nodeBuilder,
     required this.theme,
     this.nodeContainerBuilder,
-    this.enablePanning = true,
-    this.enableZooming = true,
     this.scrollToZoom = true,
     this.showAnnotations = false,
-    this.allowSelection = false,
     this.onNodeTap,
     this.onNodeSelected,
     this.onConnectionTap,
@@ -121,17 +112,6 @@ class NodeFlowViewer<T> extends StatelessWidget {
   /// and other UI elements.
   final NodeFlowTheme theme;
 
-  /// Whether to enable viewport panning with mouse/trackpad drag.
-  ///
-  /// When `true`, dragging on the canvas pans the viewport.
-  /// Defaults to `true`.
-  final bool enablePanning;
-
-  /// Whether to enable zoom controls (pinch-to-zoom, scroll wheel zoom).
-  ///
-  /// Defaults to `true`.
-  final bool enableZooming;
-
   /// Whether trackpad scroll gestures should cause zooming.
   ///
   /// When `true`, scrolling on a trackpad zooms in/out.
@@ -145,62 +125,42 @@ class NodeFlowViewer<T> extends StatelessWidget {
   /// Defaults to `false` for viewers.
   final bool showAnnotations;
 
-  /// Whether to allow selection of nodes and connections.
-  ///
-  /// When enabled, users can click to select items and see selection feedback,
-  /// but cannot drag or edit them. Useful for highlighting or inspecting items
-  /// in a read-only view.
-  ///
-  /// Defaults to `false`.
-  final bool allowSelection;
-
   /// Called when a node is tapped.
-  ///
-  /// Only active if [allowSelection] is `true`.
   final ValueChanged<Node<T>?>? onNodeTap;
 
   /// Called when a node's selection state changes.
   ///
   /// Receives the selected node, or `null` if selection was cleared.
-  /// Only active if [allowSelection] is `true`.
   final ValueChanged<Node<T>?>? onNodeSelected;
 
   /// Called when a connection is tapped.
-  ///
-  /// Only active if [allowSelection] is `true`.
   final ValueChanged<Connection?>? onConnectionTap;
 
   /// Called when a connection's selection state changes.
   ///
   /// Receives the selected connection, or `null` if selection was cleared.
-  /// Only active if [allowSelection] is `true`.
   final ValueChanged<Connection?>? onConnectionSelected;
 
   @override
   Widget build(BuildContext context) {
+    // Viewer always uses preview behavior - allows navigation but no editing
+    const behavior = NodeFlowBehavior.preview;
+
     return NodeFlowEditor<T>(
       controller: controller,
       nodeBuilder: nodeBuilder,
       nodeContainerBuilder: nodeContainerBuilder,
       theme: theme,
-      // Viewer configuration - no dragging or connection creation
-      enablePanning: enablePanning,
-      enableZooming: enableZooming,
-      enableSelection: allowSelection,
-      enableNodeDragging: false,
-      enableConnectionCreation: false,
+      behavior: behavior,
       scrollToZoom: scrollToZoom,
       showAnnotations: showAnnotations,
-      // Events (only active if allowSelection is true)
-      events: allowSelection
-          ? NodeFlowEvents<T>(
-              node: NodeEvents<T>(onTap: onNodeTap, onSelected: onNodeSelected),
-              connection: ConnectionEvents<T>(
-                onTap: onConnectionTap,
-                onSelected: onConnectionSelected,
-              ),
-            )
-          : null,
+      events: NodeFlowEvents<T>(
+        node: NodeEvents<T>(onTap: onNodeTap, onSelected: onNodeSelected),
+        connection: ConnectionEvents<T>(
+          onTap: onConnectionTap,
+          onSelected: onConnectionSelected,
+        ),
+      ),
     );
   }
 
@@ -247,11 +207,8 @@ class NodeFlowViewer<T> extends StatelessWidget {
     NodeFlowConfig? config,
     Widget Function(BuildContext context, Node<T> node, Widget content)?
     nodeContainerBuilder,
-    bool enablePanning = true,
-    bool enableZooming = true,
     bool scrollToZoom = true,
     bool showAnnotations = false,
-    bool allowSelection = false,
     ValueChanged<Node<T>?>? onNodeTap,
     ValueChanged<Node<T>?>? onNodeSelected,
     ValueChanged<Connection?>? onConnectionTap,
@@ -282,11 +239,8 @@ class NodeFlowViewer<T> extends StatelessWidget {
       nodeBuilder: nodeBuilder,
       nodeContainerBuilder: nodeContainerBuilder,
       theme: theme,
-      enablePanning: enablePanning,
-      enableZooming: enableZooming,
       scrollToZoom: scrollToZoom,
       showAnnotations: showAnnotations,
-      allowSelection: allowSelection,
       onNodeTap: onNodeTap,
       onNodeSelected: onNodeSelected,
       onConnectionTap: onConnectionTap,

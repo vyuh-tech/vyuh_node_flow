@@ -346,27 +346,30 @@ class GraphSpatialIndex<T> {
     return const HitTestResult(hitType: HitTarget.canvas);
   }
 
-  /// Gets all nodes at a point.
+  /// Gets all visible nodes at a point.
   List<Node<T>> nodesAt(Offset point, {double radius = 0}) {
     return _grid
         .queryPoint(point, radius: radius)
         .whereType<NodeSpatialItem>()
         .map((item) => _nodes[item.nodeId])
         .whereType<Node<T>>()
+        .where((node) => node.isVisible)
         .toList();
   }
 
-  /// Gets all nodes within bounds.
+  /// Gets all visible nodes within bounds.
   List<Node<T>> nodesIn(Rect bounds) {
     return _grid
         .query(bounds)
         .whereType<NodeSpatialItem>()
         .map((item) => _nodes[item.nodeId])
         .whereType<Node<T>>()
+        .where((node) => node.isVisible)
         .toList();
   }
 
-  /// Gets all connections at a point.
+  /// Gets all visible connections at a point.
+  /// Only returns connections where both source and target nodes are visible.
   List<Connection> connectionsAt(Offset point, {double radius = 0}) {
     final connectionIds = _grid
         .queryPoint(point, radius: radius)
@@ -376,6 +379,14 @@ class GraphSpatialIndex<T> {
     return connectionIds
         .map((id) => _connections[id])
         .whereType<Connection>()
+        .where((connection) {
+          final sourceNode = _nodes[connection.sourceNodeId];
+          final targetNode = _nodes[connection.targetNodeId];
+          return sourceNode != null &&
+              targetNode != null &&
+              sourceNode.isVisible &&
+              targetNode.isVisible;
+        })
         .toList();
   }
 
@@ -565,6 +576,10 @@ class GraphSpatialIndex<T> {
     final candidates = <({PortSpatialItem item, double distance})>[];
 
     for (final portItem in nearbyPorts) {
+      // Skip ports of hidden nodes
+      final node = _nodes[portItem.nodeId];
+      if (node == null || !node.isVisible) continue;
+
       // Calculate distance from point to port center (used for sorting only)
       final portCenter = portItem.bounds.center;
       final distance = (point - portCenter).distance;
@@ -622,7 +637,7 @@ class GraphSpatialIndex<T> {
         .whereType<NodeSpatialItem>()
         .map((item) => _nodes[item.nodeId])
         .whereType<Node<T>>()
-        .where((node) => node.id != excludeNode.id)
+        .where((node) => node.id != excludeNode.id && node.isVisible)
         .toList();
 
     for (final node in nodesAtPoint) {
@@ -682,6 +697,7 @@ class GraphSpatialIndex<T> {
         .whereType<NodeSpatialItem>()
         .map((item) => _nodes[item.nodeId])
         .whereType<Node<T>>()
+        .where((node) => node.isVisible) // Skip hidden nodes
         .toList();
     candidates.sort((a, b) => b.zIndex.value.compareTo(a.zIndex.value));
 
@@ -711,8 +727,19 @@ class GraphSpatialIndex<T> {
 
     for (final connectionId in connectionIds) {
       final connection = _connections[connectionId];
-      if (connection != null &&
-          (connectionHitTester?.call(connection, point) ?? false)) {
+      if (connection == null) continue;
+
+      // Skip connections where either node is hidden
+      final sourceNode = _nodes[connection.sourceNodeId];
+      final targetNode = _nodes[connection.targetNodeId];
+      if (sourceNode == null ||
+          targetNode == null ||
+          !sourceNode.isVisible ||
+          !targetNode.isVisible) {
+        continue;
+      }
+
+      if (connectionHitTester?.call(connection, point) ?? false) {
         return HitTestResult(
           connectionId: connection.id,
           hitType: HitTarget.connection,
@@ -729,10 +756,10 @@ class GraphSpatialIndex<T> {
         .map((item) => _annotations[item.annotationId])
         .whereType<Annotation>()
         .toList();
-    candidates.sort((a, b) => b.zIndex.value.compareTo(a.zIndex.value));
+    candidates.sort((a, b) => b.zIndex.compareTo(a.zIndex));
 
     for (final annotation in candidates) {
-      if (annotation.currentIsVisible && annotation.containsPoint(point)) {
+      if (annotation.isVisible && annotation.containsPoint(point)) {
         return HitTestResult(
           annotationId: annotation.id,
           hitType: HitTarget.annotation,

@@ -5,6 +5,7 @@ import '../annotations/annotation.dart';
 import '../graph/node_flow_controller.dart';
 import '../shared/unbounded_widgets.dart';
 import 'annotation_widget.dart';
+import 'group_annotation_widget.dart';
 
 /// A rendering layer for annotations in the node flow editor.
 ///
@@ -60,10 +61,10 @@ class AnnotationLayer<T> extends StatelessWidget {
     this.onAnnotationMouseLeave,
   });
 
-  /// Creates a background annotation layer that renders only groups.
+  /// Creates a background annotation layer.
   ///
-  /// Group annotations are typically rendered behind nodes with a negative
-  /// z-index, creating visual boundaries around related nodes.
+  /// Renders annotations with [AnnotationRenderLayer.background] behind nodes,
+  /// such as [GroupAnnotation].
   ///
   /// ## Example
   ///
@@ -88,7 +89,8 @@ class AnnotationLayer<T> extends StatelessWidget {
   }) {
     return AnnotationLayer<T>(
       controller: controller,
-      filter: (annotation) => annotation is GroupAnnotation,
+      filter: (annotation) =>
+          annotation.layer == AnnotationRenderLayer.background,
       onAnnotationTap: onAnnotationTap,
       onAnnotationDoubleTap: onAnnotationDoubleTap,
       onAnnotationContextMenu: onAnnotationContextMenu,
@@ -97,10 +99,10 @@ class AnnotationLayer<T> extends StatelessWidget {
     );
   }
 
-  /// Creates a foreground annotation layer that renders everything except groups.
+  /// Creates a foreground annotation layer.
   ///
-  /// This layer renders sticky notes and markers above connections but below
-  /// any overlays or UI controls.
+  /// Renders annotations with [AnnotationRenderLayer.foreground] above nodes
+  /// and connections, such as [StickyAnnotation] and [MarkerAnnotation].
   ///
   /// ## Example
   ///
@@ -126,7 +128,8 @@ class AnnotationLayer<T> extends StatelessWidget {
   }) {
     return AnnotationLayer<T>(
       controller: controller,
-      filter: (annotation) => annotation is! GroupAnnotation,
+      filter: (annotation) =>
+          annotation.layer == AnnotationRenderLayer.foreground,
       onAnnotationTap: onAnnotationTap,
       onAnnotationDoubleTap: onAnnotationDoubleTap,
       onAnnotationContextMenu: onAnnotationContextMenu,
@@ -199,8 +202,28 @@ class AnnotationLayer<T> extends StatelessWidget {
                     annotation is GroupAnnotation &&
                     controller.annotations.isGroupHighlighted(annotation.id);
 
+                // Use specialized widget for groups to support resize handles
+                if (annotation is GroupAnnotation) {
+                  return GroupAnnotationWidget(
+                    key: ValueKey('${annotation.id}_z${annotation.zIndex}'),
+                    group: annotation,
+                    controller: controller,
+                    isSelected: isSelected,
+                    isHighlighted: isHighlighted,
+                    onTap: onAnnotationTap != null
+                        ? () => onAnnotationTap!(annotation)
+                        : null,
+                    onDoubleTap: onAnnotationDoubleTap != null
+                        ? () => onAnnotationDoubleTap!(annotation)
+                        : null,
+                    onContextMenu: onAnnotationContextMenu != null
+                        ? (pos) => onAnnotationContextMenu!(annotation, pos)
+                        : null,
+                  );
+                }
+
                 return AnnotationWidget(
-                  key: ValueKey('${annotation.id}_z${annotation.zIndex.value}'),
+                  key: ValueKey('${annotation.id}_z${annotation.zIndex}'),
                   annotation: annotation,
                   controller: controller,
                   isSelected: isSelected,

@@ -109,8 +109,8 @@ class AnnotationWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Observer(
       builder: (_) {
-        final position = annotation.visualPosition.value;
-        final isVisible = annotation.isVisible.value;
+        final position = annotation.visualPosition;
+        final isVisible = annotation.isVisible;
 
         if (!isVisible) {
           return const SizedBox.shrink();
@@ -138,10 +138,9 @@ class AnnotationWidget extends StatelessWidget {
             // interaction state changes, not the entire annotation subtree
             child: Observer.withBuiltChild(
               builder: (context, child) {
-                // Derive cursor from interaction state
-                final cursorTheme = Theme.of(
-                  context,
-                ).extension<NodeFlowTheme>()!.cursorTheme;
+                // Derive cursor from interaction state using controller's theme
+                final theme = controller.theme ?? NodeFlowTheme.light;
+                final cursorTheme = theme.cursorTheme;
                 final cursor = cursorTheme.cursorFor(
                   ElementType.annotation,
                   controller.interaction,
@@ -177,8 +176,8 @@ class AnnotationWidget extends StatelessWidget {
     // Get the custom widget from the annotation implementation
     Widget content = annotation.buildWidget(context);
 
-    // Get the NodeFlowTheme for consistent styling
-    final theme = Theme.of(context).extension<NodeFlowTheme>()!;
+    // Use controller's theme as single source of truth
+    final theme = controller.theme ?? NodeFlowTheme.light;
     final annotationTheme = theme.annotationTheme;
 
     // Determine border color and background color based on state

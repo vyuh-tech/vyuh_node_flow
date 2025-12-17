@@ -168,6 +168,16 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
   bool _isDragging = false;
 
   void _handleHoverChange(bool isHovered) {
+    // Suppress hover effects when connection creation is disabled (preview/present modes).
+    // In these modes, port hover feedback is misleading since connections can't be created.
+    if (!widget.controller.behavior.canCreate) {
+      if (_isHovered) {
+        // Clear hover state when transitioning to non-design mode
+        setState(() => _isHovered = false);
+      }
+      return;
+    }
+
     // Suppress hover effects during viewport pan/zoom to prevent stale highlights.
     // When the canvas is being panned, the mouse might pass over ports but the
     // onExit event may not fire properly, leaving stale hover states.
@@ -379,10 +389,16 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
                   final cursorTheme = Theme.of(
                     context,
                   ).extension<NodeFlowTheme>()!.cursorTheme;
-                  final cursor = cursorTheme.cursorFor(
-                    ElementType.port,
-                    widget.controller.interaction,
-                  );
+
+                  // In preview/present modes, use canvas cursor for ports
+                  // since connection creation is disabled
+                  final cursor = widget.controller.behavior.canCreate
+                      ? cursorTheme.cursorFor(
+                          ElementType.port,
+                          widget.controller.interaction,
+                        )
+                      : cursorTheme.canvasCursor;
+
                   return MouseRegion(
                     cursor: cursor,
                     onEnter: (_) => _handleHoverChange(true),

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
-import '../node_flow_config.dart';
+import '../minimap_theme.dart';
 import '../node_flow_controller.dart';
 import '../node_flow_minimap.dart';
 import '../node_flow_theme.dart';
 
-/// Minimap overlay widget that renders the minimap in the specified corner
+/// Minimap overlay widget that renders the minimap in the specified corner.
+///
+/// Uses [MinimapTheme] from [NodeFlowTheme] for positioning and styling.
 class MinimapOverlay<T> extends StatelessWidget {
   const MinimapOverlay({
     super.key,
@@ -29,42 +31,35 @@ class MinimapOverlay<T> extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
+        final minimapTheme = theme.minimapTheme;
+        final position = minimapTheme.position;
+        final margin = minimapTheme.margin;
+
         return Positioned(
           top:
-              controller.config.minimapPosition.value ==
-                      CornerPosition.topLeft ||
-                  controller.config.minimapPosition.value ==
-                      CornerPosition.topRight
-              ? 20
+              position == MinimapPosition.topLeft ||
+                  position == MinimapPosition.topRight
+              ? margin
               : null,
           bottom:
-              controller.config.minimapPosition.value ==
-                      CornerPosition.bottomLeft ||
-                  controller.config.minimapPosition.value ==
-                      CornerPosition.bottomRight
-              ? 20
+              position == MinimapPosition.bottomLeft ||
+                  position == MinimapPosition.bottomRight
+              ? margin
               : null,
           left:
-              controller.config.minimapPosition.value ==
-                      CornerPosition.topLeft ||
-                  controller.config.minimapPosition.value ==
-                      CornerPosition.bottomLeft
-              ? 20
+              position == MinimapPosition.topLeft ||
+                  position == MinimapPosition.bottomLeft
+              ? margin
               : null,
           right:
-              controller.config.minimapPosition.value ==
-                      CornerPosition.topRight ||
-                  controller.config.minimapPosition.value ==
-                      CornerPosition.bottomRight
-              ? 20
+              position == MinimapPosition.topRight ||
+                  position == MinimapPosition.bottomRight
+              ? margin
               : null,
           child: NodeFlowMinimap<T>(
             controller: controller,
-            size: controller.config.minimapSize.value,
-            interactive: controller
-                .config
-                .isMinimapInteractive
-                .value, // Explicitly enable interactivity even in read-only mode
+            theme: minimapTheme,
+            interactive: controller.config.isMinimapInteractive.value,
           ),
         );
       },

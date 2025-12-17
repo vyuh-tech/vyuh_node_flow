@@ -96,6 +96,9 @@ class ConnectionsCanvas<T> extends CustomPainter {
 
       if (sourceNode == null || targetNode == null) continue;
 
+      // Skip connections where either node is hidden
+      if (!sourceNode.isVisible || !targetNode.isVisible) continue;
+
       final isSelected = store.selectedConnectionIds.contains(connection.id);
 
       // Paint connection without labels using cached painter

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobx/mobx.dart';
 
 import '../connections/temporary_connection.dart';
@@ -85,6 +86,15 @@ class InteractionState {
   /// Used to show a click cursor when hovering over connection segments.
   final Observable<bool> hoveringConnection = Observable(false);
 
+  /// Observable cursor override for exclusive operations like resizing.
+  ///
+  /// When non-null, this cursor takes precedence over all other cursor
+  /// derivation logic. Used during resize operations to lock the cursor
+  /// to the active resize handle cursor regardless of what the mouse hovers over.
+  final Observable<MouseCursor?> cursorOverride = Observable<MouseCursor?>(
+    null,
+  );
+
   /// Checks if a connection is currently being created.
   ///
   /// Returns true when the user is dragging from a port to create a connection.
@@ -138,6 +148,17 @@ class InteractionState {
   ///
   /// Used to determine if a click cursor should be shown.
   bool get isHoveringConnection => hoveringConnection.value;
+
+  /// Gets the current cursor override, if any.
+  ///
+  /// Returns null if no override is active, meaning cursor should be
+  /// derived from element type and interaction state.
+  MouseCursor? get currentCursorOverride => cursorOverride.value;
+
+  /// Checks if there is an active cursor override.
+  ///
+  /// Returns true during exclusive operations like resizing.
+  bool get hasCursorOverride => cursorOverride.value != null;
 
   /// Sets the currently dragged node.
   ///
@@ -274,6 +295,7 @@ class InteractionState {
       panEnabled.value = true;
       isViewportInteracting.value = false;
       hoveringConnection.value = false;
+      cursorOverride.value = null;
     });
   }
 
@@ -294,6 +316,21 @@ class InteractionState {
   void setHoveringConnection(bool hovering) {
     runInAction(() {
       hoveringConnection.value = hovering;
+    });
+  }
+
+  /// Sets a global cursor override for exclusive operations.
+  ///
+  /// When set, this cursor takes precedence over all element-specific and
+  /// interaction-based cursor derivation. Use this during resize, connection
+  /// creation, or other exclusive operations where the cursor should remain
+  /// locked regardless of what the mouse hovers over.
+  ///
+  /// Parameters:
+  /// * [cursor] - The cursor to force, or null to clear the override
+  void setCursorOverride(MouseCursor? cursor) {
+    runInAction(() {
+      cursorOverride.value = cursor;
     });
   }
 }

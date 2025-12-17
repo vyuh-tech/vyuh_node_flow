@@ -118,6 +118,8 @@ export 'annotations/annotation.dart';
 export 'annotations/annotation_layer.dart';
 export 'annotations/annotation_theme.dart';
 export 'annotations/annotation_widget.dart';
+export 'annotations/group_annotation.dart';
+export 'annotations/group_annotation_widget.dart';
 // Connections
 export 'connections/connection.dart';
 export 'connections/connection_anchor.dart';
@@ -143,7 +145,9 @@ export 'graph/cursor_theme.dart';
 export 'graph/graph.dart'; // Needed for examples and serialization
 export 'graph/layers/connection_labels_layer.dart' show LabelBuilder;
 export 'graph/layers/spatial_index_debug_layer.dart';
+export 'graph/minimap_theme.dart';
 export 'graph/node_flow_actions.dart';
+export 'graph/node_flow_behavior.dart';
 export 'graph/node_flow_config.dart';
 export 'graph/node_flow_controller.dart';
 export 'graph/node_flow_editor.dart';
@@ -151,6 +155,7 @@ export 'graph/node_flow_events.dart';
 export 'graph/node_flow_minimap.dart';
 export 'graph/node_flow_theme.dart';
 export 'graph/node_flow_viewer.dart';
+export 'graph/resizer_theme.dart';
 export 'graph/selection_theme.dart';
 export 'graph/viewport.dart';
 export 'grid/grid_styles.dart';
@@ -178,6 +183,7 @@ export 'ports/port_widget.dart'; // Also exports PortBuilder typedef
 // Shared Utilities
 export 'shared/flutter_actions_integration.dart';
 export 'shared/json_converters.dart';
+export 'shared/resizer_widget.dart';
 // Marker Shapes (for ports and connection endpoints)
 export 'shared/shapes/marker_shape.dart';
 export 'shared/shapes/marker_shapes.dart';
