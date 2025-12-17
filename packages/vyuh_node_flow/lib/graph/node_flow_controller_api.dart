@@ -2838,6 +2838,9 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     // Bring node to front
     bringNodeToFront(nodeId);
 
+    // Ensure strict state reset
+    _stopAutoPan();
+
     runInAction(() {
       // Set drag state
       interaction.draggedNodeId.value = nodeId;
@@ -2875,6 +2878,11 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   void moveNodeDrag(Offset graphDelta) {
     final draggedNodeId = interaction.draggedNodeId.value;
     if (draggedNodeId == null) return;
+
+    // Handle auto-panning using the last known pointer position
+    if (lastPointerPosition != null) {
+      _handleAutoPan(lastPointerPosition!);
+    }
 
     // Collect nodes that will be moved for event firing
     final movedNodes = <Node<T>>[];
@@ -2925,6 +2933,8 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   ///
   /// Call this from NodeWidget's GestureDetector.onPanEnd.
   void endNodeDrag() {
+    _stopAutoPan();
+
     // Capture dragged nodes before clearing state
     final draggedNodes = <Node<T>>[];
     final draggedNodeIds = <String>[];

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -213,6 +214,13 @@ class NodeFlowController<T> {
 
   // Actions and shortcuts management
   late final NodeFlowShortcutManager<T> shortcuts;
+
+  // Auto-pan state
+  Timer? _autoPanTimer;
+  Offset _autoPanSpeed = Offset.zero;
+  static const double _maxAutoPanSpeed = 15.0;
+  static const double _autoPanThreshold =
+      50.0; // Distance from edge to trigger auto-pan
 
   // Computed values
   Computed<bool> get _hasSelection => Computed(
@@ -475,8 +483,106 @@ class NodeFlowController<T> {
   ///   super.dispose();
   /// }
   /// ```
+  // === Auto-pan Logic ===
+
+  /// Process auto-pan logic based on the current pointer position.
+  /// Called periodically by the auto-pan timer.
+  void _processAutoPan() {
+    if (_autoPanSpeed == Offset.zero) return;
+
+    runInAction(() {
+      // Move viewport
+      final currentViewport = _viewport.value;
+      final newViewport = currentViewport.copyWith(
+        x: currentViewport.x - _autoPanSpeed.dx,
+        y: currentViewport.y - _autoPanSpeed.dy,
+      );
+      _viewport.value = newViewport;
+
+      // Update dragged node position to keep it under cursor
+      final draggedNodeId = interaction.draggedNodeId.value;
+      if (draggedNodeId != null) {
+        // Calculate the world delta from the screen delta (pan speed)
+        // Since we're panning the viewport, the conversion needs to account for zoom
+        final worldDelta = _autoPanSpeed / currentViewport.zoom;
+
+        // Move the node by the same amount in world coordinates
+        // This keeps the node stationary relative to the screen (under the cursor)
+        // while the world moves underneath it
+        moveNodeDrag(worldDelta);
+      }
+    });
+  }
+
+  /// Calculates auto-pan speed and direction based on pointer position.
+  /// Called during drag updates.
+  void _handleAutoPan(Offset localPosition) {
+    if (_screenSize.value.isEmpty) return;
+
+    final width = _screenSize.value.width;
+    final height = _screenSize.value.height;
+
+    double dx = 0;
+    double dy = 0;
+
+    // Check left/right edges
+    if (localPosition.dx < _autoPanThreshold) {
+      // Pan right (move viewport x negative)
+      final intensity = (1.0 - (localPosition.dx / _autoPanThreshold)).clamp(
+        0.0,
+        1.0,
+      );
+      dx = -_maxAutoPanSpeed * intensity;
+    } else if (localPosition.dx > width - _autoPanThreshold) {
+      // Pan left (move viewport x positive)
+      final intensity = (1.0 - ((width - localPosition.dx) / _autoPanThreshold))
+          .clamp(0.0, 1.0);
+      dx = _maxAutoPanSpeed * intensity;
+    }
+
+    // Check top/bottom edges
+    if (localPosition.dy < _autoPanThreshold) {
+      // Pan down (move viewport y negative)
+      final intensity = (1.0 - (localPosition.dy / _autoPanThreshold)).clamp(
+        0.0,
+        1.0,
+      );
+      dy = -_maxAutoPanSpeed * intensity;
+    } else if (localPosition.dy > height - _autoPanThreshold) {
+      // Pan up (move viewport y positive)
+      final intensity =
+          (1.0 - ((height - localPosition.dy) / _autoPanThreshold)).clamp(
+            0.0,
+            1.0,
+          );
+      dy = _maxAutoPanSpeed * intensity;
+    }
+
+    _autoPanSpeed = Offset(dx, dy);
+
+    // Start or stop timer based on speed
+    if (_autoPanSpeed != Offset.zero) {
+      if (_autoPanTimer == null || !_autoPanTimer!.isActive) {
+        _autoPanTimer = Timer.periodic(const Duration(milliseconds: 16), (_) {
+          _processAutoPan();
+        });
+      }
+    } else {
+      _stopAutoPan();
+    }
+  }
+
+  /// Stops auto-panning.
+  void _stopAutoPan() {
+    _autoPanTimer?.cancel();
+    _autoPanTimer = null;
+    _autoPanSpeed = Offset.zero;
+  }
+
   void dispose() {
+    _stopAutoPan();
     _canvasFocusNode.dispose();
+
     _connectionPainter?.dispose();
     annotations.dispose();
     // Other disposal logic...
