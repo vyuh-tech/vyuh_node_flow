@@ -26,8 +26,10 @@ class NodeTheme {
   const NodeTheme({
     required this.backgroundColor,
     required this.selectedBackgroundColor,
+    required this.highlightBackgroundColor,
     required this.borderColor,
     required this.selectedBorderColor,
+    required this.highlightBorderColor,
     required this.borderWidth,
     required this.selectedBorderWidth,
     required this.borderRadius,
@@ -41,11 +43,17 @@ class NodeTheme {
   /// Background color for selected nodes.
   final Color selectedBackgroundColor;
 
+  /// Background color for highlighted nodes (during hover).
+  final Color highlightBackgroundColor;
+
   /// Border color for nodes in normal state.
   final Color borderColor;
 
   /// Border color for selected nodes.
   final Color selectedBorderColor;
+
+  /// Border color for highlighted nodes (during hover).
+  final Color highlightBorderColor;
 
   /// Border width for nodes in normal state.
   final double borderWidth;
@@ -77,8 +85,10 @@ class NodeTheme {
   NodeTheme copyWith({
     Color? backgroundColor,
     Color? selectedBackgroundColor,
+    Color? highlightBackgroundColor,
     Color? borderColor,
     Color? selectedBorderColor,
+    Color? highlightBorderColor,
     double? borderWidth,
     double? selectedBorderWidth,
     BorderRadius? borderRadius,
@@ -89,8 +99,11 @@ class NodeTheme {
       backgroundColor: backgroundColor ?? this.backgroundColor,
       selectedBackgroundColor:
           selectedBackgroundColor ?? this.selectedBackgroundColor,
+      highlightBackgroundColor:
+          highlightBackgroundColor ?? this.highlightBackgroundColor,
       borderColor: borderColor ?? this.borderColor,
       selectedBorderColor: selectedBorderColor ?? this.selectedBorderColor,
+      highlightBorderColor: highlightBorderColor ?? this.highlightBorderColor,
       borderWidth: borderWidth ?? this.borderWidth,
       selectedBorderWidth: selectedBorderWidth ?? this.selectedBorderWidth,
       borderRadius: borderRadius ?? this.borderRadius,
@@ -106,8 +119,10 @@ class NodeTheme {
   static const light = NodeTheme(
     backgroundColor: Colors.white,
     selectedBackgroundColor: Color(0xFFF5F5F5),
+    highlightBackgroundColor: Color(0xFFE3F2FD),
     borderColor: Color(0xFFE0E0E0),
     selectedBorderColor: Color(0xFF2196F3),
+    highlightBorderColor: Color(0xFF42A5F5),
     borderWidth: 2.0,
     selectedBorderWidth: 2.0,
     borderRadius: BorderRadius.all(Radius.circular(8.0)),
@@ -126,8 +141,10 @@ class NodeTheme {
   static const dark = NodeTheme(
     backgroundColor: Color(0xFF2D2D2D),
     selectedBackgroundColor: Color(0xFF3D3D3D),
+    highlightBackgroundColor: Color(0xFF263238),
     borderColor: Color(0xFF555555),
     selectedBorderColor: Color(0xFF64B5F6),
+    highlightBorderColor: Color(0xFF90CAF9),
     borderWidth: 2.0,
     selectedBorderWidth: 2.0,
     borderRadius: BorderRadius.all(Radius.circular(8.0)),

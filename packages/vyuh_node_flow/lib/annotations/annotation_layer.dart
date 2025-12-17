@@ -3,16 +3,18 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../annotations/annotation.dart';
 import '../graph/node_flow_controller.dart';
+import '../shared/unbounded_widgets.dart';
 import 'annotation_widget.dart';
 
 /// A rendering layer for annotations in the node flow editor.
 ///
-/// This widget serves as a pure rendering layer that displays annotations on the
+/// This widget serves as a rendering layer that displays annotations on the
 /// canvas. It automatically:
 /// - Observes annotation changes via MobX for reactive updates
 /// - Sorts annotations by z-index for proper layering
 /// - Applies filtering to show specific annotation types
 /// - Handles selection and highlight visual feedback
+/// - Wires gesture callbacks to individual [AnnotationWidget] instances
 /// - Uses [RepaintBoundary] for optimized rendering
 ///
 /// ## Layer Architecture
@@ -20,12 +22,6 @@ import 'annotation_widget.dart';
 /// The node flow editor typically uses two annotation layers:
 /// 1. **Background layer**: Renders [GroupAnnotation]s behind nodes
 /// 2. **Foreground layer**: Renders sticky notes and markers above connections
-///
-/// ## Important Note
-///
-/// This is a **pure rendering layer**. User interactions (clicks, drags, etc.)
-/// are handled by the [NodeFlowEditor], not by this widget. This separation
-/// ensures consistent interaction behavior across all canvas elements.
 ///
 /// ## Example Usage
 ///
@@ -53,7 +49,16 @@ class AnnotationLayer<T> extends StatelessWidget {
   /// ## Parameters
   /// - [controller]: The node flow controller managing the annotations
   /// - [filter]: Optional predicate to filter which annotations to render
-  const AnnotationLayer({super.key, required this.controller, this.filter});
+  const AnnotationLayer({
+    super.key,
+    required this.controller,
+    this.filter,
+    this.onAnnotationTap,
+    this.onAnnotationDoubleTap,
+    this.onAnnotationContextMenu,
+    this.onAnnotationMouseEnter,
+    this.onAnnotationMouseLeave,
+  });
 
   /// Creates a background annotation layer that renders only groups.
   ///
@@ -72,10 +77,23 @@ class AnnotationLayer<T> extends StatelessWidget {
   ///   ],
   /// )
   /// ```
-  static AnnotationLayer<T> background<T>(NodeFlowController<T> controller) {
+  static AnnotationLayer<T> background<T>(
+    NodeFlowController<T> controller, {
+    void Function(Annotation annotation)? onAnnotationTap,
+    void Function(Annotation annotation)? onAnnotationDoubleTap,
+    void Function(Annotation annotation, Offset globalPosition)?
+    onAnnotationContextMenu,
+    void Function(Annotation annotation)? onAnnotationMouseEnter,
+    void Function(Annotation annotation)? onAnnotationMouseLeave,
+  }) {
     return AnnotationLayer<T>(
       controller: controller,
       filter: (annotation) => annotation is GroupAnnotation,
+      onAnnotationTap: onAnnotationTap,
+      onAnnotationDoubleTap: onAnnotationDoubleTap,
+      onAnnotationContextMenu: onAnnotationContextMenu,
+      onAnnotationMouseEnter: onAnnotationMouseEnter,
+      onAnnotationMouseLeave: onAnnotationMouseLeave,
     );
   }
 
@@ -97,10 +115,23 @@ class AnnotationLayer<T> extends StatelessWidget {
   ///   ],
   /// )
   /// ```
-  static AnnotationLayer<T> foreground<T>(NodeFlowController<T> controller) {
+  static AnnotationLayer<T> foreground<T>(
+    NodeFlowController<T> controller, {
+    void Function(Annotation annotation)? onAnnotationTap,
+    void Function(Annotation annotation)? onAnnotationDoubleTap,
+    void Function(Annotation annotation, Offset globalPosition)?
+    onAnnotationContextMenu,
+    void Function(Annotation annotation)? onAnnotationMouseEnter,
+    void Function(Annotation annotation)? onAnnotationMouseLeave,
+  }) {
     return AnnotationLayer<T>(
       controller: controller,
       filter: (annotation) => annotation is! GroupAnnotation,
+      onAnnotationTap: onAnnotationTap,
+      onAnnotationDoubleTap: onAnnotationDoubleTap,
+      onAnnotationContextMenu: onAnnotationContextMenu,
+      onAnnotationMouseEnter: onAnnotationMouseEnter,
+      onAnnotationMouseLeave: onAnnotationMouseLeave,
     );
   }
 
@@ -125,10 +156,26 @@ class AnnotationLayer<T> extends StatelessWidget {
   /// ```
   final bool Function(Annotation)? filter;
 
+  /// Callback invoked when an annotation is tapped.
+  final void Function(Annotation annotation)? onAnnotationTap;
+
+  /// Callback invoked when an annotation is double-tapped.
+  final void Function(Annotation annotation)? onAnnotationDoubleTap;
+
+  /// Callback invoked when an annotation is right-clicked (context menu).
+  final void Function(Annotation annotation, Offset globalPosition)?
+  onAnnotationContextMenu;
+
+  /// Callback invoked when mouse enters an annotation.
+  final void Function(Annotation annotation)? onAnnotationMouseEnter;
+
+  /// Callback invoked when mouse leaves an annotation.
+  final void Function(Annotation annotation)? onAnnotationMouseLeave;
+
   @override
   Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: RepaintBoundary(
+    return UnboundedPositioned.fill(
+      child: UnboundedRepaintBoundary(
         child: Observer(
           builder: (_) {
             // Observe sorted annotations for z-index ordering, apply filter if provided
@@ -140,7 +187,7 @@ class AnnotationLayer<T> extends StatelessWidget {
             final selectedAnnotationIds =
                 controller.annotations.selectedAnnotationIds;
 
-            return Stack(
+            return UnboundedStack(
               clipBehavior: Clip.none,
               children: annotations.map((annotation) {
                 final isSelected = selectedAnnotationIds.contains(
@@ -155,8 +202,25 @@ class AnnotationLayer<T> extends StatelessWidget {
                 return AnnotationWidget(
                   key: ValueKey('${annotation.id}_z${annotation.zIndex.value}'),
                   annotation: annotation,
+                  controller: controller,
                   isSelected: isSelected,
                   isHighlighted: isHighlighted,
+                  // Event callbacks for external handling
+                  onTap: onAnnotationTap != null
+                      ? () => onAnnotationTap!(annotation)
+                      : null,
+                  onDoubleTap: onAnnotationDoubleTap != null
+                      ? () => onAnnotationDoubleTap!(annotation)
+                      : null,
+                  onContextMenu: onAnnotationContextMenu != null
+                      ? (pos) => onAnnotationContextMenu!(annotation, pos)
+                      : null,
+                  onMouseEnter: onAnnotationMouseEnter != null
+                      ? () => onAnnotationMouseEnter!(annotation)
+                      : null,
+                  onMouseLeave: onAnnotationMouseLeave != null
+                      ? () => onAnnotationMouseLeave!(annotation)
+                      : null,
                 );
               }).toList(),
             );

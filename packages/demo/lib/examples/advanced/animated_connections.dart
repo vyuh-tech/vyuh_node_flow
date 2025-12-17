@@ -263,7 +263,7 @@ class _AnimatedConnectionsExampleState
       position: const Offset(50, 180),
       size: const Size(150, 80),
       data: {'label': 'Data Source'},
-      outputPorts: const [
+      outputPorts: [
         Port(
           id: 'out_right',
           name: 'Output',
@@ -291,7 +291,7 @@ class _AnimatedConnectionsExampleState
       position: const Offset(350, 180),
       size: const Size(150, 80),
       data: {'label': 'Processor Middle'},
-      inputPorts: const [
+      inputPorts: [
         Port(
           id: 'in_left',
           name: 'Input',
@@ -299,7 +299,7 @@ class _AnimatedConnectionsExampleState
           offset: Offset(-2, 40),
         ),
       ],
-      outputPorts: const [
+      outputPorts: [
         Port(
           id: 'out_right',
           name: 'Output',
@@ -315,7 +315,7 @@ class _AnimatedConnectionsExampleState
       position: const Offset(650, 180),
       size: const Size(150, 80),
       data: {'label': 'Data Sync'},
-      inputPorts: const [
+      inputPorts: [
         Port(
           id: 'in_left',
           name: 'Input',
@@ -344,7 +344,7 @@ class _AnimatedConnectionsExampleState
       position: const Offset(350, 30),
       size: const Size(150, 80),
       data: {'label': 'Processor Top'},
-      inputPorts: const [
+      inputPorts: [
         Port(
           id: 'in_bottom',
           name: 'Input',
@@ -352,7 +352,7 @@ class _AnimatedConnectionsExampleState
           offset: Offset(75, 2),
         ),
       ],
-      outputPorts: const [
+      outputPorts: [
         Port(
           id: 'out_top',
           name: 'Output',
@@ -368,7 +368,7 @@ class _AnimatedConnectionsExampleState
       position: const Offset(350, 330),
       size: const Size(150, 80),
       data: {'label': 'Processor Bottom'},
-      inputPorts: const [
+      inputPorts: [
         Port(
           id: 'in_top',
           name: 'Input',
@@ -376,7 +376,7 @@ class _AnimatedConnectionsExampleState
           offset: Offset(75, -2),
         ),
       ],
-      outputPorts: const [
+      outputPorts: [
         Port(
           id: 'out_bottom',
           name: 'Output',

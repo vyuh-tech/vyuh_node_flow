@@ -40,7 +40,7 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
         position: const Offset(100, 150),
         data: {'label': 'Node 1'},
         size: const Size(150, 100),
-        inputPorts: const [
+        inputPorts: [
           Port(
             id: 'input',
             name: 'In',
@@ -48,7 +48,7 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
             offset: Offset(-2, 50),
           ),
         ],
-        outputPorts: const [
+        outputPorts: [
           Port(
             id: 'output',
             name: 'Out',
@@ -63,7 +63,7 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
         position: const Offset(350, 100),
         data: {'label': 'Node 2'},
         size: const Size(150, 100),
-        inputPorts: const [
+        inputPorts: [
           Port(
             id: 'input',
             name: 'In',
@@ -71,7 +71,7 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
             offset: Offset(-2, 50),
           ),
         ],
-        outputPorts: const [
+        outputPorts: [
           Port(
             id: 'output',
             name: 'Out',
@@ -86,7 +86,7 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
         position: const Offset(350, 250),
         data: {'label': 'Node 3'},
         size: const Size(150, 100),
-        inputPorts: const [
+        inputPorts: [
           Port(
             id: 'input',
             name: 'In',
@@ -94,7 +94,7 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
             offset: Offset(-2, 50),
           ),
         ],
-        outputPorts: const [
+        outputPorts: [
           Port(
             id: 'output',
             name: 'Out',
@@ -131,7 +131,7 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
       ),
       data: {'label': 'Node $_nodeCounter'},
       size: const Size(150, 100),
-      inputPorts: const [
+      inputPorts: [
         Port(
           id: 'input',
           name: 'In',
@@ -139,7 +139,7 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
           offset: Offset(-2, 50),
         ),
       ],
-      outputPorts: const [
+      outputPorts: [
         Port(
           id: 'output',
           name: 'Out',

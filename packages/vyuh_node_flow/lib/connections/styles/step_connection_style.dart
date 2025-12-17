@@ -42,15 +42,20 @@ class StepConnectionStyle extends ConnectionStyle {
     ConnectionPathParameters params,
   ) {
     // Calculate waypoints for all routing scenarios (ONCE)
+    // Use sourceOffset/targetOffset to handle temporary connections correctly
+    // (mouse position should not be extended)
     final waypoints = WaypointBuilder.calculateWaypoints(
       start: params.start,
       end: params.end,
       sourcePosition: params.sourcePosition,
       targetPosition: params.targetPosition,
       offset: params.offset,
+      sourceOffset: params.sourceOffset,
+      targetOffset: params.targetOffset,
       backEdgeGap: params.backEdgeGap,
       sourceNodeBounds: params.sourceNodeBounds,
       targetNodeBounds: params.targetNodeBounds,
+      debugMode: params.debugMode,
     );
 
     // Optimize waypoints (remove redundant collinear points)

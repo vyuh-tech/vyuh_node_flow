@@ -39,22 +39,22 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
       size: const Size(120, 100),
       data: {'label': 'Horizontal'},
       inputPorts: [
-        const Port(
+        Port(
           id: 'port-1',
           name: 'Input',
           position: PortPosition.left,
           offset: Offset(-2, 50),
-          type: PortType.target,
+          type: PortType.input,
           multiConnections: true,
         ),
       ],
       outputPorts: [
-        const Port(
+        Port(
           id: 'port-2',
           name: 'Output',
           position: PortPosition.right,
           offset: Offset(2, 50),
-          type: PortType.source,
+          type: PortType.output,
         ),
       ],
     );
@@ -67,22 +67,22 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
       size: const Size(120, 100),
       data: {'label': 'Vertical'},
       inputPorts: [
-        const Port(
+        Port(
           id: 'port-3',
           name: 'Input',
           position: PortPosition.top,
           offset: Offset(60, -2),
-          type: PortType.target,
+          type: PortType.input,
           multiConnections: true,
         ),
       ],
       outputPorts: [
-        const Port(
+        Port(
           id: 'port-4',
           name: 'Output',
           position: PortPosition.bottom,
           offset: Offset(60, 2),
-          type: PortType.source,
+          type: PortType.output,
         ),
       ],
     );
@@ -148,7 +148,7 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
       name: '${position.name} $_portCounter',
       position: position,
       offset: offset,
-      type: isOutput ? PortType.source : PortType.target,
+      type: isOutput ? PortType.output : PortType.input,
       multiConnections: isOutput ? false : true,
     );
 

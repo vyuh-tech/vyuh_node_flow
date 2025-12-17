@@ -65,8 +65,8 @@ class _ViewerExampleState extends State<ViewerExample> {
         data: 'Input Node',
         position: const Offset(100, 100),
         size: const Size(150, 80),
-        inputPorts: const [],
-        outputPorts: const [
+        inputPorts: [],
+        outputPorts: [
           Port(
             id: 'out',
             name: 'Output',
@@ -81,7 +81,7 @@ class _ViewerExampleState extends State<ViewerExample> {
         data: 'Processing Node',
         position: const Offset(300, 200),
         size: const Size(150, 100),
-        inputPorts: const [
+        inputPorts: [
           Port(
             id: 'in',
             name: 'Input',
@@ -89,7 +89,7 @@ class _ViewerExampleState extends State<ViewerExample> {
             offset: Offset(-2, 20),
           ),
         ],
-        outputPorts: const [
+        outputPorts: [
           Port(
             id: 'out1',
             name: 'Result',
@@ -110,7 +110,7 @@ class _ViewerExampleState extends State<ViewerExample> {
         data: 'Output Node 1',
         position: const Offset(500, 150),
         size: const Size(150, 80),
-        inputPorts: const [
+        inputPorts: [
           Port(
             id: 'in',
             name: 'Input',
@@ -118,7 +118,7 @@ class _ViewerExampleState extends State<ViewerExample> {
             offset: Offset(-2, 20),
           ),
         ],
-        outputPorts: const [],
+        outputPorts: [],
       ),
       'output2': Node<String>(
         id: 'output2',
@@ -126,7 +126,7 @@ class _ViewerExampleState extends State<ViewerExample> {
         data: 'Output Node 2',
         position: const Offset(500, 280),
         size: const Size(150, 80),
-        inputPorts: const [
+        inputPorts: [
           Port(
             id: 'in',
             name: 'Input',
@@ -134,7 +134,7 @@ class _ViewerExampleState extends State<ViewerExample> {
             offset: Offset(-2, 20),
           ),
         ],
-        outputPorts: const [],
+        outputPorts: [],
       ),
     };
   }

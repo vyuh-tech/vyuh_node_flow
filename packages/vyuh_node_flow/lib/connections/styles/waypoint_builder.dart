@@ -117,6 +117,8 @@ class WaypointBuilder {
       sourcePosition: params.sourcePosition,
       targetPosition: params.targetPosition,
       offset: params.offset,
+      sourceOffset: params.sourceOffset,
+      targetOffset: params.targetOffset,
       backEdgeGap: params.backEdgeGap,
       sourceNodeBounds: params.sourceNodeBounds,
       targetNodeBounds: params.targetNodeBounds,
@@ -141,7 +143,11 @@ class WaypointBuilder {
   /// - Loop-back connections (routing around nodes)
   ///
   /// Parameters:
-  /// - [offset]: Distance for port extension (straight segment from port)
+  /// - [offset]: Distance for port extension (straight segment from port).
+  ///   Used as default for both source and target if specific offsets not provided.
+  /// - [sourceOffset]: Specific offset for source end. If null, uses [offset].
+  /// - [targetOffset]: Specific offset for target end. If null, uses [offset].
+  ///   Set to 0 for temporary connections where target is mouse position.
   /// - [backEdgeGap]: Clearance from node bounds for loopback routing
   static List<Offset> calculateWaypoints({
     required Offset start,
@@ -149,15 +155,34 @@ class WaypointBuilder {
     required PortPosition sourcePosition,
     required PortPosition targetPosition,
     required double offset,
+    double? sourceOffset,
+    double? targetOffset,
     double? backEdgeGap,
     Rect? sourceNodeBounds,
     Rect? targetNodeBounds,
+    bool debugMode = false,
   }) {
+    // Use specific offsets if provided, otherwise use default offset
+    final effectiveSourceOffset = sourceOffset ?? offset;
+    final effectiveTargetOffset = targetOffset ?? offset;
     // Use backEdgeGap for loopback routing, default to offset if not specified
     final loopbackGap = backEdgeGap ?? offset;
     // Calculate extended points (always outward from ports)
-    final startExtended = getExtendedPoint(start, sourcePosition, offset);
-    final endExtended = getExtendedPoint(end, targetPosition, offset);
+    // For temporary connections, targetOffset will be 0, so endExtended == end
+    final startExtended = getExtendedPoint(
+      start,
+      sourcePosition,
+      effectiveSourceOffset,
+    );
+    final endExtended = getExtendedPoint(
+      end,
+      targetPosition,
+      effectiveTargetOffset,
+    );
+
+    if (debugMode) {
+      // Debug output removed
+    }
 
     // 1. Check for self-connection (same node)
     if (isSelfConnection(sourceNodeBounds, targetNodeBounds)) {
@@ -216,6 +241,7 @@ class WaypointBuilder {
         backEdgeGap: loopbackGap,
         sourceNodeBounds: sourceNodeBounds,
         targetNodeBounds: targetNodeBounds,
+        debugMode: debugMode,
       );
     }
 
@@ -620,6 +646,7 @@ class WaypointBuilder {
     required double backEdgeGap,
     Rect? sourceNodeBounds,
     Rect? targetNodeBounds,
+    bool debugMode = false,
   }) {
     final unionBounds = _getUnionBounds(sourceNodeBounds, targetNodeBounds);
 
@@ -637,6 +664,7 @@ class WaypointBuilder {
         sourcePosition: sourcePosition,
         backEdgeGap: backEdgeGap,
         unionBounds: unionBounds,
+        debugMode: debugMode,
       );
     } else {
       return _calculateVerticalOppositeWaypoints(
@@ -647,9 +675,15 @@ class WaypointBuilder {
         sourcePosition: sourcePosition,
         backEdgeGap: backEdgeGap,
         unionBounds: unionBounds,
+        debugMode: debugMode,
       );
     }
   }
+
+  /// Minimum distance threshold before considering loop-around routing.
+  /// When ports are closer than this, we always use a Z-curve/S-bend
+  /// instead of routing around the nodes, to avoid visual loops.
+  static const double _minLoopAroundDistance = 100.0;
 
   /// Calculates S-bend waypoints for horizontal opposite ports (right↔left).
   static List<Offset> _calculateHorizontalOppositeWaypoints({
@@ -660,16 +694,25 @@ class WaypointBuilder {
     required PortPosition sourcePosition,
     required double backEdgeGap,
     Rect? unionBounds,
+    bool debugMode = false,
   }) {
     // Determine if there's enough horizontal space for an S-bend
     final hasHorizontalClearance = sourcePosition == PortPosition.right
         ? startExtended.dx < endExtended.dx
         : startExtended.dx > endExtended.dx;
 
+    // Calculate the distance between ports to determine routing strategy
+    final portDistance = (end - start).distance;
+    final isCloseConnection = portDistance < _minLoopAroundDistance;
+
+    if (debugMode) {
+      // Debug output removed
+    }
+
     if (hasHorizontalClearance) {
       // S-bend: go through the horizontal middle
       final midX = (startExtended.dx + endExtended.dx) / 2;
-      return [
+      final waypoints = [
         start,
         startExtended,
         Offset(midX, startExtended.dy),
@@ -677,13 +720,17 @@ class WaypointBuilder {
         endExtended,
         end,
       ];
+      if (debugMode) {
+        // Debug output removed
+      }
+      return waypoints;
     } else {
-      // No horizontal clearance - prefer S-curve through vertical midpoint
-      // over looping around nodes when possible
+      // No horizontal clearance - prefer Z-curve (S-bend) through vertical midpoint
+      // For close connections, ALWAYS use Z-curve to avoid visual loops
       final midY = (startExtended.dy + endExtended.dy) / 2;
 
-      // Check if an S-curve through midY would intersect node bounds
-      final sCurveWaypoints = [
+      // Create Z-curve waypoints (S-bend through vertical midpoint)
+      final zCurveWaypoints = [
         start,
         startExtended,
         Offset(startExtended.dx, midY),
@@ -692,20 +739,38 @@ class WaypointBuilder {
         end,
       ];
 
-      // Only route around if the S-curve would intersect the union bounds
+      if (debugMode) {
+        // Debug output removed
+      }
+
+      // For close connections, always use Z-curve regardless of intersection
+      // This prevents visual loops when ports are nearby
+      if (isCloseConnection) {
+        if (debugMode) {
+          // Debug output removed
+        }
+        return zCurveWaypoints;
+      }
+
+      // Only route around if the Z-curve would intersect the union bounds
+      // AND the connection is far enough to warrant loop-around routing
       if (unionBounds != null) {
-        final sCurveIntersects = _waypointsIntersectBounds(
-          sCurveWaypoints,
+        final zCurveIntersects = _waypointsIntersectBounds(
+          zCurveWaypoints,
           unionBounds,
         );
 
-        if (sCurveIntersects) {
-          // S-curve would intersect - route around (above or below)
+        if (debugMode) {
+          // Debug output removed
+        }
+
+        if (zCurveIntersects) {
+          // Z-curve would intersect - route around (above or below)
           final routeAbove = end.dy < start.dy;
           final routeY = routeAbove
               ? unionBounds.top - backEdgeGap
               : unionBounds.bottom + backEdgeGap;
-          return [
+          final loopWaypoints = [
             start,
             startExtended,
             Offset(startExtended.dx, routeY),
@@ -713,11 +778,18 @@ class WaypointBuilder {
             endExtended,
             end,
           ];
+          if (debugMode) {
+            // Debug output removed
+          }
+          return loopWaypoints;
         }
       }
 
-      // S-curve is clear or no bounds to check - use it
-      return sCurveWaypoints;
+      // Z-curve is clear or no bounds to check - use it
+      if (debugMode) {
+        // Debug output removed
+      }
+      return zCurveWaypoints;
     }
   }
 
@@ -730,11 +802,20 @@ class WaypointBuilder {
     required PortPosition sourcePosition,
     required double backEdgeGap,
     Rect? unionBounds,
+    bool debugMode = false,
   }) {
     // Determine if there's enough vertical space for an S-bend
     final hasVerticalClearance = sourcePosition == PortPosition.bottom
         ? startExtended.dy < endExtended.dy
         : startExtended.dy > endExtended.dy;
+
+    // Calculate the distance between ports to determine routing strategy
+    final portDistance = (end - start).distance;
+    final isCloseConnection = portDistance < _minLoopAroundDistance;
+
+    if (debugMode) {
+      // Debug output removed
+    }
 
     if (hasVerticalClearance) {
       // S-bend: go through the vertical middle
@@ -748,12 +829,12 @@ class WaypointBuilder {
         end,
       ];
     } else {
-      // No vertical clearance - prefer S-curve through horizontal midpoint
-      // over looping around nodes when possible
+      // No vertical clearance - prefer Z-curve through horizontal midpoint
+      // For close connections, ALWAYS use Z-curve to avoid visual loops
       final midX = (startExtended.dx + endExtended.dx) / 2;
 
-      // Check if an S-curve through midX would intersect node bounds
-      final sCurveWaypoints = [
+      // Create Z-curve waypoints (S-bend through horizontal midpoint)
+      final zCurveWaypoints = [
         start,
         startExtended,
         Offset(midX, startExtended.dy),
@@ -762,15 +843,25 @@ class WaypointBuilder {
         end,
       ];
 
-      // Only route around if the S-curve would intersect the union bounds
+      // For close connections, always use Z-curve regardless of intersection
+      // This prevents visual loops when ports are nearby
+      if (isCloseConnection) {
+        if (debugMode) {
+          // Debug output removed
+        }
+        return zCurveWaypoints;
+      }
+
+      // Only route around if the Z-curve would intersect the union bounds
+      // AND the connection is far enough to warrant loop-around routing
       if (unionBounds != null) {
-        final sCurveIntersects = _waypointsIntersectBounds(
-          sCurveWaypoints,
+        final zCurveIntersects = _waypointsIntersectBounds(
+          zCurveWaypoints,
           unionBounds,
         );
 
-        if (sCurveIntersects) {
-          // S-curve would intersect - route around (left or right)
+        if (zCurveIntersects) {
+          // Z-curve would intersect - route around (left or right)
           final routeLeft = end.dx < start.dx;
           final routeX = routeLeft
               ? unionBounds.left - backEdgeGap
@@ -786,8 +877,8 @@ class WaypointBuilder {
         }
       }
 
-      // S-curve is clear or no bounds to check - use it
-      return sCurveWaypoints;
+      // Z-curve is clear or no bounds to check - use it
+      return zCurveWaypoints;
     }
   }
 
@@ -1562,7 +1653,10 @@ class WaypointBuilder {
   /// - [sourcePosition]: The position of the source port
   /// - [targetPosition]: The position of the target port
   /// - [curvature]: How curved the connection should be (0-1)
-  /// - [portExtension]: The minimum extension from the port
+  /// - [portExtension]: The default minimum extension from the port
+  /// - [sourceExtension]: Extension for source control point (null = use portExtension)
+  /// - [targetExtension]: Extension for target control point (null = use portExtension).
+  ///   Set to 0 for temporary connections where target is mouse position.
   static CubicSegment createBezierSegment({
     required Offset start,
     required Offset end,
@@ -1570,14 +1664,20 @@ class WaypointBuilder {
     required PortPosition targetPosition,
     required double curvature,
     required double portExtension,
+    double? sourceExtension,
+    double? targetExtension,
   }) {
+    // Use specific extensions if provided, otherwise use default
+    final effectiveSourceExtension = sourceExtension ?? portExtension;
+    final effectiveTargetExtension = targetExtension ?? portExtension;
+
     // Calculate control points based on port positions
     final cp1 = _calculateBezierControlPoint(
       anchor: start,
       target: end,
       position: sourcePosition,
       curvature: curvature,
-      portExtension: portExtension,
+      portExtension: effectiveSourceExtension,
     );
 
     final cp2 = _calculateBezierControlPoint(
@@ -1585,7 +1685,7 @@ class WaypointBuilder {
       target: start,
       position: targetPosition,
       curvature: curvature,
-      portExtension: portExtension,
+      portExtension: effectiveTargetExtension,
     );
 
     return CubicSegment(

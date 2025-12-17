@@ -66,15 +66,19 @@ class EditableSmoothStepConnectionStyle extends EditablePathConnectionStyle {
     ConnectionPathParameters params,
   ) {
     // Use WaypointBuilder for all routing scenarios
+    // Use sourceOffset/targetOffset for proper temporary connection handling
     final waypoints = WaypointBuilder.calculateWaypoints(
       start: params.start,
       end: params.end,
       sourcePosition: params.sourcePosition,
       targetPosition: params.targetPosition,
       offset: params.offset,
+      sourceOffset: params.sourceOffset,
+      targetOffset: params.targetOffset,
       backEdgeGap: params.backEdgeGap,
       sourceNodeBounds: params.sourceNodeBounds,
       targetNodeBounds: params.targetNodeBounds,
+      debugMode: params.debugMode,
     );
 
     final optimized = WaypointBuilder.optimizeWaypoints(waypoints);

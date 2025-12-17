@@ -1,3 +1,8 @@
+## 0.9.0
+
+ - **FEAT**: enhance interaction handling with connection hover states and streamline zoom-related logic.
+ - **FEAT**: leveraging gesture detectors to handle nodes, ports, annotations. Only connections leverage the top-level listener. This ensures that we can have widgets and interactive widgets inside nodes and annotations, and have it even work outside the original stack bounds.
+
 ## 0.8.5+1
 
  - **FIX**: analysis fixes.

@@ -65,7 +65,7 @@ class _SerializationExampleState extends State<SerializationExample> {
       position: const Offset(100, 150),
       size: const Size(150, 80),
       data: {'label': 'Input', 'value': 42},
-      outputPorts: const [
+      outputPorts: [
         Port(
           id: 'out',
           name: 'Output',
@@ -81,7 +81,7 @@ class _SerializationExampleState extends State<SerializationExample> {
       position: const Offset(350, 100),
       size: const Size(150, 100),
       data: {'label': 'Process A', 'operation': 'multiply'},
-      inputPorts: const [
+      inputPorts: [
         Port(
           id: 'in',
           name: 'Input',
@@ -89,7 +89,7 @@ class _SerializationExampleState extends State<SerializationExample> {
           offset: Offset(-2, 50), // Vertical center of 100 height
         ),
       ],
-      outputPorts: const [
+      outputPorts: [
         Port(
           id: 'out',
           name: 'Result',
@@ -105,7 +105,7 @@ class _SerializationExampleState extends State<SerializationExample> {
       position: const Offset(350, 250),
       size: const Size(150, 100),
       data: {'label': 'Process B', 'operation': 'add'},
-      inputPorts: const [
+      inputPorts: [
         Port(
           id: 'in',
           name: 'Input',
@@ -113,7 +113,7 @@ class _SerializationExampleState extends State<SerializationExample> {
           offset: Offset(-2, 50), // Vertical center of 100 height
         ),
       ],
-      outputPorts: const [
+      outputPorts: [
         Port(
           id: 'out',
           name: 'Result',
@@ -129,7 +129,7 @@ class _SerializationExampleState extends State<SerializationExample> {
       position: const Offset(600, 150),
       size: const Size(150, 80),
       data: {'label': 'Output', 'format': 'json'},
-      inputPorts: const [
+      inputPorts: [
         Port(
           id: 'in1',
           name: 'Input 1',

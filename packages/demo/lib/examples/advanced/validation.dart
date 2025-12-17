@@ -36,13 +36,13 @@ class _ConnectionValidationExampleState
       size: const Size(120, 80),
       data: 'Input Node',
       outputPorts: [
-        const Port(
+        Port(
           id: 'out1',
           name: 'Output 1',
           position: PortPosition.right,
           offset: Offset(2, 20), // Multiple ports: starting offset 20
         ),
-        const Port(
+        Port(
           id: 'out2',
           name: 'Output 2',
           position: PortPosition.right,
@@ -59,13 +59,13 @@ class _ConnectionValidationExampleState
       size: const Size(140, 100),
       data: 'Processing Node',
       inputPorts: [
-        const Port(
+        Port(
           id: 'in1',
           name: 'Input 1',
           position: PortPosition.left,
           offset: Offset(-2, 20), // Multiple ports: starting offset 20
         ),
-        const Port(
+        Port(
           id: 'in2',
           name: 'Input 2',
           position: PortPosition.left,
@@ -74,7 +74,7 @@ class _ConnectionValidationExampleState
         ),
       ],
       outputPorts: [
-        const Port(
+        Port(
           id: 'out1',
           name: 'Result',
           position: PortPosition.right,
@@ -90,7 +90,7 @@ class _ConnectionValidationExampleState
       size: const Size(120, 80),
       data: 'Output Node',
       inputPorts: [
-        const Port(
+        Port(
           id: 'in1',
           name: 'Input',
           position: PortPosition.left,
@@ -107,7 +107,7 @@ class _ConnectionValidationExampleState
       size: const Size(120, 80),
       data: 'Locked Node',
       inputPorts: [
-        const Port(
+        Port(
           id: 'in1',
           name: 'Locked In',
           position: PortPosition.left,
@@ -115,7 +115,7 @@ class _ConnectionValidationExampleState
         ),
       ],
       outputPorts: [
-        const Port(
+        Port(
           id: 'out1',
           name: 'Locked Out',
           position: PortPosition.right,
@@ -196,7 +196,17 @@ class _ConnectionValidationExampleState
   ConnectionValidationResult _onBeforeCompleteConnection(
     ConnectionCompleteContext<String> context,
   ) {
-    // Example 1: Prevent any connections to locked nodes
+    // Example 1: Prevent any connections to/from locked nodes
+    // Note: We must check BOTH sourceNode and targetNode because:
+    // - Dragging OUTPUT→INPUT: targetNode is the drop target
+    // - Dragging INPUT→OUTPUT: sourceNode is the drop target (direction swapped)
+    if (context.sourceNode.type == 'locked') {
+      _showMessage('Cannot connect from locked nodes!');
+      return const ConnectionValidationResult.deny(
+        reason: 'Source node is locked',
+        showMessage: true,
+      );
+    }
     if (context.targetNode.type == 'locked') {
       _showMessage('Cannot connect to locked nodes!');
       return const ConnectionValidationResult.deny(

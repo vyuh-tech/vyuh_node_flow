@@ -21,31 +21,7 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
 
     if (!isShiftKey) return false;
 
-    final wasShiftPressed = _isShiftPressed;
     _isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
-
-    // Update cursor if shift state changed
-    if (wasShiftPressed != _isShiftPressed && widget.enableSelection) {
-      // Use the last known hover state to update cursor
-      final hitResult = HitTestResult(
-        hitType: _lastHoverHitType ?? HitTarget.canvas,
-        nodeId:
-            _lastHoverHitType == HitTarget.node ||
-                _lastHoverHitType == HitTarget.port
-            ? _lastHoveredEntityId ?? _lastHoveredNodeId
-            : null,
-        portId: _lastHoverHitType == HitTarget.port
-            ? _lastHoveredEntityId
-            : null,
-        connectionId: _lastHoverHitType == HitTarget.connection
-            ? _lastHoveredEntityId
-            : null,
-        annotationId: _lastHoverHitType == HitTarget.annotation
-            ? _lastHoveredEntityId
-            : null,
-      );
-      _updateCursor(hitResult);
-    }
 
     // Don't consume the event - let other handlers process it
     return false;
@@ -74,7 +50,7 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
     // Track hover state changes and fire enter/leave events
     _handleHoverStateChange(hitResult);
 
-    _updateCursor(hitResult);
+    // Cursor is derived from state via Observer - no update needed
   }
 
   /// Handles hover state changes and fires onMouseEnter/onMouseLeave events.
@@ -128,36 +104,26 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
     // Update tracking state
     _lastHoverHitType = currentHitType;
     _lastHoveredEntityId = currentEntityId;
-    _lastHoveredNodeId = currentNodeId;
-    _lastHoveredPortIsOutput = currentPortIsOutput;
+
+    // Update connection hover state for cursor feedback
+    widget.controller.interaction.setHoveringConnection(
+      currentHitType == HitTarget.connection,
+    );
   }
 
   /// Fires mouse leave event for the previously hovered entity.
+  /// Only handles connections - nodes, ports, and annotations handle their own
+  /// mouse events via their widget's MouseRegion.
   void _fireMouseLeaveEvent() {
     switch (_lastHoverHitType!) {
+      // Nodes, ports, and annotations handle their own mouse events
+      // via their widget's MouseRegion - don't fire again here
       case HitTarget.node:
-        if (_lastHoveredEntityId != null) {
-          final node = widget.controller.getNode(_lastHoveredEntityId!);
-          if (node != null) {
-            widget.controller.events.node?.onMouseLeave?.call(node);
-          }
-        }
-        break;
       case HitTarget.port:
-        if (_lastHoveredNodeId != null && _lastHoveredEntityId != null) {
-          final node = widget.controller.getNode(_lastHoveredNodeId!);
-          if (node != null) {
-            final port = _findPort(node, _lastHoveredEntityId!);
-            if (port != null) {
-              widget.controller.events.port?.onMouseLeave?.call(
-                node,
-                port,
-                _lastHoveredPortIsOutput ?? false,
-              );
-            }
-          }
-        }
+      case HitTarget.annotation:
+      case HitTarget.canvas:
         break;
+
       case HitTarget.connection:
         if (_lastHoveredEntityId != null) {
           final connection = widget.controller.connections
@@ -168,22 +134,12 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
           }
         }
         break;
-      case HitTarget.annotation:
-        if (_lastHoveredEntityId != null) {
-          final annotation = widget.controller.annotations.getAnnotation(
-            _lastHoveredEntityId!,
-          );
-          if (annotation != null) {
-            widget.controller.events.annotation?.onMouseLeave?.call(annotation);
-          }
-        }
-        break;
-      case HitTarget.canvas:
-        break;
     }
   }
 
   /// Fires mouse enter event for the newly hovered entity.
+  /// Only handles connections - nodes, ports, and annotations handle their own
+  /// mouse events via their widget's MouseRegion.
   void _fireMouseEnterEvent(
     HitTarget hitType,
     String? entityId,
@@ -191,29 +147,14 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
     bool? isOutput,
   ) {
     switch (hitType) {
+      // Nodes, ports, and annotations handle their own mouse events
+      // via their widget's MouseRegion - don't fire again here
       case HitTarget.node:
-        if (entityId != null) {
-          final node = widget.controller.getNode(entityId);
-          if (node != null) {
-            widget.controller.events.node?.onMouseEnter?.call(node);
-          }
-        }
-        break;
       case HitTarget.port:
-        if (nodeId != null && entityId != null) {
-          final node = widget.controller.getNode(nodeId);
-          if (node != null) {
-            final port = _findPort(node, entityId);
-            if (port != null) {
-              widget.controller.events.port?.onMouseEnter?.call(
-                node,
-                port,
-                isOutput ?? false,
-              );
-            }
-          }
-        }
+      case HitTarget.annotation:
+      case HitTarget.canvas:
         break;
+
       case HitTarget.connection:
         if (entityId != null) {
           final connection = widget.controller.connections
@@ -224,18 +165,6 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
           }
         }
         break;
-      case HitTarget.annotation:
-        if (entityId != null) {
-          final annotation = widget.controller.annotations.getAnnotation(
-            entityId,
-          );
-          if (annotation != null) {
-            widget.controller.events.annotation?.onMouseEnter?.call(annotation);
-          }
-        }
-        break;
-      case HitTarget.canvas:
-        break;
     }
   }
 
@@ -243,7 +172,8 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
   // Context Menu (Right-Click) Handling
   // ============================================================
 
-  /// Handles right-click context menu for all entity types.
+  /// Handles right-click context menu for connections and canvas only.
+  /// Nodes, ports, and annotations handle their own context menu via their widgets.
   /// Returns true if the event was handled (context menu shown).
   bool _handleContextMenu(PointerDownEvent event) {
     if (event.buttons != kSecondaryMouseButton) return false;
@@ -251,29 +181,11 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
     final hitResult = _performHitTest(event.localPosition);
 
     switch (hitResult.hitType) {
-      case HitTarget.port:
-        final node = widget.controller.getNode(hitResult.nodeId!);
-        if (node != null) {
-          final port = _findPort(node, hitResult.portId!);
-          if (port != null) {
-            widget.controller.events.port?.onContextMenu?.call(
-              node,
-              port,
-              hitResult.isOutput ?? false,
-              event.localPosition,
-            );
-          }
-        }
-        break;
-
+      // Nodes, ports, and annotations handle their own context menu
+      // via their widget's onSecondaryTapUp - don't fire again here
       case HitTarget.node:
-        final node = widget.controller.getNode(hitResult.nodeId!);
-        if (node != null) {
-          widget.controller.events.node?.onContextMenu?.call(
-            node,
-            event.localPosition,
-          );
-        }
+      case HitTarget.port:
+      case HitTarget.annotation:
         break;
 
       case HitTarget.connection:
@@ -283,18 +195,6 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
         if (connection != null) {
           widget.controller.events.connection?.onContextMenu?.call(
             connection,
-            event.localPosition,
-          );
-        }
-        break;
-
-      case HitTarget.annotation:
-        final annotation = widget.controller.annotations.getAnnotation(
-          hitResult.annotationId!,
-        );
-        if (annotation != null) {
-          widget.controller.events.annotation?.onContextMenu?.call(
-            annotation,
             event.localPosition,
           );
         }
@@ -356,11 +256,10 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
   /// Handles single tap events for all hit target types.
   void _handleSingleTap(Offset position, HitTestResult hitResult) {
     switch (hitResult.hitType) {
+      // Note: Node tap is now handled by widget-level gestures (NodeWidget.onTap)
+      // to avoid double-firing the callback.
       case HitTarget.node:
-        final node = widget.controller.getNode(hitResult.nodeId!);
-        if (node != null) {
-          widget.controller.events.node?.onTap?.call(node);
-        }
+        // Widget handles tap - nothing to do here
         break;
 
       case HitTarget.port:
@@ -382,13 +281,10 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
         // The onTap callback is also fired there
         break;
 
+      // Note: Annotation tap is now handled by widget-level gestures (AnnotationWidget.onTap)
+      // to avoid double-firing the callback.
       case HitTarget.annotation:
-        final annotation = widget.controller.annotations.getAnnotation(
-          hitResult.annotationId!,
-        );
-        if (annotation != null) {
-          widget.controller.events.annotation?.onTap?.call(annotation);
-        }
+        // Widget handles tap - nothing to do here
         break;
 
       case HitTarget.canvas:
@@ -407,11 +303,10 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
   /// Handles double-tap events for all hit target types.
   void _handleDoubleTap(Offset position, HitTestResult hitResult) {
     switch (hitResult.hitType) {
+      // Note: Node double-tap is now handled by widget-level gestures (NodeWidget.onDoubleTap)
+      // to avoid double-firing the callback.
       case HitTarget.node:
-        final node = widget.controller.getNode(hitResult.nodeId!);
-        if (node != null) {
-          widget.controller.events.node?.onDoubleTap?.call(node);
-        }
+        // Widget handles double-tap - nothing to do here
         break;
 
       case HitTarget.port:
@@ -437,13 +332,10 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
         }
         break;
 
+      // Note: Annotation double-tap is now handled by widget-level gestures (AnnotationWidget.onDoubleTap)
+      // to avoid double-firing the callback.
       case HitTarget.annotation:
-        final annotation = widget.controller.annotations.getAnnotation(
-          hitResult.annotationId!,
-        );
-        if (annotation != null) {
-          widget.controller.events.annotation?.onDoubleTap?.call(annotation);
-        }
+        // Widget handles double-tap - nothing to do here
         break;
 
       case HitTarget.canvas:
@@ -463,42 +355,6 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
     _lastTapPosition = null;
     _lastTapHitType = null;
     _lastTappedEntityId = null;
-  }
-
-  // ============================================================
-  // Cursor Management
-  // ============================================================
-
-  /// Updates the cursor based on the current hit test result and shift key state.
-  void _updateCursor(HitTestResult hitResult) {
-    final cursorTheme = widget.theme.cursorTheme;
-    MouseCursor newCursor;
-
-    // When all interactions disabled, always use selection cursor
-    if (!widget.enableSelection &&
-        !widget.enableNodeDragging &&
-        !widget.enableConnectionCreation) {
-      newCursor = cursorTheme.selectionCursor;
-    } else if (_isShiftPressed && widget.enableSelection) {
-      // Shift pressed - show crosshair for selection mode
-      newCursor = SystemMouseCursors.precise;
-    } else if (widget.controller.isDrawingSelection) {
-      newCursor = SystemMouseCursors.precise;
-    } else if (widget.controller.draggedNodeId != null) {
-      newCursor = cursorTheme.dragCursor;
-    } else if (widget.controller.isConnecting) {
-      newCursor = cursorTheme.portCursor;
-    } else if (hitResult.isPort) {
-      newCursor = cursorTheme.portCursor;
-    } else if (hitResult.isNode) {
-      newCursor = cursorTheme.nodeCursor;
-    } else if (hitResult.isConnection) {
-      newCursor = SystemMouseCursors.click;
-    } else {
-      newCursor = cursorTheme.selectionCursor;
-    }
-
-    widget.controller._updateInteractionState(cursor: newCursor);
   }
 
   // ============================================================
