@@ -142,3 +142,145 @@ class _UnboundedRenderConstrainedBox extends RenderConstrainedBox {
     return false;
   }
 }
+
+/// A Positioned widget that allows hit testing on its child outside its bounds.
+///
+/// Use this inside an [UnboundedStack] for layer widgets that need to receive
+/// hit tests for positions outside the layer's layout bounds.
+///
+/// This is essential for infinite canvas implementations where:
+/// - The layer fills the visible viewport (e.g., 800x600)
+/// - Content within the layer can be at arbitrary canvas coordinates (e.g., 5000, 5000)
+/// - Hit tests need to reach content regardless of position
+///
+/// Example usage:
+/// ```dart
+/// UnboundedStack(
+///   clipBehavior: Clip.none,
+///   children: [
+///     UnboundedPositioned.fill(
+///       child: NodesContainer(...), // Contains nodes at arbitrary positions
+///     ),
+///   ],
+/// )
+/// ```
+class UnboundedPositioned extends StatelessWidget {
+  const UnboundedPositioned({
+    super.key,
+    this.left,
+    this.top,
+    this.right,
+    this.bottom,
+    this.width,
+    this.height,
+    required this.child,
+  });
+
+  /// Creates a Positioned that fills its parent while allowing unbounded hit testing.
+  const UnboundedPositioned.fill({super.key, required this.child})
+    : left = 0.0,
+      top = 0.0,
+      right = 0.0,
+      bottom = 0.0,
+      width = null,
+      height = null;
+
+  final double? left;
+  final double? top;
+  final double? right;
+  final double? bottom;
+  final double? width;
+  final double? height;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: left,
+      top: top,
+      right: right,
+      bottom: bottom,
+      width: width,
+      height: height,
+      child: _UnboundedHitTestBox(child: child),
+    );
+  }
+}
+
+/// Internal widget that wraps a child and skips bounds checking during hit tests.
+///
+/// This widget maintains the same layout as its child but allows hit testing
+/// to pass through to children even when the position is outside this widget's bounds.
+class _UnboundedHitTestBox extends SingleChildRenderObjectWidget {
+  const _UnboundedHitTestBox({required Widget child}) : super(child: child);
+
+  @override
+  RenderObject createRenderObject(BuildContext context) {
+    return _UnboundedRenderProxyBox();
+  }
+}
+
+class _UnboundedRenderProxyBox extends RenderProxyBox {
+  _UnboundedRenderProxyBox();
+
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) {
+    // Skip the default bounds check (_size.contains(position))
+    // Forward hit test to child regardless of position
+    if (child != null) {
+      if (child!.hitTest(result, position: position)) {
+        result.add(BoxHitTestEntry(this, position));
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+/// A RepaintBoundary that allows hit testing on its child outside its bounds.
+///
+/// Flutter's [RepaintBoundary] creates a separate layer for efficient repainting,
+/// but it inherits [RenderProxyBox]'s hit testing which blocks hits outside bounds.
+///
+/// Use this widget in infinite canvas implementations where:
+/// - You want repaint isolation for performance
+/// - Content can be at positions outside the widget's layout bounds
+/// - Hit tests need to reach that content
+///
+/// Example usage:
+/// ```dart
+/// UnboundedPositioned.fill(
+///   child: UnboundedRepaintBoundary(
+///     child: Stack(
+///       clipBehavior: Clip.none,
+///       children: [...], // Nodes at arbitrary positions
+///     ),
+///   ),
+/// )
+/// ```
+class UnboundedRepaintBoundary extends SingleChildRenderObjectWidget {
+  const UnboundedRepaintBoundary({super.key, super.child});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) {
+    return _UnboundedRenderRepaintBoundary();
+  }
+}
+
+class _UnboundedRenderRepaintBoundary extends RenderRepaintBoundary {
+  _UnboundedRenderRepaintBoundary();
+
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) {
+    // Skip the default bounds check (_size.contains(position))
+    // This allows hit testing on children positioned outside this boundary's bounds
+    // while still maintaining the repaint isolation benefits
+    if (child != null) {
+      if (child!.hitTest(result, position: position)) {
+        result.add(BoxHitTestEntry(this, position));
+        return true;
+      }
+    }
+    return false;
+  }
+}

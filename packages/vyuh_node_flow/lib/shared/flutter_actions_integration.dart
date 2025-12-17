@@ -41,13 +41,18 @@ class NodeFlowActionDispatcher<T> extends Action<NodeFlowActionIntent<T>> {
   /// Checks if the action specified in the intent can currently be executed.
   ///
   /// Looks up the action by ID and checks its canExecute status.
-  /// Also checks that the canvas has focus - shortcuts should not fire
-  /// when focus is on other elements (like text fields in label editors).
+  /// Also checks that the canvas has PRIMARY focus - shortcuts should not fire
+  /// when focus is on nested elements (like text fields inside nodes).
+  ///
+  /// Note: We use `hasPrimaryFocus` instead of `hasFocus` because:
+  /// - `hasFocus` returns true if ANY descendant has focus
+  /// - `hasPrimaryFocus` returns true ONLY if this specific node has focus
+  /// This ensures shortcuts like M, N, Delete don't fire when typing in nested TextFields.
   @override
   bool isEnabled(NodeFlowActionIntent<T> intent) {
-    // Don't enable shortcuts if canvas doesn't have focus
-    // This prevents shortcuts from firing when editing labels or other text inputs
-    if (!controller.canvasFocusNode.hasFocus) {
+    // Don't enable shortcuts if canvas doesn't have PRIMARY focus
+    // This prevents shortcuts from firing when editing text in nested widgets
+    if (!controller.canvasFocusNode.hasPrimaryFocus) {
       return false;
     }
 

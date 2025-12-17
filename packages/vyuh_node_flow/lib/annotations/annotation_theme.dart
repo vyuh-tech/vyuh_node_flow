@@ -38,7 +38,6 @@ class AnnotationTheme {
   /// - [highlightBorderColor]: Border color when annotation is highlighted
   /// - [highlightBackgroundColor]: Background overlay color when highlighted
   /// - [borderWidth]: Width of the selection/highlight border
-  /// - [highlightBorderWidthDelta]: Additional width for highlight border (default: 1.0)
   /// - [borderRadius]: Border radius for the selection/highlight overlay
   const AnnotationTheme({
     required this.selectionBorderColor,
@@ -46,7 +45,6 @@ class AnnotationTheme {
     required this.highlightBorderColor,
     required this.highlightBackgroundColor,
     required this.borderWidth,
-    this.highlightBorderWidthDelta = 1.0,
     required this.borderRadius,
   });
 
@@ -71,16 +69,8 @@ class AnnotationTheme {
   /// This is typically a semi-transparent version of the highlight border color.
   final Color highlightBackgroundColor;
 
-  /// Width of the selection border in logical pixels.
-  ///
-  /// This is the base border width for selected annotations.
+  /// Width of the selection/highlight border in logical pixels.
   final double borderWidth;
-
-  /// Additional width added to the highlight border.
-  ///
-  /// The highlight border width is [borderWidth] + [highlightBorderWidthDelta].
-  /// Default is 1.0, making highlights slightly thicker than selection borders.
-  final double highlightBorderWidthDelta;
 
   /// Border radius for the selection/highlight overlay.
   ///
@@ -107,7 +97,6 @@ class AnnotationTheme {
     Color? highlightBorderColor,
     Color? highlightBackgroundColor,
     double? borderWidth,
-    double? highlightBorderWidthDelta,
     BorderRadius? borderRadius,
   }) {
     return AnnotationTheme(
@@ -118,8 +107,6 @@ class AnnotationTheme {
       highlightBackgroundColor:
           highlightBackgroundColor ?? this.highlightBackgroundColor,
       borderWidth: borderWidth ?? this.borderWidth,
-      highlightBorderWidthDelta:
-          highlightBorderWidthDelta ?? this.highlightBorderWidthDelta,
       borderRadius: borderRadius ?? this.borderRadius,
     );
   }
@@ -140,7 +127,6 @@ class AnnotationTheme {
     highlightBorderColor: Color(0xFFFF9800),
     highlightBackgroundColor: Color(0x1AFF9800),
     borderWidth: 1.0,
-    highlightBorderWidthDelta: 1.0,
     borderRadius: BorderRadius.all(Radius.circular(8.0)),
   );
 
@@ -160,7 +146,6 @@ class AnnotationTheme {
     highlightBorderColor: Color(0xFFFFB74D),
     highlightBackgroundColor: Color(0x1AFFB74D),
     borderWidth: 1.0,
-    highlightBorderWidthDelta: 1.0,
     borderRadius: BorderRadius.all(Radius.circular(8.0)),
   );
 }

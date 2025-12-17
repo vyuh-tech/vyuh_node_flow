@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../shared/shapes/marker_shape.dart';
 import '../shared/shapes/marker_shapes.dart';
+import 'port.dart';
 
 /// Theme configuration for port visual appearance.
 ///
@@ -11,16 +12,17 @@ import '../shared/shapes/marker_shapes.dart';
 /// The theme supports different visual states:
 /// - Normal state (default appearance)
 /// - Connected state (when the port has active connections)
-/// - Snapping state (when a connection is being dragged near the port)
+/// - Highlighted state (when a connection is being dragged near the port)
 ///
 /// Example:
 /// ```dart
 /// // Create a custom port theme
 /// final customTheme = PortTheme(
-///   size: 12.0,
+///   size: Size(12, 12),
 ///   color: Colors.grey,
 ///   connectedColor: Colors.green,
-///   snappingColor: Colors.lightGreen,
+///   highlightColor: Colors.lightGreen,
+///   highlightBorderColor: Colors.black,
 ///   borderColor: Colors.white,
 ///   borderWidth: 2.0,
 /// );
@@ -39,20 +41,22 @@ class PortTheme {
   /// - [size]: The size of the port in logical pixels (width, height)
   /// - [color]: Default color when the port is idle
   /// - [connectedColor]: Color when the port has active connections
-  /// - [snappingColor]: Color when a connection is being dragged near
+  /// - [highlightColor]: Color when port is highlighted during connection drag
+  /// - [highlightBorderColor]: Border color when port is highlighted
+  /// - [snappingColor]: Color for the snapping circle shown around port during hover
   /// - [borderColor]: Color of the port's border
   /// - [borderWidth]: Width of the port's border in logical pixels
   /// - [showLabel]: Whether to show port labels globally (default: false)
   /// - [labelTextStyle]: Text style for port labels
   /// - [labelOffset]: Distance from port center to label (default: 8.0)
   /// - [labelVisibilityThreshold]: Minimum zoom level to show labels (default: 0.5)
-  /// - [highlightBorderColor]: Border color when port is highlighted (default: black)
-  /// - [highlightBorderWidthDelta]: Additional border width when highlighted (default: 1.5)
   /// - [shape]: Default marker shape for ports (default: capsuleHalf)
   const PortTheme({
     required this.size,
     required this.color,
     required this.connectedColor,
+    required this.highlightColor,
+    required this.highlightBorderColor,
     required this.snappingColor,
     required this.borderColor,
     required this.borderWidth,
@@ -61,8 +65,6 @@ class PortTheme {
     this.labelTextStyle,
     this.labelOffset = 4.0,
     this.labelVisibilityThreshold = 0.5,
-    this.highlightBorderColor = const Color(0xFF000000),
-    this.highlightBorderWidthDelta = 1.5,
   });
 
   /// The size of the port in logical pixels.
@@ -83,10 +85,21 @@ class PortTheme {
   /// to other nodes in the flow.
   final Color connectedColor;
 
-  /// The color of the port when a connection is being dragged near it.
+  /// The fill color when the port is highlighted (being hovered during drag).
   ///
-  /// This provides visual feedback during connection creation, indicating
-  /// that the port is a valid target for the connection being dragged.
+  /// This provides strong visual feedback during connection creation.
+  final Color highlightColor;
+
+  /// The border color when the port is highlighted (being hovered during drag).
+  ///
+  /// This provides strong visual feedback during connection creation, indicating
+  /// that the port is a valid target.
+  final Color highlightBorderColor;
+
+  /// The color for the snapping circle shown around the port during hover.
+  ///
+  /// This semi-transparent circle provides visual feedback for the snap area
+  /// around the port where connections can be made.
   final Color snappingColor;
 
   /// The color of the port's border.
@@ -126,24 +139,18 @@ class PortTheme {
   /// Set to 0.0 to always show labels regardless of zoom level.
   final double labelVisibilityThreshold;
 
-  /// The border color when the port is highlighted (being hovered during drag).
-  ///
-  /// This provides strong visual feedback during connection creation, indicating
-  /// that the port is a valid target. Default is black.
-  final Color highlightBorderColor;
-
-  /// Additional border width applied when the port is highlighted.
-  ///
-  /// This is added to [borderWidth] when the port is in highlighted state.
-  /// Default is 1.5 pixels.
-  final double highlightBorderWidthDelta;
-
   /// The default marker shape for ports.
   ///
   /// Individual ports can override this with their own [Port.shape] property.
   /// If a port's shape is not specified, this theme value is used as fallback.
   /// Default is [MarkerShapes.capsuleHalf].
   final MarkerShape shape;
+
+  /// Resolves the effective size for a port.
+  ///
+  /// Uses the port's own size if set, otherwise falls back to the theme's size.
+  /// This is the canonical method for port size resolution.
+  Size resolveSize(Port port) => port.size ?? size;
 
   /// Creates a copy of this theme with the specified properties replaced.
   ///
@@ -164,6 +171,8 @@ class PortTheme {
     Size? size,
     Color? color,
     Color? connectedColor,
+    Color? highlightColor,
+    Color? highlightBorderColor,
     Color? snappingColor,
     Color? borderColor,
     double? borderWidth,
@@ -172,13 +181,13 @@ class PortTheme {
     TextStyle? labelTextStyle,
     double? labelOffset,
     double? labelVisibilityThreshold,
-    Color? highlightBorderColor,
-    double? highlightBorderWidthDelta,
   }) {
     return PortTheme(
       size: size ?? this.size,
       color: color ?? this.color,
       connectedColor: connectedColor ?? this.connectedColor,
+      highlightColor: highlightColor ?? this.highlightColor,
+      highlightBorderColor: highlightBorderColor ?? this.highlightBorderColor,
       snappingColor: snappingColor ?? this.snappingColor,
       borderColor: borderColor ?? this.borderColor,
       borderWidth: borderWidth ?? this.borderWidth,
@@ -188,9 +197,6 @@ class PortTheme {
       labelOffset: labelOffset ?? this.labelOffset,
       labelVisibilityThreshold:
           labelVisibilityThreshold ?? this.labelVisibilityThreshold,
-      highlightBorderColor: highlightBorderColor ?? this.highlightBorderColor,
-      highlightBorderWidthDelta:
-          highlightBorderWidthDelta ?? this.highlightBorderWidthDelta,
     );
   }
 
@@ -204,12 +210,14 @@ class PortTheme {
   /// Colors:
   /// - Idle: Light gray (#BABABA)
   /// - Connected: Material blue (#2196F3)
-  /// - Snapping: Dark blue (#1565C0)
+  /// - Highlight: Light blue (#42A5F5)
   static const light = PortTheme(
     size: Size(9, 9),
     color: Color(0xFFBABABA),
     connectedColor: Color(0xFF2196F3),
-    snappingColor: Color(0xFF1565C0),
+    highlightColor: Color(0xFF42A5F5),
+    highlightBorderColor: Color(0xFF000000),
+    snappingColor: Color(0x4042A5F5),
     borderColor: Colors.transparent,
     borderWidth: 0.0,
     showLabel: false,
@@ -220,8 +228,6 @@ class PortTheme {
     ),
     labelOffset: 4.0,
     labelVisibilityThreshold: 0.5,
-    highlightBorderColor: Color(0xFF000000),
-    highlightBorderWidthDelta: 1.5,
   );
 
   /// A predefined dark theme for ports.
@@ -234,12 +240,14 @@ class PortTheme {
   /// Colors:
   /// - Idle: Medium gray (#666666)
   /// - Connected: Light blue (#64B5F6)
-  /// - Snapping: Medium blue (#42A5F5)
+  /// - Highlight: Light blue (#90CAF9)
   static const dark = PortTheme(
     size: Size(9, 9),
     color: Color(0xFF666666),
     connectedColor: Color(0xFF64B5F6),
-    snappingColor: Color(0xFF42A5F5),
+    highlightColor: Color(0xFF90CAF9),
+    highlightBorderColor: Color(0xFFFFFFFF),
+    snappingColor: Color(0x4090CAF9),
     borderColor: Colors.transparent,
     borderWidth: 0.0,
     showLabel: false,
@@ -250,7 +258,5 @@ class PortTheme {
     ),
     labelOffset: 4.0,
     labelVisibilityThreshold: 0.5,
-    highlightBorderColor: Color(0xFFFFFFFF),
-    highlightBorderWidthDelta: 1.5,
   );
 }

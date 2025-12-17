@@ -55,6 +55,7 @@ class BezierConnectionStyle extends ConnectionStyle {
     final targetPosition = params.targetPort?.position ?? PortPosition.left;
 
     // Create bezier segment with control points
+    // Use sourceOffset/targetOffset for proper temporary connection handling
     var segment = WaypointBuilder.createBezierSegment(
       start: params.start,
       end: params.end,
@@ -62,6 +63,8 @@ class BezierConnectionStyle extends ConnectionStyle {
       targetPosition: targetPosition,
       curvature: params.curvature,
       portExtension: params.offset,
+      sourceExtension: params.sourceOffset,
+      targetExtension: params.targetOffset,
     );
 
     // Apply node avoidance adjustments using INDIVIDUAL node bounds

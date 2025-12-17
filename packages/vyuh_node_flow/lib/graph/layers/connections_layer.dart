@@ -14,44 +14,49 @@ class ConnectionsLayer<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // IgnorePointer ensures connections don't block hit tests on layers below
+    // (like background annotations). Connection hit testing is handled via
+    // the spatial index in NodeFlowEditor's Listener, not via this CustomPaint.
     return Positioned.fill(
-      child: RepaintBoundary(
-        child: Observer(
-          builder: (context) {
-            // Only observe actual connections, not temporary ones
-            controller.connections.length;
-            controller.selectedConnectionIds.length;
+      child: IgnorePointer(
+        child: RepaintBoundary(
+          child: Observer(
+            builder: (context) {
+              // Only observe actual connections, not temporary ones
+              controller.connections.length;
+              controller.selectedConnectionIds.length;
 
-            // Force tracking of node positions during drag for connection updates
-            for (final node in controller.nodes.values) {
-              node.position.value; // Trigger observation
-            }
-
-            // Force tracking of animation effects and control points on connections
-            for (final connection in controller.connections) {
-              connection.animationEffect; // Trigger observation
-              // Observe control points by accessing each item to track changes
-              for (var i = 0; i < connection.controlPoints.length; i++) {
-                connection
-                    .controlPoints[i]; // Force observation of each control point
+              // Force tracking of node positions during drag for connection updates
+              for (final node in controller.nodes.values) {
+                node.position.value; // Trigger observation
               }
-            }
 
-            // Get theme from context - this ensures automatic rebuilds when theme changes
-            final theme =
-                Theme.of(context).extension<NodeFlowTheme>() ??
-                NodeFlowTheme.light;
+              // Force tracking of animation effects and control points on connections
+              for (final connection in controller.connections) {
+                connection.animationEffect; // Trigger observation
+                // Observe control points by accessing each item to track changes
+                for (var i = 0; i < connection.controlPoints.length; i++) {
+                  connection
+                      .controlPoints[i]; // Force observation of each control point
+                }
+              }
 
-            return CustomPaint(
-              painter: ConnectionsCanvas<T>(
-                store: controller,
-                theme: theme,
-                connectionPainter: controller.connectionPainter,
-                animation: animation,
-              ),
-              size: Size.infinite,
-            );
-          },
+              // Get theme from context - this ensures automatic rebuilds when theme changes
+              final theme =
+                  Theme.of(context).extension<NodeFlowTheme>() ??
+                  NodeFlowTheme.light;
+
+              return CustomPaint(
+                painter: ConnectionsCanvas<T>(
+                  store: controller,
+                  theme: theme,
+                  connectionPainter: controller.connectionPainter,
+                  animation: animation,
+                ),
+                size: Size.infinite,
+              );
+            },
+          ),
         ),
       ),
     );

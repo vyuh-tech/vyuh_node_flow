@@ -2,12 +2,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../nodes/node.dart';
+import '../../ports/port.dart';
 import '../connection.dart' show Connection;
 import '../connection_label.dart';
 import '../connection_path_cache.dart';
 import '../label_theme.dart';
-import '../../nodes/node.dart';
-import '../../ports/port.dart';
 import 'connection_style_base.dart';
 import 'endpoint_position_calculator.dart';
 
@@ -107,11 +107,11 @@ class LabelCalculator {
       }
 
       // Get port positions using each port's size
-      final sourcePortPosition = sourceNode.getPortPosition(
+      final sourcePortPosition = sourceNode.getConnectionPoint(
         connection.sourcePortId,
         portSize: sourcePort?.size ?? defaultPortSize,
       );
-      final targetPortPosition = targetNode.getPortPosition(
+      final targetConnectionPoint = targetNode.getConnectionPoint(
         connection.targetPortId,
         portSize: targetPort?.size ?? defaultPortSize,
       );
@@ -124,7 +124,7 @@ class LabelCalculator {
         gap: startGap,
       );
       final target = EndpointPositionCalculator.calculatePortConnectionPoints(
-        targetPortPosition,
+        targetConnectionPoint,
         targetPort?.position ?? PortPosition.left,
         endpointSize,
         gap: endGap,

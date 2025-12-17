@@ -81,7 +81,7 @@ class ConnectionLabelsLayer<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned.fill(
+    return UnboundedPositioned.fill(
       child: Observer(
         builder: (context) {
           // Observe connections list changes

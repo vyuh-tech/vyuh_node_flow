@@ -123,6 +123,7 @@ export 'connections/connection.dart';
 export 'connections/connection_anchor.dart';
 export 'connections/connection_endpoint.dart';
 export 'connections/connection_label.dart';
+export 'connections/connection_painter.dart' show ConnectionPainter;
 export 'connections/connection_style_overrides.dart';
 export 'connections/connection_theme.dart';
 export 'connections/connection_validation.dart';

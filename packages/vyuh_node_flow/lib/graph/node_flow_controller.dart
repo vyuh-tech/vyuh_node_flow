@@ -1,11 +1,13 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobx/mobx.dart';
 
 import '../annotations/annotation.dart';
 import '../connections/connection.dart';
 import '../connections/connection_painter.dart';
+import '../connections/connection_validation.dart';
 import '../connections/temporary_connection.dart';
 import '../graph/graph.dart';
 import '../graph/node_flow_config.dart';
@@ -180,6 +182,9 @@ class NodeFlowController<T> {
   final Observable<GraphViewport> _viewport;
   final Observable<Size> _screenSize = Observable(Size.zero);
 
+  /// Key for the canvas widget, used to convert global coordinates to canvas-local.
+  final GlobalKey canvasKey = GlobalKey();
+
   /// Current mouse position in world coordinates (null if mouse is outside canvas).
   /// Used for debug visualization and other features that need cursor tracking.
   final Observable<Offset?> _mousePositionWorld = Observable<Offset?>(null);
@@ -293,11 +298,6 @@ class NodeFlowController<T> {
   ///
   /// Returns `null` if no selection is being drawn.
   Offset? get selectionStartPoint => interaction.selectionStart;
-
-  /// Gets the current mouse cursor style (package-private).
-  ///
-  /// Changes based on what the mouse is hovering over and current interaction state.
-  MouseCursor get currentCursor => interaction.cursor;
 
   /// Checks if viewport panning is currently enabled (package-private).
   ///
@@ -549,6 +549,16 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
       // Force a final notification to ensure observers are updated
       _spatialIndex.notifyChanged();
     }
+  }
+
+  /// Flushes all pending spatial index updates synchronously.
+  ///
+  /// This method should be called after drag operations end to ensure the
+  /// spatial index is up-to-date before performing hit tests. Normally the
+  /// flush happens via a MobX reaction, but that's asynchronous. This method
+  /// allows synchronous flushing when immediate hit testing is needed.
+  void flushPendingSpatialUpdates() {
+    _flushPendingSpatialUpdates();
   }
 
   /// Returns a signature of all path-affecting theme properties.

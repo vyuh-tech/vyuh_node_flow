@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../annotations/annotation.dart';
+import '../graph/cursor_theme.dart';
+import '../graph/node_flow_controller.dart';
 import '../graph/node_flow_theme.dart';
 
 /// Framework widget that wraps custom annotations with automatic functionality.
@@ -12,6 +14,7 @@ import '../graph/node_flow_theme.dart';
 /// - **Selection feedback**: Theme-consistent borders and highlights when selected
 /// - **Hover feedback**: Visual indication when annotation is being dragged over (highlighted)
 /// - **Theme integration**: Uses [NodeFlowTheme] for consistent styling across the editor
+/// - **Gesture handling**: Tap, double-tap, drag, and context menu events
 ///
 /// ## Framework Integration
 ///
@@ -22,8 +25,9 @@ import '../graph/node_flow_theme.dart';
 /// The widget wraps the custom annotation content with:
 /// 1. [Observer] for MobX reactivity
 /// 2. [Positioned] for absolute canvas positioning
-/// 3. Selection/highlight borders using theme colors
-/// 4. Visibility logic to hide when [annotation.isVisible] is false
+/// 3. [GestureDetector] and [MouseRegion] for interaction handling
+/// 4. Selection/highlight borders using theme colors
+/// 5. Visibility logic to hide when [annotation.isVisible] is false
 ///
 /// ## Example Usage
 ///
@@ -34,6 +38,7 @@ import '../graph/node_flow_theme.dart';
 ///   annotation: stickyNote,
 ///   isSelected: controller.annotations.isAnnotationSelected(stickyNote.id),
 ///   isHighlighted: false,
+///   onTap: () => controller.selectAnnotation(stickyNote.id),
 /// )
 /// ```
 ///
@@ -48,11 +53,18 @@ class AnnotationWidget extends StatelessWidget {
   /// - [annotation]: The annotation to render
   /// - [isSelected]: Whether this annotation is currently selected
   /// - [isHighlighted]: Whether this annotation is being highlighted (e.g., during drag-over)
+  /// - [controller]: Controller for direct drag handling (required)
   const AnnotationWidget({
     super.key,
     required this.annotation,
+    required this.controller,
     this.isSelected = false,
     this.isHighlighted = false,
+    this.onTap,
+    this.onDoubleTap,
+    this.onContextMenu,
+    this.onMouseEnter,
+    this.onMouseLeave,
   });
 
   /// The annotation to render.
@@ -73,6 +85,26 @@ class AnnotationWidget extends StatelessWidget {
   /// over selection for better drag feedback.
   final bool isHighlighted;
 
+  /// Controller for direct drag handling.
+  ///
+  /// The widget calls controller methods directly for annotation drag operations.
+  final NodeFlowController controller;
+
+  /// Callback invoked when the annotation is tapped.
+  final VoidCallback? onTap;
+
+  /// Callback invoked when the annotation is double-tapped.
+  final VoidCallback? onDoubleTap;
+
+  /// Callback invoked when the annotation is right-clicked (context menu).
+  final void Function(Offset globalPosition)? onContextMenu;
+
+  /// Callback invoked when mouse enters the annotation.
+  final VoidCallback? onMouseEnter;
+
+  /// Callback invoked when mouse leaves the annotation.
+  final VoidCallback? onMouseLeave;
+
   @override
   Widget build(BuildContext context) {
     return Observer(
@@ -84,16 +116,47 @@ class AnnotationWidget extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        Widget child = Positioned(
+        return Positioned(
           left: position.dx,
           top: position.dy,
-          child: _buildAnnotationContent(context),
+          // Note: Tap/selection is handled at the editor's Listener level
+          // (in _handlePointerDown) for immediate response.
+          // GestureDetector here handles double-tap, context menu, and drag.
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onDoubleTap: onDoubleTap,
+            onSecondaryTapUp: onContextMenu != null
+                ? (details) => onContextMenu!(details.globalPosition)
+                : null,
+            // Annotation drag via controller (delta is already in graph coordinates
+            // since GestureDetector is inside InteractiveViewer's transformed space)
+            onPanStart: (_) => controller.startAnnotationDrag(annotation.id),
+            onPanUpdate: (details) =>
+                controller.moveAnnotationDrag(details.delta),
+            onPanEnd: (_) => controller.endAnnotationDrag(),
+            // Observer.withBuiltChild ensures only MouseRegion rebuilds when
+            // interaction state changes, not the entire annotation subtree
+            child: Observer.withBuiltChild(
+              builder: (context, child) {
+                // Derive cursor from interaction state
+                final cursorTheme =
+                    Theme.of(context).extension<NodeFlowTheme>()!.cursorTheme;
+                final cursor = cursorTheme.cursorFor(
+                  ElementType.annotation,
+                  controller.interaction,
+                  isInteractive: annotation.isInteractive,
+                );
+                return MouseRegion(
+                  cursor: cursor,
+                  onEnter: onMouseEnter != null ? (_) => onMouseEnter!() : null,
+                  onExit: onMouseLeave != null ? (_) => onMouseLeave!() : null,
+                  child: child,
+                );
+              },
+              child: _buildAnnotationContent(context),
+            ),
+          ),
         );
-
-        // Don't add interaction handling here - it's handled by the main editor
-        // Just position the content directly
-
-        return child;
       },
     );
   }
@@ -127,9 +190,6 @@ class AnnotationWidget extends StatelessWidget {
       // Use highlight colors for drag-over feedback
       borderColor = annotationTheme.highlightBorderColor;
       backgroundColor = annotationTheme.highlightBackgroundColor;
-      borderWidth =
-          annotationTheme.borderWidth +
-          annotationTheme.highlightBorderWidthDelta;
     } else if (isSelected) {
       borderColor = annotationTheme.selectionBorderColor;
       backgroundColor = annotationTheme.selectionBackgroundColor;

@@ -19,6 +19,7 @@ class ConnectionPathParameters {
     this.controlPoints = const [],
     this.sourceNodeBounds,
     this.targetNodeBounds,
+    this.debugMode = false,
   });
 
   /// Start point of the connection
@@ -42,6 +43,14 @@ class ConnectionPathParameters {
   /// Offset distance from ports (port extension)
   final double offset;
 
+  /// Get the offset for the source end.
+  /// Returns 0 if there's no source port (mouse position in input port drag).
+  double get sourceOffset => sourcePort != null ? offset : 0;
+
+  /// Get the offset for the target end.
+  /// Returns 0 if there's no target port (mouse position in output port drag).
+  double get targetOffset => targetPort != null ? offset : 0;
+
   /// Gap from node bounds for loopback/back-edge routing.
   ///
   /// When a connection needs to route around nodes, this value determines
@@ -64,11 +73,64 @@ class ConnectionPathParameters {
   /// route around the node bounds rather than through them.
   final Rect? targetNodeBounds;
 
-  /// Get source port position, defaulting to right if not specified
-  PortPosition get sourcePosition => sourcePort?.position ?? PortPosition.right;
+  /// Whether debug mode is enabled for detailed logging.
+  final bool debugMode;
 
-  /// Get target port position, defaulting to left if not specified
-  PortPosition get targetPosition => targetPort?.position ?? PortPosition.left;
+  /// Get source port position.
+  ///
+  /// When a source port is available, returns its position.
+  /// When no source port (e.g., temporary connection dragging FROM an input port),
+  /// returns the opposite of the target port's position for smooth line flow.
+  PortPosition get sourcePosition {
+    // If we have a source port, use its position
+    if (sourcePort != null) {
+      return sourcePort!.position;
+    }
+
+    // For temporary connections dragging from an INPUT port:
+    // - The input port becomes the TARGET (targetPort is set)
+    // - The mouse position becomes the SOURCE (sourcePort is null)
+    // - Use opposite of target position so line flows naturally toward the input
+    if (targetPort != null) {
+      return _oppositePosition(targetPort!.position);
+    }
+
+    // Fallback (shouldn't happen in practice)
+    return PortPosition.right;
+  }
+
+  /// Get target port position.
+  ///
+  /// When a target port is available, returns its position.
+  /// When no target port (e.g., temporary connection dragging FROM an output port),
+  /// returns the opposite of the source port's position for smooth line flow.
+  PortPosition get targetPosition {
+    // If we have a target port, use its position
+    if (targetPort != null) {
+      return targetPort!.position;
+    }
+
+    // For temporary connections dragging from an OUTPUT port:
+    // - The output port becomes the SOURCE (sourcePort is set)
+    // - The mouse position becomes the TARGET (targetPort is null)
+    // - Use opposite of source position so line flows naturally from the output
+    if (sourcePort != null) {
+      return _oppositePosition(sourcePort!.position);
+    }
+
+    // Fallback (shouldn't happen in practice)
+    return PortPosition.left;
+  }
+
+  /// Returns the opposite port position.
+  static PortPosition _oppositePosition(PortPosition position) {
+    return switch (position) {
+      PortPosition.right => PortPosition.left,
+      PortPosition.left => PortPosition.right,
+      PortPosition.top => PortPosition.bottom,
+      PortPosition.bottom => PortPosition.top,
+    };
+  }
 
   @override
   bool operator ==(Object other) =>

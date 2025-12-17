@@ -51,22 +51,29 @@ class StraightConnectionStyle extends ConnectionStyle {
   /// 1. Port to extension point (horizontal/vertical)
   /// 2. Extension to extension (diagonal)
   /// 3. Extension to port (horizontal/vertical)
+  ///
+  /// For temporary connections (no target port), uses sourceOffset/targetOffset
+  /// to avoid extending past the mouse position.
   List<PathSegment> _buildForwardStraightSegments(
     ConnectionPathParameters params,
   ) {
     final sourcePosition = params.sourcePort?.position ?? PortPosition.right;
     final targetPosition = params.targetPort?.position ?? PortPosition.left;
 
+    // Use sourceOffset/targetOffset which are 0 when no port exists
+    final sourceOffset = params.sourceOffset;
+    final targetOffset = params.targetOffset;
+
     // Calculate extension points based on port positions
     final startExtension = _calculateExtensionPoint(
       params.start,
       sourcePosition,
-      params.offset,
+      sourceOffset,
     );
     final endExtension = _calculateExtensionPoint(
       params.end,
       targetPosition,
-      params.offset,
+      targetOffset,
     );
 
     return [

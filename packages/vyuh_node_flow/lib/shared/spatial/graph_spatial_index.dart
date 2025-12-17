@@ -50,7 +50,7 @@ export '../../graph/hit_test_result.dart';
 /// });
 /// ```
 class GraphSpatialIndex<T> {
-  GraphSpatialIndex({double gridSize = 500.0, this.portSnapDistance = 15.0})
+  GraphSpatialIndex({double gridSize = 500.0, this.portSnapDistance = 8.0})
     : _grid = SpatialGrid<SpatialItem>(gridSize: gridSize);
 
   final SpatialGrid<SpatialItem> _grid;
@@ -147,18 +147,21 @@ class GraphSpatialIndex<T> {
     void addPort(Port port, bool isOutput) {
       final effectivePortSize =
           portSizeResolver?.call(port) ?? const Size.square(10.0);
-      final portCenter = node.getPortPosition(
+
+      // Use Node's centralized getPortCenter method for the visual center
+      final portCenter = node.getPortCenter(
         port.id,
         portSize: effectivePortSize,
         shape: shape,
       );
 
-      // Create bounds around the port center with portSnapDistance as radius
-      // This ensures the port is found when querying within snap distance
+      // Create bounds around the port center including both port size and snap distance.
+      // This matches the visual hover area in PortWidget which extends snapDistance
+      // from each edge of the port, not from its center.
       final portBounds = Rect.fromCenter(
         center: portCenter,
-        width: portSnapDistance * 2,
-        height: portSnapDistance * 2,
+        width: effectivePortSize.width + portSnapDistance * 2,
+        height: effectivePortSize.height + portSnapDistance * 2,
       );
 
       final spatialItem = PortSpatialItem(
@@ -385,6 +388,14 @@ class GraphSpatialIndex<T> {
         .whereType<Annotation>()
         .toList();
   }
+
+  /// Hit test for a port at the given position.
+  ///
+  /// Returns the hit test result containing nodeId, portId, and isOutput
+  /// if a port is found at the position, otherwise returns null.
+  ///
+  /// This is useful for finding target ports during connection drag operations.
+  HitTestResult? hitTestPort(Offset point) => _hitTestPorts(point);
 
   /// Gets a node by ID.
   Node<T>? getNode(String id) => _nodes[id];

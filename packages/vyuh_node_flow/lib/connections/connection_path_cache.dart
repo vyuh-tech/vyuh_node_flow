@@ -249,12 +249,12 @@ class ConnectionPathCache {
     final targetPortSize = targetPort.size ?? portTheme.size;
 
     // Calculate port positions with shapes and effective sizes
-    final sourcePortPosition = sourceNode.getPortPosition(
+    final sourcePortPosition = sourceNode.getConnectionPoint(
       connection.sourcePortId,
       portSize: sourcePortSize,
       shape: sourceShape,
     );
-    final targetPortPosition = targetNode.getPortPosition(
+    final targetConnectionPoint = targetNode.getConnectionPoint(
       connection.targetPortId,
       portSize: targetPortSize,
       shape: targetShape,
@@ -284,7 +284,7 @@ class ConnectionPathCache {
       gap: startGap,
     );
     final target = EndpointPositionCalculator.calculatePortConnectionPoints(
-      targetPortPosition,
+      targetConnectionPoint,
       targetPort.position,
       endPointSize,
       gap: endGap,

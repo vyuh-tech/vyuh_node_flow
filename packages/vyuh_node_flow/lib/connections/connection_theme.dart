@@ -37,6 +37,8 @@ class ConnectionTheme {
   /// - [style]: The connection line style (bezier, smoothstep, straight, etc.)
   /// - [color]: Default color for unselected connections
   /// - [selectedColor]: Color for selected connections
+  /// - [highlightColor]: Color for highlighted connections (during hover)
+  /// - [highlightBorderColor]: Border color for highlighted endpoint markers
   /// - [strokeWidth]: Stroke width for unselected connections in logical pixels
   /// - [selectedStrokeWidth]: Stroke width for selected connections in logical pixels
   /// - [dashPattern]: Optional dash pattern for dashed lines (e.g., [5, 3] for 5px dash, 3px gap)
@@ -57,6 +59,8 @@ class ConnectionTheme {
     required this.style,
     required this.color,
     required this.selectedColor,
+    required this.highlightColor,
+    required this.highlightBorderColor,
     required this.strokeWidth,
     required this.selectedStrokeWidth,
     this.dashPattern,
@@ -86,6 +90,16 @@ class ConnectionTheme {
 
   /// Color for selected connections.
   final Color selectedColor;
+
+  /// Color for highlighted connections (during hover).
+  ///
+  /// This provides visual feedback when the mouse hovers over a connection.
+  final Color highlightColor;
+
+  /// Border color for highlighted endpoint markers.
+  ///
+  /// This provides visual feedback when endpoints are highlighted.
+  final Color highlightBorderColor;
 
   /// Stroke width for unselected connections in logical pixels.
   final double strokeWidth;
@@ -192,6 +206,8 @@ class ConnectionTheme {
     ConnectionStyle? style,
     Color? color,
     Color? selectedColor,
+    Color? highlightColor,
+    Color? highlightBorderColor,
     double? strokeWidth,
     double? selectedStrokeWidth,
     List<double>? dashPattern,
@@ -213,6 +229,8 @@ class ConnectionTheme {
       style: style ?? this.style,
       color: color ?? this.color,
       selectedColor: selectedColor ?? this.selectedColor,
+      highlightColor: highlightColor ?? this.highlightColor,
+      highlightBorderColor: highlightBorderColor ?? this.highlightBorderColor,
       strokeWidth: strokeWidth ?? this.strokeWidth,
       selectedStrokeWidth: selectedStrokeWidth ?? this.selectedStrokeWidth,
       dashPattern: dashPattern,
@@ -245,6 +263,8 @@ class ConnectionTheme {
     style: ConnectionStyles.smoothstep,
     color: Color(0xFF666666),
     selectedColor: Color(0xFF2196F3),
+    highlightColor: Color(0xFF42A5F5),
+    highlightBorderColor: Color(0xFF1565C0),
     strokeWidth: 2.0,
     selectedStrokeWidth: 3.0,
     startPoint: ConnectionEndPoint.none,
@@ -272,6 +292,8 @@ class ConnectionTheme {
     style: ConnectionStyles.smoothstep,
     color: Color(0xFF999999),
     selectedColor: Color(0xFF64B5F6),
+    highlightColor: Color(0xFF90CAF9),
+    highlightBorderColor: Color(0xFF42A5F5),
     strokeWidth: 2.0,
     selectedStrokeWidth: 3.0,
     startPoint: ConnectionEndPoint.none,

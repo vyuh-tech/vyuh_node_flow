@@ -5,11 +5,11 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart' hide Listener;
 import 'package:vector_math/vector_math_64.dart' hide Colors;
 
+import '../annotations/annotation.dart';
 import '../annotations/annotation_layer.dart';
 import '../connections/connection.dart';
 import '../connections/connection_style_overrides.dart';
-import '../connections/connection_validation.dart';
-import '../connections/temporary_connection.dart';
+import '../graph/cursor_theme.dart';
 import '../graph/hit_test_result.dart';
 import '../graph/node_flow_controller.dart';
 import '../graph/node_flow_events.dart';
@@ -22,7 +22,6 @@ import '../ports/port_widget.dart';
 import '../shared/flutter_actions_integration.dart';
 import '../shared/spatial/graph_spatial_index.dart';
 import '../shared/unbounded_widgets.dart';
-import 'canvas_transform_provider.dart';
 import 'layers/attribution_overlay.dart';
 import 'layers/connection_control_points_layer.dart';
 import 'layers/connection_labels_layer.dart';
@@ -35,6 +34,7 @@ import 'layers/spatial_index_debug_layer.dart';
 
 part 'node_flow_controller_extensions.dart';
 part 'node_flow_editor_hit_testing.dart';
+part 'node_flow_editor_widget_handlers.dart';
 
 /// Node flow editor widget using MobX for reactive state management.
 ///
@@ -167,13 +167,14 @@ class NodeFlowEditor<T> extends StatefulWidget {
   /// - [port]: The port being rendered
   /// - [isOutput]: Whether this is an output port (true) or input port (false)
   /// - [isConnected]: Whether the port currently has connections
-  /// - [isHighlighted]: Whether the port is being hovered during connection drag
+  ///
+  /// Note: Highlighting is automatically handled via [Port.highlighted] observable.
   ///
   /// Return null to use the default PortWidget with theme styling.
   ///
   /// Example:
   /// ```dart
-  /// portBuilder: (context, node, port, isOutput, isConnected, isHighlighted) {
+  /// portBuilder: (context, node, port, isOutput, isConnected) {
   ///   // Color ports based on data type
   ///   final color = port.name.contains('error')
   ///       ? Colors.red
@@ -183,7 +184,6 @@ class NodeFlowEditor<T> extends StatefulWidget {
   ///     port: port,
   ///     theme: Theme.of(context).extension<NodeFlowTheme>()!.portTheme,
   ///     isConnected: isConnected,
-  ///     isHighlighted: isHighlighted,
   ///     color: color,
   ///   );
   /// }
@@ -362,9 +362,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   // Hover tracking for mouse enter/leave events
   HitTarget? _lastHoverHitType;
   String? _lastHoveredEntityId; // nodeId, connectionId, portId, or annotationId
-  String? _lastHoveredNodeId; // For port hover, track the parent node
-  bool?
-  _lastHoveredPortIsOutput; // For port hover, track if it's an output port
 
   // Shift key tracking for selection mode cursor
   bool _isShiftPressed = false;
@@ -473,17 +470,21 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
           return NodeFlowKeyboardHandler<T>(
             controller: widget.controller,
             focusNode: widget.controller.canvasFocusNode,
+            // Listener has the canvasKey so we can convert global→local coordinates
             child: Listener(
+              key: widget.controller.canvasKey,
               onPointerDown: _handlePointerDown,
               onPointerMove: _handlePointerMove,
               onPointerUp: _handlePointerUp,
               onPointerHover: _handleMouseHover,
               child: Observer.withBuiltChild(
                 builder: (context, child) {
-                  return MouseRegion(
-                    cursor: widget.controller.currentCursor,
-                    child: child,
+                  // Derive cursor from interaction state
+                  final cursor = widget.theme.cursorTheme.cursorFor(
+                    ElementType.canvas,
+                    widget.controller.interaction,
                   );
+                  return MouseRegion(cursor: cursor, child: child);
                 },
                 child: Container(
                   width: constraints.maxWidth,
@@ -516,69 +517,93 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                         child: UnboundedSizedBox(
                           width: constraints.maxWidth,
                           height: constraints.maxHeight,
-                          child: AnimatedBuilder(
-                            animation: _transformationController,
-                            builder: (context, child) {
-                              return CanvasTransformProvider(
-                                transform: _transformationController.value,
-                                child: child!,
-                              );
-                            },
-                            child: UnboundedStack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                // Background grid
-                                GridLayer(
-                                  theme: theme,
+                          child: UnboundedStack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              // Background grid
+                              GridLayer(
+                                theme: theme,
+                                transformationController:
+                                    _transformationController,
+                              ),
+
+                              // Background annotations (groups) - drag handled via AnnotationWidget
+                              if (widget.showAnnotations)
+                                AnnotationLayer.background(
+                                  widget.controller,
+                                  onAnnotationTap: _handleAnnotationTap,
+                                  onAnnotationDoubleTap:
+                                      _handleAnnotationDoubleTap,
+                                  onAnnotationContextMenu:
+                                      _handleAnnotationContextMenu,
+                                  onAnnotationMouseEnter:
+                                      _handleAnnotationMouseEnter,
+                                  onAnnotationMouseLeave:
+                                      _handleAnnotationMouseLeave,
+                                ),
+
+                              // Connections
+                              ConnectionsLayer<T>(
+                                controller: widget.controller,
+                                animation: _connectionAnimationController,
+                              ),
+
+                              // Connection labels
+                              ConnectionLabelsLayer<T>(
+                                controller: widget.controller,
+                                labelBuilder: widget.labelBuilder,
+                              ),
+
+                              // Connection control points
+                              ConnectionControlPointsLayer<T>(
+                                controller: widget.controller,
+                              ),
+
+                              // Nodes - drag handled directly by NodeWidget via controller
+                              NodesLayer<T>(
+                                controller: widget.controller,
+                                nodeBuilder: widget.nodeBuilder,
+                                nodeContainerBuilder:
+                                    widget.nodeContainerBuilder,
+                                portBuilder: widget.portBuilder,
+                                connections: widget.controller.connections,
+                                portSnapDistance: widget
+                                    .controller
+                                    .config
+                                    .portSnapDistance
+                                    .value,
+                                onNodeTap: _handleNodeTap,
+                                onNodeDoubleTap: _handleNodeDoubleTap,
+                                onNodeContextMenu: _handleNodeContextMenu,
+                                onNodeMouseEnter: _handleNodeMouseEnter,
+                                onNodeMouseLeave: _handleNodeMouseLeave,
+                                onPortContextMenu: _handlePortContextMenu,
+                              ),
+
+                              // Foreground annotations (stickies, markers) - drag handled via AnnotationWidget
+                              if (widget.showAnnotations)
+                                AnnotationLayer.foreground(
+                                  widget.controller,
+                                  onAnnotationTap: _handleAnnotationTap,
+                                  onAnnotationDoubleTap:
+                                      _handleAnnotationDoubleTap,
+                                  onAnnotationContextMenu:
+                                      _handleAnnotationContextMenu,
+                                  onAnnotationMouseEnter:
+                                      _handleAnnotationMouseEnter,
+                                  onAnnotationMouseLeave:
+                                      _handleAnnotationMouseLeave,
+                                ),
+
+                              // Spatial index debug visualization (when debug mode is enabled)
+                              if (theme.debugMode)
+                                SpatialIndexDebugLayer<T>(
+                                  controller: widget.controller,
                                   transformationController:
                                       _transformationController,
+                                  theme: theme,
                                 ),
-
-                                // Background annotations (groups)
-                                if (widget.showAnnotations)
-                                  AnnotationLayer.background(widget.controller),
-
-                                // Connections
-                                ConnectionsLayer<T>(
-                                  controller: widget.controller,
-                                  animation: _connectionAnimationController,
-                                ),
-
-                                // Connection labels
-                                ConnectionLabelsLayer<T>(
-                                  controller: widget.controller,
-                                  labelBuilder: widget.labelBuilder,
-                                ),
-
-                                // Connection control points
-                                ConnectionControlPointsLayer<T>(
-                                  controller: widget.controller,
-                                ),
-
-                                // Nodes
-                                NodesLayer<T>(
-                                  controller: widget.controller,
-                                  nodeBuilder: widget.nodeBuilder,
-                                  nodeContainerBuilder:
-                                      widget.nodeContainerBuilder,
-                                  portBuilder: widget.portBuilder,
-                                  connections: widget.controller.connections,
-                                ),
-
-                                // Foreground annotations (stickies, markers)
-                                if (widget.showAnnotations)
-                                  AnnotationLayer.foreground(widget.controller),
-
-                                // Spatial index debug visualization (when debug mode is enabled)
-                                if (theme.debugMode)
-                                  SpatialIndexDebugLayer<T>(
-                                    controller: widget.controller,
-                                    transformationController:
-                                        _transformationController,
-                                    theme: theme,
-                                  ),
-                              ],
-                            ),
+                            ],
                           ),
                         ),
                       ),
@@ -679,7 +704,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Set up node shape builder callback
     spatialIndex.nodeShapeBuilder = widget.controller.nodeShapeBuilder;
 
-    // Set up port size resolver
+    // Set up port size resolver using theme cascade
     spatialIndex.portSizeResolver = (port) => port.size ?? themePortSize;
 
     // Set up connection hit tester callback
@@ -794,11 +819,17 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
   // Event handlers
   void _onInteractionStart(ScaleStartDetails details) {
-    // Fire viewport move start event
     final transform = _transformationController.value;
     final translation = transform.getTranslation();
     final scale = transform.getMaxScaleOnAxis();
 
+    // Mark viewport as being interacted with (for suppressing port hover during pan)
+    // Cursor is handled reactively via Observer in the canvas MouseRegion
+    runInAction(() {
+      widget.controller.interaction.isViewportInteracting.value = true;
+    });
+
+    // Fire viewport move start event
     final viewport = GraphViewport(
       x: translation.x,
       y: translation.y,
@@ -811,12 +842,12 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Update viewport in store during interaction for real-time updates
     final transform = _transformationController.value;
     final translation = transform.getTranslation();
-    final scale = transform.getMaxScaleOnAxis();
+    final currentZoom = transform.getMaxScaleOnAxis();
 
     final viewport = GraphViewport(
       x: translation.x,
       y: translation.y,
-      zoom: scale,
+      zoom: currentZoom,
     );
     widget.controller.setViewport(viewport);
 
@@ -825,6 +856,12 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   }
 
   void _onInteractionEnd(ScaleEndDetails details) {
+    // Mark viewport interaction as complete
+    // Cursor is handled reactively via Observer in the canvas MouseRegion
+    runInAction(() {
+      widget.controller.interaction.isViewportInteracting.value = false;
+    });
+
     // Update viewport in store when interaction ends to keep store in sync
     final transform = _transformationController.value;
     final translation = transform.getTranslation();
@@ -871,57 +908,38 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Store initial pointer position immediately
     widget.controller._setPointerPosition(event.localPosition);
 
-    // No longer needed - isInteractingWithPort removed
+    // CRITICAL: If pointer is on a port, disable pan IMMEDIATELY (before gesture arena)
+    // This prevents InteractiveViewer from competing for the drag gesture.
+    // The pan will be re-enabled in _handlePointerUp or when connection completes.
+    if (hitResult.isPort && widget.enableConnectionCreation) {
+      widget.controller._updateInteractionState(panEnabled: false);
+    }
 
     if (HardwareKeyboard.instance.isShiftPressed && widget.enableSelection) {
       _startSelectionDrag(event.localPosition);
       return;
     }
 
-    if (hitResult.isPort && widget.enableConnectionCreation) {
-      // No longer needed - isInteractingWithPort removed
-      _handlePortInteraction(hitResult);
-      return;
-    }
+    // Note: Connection handling is done via GestureDetector in PortWidget.
+    // PortWidget uses pan gestures to handle connection drag. Pan is disabled
+    // above when pointer is on a port, preventing InteractiveViewer from competing.
 
     switch (hitResult.hitType) {
+      // Node tap/selection handled immediately here (like connections).
+      // Drag gestures are handled by GestureDetector in NodeWidget to allow
+      // widgets inside nodes (like sliders) to win drag gestures.
       case HitTarget.node:
-        final isCmd = HardwareKeyboard.instance.isMetaPressed;
-        final isCtrl = HardwareKeyboard.instance.isControlPressed;
-        final isNodeSelected = widget.controller.isNodeSelected(
-          hitResult.nodeId!,
-        );
+        final node = widget.controller.getNode(hitResult.nodeId!);
+        if (node != null) {
+          final isCmd = HardwareKeyboard.instance.isMetaPressed;
+          final isCtrl = HardwareKeyboard.instance.isControlPressed;
+          final toggle = isCmd || isCtrl;
 
-        if (isCmd || isCtrl) {
-          // Command+click: toggle selection AND enable dragging for group operations
-          widget.controller.selectNode(hitResult.nodeId!, toggle: true);
+          // Select the node immediately
+          widget.controller.selectNode(node.id, toggle: toggle);
 
-          // Selection is handled by controller - no need to fire callbacks here
-
-          if (widget.enableNodeDragging) {
-            // Start dragging with Command held down for group operations
-            widget.controller._startNodeDrag(
-              hitResult.nodeId!,
-              event.localPosition,
-              widget.theme.cursorTheme.dragCursor,
-            );
-            // Disable panning to allow Command+drag of nodes over canvas
-            widget.controller._updateInteractionState(panEnabled: false);
-          }
-        } else if (widget.enableNodeDragging) {
-          if (!isNodeSelected) {
-            widget.controller.selectNode(hitResult.nodeId!);
-          }
-
-          // Normal drag without Command
-          widget.controller._startNodeDrag(
-            hitResult.nodeId!,
-            event.localPosition,
-            widget.theme.cursorTheme.dragCursor,
-          );
-        } else {
-          // Handle simple node click when dragging is disabled
-          widget.controller.selectNode(hitResult.nodeId!);
+          // Fire user callback
+          widget.controller.events.node?.onTap?.call(node);
         }
         break;
 
@@ -942,34 +960,22 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         widget.controller.events.connection?.onTap?.call(connection);
         break;
 
+      // Annotation tap/selection handled immediately here (like connections).
+      // Drag gestures are handled by GestureDetector in AnnotationWidget.
       case HitTarget.annotation:
-        final isCmd = HardwareKeyboard.instance.isMetaPressed;
-        final isCtrl = HardwareKeyboard.instance.isControlPressed;
-
-        final annotationId = hitResult.annotationId!;
         final annotation = widget.controller.annotations.getAnnotation(
-          annotationId,
+          hitResult.annotationId!,
         );
-
         if (annotation != null && annotation.isInteractive) {
-          if (isCmd || isCtrl) {
-            // Toggle selection with modifier key
-            widget.controller.selectAnnotation(annotationId, toggle: true);
-          } else {
-            // Start dragging the annotation
-            widget.controller._startAnnotationDrag(
-              annotationId,
-              event.localPosition,
-            );
-            // Select if not already selected
-            if (!widget.controller.annotations.isAnnotationSelected(
-              annotationId,
-            )) {
-              widget.controller.selectAnnotation(annotationId);
-            }
-            // Disable panning while dragging annotation
-            widget.controller._updateInteractionState(panEnabled: false);
-          }
+          final isCmd = HardwareKeyboard.instance.isMetaPressed;
+          final isCtrl = HardwareKeyboard.instance.isControlPressed;
+          final toggle = isCmd || isCtrl;
+
+          // Select the annotation immediately
+          widget.controller.selectAnnotation(annotation.id, toggle: toggle);
+
+          // Fire user callback
+          widget.controller.events.annotation?.onTap?.call(annotation);
         }
         break;
 
@@ -999,42 +1005,20 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       _shouldClearSelectionOnTap = false;
     }
 
+    // Note: Node drag is now handled by GestureDetector in NodeWidget
+    // (via _handleNodeDragUpdate) to allow widgets inside nodes to win drag gestures.
+
+    // Note: Annotation drag is now handled by GestureDetector in AnnotationWidget
+    // with direct controller access, so no Listener handling needed here.
+
+    // Note: Connection drag is now handled by GestureDetector in PortWidget
+    // with dragStartBehavior.down to win the gesture arena immediately.
+
     // Ultra-fast path for viewport panning - let InteractiveViewer handle it
-    // BUT skip panning if we're dragging an annotation
-    if (widget.controller.draggedNodeId == null &&
-        widget.controller.annotations.draggedAnnotationId == null &&
-        !widget.controller.isDrawingSelection &&
+    if (!widget.controller.isDrawingSelection &&
         !widget.controller.isConnecting &&
         widget.controller.panEnabled) {
       // Skip all processing during viewport panning for maximum performance
-      return;
-    }
-
-    // Fast path for node dragging - batched updates with theme-aware positioning
-    if (widget.controller.draggedNodeId != null &&
-        widget.controller.lastPointerPosition != null) {
-      final delta =
-          event.localPosition - widget.controller.lastPointerPosition!;
-      final graphDelta = widget.controller.viewport.screenToGraphDelta(delta);
-
-      // Batch position and pointer updates in single runInAction
-      widget.controller._moveNodeDrag(
-        widget.controller.draggedNodeId!,
-        graphDelta,
-        event.localPosition,
-      );
-      return;
-    }
-
-    // Handle annotation dragging
-    if (widget.controller.annotations.draggedAnnotationId != null &&
-        widget.controller.annotations.lastPointerPosition != null) {
-      final delta =
-          event.localPosition -
-          widget.controller.annotations.lastPointerPosition!;
-      final graphDelta = widget.controller.viewport.screenToGraphDelta(delta);
-
-      widget.controller._moveAnnotationDrag(event.localPosition, graphDelta);
       return;
     }
 
@@ -1045,25 +1029,17 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       return;
     }
 
-    if (widget.controller.isConnecting || widget.controller.isConnecting) {
-      _updateTemporaryConnection(event.localPosition);
+    // Skip when connecting - PortWidget's GestureDetector handles this
+    if (widget.controller.isConnecting) {
       return;
     }
 
-    // Only perform hit test when not in any interaction mode
-    if (!widget.controller.isConnecting &&
-        !widget.controller.isDrawingSelection) {
-      final hitResult = _performHitTest(event.localPosition);
-      _updateCursor(hitResult);
-    }
+    // Cursor is derived from state via Observer - no update needed
 
     widget.controller._setPointerPosition(event.localPosition);
   }
 
   void _handlePointerUp(PointerUpEvent event) {
-    // Re-enable panning if it was disabled (e.g., by ESC during connection)
-    _updatePanState();
-
     // Check if this was a tap (minimal movement from initial position)
     const tapThreshold = 5.0; // pixels
     final wasTap =
@@ -1071,12 +1047,22 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         (event.localPosition - _initialPointerPosition!).distance <
             tapThreshold;
 
+    // Note: Node drag end is now handled by GestureDetector in NodeWidget
+    // (via _handleNodeDragEnd) to allow widgets inside nodes to win drag gestures.
+
+    // Note: Annotation drag end is now handled by GestureDetector in AnnotationWidget
+    // with direct controller access, so no Listener handling needed here.
+
+    // Note: Connection drag end is now handled by pan gestures in PortWidget.
+    // The GestureDetector's onPanEnd handles completion/cancellation.
+
+    // Re-enable panning if it was disabled
+    _updatePanState();
+
     if (widget.controller.isDrawingSelection) {
       widget.controller._finishSelectionDrag();
 
-      // Reset cursor after selection ends
-      final hitResult = _performHitTest(event.localPosition);
-      _updateCursor(hitResult);
+      // Cursor is derived from state via Observer - no update needed
 
       // Reset tap tracking
       _initialPointerPosition = null;
@@ -1084,38 +1070,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       return;
     }
 
+    // Skip when connecting - PortWidget's pan gesture handles completion
     if (widget.controller.isConnecting) {
-      final hitResult = _performHitTest(event.localPosition);
-      if (hitResult.isPort) {
-        final tempConnection = widget.controller.temporaryConnection;
-        // Only complete connection if it's a different port than the source
-        if (tempConnection != null &&
-            (hitResult.nodeId != tempConnection.startNodeId ||
-                hitResult.portId != tempConnection.startPortId)) {
-          _handlePortInteraction(hitResult);
-        } else {
-          // Same port or invalid target - cancel the connection
-          widget.controller._cancelConnection();
-        }
-      } else {
-        // Clicked on empty space - cancel the connection
-        widget.controller._cancelConnection();
-      }
+      return;
     }
-
-    // Track annotation drag state before cleanup (for panning re-enable)
-    final wasAnnotationDragging =
-        widget.controller.annotations.draggedAnnotationId != null;
-
-    // Clean up drag state efficiently
-    widget.controller._endNodeDrag();
-
-    // Re-enable panning if we were dragging an annotation
-    if (wasAnnotationDragging) {
-      widget.controller._updateInteractionState(panEnabled: true);
-    }
-
-    widget.controller._endAnnotationDrag();
 
     final hitResult = _performHitTest(event.localPosition);
 
@@ -1135,7 +1093,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     _initialPointerPosition = null;
     _shouldClearSelectionOnTap = false;
 
-    _updateCursor(hitResult);
+    // Cursor is derived from state via Observer - no update needed
   }
 
   // Helper methods
@@ -1150,10 +1108,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       ), // Start with zero-size rect
     );
 
-    // Update cursor to precise immediately when selection starts
-    widget.controller._updateInteractionState(
-      cursor: SystemMouseCursors.precise,
-    );
+    // Cursor is derived from isDrawingSelection state via Observer
 
     // Force pan state update to disable panning during selection
     _updatePanState();
@@ -1198,271 +1153,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     return intersectingNodeIds;
   }
 
-  bool _isValidConnection(HitTestResult hitResult) {
-    final tempConnection = widget.controller.temporaryConnection;
-    if (tempConnection == null || !hitResult.isPort) {
-      return false;
-    }
-
-    // Can't connect to the same port
-    if (hitResult.nodeId == tempConnection.startNodeId &&
-        hitResult.portId == tempConnection.startPortId) {
-      return false;
-    }
-
-    // Get source port info from temporary connection
-    final sourceNode = widget.controller.getNode(tempConnection.startNodeId);
-    if (sourceNode == null) return false;
-
-    // Determine if source port is output
-    final isSourceOutput = sourceNode.outputPorts.any(
-      (port) => port.id == tempConnection.startPortId,
-    );
-    final isTargetOutput = hitResult.isOutput ?? false;
-
-    // Valid connections: output -> input or input -> output
-    return isSourceOutput != isTargetOutput;
-  }
-
-  void _handlePortInteraction(HitTestResult hitResult) {
-    if (widget.controller.isConnecting) {
-      // Complete connection - validate first
-      if (_isValidConnection(hitResult)) {
-        final tempConnection = widget.controller.temporaryConnection;
-        if (tempConnection == null) return;
-
-        // Get nodes and ports for validation context
-        final sourceNode = widget.controller.getNode(
-          tempConnection.startNodeId,
-        );
-        final targetNode = widget.controller.getNode(hitResult.nodeId!);
-
-        if (sourceNode == null || targetNode == null) {
-          widget.controller._cancelConnection();
-          return;
-        }
-
-        final sourcePort = [
-          ...sourceNode.inputPorts,
-          ...sourceNode.outputPorts,
-        ].where((p) => p.id == tempConnection.startPortId).firstOrNull;
-        final targetPort = [
-          ...targetNode.inputPorts,
-          ...targetNode.outputPorts,
-        ].where((p) => p.id == hitResult.portId!).firstOrNull;
-
-        if (sourcePort == null || targetPort == null) {
-          widget.controller._cancelConnection();
-          return;
-        }
-
-        // Get existing connections that would be affected
-        final existingSourceConnections = widget.controller.connections
-            .where(
-              (c) =>
-                  c.sourceNodeId == tempConnection.startNodeId &&
-                  c.sourcePortId == tempConnection.startPortId,
-            )
-            .map((c) => c.id)
-            .toList();
-
-        final existingTargetConnections = widget.controller.connections
-            .where(
-              (c) =>
-                  c.targetNodeId == hitResult.nodeId! &&
-                  c.targetPortId == hitResult.portId!,
-            )
-            .map((c) => c.id)
-            .toList();
-
-        // Create validation context
-        final context = ConnectionCompleteContext<T>(
-          sourceNode: sourceNode,
-          sourcePort: sourcePort,
-          targetNode: targetNode,
-          targetPort: targetPort,
-          existingSourceConnections: existingSourceConnections,
-          existingTargetConnections: existingTargetConnections,
-        );
-
-        // Check user-defined validation
-        final validationCallback =
-            widget.controller.events.connection?.onBeforeComplete;
-        if (validationCallback != null) {
-          final result = validationCallback(context);
-          if (!result.allowed) {
-            widget.controller._cancelConnection();
-            return;
-          }
-        }
-
-        // Track connections that will be removed (for ports that don't allow multiple connections)
-        final connectionsToBeRemoved = <Connection>[];
-
-        // Check target port connections
-        if (!targetPort.multiConnections) {
-          connectionsToBeRemoved.addAll(
-            widget.controller.connections.where(
-              (c) =>
-                  c.targetNodeId == hitResult.nodeId! &&
-                  c.targetPortId == hitResult.portId!,
-            ),
-          );
-        }
-
-        // Check source port connections
-        if (!sourcePort.multiConnections) {
-          connectionsToBeRemoved.addAll(
-            widget.controller.connections.where(
-              (c) =>
-                  c.sourceNodeId == tempConnection.startNodeId &&
-                  c.sourcePortId == tempConnection.startPortId,
-            ),
-          );
-        }
-
-        widget.controller._completeConnection(
-          hitResult.nodeId!,
-          hitResult.portId!,
-        );
-
-        // Connection deletion callbacks handled by controller via events
-
-        // Connection creation callback handled by controller
-      } else {
-        // Invalid connection - cancel it
-        widget.controller._cancelConnection();
-      }
-    } else {
-      // Start connection - validate first
-      final node = widget.controller.getNode(hitResult.nodeId!);
-      if (node == null) return;
-
-      final port = [
-        ...node.inputPorts,
-        ...node.outputPorts,
-      ].where((p) => p.id == hitResult.portId!).firstOrNull;
-
-      if (port == null) return;
-
-      // Get existing connections from this port
-      final existingConnections = widget.controller.connections
-          .where(
-            (c) =>
-                (hitResult.isOutput! &&
-                    c.sourceNodeId == hitResult.nodeId! &&
-                    c.sourcePortId == hitResult.portId!) ||
-                (!hitResult.isOutput! &&
-                    c.targetNodeId == hitResult.nodeId! &&
-                    c.targetPortId == hitResult.portId!),
-          )
-          .map((c) => c.id)
-          .toList();
-
-      // Create validation context
-      final context = ConnectionStartContext<T>(
-        sourceNode: node,
-        sourcePort: port,
-        existingConnections: existingConnections,
-      );
-
-      // Check user-defined validation
-      final validationCallback =
-          widget.controller.events.connection?.onBeforeStart;
-      if (validationCallback != null) {
-        final result = validationCallback(context);
-        if (!result.allowed) {
-          return;
-        }
-      }
-
-      widget.controller._startConnection(
-        hitResult.nodeId!,
-        hitResult.portId!,
-        hitResult.isOutput!,
-      );
-
-      // Connection deletion callbacks handled by controller via events
-
-      final theme = widget.theme;
-      final shape = widget.controller.nodeShapeBuilder?.call(node);
-      // Use cascade: port.size → theme.size
-      final effectivePortSize = port.size ?? theme.portTheme.size;
-      final portPosition = node.getPortPosition(
-        hitResult.portId!,
-        portSize: effectivePortSize,
-        shape: shape,
-      );
-
-      widget.controller._setTemporaryConnection(
-        TemporaryConnection(
-          startPoint: portPosition,
-          startNodeId: hitResult.nodeId!,
-          startPortId: hitResult.portId!,
-          isStartFromOutput: hitResult.isOutput!,
-          startNodeBounds: node.getBounds(),
-          initialCurrentPoint: portPosition,
-        ),
-      );
-    }
-  }
-
-  void _updateTemporaryConnection(Offset currentScreenPosition) {
-    final temp = widget.controller.temporaryConnection;
-    if (temp == null) return;
-
-    final currentGraphPosition = widget.controller.viewport.screenToGraph(
-      currentScreenPosition,
-    );
-
-    // Check for port snapping during connection drag
-    String? targetNodeId;
-    String? targetPortId;
-    Rect? targetNodeBounds;
-    Offset finalPosition = currentGraphPosition;
-
-    // Perform hit test to find nearby ports for snapping
-    final hitResult = _performHitTest(currentScreenPosition);
-    // Allow snapping to any port except the exact same port we started from
-    // This enables self-connections (connecting different ports on the same node)
-    final isSamePort =
-        hitResult.nodeId == temp.startNodeId &&
-        hitResult.portId == temp.startPortId;
-    if (hitResult.isPort && !isSamePort) {
-      // Found a target port to snap to
-      targetNodeId = hitResult.nodeId;
-      targetPortId = hitResult.portId;
-
-      // Update position to port center for snapping
-      final targetNode = widget.controller.getNode(hitResult.nodeId!);
-      if (targetNode != null) {
-        targetNodeBounds = targetNode.getBounds();
-        final theme = widget.theme;
-        final shape = widget.controller.nodeShapeBuilder?.call(targetNode);
-        // Find the target port to get its size
-        final targetPort = [
-          ...targetNode.inputPorts,
-          ...targetNode.outputPorts,
-        ].where((p) => p.id == hitResult.portId!).firstOrNull;
-        // Use cascade: port.size → theme.size
-        final effectivePortSize = targetPort?.size ?? theme.portTheme.size;
-        finalPosition = targetNode.getPortPosition(
-          hitResult.portId!,
-          portSize: effectivePortSize,
-          shape: shape,
-        );
-      }
-    }
-
-    // Use batched update for better performance
-    widget.controller._updateTemporaryConnection(
-      currentScreenPosition,
-      finalPosition,
-      targetNodeId,
-      targetPortId,
-      targetNodeBounds,
-    );
-  }
+  // Note: Connection drag handling has been moved to PortWidget.
+  // PortWidget now uses pan gestures (onPanStart/Update/End) which continue
+  // to receive events even when the pointer moves outside the widget bounds,
+  // just like Flutter's Slider widget.
 }
 
 /// A widget that observes size changes and notifies via callback.

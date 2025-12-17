@@ -53,7 +53,7 @@ class _CallbacksExampleState extends State<CallbacksExample> {
       position: const Offset(100, 150),
       size: const Size(120, 80),
       data: {'label': 'Start'},
-      outputPorts: const [
+      outputPorts: [
         Port(
           id: 'out',
           name: 'Output',
@@ -69,7 +69,7 @@ class _CallbacksExampleState extends State<CallbacksExample> {
       position: const Offset(300, 150),
       size: const Size(120, 80),
       data: {'label': 'Process'},
-      inputPorts: const [
+      inputPorts: [
         Port(
           id: 'in',
           name: 'Input',
@@ -77,7 +77,7 @@ class _CallbacksExampleState extends State<CallbacksExample> {
           offset: Offset(-2, 40), // Vertical center of 80 height
         ),
       ],
-      outputPorts: const [
+      outputPorts: [
         Port(
           id: 'out',
           name: 'Output',
@@ -93,7 +93,7 @@ class _CallbacksExampleState extends State<CallbacksExample> {
       position: const Offset(500, 150),
       size: const Size(120, 80),
       data: {'label': 'End'},
-      inputPorts: const [
+      inputPorts: [
         Port(
           id: 'in',
           name: 'Input',
@@ -603,7 +603,7 @@ class _CallbacksExampleState extends State<CallbacksExample> {
                     ),
                     size: const Size(120, 80),
                     data: {'label': 'Node ${_eventCounter + 1}'},
-                    inputPorts: const [
+                    inputPorts: [
                       Port(
                         id: 'in',
                         name: 'Input',
@@ -611,7 +611,7 @@ class _CallbacksExampleState extends State<CallbacksExample> {
                         offset: Offset(0, 40), // Vertical center of 80 height
                       ),
                     ],
-                    outputPorts: const [
+                    outputPorts: [
                       Port(
                         id: 'out',
                         name: 'Output',

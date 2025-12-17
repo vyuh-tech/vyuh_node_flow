@@ -129,14 +129,15 @@ class GroupAnnotation extends Annotation {
 
     return Observer(
       builder: (_) {
-        // Observe the reactive properties
+        // Observe all reactive properties including size
         final title = currentTitle;
         final color = currentColor;
+        final currentSize = _calculatedSize.value; // Explicitly observe size
         final radius = Radius.circular(borderRadius.topLeft.x - borderWidth);
 
         return Container(
-          width: size.width,
-          height: size.height,
+          width: currentSize.width,
+          height: currentSize.height,
           color: color.withValues(alpha: 0.1),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

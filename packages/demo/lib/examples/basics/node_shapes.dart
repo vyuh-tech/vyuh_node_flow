@@ -40,7 +40,7 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
       position: const Offset(100, 100),
       data: {'label': 'Rectangle\n(Default)'},
       size: const Size(150, 100),
-      outputPorts: const [
+      outputPorts: [
         Port(
           id: 'output',
           name: 'Out',
@@ -58,7 +58,7 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
       position: const Offset(300, 100),
       data: {'label': 'Circle\nStart/End'},
       size: const Size(120, 120),
-      inputPorts: const [
+      inputPorts: [
         Port(
           id: 'input',
           name: 'In',
@@ -76,10 +76,10 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
       position: const Offset(100, 280),
       data: {'label': 'Diamond\nDecision'},
       size: const Size(140, 100),
-      inputPorts: const [
+      inputPorts: [
         Port(id: 'input', name: 'In', position: PortPosition.top),
       ],
-      outputPorts: const [
+      outputPorts: [
         Port(id: 'output-yes', name: 'Yes', position: PortPosition.right),
         Port(id: 'output-no', name: 'No', position: PortPosition.bottom),
       ],
@@ -93,10 +93,10 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
       position: const Offset(300, 280),
       data: {'label': 'Hexagon\nPreparation'},
       size: const Size(160, 100),
-      inputPorts: const [
+      inputPorts: [
         Port(id: 'input', name: 'In', position: PortPosition.left),
       ],
-      outputPorts: const [
+      outputPorts: [
         Port(id: 'output', name: 'Out', position: PortPosition.right),
       ],
     );
@@ -109,10 +109,10 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
       position: const Offset(500, 280),
       data: {'label': 'Vertical\nHexagon'},
       size: const Size(120, 150),
-      inputPorts: const [
+      inputPorts: [
         Port(id: 'input', name: 'In', position: PortPosition.top),
       ],
-      outputPorts: const [
+      outputPorts: [
         Port(id: 'output', name: 'Out', position: PortPosition.bottom),
       ],
     );

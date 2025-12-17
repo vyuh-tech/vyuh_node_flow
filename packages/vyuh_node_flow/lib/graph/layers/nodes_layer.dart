@@ -10,9 +10,8 @@ import '../node_flow_controller.dart';
 
 /// Nodes layer widget that renders all nodes with optimized reactivity.
 ///
-/// Note: Tap, double-tap, context menu, and hover events are handled at the
-/// Listener level in NodeFlowEditor using hit testing. This ensures events
-/// work correctly regardless of node position on the canvas.
+/// This layer handles rendering of all nodes and wires gesture callbacks
+/// from the editor to individual [NodeWidget] instances.
 class NodesLayer<T> extends StatelessWidget {
   const NodesLayer({
     super.key,
@@ -21,6 +20,13 @@ class NodesLayer<T> extends StatelessWidget {
     required this.connections,
     this.nodeContainerBuilder,
     this.portBuilder,
+    this.onNodeTap,
+    this.onNodeDoubleTap,
+    this.onNodeContextMenu,
+    this.onNodeMouseEnter,
+    this.onNodeMouseLeave,
+    this.onPortContextMenu,
+    this.portSnapDistance = 8.0,
   });
 
   final NodeFlowController<T> controller;
@@ -37,10 +43,37 @@ class NodesLayer<T> extends StatelessWidget {
 
   final List<Connection> connections;
 
+  /// Callback invoked when a node is tapped.
+  final void Function(Node<T> node)? onNodeTap;
+
+  /// Callback invoked when a node is double-tapped.
+  final void Function(Node<T> node)? onNodeDoubleTap;
+
+  /// Callback invoked when a node is right-clicked (context menu).
+  final void Function(Node<T> node, Offset globalPosition)? onNodeContextMenu;
+
+  /// Callback invoked when mouse enters a node.
+  final void Function(Node<T> node)? onNodeMouseEnter;
+
+  /// Callback invoked when mouse leaves a node.
+  final void Function(Node<T> node)? onNodeMouseLeave;
+
+  /// Callback invoked when a port is right-clicked (context menu).
+  final void Function(
+    String nodeId,
+    String portId,
+    bool isOutput,
+    Offset globalPosition,
+  )?
+  onPortContextMenu;
+
+  /// Distance around ports that expands the hit area for easier targeting.
+  final double portSnapDistance;
+
   @override
   Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: RepaintBoundary(
+    return UnboundedPositioned.fill(
+      child: UnboundedRepaintBoundary(
         child: Observer(
           builder: (_) {
             // Use cached sorted nodes - sorting only happens when nodes change or zIndex changes
@@ -72,25 +105,30 @@ class NodesLayer<T> extends StatelessWidget {
     // Get the shape for this node (if any) from the controller
     final shape = controller.nodeShapeBuilder?.call(node);
 
-    // Default implementation: NodeWidget with standard functionality
-    // Note: Event callbacks (tap, double-tap, context menu, hover) are handled
-    // at the Listener level in NodeFlowEditor, not here.
+    // Default implementation: NodeWidget with controller for drag operations
     return NodeWidget<T>(
       key: ValueKey(node.id),
       node: node,
+      controller: controller,
       shape: shape,
       connections: connections,
-      portBuilder: portBuilder != null
-          ? (context, n, port, isOutput, isConnected, isHighlighted) =>
-                portBuilder!(
-                  context,
-                  n,
-                  port,
-                  isOutput,
-                  isConnected,
-                  isHighlighted,
-                )
+      portBuilder: portBuilder,
+      // Event callbacks for external handling
+      onTap: onNodeTap != null ? () => onNodeTap!(node) : null,
+      onDoubleTap: onNodeDoubleTap != null
+          ? () => onNodeDoubleTap!(node)
           : null,
+      onContextMenu: onNodeContextMenu != null
+          ? (pos) => onNodeContextMenu!(node, pos)
+          : null,
+      onMouseEnter: onNodeMouseEnter != null
+          ? () => onNodeMouseEnter!(node)
+          : null,
+      onMouseLeave: onNodeMouseLeave != null
+          ? () => onNodeMouseLeave!(node)
+          : null,
+      onPortContextMenu: onPortContextMenu,
+      portSnapDistance: portSnapDistance,
       child: content,
     );
   }

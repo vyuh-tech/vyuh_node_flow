@@ -141,12 +141,12 @@ class ConnectionPainter {
     final sourcePortSize = sourcePort.size ?? portTheme.size;
     final targetPortSize = targetPort.size ?? portTheme.size;
 
-    final sourcePortPosition = sourceNode.getPortPosition(
+    final sourcePortPosition = sourceNode.getConnectionPoint(
       connection.sourcePortId,
       portSize: sourcePortSize,
       shape: sourceShape,
     );
-    final targetPortPosition = targetNode.getPortPosition(
+    final targetConnectionPoint = targetNode.getConnectionPoint(
       connection.targetPortId,
       portSize: targetPortSize,
       shape: targetShape,
@@ -167,7 +167,7 @@ class ConnectionPainter {
       gap: connection.startGap ?? connectionTheme.startGap,
     );
     final target = EndpointPositionCalculator.calculatePortConnectionPoints(
-      targetPortPosition,
+      targetConnectionPoint,
       targetPort.position,
       endPointSize,
       gap: connection.endGap ?? connectionTheme.endGap,
@@ -246,47 +246,70 @@ class ConnectionPainter {
   }) {
     final connectionTheme = theme.temporaryConnectionTheme;
 
-    // Calculate line endpoints and endpoint positions using same logic as permanent connections
-    ({Offset endpointPos, Offset linePos})? source;
-    ({Offset endpointPos, Offset linePos})? target;
+    // Calculate distance between port and mouse
+    final distance = (currentPoint - startPoint).distance;
 
-    // Use 0 size for NoneMarkerShape to avoid creating gaps
-    final tempStartPointSize =
-        connectionTheme.startPoint.shape is NoneMarkerShape
-        ? Size.zero
-        : connectionTheme.startPoint.size;
-    final tempEndPointSize = connectionTheme.endPoint.shape is NoneMarkerShape
-        ? Size.zero
-        : connectionTheme.endPoint.size;
+    // Calculate the minimum distance threshold dynamically:
+    // We need at least 3x the port extension before applying full styling
+    // to avoid weird loopback routing when the mouse is close to the port
+    final portExtension = connectionTheme.portExtension;
+    final minStyleThreshold = 3 * portExtension;
 
+    // For very short distances, draw a simple straight line
+    // This prevents loopback routing from triggering when starting the drag
+    if (distance < minStyleThreshold) {
+      _drawSimpleTemporaryLine(
+        canvas,
+        startPoint,
+        currentPoint,
+        connectionTheme,
+      );
+      return;
+    }
+
+    // For longer distances, use the full connection style machinery
+    // This ensures the temporary connection looks exactly like a real connection
+
+    // Calculate source endpoint positions (from the port we started dragging from)
+    final ({Offset endpointPos, Offset linePos}) source;
     if (sourcePort != null) {
+      // Use proper endpoint calculation to account for endpoint marker size and gap
+      final startEndpoint = connectionTheme.startPoint;
+      final startPointSize = startEndpoint.shape is NoneMarkerShape
+          ? Size.zero
+          : startEndpoint.size;
       source = EndpointPositionCalculator.calculatePortConnectionPoints(
         startPoint,
         sourcePort.position,
-        tempStartPointSize,
+        startPointSize,
         gap: connectionTheme.startGap,
       );
     } else {
-      // When no source port, use startPoint directly
       source = (endpointPos: startPoint, linePos: startPoint);
     }
 
+    // Calculate target endpoint positions (where we're dragging to)
+    final ({Offset endpointPos, Offset linePos}) target;
     if (targetPort != null) {
+      // Use proper endpoint calculation to account for endpoint marker size and gap
+      // This ensures the connection snaps to the correct attachment point
+      final endEndpoint = connectionTheme.endPoint;
+      final endPointSize = endEndpoint.shape is NoneMarkerShape
+          ? Size.zero
+          : endEndpoint.size;
       target = EndpointPositionCalculator.calculatePortConnectionPoints(
         currentPoint,
         targetPort.position,
-        tempEndPointSize,
+        endPointSize,
         gap: connectionTheme.endGap,
       );
     } else {
-      // When not snapped to a port, use currentPoint directly
       target = (endpointPos: currentPoint, linePos: currentPoint);
     }
 
-    // Draw the connection and endpoints with temporary styling
     _drawConnectionWithEndpoints(
       canvas,
-      null, // No connection object for temporary connections
+      null,
       source: source,
       target: target,
       sourcePort: sourcePort,
@@ -298,6 +321,31 @@ class ConnectionPainter {
       drawTargetEndpoint: targetPort != null,
       animationValue: animationValue,
     );
+  }
+
+  /// Draws a simple straight line for temporary connections when distance is small.
+  void _drawSimpleTemporaryLine(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    ConnectionTheme connectionTheme,
+  ) {
+    final paint = Paint()
+      ..color = connectionTheme.color
+      ..strokeWidth = connectionTheme.strokeWidth
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    // Apply dash pattern if specified
+    if (connectionTheme.dashPattern != null) {
+      final path = Path()
+        ..moveTo(start.dx, start.dy)
+        ..lineTo(end.dx, end.dy);
+      final dashedPath = _createDashedPath(path, connectionTheme.dashPattern!);
+      canvas.drawPath(dashedPath, paint);
+    } else {
+      canvas.drawLine(start, end, paint);
+    }
   }
 
   /// Creates a dashed path from a solid path using the given dash pattern
@@ -355,6 +403,9 @@ class ConnectionPainter {
     final connectionStyle = connectionTheme.style;
 
     // Create connection path parameters and generate path from segments
+    // For temporary connections, sourceOffset/targetOffset computed properties
+    // return 0 when no port exists (mouse position), so extensions only apply
+    // to the port side, not the mouse side
     final pathParams = ConnectionPathParameters(
       start: source.linePos,
       end: target.linePos,
@@ -366,6 +417,7 @@ class ConnectionPainter {
       backEdgeGap: connectionTheme.backEdgeGap,
       sourceNodeBounds: sourceNodeBounds,
       targetNodeBounds: targetNodeBounds,
+      debugMode: theme.debugMode,
     );
     final segmentResult = connectionStyle.createSegments(pathParams);
     final connectionPath = connectionStyle.buildPath(
@@ -467,7 +519,7 @@ class ConnectionPainter {
 
     // Draw target endpoint (endPoint) if needed
     if (drawTargetEndpoint) {
-      final targetPortPosition = targetPort?.position ?? PortPosition.right;
+      final targetConnectionPoint = targetPort?.position ?? PortPosition.right;
       final endFillPaint = Paint()
         ..color = endPoint.color ?? defaultFillColor
         ..style = PaintingStyle.fill;
@@ -485,7 +537,7 @@ class ConnectionPainter {
         position: target.endpointPos,
         size: endPoint.size,
         shape: endPoint.shape,
-        portPosition: targetPortPosition,
+        portPosition: targetConnectionPoint,
         fillPaint: endFillPaint,
         borderPaint: endBorderPaint,
       );

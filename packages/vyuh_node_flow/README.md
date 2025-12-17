@@ -464,13 +464,12 @@ PortTheme(
   size: 9.0,
   color: Colors.grey.shade400,          // Idle color
   connectedColor: Colors.blue,           // When connected
-  snappingColor: Colors.blue.shade700,   // During drag hover
 
   // Border
   borderColor: Colors.transparent,
   borderWidth: 0.0,
-  highlightBorderColor: Colors.black,    // When highlighted
-  highlightBorderWidthDelta: 1.5,        // Added to borderWidth when highlighted
+  highlightColor: Colors.blue.shade300,  // Fill color when highlighted
+  highlightBorderColor: Colors.black,    // Border color when highlighted
 
   // Labels
   showLabel: false,
@@ -793,10 +792,11 @@ final customTheme = NodeFlowTheme(
 
   // Port styling
   portTheme: PortTheme(
-    size: 10.0,
+    size: Size(10, 10),
     color: Colors.grey.shade400,
     connectedColor: Colors.blue,
-    snappingColor: Colors.blue.shade700,
+    highlightColor: Colors.blue.shade300,
+    highlightBorderColor: Colors.black,
     borderColor: Colors.white,
     borderWidth: 2.0,
     showLabel: true,

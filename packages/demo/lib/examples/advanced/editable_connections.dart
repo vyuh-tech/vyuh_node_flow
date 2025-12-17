@@ -52,7 +52,7 @@ class _EditableConnectionsExampleState
         position: const Offset(100, 100),
         data: {'label': 'Input A'},
         size: const Size(150, 100),
-        outputPorts: const [
+        outputPorts: [
           Port(
             id: 'output',
             name: 'Out',
@@ -67,7 +67,7 @@ class _EditableConnectionsExampleState
         position: const Offset(100, 250),
         data: {'label': 'Input B'},
         size: const Size(150, 100),
-        outputPorts: const [
+        outputPorts: [
           Port(
             id: 'output',
             name: 'Out',
@@ -82,7 +82,7 @@ class _EditableConnectionsExampleState
         position: const Offset(400, 150),
         data: {'label': 'Process'},
         size: const Size(150, 120),
-        inputPorts: const [
+        inputPorts: [
           Port(
             id: 'input1',
             name: 'In 1',
@@ -96,7 +96,7 @@ class _EditableConnectionsExampleState
             offset: Offset(-2, 80),
           ),
         ],
-        outputPorts: const [
+        outputPorts: [
           Port(
             id: 'output',
             name: 'Out',
@@ -111,7 +111,7 @@ class _EditableConnectionsExampleState
         position: const Offset(700, 175),
         data: {'label': 'Output'},
         size: const Size(150, 100),
-        inputPorts: const [
+        inputPorts: [
           Port(
             id: 'input',
             name: 'In',
