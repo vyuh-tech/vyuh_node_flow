@@ -26,9 +26,10 @@ import 'node_flow_behavior.dart';
 
 part '../annotations/annotation_controller.dart';
 part 'api/connection_api.dart';
+part 'api/graph_api.dart';
 // Domain-specific API extensions
 part 'api/node_api.dart';
-part 'api/selection_api.dart';
+part 'api/viewport_api.dart';
 part 'node_flow_controller_api.dart';
 
 /// Alignment options for node alignment operations

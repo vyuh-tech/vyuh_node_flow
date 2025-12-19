@@ -58,12 +58,16 @@ minimap, and more.
   - [Connection Labels](#connection-labels)
 - [Annotations](#annotations)
   - [Built-in Annotation Types](#built-in-annotation-types)
+  - [Group Annotations](#group-annotations)
   - [Custom Annotations](#custom-annotations)
   - [Following Nodes](#following-nodes)
+- [Visibility](#visibility)
+  - [Node Visibility](#node-visibility)
+  - [Annotation Visibility](#annotation-visibility)
 - [Interactive Features](#interactive-features)
   - [Event System](#event-system)
   - [Keyboard Shortcuts](#keyboard-shortcuts)
-  - [Feature Toggles](#feature-toggles)
+  - [Behavior Modes](#behavior-modes)
 - [Minimap](#minimap)
 - [Read-Only Viewer](#read-only-viewer)
 - [Serialization](#serialization)
@@ -303,6 +307,8 @@ NodeFlowTheme
 ├── gridTheme          → Grid background appearance
 ├── selectionTheme     → Selection rectangle styling
 ├── cursorTheme        → Mouse cursor styles
+├── minimapTheme       → Minimap overlay appearance
+├── resizerTheme       → Resize handle appearance
 ├── backgroundColor    → Canvas background color
 └── connectionAnimationDuration → Animation timing
 ```
@@ -583,6 +589,103 @@ CursorTheme(
   portCursor: SystemMouseCursors.precise,
 )
 ```
+
+</details>
+
+<details>
+<summary><strong>MinimapTheme - Minimap Overlay</strong></summary>
+
+Controls the appearance and position of the minimap navigation widget.
+
+```dart
+MinimapTheme(
+  // Position and size
+  position: MinimapPosition.bottomRight,  // Corner placement
+  margin: 20.0,                           // Distance from edge
+  size: Size(200, 150),                   // Minimap dimensions
+
+  // Colors
+  backgroundColor: Color(0xFFF5F5F5),     // Container background
+  nodeColor: Color(0xFF1976D2),           // Node representation color
+  viewportColor: Color(0xFF1976D2),       // Viewport indicator color
+  borderColor: Color(0xFFBDBDBD),         // Container border color
+
+  // Viewport indicator
+  showViewport: true,                     // Show visible area indicator
+  viewportFillOpacity: 0.1,               // Viewport fill transparency
+  viewportBorderOpacity: 0.4,             // Viewport border transparency
+
+  // Styling
+  borderWidth: 1.0,                       // Container border width
+  borderRadius: 4.0,                      // Container corner radius
+  nodeBorderRadius: 2.0,                  // Node rectangle corner radius
+  padding: EdgeInsets.all(4.0),           // Internal padding
+)
+```
+
+**Built-in presets:**
+
+```dart
+// Light theme minimap (default)
+MinimapTheme.light
+
+// Dark theme minimap
+MinimapTheme.dark
+
+// Custom minimap matching your theme
+final customTheme = NodeFlowTheme.light.copyWith(
+  minimapTheme: MinimapTheme.light.copyWith(
+    position: MinimapPosition.topLeft,
+    size: const Size(250, 180),
+    nodeColor: Colors.purple,
+  ),
+);
+```
+
+**Position options:**
+- `MinimapPosition.topLeft`
+- `MinimapPosition.topRight`
+- `MinimapPosition.bottomLeft`
+- `MinimapPosition.bottomRight` (default)
+
+</details>
+
+<details>
+<summary><strong>ResizerTheme - Resize Handles</strong></summary>
+
+Controls the appearance of resize handles on resizable elements like group annotations.
+
+```dart
+ResizerTheme(
+  handleSize: 10.0,                // Width and height of handles
+  color: Colors.white,             // Handle fill color
+  borderColor: Colors.blue,        // Handle border color
+  borderWidth: 1.0,                // Handle border thickness
+  snapDistance: 4.0,               // Extra hit area around handles
+)
+```
+
+**Built-in presets:**
+
+```dart
+// Light theme handles (white fill, blue border)
+ResizerTheme.light
+
+// Dark theme handles (dark fill, light blue border)
+ResizerTheme.dark
+
+// Custom resize handles
+final customTheme = NodeFlowTheme.light.copyWith(
+  resizerTheme: ResizerTheme.light.copyWith(
+    handleSize: 12.0,
+    borderColor: Colors.purple,
+    snapDistance: 6.0,  // Larger hit area for touch devices
+  ),
+);
+```
+
+> [!TIP] Increase `snapDistance` for touch-friendly interfaces. This makes
+> handles easier to grab without changing their visual size.
 
 </details>
 
@@ -2200,6 +2303,137 @@ controller.addAnnotation(annotation);
 ```
 
 </details>
+
+### Group Annotations
+
+Group annotations allow you to visually organize related nodes together. Groups
+can be resized, styled, and configured with different behavior modes that
+control how nodes interact with the group.
+
+<details>
+<summary><strong>Creating Group Annotations</strong></summary>
+
+```dart
+// Create a group at a specific position and size
+controller.createGroupAnnotation(
+  title: 'Input Processing',
+  position: const Offset(50, 50),
+  size: const Size(400, 300),
+  color: Colors.blue.withOpacity(0.2),
+);
+
+// Create a group around existing nodes
+controller.createGroupAnnotationAroundNodes(
+  title: 'Data Pipeline',
+  nodeIds: {'node-1', 'node-2', 'node-3'},
+  padding: const EdgeInsets.all(30),
+  color: Colors.green.withOpacity(0.2),
+);
+```
+
+</details>
+
+<details>
+<summary><strong>Group Behavior Modes</strong></summary>
+
+Groups support three behavior modes that control how nodes interact with the group:
+
+| Mode | Membership | Size | Node Movement |
+|------|------------|------|---------------|
+| `bounds` | Spatial (nodes inside bounds) | Manual (resizable) | Nodes can escape by dragging out |
+| `explicit` | Explicit (node ID set) | Auto-computed (fits members) | Group resizes to contain nodes |
+| `parent` | Explicit (node ID set) | Manual (resizable) | Nodes move with group, can leave bounds |
+
+```dart
+// Bounds mode (default) - spatial containment
+final boundsGroup = GroupAnnotation(
+  id: 'group-1',
+  title: 'Bounds Group',
+  position: const Offset(100, 100),
+  size: const Size(300, 200),
+  behavior: GroupBehavior.bounds, // Nodes inside move with group
+);
+
+// Explicit mode - auto-sizing group
+final explicitGroup = GroupAnnotation(
+  id: 'group-2',
+  title: 'Explicit Group',
+  position: const Offset(100, 100),
+  size: const Size(300, 200),
+  behavior: GroupBehavior.explicit,
+  nodeIds: {'node-1', 'node-2'}, // Group auto-fits these nodes
+);
+
+// Parent mode - linked but flexible
+final parentGroup = GroupAnnotation(
+  id: 'group-3',
+  title: 'Parent Group',
+  position: const Offset(100, 100),
+  size: const Size(300, 200),
+  behavior: GroupBehavior.parent,
+  nodeIds: {'node-1', 'node-2'}, // Nodes move with group but can leave bounds
+);
+
+controller.addAnnotation(boundsGroup);
+```
+
+**Command+Drag to Add/Remove Nodes**: Hold Command (Mac) or Ctrl (Windows/Linux)
+while dragging a node to add it to or remove it from a group when using `bounds`
+behavior. The group will highlight when a node can be added.
+
+</details>
+
+---
+
+## Visibility
+
+Nodes and annotations support visibility toggling, allowing you to hide elements
+without removing them from the graph. Hidden elements remain in the data model
+and can be shown again at any time.
+
+### Node Visibility
+
+```dart
+// Hide a node
+controller.getNode('node-1')?.isVisible = false;
+
+// Show a node
+controller.getNode('node-1')?.isVisible = true;
+
+// Check visibility
+if (controller.getNode('node-1')?.isVisible ?? false) {
+  print('Node is visible');
+}
+
+// Create a node that starts hidden
+controller.addNode(Node<String>(
+  id: 'hidden-node',
+  type: 'process',
+  position: const Offset(100, 100),
+  data: 'Hidden by default',
+  visible: false, // Start hidden
+));
+```
+
+> [!NOTE] Hidden nodes are not rendered on the canvas and their ports cannot
+> participate in new connections. Existing connections to hidden nodes remain
+> in the graph data but are visually hidden.
+
+### Annotation Visibility
+
+```dart
+// Hide all annotations
+controller.hideAllAnnotations();
+
+// Show all annotations
+controller.showAllAnnotations();
+
+// Toggle individual annotation visibility
+final annotation = controller.getAnnotation('group-1');
+if (annotation != null) {
+  annotation.isVisible = !annotation.isVisible;
+}
+```
 
 ---
 
