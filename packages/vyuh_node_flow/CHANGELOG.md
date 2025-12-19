@@ -1,3 +1,8 @@
+## 0.10.2
+
+ - **FIX**: hit testing outside the bounds of resizer and group-annotation.
+ - **FEAT**: introduce `coordinates.dart` to enforce type safety in coordinate transformations and refactor usage across the package.
+
 ## 0.10.1
 
 - **FEAT**: introduce `coordinates.dart` to enforce type safety in coordinate
