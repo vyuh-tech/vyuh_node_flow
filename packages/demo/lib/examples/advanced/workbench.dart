@@ -480,22 +480,24 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
         GridButton(
           label: 'Pan Right',
           icon: Icons.arrow_forward,
-          onPressed: () => _controller.panBy(const Offset(50, 0)),
+          onPressed: () => _controller.panBy(const ScreenOffset(Offset(50, 0))),
         ),
         GridButton(
           label: 'Pan Down',
           icon: Icons.arrow_downward,
-          onPressed: () => _controller.panBy(const Offset(0, 50)),
+          onPressed: () => _controller.panBy(const ScreenOffset(Offset(0, 50))),
         ),
         GridButton(
           label: 'Pan Left',
           icon: Icons.arrow_back,
-          onPressed: () => _controller.panBy(const Offset(-50, 0)),
+          onPressed: () =>
+              _controller.panBy(const ScreenOffset(Offset(-50, 0))),
         ),
         GridButton(
           label: 'Pan Up',
           icon: Icons.arrow_upward,
-          onPressed: () => _controller.panBy(const Offset(0, -50)),
+          onPressed: () =>
+              _controller.panBy(const ScreenOffset(Offset(0, -50))),
         ),
       ]),
       _buildGridSection('Analysis', [

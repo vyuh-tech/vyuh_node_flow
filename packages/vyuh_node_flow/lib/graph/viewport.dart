@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'coordinates.dart';
+
 /// Represents the viewport transformation for a node flow graph.
 ///
 /// The viewport defines how the infinite graph coordinate space is mapped
@@ -11,22 +13,26 @@ import 'package:flutter/material.dart';
 /// positioned anywhere. The viewport transforms these coordinates to screen
 /// pixels for rendering.
 ///
+/// All coordinate transformations use typed extension types ([GraphPosition],
+/// [ScreenPosition], [GraphOffset], [ScreenOffset]) to prevent accidentally
+/// mixing coordinate spaces.
+///
 /// Example:
 /// ```dart
 /// // Create a viewport centered at origin with 100% zoom
 /// final viewport = GraphViewport(x: 0, y: 0, zoom: 1.0);
 ///
-/// // Convert screen position to graph coordinates
-/// final graphPos = viewport.screenToGraph(Offset(100, 100));
+/// // Convert screen position to graph coordinates (type-safe!)
+/// final screenPos = ScreenPosition.fromXY(100, 100);
+/// final graphPos = viewport.toGraph(screenPos);
 ///
 /// // Convert graph position to screen coordinates
-/// final screenPos = viewport.graphToScreen(Offset(50, 50));
+/// final nodePos = GraphPosition.fromXY(50, 50);
+/// final screenNodePos = viewport.toScreen(nodePos);
 ///
 /// // Check if a rectangle is visible
-/// final isVisible = viewport.isRectVisible(
-///   Rect.fromLTWH(0, 0, 100, 100),
-///   Size(800, 600),
-/// );
+/// final bounds = GraphRect.fromLTWH(0, 0, 100, 100);
+/// final isVisible = viewport.isRectVisible(bounds, Size(800, 600));
 /// ```
 final class GraphViewport {
   /// Creates a viewport with the specified pan and zoom.
@@ -57,7 +63,11 @@ final class GraphViewport {
   /// - Values < 1.0 zoom out (graph appears smaller)
   final double zoom;
 
-  /// Transforms a screen point to graph coordinates.
+  // ============================================================================
+  // Coordinate Transformations
+  // ============================================================================
+
+  /// Transforms a [ScreenPosition] to a [GraphPosition].
   ///
   /// Converts a position in screen pixels to the corresponding position
   /// in the graph's coordinate space, accounting for pan and zoom.
@@ -65,17 +75,20 @@ final class GraphViewport {
   /// Example:
   /// ```dart
   /// final viewport = GraphViewport(x: 100, y: 50, zoom: 2.0);
-  /// final graphPos = viewport.screenToGraph(Offset(200, 150));
-  /// // Returns: Offset(50, 50) in graph coordinates
+  /// final screenPos = ScreenPosition.fromXY(200, 150);
+  /// final graphPos = viewport.toGraph(screenPos);
+  /// // Returns: GraphPosition(50, 50)
   /// ```
-  Offset screenToGraph(Offset screenPoint) {
-    return Offset((screenPoint.dx - x) / zoom, (screenPoint.dy - y) / zoom);
+  GraphPosition toGraph(ScreenPosition screenPoint) {
+    return GraphPosition(
+      Offset((screenPoint.dx - x) / zoom, (screenPoint.dy - y) / zoom),
+    );
   }
 
-  /// Transforms a screen delta to graph delta (without translation).
+  /// Transforms a [ScreenOffset] to a [GraphOffset].
   ///
   /// Converts a change in screen position to the corresponding change
-  /// in graph coordinates. Unlike [screenToGraph], this only applies
+  /// in graph coordinates. Unlike [toGraph], this only applies
   /// zoom scaling, not pan translation.
   ///
   /// Useful for converting mouse drag distances to graph movement.
@@ -83,14 +96,15 @@ final class GraphViewport {
   /// Example:
   /// ```dart
   /// final viewport = GraphViewport(zoom: 2.0);
-  /// final graphDelta = viewport.screenToGraphDelta(Offset(100, 50));
-  /// // Returns: Offset(50, 25) in graph units
+  /// final screenDrag = ScreenOffset.fromXY(100, 50);
+  /// final graphDrag = viewport.toGraphOffset(screenDrag);
+  /// // Returns: GraphOffset(50, 25)
   /// ```
-  Offset screenToGraphDelta(Offset screenDelta) {
-    return Offset(screenDelta.dx / zoom, screenDelta.dy / zoom);
+  GraphOffset toGraphOffset(ScreenOffset screenOffset) {
+    return GraphOffset(Offset(screenOffset.dx / zoom, screenOffset.dy / zoom));
   }
 
-  /// Transforms a graph point to screen coordinates.
+  /// Transforms a [GraphPosition] to a [ScreenPosition].
   ///
   /// Converts a position in graph coordinates to the corresponding position
   /// in screen pixels, accounting for pan and zoom.
@@ -98,43 +112,92 @@ final class GraphViewport {
   /// Example:
   /// ```dart
   /// final viewport = GraphViewport(x: 100, y: 50, zoom: 2.0);
-  /// final screenPos = viewport.graphToScreen(Offset(50, 50));
-  /// // Returns: Offset(200, 150) in screen pixels
+  /// final graphPos = GraphPosition.fromXY(50, 50);
+  /// final screenPos = viewport.toScreen(graphPos);
+  /// // Returns: ScreenPosition(200, 150)
   /// ```
-  Offset graphToScreen(Offset graphPoint) {
-    return Offset(graphPoint.dx * zoom + x, graphPoint.dy * zoom + y);
+  ScreenPosition toScreen(GraphPosition graphPoint) {
+    return ScreenPosition(
+      Offset(graphPoint.dx * zoom + x, graphPoint.dy * zoom + y),
+    );
   }
+
+  /// Transforms a [GraphOffset] to a [ScreenOffset].
+  ///
+  /// Converts a graph-space movement to screen-space movement,
+  /// applying only zoom scaling (no translation).
+  ///
+  /// Example:
+  /// ```dart
+  /// final viewport = GraphViewport(zoom: 2.0);
+  /// final graphDrag = GraphOffset.fromXY(50, 25);
+  /// final screenDrag = viewport.toScreenOffset(graphDrag);
+  /// // Returns: ScreenOffset(100, 50)
+  /// ```
+  ScreenOffset toScreenOffset(GraphOffset graphOffset) {
+    return ScreenOffset(Offset(graphOffset.dx * zoom, graphOffset.dy * zoom));
+  }
+
+  /// Transforms a [GraphRect] to a [ScreenRect].
+  ///
+  /// Converts a rectangle in graph coordinates to screen coordinates,
+  /// applying pan and zoom transformations.
+  ///
+  /// Example:
+  /// ```dart
+  /// final viewport = GraphViewport(x: 100, y: 50, zoom: 2.0);
+  /// final nodeBounds = GraphRect.fromLTWH(0, 0, 50, 50);
+  /// final screenBounds = viewport.toScreenRect(nodeBounds);
+  /// ```
+  ScreenRect toScreenRect(GraphRect graphRect) {
+    final topLeft = toScreen(graphRect.topLeft);
+    final bottomRight = toScreen(graphRect.bottomRight);
+    return ScreenRect.fromPoints(topLeft, bottomRight);
+  }
+
+  /// Transforms a [ScreenRect] to a [GraphRect].
+  ///
+  /// Converts a rectangle in screen coordinates to graph coordinates,
+  /// applying inverse pan and zoom transformations.
+  GraphRect toGraphRect(ScreenRect screenRect) {
+    final topLeft = toGraph(screenRect.topLeft);
+    final bottomRight = toGraph(ScreenPosition(screenRect.rect.bottomRight));
+    return GraphRect.fromPoints(topLeft, bottomRight);
+  }
+
+  // ============================================================================
+  // Visibility and Area Queries
+  // ============================================================================
 
   /// Gets the visible area in graph coordinates.
   ///
-  /// Returns a rectangle representing what portion of the graph is currently
+  /// Returns a [GraphRect] representing what portion of the graph is currently
   /// visible in the given screen size. Useful for culling off-screen elements.
   ///
   /// Parameters:
   /// - [screenSize]: The size of the viewport in screen pixels
   ///
-  /// Returns: A [Rect] in graph coordinates representing the visible area
+  /// Returns: A [GraphRect] representing the visible area
   ///
   /// Example:
   /// ```dart
   /// final viewport = GraphViewport(x: 0, y: 0, zoom: 1.0);
   /// final visible = viewport.getVisibleArea(Size(800, 600));
-  /// // Returns: Rect from (0,0) to (800,600) in graph coordinates
+  /// // Returns: GraphRect from (0,0) to (800,600) in graph coordinates
   /// ```
-  Rect getVisibleArea(Size screenSize) {
-    final topLeft = screenToGraph(Offset.zero);
-    final bottomRight = screenToGraph(
-      Offset(screenSize.width, screenSize.height),
+  GraphRect getVisibleArea(Size screenSize) {
+    final topLeft = toGraph(ScreenPosition.zero);
+    final bottomRight = toGraph(
+      ScreenPosition.fromXY(screenSize.width, screenSize.height),
     );
 
-    return Rect.fromPoints(topLeft, bottomRight);
+    return GraphRect.fromPoints(topLeft, bottomRight);
   }
 
   /// Checks if a rectangle is visible in the current viewport.
   ///
-  /// Determines whether any part of the given rectangle (in graph coordinates)
-  /// is visible within the screen area. Used for visibility culling and
-  /// optimization.
+  /// Determines whether any part of the given [GraphRect] is visible
+  /// within the screen area. Used for visibility culling and optimization.
   ///
   /// Parameters:
   /// - [rect]: Rectangle in graph coordinates to check
@@ -145,13 +208,29 @@ final class GraphViewport {
   /// Example:
   /// ```dart
   /// final viewport = GraphViewport(x: 0, y: 0, zoom: 1.0);
-  /// final nodeRect = Rect.fromLTWH(100, 100, 50, 50);
+  /// final nodeRect = GraphRect.fromLTWH(100, 100, 50, 50);
   /// final isVisible = viewport.isRectVisible(nodeRect, Size(800, 600));
   /// ```
-  bool isRectVisible(Rect rect, Size screenSize) {
+  bool isRectVisible(GraphRect rect, Size screenSize) {
     final visibleArea = getVisibleArea(screenSize);
     return visibleArea.overlaps(rect);
   }
+
+  /// Checks if a point is visible in the current viewport.
+  ///
+  /// Parameters:
+  /// - [point]: Point in graph coordinates to check
+  /// - [screenSize]: The size of the viewport in screen pixels
+  ///
+  /// Returns: `true` if the point is within the visible area
+  bool isPointVisible(GraphPosition point, Size screenSize) {
+    final visibleArea = getVisibleArea(screenSize);
+    return visibleArea.contains(point);
+  }
+
+  // ============================================================================
+  // Serialization
+  // ============================================================================
 
   /// Creates a viewport from JSON data.
   ///

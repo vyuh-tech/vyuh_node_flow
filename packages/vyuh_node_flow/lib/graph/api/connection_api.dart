@@ -776,7 +776,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
 
     // Create temporary connection
     final initialCurrentPoint = initialScreenPosition != null
-        ? globalToGraph(initialScreenPosition)
+        ? globalToGraph(ScreenPosition(initialScreenPosition)).offset
         : startPoint;
 
     runInAction(() {

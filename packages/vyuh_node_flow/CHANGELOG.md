@@ -1,43 +1,60 @@
+## 0.10.1
+
+- **FEAT**: introduce `coordinates.dart` to enforce type safety in coordinate
+  transformations and refactor usage across the package.
+
 ## 0.10.0+1
 
- - **FIX**: remove selection logic from `selection_api.dart` and consolidate it into `connection_api.dart` with expanded functionalities.
+- **FIX**: remove selection logic from `selection_api.dart` and consolidate it
+  into `connection_api.dart` with expanded functionalities.
 
 ## 0.10.0
 
- - **FEAT**: add visibility toggling for nodes and annotations with related UI and logic adjustments.
+- **FEAT**: add visibility toggling for nodes and annotations with related UI
+  and logic adjustments.
+- **FEAT**: added resizing capabilities to annotations with behaviors
 
 ## 0.9.0+1
 
- - Analysis fixes
+- Analysis fixes
 
- - **FIX**: analysis fixes.
- - **FEAT**: enhance interaction handling with connection hover states and streamline zoom-related logic.
- - **FEAT**: leveraging gesture detectors to handle nodes, ports, annotations. Only connections leverage the top-level listener. This ensures that we can have widgets and interactive widgets inside nodes and annotations, and have it even work outside the original stack bounds.
+- **FIX**: analysis fixes.
+- **FEAT**: enhance interaction handling with connection hover states and
+  streamline zoom-related logic.
+- **FEAT**: leveraging gesture detectors to handle nodes, ports, annotations.
+  Only connections leverage the top-level listener. This ensures that we can
+  have widgets and interactive widgets inside nodes and annotations, and have it
+  even work outside the original stack bounds.
 
 ## 0.9.0
 
- - **FEAT**: enhance interaction handling with connection hover states and streamline zoom-related logic.
- - **FEAT**: leveraging gesture detectors to handle nodes, ports, annotations. Only connections leverage the top-level listener. This ensures that we can have widgets and interactive widgets inside nodes and annotations, and have it even work outside the original stack bounds.
+- **FEAT**: enhance interaction handling with connection hover states and
+  streamline zoom-related logic.
+- **FEAT**: leveraging gesture detectors to handle nodes, ports, annotations.
+  Only connections leverage the top-level listener. This ensures that we can
+  have widgets and interactive widgets inside nodes and annotations, and have it
+  even work outside the original stack bounds.
 
 ## 0.8.5+1
 
- - **FIX**: analysis fixes.
+- **FIX**: analysis fixes.
 
 ## 0.8.5
 
- - **FEAT**: more real-time debug view of spatial index, minor optimization in hit-test segment generation for step style connections.
+- **FEAT**: more real-time debug view of spatial index, minor optimization in
+  hit-test segment generation for step style connections.
 
 ## 0.8.4+3
 
- - Fixed analysis issues and updated readme
+- Fixed analysis issues and updated readme
 
 ## 0.8.4+2
 
- - **FIX**: analysis fixes for 160.
+- **FIX**: analysis fixes for 160.
 
 ## 0.8.4+1
 
- - **FIX**: left aligning the stat labels for spatial debug painter.
+- **FIX**: left aligning the stat labels for spatial debug painter.
 
 ## 0.8.4
 

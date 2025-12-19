@@ -40,8 +40,8 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
     }
 
     // Update mouse position in world coordinates for debug visualization
-    final worldPosition = widget.controller.viewport.screenToGraph(
-      event.localPosition,
+    final worldPosition = widget.controller.viewport.toGraph(
+      ScreenPosition(event.localPosition),
     );
     widget.controller.setMousePositionWorld(worldPosition);
 
@@ -201,11 +201,11 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
         break;
 
       case HitTarget.canvas:
-        final graphPosition = widget.controller.viewport.screenToGraph(
-          event.localPosition,
+        final graphPosition = widget.controller.viewport.toGraph(
+          ScreenPosition(event.localPosition),
         );
         widget.controller.events.viewport?.onCanvasContextMenu?.call(
-          graphPosition,
+          graphPosition.offset,
         );
         break;
     }
@@ -291,10 +291,12 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
         // Clear selection on canvas tap (if _shouldClearSelectionOnTap is set)
         if (_shouldClearSelectionOnTap) {
           widget.controller.clearSelection();
-          final graphPosition = widget.controller.viewport.screenToGraph(
-            position,
+          final graphPosition = widget.controller.viewport.toGraph(
+            ScreenPosition(position),
           );
-          widget.controller.events.viewport?.onCanvasTap?.call(graphPosition);
+          widget.controller.events.viewport?.onCanvasTap?.call(
+            graphPosition.offset,
+          );
         }
         break;
     }
@@ -339,11 +341,11 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
         break;
 
       case HitTarget.canvas:
-        final graphPosition = widget.controller.viewport.screenToGraph(
-          position,
+        final graphPosition = widget.controller.viewport.toGraph(
+          ScreenPosition(position),
         );
         widget.controller.events.viewport?.onCanvasDoubleTap?.call(
-          graphPosition,
+          graphPosition.offset,
         );
         break;
     }
@@ -375,9 +377,9 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
   /// Performs hit testing at the given local position.
   /// Converts screen coordinates to graph coordinates and delegates to spatial index.
   HitTestResult _performHitTest(Offset localPosition) {
-    final graphPosition = widget.controller.viewport.screenToGraph(
-      localPosition,
+    final graphPosition = widget.controller.viewport.toGraph(
+      ScreenPosition(localPosition),
     );
-    return widget.controller.spatialIndex.hitTest(graphPosition);
+    return widget.controller.spatialIndex.hitTest(graphPosition.offset);
   }
 }

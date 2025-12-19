@@ -80,7 +80,7 @@ class SpatialIndexDebugLayer<T> extends StatelessWidget {
                       viewport: viewport,
                       version: version,
                       theme: theme.debugTheme,
-                      mousePositionWorld: mousePosition,
+                      mousePositionWorld: mousePosition?.offset,
                     ),
                     size: Size.infinite,
                   );

@@ -140,6 +140,7 @@ export 'connections/styles/endpoint_position_calculator.dart';
 export 'connections/styles/label_calculator.dart';
 export 'connections/styles/waypoint_builder.dart';
 export 'connections/temporary_connection.dart';
+export 'graph/coordinates.dart';
 // Core
 export 'graph/cursor_theme.dart';
 export 'graph/graph.dart'; // Needed for examples and serialization

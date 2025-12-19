@@ -23,6 +23,7 @@ import '../ports/port_widget.dart';
 import '../shared/flutter_actions_integration.dart';
 import '../shared/spatial/graph_spatial_index.dart';
 import '../shared/unbounded_widgets.dart';
+import 'coordinates.dart';
 import 'layers/attribution_overlay.dart';
 import 'layers/connection_control_points_layer.dart';
 import 'layers/connection_labels_layer.dart';
@@ -975,8 +976,8 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
   void _handlePointerMove(PointerMoveEvent event) {
     // Always update mouse position for debug visualization (before any early returns)
-    final worldPosition = widget.controller.viewport.screenToGraph(
-      event.localPosition,
+    final worldPosition = widget.controller.viewport.toGraph(
+      ScreenPosition(event.localPosition),
     );
     widget.controller.setMousePositionWorld(worldPosition);
 
@@ -1082,12 +1083,14 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   // Helper methods
 
   void _startSelectionDrag(Offset startPosition) {
-    final startGraph = widget.controller.viewport.screenToGraph(startPosition);
+    final startGraph = widget.controller.viewport.toGraph(
+      ScreenPosition(startPosition),
+    );
     widget.controller._updateSelectionDrag(
-      startPoint: startGraph,
+      startPoint: startGraph.offset,
       rectangle: Rect.fromPoints(
-        startGraph,
-        startGraph,
+        startGraph.offset,
+        startGraph.offset,
       ), // Start with zero-size rect
     );
 
@@ -1101,10 +1104,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     final startPoint = widget.controller.selectionStartPoint;
     if (startPoint == null) return;
 
-    final currentGraph = widget.controller.viewport.screenToGraph(
-      currentPosition,
+    final currentGraph = widget.controller.viewport.toGraph(
+      ScreenPosition(currentPosition),
     );
-    final rect = Rect.fromPoints(startPoint, currentGraph);
+    final rect = Rect.fromPoints(startPoint, currentGraph.offset);
 
     // Update visual rectangle and handle selection in one call
     widget.controller._updateSelectionDrag(

@@ -4,10 +4,13 @@ part of '../node_flow_controller.dart';
 ///
 /// This extension provides methods for:
 /// - Viewport state management (get/set viewport, zoom, pan)
-/// - Coordinate transformations (screen ↔ world)
+/// - Coordinate transformations (screen ↔ graph) using typed coordinates
 /// - Navigation (center, fit to view, focus on nodes)
 /// - Visibility queries (is point/rect visible)
 /// - Screen and mouse position tracking
+///
+/// All coordinate methods use typed extension types ([GraphPosition], [ScreenPosition],
+/// [GraphRect]) to prevent accidentally mixing coordinate spaces.
 extension ViewportApi<T> on NodeFlowController<T> {
   // ============================================================================
   // Viewport State
@@ -20,8 +23,9 @@ extension ViewportApi<T> on NodeFlowController<T> {
 
   /// Gets the current pan position of the viewport.
   ///
-  /// Returns the viewport's translation as an Offset.
-  Offset get currentPan => Offset(_viewport.value.x, _viewport.value.y);
+  /// Returns the viewport's translation as a [ScreenPosition].
+  ScreenOffset get currentPan =>
+      ScreenOffset.fromXY(_viewport.value.x, _viewport.value.y);
 
   /// Sets the viewport to a specific position and zoom level.
   ///
@@ -72,41 +76,38 @@ extension ViewportApi<T> on NodeFlowController<T> {
   /// Parameters:
   /// - [globalPosition]: Position in global screen coordinates
   ///
-  /// Returns: The corresponding position in graph coordinates
-  Offset globalToGraph(Offset globalPosition) {
+  /// Returns: The corresponding position in graph coordinates as [GraphPosition]
+  GraphPosition globalToGraph(ScreenPosition globalPosition) {
     // Convert global to canvas-local using the canvas's RenderBox
     final renderBox =
         canvasKey.currentContext?.findRenderObject() as RenderBox?;
     final canvasLocal =
-        renderBox?.globalToLocal(globalPosition) ?? globalPosition;
+        renderBox?.globalToLocal(globalPosition.offset) ??
+        globalPosition.offset;
     // Then convert canvas-local to graph coordinates
-    return viewport.screenToGraph(canvasLocal);
+    return viewport.toGraph(ScreenPosition(canvasLocal));
   }
 
-  /// Converts a world coordinate point to screen coordinates.
+  /// Converts a graph coordinate point to screen coordinates.
   ///
   /// Use this to transform positions in graph space to screen space, taking into
   /// account the current viewport position and zoom level.
   ///
   /// Parameters:
-  /// - [worldPoint]: The point in world/graph coordinates
+  /// - [graphPoint]: The point in graph coordinates
   ///
-  /// Returns the corresponding point in screen coordinates.
+  /// Returns the corresponding point in screen coordinates as [ScreenPosition].
   ///
   /// Example:
   /// ```dart
-  /// final nodePos = Offset(100, 100); // Position in graph
-  /// final screenPos = controller.worldToScreen(nodePos); // Position on screen
+  /// final nodePos = GraphPosition.fromXY(100, 100);
+  /// final screenPos = controller.graphToScreen(nodePos);
   /// ```
-  Offset worldToScreen(Offset worldPoint) {
-    final vp = _viewport.value;
-    return Offset(
-      worldPoint.dx * vp.zoom + vp.x,
-      worldPoint.dy * vp.zoom + vp.y,
-    );
+  ScreenPosition graphToScreen(GraphPosition graphPoint) {
+    return _viewport.value.toScreen(graphPoint);
   }
 
-  /// Converts a screen coordinate point to world coordinates.
+  /// Converts a screen coordinate point to graph coordinates.
   ///
   /// Use this to transform mouse/touch positions or screen coordinates back to
   /// graph space, taking into account the current viewport position and zoom level.
@@ -114,19 +115,15 @@ extension ViewportApi<T> on NodeFlowController<T> {
   /// Parameters:
   /// - [screenPoint]: The point in screen coordinates
   ///
-  /// Returns the corresponding point in world/graph coordinates.
+  /// Returns the corresponding point in graph coordinates as [GraphPosition].
   ///
   /// Example:
   /// ```dart
-  /// final mousePos = event.localPosition; // Mouse position on screen
-  /// final graphPos = controller.screenToWorld(mousePos); // Position in graph
+  /// final mousePos = ScreenPosition(event.localPosition);
+  /// final graphPos = controller.screenToGraph(mousePos);
   /// ```
-  Offset screenToWorld(Offset screenPoint) {
-    final vp = _viewport.value;
-    return Offset(
-      (screenPoint.dx - vp.x) / vp.zoom,
-      (screenPoint.dy - vp.y) / vp.zoom,
-    );
+  GraphPosition screenToGraph(ScreenPosition screenPoint) {
+    return _viewport.value.toGraph(screenPoint);
   }
 
   // ============================================================================
@@ -158,8 +155,11 @@ extension ViewportApi<T> on NodeFlowController<T> {
     final size = _screenSize.value;
 
     // Calculate the current viewport center in world coordinates
-    final viewportCenterScreen = Offset(size.width / 2, size.height / 2);
-    final viewportCenterWorld = screenToWorld(viewportCenterScreen);
+    final viewportCenterScreen = ScreenPosition.fromXY(
+      size.width / 2,
+      size.height / 2,
+    );
+    final viewportCenterWorld = screenToGraph(viewportCenterScreen);
 
     // After zoom, we want this world point to remain at the same screen position
     // Calculate the new pan position to keep the center point fixed
@@ -202,14 +202,14 @@ extension ViewportApi<T> on NodeFlowController<T> {
   /// Pans the viewport by a delta offset.
   ///
   /// Parameters:
-  /// - [delta]: The offset to pan the viewport by
+  /// - [delta]: The offset to pan the viewport by (in screen pixels)
   ///
   /// Example:
   /// ```dart
-  /// controller.panBy(Offset(50, 0)); // Pan right by 50 pixels
-  /// controller.panBy(Offset(0, -50)); // Pan up by 50 pixels
+  /// controller.panBy(ScreenOffset.fromXY(50, 0)); // Pan right by 50 pixels
+  /// controller.panBy(ScreenOffset.fromXY(0, -50)); // Pan up by 50 pixels
   /// ```
-  void panBy(Offset delta) {
+  void panBy(ScreenOffset delta) {
     runInAction(() {
       _viewport.value = _viewport.value.copyWith(
         x: _viewport.value.x + delta.dx,
@@ -239,7 +239,7 @@ extension ViewportApi<T> on NodeFlowController<T> {
     if (_nodes.isEmpty || _screenSize.value == Size.zero) return;
 
     final bounds = nodesBounds;
-    if (bounds == Rect.zero) return;
+    if (bounds.isEmpty) return;
 
     final contentWidth = bounds.width;
     final contentHeight = bounds.height;
@@ -252,13 +252,12 @@ extension ViewportApi<T> on NodeFlowController<T> {
       _config.maxZoom.value,
     );
 
-    final centerX = bounds.left + contentWidth / 2;
-    final centerY = bounds.top + contentHeight / 2;
+    final center = bounds.center;
 
     setViewport(
       GraphViewport(
-        x: _screenSize.value.width / 2 - centerX * zoom,
-        y: _screenSize.value.height / 2 - centerY * zoom,
+        x: _screenSize.value.width / 2 - center.dx * zoom,
+        y: _screenSize.value.height / 2 - center.dy * zoom,
         zoom: zoom,
       ),
     );
@@ -293,13 +292,12 @@ extension ViewportApi<T> on NodeFlowController<T> {
       _config.maxZoom.value,
     );
 
-    final centerX = bounds.left + contentWidth / 2;
-    final centerY = bounds.top + contentHeight / 2;
+    final center = bounds.center;
 
     setViewport(
       GraphViewport(
-        x: _screenSize.value.width / 2 - centerX * zoom,
-        y: _screenSize.value.height / 2 - centerY * zoom,
+        x: _screenSize.value.width / 2 - center.dx * zoom,
+        y: _screenSize.value.height / 2 - center.dy * zoom,
         zoom: zoom,
       ),
     );
@@ -410,7 +408,7 @@ extension ViewportApi<T> on NodeFlowController<T> {
     if (_nodes.isEmpty || _screenSize.value == Size.zero) return;
 
     final bounds = nodesBounds;
-    if (bounds == Rect.zero) return;
+    if (bounds.isEmpty) return;
 
     // Get the center of all nodes
     final center = bounds.center;
@@ -442,9 +440,9 @@ extension ViewportApi<T> on NodeFlowController<T> {
   /// controller.centerOn(center);
   ///
   /// // Or center on a specific coordinate
-  /// controller.centerOn(Offset(500, 300));
+  /// controller.centerOn(GraphPosition.fromXY(500, 300));
   /// ```
-  void centerOn(Offset point) {
+  void centerOn(GraphOffset point) {
     if (_screenSize.value == Size.zero) return;
 
     final currentVp = _viewport.value;
@@ -463,9 +461,9 @@ extension ViewportApi<T> on NodeFlowController<T> {
   /// This is useful for determining where to place new nodes so they appear
   /// in the center of the visible area.
   ///
-  /// Returns [Offset.zero] if the screen size is zero.
+  /// Returns [GraphPosition.zero] if the screen size is zero.
   ///
-  /// Returns the center point of the viewport in graph/world coordinates.
+  /// Returns the center point of the viewport in graph coordinates.
   ///
   /// Example:
   /// ```dart
@@ -474,21 +472,21 @@ extension ViewportApi<T> on NodeFlowController<T> {
   /// final newNode = Node(
   ///   id: 'new-node',
   ///   type: 'process',
-  ///   position: center, // Node will appear at viewport center
+  ///   position: center.offset, // Node will appear at viewport center
   /// );
   /// controller.addNode(newNode);
   /// ```
-  Offset getViewportCenter() {
-    if (_screenSize.value == Size.zero) return Offset.zero;
+  GraphPosition getViewportCenter() {
+    if (_screenSize.value == Size.zero) return GraphPosition.zero;
 
     // Get the screen center point
-    final screenCenter = Offset(
+    final screenCenter = ScreenPosition.fromXY(
       _screenSize.value.width / 2,
       _screenSize.value.height / 2,
     );
 
     // Convert to graph coordinates
-    return screenToWorld(screenCenter);
+    return screenToGraph(screenCenter);
   }
 
   /// Resets the viewport to zoom 1.0 and centers on all nodes in the graph.
@@ -511,19 +509,18 @@ extension ViewportApi<T> on NodeFlowController<T> {
 
     // Calculate center of all nodes
     final bounds = nodesBounds;
-    if (bounds == Rect.zero) {
+    if (bounds.isEmpty) {
       setViewport(GraphViewport(x: 0, y: 0, zoom: zoom));
       return;
     }
 
-    final centerX = bounds.left + bounds.width / 2;
-    final centerY = bounds.top + bounds.height / 2;
+    final center = bounds.center;
 
     // Center the viewport on the content
     setViewport(
       GraphViewport(
-        x: _screenSize.value.width / 2 - centerX * zoom,
-        y: _screenSize.value.height / 2 - centerY * zoom,
+        x: _screenSize.value.width / 2 - center.dx * zoom,
+        y: _screenSize.value.height / 2 - center.dy * zoom,
         zoom: zoom,
       ),
     );
@@ -533,13 +530,13 @@ extension ViewportApi<T> on NodeFlowController<T> {
   // Viewport Extent & Visibility
   // ============================================================================
 
-  /// Gets the viewport extent as a Rect in world coordinates.
+  /// Gets the viewport extent as a [GraphRect] in graph coordinates.
   ///
   /// This represents the visible area of the graph in world space. Use this
   /// to determine which nodes or elements are currently visible.
   ///
-  /// Returns a [Rect] representing the visible portion of the graph in world coordinates.
-  Rect get viewportExtent {
+  /// Returns a [GraphRect] representing the visible portion of the graph.
+  GraphRect get viewportExtent {
     final vp = _viewport.value;
     final size = _screenSize.value;
 
@@ -549,51 +546,51 @@ extension ViewportApi<T> on NodeFlowController<T> {
     final right = (size.width - vp.x) / vp.zoom;
     final bottom = (size.height - vp.y) / vp.zoom;
 
-    return Rect.fromLTRB(left, top, right, bottom);
+    return GraphRect(Rect.fromLTRB(left, top, right, bottom));
   }
 
-  /// Gets the viewport extent as a Rect in screen coordinates.
+  /// Gets the viewport extent as a [ScreenRect] in screen coordinates.
   ///
   /// This represents the screen area that displays the graph. Typically this
   /// is the full size of the canvas/widget.
   ///
-  /// Returns a [Rect] representing the screen bounds of the viewport.
-  Rect get viewportScreenBounds {
+  /// Returns a [ScreenRect] representing the screen bounds of the viewport.
+  ScreenRect get viewportScreenBounds {
     final size = _screenSize.value;
-    return Rect.fromLTWH(0, 0, size.width, size.height);
+    return ScreenRect.fromLTWH(0, 0, size.width, size.height);
   }
 
-  /// Checks if a world coordinate point is visible in the current viewport.
+  /// Checks if a graph coordinate point is visible in the current viewport.
   ///
   /// Parameters:
-  /// - [worldPoint]: The point to check in world/graph coordinates
+  /// - [graphPoint]: The point to check in graph coordinates
   ///
   /// Returns `true` if the point is within the visible viewport, `false` otherwise.
-  bool isPointVisible(Offset worldPoint) {
-    return viewportExtent.contains(worldPoint);
+  bool isPointVisible(GraphPosition graphPoint) {
+    return viewportExtent.contains(graphPoint);
   }
 
-  /// Checks if a world coordinate rectangle intersects with the viewport.
+  /// Checks if a graph coordinate rectangle intersects with the viewport.
   ///
   /// Use this for visibility culling to determine if a node or element should be rendered.
   ///
   /// Parameters:
-  /// - [worldRect]: The rectangle to check in world/graph coordinates
+  /// - [graphRect]: The rectangle to check in graph coordinates
   ///
   /// Returns `true` if any part of the rectangle overlaps the viewport, `false` otherwise.
-  bool isRectVisible(Rect worldRect) {
-    return viewportExtent.overlaps(worldRect);
+  bool isRectVisible(GraphRect graphRect) {
+    return viewportExtent.overlaps(graphRect);
   }
 
-  /// Gets the bounding rectangle that encompasses all selected nodes in world coordinates.
+  /// Gets the bounding rectangle that encompasses all selected nodes in graph coordinates.
   ///
   /// Returns `null` if no nodes are selected.
   ///
   /// This is useful for operations like "fit selected nodes to view" or calculating
   /// the area occupied by the selection.
   ///
-  /// Returns a [Rect] containing all selected nodes, or `null` if nothing is selected.
-  Rect? get selectedNodesBounds {
+  /// Returns a [GraphRect] containing all selected nodes, or `null` if nothing is selected.
+  GraphRect? get selectedNodesBounds {
     if (_selectedNodeIds.isEmpty) return null;
 
     final selectedNodes = _selectedNodeIds
@@ -605,7 +602,7 @@ extension ViewportApi<T> on NodeFlowController<T> {
   }
 
   /// Helper method to calculate bounds for a collection of nodes.
-  Rect? _calculateNodesBounds(Iterable<Node<T>> nodes) {
+  GraphRect? _calculateNodesBounds(Iterable<Node<T>> nodes) {
     if (nodes.isEmpty) return null;
 
     double minX = double.infinity;
@@ -623,7 +620,7 @@ extension ViewportApi<T> on NodeFlowController<T> {
     }
 
     return minX != double.infinity
-        ? Rect.fromLTRB(minX, minY, maxX, maxY)
+        ? GraphRect(Rect.fromLTRB(minX, minY, maxX, maxY))
         : null;
   }
 
@@ -631,22 +628,25 @@ extension ViewportApi<T> on NodeFlowController<T> {
   // Mouse Position Tracking
   // ============================================================================
 
-  /// Gets the current mouse position in world coordinates.
+  /// Gets the current mouse position in graph coordinates.
   ///
   /// Returns `null` if the mouse is outside the canvas area.
   /// This is useful for debug visualization and features that need cursor tracking.
-  Offset? get mousePositionWorld => _mousePositionWorld.value;
+  GraphPosition? get mousePositionWorld {
+    final pos = _mousePositionWorld.value;
+    return pos != null ? GraphPosition(pos) : null;
+  }
 
-  /// Updates the mouse position in world coordinates.
+  /// Updates the mouse position in graph coordinates.
   ///
   /// This is typically called internally by the editor widget during mouse hover.
   /// Pass `null` when the mouse exits the canvas.
   ///
   /// Parameters:
-  /// - [position]: The mouse position in world coordinates, or `null` if outside canvas
-  void setMousePositionWorld(Offset? position) {
+  /// - [position]: The mouse position in graph coordinates, or `null` if outside canvas
+  void setMousePositionWorld(GraphPosition? position) {
     runInAction(() {
-      _mousePositionWorld.value = position;
+      _mousePositionWorld.value = position?.offset;
     });
   }
 }

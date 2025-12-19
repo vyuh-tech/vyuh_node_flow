@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart' show DragStartBehavior;
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
+import '../graph/coordinates.dart';
 import '../graph/cursor_theme.dart';
 import '../graph/node_flow_controller.dart';
 import '../graph/node_flow_theme.dart';
@@ -231,11 +232,11 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
     // Convert global position to graph coordinates
     // Using globalToGraph which handles canvas offset + viewport transformation
     final graphPosition = widget.controller.globalToGraph(
-      details.globalPosition,
+      ScreenPosition(details.globalPosition),
     );
 
     // Hit test to find target port for snapping
-    final hitResult = widget.controller.hitTestPort(graphPosition);
+    final hitResult = widget.controller.hitTestPort(graphPosition.offset);
 
     // Get target node bounds if we have a hit
     Rect? targetNodeBounds;
@@ -246,7 +247,7 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
 
     // Update the connection drag
     widget.controller.updateConnectionDrag(
-      graphPosition: graphPosition,
+      graphPosition: graphPosition.offset,
       targetNodeId: hitResult?.nodeId,
       targetPortId: hitResult?.portId,
       targetNodeBounds: targetNodeBounds,

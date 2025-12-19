@@ -21,6 +21,7 @@ import '../nodes/node_shape.dart';
 import '../ports/port.dart';
 import '../shared/shortcuts_viewer_dialog.dart';
 import '../shared/spatial/graph_spatial_index.dart';
+import 'coordinates.dart';
 import 'node_flow_actions.dart';
 import 'node_flow_behavior.dart';
 
