@@ -23,6 +23,9 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
 
     _isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
 
+    // Update interaction state for cursor feedback
+    widget.controller.interaction.setSelectionStarted(_isShiftPressed);
+
     // Don't consume the event - let other handlers process it
     return false;
   }
@@ -37,6 +40,7 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
     final isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
     if (isShiftPressed != _isShiftPressed) {
       _isShiftPressed = isShiftPressed;
+      widget.controller.interaction.setSelectionStarted(_isShiftPressed);
     }
 
     // Update mouse position in world coordinates for debug visualization

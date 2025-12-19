@@ -157,18 +157,19 @@ extension CursorThemeExtension on CursorTheme {
 
     final isConnecting = interaction.isCreatingConnection;
     final isViewportDragging = interaction.isViewportDragging;
-    final isDrawingSelection = interaction.isDrawingSelection;
+    final isInSelectionMode =
+        interaction.isDrawingSelection || interaction.hasStartedSelection;
     final isHoveringConnection = interaction.isHoveringConnection;
 
     return switch ((
       isConnecting,
+      isInSelectionMode,
       isViewportDragging,
-      isDrawingSelection,
       isHoveringConnection,
     )) {
       (true, _, _, _) => portCursor,
-      (_, true, _, _) => dragCursor,
-      (_, _, true, _) => selectionCursor,
+      (_, true, _, _) => selectionCursor,
+      (_, _, true, _) => dragCursor,
       (_, _, _, true) => nodeCursor,
       _ => switch (elementType) {
         ElementType.canvas => canvasCursor,

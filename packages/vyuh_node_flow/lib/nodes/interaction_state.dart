@@ -95,6 +95,12 @@ class InteractionState {
     null,
   );
 
+  /// Observable flag for whether the user has indicated selection intent.
+  ///
+  /// When true, shows selection cursor to indicate that the user can
+  /// initiate a selection rectangle. Typically set when Shift key is held.
+  final Observable<bool> selectionStarted = Observable(false);
+
   /// Checks if a connection is currently being created.
   ///
   /// Returns true when the user is dragging from a port to create a connection.
@@ -159,6 +165,11 @@ class InteractionState {
   ///
   /// Returns true during exclusive operations like resizing.
   bool get hasCursorOverride => cursorOverride.value != null;
+
+  /// Gets whether the user has indicated selection intent.
+  ///
+  /// When true, shows selection cursor to indicate selection mode is available.
+  bool get hasStartedSelection => selectionStarted.value;
 
   /// Sets the currently dragged node.
   ///
@@ -296,6 +307,7 @@ class InteractionState {
       isViewportInteracting.value = false;
       hoveringConnection.value = false;
       cursorOverride.value = null;
+      selectionStarted.value = false;
     });
   }
 
@@ -331,6 +343,19 @@ class InteractionState {
   void setCursorOverride(MouseCursor? cursor) {
     runInAction(() {
       cursorOverride.value = cursor;
+    });
+  }
+
+  /// Sets the selection started state.
+  ///
+  /// When true, the cursor changes to selection cursor
+  /// to indicate that selection mode is available.
+  ///
+  /// Parameters:
+  /// * [started] - Whether selection mode has been initiated
+  void setSelectionStarted(bool started) {
+    runInAction(() {
+      selectionStarted.value = started;
     });
   }
 }
