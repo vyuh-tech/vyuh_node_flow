@@ -5,6 +5,7 @@ import '../graph/cursor_theme.dart';
 import '../graph/node_flow_controller.dart';
 import '../graph/node_flow_theme.dart';
 import '../shared/resizer_widget.dart';
+import '../shared/unbounded_widgets.dart';
 import 'group_annotation.dart';
 
 /// Widget that renders a group annotation with resize handles when selected.
@@ -57,52 +58,57 @@ class GroupAnnotationWidget extends StatelessWidget {
           isInteractive: group.isInteractive,
         );
 
+        // Use UnboundedStack to allow hit testing on resize handles
+        // that extend outside the annotation bounds
         return Positioned(
           left: position.dx,
           top: position.dy,
-          child: MouseRegion(
-            cursor: cursor,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onDoubleTap: onDoubleTap,
-              onSecondaryTapUp: onContextMenu != null
-                  ? (details) => onContextMenu!(details.globalPosition)
-                  : null,
-              onPanStart: (_) => controller.startAnnotationDrag(group.id),
-              onPanUpdate: (details) =>
-                  controller.moveAnnotationDrag(details.delta),
-              onPanEnd: (_) => controller.endAnnotationDrag(),
-              child: SizedBox(
-                width: groupSize.width,
-                height: groupSize.height,
-                child: isSelected && group.isResizable
-                    ? ResizerWidget(
-                        handleSize: theme.resizerTheme.handleSize,
-                        color: theme.resizerTheme.color,
-                        borderColor: theme.resizerTheme.borderColor,
-                        borderWidth: theme.resizerTheme.borderWidth,
-                        snapDistance: theme.resizerTheme.snapDistance,
-                        onResizeStart: (handle) => controller.annotations
-                            .startGroupResize(group.id, _toGroupHandle(handle)),
-                        onResizeUpdate: (delta) =>
-                            controller.annotations.updateGroupResize(delta),
-                        onResizeEnd: () =>
-                            controller.annotations.endGroupResize(),
-                        child: _GroupContent(
-                          group: group,
-                          controller: controller,
-                          isSelected: isSelected,
-                          isHighlighted: isHighlighted,
-                        ),
-                      )
-                    : _GroupContent(
-                        group: group,
-                        controller: controller,
-                        isSelected: isSelected,
-                        isHighlighted: isHighlighted,
-                      ),
+          width: groupSize.width,
+          height: groupSize.height,
+          child: UnboundedStack(
+            clipBehavior: Clip.none,
+            children: [
+              // The annotation content
+              Positioned.fill(
+                child: MouseRegion(
+                  cursor: cursor,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onDoubleTap: onDoubleTap,
+                    onSecondaryTapUp: onContextMenu != null
+                        ? (details) => onContextMenu!(details.globalPosition)
+                        : null,
+                    onPanStart: (_) => controller.startAnnotationDrag(group.id),
+                    onPanUpdate: (details) =>
+                        controller.moveAnnotationDrag(details.delta),
+                    onPanEnd: (_) => controller.endAnnotationDrag(),
+                    child: _GroupContent(
+                      group: group,
+                      controller: controller,
+                      isSelected: isSelected,
+                      isHighlighted: isHighlighted,
+                    ),
+                  ),
+                ),
               ),
-            ),
+              // Resize handles as overlay (only when selected and resizable)
+              if (isSelected && group.isResizable)
+                Positioned.fill(
+                  child: ResizerWidget(
+                    handleSize: theme.resizerTheme.handleSize,
+                    color: theme.resizerTheme.color,
+                    borderColor: theme.resizerTheme.borderColor,
+                    borderWidth: theme.resizerTheme.borderWidth,
+                    snapDistance: theme.resizerTheme.snapDistance,
+                    onResizeStart: (handle) => controller.annotations
+                        .startGroupResize(group.id, _toGroupHandle(handle)),
+                    onResizeUpdate: (delta) =>
+                        controller.annotations.updateGroupResize(delta),
+                    onResizeEnd: () => controller.annotations.endGroupResize(),
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+            ],
           ),
         );
       },

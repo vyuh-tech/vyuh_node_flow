@@ -72,7 +72,7 @@ class ResizerTheme {
   ///
   /// Uses white fill with blue border for visibility on light backgrounds.
   static const light = ResizerTheme(
-    handleSize: 10.0,
+    handleSize: 8.0,
     color: Colors.white,
     borderColor: Colors.blue,
     borderWidth: 1.0,
@@ -83,7 +83,7 @@ class ResizerTheme {
   ///
   /// Uses dark fill with lighter blue border for visibility on dark backgrounds.
   static const dark = ResizerTheme(
-    handleSize: 10.0,
+    handleSize: 8.0,
     color: Color(0xFF1E1E1E),
     borderColor: Color(0xFF64B5F6),
     // Colors.blue[300]

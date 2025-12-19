@@ -242,7 +242,7 @@ class ResizerWidget extends StatelessWidget {
     required this.onResizeStart,
     required this.onResizeUpdate,
     required this.onResizeEnd,
-    this.handleSize = 10.0,
+    this.handleSize = 8.0,
     this.color = Colors.white,
     this.borderColor = Colors.blue,
     this.borderWidth = 1.0,
@@ -351,7 +351,6 @@ class ResizerWidget extends StatelessWidget {
             decoration: BoxDecoration(
               color: color,
               border: Border.all(color: borderColor, width: borderWidth),
-              borderRadius: BorderRadius.circular(2),
             ),
           ),
         ),
