@@ -1,3 +1,7 @@
+## 0.10.3
+
+ - **FEAT**: add selection mode tracking with cursor feedback and shift key interaction.
+
 ## 0.10.2
 
  - **FIX**: hit testing outside the bounds of resizer and group-annotation.
