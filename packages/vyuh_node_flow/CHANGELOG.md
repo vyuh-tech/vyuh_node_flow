@@ -1,3 +1,7 @@
+## 0.10.0
+
+ - **FEAT**: add visibility toggling for nodes and annotations with related UI and logic adjustments.
+
 ## 0.9.0+1
 
  - Analysis fixes
