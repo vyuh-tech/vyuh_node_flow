@@ -1,3 +1,7 @@
+## 0.10.0+1
+
+ - **FIX**: remove selection logic from `selection_api.dart` and consolidate it into `connection_api.dart` with expanded functionalities.
+
 ## 0.10.0
 
  - **FEAT**: add visibility toggling for nodes and annotations with related UI and logic adjustments.
