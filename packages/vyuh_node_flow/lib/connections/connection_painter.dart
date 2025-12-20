@@ -246,30 +246,7 @@ class ConnectionPainter {
   }) {
     final connectionTheme = theme.temporaryConnectionTheme;
 
-    // Calculate distance between port and mouse
-    final distance = (currentPoint - startPoint).distance;
-
-    // Calculate the minimum distance threshold dynamically:
-    // We need at least 3x the port extension before applying full styling
-    // to avoid weird loopback routing when the mouse is close to the port
-    final portExtension = connectionTheme.portExtension;
-    final minStyleThreshold = 3 * portExtension;
-
-    // For very short distances, draw a simple straight line
-    // This prevents loopback routing from triggering when starting the drag
-    if (distance < minStyleThreshold) {
-      _drawSimpleTemporaryLine(
-        canvas,
-        startPoint,
-        currentPoint,
-        connectionTheme,
-      );
-      return;
-    }
-
-    // For longer distances, use the full connection style machinery
-    // This ensures the temporary connection looks exactly like a real connection
-
+    // Always use the full connection style machinery for consistent appearance
     // Calculate source endpoint positions (from the port we started dragging from)
     final ({Offset endpointPos, Offset linePos}) source;
     if (sourcePort != null) {
@@ -321,31 +298,6 @@ class ConnectionPainter {
       drawTargetEndpoint: targetPort != null,
       animationValue: animationValue,
     );
-  }
-
-  /// Draws a simple straight line for temporary connections when distance is small.
-  void _drawSimpleTemporaryLine(
-    Canvas canvas,
-    Offset start,
-    Offset end,
-    ConnectionTheme connectionTheme,
-  ) {
-    final paint = Paint()
-      ..color = connectionTheme.color
-      ..strokeWidth = connectionTheme.strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    // Apply dash pattern if specified
-    if (connectionTheme.dashPattern != null) {
-      final path = Path()
-        ..moveTo(start.dx, start.dy)
-        ..lineTo(end.dx, end.dy);
-      final dashedPath = _createDashedPath(path, connectionTheme.dashPattern!);
-      canvas.drawPath(dashedPath, paint);
-    } else {
-      canvas.drawLine(start, end, paint);
-    }
   }
 
   /// Creates a dashed path from a solid path using the given dash pattern
