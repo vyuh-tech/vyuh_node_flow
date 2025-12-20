@@ -111,6 +111,7 @@ abstract class Annotation {
     _zIndex = Observable(initialZIndex);
     _isVisible = Observable(initialIsVisible);
     _selected = Observable(selected);
+    _isEditing = Observable(false);
   }
 
   /// Unique identifier for this annotation.
@@ -146,6 +147,7 @@ abstract class Annotation {
   late final Observable<int> _zIndex;
   late final Observable<bool> _isVisible;
   late final Observable<bool> _selected;
+  late final Observable<bool> _isEditing;
 
   /// The annotation's logical position (before grid snapping).
   ///
@@ -187,6 +189,14 @@ abstract class Annotation {
   bool get selected => _selected.value;
 
   set selected(bool value) => runInAction(() => _selected.value = value);
+
+  /// Whether the annotation is currently in edit mode.
+  ///
+  /// When true, the annotation is being edited (e.g., text editing in sticky notes).
+  /// Reading this inside an `Observer` widget automatically tracks changes.
+  bool get isEditing => _isEditing.value;
+
+  set isEditing(bool value) => runInAction(() => _isEditing.value = value);
 
   /// Whether this annotation responds to user interactions.
   ///

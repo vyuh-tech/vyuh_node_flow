@@ -226,8 +226,8 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
   /// Handles tap events for all hit target types (nodes, connections, canvas).
   /// Detects single taps and double-taps, firing appropriate callbacks.
   void _handleTapEvent(Offset position, HitTestResult hitResult) {
-    // Ensure canvas has focus after tap
-    if (!widget.controller.canvasFocusNode.hasFocus) {
+    // Ensure canvas has PRIMARY focus for keyboard shortcuts to work
+    if (!widget.controller.canvasFocusNode.hasPrimaryFocus) {
       widget.controller.canvasFocusNode.requestFocus();
     }
 

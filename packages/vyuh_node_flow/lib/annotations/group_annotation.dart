@@ -435,52 +435,7 @@ class GroupAnnotation extends Annotation {
 
   @override
   Widget buildWidget(BuildContext context) {
-    // Get themes for consistent styling
-    final flowTheme = Theme.of(context).extension<NodeFlowTheme>()!;
-    final nodeTheme = flowTheme.nodeTheme;
-    final annotationTheme = flowTheme.annotationTheme;
-    final borderRadius = nodeTheme.borderRadius;
-    final borderWidth = nodeTheme.borderWidth;
-
-    return Observer(
-      builder: (_) {
-        // Observe all reactive properties including size
-        final title = currentTitle;
-        final color = currentColor;
-        final currentSize = _observableSize.value;
-        final radius = Radius.circular(borderRadius.topLeft.x - borderWidth);
-
-        return Container(
-          width: currentSize.width,
-          height: currentSize.height,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.all(radius),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.8),
-                  borderRadius: BorderRadius.only(
-                    topLeft: radius,
-                    topRight: radius,
-                  ),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                child: Text(
-                  title.isNotEmpty ? title : 'Group',
-                  style: annotationTheme.labelStyle,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Expanded(child: Container()), // Empty space for nodes
-            ],
-          ),
-        );
-      },
-    );
+    return _GroupContent(annotation: this);
   }
 
   /// Creates a copy of this group annotation with optional property overrides.
@@ -662,5 +617,136 @@ class GroupAnnotation extends Annotation {
       );
       runInAction(() => _observableBehavior.value = newBehavior);
     }
+  }
+}
+
+/// Internal widget for rendering group content with inline title editing.
+class _GroupContent extends StatefulWidget {
+  const _GroupContent({required this.annotation});
+
+  final GroupAnnotation annotation;
+
+  @override
+  State<_GroupContent> createState() => _GroupContentState();
+}
+
+class _GroupContentState extends State<_GroupContent> {
+  late TextEditingController _textController;
+  late FocusNode _focusNode;
+  ReactionDisposer? _editingReaction;
+
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(
+      text: widget.annotation.currentTitle,
+    );
+    _focusNode = FocusNode();
+
+    // React to editing state changes to auto-focus
+    _editingReaction = reaction((_) => widget.annotation.isEditing, (
+      bool isEditing,
+    ) {
+      if (isEditing) {
+        // Update text controller with current title
+        _textController.text = widget.annotation.currentTitle;
+        // Auto-focus when editing starts
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _focusNode.requestFocus();
+          }
+        });
+      }
+    }, fireImmediately: true);
+
+    // Handle focus loss to end editing
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    if (!_focusNode.hasFocus && widget.annotation.isEditing) {
+      _commitEdit();
+    }
+  }
+
+  void _commitEdit() {
+    widget.annotation.updateTitle(_textController.text);
+    widget.annotation.isEditing = false;
+  }
+
+  @override
+  void dispose() {
+    _editingReaction?.call();
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
+    _textController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Get themes for consistent styling
+    final flowTheme = Theme.of(context).extension<NodeFlowTheme>()!;
+    final nodeTheme = flowTheme.nodeTheme;
+    final annotationTheme = flowTheme.annotationTheme;
+    final borderRadius = nodeTheme.borderRadius;
+    final borderWidth = nodeTheme.borderWidth;
+
+    return Observer(
+      builder: (_) {
+        // Observe all reactive properties including size and editing state
+        final title = widget.annotation.currentTitle;
+        final color = widget.annotation.currentColor;
+        final currentSize = widget.annotation.observableSize.value;
+        final isEditing = widget.annotation.isEditing;
+        final radius = Radius.circular(borderRadius.topLeft.x - borderWidth);
+
+        return Container(
+          width: currentSize.width,
+          height: currentSize.height,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.all(radius),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.only(
+                    topLeft: radius,
+                    topRight: radius,
+                  ),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                child: isEditing
+                    ? TextField(
+                        controller: _textController,
+                        focusNode: _focusNode,
+                        style: annotationTheme.labelStyle,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          filled: false,
+                          isDense: true,
+                          isCollapsed: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        onSubmitted: (_) => _commitEdit(),
+                      )
+                    : Text(
+                        title.isNotEmpty ? title : 'Group',
+                        style: annotationTheme.labelStyle,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+              ),
+              Expanded(child: Container()), // Empty space for nodes
+            ],
+          ),
+        );
+      },
+    );
   }
 }

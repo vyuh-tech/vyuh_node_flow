@@ -284,6 +284,9 @@ class NodeFlowShortcutManager<T> {
     LogicalKeySet(LogicalKeyboardKey.escape): 'cancel_operation',
     LogicalKeySet(LogicalKeyboardKey.keyM): 'toggle_minimap',
     LogicalKeySet(LogicalKeyboardKey.keyN): 'toggle_snapping',
+
+    // Annotation editing
+    LogicalKeySet(LogicalKeyboardKey.enter): 'edit_annotation',
   };
 
   /// Registers a single action.
@@ -570,6 +573,9 @@ class DefaultNodeFlowActions<T> {
       _CancelOperationAction<T>(),
       _ToggleMinimapAction<T>(),
       _ToggleSnappingAction<T>(),
+
+      // Annotation actions
+      _EditAnnotationAction<T>(),
     ];
   }
 }
@@ -1189,5 +1195,35 @@ class _ToggleSnappingAction<T> extends NodeFlowAction<T> {
   bool execute(NodeFlowController<T> controller, BuildContext? context) {
     controller.config.toggleSnapping();
     return true;
+  }
+}
+
+class _EditAnnotationAction<T> extends NodeFlowAction<T> {
+  const _EditAnnotationAction()
+    : super(
+        id: 'edit_annotation',
+        label: 'Edit Annotation',
+        description:
+            'Edit the selected annotation (sticky note text or group title)',
+        category: 'Annotation',
+      );
+
+  @override
+  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+    final selectedIds = controller.annotations.selectedAnnotationIds;
+    if (selectedIds.length != 1) return false;
+
+    final annotation = controller.annotations.getAnnotation(selectedIds.first);
+    if (annotation == null) return false;
+
+    // Start editing mode on the annotation
+    annotation.isEditing = true;
+    return true;
+  }
+
+  @override
+  bool canExecute(NodeFlowController<T> controller) {
+    // Only enable when exactly one annotation is selected
+    return controller.annotations.selectedAnnotationIds.length == 1;
   }
 }

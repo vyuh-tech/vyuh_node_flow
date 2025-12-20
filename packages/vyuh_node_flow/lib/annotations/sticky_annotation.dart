@@ -43,7 +43,6 @@ class StickyAnnotation extends Annotation {
   }) : _text = Observable(text),
        _width = Observable(width),
        _height = Observable(height),
-       _isEditing = Observable(false),
        super(
          type: 'sticky',
          initialPosition: position,
@@ -54,16 +53,9 @@ class StickyAnnotation extends Annotation {
   /// Observable text content of the sticky note.
   final Observable<String> _text;
 
-  /// Observable editing state.
-  final Observable<bool> _isEditing;
-
   /// The text content displayed in the sticky note.
   String get text => _text.value;
   set text(String value) => runInAction(() => _text.value = value);
-
-  /// Whether the sticky note is currently being edited.
-  bool get isEditing => _isEditing.value;
-  set isEditing(bool value) => runInAction(() => _isEditing.value = value);
 
   /// Observable width of the sticky note.
   final Observable<double> _width;
@@ -205,6 +197,10 @@ class _StickyContentState extends State<_StickyContent> {
   late FocusNode _focusNode;
   ReactionDisposer? _editingReaction;
 
+  // For auto-grow calculation
+  static const double _padding = 12.0;
+  static const double _lineHeightFactor = 1.4;
+
   @override
   void initState() {
     super.initState();
@@ -218,23 +214,72 @@ class _StickyContentState extends State<_StickyContent> {
       if (isEditing) {
         // Auto-focus when editing starts
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          _focusNode.requestFocus();
-          // Select all text for easy replacement
-          _textController.selection = TextSelection(
-            baseOffset: 0,
-            extentOffset: _textController.text.length,
-          );
+          if (mounted) {
+            _focusNode.requestFocus();
+          }
         });
       }
     }, fireImmediately: true);
 
     // Handle focus loss to end editing
     _focusNode.addListener(_onFocusChange);
+
+    // Listen to text changes for auto-grow
+    _textController.addListener(_onTextChanged);
   }
 
   void _onFocusChange() {
     if (!_focusNode.hasFocus && widget.annotation.isEditing) {
       _commitEdit();
+    }
+  }
+
+  void _onTextChanged() {
+    if (!widget.annotation.isEditing) return;
+
+    // Schedule height calculation after the frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _updateHeightIfNeeded();
+      }
+    });
+  }
+
+  void _updateHeightIfNeeded() {
+    final annotation = widget.annotation;
+    final text = _textController.text;
+
+    // Get the text style
+    final flowTheme = Theme.of(context).extension<NodeFlowTheme>();
+    final annotationTheme = flowTheme?.annotationTheme;
+    final textStyle =
+        annotationTheme?.labelStyle ?? Theme.of(context).textTheme.bodyMedium;
+    final fontSize = textStyle?.fontSize ?? 14.0;
+    final lineHeight = fontSize * _lineHeightFactor;
+
+    // Calculate required height based on text content
+    final textPainter = TextPainter(
+      text: TextSpan(text: text.isEmpty ? ' ' : text, style: textStyle),
+      textDirection: TextDirection.ltr,
+      maxLines: null,
+    );
+
+    // Layout with the available width (minus padding)
+    final availableWidth = annotation.width - (_padding * 2);
+    textPainter.layout(maxWidth: availableWidth);
+
+    // Calculate required height: text height + padding + some buffer
+    final requiredHeight = textPainter.height + (_padding * 2) + lineHeight;
+
+    // Only grow, don't shrink below current height (user can manually resize smaller)
+    if (requiredHeight > annotation.height) {
+      final newHeight = requiredHeight.clamp(
+        StickyAnnotation.minHeight,
+        StickyAnnotation.maxHeight,
+      );
+      if (newHeight > annotation.height) {
+        annotation.height = newHeight;
+      }
     }
   }
 
@@ -246,6 +291,7 @@ class _StickyContentState extends State<_StickyContent> {
   @override
   void dispose() {
     _editingReaction?.call();
+    _textController.removeListener(_onTextChanged);
     _focusNode.removeListener(_onFocusChange);
     _focusNode.dispose();
     _textController.dispose();
@@ -278,7 +324,7 @@ class _StickyContentState extends State<_StickyContent> {
               ),
             ],
           ),
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(_padding),
           child: isEditing
               ? TextField(
                   controller: _textController,
@@ -287,9 +333,14 @@ class _StickyContentState extends State<_StickyContent> {
                   maxLines: null,
                   expands: true,
                   textAlignVertical: TextAlignVertical.top,
+                  cursorColor: Colors.black87,
                   decoration: const InputDecoration(
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    filled: false,
                     isDense: true,
+                    isCollapsed: true,
                     contentPadding: EdgeInsets.zero,
                   ),
                   onSubmitted: (_) => _commitEdit(),

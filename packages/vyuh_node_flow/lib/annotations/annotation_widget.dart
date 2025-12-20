@@ -151,50 +151,60 @@ class AnnotationWidget extends StatelessWidget {
               // Use RawGestureDetector with custom pan recognizer that rejects
               // trackpad gestures, allowing them to bubble to InteractiveViewer
               // for canvas panning.
+              // IMPORTANT: RawGestureDetector must be the OUTER wrapper (like NodeWidget)
+              // to ensure proper gesture arena behavior with trackpad events.
               Positioned.fill(
-                child: MouseRegion(
-                  cursor: cursor,
-                  onEnter: onMouseEnter != null ? (_) => onMouseEnter!() : null,
-                  onExit: onMouseLeave != null ? (_) => onMouseLeave!() : null,
-                  // Use RawGestureDetector with ALL recognizers in one place.
-                  // Custom pan recognizer rejects trackpad gestures, allowing them
-                  // to bubble to InteractiveViewer for canvas panning.
-                  child: RawGestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    gestures: <Type, GestureRecognizerFactory>{
-                      // Custom pan recognizer that rejects trackpad gestures
-                      NonTrackpadPanGestureRecognizer:
+                child: RawGestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  gestures: <Type, GestureRecognizerFactory>{
+                    // Custom pan recognizer that rejects trackpad gestures
+                    NonTrackpadPanGestureRecognizer:
+                        GestureRecognizerFactoryWithHandlers<
+                          NonTrackpadPanGestureRecognizer
+                        >(() => NonTrackpadPanGestureRecognizer(), (
+                          recognizer,
+                        ) {
+                          recognizer.onStart = (_) =>
+                              controller.startAnnotationDrag(annotation.id);
+                          recognizer.onUpdate = (details) =>
+                              controller.moveAnnotationDrag(details.delta);
+                          recognizer.onEnd = (_) =>
+                              controller.endAnnotationDrag();
+                          recognizer.onCancel = controller.endAnnotationDrag;
+                        }),
+                    // Double tap recognizer
+                    if (onDoubleTap != null)
+                      DoubleTapGestureRecognizer:
                           GestureRecognizerFactoryWithHandlers<
-                            NonTrackpadPanGestureRecognizer
-                          >(() => NonTrackpadPanGestureRecognizer(), (
-                            recognizer,
-                          ) {
-                            recognizer.onStart = (_) =>
-                                controller.startAnnotationDrag(annotation.id);
-                            recognizer.onUpdate = (details) =>
-                                controller.moveAnnotationDrag(details.delta);
-                            recognizer.onEnd = (_) =>
-                                controller.endAnnotationDrag();
-                            recognizer.onCancel = controller.endAnnotationDrag;
+                            DoubleTapGestureRecognizer
+                          >(() => DoubleTapGestureRecognizer(), (recognizer) {
+                            recognizer.onDoubleTap = onDoubleTap!;
                           }),
-                      // Double tap recognizer
-                      if (onDoubleTap != null)
-                        DoubleTapGestureRecognizer:
-                            GestureRecognizerFactoryWithHandlers<
-                              DoubleTapGestureRecognizer
-                            >(() => DoubleTapGestureRecognizer(), (recognizer) {
-                              recognizer.onDoubleTap = onDoubleTap!;
-                            }),
-                      // Secondary tap (right-click) recognizer
-                      if (onContextMenu != null)
-                        TapGestureRecognizer:
-                            GestureRecognizerFactoryWithHandlers<
-                              TapGestureRecognizer
-                            >(() => TapGestureRecognizer(), (recognizer) {
+                    // Tap recognizer for primary tap (selection) and secondary tap (context menu)
+                    // Primary tap is required for proper focus handling and keyboard shortcuts
+                    if (onTap != null || onContextMenu != null)
+                      TapGestureRecognizer:
+                          GestureRecognizerFactoryWithHandlers<
+                            TapGestureRecognizer
+                          >(() => TapGestureRecognizer(), (recognizer) {
+                            if (onTap != null) {
+                              recognizer.onTap = onTap;
+                            }
+                            if (onContextMenu != null) {
                               recognizer.onSecondaryTapUp = (details) =>
                                   onContextMenu!(details.globalPosition);
-                            }),
-                    },
+                            }
+                          }),
+                  },
+                  // MouseRegion inside RawGestureDetector (matches NodeWidget structure)
+                  child: MouseRegion(
+                    cursor: cursor,
+                    onEnter: onMouseEnter != null
+                        ? (_) => onMouseEnter!()
+                        : null,
+                    onExit: onMouseLeave != null
+                        ? (_) => onMouseLeave!()
+                        : null,
                     child: _buildAnnotationContent(
                       context,
                       isSelected: isSelected,
@@ -238,9 +248,13 @@ class AnnotationWidget extends StatelessWidget {
   /// 3. Returns a [Container] with the styled content
   ///
   /// The styling priority is:
+  /// - Editing state: Transparent border (maintains layout, seamless editing)
   /// - Highlighted state takes precedence over selected
   /// - Selected state is used when not highlighted
-  /// - No border when neither selected nor highlighted
+  /// - Transparent border when neither selected nor highlighted
+  ///
+  /// IMPORTANT: Always apply a border (even if transparent) to prevent content
+  /// shifting when selection/editing state changes.
   Widget _buildAnnotationContent(
     BuildContext context, {
     required bool isSelected,
@@ -252,20 +266,24 @@ class AnnotationWidget extends StatelessWidget {
     // Use controller's theme as single source of truth
     final theme = controller.theme ?? NodeFlowTheme.light;
     final annotationTheme = theme.annotationTheme;
-
-    // Determine border color and background color based on state
-    // Highlight takes precedence over selection for better drag feedback
-    Color borderColor = Colors.transparent;
-    Color? backgroundColor;
     final borderWidth = annotationTheme.borderWidth;
 
-    if (isHighlighted) {
-      // Use highlight colors for drag-over feedback
-      borderColor = annotationTheme.highlightBorderColor;
-      backgroundColor = annotationTheme.highlightBackgroundColor;
-    } else if (isSelected) {
-      borderColor = annotationTheme.selectionBorderColor;
-      backgroundColor = annotationTheme.selectionBackgroundColor;
+    // Determine border color and background color based on state
+    // When editing, use transparent border for seamless editing experience
+    // Highlight takes precedence over selection for better drag feedback
+    // ALWAYS apply a border (transparent if not selected) to prevent content shift
+    Color borderColor = Colors.transparent;
+    Color? backgroundColor;
+
+    if (!annotation.isEditing) {
+      if (isHighlighted) {
+        // Use highlight colors for drag-over feedback
+        borderColor = annotationTheme.highlightBorderColor;
+        backgroundColor = annotationTheme.highlightBackgroundColor;
+      } else if (isSelected) {
+        borderColor = annotationTheme.selectionBorderColor;
+        backgroundColor = annotationTheme.selectionBackgroundColor;
+      }
     }
 
     // Apply theme-consistent selection and highlight styling

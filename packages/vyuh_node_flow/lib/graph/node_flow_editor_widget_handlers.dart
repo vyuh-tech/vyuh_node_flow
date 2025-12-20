@@ -17,8 +17,8 @@ extension _WidgetGestureHandlers<T> on _NodeFlowEditorState<T> {
 
   /// Handles node tap - selects the node with modifier key support.
   void _handleNodeTap(Node<T> node) {
-    // Ensure canvas has focus
-    if (!widget.controller.canvasFocusNode.hasFocus) {
+    // Ensure canvas has PRIMARY focus for keyboard shortcuts to work
+    if (!widget.controller.canvasFocusNode.hasPrimaryFocus) {
       widget.controller.canvasFocusNode.requestFocus();
     }
 
@@ -98,8 +98,8 @@ extension _WidgetGestureHandlers<T> on _NodeFlowEditorState<T> {
   void _handleAnnotationTap(Annotation annotation) {
     if (!annotation.isInteractive) return;
 
-    // Ensure canvas has focus
-    if (!widget.controller.canvasFocusNode.hasFocus) {
+    // Ensure canvas has PRIMARY focus for keyboard shortcuts to work
+    if (!widget.controller.canvasFocusNode.hasPrimaryFocus) {
       widget.controller.canvasFocusNode.requestFocus();
     }
 
@@ -115,7 +115,14 @@ extension _WidgetGestureHandlers<T> on _NodeFlowEditorState<T> {
   }
 
   /// Handles annotation double-tap.
+  ///
+  /// Double-tapping an annotation starts inline editing mode (e.g., editing
+  /// sticky note text or group title).
   void _handleAnnotationDoubleTap(Annotation annotation) {
+    // Start editing mode on the annotation
+    annotation.isEditing = true;
+
+    // Fire user callback
     widget.controller.events.annotation?.onDoubleTap?.call(annotation);
   }
 
