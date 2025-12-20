@@ -1,3 +1,7 @@
+## 0.10.4
+
+ - **FEAT**: add transformation listener for authoritative viewport syncing and improve interaction accuracy.
+
 ## 0.10.3
 
  - **FEAT**: add selection mode tracking with cursor feedback and shift key interaction.
