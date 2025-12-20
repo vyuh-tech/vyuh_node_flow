@@ -1,3 +1,8 @@
+## 0.10.5
+
+ - **REFACTOR**: remove short-distance temporary line drawing logic for consistent connection styling.
+ - **FEAT**: replace `ConnectionControlPointsLayer` with custom gesture recognition, improve touch and trackpad interaction handling across nodes, ports, and annotations.
+
 ## 0.10.4
 
  - **FEAT**: add transformation listener for authoritative viewport syncing and improve interaction accuracy.
