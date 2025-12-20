@@ -1,3 +1,8 @@
+## 0.10.6
+
+ - **FEAT**: implement inline editing for annotation titles, add keyboard shortcut for editing, and improve canvas focus handling.
+ - **FEAT**: add editing state support for annotations and implement auto-grow for sticky notes.
+
 ## 0.10.5
 
  - **REFACTOR**: remove short-distance temporary line drawing logic for consistent connection styling.
