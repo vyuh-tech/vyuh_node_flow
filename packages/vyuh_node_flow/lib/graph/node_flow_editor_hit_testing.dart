@@ -197,9 +197,11 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
             .where((c) => c.id == hitResult.connectionId!)
             .firstOrNull;
         if (connection != null) {
+          // Use event.position (screen/global coordinates) for context menu
+          // positioning with showMenu or similar popup APIs
           widget.controller.events.connection?.onContextMenu?.call(
             connection,
-            event.localPosition,
+            event.position,
           );
         }
         break;

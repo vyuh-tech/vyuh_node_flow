@@ -3,6 +3,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../connections/temporary_connection.dart';
 import '../../ports/port.dart';
+import '../coordinates.dart';
 import '../node_flow_controller.dart';
 import '../node_flow_theme.dart';
 
@@ -43,8 +44,8 @@ class InteractionLayer<T> extends StatelessWidget {
       child: RepaintBoundary(
         child: Observer(
           builder: (builderContext) {
-            // Observe selection rectangle
-            final selectionRectangle = controller.selectionRectangle;
+            // Observe selection rectangle (in graph coordinates, typed as GraphRect)
+            final selectionRect = controller.selectionRect;
 
             // Observe temporary connection and its changing properties
             final tempConnection = controller.temporaryConnection;
@@ -63,7 +64,7 @@ class InteractionLayer<T> extends StatelessWidget {
               painter: InteractionLayerPainter<T>(
                 controller: controller,
                 theme: theme,
-                selectionRectangle: selectionRectangle,
+                selectionRect: selectionRect,
                 temporaryConnection: tempConnection,
                 transformationController: transformationController,
                 animation: animation,
@@ -88,7 +89,7 @@ class InteractionLayerPainter<T> extends CustomPainter {
   InteractionLayerPainter({
     required this.controller,
     required this.theme,
-    required this.selectionRectangle,
+    required this.selectionRect,
     required this.temporaryConnection,
     required this.transformationController,
     this.animation,
@@ -100,7 +101,12 @@ class InteractionLayerPainter<T> extends CustomPainter {
 
   final NodeFlowController<T> controller;
   final NodeFlowTheme theme;
-  final Rect? selectionRectangle;
+
+  /// Selection rectangle in graph coordinates.
+  ///
+  /// Uses [GraphRect] for compile-time type safety, matching node positions
+  /// for accurate hit testing during selection drag operations.
+  final GraphRect? selectionRect;
   final TemporaryConnection? temporaryConnection;
 
   /// The transformation controller to read the current transform from.
@@ -115,8 +121,10 @@ class InteractionLayerPainter<T> extends CustomPainter {
     canvas.save();
     canvas.transform(transformationController.value.storage);
 
-    // Draw selection rectangle (in graph coordinates)
-    if (selectionRectangle != null) {
+    // Draw selection rectangle in graph coordinates.
+    // Since we've applied the canvas transform, the rectangle (which is already
+    // in graph coordinates) will be correctly positioned on screen.
+    if (selectionRect != null) {
       final paint = Paint()
         ..color = theme.connectionTheme.color.withValues(alpha: 0.2)
         ..style = PaintingStyle.fill;
@@ -126,8 +134,9 @@ class InteractionLayerPainter<T> extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.0;
 
-      canvas.drawRect(selectionRectangle!, paint);
-      canvas.drawRect(selectionRectangle!, borderPaint);
+      // Extract the underlying Rect from GraphRect for Canvas API
+      canvas.drawRect(selectionRect!.rect, paint);
+      canvas.drawRect(selectionRect!.rect, borderPaint);
     }
 
     // Draw temporary connection (in graph coordinates)
@@ -220,6 +229,6 @@ class InteractionLayerPainter<T> extends CustomPainter {
       return true;
     }
 
-    return selectionRectangle != oldDelegate.selectionRectangle;
+    return selectionRect != oldDelegate.selectionRect;
   }
 }

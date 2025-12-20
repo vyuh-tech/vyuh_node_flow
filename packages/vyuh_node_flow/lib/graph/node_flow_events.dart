@@ -120,9 +120,11 @@ class NodeEvents<T> {
   /// Called when mouse leaves a node's bounds
   final ValueChanged<Node<T>>? onMouseLeave;
 
-  /// Called on secondary tap on a node (right-click/long-press for context menu)
-  /// Receives both the node and the pointer position for menu placement
-  final void Function(Node<T> node, Offset position)? onContextMenu;
+  /// Called on secondary tap on a node (right-click/long-press for context menu).
+  ///
+  /// The [screenPosition] is in screen/global coordinates, suitable for
+  /// positioning popup menus via [showMenu] or similar APIs.
+  final void Function(Node<T> node, Offset screenPosition)? onContextMenu;
 
   NodeEvents<T> copyWith({
     ValueChanged<Node<T>>? onCreated,
@@ -135,7 +137,7 @@ class NodeEvents<T> {
     ValueChanged<Node<T>>? onDragStop,
     ValueChanged<Node<T>>? onMouseEnter,
     ValueChanged<Node<T>>? onMouseLeave,
-    void Function(Node<T> node, Offset position)? onContextMenu,
+    void Function(Node<T> node, Offset screenPosition)? onContextMenu,
   }) {
     return NodeEvents<T>(
       onCreated: onCreated ?? this.onCreated,
@@ -182,9 +184,16 @@ class PortEvents<T> {
   /// Receives the node, port, and whether it's an output port
   final void Function(Node<T> node, Port port, bool isOutput)? onMouseLeave;
 
-  /// Called on secondary tap on a port (right-click/long-press for context menu)
-  /// Receives the node, port, whether it's an output port, and the pointer position
-  final void Function(Node<T> node, Port port, bool isOutput, Offset position)?
+  /// Called on secondary tap on a port (right-click/long-press for context menu).
+  ///
+  /// The [screenPosition] is in screen/global coordinates, suitable for
+  /// positioning popup menus via [showMenu] or similar APIs.
+  final void Function(
+    Node<T> node,
+    Port port,
+    bool isOutput,
+    Offset screenPosition,
+  )?
   onContextMenu;
 
   PortEvents<T> copyWith({
@@ -192,7 +201,12 @@ class PortEvents<T> {
     void Function(Node<T> node, Port port, bool isOutput)? onDoubleTap,
     void Function(Node<T> node, Port port, bool isOutput)? onMouseEnter,
     void Function(Node<T> node, Port port, bool isOutput)? onMouseLeave,
-    void Function(Node<T> node, Port port, bool isOutput, Offset position)?
+    void Function(
+      Node<T> node,
+      Port port,
+      bool isOutput,
+      Offset screenPosition,
+    )?
     onContextMenu,
   }) {
     return PortEvents<T>(
@@ -244,9 +258,12 @@ class ConnectionEvents<T> {
   /// Called when mouse leaves a connection's path
   final ValueChanged<Connection>? onMouseLeave;
 
-  /// Called on secondary tap on a connection (right-click/long-press for context menu)
-  /// Receives both the connection and the pointer position for menu placement
-  final void Function(Connection connection, Offset position)? onContextMenu;
+  /// Called on secondary tap on a connection (right-click/long-press for context menu).
+  ///
+  /// The [screenPosition] is in screen/global coordinates, suitable for
+  /// positioning popup menus via [showMenu] or similar APIs.
+  final void Function(Connection connection, Offset screenPosition)?
+  onContextMenu;
 
   /// Called when starting to create a connection from a port
   /// Useful for showing UI hints or validation messages
@@ -277,7 +294,7 @@ class ConnectionEvents<T> {
     ValueChanged<Connection>? onDoubleTap,
     ValueChanged<Connection>? onMouseEnter,
     ValueChanged<Connection>? onMouseLeave,
-    void Function(Connection connection, Offset position)? onContextMenu,
+    void Function(Connection connection, Offset screenPosition)? onContextMenu,
     void Function(String nodeId, String portId, bool isOutput)? onConnectStart,
     void Function(bool success)? onConnectEnd,
     ConnectionValidationResult Function(ConnectionStartContext<T> context)?
@@ -413,9 +430,12 @@ class AnnotationEvents {
   /// Called when mouse leaves an annotation's bounds
   final ValueChanged<Annotation>? onMouseLeave;
 
-  /// Called on secondary tap on an annotation (right-click/long-press for context menu)
-  /// Receives both the annotation and the pointer position for menu placement
-  final void Function(Annotation annotation, Offset position)? onContextMenu;
+  /// Called on secondary tap on an annotation (right-click/long-press for context menu).
+  ///
+  /// The [screenPosition] is in screen/global coordinates, suitable for
+  /// positioning popup menus via [showMenu] or similar APIs.
+  final void Function(Annotation annotation, Offset screenPosition)?
+  onContextMenu;
 
   AnnotationEvents copyWith({
     ValueChanged<Annotation>? onCreated,
@@ -425,7 +445,7 @@ class AnnotationEvents {
     ValueChanged<Annotation>? onDoubleTap,
     ValueChanged<Annotation>? onMouseEnter,
     ValueChanged<Annotation>? onMouseLeave,
-    void Function(Annotation annotation, Offset position)? onContextMenu,
+    void Function(Annotation annotation, Offset screenPosition)? onContextMenu,
   }) {
     return AnnotationEvents(
       onCreated: onCreated ?? this.onCreated,

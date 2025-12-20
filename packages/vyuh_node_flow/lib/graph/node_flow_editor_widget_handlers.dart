@@ -39,12 +39,11 @@ extension _WidgetGestureHandlers<T> on _NodeFlowEditorState<T> {
   }
 
   /// Handles node context menu (right-click).
-  void _handleNodeContextMenu(Node<T> node, Offset globalPosition) {
-    // Convert global to local position
-    final RenderBox? box = context.findRenderObject() as RenderBox?;
-    final localPosition = box?.globalToLocal(globalPosition) ?? globalPosition;
-
-    widget.controller.events.node?.onContextMenu?.call(node, localPosition);
+  ///
+  /// The [screenPosition] is in screen/global coordinates, passed directly
+  /// to the callback for use with [showMenu] or similar popup APIs.
+  void _handleNodeContextMenu(Node<T> node, Offset screenPosition) {
+    widget.controller.events.node?.onContextMenu?.call(node, screenPosition);
   }
 
   /// Handles mouse entering a node.
@@ -64,16 +63,15 @@ extension _WidgetGestureHandlers<T> on _NodeFlowEditorState<T> {
   // ============================================================
 
   /// Handles port context menu (right-click).
+  ///
+  /// The [screenPosition] is in screen/global coordinates, passed directly
+  /// to the callback for use with [showMenu] or similar popup APIs.
   void _handlePortContextMenu(
     String nodeId,
     String portId,
     bool isOutput,
-    Offset globalPosition,
+    Offset screenPosition,
   ) {
-    // Convert global to local position
-    final RenderBox? box = context.findRenderObject() as RenderBox?;
-    final localPosition = box?.globalToLocal(globalPosition) ?? globalPosition;
-
     final node = widget.controller.getNode(nodeId);
     if (node == null) return;
 
@@ -88,7 +86,7 @@ extension _WidgetGestureHandlers<T> on _NodeFlowEditorState<T> {
       node,
       port,
       isOutput,
-      localPosition,
+      screenPosition,
     );
   }
 

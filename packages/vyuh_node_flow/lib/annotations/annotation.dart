@@ -473,6 +473,39 @@ abstract class Annotation {
   /// explicit behavior only.
   bool get shouldRemoveWhenEmpty => false;
 
+  /// Whether this annotation can be resized by the user.
+  ///
+  /// When `true`, resize handles will be shown when the annotation is selected,
+  /// allowing the user to drag to change the annotation's size.
+  ///
+  /// Override to return `true` for annotations that support resizing.
+  /// The default is `false`. [GroupAnnotation] and [StickyAnnotation]
+  /// return `true` to enable resize functionality.
+  bool get isResizable => false;
+
+  /// Sets the size of this annotation.
+  ///
+  /// Override this method to implement resize behavior for your annotation.
+  /// The default implementation does nothing.
+  ///
+  /// For annotations with immutable size properties (like [StickyAnnotation]),
+  /// this method should replace the annotation in the controller with a new
+  /// instance having the updated size.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// @override
+  /// void setSize(Size newSize) {
+  ///   _width.value = newSize.width.clamp(minWidth, maxWidth);
+  ///   _height.value = newSize.height.clamp(minHeight, maxHeight);
+  /// }
+  /// ```
+  void setSize(Size newSize) {
+    // Default implementation does nothing
+    // Subclasses should override to implement resize behavior
+  }
+
   /// The set of node IDs that this annotation monitors for position/size changes.
   ///
   /// When [monitorNodes] is `true`, the annotation controller sets up MobX

@@ -33,39 +33,6 @@ enum GroupBehavior {
   parent,
 }
 
-/// Enum representing the 8 resize handle positions on a group.
-enum ResizeHandlePosition {
-  topLeft,
-  topCenter,
-  topRight,
-  centerLeft,
-  centerRight,
-  bottomLeft,
-  bottomCenter,
-  bottomRight,
-}
-
-/// Extension to get the cursor for a resize handle position.
-extension ResizeHandlePositionCursor on ResizeHandlePosition {
-  /// Returns the appropriate mouse cursor for this resize handle position.
-  MouseCursor get cursor {
-    switch (this) {
-      case ResizeHandlePosition.topLeft:
-      case ResizeHandlePosition.bottomRight:
-        return SystemMouseCursors.resizeUpLeftDownRight;
-      case ResizeHandlePosition.topRight:
-      case ResizeHandlePosition.bottomLeft:
-        return SystemMouseCursors.resizeUpRightDownLeft;
-      case ResizeHandlePosition.topCenter:
-      case ResizeHandlePosition.bottomCenter:
-        return SystemMouseCursors.resizeUpDown;
-      case ResizeHandlePosition.centerLeft:
-      case ResizeHandlePosition.centerRight:
-        return SystemMouseCursors.resizeLeftRight;
-    }
-  }
-}
-
 /// A group annotation that creates a region for containing nodes.
 ///
 /// Group annotations create visual boundaries that can contain nodes. The
@@ -214,6 +181,7 @@ class GroupAnnotation extends Annotation {
   /// Whether this group can be manually resized.
   ///
   /// Returns `false` for [GroupBehavior.explicit] since size is auto-computed.
+  @override
   bool get isResizable => behavior != GroupBehavior.explicit;
 
   @override
@@ -357,6 +325,7 @@ class GroupAnnotation extends Annotation {
   ///
   /// This is called during resize operations. The size is constrained to
   /// minimum dimensions to ensure the group remains usable.
+  @override
   void setSize(Size newSize) {
     // Enforce minimum size
     const minWidth = 100.0;
@@ -466,8 +435,10 @@ class GroupAnnotation extends Annotation {
 
   @override
   Widget buildWidget(BuildContext context) {
-    // Get node theme for consistent border radius
-    final nodeTheme = Theme.of(context).extension<NodeFlowTheme>()!.nodeTheme;
+    // Get themes for consistent styling
+    final flowTheme = Theme.of(context).extension<NodeFlowTheme>()!;
+    final nodeTheme = flowTheme.nodeTheme;
+    final annotationTheme = flowTheme.annotationTheme;
     final borderRadius = nodeTheme.borderRadius;
     final borderWidth = nodeTheme.borderWidth;
 
@@ -500,10 +471,7 @@ class GroupAnnotation extends Annotation {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 child: Text(
                   title.isNotEmpty ? title : 'Group',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: annotationTheme.labelStyle,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

@@ -348,6 +348,14 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
     _transformationController = TransformationController();
 
+    // CRITICAL: This listener is the authoritative mechanism for syncing viewport
+    // from transform changes. While InteractiveViewer's onInteraction* callbacks
+    // also sync the viewport, empirically they don't work reliably for all cases
+    // (particularly trackpad scroll panning when scrollToZoom is false).
+    // The listener fires immediately when the transform value changes, ensuring
+    // the viewport is always in sync for accurate hit testing and coordinate conversion.
+    _transformationController.addListener(_syncViewportFromTransform);
+
     // Initialize animation controller for animated connections
     _connectionAnimationController = AnimationController(
       vsync: this,
@@ -777,6 +785,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Remove keyboard handler
     HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
 
+    // Remove transform listener before disposing
+    _transformationController.removeListener(_syncViewportFromTransform);
+
     for (final disposer in _disposers) {
       disposer();
     }
@@ -789,28 +800,19 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   }
 
   // Event handlers
-  void _onInteractionStart(ScaleStartDetails details) {
-    final transform = _transformationController.value;
-    final translation = transform.getTranslation();
-    final scale = transform.getMaxScaleOnAxis();
 
-    // Mark viewport as being interacted with (for suppressing port hover during pan)
-    // Cursor is handled reactively via Observer in the canvas MouseRegion
-    runInAction(() {
-      widget.controller.interaction.isViewportInteracting.value = true;
-    });
-
-    // Fire viewport move start event
-    final viewport = GraphViewport(
-      x: translation.x,
-      y: translation.y,
-      zoom: scale,
-    );
-    widget.controller.events.viewport?.onMoveStart?.call(viewport);
-  }
-
-  void _onInteractionUpdate(ScaleUpdateDetails details) {
-    // Update viewport in store during interaction for real-time updates
+  /// Syncs the controller's viewport with the transformation controller.
+  ///
+  /// This is the AUTHORITATIVE viewport sync mechanism, called by the
+  /// transformation controller's listener. It ensures the viewport stays
+  /// in sync with ALL transform changes, which is critical for:
+  /// - Accurate hit testing (nodes, ports, connections, annotations)
+  /// - Correct coordinate conversion (screen ↔ graph coordinates)
+  /// - Proper spatial index queries
+  ///
+  /// The onInteraction* callbacks also call setViewport, but empirically
+  /// they don't work reliably in all cases. This listener is the safety net.
+  void _syncViewportFromTransform() {
     final transform = _transformationController.value;
     final translation = transform.getTranslation();
     final currentZoom = transform.getMaxScaleOnAxis();
@@ -820,10 +822,38 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       y: translation.y,
       zoom: currentZoom,
     );
-    widget.controller.setViewport(viewport);
 
-    // Fire viewport move event
-    widget.controller.events.viewport?.onMove?.call(viewport);
+    // Only update if viewport actually changed to avoid unnecessary reactions
+    final currentViewport = widget.controller.viewport;
+    if (currentViewport.x != viewport.x ||
+        currentViewport.y != viewport.y ||
+        currentViewport.zoom != viewport.zoom) {
+      widget.controller.setViewport(viewport);
+    }
+  }
+
+  void _onInteractionStart(ScaleStartDetails details) {
+    // Mark viewport as being interacted with (for suppressing port hover during pan)
+    // Cursor is handled reactively via Observer in the canvas MouseRegion
+    runInAction(() {
+      widget.controller.interaction.isViewportInteracting.value = true;
+    });
+
+    // Note: Viewport sync is handled by the TransformationController listener.
+    // We don't call setViewport here - the listener is the authoritative source.
+
+    // Fire viewport move start event with current viewport state
+    widget.controller.events.viewport?.onMoveStart?.call(
+      widget.controller.viewport,
+    );
+  }
+
+  void _onInteractionUpdate(ScaleUpdateDetails details) {
+    // Note: Viewport sync is handled by the TransformationController listener.
+    // We don't call setViewport here - the listener is the authoritative source.
+
+    // Fire viewport move event with current viewport state
+    widget.controller.events.viewport?.onMove?.call(widget.controller.viewport);
   }
 
   void _onInteractionEnd(ScaleEndDetails details) {
@@ -833,20 +863,13 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       widget.controller.interaction.isViewportInteracting.value = false;
     });
 
-    // Update viewport in store when interaction ends to keep store in sync
-    final transform = _transformationController.value;
-    final translation = transform.getTranslation();
-    final scale = transform.getMaxScaleOnAxis();
+    // Note: Viewport sync is handled by the TransformationController listener.
+    // We don't call setViewport here - the listener is the authoritative source.
 
-    final viewport = GraphViewport(
-      x: translation.x,
-      y: translation.y,
-      zoom: scale,
+    // Fire viewport move end event with current viewport state
+    widget.controller.events.viewport?.onMoveEnd?.call(
+      widget.controller.viewport,
     );
-    widget.controller.setViewport(viewport);
-
-    // Fire viewport move end event
-    widget.controller.events.viewport?.onMoveEnd?.call(viewport);
   }
 
   void _handlePointerDown(PointerDownEvent event) {
@@ -876,8 +899,8 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     _initialPointerPosition = event.localPosition;
     _shouldClearSelectionOnTap = false;
 
-    // Store initial pointer position immediately
-    widget.controller._setPointerPosition(event.localPosition);
+    // Store initial pointer position in widget-local coordinates
+    widget.controller._setPointerPosition(ScreenPosition(event.localPosition));
 
     // CRITICAL: If pointer is on a port, disable pan IMMEDIATELY (before gesture arena)
     // This prevents InteractiveViewer from competing for the drag gesture.
@@ -1020,7 +1043,8 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
     // Cursor is derived from state via Observer - no update needed
 
-    widget.controller._setPointerPosition(event.localPosition);
+    // Update pointer position in widget-local coordinates
+    widget.controller._setPointerPosition(ScreenPosition(event.localPosition));
   }
 
   void _handlePointerUp(PointerUpEvent event) {
@@ -1087,10 +1111,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       ScreenPosition(startPosition),
     );
     widget.controller._updateSelectionDrag(
-      startPoint: startGraph.offset,
-      rectangle: Rect.fromPoints(
-        startGraph.offset,
-        startGraph.offset,
+      startPoint: startGraph,
+      rectangle: GraphRect.fromPoints(
+        startGraph,
+        startGraph,
       ), // Start with zero-size rect
     );
 
@@ -1107,7 +1131,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     final currentGraph = widget.controller.viewport.toGraph(
       ScreenPosition(currentPosition),
     );
-    final rect = Rect.fromPoints(startPoint, currentGraph.offset);
+    final rect = GraphRect.fromPoints(startPoint, currentGraph);
 
     // Update visual rectangle and handle selection in one call
     widget.controller._updateSelectionDrag(
@@ -1117,7 +1141,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     );
   }
 
-  List<String> _getIntersectingNodes(Rect rect) {
+  List<String> _getIntersectingNodes(GraphRect rect) {
     final intersectingNodeIds = <String>[];
 
     // Find all nodes currently intersecting with the rectangle

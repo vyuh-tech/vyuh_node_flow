@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 ///   highlightBackgroundColor: Colors.orange.withOpacity(0.1),
 ///   borderWidth: 2.0,
 ///   borderRadius: BorderRadius.circular(8.0),
+///   labelStyle: TextStyle(fontSize: 12, color: Colors.black87),
 /// );
 ///
 /// // Or use a predefined theme
@@ -39,6 +40,7 @@ class AnnotationTheme {
   /// - [highlightBackgroundColor]: Background overlay color when highlighted
   /// - [borderWidth]: Width of the selection/highlight border
   /// - [borderRadius]: Border radius for the selection/highlight overlay
+  /// - [labelStyle]: Text style for annotation labels (titles, text content)
   const AnnotationTheme({
     required this.selectionBorderColor,
     required this.selectionBackgroundColor,
@@ -46,6 +48,7 @@ class AnnotationTheme {
     required this.highlightBackgroundColor,
     required this.borderWidth,
     required this.borderRadius,
+    required this.labelStyle,
   });
 
   /// Border color when the annotation is selected.
@@ -78,6 +81,12 @@ class AnnotationTheme {
   /// selected or highlighted annotations.
   final BorderRadius borderRadius;
 
+  /// Text style for annotation labels.
+  ///
+  /// This style is used for titles in group annotations, text content in
+  /// sticky annotations, and other text elements within annotations.
+  final TextStyle labelStyle;
+
   /// Creates a copy of this theme with the specified properties replaced.
   ///
   /// All parameters are optional. If a parameter is not provided, the
@@ -98,6 +107,7 @@ class AnnotationTheme {
     Color? highlightBackgroundColor,
     double? borderWidth,
     BorderRadius? borderRadius,
+    TextStyle? labelStyle,
   }) {
     return AnnotationTheme(
       selectionBorderColor: selectionBorderColor ?? this.selectionBorderColor,
@@ -108,6 +118,7 @@ class AnnotationTheme {
           highlightBackgroundColor ?? this.highlightBackgroundColor,
       borderWidth: borderWidth ?? this.borderWidth,
       borderRadius: borderRadius ?? this.borderRadius,
+      labelStyle: labelStyle ?? this.labelStyle,
     );
   }
 
@@ -128,6 +139,11 @@ class AnnotationTheme {
     highlightBackgroundColor: Color(0x1AFF9800),
     borderWidth: 1.0,
     borderRadius: BorderRadius.all(Radius.circular(8.0)),
+    labelStyle: TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+      color: Color(0xFF212121), // Close to black
+    ),
   );
 
   /// A predefined dark theme for annotations.
@@ -147,5 +163,10 @@ class AnnotationTheme {
     highlightBackgroundColor: Color(0x1AFFB74D),
     borderWidth: 1.0,
     borderRadius: BorderRadius.all(Radius.circular(8.0)),
+    labelStyle: TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+      color: Color(0xFFE0E0E0), // Light color for dark theme
+    ),
   );
 }

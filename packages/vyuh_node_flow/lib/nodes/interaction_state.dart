@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:mobx/mobx.dart';
 
 import '../connections/temporary_connection.dart';
+import '../graph/coordinates.dart';
 
 /// Contains all interaction-related state for the node flow editor.
 ///
@@ -43,10 +44,14 @@ class InteractionState {
   /// Null when no node is being dragged.
   final Observable<String?> draggedNodeId = Observable<String?>(null);
 
-  /// Observable position of the last pointer event.
+  /// Observable position of the last pointer event in screen/widget-local coordinates.
   ///
-  /// Used for tracking cursor movement during interactions.
-  final Observable<Offset?> lastPointerPosition = Observable<Offset?>(null);
+  /// This position is relative to the NodeFlowEditor widget's top-left corner,
+  /// used for tracking cursor movement during interactions like drag selection.
+  /// For graph coordinates, use [NodeFlowController.viewport.toGraph].
+  /// Uses [ScreenPosition] for compile-time type safety.
+  final Observable<ScreenPosition?> lastPointerPosition =
+      Observable<ScreenPosition?>(null);
 
   /// Observable temporary connection being created.
   ///
@@ -54,15 +59,21 @@ class InteractionState {
   final Observable<TemporaryConnection?> temporaryConnection =
       Observable<TemporaryConnection?>(null);
 
-  /// Observable starting point of a selection rectangle.
+  /// Observable starting point of a selection rectangle in graph coordinates.
   ///
-  /// Non-null when the user has initiated a drag selection.
-  final Observable<Offset?> selectionStartPoint = Observable<Offset?>(null);
+  /// Non-null when the user has initiated a drag selection. This is the point
+  /// where the selection drag started, in graph/canvas coordinates.
+  /// Uses [GraphPosition] for compile-time type safety.
+  final Observable<GraphPosition?> selectionStart = Observable<GraphPosition?>(
+    null,
+  );
 
-  /// Observable selection rectangle bounds.
+  /// Observable selection rectangle bounds in graph coordinates.
   ///
-  /// Non-null during active selection drag operations.
-  final Observable<Rect?> selectionRectangle = Observable<Rect?>(null);
+  /// Non-null during active selection drag operations. The rectangle is in
+  /// graph coordinates for hit testing against node positions.
+  /// Uses [GraphRect] for compile-time type safety.
+  final Observable<GraphRect?> selectionRect = Observable<GraphRect?>(null);
 
   /// Tracks nodes that were previously intersecting the selection rectangle.
   ///
@@ -115,10 +126,10 @@ class InteractionState {
   /// Returns null if no node is being dragged.
   String? get currentDraggedNodeId => draggedNodeId.value;
 
-  /// Gets the current pointer position.
+  /// Gets the current pointer position in screen/widget-local coordinates.
   ///
   /// Returns null if no pointer position has been recorded.
-  Offset? get currentPointerPosition => lastPointerPosition.value;
+  ScreenPosition? get pointerPosition => lastPointerPosition.value;
 
   /// Gets the starting node ID of the temporary connection.
   ///
@@ -133,12 +144,17 @@ class InteractionState {
   /// Checks if a selection rectangle is being drawn.
   ///
   /// Returns true when the user is actively drag-selecting nodes.
-  bool get isDrawingSelection => selectionRectangle.value != null;
+  bool get isDrawingSelection => selectionRect.value != null;
 
-  /// Gets the starting point of the selection rectangle.
+  /// Gets the starting point of the selection rectangle in graph coordinates.
   ///
   /// Returns null if no selection is active.
-  Offset? get selectionStart => selectionStartPoint.value;
+  GraphPosition? get selectionStartPoint => selectionStart.value;
+
+  /// Gets the current selection rectangle in graph coordinates.
+  ///
+  /// Returns null if no selection is active.
+  GraphRect? get currentSelectionRect => selectionRect.value;
 
   /// Gets whether panning is enabled.
   ///
@@ -181,11 +197,11 @@ class InteractionState {
     });
   }
 
-  /// Sets the current pointer position.
+  /// Sets the current pointer position in screen/widget-local coordinates.
   ///
   /// Parameters:
-  /// * [position] - The current pointer position, or null to clear
-  void setPointerPosition(Offset? position) {
+  /// * [position] - The current pointer position relative to the widget, or null to clear
+  void setPointerPosition(ScreenPosition? position) {
     runInAction(() {
       lastPointerPosition.value = position;
     });
@@ -219,24 +235,24 @@ class InteractionState {
   ///   preventing flicker by only toggling nodes whose intersection state changed
   ///
   /// Parameters:
-  /// * [startPoint] - Starting point of the selection rectangle
-  /// * [rectangle] - Current bounds of the selection rectangle
+  /// * [startPoint] - Starting point of the selection rectangle (graph coordinates)
+  /// * [rectangle] - Current bounds of the selection rectangle (graph coordinates)
   /// * [intersectingNodes] - List of node IDs that intersect the rectangle
   /// * [toggle] - Whether to toggle selection instead of replacing
   /// * [selectNodes] - Callback to select/deselect nodes
   void updateSelection({
-    Offset? startPoint,
-    Rect? rectangle,
+    GraphPosition? startPoint,
+    GraphRect? rectangle,
     List<String>? intersectingNodes,
     bool? toggle,
     Function(List<String>, {bool toggle})? selectNodes,
   }) {
     runInAction(() {
       if (startPoint != null) {
-        selectionStartPoint.value = startPoint;
+        selectionStart.value = startPoint;
       }
       if (rectangle != null) {
-        selectionRectangle.value = rectangle;
+        selectionRect.value = rectangle;
       }
 
       // Handle selection logic
@@ -274,8 +290,8 @@ class InteractionState {
   /// drag-selecting nodes.
   void finishSelection() {
     runInAction(() {
-      selectionStartPoint.value = null;
-      selectionRectangle.value = null;
+      selectionStart.value = null;
+      selectionRect.value = null;
       _previouslyIntersecting.clear();
     });
   }
@@ -301,8 +317,8 @@ class InteractionState {
       draggedNodeId.value = null;
       lastPointerPosition.value = null;
       temporaryConnection.value = null;
-      selectionStartPoint.value = null;
-      selectionRectangle.value = null;
+      selectionStart.value = null;
+      selectionRect.value = null;
       panEnabled.value = true;
       isViewportInteracting.value = false;
       hoveringConnection.value = false;

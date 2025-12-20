@@ -32,11 +32,9 @@ class AnnotationController<T> {
     null,
   ); // Group highlighted during node drag
 
-  // Resize state
-  final Observable<String?> _resizingGroupId = Observable(null);
-  final Observable<ResizeHandlePosition?> _resizeHandlePosition = Observable(
-    null,
-  );
+  // Resize state (works with any resizable annotation)
+  final Observable<String?> _resizingAnnotationId = Observable(null);
+  final Observable<ResizeHandle?> _resizeHandle = Observable(null);
   Offset? _resizeStartPosition;
   Size? _resizeStartSize;
 
@@ -78,9 +76,15 @@ class AnnotationController<T> {
 
   String? get highlightedGroupId => _highlightedGroupId.value;
 
-  String? get resizingGroupId => _resizingGroupId.value;
+  /// The ID of the annotation currently being resized, if any.
+  String? get resizingAnnotationId => _resizingAnnotationId.value;
 
-  bool get isResizing => _resizingGroupId.value != null;
+  /// Legacy getter for backwards compatibility.
+  @Deprecated('Use resizingAnnotationId instead')
+  String? get resizingGroupId => _resizingAnnotationId.value;
+
+  /// Whether any annotation is currently being resized.
+  bool get isResizing => _resizingAnnotationId.value != null;
 
   // Computed sorted annotations by z-index
   late final Computed<List<Annotation>> _sortedAnnotations = Computed(() {
@@ -425,17 +429,20 @@ class AnnotationController<T> {
   }
 
   // ============================================================
-  // Group Resize Methods
+  // Annotation Resize Methods (Generic for any resizable annotation)
   // ============================================================
 
-  /// Starts a group resize operation from the specified handle position.
-  void startGroupResize(String groupId, ResizeHandlePosition handlePosition) {
-    final annotation = _annotations[groupId];
-    if (annotation is! GroupAnnotation) return;
+  /// Starts a resize operation for any resizable annotation.
+  ///
+  /// Works with any annotation that has [Annotation.isResizable] set to `true`,
+  /// including [GroupAnnotation] and [StickyAnnotation].
+  void startAnnotationResize(String annotationId, ResizeHandle handle) {
+    final annotation = _annotations[annotationId];
+    if (annotation == null || !annotation.isResizable) return;
 
     runInAction(() {
-      _resizingGroupId.value = groupId;
-      _resizeHandlePosition.value = handlePosition;
+      _resizingAnnotationId.value = annotationId;
+      _resizeHandle.value = handle;
       _resizeStartPosition = annotation.position;
       _resizeStartSize = annotation.size;
 
@@ -443,18 +450,20 @@ class AnnotationController<T> {
       _parentController.interaction.panEnabled.value = false;
 
       // Set cursor override to lock cursor during resize
-      _parentController.interaction.setCursorOverride(handlePosition.cursor);
+      _parentController.interaction.setCursorOverride(handle.cursor);
     });
   }
 
-  /// Updates the group size during a resize operation.
-  void updateGroupResize(Offset delta) {
-    final groupId = _resizingGroupId.value;
-    final handlePosition = _resizeHandlePosition.value;
-    if (groupId == null || handlePosition == null) return;
+  /// Updates the annotation size during a resize operation.
+  ///
+  /// This method works with any resizable annotation by calling its [setSize] method.
+  void updateAnnotationResize(Offset delta) {
+    final annotationId = _resizingAnnotationId.value;
+    final handle = _resizeHandle.value;
+    if (annotationId == null || handle == null) return;
 
-    final annotation = _annotations[groupId];
-    if (annotation is! GroupAnnotation) return;
+    final annotation = _annotations[annotationId];
+    if (annotation == null || !annotation.isResizable) return;
 
     final startPos = _resizeStartPosition;
     final startSize = _resizeStartSize;
@@ -467,53 +476,53 @@ class AnnotationController<T> {
       var newWidth = annotation.size.width;
       var newHeight = annotation.size.height;
 
-      switch (handlePosition) {
-        case ResizeHandlePosition.topLeft:
+      switch (handle) {
+        case ResizeHandle.topLeft:
           newX += delta.dx;
           newY += delta.dy;
           newWidth -= delta.dx;
           newHeight -= delta.dy;
-        case ResizeHandlePosition.topCenter:
+        case ResizeHandle.topCenter:
           newY += delta.dy;
           newHeight -= delta.dy;
-        case ResizeHandlePosition.topRight:
+        case ResizeHandle.topRight:
           newY += delta.dy;
           newWidth += delta.dx;
           newHeight -= delta.dy;
-        case ResizeHandlePosition.centerLeft:
+        case ResizeHandle.centerLeft:
           newX += delta.dx;
           newWidth -= delta.dx;
-        case ResizeHandlePosition.centerRight:
+        case ResizeHandle.centerRight:
           newWidth += delta.dx;
-        case ResizeHandlePosition.bottomLeft:
+        case ResizeHandle.bottomLeft:
           newX += delta.dx;
           newWidth -= delta.dx;
           newHeight += delta.dy;
-        case ResizeHandlePosition.bottomCenter:
+        case ResizeHandle.bottomCenter:
           newHeight += delta.dy;
-        case ResizeHandlePosition.bottomRight:
+        case ResizeHandle.bottomRight:
           newWidth += delta.dx;
           newHeight += delta.dy;
       }
 
-      // Apply minimum size constraints
+      // Apply minimum size constraints (each annotation can further constrain in setSize)
       const minWidth = 100.0;
       const minHeight = 60.0;
 
       // If new size would be below minimum, adjust position back
       if (newWidth < minWidth) {
-        if (handlePosition == ResizeHandlePosition.topLeft ||
-            handlePosition == ResizeHandlePosition.centerLeft ||
-            handlePosition == ResizeHandlePosition.bottomLeft) {
+        if (handle == ResizeHandle.topLeft ||
+            handle == ResizeHandle.centerLeft ||
+            handle == ResizeHandle.bottomLeft) {
           newX = annotation.position.dx + annotation.size.width - minWidth;
         }
         newWidth = minWidth;
       }
 
       if (newHeight < minHeight) {
-        if (handlePosition == ResizeHandlePosition.topLeft ||
-            handlePosition == ResizeHandlePosition.topCenter ||
-            handlePosition == ResizeHandlePosition.topRight) {
+        if (handle == ResizeHandle.topLeft ||
+            handle == ResizeHandle.topCenter ||
+            handle == ResizeHandle.topRight) {
           newY = annotation.position.dy + annotation.size.height - minHeight;
         }
         newHeight = minHeight;
@@ -527,19 +536,19 @@ class AnnotationController<T> {
             .snapAnnotationsToGridIfEnabled(newPosition);
       }
 
-      // Update size
+      // Update size - annotation's setSize handles any type-specific constraints
       annotation.setSize(Size(newWidth, newHeight));
 
       // Mark annotation dirty
-      _parentController.internalMarkAnnotationDirty(groupId);
+      _parentController.internalMarkAnnotationDirty(annotationId);
     });
   }
 
-  /// Ends a group resize operation.
-  void endGroupResize() {
+  /// Ends an annotation resize operation.
+  void endAnnotationResize() {
     runInAction(() {
-      _resizingGroupId.value = null;
-      _resizeHandlePosition.value = null;
+      _resizingAnnotationId.value = null;
+      _resizeHandle.value = null;
       _resizeStartPosition = null;
       _resizeStartSize = null;
 

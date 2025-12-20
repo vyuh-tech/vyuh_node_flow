@@ -17,7 +17,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
   late NodeFlowTheme _nodeFlowTheme;
   late NodeFlowConfig _nodeFlowConfig;
   bool _isLoading = true;
-  final bool _scrollToZoom = true;
+  final bool _scrollToZoom = false;
   bool _debugMode = false;
 
   // Workflow dropdown

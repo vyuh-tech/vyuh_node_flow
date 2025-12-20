@@ -8,7 +8,8 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
   // (startConnectionDrag, updateConnectionDrag, completeConnectionDrag, cancelConnectionDrag)
   // and are now called directly by PortWidget's pan gesture handlers.
 
-  void _setPointerPosition(Offset? position) {
+  /// Sets the pointer position in screen/widget-local coordinates.
+  void _setPointerPosition(ScreenPosition? position) {
     interaction.setPointerPosition(position);
   }
 
@@ -16,9 +17,16 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
     interaction.update(panEnabled: panEnabled);
   }
 
+  /// Updates selection drag state with graph coordinates.
+  ///
+  /// Parameters:
+  /// * [startPoint] - Starting point of selection (graph coordinates)
+  /// * [rectangle] - Current selection rectangle (graph coordinates)
+  /// * [intersectingNodes] - List of node IDs that intersect the rectangle
+  /// * [toggle] - Whether to toggle selection instead of replacing
   void _updateSelectionDrag({
-    Offset? startPoint,
-    Rect? rectangle,
+    GraphPosition? startPoint,
+    GraphRect? rectangle,
     List<String>? intersectingNodes,
     bool? toggle,
   }) {

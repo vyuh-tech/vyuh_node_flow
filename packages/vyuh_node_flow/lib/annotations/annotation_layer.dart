@@ -5,7 +5,6 @@ import '../annotations/annotation.dart';
 import '../graph/node_flow_controller.dart';
 import '../shared/unbounded_widgets.dart';
 import 'annotation_widget.dart';
-import 'group_annotation_widget.dart';
 
 /// A rendering layer for annotations in the node flow editor.
 ///
@@ -187,47 +186,16 @@ class AnnotationLayer<T> extends StatelessWidget {
             if (filter != null) {
               annotations = annotations.where(filter!).toList();
             }
-            final selectedAnnotationIds =
-                controller.annotations.selectedAnnotationIds;
 
+            // Use unified AnnotationWidget for ALL annotation types
+            // Selection and highlight states are read directly from annotation/controller
             return UnboundedStack(
               clipBehavior: Clip.none,
               children: annotations.map((annotation) {
-                final isSelected = selectedAnnotationIds.contains(
-                  annotation.id,
-                );
-
-                // Check if this group annotation is highlighted during drag
-                final isHighlighted =
-                    annotation is GroupAnnotation &&
-                    controller.annotations.isGroupHighlighted(annotation.id);
-
-                // Use specialized widget for groups to support resize handles
-                if (annotation is GroupAnnotation) {
-                  return GroupAnnotationWidget(
-                    key: ValueKey('${annotation.id}_z${annotation.zIndex}'),
-                    group: annotation,
-                    controller: controller,
-                    isSelected: isSelected,
-                    isHighlighted: isHighlighted,
-                    onTap: onAnnotationTap != null
-                        ? () => onAnnotationTap!(annotation)
-                        : null,
-                    onDoubleTap: onAnnotationDoubleTap != null
-                        ? () => onAnnotationDoubleTap!(annotation)
-                        : null,
-                    onContextMenu: onAnnotationContextMenu != null
-                        ? (pos) => onAnnotationContextMenu!(annotation, pos)
-                        : null,
-                  );
-                }
-
                 return AnnotationWidget(
                   key: ValueKey('${annotation.id}_z${annotation.zIndex}'),
                   annotation: annotation,
                   controller: controller,
-                  isSelected: isSelected,
-                  isHighlighted: isHighlighted,
                   // Event callbacks for external handling
                   onTap: onAnnotationTap != null
                       ? () => onAnnotationTap!(annotation)
@@ -250,48 +218,6 @@ class AnnotationLayer<T> extends StatelessWidget {
           },
         ),
       ),
-    );
-  }
-}
-
-/// Extension to add annotation layer support to widgets.
-///
-/// This extension provides a convenient way to wrap any widget with an
-/// annotation rendering layer.
-extension AnnotationLayerSupport<T> on Widget {
-  /// Wraps this widget with an annotation layer.
-  ///
-  /// This creates a [Stack] with the original widget and an [AnnotationLayer]
-  /// on top. The annotation layer is purely for rendering - interactions are
-  /// handled by the main [NodeFlowEditor].
-  ///
-  /// ## Example
-  ///
-  /// ```dart
-  /// GridBackground()
-  ///   .withAnnotationLayer(controller)
-  /// ```
-  ///
-  /// ## Important Note
-  ///
-  /// User interactions (clicks, drags) are handled by [NodeFlowEditor], not
-  /// by the annotation layer. This ensures consistent interaction behavior.
-  ///
-  /// ## Parameters
-  /// - [controller]: The node flow controller managing the annotations
-  ///
-  /// ## Returns
-  /// A [Stack] containing the original widget and the annotation layer
-  Widget withAnnotationLayer(NodeFlowController<T> controller) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        // Original widget (background, grid, etc.)
-        this,
-
-        // Annotation layer - purely for rendering
-        AnnotationLayer<T>(controller: controller),
-      ],
     );
   }
 }

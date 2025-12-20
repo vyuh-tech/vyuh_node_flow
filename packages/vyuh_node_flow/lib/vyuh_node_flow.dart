@@ -119,7 +119,7 @@ export 'annotations/annotation_layer.dart';
 export 'annotations/annotation_theme.dart';
 export 'annotations/annotation_widget.dart';
 export 'annotations/group_annotation.dart';
-export 'annotations/group_annotation_widget.dart';
+export 'annotations/sticky_annotation.dart';
 // Connections
 export 'connections/connection.dart';
 export 'connections/connection_anchor.dart';

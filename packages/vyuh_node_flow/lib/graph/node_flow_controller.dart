@@ -19,6 +19,7 @@ import '../nodes/node.dart';
 import '../nodes/node_data.dart';
 import '../nodes/node_shape.dart';
 import '../ports/port.dart';
+import '../shared/resizer_widget.dart';
 import '../shared/shortcuts_viewer_dialog.dart';
 import '../shared/spatial/graph_spatial_index.dart';
 import 'coordinates.dart';
@@ -300,20 +301,22 @@ class NodeFlowController<T> {
   /// Returns `true` during shift+drag selection operations.
   bool get isDrawingSelection => interaction.isDrawingSelection;
 
-  /// Gets the last known pointer position (package-private).
+  /// Gets the last known pointer position in screen/widget-local coordinates (package-private).
   ///
   /// Used for drag operations. Returns `null` if no pointer position is tracked.
-  Offset? get lastPointerPosition => interaction.currentPointerPosition;
+  ScreenPosition? get pointerPosition => interaction.pointerPosition;
 
-  /// Gets the current selection rectangle being drawn (package-private).
+  /// Gets the current selection rectangle in graph coordinates (package-private).
   ///
   /// Returns `null` if no selection rectangle is active.
-  Rect? get selectionRectangle => interaction.selectionRectangle.value;
+  /// The rectangle is in graph coordinates for hit testing against node positions.
+  GraphRect? get selectionRect => interaction.currentSelectionRect;
 
-  /// Gets the starting point of the selection rectangle (package-private).
+  /// Gets the starting point of the selection rectangle in graph coordinates (package-private).
   ///
   /// Returns `null` if no selection is being drawn.
-  Offset? get selectionStartPoint => interaction.selectionStart;
+  /// This is where the user first pressed to begin the selection drag.
+  GraphPosition? get selectionStartPoint => interaction.selectionStartPoint;
 
   /// Checks if viewport panning is currently enabled (package-private).
   ///
