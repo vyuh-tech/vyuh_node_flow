@@ -1,12 +1,9 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
-import '../annotations/annotation.dart';
-import '../graph/cursor_theme.dart';
-import '../graph/node_flow_controller.dart';
-import '../graph/node_flow_theme.dart';
-import '../shared/resizer_widget.dart';
+import '../shared/non_trackpad_pan_gesture_recognizer.dart';
 
 /// Framework widget that wraps custom annotations with automatic functionality.
 ///
@@ -151,22 +148,53 @@ class AnnotationWidget extends StatelessWidget {
             clipBehavior: Clip.none,
             children: [
               // Main annotation content - fills the entire space
+              // Use RawGestureDetector with custom pan recognizer that rejects
+              // trackpad gestures, allowing them to bubble to InteractiveViewer
+              // for canvas panning.
               Positioned.fill(
                 child: MouseRegion(
                   cursor: cursor,
                   onEnter: onMouseEnter != null ? (_) => onMouseEnter!() : null,
                   onExit: onMouseLeave != null ? (_) => onMouseLeave!() : null,
-                  child: GestureDetector(
+                  // Use RawGestureDetector with ALL recognizers in one place.
+                  // Custom pan recognizer rejects trackpad gestures, allowing them
+                  // to bubble to InteractiveViewer for canvas panning.
+                  child: RawGestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onDoubleTap: onDoubleTap,
-                    onSecondaryTapUp: onContextMenu != null
-                        ? (details) => onContextMenu!(details.globalPosition)
-                        : null,
-                    onPanStart: (_) =>
-                        controller.startAnnotationDrag(annotation.id),
-                    onPanUpdate: (details) =>
-                        controller.moveAnnotationDrag(details.delta),
-                    onPanEnd: (_) => controller.endAnnotationDrag(),
+                    gestures: <Type, GestureRecognizerFactory>{
+                      // Custom pan recognizer that rejects trackpad gestures
+                      NonTrackpadPanGestureRecognizer:
+                          GestureRecognizerFactoryWithHandlers<
+                            NonTrackpadPanGestureRecognizer
+                          >(() => NonTrackpadPanGestureRecognizer(), (
+                            recognizer,
+                          ) {
+                            recognizer.onStart = (_) =>
+                                controller.startAnnotationDrag(annotation.id);
+                            recognizer.onUpdate = (details) =>
+                                controller.moveAnnotationDrag(details.delta);
+                            recognizer.onEnd = (_) =>
+                                controller.endAnnotationDrag();
+                            recognizer.onCancel = controller.endAnnotationDrag;
+                          }),
+                      // Double tap recognizer
+                      if (onDoubleTap != null)
+                        DoubleTapGestureRecognizer:
+                            GestureRecognizerFactoryWithHandlers<
+                              DoubleTapGestureRecognizer
+                            >(() => DoubleTapGestureRecognizer(), (recognizer) {
+                              recognizer.onDoubleTap = onDoubleTap!;
+                            }),
+                      // Secondary tap (right-click) recognizer
+                      if (onContextMenu != null)
+                        TapGestureRecognizer:
+                            GestureRecognizerFactoryWithHandlers<
+                              TapGestureRecognizer
+                            >(() => TapGestureRecognizer(), (recognizer) {
+                              recognizer.onSecondaryTapUp = (details) =>
+                                  onContextMenu!(details.globalPosition);
+                            }),
+                    },
                     child: _buildAnnotationContent(
                       context,
                       isSelected: isSelected,

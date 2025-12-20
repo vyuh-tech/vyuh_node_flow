@@ -1,7 +1,9 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../connections/connection.dart';
+import '../shared/non_trackpad_pan_gesture_recognizer.dart';
 import '../graph/cursor_theme.dart';
 import '../graph/node_flow_controller.dart';
 import '../graph/node_flow_theme.dart';
@@ -295,18 +297,44 @@ class NodeWidget<T> extends StatelessWidget {
                 // This allows ports to handle their own gestures (like connection drag)
                 // without interference from node drag gestures.
                 Positioned.fill(
-                  child: GestureDetector(
+                  // Use RawGestureDetector with all gesture recognizers in one place.
+                  // Custom pan recognizer rejects trackpad gestures, allowing them
+                  // to bubble to InteractiveViewer for canvas panning.
+                  child: RawGestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onDoubleTap: onDoubleTap,
-                    onSecondaryTapUp: onContextMenu != null
-                        ? (details) => onContextMenu!(details.globalPosition)
-                        : null,
-                    // Node drag via controller (delta is already in graph coordinates
-                    // since GestureDetector is inside InteractiveViewer's transformed space)
-                    onPanStart: (_) => controller.startNodeDrag(node.id),
-                    onPanUpdate: (details) =>
-                        controller.moveNodeDrag(details.delta),
-                    onPanEnd: (_) => controller.endNodeDrag(),
+                    gestures: <Type, GestureRecognizerFactory>{
+                      // Custom pan recognizer that rejects trackpad
+                      NonTrackpadPanGestureRecognizer:
+                          GestureRecognizerFactoryWithHandlers<
+                            NonTrackpadPanGestureRecognizer
+                          >(() => NonTrackpadPanGestureRecognizer(), (
+                            recognizer,
+                          ) {
+                            recognizer.onStart = (_) =>
+                                controller.startNodeDrag(node.id);
+                            recognizer.onUpdate = (details) =>
+                                controller.moveNodeDrag(details.delta);
+                            recognizer.onEnd = (_) => controller.endNodeDrag();
+                            recognizer.onCancel = controller.endNodeDrag;
+                          }),
+                      // Double tap recognizer
+                      if (onDoubleTap != null)
+                        DoubleTapGestureRecognizer:
+                            GestureRecognizerFactoryWithHandlers<
+                              DoubleTapGestureRecognizer
+                            >(() => DoubleTapGestureRecognizer(), (recognizer) {
+                              recognizer.onDoubleTap = onDoubleTap!;
+                            }),
+                      // Secondary tap (right-click) recognizer
+                      if (onContextMenu != null)
+                        TapGestureRecognizer:
+                            GestureRecognizerFactoryWithHandlers<
+                              TapGestureRecognizer
+                            >(() => TapGestureRecognizer(), (recognizer) {
+                              recognizer.onSecondaryTapUp = (details) =>
+                                  onContextMenu!(details.globalPosition);
+                            }),
+                    },
                     // Observer.withBuiltChild ensures only MouseRegion rebuilds when
                     // interaction state changes, not the entire node subtree
                     child: Observer.withBuiltChild(

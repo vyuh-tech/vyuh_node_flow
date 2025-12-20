@@ -1,6 +1,8 @@
-import 'package:flutter/gestures.dart' show DragStartBehavior;
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+
+import '../shared/non_trackpad_pan_gesture_recognizer.dart';
 
 import '../graph/coordinates.dart';
 import '../graph/cursor_theme.dart';
@@ -363,25 +365,51 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
           // during MobX rebuilds, which would cancel the active gesture.
           // Using UnboundedPositioned to allow hit testing outside the port bounds,
           // enabling drag gestures to continue even when pointer moves outside.
+          // Use RawGestureDetector with ALL recognizers in one place.
+          // Custom pan recognizer rejects trackpad gestures, allowing them
+          // to bubble to InteractiveViewer for canvas panning.
           UnboundedPositioned(
             left: -widget.snapDistance,
             top: -widget.snapDistance,
             right: -widget.snapDistance,
             bottom: -widget.snapDistance,
-            child: GestureDetector(
+            child: RawGestureDetector(
               behavior: HitTestBehavior.opaque,
-              dragStartBehavior: DragStartBehavior.down,
-              onPanStart: _handlePanStart,
-              onPanUpdate: _handlePanUpdate,
-              onPanEnd: _handlePanEnd,
-              onPanCancel: _handlePanCancel,
-              onTap: widget.onTap != null
-                  ? () => widget.onTap!(widget.port)
-                  : null,
-              onDoubleTap: widget.onDoubleTap,
-              onSecondaryTapUp: widget.onContextMenu != null
-                  ? (details) => widget.onContextMenu!(details.globalPosition)
-                  : null,
+              gestures: <Type, GestureRecognizerFactory>{
+                // Custom pan recognizer that rejects trackpad gestures
+                NonTrackpadPanGestureRecognizer:
+                    GestureRecognizerFactoryWithHandlers<
+                      NonTrackpadPanGestureRecognizer
+                    >(() => NonTrackpadPanGestureRecognizer(), (recognizer) {
+                      recognizer.dragStartBehavior = DragStartBehavior.down;
+                      recognizer.onStart = _handlePanStart;
+                      recognizer.onUpdate = _handlePanUpdate;
+                      recognizer.onEnd = _handlePanEnd;
+                      recognizer.onCancel = _handlePanCancel;
+                    }),
+                // Tap recognizer for single tap and right-click
+                TapGestureRecognizer:
+                    GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+                      () => TapGestureRecognizer(),
+                      (recognizer) {
+                        if (widget.onTap != null) {
+                          recognizer.onTap = () => widget.onTap!(widget.port);
+                        }
+                        if (widget.onContextMenu != null) {
+                          recognizer.onSecondaryTapUp = (details) =>
+                              widget.onContextMenu!(details.globalPosition);
+                        }
+                      },
+                    ),
+                // Double tap recognizer
+                if (widget.onDoubleTap != null)
+                  DoubleTapGestureRecognizer:
+                      GestureRecognizerFactoryWithHandlers<
+                        DoubleTapGestureRecognizer
+                      >(() => DoubleTapGestureRecognizer(), (recognizer) {
+                        recognizer.onDoubleTap = widget.onDoubleTap;
+                      }),
+              },
               // Observer.withBuiltChild ensures only MouseRegion rebuilds when
               // interaction state changes, not the entire subtree
               child: Observer.withBuiltChild(

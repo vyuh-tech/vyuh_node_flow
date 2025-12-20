@@ -25,7 +25,6 @@ import '../shared/spatial/graph_spatial_index.dart';
 import '../shared/unbounded_widgets.dart';
 import 'coordinates.dart';
 import 'layers/attribution_overlay.dart';
-import 'layers/connection_control_points_layer.dart';
 import 'layers/connection_labels_layer.dart';
 import 'layers/connections_layer.dart';
 import 'layers/grid_layer.dart';
@@ -531,11 +530,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                               ConnectionLabelsLayer<T>(
                                 controller: widget.controller,
                                 labelBuilder: widget.labelBuilder,
-                              ),
-
-                              // Connection control points
-                              ConnectionControlPointsLayer<T>(
-                                controller: widget.controller,
                               ),
 
                               // Nodes - drag handled directly by NodeWidget via controller

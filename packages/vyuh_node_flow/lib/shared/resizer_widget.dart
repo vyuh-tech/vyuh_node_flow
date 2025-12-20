@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import 'non_trackpad_pan_gesture_recognizer.dart';
 import 'unbounded_widgets.dart';
 
 /// Position of resize handles on a resizable element.
@@ -309,16 +310,26 @@ class ResizerWidget extends StatelessWidget {
         .toList();
   }
 
+  /// Builds edge gesture detector using custom pan recognizer that rejects
+  /// trackpad gestures, allowing them to bubble to InteractiveViewer.
   Widget _buildEdgeGestureDetector(ResizeHandle handle) {
     return MouseRegion(
       cursor: handle.cursor,
-      child: GestureDetector(
+      child: RawGestureDetector(
         behavior: HitTestBehavior.opaque,
-        dragStartBehavior: DragStartBehavior.down,
-        onPanStart: (_) => onResizeStart(handle),
-        onPanUpdate: (details) => onResizeUpdate(details.delta),
-        onPanEnd: (_) => onResizeEnd(),
-        onPanCancel: onResizeEnd,
+        gestures: {
+          NonTrackpadPanGestureRecognizer:
+              GestureRecognizerFactoryWithHandlers<
+                NonTrackpadPanGestureRecognizer
+              >(() => NonTrackpadPanGestureRecognizer(), (recognizer) {
+                recognizer.dragStartBehavior = DragStartBehavior.down;
+                recognizer.onStart = (_) => onResizeStart(handle);
+                recognizer.onUpdate = (details) =>
+                    onResizeUpdate(details.delta);
+                recognizer.onEnd = (_) => onResizeEnd();
+                recognizer.onCancel = onResizeEnd;
+              }),
+        },
         child: const SizedBox.expand(),
       ),
     );
@@ -334,16 +345,26 @@ class ResizerWidget extends StatelessWidget {
     }).toList();
   }
 
+  /// Builds handle content using custom pan recognizer that rejects
+  /// trackpad gestures, allowing them to bubble to InteractiveViewer.
   Widget _buildHandleContent(ResizeHandle handle) {
     return MouseRegion(
       cursor: handle.cursor,
-      child: GestureDetector(
+      child: RawGestureDetector(
         behavior: HitTestBehavior.opaque,
-        dragStartBehavior: DragStartBehavior.down,
-        onPanStart: (_) => onResizeStart(handle),
-        onPanUpdate: (details) => onResizeUpdate(details.delta),
-        onPanEnd: (_) => onResizeEnd(),
-        onPanCancel: onResizeEnd,
+        gestures: {
+          NonTrackpadPanGestureRecognizer:
+              GestureRecognizerFactoryWithHandlers<
+                NonTrackpadPanGestureRecognizer
+              >(() => NonTrackpadPanGestureRecognizer(), (recognizer) {
+                recognizer.dragStartBehavior = DragStartBehavior.down;
+                recognizer.onStart = (_) => onResizeStart(handle);
+                recognizer.onUpdate = (details) =>
+                    onResizeUpdate(details.delta);
+                recognizer.onEnd = (_) => onResizeEnd();
+                recognizer.onCancel = onResizeEnd;
+              }),
+        },
         child: Center(
           child: Container(
             width: handleSize,

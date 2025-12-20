@@ -1141,7 +1141,31 @@ extension ConnectionApi<T> on NodeFlowController<T> {
       actualTargetPortId = temp.startPortId;
     }
 
-    // Check if target port allows multiple connections
+    // Check if source (output) port allows multiple connections
+    // If not, remove existing connections from the source port (replacement behavior)
+    final sourceNode = _nodes[sourceNodeId];
+    if (sourceNode != null) {
+      final sourcePort = sourceNode.allPorts
+          .where((p) => p.id == sourcePortId)
+          .firstOrNull;
+      if (sourcePort != null && !sourcePort.multiConnections) {
+        final connectionsToRemove = _connections
+            .where(
+              (conn) =>
+                  conn.sourceNodeId == sourceNodeId &&
+                  conn.sourcePortId == sourcePortId,
+            )
+            .toList();
+        runInAction(() {
+          for (final connection in connectionsToRemove) {
+            removeConnection(connection.id);
+          }
+        });
+      }
+    }
+
+    // Check if target (input) port allows multiple connections
+    // If not, remove existing connections to the target port (replacement behavior)
     final targetNode = _nodes[actualTargetNodeId];
     if (targetNode != null) {
       final targetPort = targetNode.allPorts

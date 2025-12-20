@@ -455,6 +455,9 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       annotations.clearDragHighlight();
       interaction.draggedNodeId.value = null;
       interaction.lastPointerPosition.value = null;
+
+      // Re-enable panning after node drag ends
+      interaction.panEnabled.value = true;
     });
 
     // Rebuild connection segments with accurate path bounds after drag ends
