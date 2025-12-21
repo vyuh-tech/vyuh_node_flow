@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 
@@ -197,6 +198,9 @@ class _StickyContentState extends State<_StickyContent> {
   late FocusNode _focusNode;
   ReactionDisposer? _editingReaction;
 
+  /// Stores the original text when editing starts, for cancel/restore.
+  String _originalText = '';
+
   // For auto-grow calculation
   static const double _padding = 12.0;
   static const double _lineHeightFactor = 1.4;
@@ -212,10 +216,20 @@ class _StickyContentState extends State<_StickyContent> {
       bool isEditing,
     ) {
       if (isEditing) {
+        // Store original text for potential cancel
+        _originalText = widget.annotation.text;
+        // Sync controller with current annotation text
+        _textController.text = _originalText;
+
         // Auto-focus when editing starts
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             _focusNode.requestFocus();
+            // Select all text for easy replacement
+            _textController.selection = TextSelection(
+              baseOffset: 0,
+              extentOffset: _textController.text.length,
+            );
           }
         });
       }
@@ -288,6 +302,12 @@ class _StickyContentState extends State<_StickyContent> {
     widget.annotation.isEditing = false;
   }
 
+  /// Cancels the edit and restores the original text.
+  void _cancelEdit() {
+    _textController.text = _originalText;
+    widget.annotation.isEditing = false;
+  }
+
   @override
   void dispose() {
     _editingReaction?.call();
@@ -326,24 +346,35 @@ class _StickyContentState extends State<_StickyContent> {
           ),
           padding: const EdgeInsets.all(_padding),
           child: isEditing
-              ? TextField(
-                  controller: _textController,
-                  focusNode: _focusNode,
-                  style: textStyle,
-                  maxLines: null,
-                  expands: true,
-                  textAlignVertical: TextAlignVertical.top,
-                  cursorColor: Colors.black87,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    filled: false,
-                    isDense: true,
-                    isCollapsed: true,
-                    contentPadding: EdgeInsets.zero,
+              ? Focus(
+                  // Capture Escape key before TextField processes it
+                  onKeyEvent: (node, event) {
+                    if (event is KeyDownEvent &&
+                        event.logicalKey == LogicalKeyboardKey.escape) {
+                      _cancelEdit();
+                      return KeyEventResult.handled;
+                    }
+                    return KeyEventResult.ignored;
+                  },
+                  child: TextField(
+                    controller: _textController,
+                    focusNode: _focusNode,
+                    style: textStyle,
+                    maxLines: null,
+                    expands: true,
+                    textAlignVertical: TextAlignVertical.top,
+                    cursorColor: Colors.black87,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      filled: false,
+                      isDense: true,
+                      isCollapsed: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    onSubmitted: (_) => _commitEdit(),
                   ),
-                  onSubmitted: (_) => _commitEdit(),
                 )
               : Text(
                   annotation.text,

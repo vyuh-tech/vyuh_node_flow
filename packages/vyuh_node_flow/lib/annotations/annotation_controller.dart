@@ -238,6 +238,23 @@ class AnnotationController<T> {
     });
   }
 
+  /// Clear editing state for all annotations.
+  ///
+  /// This exits edit mode for any annotation that is currently being edited.
+  /// Call this when:
+  /// - User clicks on the canvas background
+  /// - User presses Escape (as a global handler)
+  /// - Switching selection to a different element type
+  void clearAnnotationEditing() {
+    runInAction(() {
+      for (final annotation in _annotations.values) {
+        if (annotation.isEditing) {
+          annotation.isEditing = false;
+        }
+      }
+    });
+  }
+
   /// Check if a specific annotation is currently selected
   bool isAnnotationSelected(String annotationId) {
     return _selectedAnnotationIds.contains(annotationId);
@@ -346,8 +363,7 @@ class AnnotationController<T> {
       _lastPointerPosition.value = null;
       _annotationCursor.value = SystemMouseCursors.basic;
 
-      // Re-enable panning after annotation drag ends
-      _parentController.interaction.panEnabled.value = true;
+      // Pan state is managed centrally by NodeFlowEditor's _updatePanState reaction
 
       // Safety reset: ensure flag is cleared when drag ends
       if (_isMovingGroupNodes) {
@@ -371,8 +387,7 @@ class AnnotationController<T> {
         _draggedAnnotationId.value = annotationId;
         _annotationCursor.value = SystemMouseCursors.grabbing;
 
-        // Disable panning during annotation drag
-        _parentController.interaction.panEnabled.value = false;
+        // Pan state is managed centrally by NodeFlowEditor's _updatePanState reaction
 
         // IMPORTANT: Always ensure proper selection when dragging starts
         if (!_selectedAnnotationIds.contains(annotationId)) {
@@ -446,7 +461,8 @@ class AnnotationController<T> {
       _resizeStartPosition = annotation.position;
       _resizeStartSize = annotation.size;
 
-      // Disable panning during resize
+      // Disable panning during resize (fallback - may already be disabled by pointer down handler)
+      // This ensures pan is disabled even if resize handle hit test didn't detect the annotation
       _parentController.interaction.panEnabled.value = false;
 
       // Set cursor override to lock cursor during resize
@@ -552,8 +568,8 @@ class AnnotationController<T> {
       _resizeStartPosition = null;
       _resizeStartSize = null;
 
-      // Re-enable panning
-      _parentController.interaction.panEnabled.value = true;
+      // Pan state is re-enabled by NodeFlowEditor's _updatePanState reaction
+      // which watches isResizing state
 
       // Clear cursor override
       _parentController.interaction.setCursorOverride(null);

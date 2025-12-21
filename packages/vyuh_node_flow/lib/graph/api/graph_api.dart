@@ -380,23 +380,25 @@ extension GraphApi<T> on NodeFlowController<T> {
   // Batch Selection Operations
   // ============================================================================
 
-  /// Clears all selections (nodes, connections, and annotations).
+  /// Clears all selections (nodes, connections, and annotations) and exits
+  /// any active editing mode.
   ///
   /// This is a convenience method that calls `clearNodeSelection`,
-  /// `clearConnectionSelection`, and `clearAnnotationSelection`.
-  ///
-  /// Does nothing if there are no active selections.
+  /// `clearConnectionSelection`, `clearAnnotationSelection`, and
+  /// `clearAnnotationEditing`.
   void clearSelection() {
-    if (_selectedNodeIds.isEmpty &&
-        _selectedConnectionIds.isEmpty &&
-        !annotations.hasAnnotationSelection) {
-      return;
-    }
-
     runInAction(() {
-      clearNodeSelection();
-      clearConnectionSelection();
-      annotations.clearAnnotationSelection();
+      // Always clear editing state (even if nothing is selected)
+      annotations.clearAnnotationEditing();
+
+      // Only clear selections if something is selected
+      if (_selectedNodeIds.isNotEmpty ||
+          _selectedConnectionIds.isNotEmpty ||
+          annotations.hasAnnotationSelection) {
+        clearNodeSelection();
+        clearConnectionSelection();
+        annotations.clearAnnotationSelection();
+      }
     });
   }
 

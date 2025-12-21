@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 
@@ -635,6 +636,9 @@ class _GroupContentState extends State<_GroupContent> {
   late FocusNode _focusNode;
   ReactionDisposer? _editingReaction;
 
+  /// Stores the original title when editing starts, for cancel/restore.
+  String _originalTitle = '';
+
   @override
   void initState() {
     super.initState();
@@ -648,12 +652,19 @@ class _GroupContentState extends State<_GroupContent> {
       bool isEditing,
     ) {
       if (isEditing) {
+        // Store original title for potential cancel
+        _originalTitle = widget.annotation.currentTitle;
         // Update text controller with current title
-        _textController.text = widget.annotation.currentTitle;
+        _textController.text = _originalTitle;
         // Auto-focus when editing starts
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             _focusNode.requestFocus();
+            // Select all text for easy replacement
+            _textController.selection = TextSelection(
+              baseOffset: 0,
+              extentOffset: _textController.text.length,
+            );
           }
         });
       }
@@ -671,6 +682,12 @@ class _GroupContentState extends State<_GroupContent> {
 
   void _commitEdit() {
     widget.annotation.updateTitle(_textController.text);
+    widget.annotation.isEditing = false;
+  }
+
+  /// Cancels the edit and restores the original title.
+  void _cancelEdit() {
+    _textController.text = _originalTitle;
     widget.annotation.isEditing = false;
   }
 
@@ -721,20 +738,31 @@ class _GroupContentState extends State<_GroupContent> {
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 child: isEditing
-                    ? TextField(
-                        controller: _textController,
-                        focusNode: _focusNode,
-                        style: annotationTheme.labelStyle,
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          filled: false,
-                          isDense: true,
-                          isCollapsed: true,
-                          contentPadding: EdgeInsets.zero,
+                    ? Focus(
+                        // Capture Escape key before TextField processes it
+                        onKeyEvent: (node, event) {
+                          if (event is KeyDownEvent &&
+                              event.logicalKey == LogicalKeyboardKey.escape) {
+                            _cancelEdit();
+                            return KeyEventResult.handled;
+                          }
+                          return KeyEventResult.ignored;
+                        },
+                        child: TextField(
+                          controller: _textController,
+                          focusNode: _focusNode,
+                          style: annotationTheme.labelStyle,
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            filled: false,
+                            isDense: true,
+                            isCollapsed: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          onSubmitted: (_) => _commitEdit(),
                         ),
-                        onSubmitted: (_) => _commitEdit(),
                       )
                     : Text(
                         title.isNotEmpty ? title : 'Group',

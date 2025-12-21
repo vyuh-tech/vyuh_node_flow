@@ -631,10 +631,13 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     );
 
     // Update pan state based on interaction state
+    // Centralized pan state management - watches all drag/resize/connection states
     _disposers.add(
       reaction(
         (_) => (
           widget.controller.draggedNodeId != null,
+          widget.controller.annotations.draggedAnnotationId != null,
+          widget.controller.annotations.isResizing,
           widget.controller.isConnecting,
           widget.controller.isDrawingSelection,
         ),
@@ -734,9 +737,17 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   }
 
   void _updatePanState() {
+    // Centralized pan state calculation - pan is enabled only when:
+    // - Behavior allows panning
+    // - No node is being dragged
+    // - No annotation is being dragged or resized
+    // - No connection is being created
+    // - No selection rectangle is being drawn
     final newPanEnabled =
         widget.behavior.canPan &&
         widget.controller.draggedNodeId == null &&
+        widget.controller.annotations.draggedAnnotationId == null &&
+        !widget.controller.annotations.isResizing &&
         !widget.controller.isConnecting &&
         !widget.controller.isDrawingSelection;
 
@@ -896,10 +907,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Store initial pointer position in widget-local coordinates
     widget.controller._setPointerPosition(ScreenPosition(event.localPosition));
 
-    // CRITICAL: If pointer is on a port, disable pan IMMEDIATELY (before gesture arena)
-    // This prevents InteractiveViewer from competing for the drag gesture.
-    // The pan will be re-enabled in _handlePointerUp or when connection completes.
-    if (hitResult.isPort && widget.behavior.canCreate) {
+    // CRITICAL: Disable pan IMMEDIATELY for ANY interactive element (node, annotation, port)
+    // This prevents InteractiveViewer from competing for drag gestures in the gesture arena.
+    // Pan will be re-enabled by _updatePanState() when drag states change.
+    if (hitResult.isNode || hitResult.isAnnotation || hitResult.isPort) {
       widget.controller._updateInteractionState(panEnabled: false);
     }
 

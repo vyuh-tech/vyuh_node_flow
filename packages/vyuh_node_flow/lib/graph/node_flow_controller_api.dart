@@ -478,15 +478,11 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   /// Starts an annotation drag operation.
   ///
   /// Call this from AnnotationWidget's GestureDetector.onPanStart.
+  /// Pan is disabled by the editor's pointer down handler before gesture arena runs.
   ///
   /// Parameters:
   /// - [annotationId]: The ID of the annotation being dragged
   void startAnnotationDrag(String annotationId) {
-    // Disable panning during annotation drag so InteractiveViewer
-    // doesn't steal the gesture from AnnotationWidget's GestureDetector
-    runInAction(() {
-      interaction.panEnabled.value = false;
-    });
     annotations.internalStartAnnotationDrag(annotationId);
   }
 
@@ -505,11 +501,8 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   /// Ends an annotation drag operation.
   ///
   /// Call this from AnnotationWidget's GestureDetector.onPanEnd.
+  /// Pan is re-enabled by the editor's _updatePanState reaction when drag state clears.
   void endAnnotationDrag() {
     annotations.internalEndAnnotationDrag();
-    // Re-enable panning after annotation drag ends
-    runInAction(() {
-      interaction.panEnabled.value = true;
-    });
   }
 }
