@@ -1,3 +1,9 @@
+## 0.10.7
+
+ - **FEAT**: centralize pan state management in NodeFlowEditor for consistent interaction handling during drag, resize, and connection operations.
+ - **FEAT**: add escape key handling to cancel annotation edits and enhance focus behaviors.
+ - **FEAT**: add annotation editing cancellation, keyboard shortcuts, and selection clearing enhancements.
+
 ## 0.10.6
 
  - **FEAT**: implement inline editing for annotation titles, add keyboard shortcut for editing, and improve canvas focus handling.
