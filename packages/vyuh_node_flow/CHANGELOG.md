@@ -1,3 +1,11 @@
+## 0.10.8
+
+ - **FIX**: reset connection hit flag on pointer up to prevent interaction conflicts in subsequent actions, refine hit testing hierarchy and annotation handling for consistent z-order interaction, enhance drag/selection behaviors for annotations and nodes.
+ - **FEAT**: centralize pan state management in NodeFlowEditor for consistent interaction handling during drag, resize, and connection operations, add escape key handling to cancel annotation edits and enhance focus behaviors, add annotation editing cancellation, keyboard shortcuts, and selection clearing enhancements.
+ - **FEAT**: centralize pan state management in NodeFlowEditor for consistent interaction handling during drag, resize, and connection operations.
+ - **FEAT**: add escape key handling to cancel annotation edits and enhance focus behaviors.
+ - **FEAT**: add annotation editing cancellation, keyboard shortcuts, and selection clearing enhancements.
+
 ## 0.10.7
 
  - **FEAT**: centralize pan state management in NodeFlowEditor for consistent interaction handling during drag, resize, and connection operations.
