@@ -95,8 +95,22 @@ extension _WidgetGestureHandlers<T> on _NodeFlowEditorState<T> {
   // ============================================================
 
   /// Handles annotation tap - selects the annotation with modifier key support.
+  ///
+  /// Selection is handled here at widget-level (via GestureDetector) rather than
+  /// in the Listener because:
+  /// 1. Annotations ARE widgets with their own GestureDetectors
+  /// 2. Widget-level handling respects Flutter's natural z-order for overlapping annotations
+  /// 3. Resize handles (positioned outside annotation bounds) work correctly
+  /// 4. No conflicts with the gesture arena for drag operations
   void _handleAnnotationTap(Annotation annotation) {
     if (!annotation.isInteractive) return;
+
+    // Skip if a connection was hit - pointer events pass through connections
+    // (which use IgnorePointer) to annotations below, but we don't want to
+    // override the connection selection
+    if (widget.controller.interaction.wasConnectionHitOnPointerDown) {
+      return;
+    }
 
     // Ensure canvas has PRIMARY focus for keyboard shortcuts to work
     if (!widget.controller.canvasFocusNode.hasPrimaryFocus) {

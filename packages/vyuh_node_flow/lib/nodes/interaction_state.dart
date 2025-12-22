@@ -112,6 +112,14 @@ class InteractionState {
   /// initiate a selection rectangle. Typically set when Shift key is held.
   final Observable<bool> selectionStarted = Observable(false);
 
+  /// Observable flag for whether a connection or connection label was hit.
+  ///
+  /// This flag is set at the start of a pointer down event and reset on the
+  /// next pointer down. It prevents annotation widgets from overriding
+  /// connection selection when pointer events propagate through the
+  /// ConnectionsLayer (which uses IgnorePointer for efficient rendering).
+  final Observable<bool> connectionHitOnPointerDown = Observable(false);
+
   /// Checks if a connection is currently being created.
   ///
   /// Returns true when the user is dragging from a port to create a connection.
@@ -186,6 +194,11 @@ class InteractionState {
   ///
   /// When true, shows selection cursor to indicate selection mode is available.
   bool get hasStartedSelection => selectionStarted.value;
+
+  /// Gets whether a connection or connection label was hit on pointer down.
+  ///
+  /// Used to prevent annotation widgets from overriding connection selection.
+  bool get wasConnectionHitOnPointerDown => connectionHitOnPointerDown.value;
 
   /// Sets the currently dragged node.
   ///
@@ -372,6 +385,20 @@ class InteractionState {
   void setSelectionStarted(bool started) {
     runInAction(() {
       selectionStarted.value = started;
+    });
+  }
+
+  /// Sets whether a connection or connection label was hit on pointer down.
+  ///
+  /// This should be called at the start of pointer down (with false to reset),
+  /// and then set to true if a connection or label is hit. It prevents
+  /// annotation tap handlers from overriding the connection selection.
+  ///
+  /// Parameters:
+  /// * [hit] - Whether a connection or label was hit
+  void setConnectionHitOnPointerDown(bool hit) {
+    runInAction(() {
+      connectionHitOnPointerDown.value = hit;
     });
   }
 }

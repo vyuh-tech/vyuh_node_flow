@@ -904,6 +904,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     _initialPointerPosition = event.localPosition;
     _shouldClearSelectionOnTap = false;
 
+    // Reset connection hit flag at start of each pointer down
+    // This flag prevents annotation widgets from selecting when a connection was hit
+    widget.controller.interaction.setConnectionHitOnPointerDown(false);
+
     // Store initial pointer position in widget-local coordinates
     widget.controller._setPointerPosition(ScreenPosition(event.localPosition));
 
@@ -924,31 +928,21 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // above when pointer is on a port, preventing InteractiveViewer from competing.
 
     switch (hitResult.hitType) {
-      // Node tap/selection handled immediately here (like connections).
-      // Drag gestures are handled by GestureDetector in NodeWidget to allow
-      // widgets inside nodes (like sliders) to win drag gestures.
+      // Node selection is handled by widget-level handlers:
+      // - _handleNodeTap for tap gestures
+      // - startNodeDrag for drag gestures (selects if not already selected)
+      // Pan is already disabled above for nodes, so just break here.
       case HitTarget.node:
-        final node = widget.controller.getNode(hitResult.nodeId!);
-        if (node != null) {
-          final isCmd = HardwareKeyboard.instance.isMetaPressed;
-          final isCtrl = HardwareKeyboard.instance.isControlPressed;
-          final toggle = isCmd || isCtrl;
-          final isAlreadySelected = widget.controller.isNodeSelected(node.id);
-
-          // If node is already selected and no modifier keys, preserve multi-selection
-          // for dragging. Only change selection if:
-          // - Node is not selected (click to select)
-          // - Modifier keys are pressed (toggle mode)
-          if (!isAlreadySelected || toggle) {
-            widget.controller.selectNode(node.id, toggle: toggle);
-          }
-
-          // Fire user callback
-          widget.controller.events.node?.onTap?.call(node);
-        }
         break;
 
+      // Connections use IgnorePointer and are painted via CustomPaint, so they
+      // don't participate in Flutter's widget hit testing. We MUST handle
+      // connection selection here in the Listener using spatial index hit testing.
       case HitTarget.connection:
+        // Set flag to prevent annotation widgets from selecting (since pointer
+        // events pass through IgnorePointer to widgets below)
+        widget.controller.interaction.setConnectionHitOnPointerDown(true);
+
         final isCmd = HardwareKeyboard.instance.isMetaPressed;
         final isCtrl = HardwareKeyboard.instance.isControlPressed;
         final toggle = isCmd || isCtrl;
@@ -965,30 +959,13 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         widget.controller.events.connection?.onTap?.call(connection);
         break;
 
-      // Annotation tap/selection handled immediately here (like connections).
-      // Drag gestures are handled by GestureDetector in AnnotationWidget.
+      // Annotations ARE widgets with their own GestureDetectors, so selection
+      // is handled by widget-level handlers (_handleAnnotationTap). This:
+      // - Respects Flutter's natural z-order for overlapping annotations
+      // - Allows resize handles (positioned outside bounds) to work correctly
+      // - Avoids conflicts with drag gesture recognition
+      // Pan is already disabled above for annotations, so just break here.
       case HitTarget.annotation:
-        final annotation = widget.controller.annotations.getAnnotation(
-          hitResult.annotationId!,
-        );
-        if (annotation != null && annotation.isInteractive) {
-          final isCmd = HardwareKeyboard.instance.isMetaPressed;
-          final isCtrl = HardwareKeyboard.instance.isControlPressed;
-          final toggle = isCmd || isCtrl;
-          final isAlreadySelected = widget.controller.annotations
-              .isAnnotationSelected(annotation.id);
-
-          // If annotation is already selected and no modifier keys, preserve selection
-          // for dragging. Only change selection if:
-          // - Annotation is not selected (click to select)
-          // - Modifier keys are pressed (toggle mode)
-          if (!isAlreadySelected || toggle) {
-            widget.controller.selectAnnotation(annotation.id, toggle: toggle);
-          }
-
-          // Fire user callback
-          widget.controller.events.annotation?.onTap?.call(annotation);
-        }
         break;
 
       default:
@@ -1105,6 +1082,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Reset tap tracking
     _initialPointerPosition = null;
     _shouldClearSelectionOnTap = false;
+
+    // Reset connection hit flag so it doesn't affect next interaction
+    widget.controller.interaction.setConnectionHitOnPointerDown(false);
 
     // Cursor is derived from state via Observer - no update needed
   }

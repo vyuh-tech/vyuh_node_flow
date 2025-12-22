@@ -379,6 +379,12 @@ class AnnotationController<T> {
   // ============================================================
 
   /// Starts an annotation drag from widget gesture handler.
+  ///
+  /// NOTE: Selection is expected to be handled BEFORE drag starts (in
+  /// _handlePointerDown via spatial index hit testing). The Listener fires
+  /// before gesture recognizers enter the arena, so selection and any
+  /// resulting Observer rebuilds happen BEFORE the drag gesture starts.
+  ///
   /// @nodoc - Internal framework use only - do not use in user code
   void internalStartAnnotationDrag(String annotationId) {
     final annotation = _annotations[annotationId];
@@ -389,11 +395,15 @@ class AnnotationController<T> {
 
         // Pan state is managed centrally by NodeFlowEditor's _updatePanState reaction
 
-        // IMPORTANT: Always ensure proper selection when dragging starts
+        // Clear node and connection selections to focus on annotation drag
+        _clearNodeAndConnectionSelections();
+
+        // Edge case: If annotation wasn't selected (e.g., drag started programmatically
+        // without going through _handlePointerDown), select it now. This may trigger
+        // an Observer rebuild, but since we're already in the drag gesture, the
+        // recognizer should persist.
         if (!_selectedAnnotationIds.contains(annotationId)) {
           internalSelectAnnotation(annotationId);
-        } else {
-          _clearNodeAndConnectionSelections();
         }
 
         // Notify all selected annotations that drag is starting

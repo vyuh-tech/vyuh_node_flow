@@ -297,67 +297,74 @@ class NodeWidget<T> extends StatelessWidget {
                 // This allows ports to handle their own gestures (like connection drag)
                 // without interference from node drag gestures.
                 Positioned.fill(
-                  // Use RawGestureDetector with all gesture recognizers in one place.
-                  // Custom pan recognizer rejects trackpad gestures, allowing them
-                  // to bubble to InteractiveViewer for canvas panning.
-                  child: RawGestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    gestures: <Type, GestureRecognizerFactory>{
-                      // Custom pan recognizer that rejects trackpad
-                      NonTrackpadPanGestureRecognizer:
-                          GestureRecognizerFactoryWithHandlers<
-                            NonTrackpadPanGestureRecognizer
-                          >(() => NonTrackpadPanGestureRecognizer(), (
-                            recognizer,
-                          ) {
-                            recognizer.onStart = (_) =>
-                                controller.startNodeDrag(node.id);
-                            recognizer.onUpdate = (details) =>
-                                controller.moveNodeDrag(details.delta);
-                            recognizer.onEnd = (_) => controller.endNodeDrag();
-                            recognizer.onCancel = controller.endNodeDrag;
-                          }),
-                      // Double tap recognizer
-                      if (onDoubleTap != null)
-                        DoubleTapGestureRecognizer:
+                  // Listener fires IMMEDIATELY on pointer down, before gesture
+                  // arena processing. This gives instant selection feedback.
+                  child: Listener(
+                    behavior: HitTestBehavior.translucent,
+                    onPointerDown: onTap != null ? (_) => onTap!() : null,
+                    // RawGestureDetector handles drag, double-tap, and context menu
+                    child: RawGestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      gestures: <Type, GestureRecognizerFactory>{
+                        // Custom pan recognizer that rejects trackpad
+                        NonTrackpadPanGestureRecognizer:
                             GestureRecognizerFactoryWithHandlers<
-                              DoubleTapGestureRecognizer
-                            >(() => DoubleTapGestureRecognizer(), (recognizer) {
-                              recognizer.onDoubleTap = onDoubleTap!;
+                              NonTrackpadPanGestureRecognizer
+                            >(() => NonTrackpadPanGestureRecognizer(), (
+                              recognizer,
+                            ) {
+                              recognizer.onStart = (_) =>
+                                  controller.startNodeDrag(node.id);
+                              recognizer.onUpdate = (details) =>
+                                  controller.moveNodeDrag(details.delta);
+                              recognizer.onEnd = (_) =>
+                                  controller.endNodeDrag();
+                              recognizer.onCancel = controller.endNodeDrag;
                             }),
-                      // Secondary tap (right-click) recognizer
-                      if (onContextMenu != null)
-                        TapGestureRecognizer:
-                            GestureRecognizerFactoryWithHandlers<
-                              TapGestureRecognizer
-                            >(() => TapGestureRecognizer(), (recognizer) {
-                              recognizer.onSecondaryTapUp = (details) =>
-                                  onContextMenu!(details.globalPosition);
-                            }),
-                    },
-                    // Observer.withBuiltChild ensures only MouseRegion rebuilds when
-                    // interaction state changes, not the entire node subtree
-                    child: Observer.withBuiltChild(
-                      builder: (context, child) {
-                        // Derive cursor from interaction state
-                        final cursor = theme.cursorTheme.cursorFor(
-                          ElementType.node,
-                          controller.interaction,
-                        );
-                        return MouseRegion(
-                          cursor: cursor,
-                          onEnter: onMouseEnter != null
-                              ? (_) => onMouseEnter!()
-                              : null,
-                          onExit: onMouseLeave != null
-                              ? (_) => onMouseLeave!()
-                              : null,
-                          child: child,
-                        );
+                        // Double tap recognizer
+                        if (onDoubleTap != null)
+                          DoubleTapGestureRecognizer:
+                              GestureRecognizerFactoryWithHandlers<
+                                DoubleTapGestureRecognizer
+                              >(() => DoubleTapGestureRecognizer(), (
+                                recognizer,
+                              ) {
+                                recognizer.onDoubleTap = onDoubleTap!;
+                              }),
+                        // Secondary tap (right-click) for context menu
+                        if (onContextMenu != null)
+                          TapGestureRecognizer:
+                              GestureRecognizerFactoryWithHandlers<
+                                TapGestureRecognizer
+                              >(() => TapGestureRecognizer(), (recognizer) {
+                                recognizer.onSecondaryTapUp = (details) =>
+                                    onContextMenu!(details.globalPosition);
+                              }),
                       },
-                      child: shape != null
-                          ? _buildShapedNode(nodeTheme, isSelected)
-                          : _buildRectangularNode(nodeTheme, isSelected),
+                      // Observer.withBuiltChild ensures only MouseRegion rebuilds when
+                      // interaction state changes, not the entire node subtree
+                      child: Observer.withBuiltChild(
+                        builder: (context, child) {
+                          // Derive cursor from interaction state
+                          final cursor = theme.cursorTheme.cursorFor(
+                            ElementType.node,
+                            controller.interaction,
+                          );
+                          return MouseRegion(
+                            cursor: cursor,
+                            onEnter: onMouseEnter != null
+                                ? (_) => onMouseEnter!()
+                                : null,
+                            onExit: onMouseLeave != null
+                                ? (_) => onMouseLeave!()
+                                : null,
+                            child: child,
+                          );
+                        },
+                        child: shape != null
+                            ? _buildShapedNode(nodeTheme, isSelected)
+                            : _buildRectangularNode(nodeTheme, isSelected),
+                      ),
                     ),
                   ),
                 ),

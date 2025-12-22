@@ -154,61 +154,62 @@ class AnnotationWidget extends StatelessWidget {
               // IMPORTANT: RawGestureDetector must be the OUTER wrapper (like NodeWidget)
               // to ensure proper gesture arena behavior with trackpad events.
               Positioned.fill(
-                child: RawGestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  gestures: <Type, GestureRecognizerFactory>{
-                    // Custom pan recognizer that rejects trackpad gestures
-                    NonTrackpadPanGestureRecognizer:
-                        GestureRecognizerFactoryWithHandlers<
-                          NonTrackpadPanGestureRecognizer
-                        >(() => NonTrackpadPanGestureRecognizer(), (
-                          recognizer,
-                        ) {
-                          recognizer.onStart = (_) =>
-                              controller.startAnnotationDrag(annotation.id);
-                          recognizer.onUpdate = (details) =>
-                              controller.moveAnnotationDrag(details.delta);
-                          recognizer.onEnd = (_) =>
-                              controller.endAnnotationDrag();
-                          recognizer.onCancel = controller.endAnnotationDrag;
-                        }),
-                    // Double tap recognizer
-                    if (onDoubleTap != null)
-                      DoubleTapGestureRecognizer:
+                // Listener fires IMMEDIATELY on pointer down, before gesture
+                // arena processing. This gives instant selection feedback.
+                child: Listener(
+                  behavior: HitTestBehavior.translucent,
+                  onPointerDown: onTap != null ? (_) => onTap!() : null,
+                  // RawGestureDetector handles drag, double-tap, and context menu
+                  child: RawGestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    gestures: <Type, GestureRecognizerFactory>{
+                      // Custom pan recognizer that rejects trackpad gestures
+                      NonTrackpadPanGestureRecognizer:
                           GestureRecognizerFactoryWithHandlers<
-                            DoubleTapGestureRecognizer
-                          >(() => DoubleTapGestureRecognizer(), (recognizer) {
-                            recognizer.onDoubleTap = onDoubleTap!;
+                            NonTrackpadPanGestureRecognizer
+                          >(() => NonTrackpadPanGestureRecognizer(), (
+                            recognizer,
+                          ) {
+                            recognizer.onStart = (_) =>
+                                controller.startAnnotationDrag(annotation.id);
+                            recognizer.onUpdate = (details) =>
+                                controller.moveAnnotationDrag(details.delta);
+                            recognizer.onEnd = (_) =>
+                                controller.endAnnotationDrag();
+                            recognizer.onCancel = controller.endAnnotationDrag;
                           }),
-                    // Tap recognizer for primary tap (selection) and secondary tap (context menu)
-                    // Primary tap is required for proper focus handling and keyboard shortcuts
-                    if (onTap != null || onContextMenu != null)
-                      TapGestureRecognizer:
-                          GestureRecognizerFactoryWithHandlers<
-                            TapGestureRecognizer
-                          >(() => TapGestureRecognizer(), (recognizer) {
-                            if (onTap != null) {
-                              recognizer.onTap = onTap;
-                            }
-                            if (onContextMenu != null) {
+                      // Double tap recognizer
+                      if (onDoubleTap != null)
+                        DoubleTapGestureRecognizer:
+                            GestureRecognizerFactoryWithHandlers<
+                              DoubleTapGestureRecognizer
+                            >(() => DoubleTapGestureRecognizer(), (recognizer) {
+                              recognizer.onDoubleTap = onDoubleTap!;
+                            }),
+                      // Secondary tap (right-click) for context menu
+                      if (onContextMenu != null)
+                        TapGestureRecognizer:
+                            GestureRecognizerFactoryWithHandlers<
+                              TapGestureRecognizer
+                            >(() => TapGestureRecognizer(), (recognizer) {
                               recognizer.onSecondaryTapUp = (details) =>
                                   onContextMenu!(details.globalPosition);
-                            }
-                          }),
-                  },
-                  // MouseRegion inside RawGestureDetector (matches NodeWidget structure)
-                  child: MouseRegion(
-                    cursor: cursor,
-                    onEnter: onMouseEnter != null
-                        ? (_) => onMouseEnter!()
-                        : null,
-                    onExit: onMouseLeave != null
-                        ? (_) => onMouseLeave!()
-                        : null,
-                    child: _buildAnnotationContent(
-                      context,
-                      isSelected: isSelected,
-                      isHighlighted: isHighlighted,
+                            }),
+                    },
+                    // MouseRegion inside RawGestureDetector (matches NodeWidget structure)
+                    child: MouseRegion(
+                      cursor: cursor,
+                      onEnter: onMouseEnter != null
+                          ? (_) => onMouseEnter!()
+                          : null,
+                      onExit: onMouseLeave != null
+                          ? (_) => onMouseLeave!()
+                          : null,
+                      child: _buildAnnotationContent(
+                        context,
+                        isSelected: isSelected,
+                        isHighlighted: isHighlighted,
+                      ),
                     ),
                   ),
                 ),

@@ -107,7 +107,6 @@ class ConnectionLabelsLayer<T> extends StatelessWidget {
                   final toggle = isCmd || isCtrl;
 
                   // Select the connection when any label is tapped
-                  // This will clear node/annotation selections and focus canvas (when not toggling)
                   controller.selectConnection(connection.id, toggle: toggle);
                 },
               );
@@ -133,6 +132,8 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
   final Connection connection;
   final NodeFlowController<T> controller;
   final LabelBuilder? labelBuilder;
+
+  /// Called on tap completion for any label.
   final VoidCallback? onLabelTap;
 
   @override

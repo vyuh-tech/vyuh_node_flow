@@ -324,25 +324,34 @@ class GraphSpatialIndex<T> {
 
   /// Performs hit testing at a point.
   ///
-  /// Tests in priority order: ports → nodes → connections → annotations → canvas
+  /// Tests in priority order matching visual z-order (top to bottom):
+  /// foreground annotations → ports → nodes → connections → background annotations → canvas
+  ///
+  /// This order ensures that elements visually on top receive hit priority.
+  /// Foreground annotations (stickies, markers) are above everything except the
+  /// interaction layer. Background annotations (groups) are behind nodes/connections.
   HitTestResult hitTest(Offset point) {
-    // 1. Ports (highest priority)
+    // 1. Foreground annotations (highest priority - visually on top)
+    final foregroundResult = _hitTestAnnotations(point, foreground: true);
+    if (foregroundResult != null) return foregroundResult;
+
+    // 2. Ports
     final portResult = _hitTestPorts(point);
     if (portResult != null) return portResult;
 
-    // 2. Nodes
+    // 3. Nodes
     final nodeResult = _hitTestNodes(point);
     if (nodeResult != null) return nodeResult;
 
-    // 3. Connections
+    // 4. Connections
     final connectionResult = _hitTestConnections(point);
     if (connectionResult != null) return connectionResult;
 
-    // 4. Annotations
-    final annotationResult = _hitTestAnnotations(point);
-    if (annotationResult != null) return annotationResult;
+    // 5. Background annotations (groups - behind nodes/connections)
+    final backgroundResult = _hitTestAnnotations(point, foreground: false);
+    if (backgroundResult != null) return backgroundResult;
 
-    // 5. Canvas (background)
+    // 6. Canvas (background)
     return const HitTestResult(hitType: HitTarget.canvas);
   }
 
@@ -749,12 +758,21 @@ class GraphSpatialIndex<T> {
     return null;
   }
 
-  HitTestResult? _hitTestAnnotations(Offset point) {
+  /// Hit tests annotations, optionally filtering by render layer.
+  ///
+  /// When [foreground] is true, only tests foreground annotations (stickies, markers).
+  /// When [foreground] is false, only tests background annotations (groups).
+  HitTestResult? _hitTestAnnotations(Offset point, {required bool foreground}) {
+    final targetLayer = foreground
+        ? AnnotationRenderLayer.foreground
+        : AnnotationRenderLayer.background;
+
     final candidates = _grid
         .queryPoint(point)
         .whereType<AnnotationSpatialItem>()
         .map((item) => _annotations[item.annotationId])
         .whereType<Annotation>()
+        .where((annotation) => annotation.layer == targetLayer)
         .toList();
     candidates.sort((a, b) => b.zIndex.compareTo(a.zIndex));
 
