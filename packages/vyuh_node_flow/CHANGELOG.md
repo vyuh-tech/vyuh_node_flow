@@ -1,3 +1,7 @@
+## 0.10.9
+
+ - **FEAT**: replace custom gesture implementation with ElementScope for streamlined gesture handling, lifecycle management, and drag state cleanup; enhance interaction robustness and trackpad compatibility.
+
 ## 0.10.8
 
  - **FIX**: reset connection hit flag on pointer up to prevent interaction conflicts in subsequent actions, refine hit testing hierarchy and annotation handling for consistent z-order interaction, enhance drag/selection behaviors for annotations and nodes.
