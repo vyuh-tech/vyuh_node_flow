@@ -16,6 +16,9 @@ extension _WidgetGestureHandlers<T> on _NodeFlowEditorState<T> {
   // ============================================================
 
   /// Handles node tap - selects the node with modifier key support.
+  ///
+  /// Preserves multi-selection when clicking on an already-selected node
+  /// without modifier keys, allowing drag of multiple nodes together.
   void _handleNodeTap(Node<T> node) {
     // Ensure canvas has PRIMARY focus for keyboard shortcuts to work
     if (!widget.controller.canvasFocusNode.hasPrimaryFocus) {
@@ -25,9 +28,15 @@ extension _WidgetGestureHandlers<T> on _NodeFlowEditorState<T> {
     final isCmd = HardwareKeyboard.instance.isMetaPressed;
     final isCtrl = HardwareKeyboard.instance.isControlPressed;
     final toggle = isCmd || isCtrl;
+    final isAlreadySelected = widget.controller.isNodeSelected(node.id);
 
-    // Select the node
-    widget.controller.selectNode(node.id, toggle: toggle);
+    // Only change selection if:
+    // - Node is not already selected (click to select)
+    // - Modifier keys are pressed (toggle mode)
+    // This preserves multi-selection for dragging multiple nodes
+    if (!isAlreadySelected || toggle) {
+      widget.controller.selectNode(node.id, toggle: toggle);
+    }
 
     // Fire user callback
     widget.controller.events.node?.onTap?.call(node);
@@ -105,11 +114,21 @@ extension _WidgetGestureHandlers<T> on _NodeFlowEditorState<T> {
   void _handleAnnotationTap(Annotation annotation) {
     if (!annotation.isInteractive) return;
 
-    // Skip if a connection was hit - pointer events pass through connections
-    // (which use IgnorePointer) to annotations below, but we don't want to
-    // override the connection selection
-    if (widget.controller.interaction.wasConnectionHitOnPointerDown) {
-      return;
+    // Check if a connection is at the current pointer position.
+    // We do this hit test directly because Flutter routes pointer events
+    // to children before parents, so the flag-based approach doesn't work.
+    // Connections use IgnorePointer, so pointer events pass through them
+    // to annotations below - we need to detect this and skip selection.
+    final pointerPosition =
+        widget.controller.interaction.lastPointerPosition.value;
+    if (pointerPosition != null) {
+      final graphPosition = widget.controller.viewport.toGraph(pointerPosition);
+      final connectionHit = widget.controller.hitTestConnections(
+        graphPosition.offset,
+      );
+      if (connectionHit != null) {
+        return;
+      }
     }
 
     // Ensure canvas has PRIMARY focus for keyboard shortcuts to work
@@ -133,6 +152,21 @@ extension _WidgetGestureHandlers<T> on _NodeFlowEditorState<T> {
   /// Double-tapping an annotation starts inline editing mode (e.g., editing
   /// sticky note text or group title).
   void _handleAnnotationDoubleTap(Annotation annotation) {
+    // Check if a connection is at the current pointer position.
+    // Connections use IgnorePointer, so pointer events pass through them
+    // to annotations below - we need to detect this and skip edit mode.
+    final pointerPosition =
+        widget.controller.interaction.lastPointerPosition.value;
+    if (pointerPosition != null) {
+      final graphPosition = widget.controller.viewport.toGraph(pointerPosition);
+      final connectionHit = widget.controller.hitTestConnections(
+        graphPosition.offset,
+      );
+      if (connectionHit != null) {
+        return;
+      }
+    }
+
     // Start editing mode on the annotation
     annotation.isEditing = true;
 

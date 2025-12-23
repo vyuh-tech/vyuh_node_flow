@@ -17,6 +17,61 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
     interaction.update(panEnabled: panEnabled);
   }
 
+  /// Cleans up any stale interaction state from previous incomplete gestures.
+  ///
+  /// This handles edge cases where quick tap-pan sequences or widget rebuilds
+  /// leave state in an inconsistent condition. Called at the start of new
+  /// pointer interactions to ensure a clean starting state.
+  ///
+  /// Checks and cleans up ALL states that can block interactions:
+  /// - Node drag state (draggedNodeId, node.dragging)
+  /// - Annotation drag state (draggedAnnotationId)
+  /// - Annotation resize state (resizingAnnotationId)
+  /// - Connection creation state (temporaryConnection)
+  /// - Selection rectangle state (selectionRect)
+  void _cleanupStaleDragState() {
+    // Clean up node drag state
+    if (interaction.draggedNodeId.value != null) {
+      endNodeDrag();
+    }
+
+    // Clean up any nodes with stale dragging flag
+    runInAction(() {
+      for (final node in nodes.values) {
+        if (node.dragging.value) {
+          node.dragging.value = false;
+        }
+      }
+    });
+
+    // Clean up annotation drag state
+    if (annotations.draggedAnnotationId != null) {
+      endAnnotationDrag();
+    }
+
+    // Clean up annotation resize state
+    if (annotations.isResizing) {
+      annotations.endAnnotationResize();
+    }
+
+    // Clean up connection creation state
+    if (interaction.isCreatingConnection) {
+      cancelConnectionDrag();
+    }
+
+    // Clean up selection rectangle state
+    if (interaction.isDrawingSelection) {
+      interaction.finishSelection();
+    }
+
+    // Force re-enable pan if it's still disabled after cleanup
+    if (!interaction.isPanEnabled) {
+      runInAction(() {
+        interaction.panEnabled.value = true;
+      });
+    }
+  }
+
   /// Updates selection drag state with graph coordinates.
   ///
   /// Parameters:

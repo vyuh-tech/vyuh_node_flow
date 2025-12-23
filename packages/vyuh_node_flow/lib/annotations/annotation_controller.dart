@@ -28,9 +28,6 @@ class AnnotationController<T> {
   final Observable<MouseCursor> _annotationCursor = Observable(
     SystemMouseCursors.basic,
   );
-  final Observable<String?> _highlightedGroupId = Observable(
-    null,
-  ); // Group highlighted during node drag
 
   // Resize state (works with any resizable annotation)
   final Observable<String?> _resizingAnnotationId = Observable(null);
@@ -73,8 +70,6 @@ class AnnotationController<T> {
   Offset? get lastPointerPosition => _lastPointerPosition.value;
 
   MouseCursor get annotationCursor => _annotationCursor.value;
-
-  String? get highlightedGroupId => _highlightedGroupId.value;
 
   /// The ID of the annotation currently being resized, if any.
   String? get resizingAnnotationId => _resizingAnnotationId.value;
@@ -294,61 +289,6 @@ class AnnotationController<T> {
     }
 
     return null;
-  }
-
-  /// Handle Command+drag group operations (add nodes to groups)
-  ///
-  /// This provides intuitive group management:
-  /// - Command+drag node onto group → adds node to group
-  /// - Visual feedback shows which group will be affected
-  /// - Only works during Command+drag, preventing accidental operations
-  void handleCommandDragGroupOperation(String nodeId, bool isCommandPressed) {
-    if (!isCommandPressed) return;
-
-    final intersectingGroup = findIntersectingGroup(nodeId);
-
-    if (intersectingGroup != null) {
-      // Node intersects with a group - add it if not already in group
-      if (!intersectingGroup.hasNode(nodeId)) {
-        intersectingGroup.addNode(nodeId);
-      }
-    }
-    // Note: Ungroup functionality via Command+drag has been removed
-    // Use keyboard shortcuts (Cmd+Shift+G) for ungrouping instead
-  }
-
-  /// Update visual feedback during node drag (only during Command+drag)
-  void updateDragHighlight(String nodeId, bool isCommandPressed) {
-    if (!isCommandPressed) {
-      // Clear highlight if Command is not pressed
-      if (_highlightedGroupId.value != null) {
-        runInAction(() {
-          _highlightedGroupId.value = null;
-        });
-      }
-      return;
-    }
-
-    final intersectingGroup = findIntersectingGroup(nodeId);
-    final newHighlightId = intersectingGroup?.id;
-
-    if (_highlightedGroupId.value != newHighlightId) {
-      runInAction(() {
-        _highlightedGroupId.value = newHighlightId;
-      });
-    }
-  }
-
-  /// Clear drag highlight when node drag ends
-  void clearDragHighlight() {
-    runInAction(() {
-      _highlightedGroupId.value = null;
-    });
-  }
-
-  /// Check if a group is currently highlighted
-  bool isGroupHighlighted(String groupId) {
-    return _highlightedGroupId.value == groupId;
   }
 
   // @nodoc - Internal framework use only - do not use in user code

@@ -63,4 +63,30 @@ class NonTrackpadPanGestureRecognizer extends PanGestureRecognizer {
     }
     return super.isPointerAllowed(event);
   }
+
+  @override
+  void handleNonAllowedPointer(PointerDownEvent event) {
+    // CRITICAL: Do nothing for trackpad pointers.
+    // The default implementation in OneSequenceGestureRecognizer calls
+    // resolve(GestureDisposition.rejected), which can interfere with an
+    // ongoing drag gesture. By returning early for trackpad pointers,
+    // we ensure that a trackpad tap during a mouse drag doesn't cancel
+    // the mouse drag.
+    if (event.kind == PointerDeviceKind.trackpad) {
+      return;
+    }
+    super.handleNonAllowedPointer(event);
+  }
+
+  @override
+  void addPointerPanZoom(PointerPanZoomStartEvent event) {
+    // CRITICAL: Do NOT add trackpad pan/zoom pointers to this recognizer.
+    // PointerPanZoomStartEvent bypasses isPointerAllowed and addPointer.
+    // By not calling super, we prevent the trackpad from entering the gesture arena
+    // for this recognizer, allowing it to bubble to InteractiveViewer.
+    if (event.kind == PointerDeviceKind.trackpad) {
+      return;
+    }
+    super.addPointerPanZoom(event);
+  }
 }

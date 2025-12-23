@@ -2,8 +2,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
-import '../shared/non_trackpad_pan_gesture_recognizer.dart';
-
 import '../graph/coordinates.dart';
 import '../graph/cursor_theme.dart';
 import '../graph/node_flow_controller.dart';
@@ -11,6 +9,7 @@ import '../graph/node_flow_theme.dart';
 import '../nodes/node.dart';
 import '../ports/port.dart';
 import '../ports/port_theme.dart';
+import '../shared/element_scope.dart';
 import '../shared/unbounded_widgets.dart';
 import 'port_shape_widget.dart';
 
@@ -361,82 +360,60 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
               );
             },
           ),
-          // Gesture detector is OUTSIDE Observer to prevent recognizer recreation
-          // during MobX rebuilds, which would cancel the active gesture.
-          // Using UnboundedPositioned to allow hit testing outside the port bounds,
-          // enabling drag gestures to continue even when pointer moves outside.
-          // Use RawGestureDetector with ALL recognizers in one place.
-          // Custom pan recognizer rejects trackpad gestures, allowing them
-          // to bubble to InteractiveViewer for canvas panning.
+          // Gesture handling via ElementScope - provides:
+          // - NonTrackpadPanGestureRecognizer for trackpad rejection
+          // - Pointer ID tracking for robust drag handling
+          // - Consistent lifecycle management (dispose cleanup, guard clauses)
+          //
+          // Using UnboundedPositioned to expand hit area beyond port bounds,
+          // making it easier to target small ports.
+          //
+          // Observer.withBuiltChild ensures ElementScope's State persists across
+          // cursor changes (RawGestureDetector reuses recognizers on rebuild).
           UnboundedPositioned(
             left: -widget.snapDistance,
             top: -widget.snapDistance,
             right: -widget.snapDistance,
             bottom: -widget.snapDistance,
-            child: RawGestureDetector(
-              behavior: HitTestBehavior.opaque,
-              gestures: <Type, GestureRecognizerFactory>{
-                // Custom pan recognizer that rejects trackpad gestures
-                NonTrackpadPanGestureRecognizer:
-                    GestureRecognizerFactoryWithHandlers<
-                      NonTrackpadPanGestureRecognizer
-                    >(() => NonTrackpadPanGestureRecognizer(), (recognizer) {
-                      recognizer.dragStartBehavior = DragStartBehavior.down;
-                      recognizer.onStart = _handlePanStart;
-                      recognizer.onUpdate = _handlePanUpdate;
-                      recognizer.onEnd = _handlePanEnd;
-                      recognizer.onCancel = _handlePanCancel;
-                    }),
-                // Tap recognizer for single tap and right-click
-                TapGestureRecognizer:
-                    GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
-                      () => TapGestureRecognizer(),
-                      (recognizer) {
-                        if (widget.onTap != null) {
-                          recognizer.onTap = () => widget.onTap!(widget.port);
-                        }
-                        if (widget.onContextMenu != null) {
-                          recognizer.onSecondaryTapUp = (details) =>
-                              widget.onContextMenu!(details.globalPosition);
-                        }
-                      },
-                    ),
-                // Double tap recognizer
-                if (widget.onDoubleTap != null)
-                  DoubleTapGestureRecognizer:
-                      GestureRecognizerFactoryWithHandlers<
-                        DoubleTapGestureRecognizer
-                      >(() => DoubleTapGestureRecognizer(), (recognizer) {
-                        recognizer.onDoubleTap = widget.onDoubleTap;
-                      }),
+            child: Observer.withBuiltChild(
+              builder: (context, child) {
+                // Derive cursor from interaction state
+                final cursorTheme = Theme.of(
+                  context,
+                ).extension<NodeFlowTheme>()!.cursorTheme;
+
+                // In preview/present modes, use canvas cursor for ports
+                // since connection creation is disabled
+                final cursor = widget.controller.behavior.canCreate
+                    ? cursorTheme.cursorFor(
+                        ElementType.port,
+                        widget.controller.interaction,
+                      )
+                    : cursorTheme.canvasCursor;
+
+                return ElementScope(
+                  // Only allow dragging when connection creation is enabled
+                  isDraggable: widget.controller.behavior.canCreate,
+                  // Start immediately on pointer down for instant feedback
+                  dragStartBehavior: DragStartBehavior.down,
+                  // Connection drag lifecycle
+                  onDragStart: _handlePanStart,
+                  onDragUpdate: _handlePanUpdate,
+                  onDragEnd: _handlePanEnd,
+                  onDragCancel: _handlePanCancel,
+                  // Interaction callbacks
+                  onTap: widget.onTap != null
+                      ? () => widget.onTap!(widget.port)
+                      : null,
+                  onDoubleTap: widget.onDoubleTap,
+                  onContextMenu: widget.onContextMenu,
+                  onMouseEnter: () => _handleHoverChange(true),
+                  onMouseLeave: () => _handleHoverChange(false),
+                  cursor: cursor,
+                  child: child,
+                );
               },
-              // Observer.withBuiltChild ensures only MouseRegion rebuilds when
-              // interaction state changes, not the entire subtree
-              child: Observer.withBuiltChild(
-                builder: (context, child) {
-                  // Derive cursor from interaction state
-                  final cursorTheme = Theme.of(
-                    context,
-                  ).extension<NodeFlowTheme>()!.cursorTheme;
-
-                  // In preview/present modes, use canvas cursor for ports
-                  // since connection creation is disabled
-                  final cursor = widget.controller.behavior.canCreate
-                      ? cursorTheme.cursorFor(
-                          ElementType.port,
-                          widget.controller.interaction,
-                        )
-                      : cursorTheme.canvasCursor;
-
-                  return MouseRegion(
-                    cursor: cursor,
-                    onEnter: (_) => _handleHoverChange(true),
-                    onExit: (_) => _handleHoverChange(false),
-                    child: child,
-                  );
-                },
-                child: const SizedBox.expand(),
-              ),
+              child: const SizedBox.expand(),
             ),
           ),
         ],

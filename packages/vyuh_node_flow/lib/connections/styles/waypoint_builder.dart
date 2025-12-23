@@ -766,7 +766,8 @@ class WaypointBuilder {
 
         if (zCurveIntersects) {
           // Z-curve would intersect - route around (above or below)
-          final routeAbove = end.dy < start.dy;
+          // Use union bounds center to determine direction - takes shorter path
+          final routeAbove = start.dy < unionBounds.center.dy;
           final routeY = routeAbove
               ? unionBounds.top - backEdgeGap
               : unionBounds.bottom + backEdgeGap;
@@ -862,7 +863,8 @@ class WaypointBuilder {
 
         if (zCurveIntersects) {
           // Z-curve would intersect - route around (left or right)
-          final routeLeft = end.dx < start.dx;
+          // Use union bounds center to determine direction - takes shorter path
+          final routeLeft = start.dx < unionBounds.center.dx;
           final routeX = routeLeft
               ? unionBounds.left - backEdgeGap
               : unionBounds.right + backEdgeGap;

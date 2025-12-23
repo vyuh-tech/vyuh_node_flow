@@ -1,9 +1,7 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../connections/connection.dart';
-import '../shared/non_trackpad_pan_gesture_recognizer.dart';
 import '../graph/cursor_theme.dart';
 import '../graph/node_flow_controller.dart';
 import '../graph/node_flow_theme.dart';
@@ -14,6 +12,7 @@ import '../nodes/node_shape_painter.dart';
 import '../nodes/node_theme.dart';
 import '../ports/port.dart';
 import '../ports/port_widget.dart';
+import '../shared/element_scope.dart';
 import '../shared/unbounded_widgets.dart';
 
 /// A unified node widget that handles positioning, rendering, and interactions.
@@ -26,9 +25,10 @@ import '../shared/unbounded_widgets.dart';
 /// * Reactive updates via MobX observables
 /// * Gesture handling (tap, double-tap, drag, context menu, hover)
 ///
-/// The widget handles all user interactions directly via [GestureDetector] and
-/// [MouseRegion], allowing nested widgets inside nodes to also receive gestures
-/// through Flutter's gesture arena.
+/// Gesture handling is delegated to [ElementScope] which provides:
+/// * Consistent drag lifecycle management
+/// * Proper cleanup on widget disposal
+/// * Guard clauses to prevent duplicate start/end calls
 ///
 /// The widget supports two usage patterns:
 /// 1. **Custom content**: Provide a [child] widget for complete control over node appearance
@@ -59,6 +59,7 @@ import '../shared/unbounded_widgets.dart';
 /// * [Node], the data model for nodes
 /// * [NodeTheme], which defines default styling
 /// * [PortWidget], which renders individual ports
+/// * [ElementScope], which handles gesture lifecycle
 class NodeWidget<T> extends StatelessWidget {
   /// Creates a node widget with optional custom content.
   ///
@@ -281,6 +282,12 @@ class NodeWidget<T> extends StatelessWidget {
         final isSelected = node.isSelected;
         final size = node.size.value;
 
+        // Derive cursor from interaction state
+        final cursor = theme.cursorTheme.cursorFor(
+          ElementType.node,
+          controller.interaction,
+        );
+
         return Positioned(
           left: position.dx,
           top: position.dy,
@@ -290,91 +297,34 @@ class NodeWidget<T> extends StatelessWidget {
             child: UnboundedStack(
               clipBehavior: Clip.none, // Allow ports to overflow the bounds
               children: [
-                // Main node visual with gesture handling
-                // Note: Tap/selection is handled at the editor's Listener level
-                // (in _handlePointerDown) for immediate response.
-                // GestureDetector only wraps the node visual, NOT the ports.
-                // This allows ports to handle their own gestures (like connection drag)
-                // without interference from node drag gestures.
+                // Main node visual with gesture handling via ElementScope
                 Positioned.fill(
-                  // Listener fires IMMEDIATELY on pointer down, before gesture
-                  // arena processing. This gives instant selection feedback.
-                  child: Listener(
-                    behavior: HitTestBehavior.translucent,
-                    onPointerDown: onTap != null ? (_) => onTap!() : null,
-                    // RawGestureDetector handles drag, double-tap, and context menu
-                    child: RawGestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      gestures: <Type, GestureRecognizerFactory>{
-                        // Custom pan recognizer that rejects trackpad
-                        NonTrackpadPanGestureRecognizer:
-                            GestureRecognizerFactoryWithHandlers<
-                              NonTrackpadPanGestureRecognizer
-                            >(() => NonTrackpadPanGestureRecognizer(), (
-                              recognizer,
-                            ) {
-                              recognizer.onStart = (_) =>
-                                  controller.startNodeDrag(node.id);
-                              recognizer.onUpdate = (details) =>
-                                  controller.moveNodeDrag(details.delta);
-                              recognizer.onEnd = (_) =>
-                                  controller.endNodeDrag();
-                              recognizer.onCancel = controller.endNodeDrag;
-                            }),
-                        // Double tap recognizer
-                        if (onDoubleTap != null)
-                          DoubleTapGestureRecognizer:
-                              GestureRecognizerFactoryWithHandlers<
-                                DoubleTapGestureRecognizer
-                              >(() => DoubleTapGestureRecognizer(), (
-                                recognizer,
-                              ) {
-                                recognizer.onDoubleTap = onDoubleTap!;
-                              }),
-                        // Secondary tap (right-click) for context menu
-                        if (onContextMenu != null)
-                          TapGestureRecognizer:
-                              GestureRecognizerFactoryWithHandlers<
-                                TapGestureRecognizer
-                              >(() => TapGestureRecognizer(), (recognizer) {
-                                recognizer.onSecondaryTapUp = (details) =>
-                                    onContextMenu!(details.globalPosition);
-                              }),
-                      },
-                      // Observer.withBuiltChild ensures only MouseRegion rebuilds when
-                      // interaction state changes, not the entire node subtree
-                      child: Observer.withBuiltChild(
-                        builder: (context, child) {
-                          // Derive cursor from interaction state
-                          final cursor = theme.cursorTheme.cursorFor(
-                            ElementType.node,
-                            controller.interaction,
-                          );
-                          return MouseRegion(
-                            cursor: cursor,
-                            onEnter: onMouseEnter != null
-                                ? (_) => onMouseEnter!()
-                                : null,
-                            onExit: onMouseLeave != null
-                                ? (_) => onMouseLeave!()
-                                : null,
-                            child: child,
-                          );
-                        },
-                        child: shape != null
-                            ? _buildShapedNode(nodeTheme, isSelected)
-                            : _buildRectangularNode(nodeTheme, isSelected),
-                      ),
-                    ),
+                  child: ElementScope(
+                    // Drag lifecycle - delegated to controller
+                    onDragStart: (_) => controller.startNodeDrag(node.id),
+                    onDragUpdate: (details) =>
+                        controller.moveNodeDrag(details.delta),
+                    onDragEnd: (_) => controller.endNodeDrag(),
+                    // Interaction callbacks
+                    onTap: onTap,
+                    onDoubleTap: onDoubleTap,
+                    onContextMenu: onContextMenu,
+                    onMouseEnter: onMouseEnter,
+                    onMouseLeave: onMouseLeave,
+                    cursor: cursor,
+                    // Node visual
+                    child: shape != null
+                        ? _buildShapedNode(nodeTheme, isSelected)
+                        : _buildRectangularNode(nodeTheme, isSelected),
                   ),
                 ),
 
-                // Input ports (positioned on edges - OUTSIDE node's GestureDetector)
+                // Input ports (positioned on edges - OUTSIDE node's gesture scope)
                 ...node.inputPorts.map(
                   (port) => _buildPort(context, port, false, nodeTheme),
                 ),
 
-                // Output ports (positioned on edges - OUTSIDE node's GestureDetector)
+                // Output ports (positioned on edges - OUTSIDE node's gesture scope)
                 ...node.outputPorts.map(
                   (port) => _buildPort(context, port, true, nodeTheme),
                 ),

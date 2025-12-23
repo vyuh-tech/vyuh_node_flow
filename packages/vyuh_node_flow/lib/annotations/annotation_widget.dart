@@ -1,9 +1,6 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
-
-import '../shared/non_trackpad_pan_gesture_recognizer.dart';
 
 /// Framework widget that wraps custom annotations with automatic functionality.
 ///
@@ -14,7 +11,7 @@ import '../shared/non_trackpad_pan_gesture_recognizer.dart';
 /// - **Selection feedback**: Theme-consistent borders and highlights when selected
 /// - **Hover feedback**: Visual indication when annotation is being dragged over (highlighted)
 /// - **Theme integration**: Uses [NodeFlowTheme] for consistent styling across the editor
-/// - **Gesture handling**: Tap, double-tap, drag, and context menu events
+/// - **Gesture handling**: Tap, double-tap, drag, and context menu events via [ElementScope]
 /// - **Resize handles**: Shown for annotations where [Annotation.isResizable] is true
 ///
 /// ## Framework Integration
@@ -26,7 +23,7 @@ import '../shared/non_trackpad_pan_gesture_recognizer.dart';
 /// The widget wraps the custom annotation content with:
 /// 1. [Observer] for MobX reactivity
 /// 2. [Positioned] for absolute canvas positioning
-/// 3. [GestureDetector] and [MouseRegion] for interaction handling
+/// 3. [ElementScope] for unified gesture handling with proper lifecycle management
 /// 4. Selection/highlight borders using theme colors
 /// 5. Visibility logic to hide when [annotation.isVisible] is false
 /// 6. Resize handles when annotation is selected and resizable
@@ -58,6 +55,7 @@ import '../shared/non_trackpad_pan_gesture_recognizer.dart';
 /// - [Annotation] for creating custom annotation types
 /// - [AnnotationLayer] for rendering multiple annotations
 /// - [NodeFlowTheme] for theming options
+/// - [ElementScope] for gesture lifecycle management
 class AnnotationWidget extends StatelessWidget {
   /// Creates an annotation widget.
   ///
@@ -123,11 +121,6 @@ class AnnotationWidget extends StatelessWidget {
         // Read selection directly from annotation (reactive)
         final isSelected = annotation.selected;
 
-        // Check highlight - only applies to GroupAnnotation during drag-over
-        final isHighlighted =
-            annotation is GroupAnnotation &&
-            controller.annotations.isGroupHighlighted(annotation.id);
-
         final showResizeHandles = isSelected && annotation.isResizable;
 
         // Derive cursor from interaction state
@@ -147,70 +140,28 @@ class AnnotationWidget extends StatelessWidget {
           child: UnboundedStack(
             clipBehavior: Clip.none,
             children: [
-              // Main annotation content - fills the entire space
-              // Use RawGestureDetector with custom pan recognizer that rejects
-              // trackpad gestures, allowing them to bubble to InteractiveViewer
-              // for canvas panning.
-              // IMPORTANT: RawGestureDetector must be the OUTER wrapper (like NodeWidget)
-              // to ensure proper gesture arena behavior with trackpad events.
+              // Main annotation content with gesture handling via ElementScope
               Positioned.fill(
-                // Listener fires IMMEDIATELY on pointer down, before gesture
-                // arena processing. This gives instant selection feedback.
-                child: Listener(
-                  behavior: HitTestBehavior.translucent,
-                  onPointerDown: onTap != null ? (_) => onTap!() : null,
-                  // RawGestureDetector handles drag, double-tap, and context menu
-                  child: RawGestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    gestures: <Type, GestureRecognizerFactory>{
-                      // Custom pan recognizer that rejects trackpad gestures
-                      NonTrackpadPanGestureRecognizer:
-                          GestureRecognizerFactoryWithHandlers<
-                            NonTrackpadPanGestureRecognizer
-                          >(() => NonTrackpadPanGestureRecognizer(), (
-                            recognizer,
-                          ) {
-                            recognizer.onStart = (_) =>
-                                controller.startAnnotationDrag(annotation.id);
-                            recognizer.onUpdate = (details) =>
-                                controller.moveAnnotationDrag(details.delta);
-                            recognizer.onEnd = (_) =>
-                                controller.endAnnotationDrag();
-                            recognizer.onCancel = controller.endAnnotationDrag;
-                          }),
-                      // Double tap recognizer
-                      if (onDoubleTap != null)
-                        DoubleTapGestureRecognizer:
-                            GestureRecognizerFactoryWithHandlers<
-                              DoubleTapGestureRecognizer
-                            >(() => DoubleTapGestureRecognizer(), (recognizer) {
-                              recognizer.onDoubleTap = onDoubleTap!;
-                            }),
-                      // Secondary tap (right-click) for context menu
-                      if (onContextMenu != null)
-                        TapGestureRecognizer:
-                            GestureRecognizerFactoryWithHandlers<
-                              TapGestureRecognizer
-                            >(() => TapGestureRecognizer(), (recognizer) {
-                              recognizer.onSecondaryTapUp = (details) =>
-                                  onContextMenu!(details.globalPosition);
-                            }),
-                    },
-                    // MouseRegion inside RawGestureDetector (matches NodeWidget structure)
-                    child: MouseRegion(
-                      cursor: cursor,
-                      onEnter: onMouseEnter != null
-                          ? (_) => onMouseEnter!()
-                          : null,
-                      onExit: onMouseLeave != null
-                          ? (_) => onMouseLeave!()
-                          : null,
-                      child: _buildAnnotationContent(
-                        context,
-                        isSelected: isSelected,
-                        isHighlighted: isHighlighted,
-                      ),
-                    ),
+                child: ElementScope(
+                  // Drag lifecycle - delegated to controller
+                  isDraggable: annotation.isInteractive,
+                  onDragStart: (_) =>
+                      controller.startAnnotationDrag(annotation.id),
+                  onDragUpdate: (details) =>
+                      controller.moveAnnotationDrag(details.delta),
+                  onDragEnd: (_) => controller.endAnnotationDrag(),
+                  // Interaction callbacks
+                  onTap: onTap,
+                  onDoubleTap: onDoubleTap,
+                  onContextMenu: onContextMenu,
+                  onMouseEnter: onMouseEnter,
+                  onMouseLeave: onMouseLeave,
+                  cursor: cursor,
+                  hitTestBehavior: HitTestBehavior.translucent,
+                  // Annotation visual
+                  child: _buildAnnotationContent(
+                    context,
+                    isSelected: isSelected,
                   ),
                 ),
               ),
@@ -250,16 +201,14 @@ class AnnotationWidget extends StatelessWidget {
   ///
   /// The styling priority is:
   /// - Editing state: Transparent border (maintains layout, seamless editing)
-  /// - Highlighted state takes precedence over selected
-  /// - Selected state is used when not highlighted
-  /// - Transparent border when neither selected nor highlighted
+  /// - Selected state: Selection border and background
+  /// - Transparent border when not selected
   ///
   /// IMPORTANT: Always apply a border (even if transparent) to prevent content
   /// shifting when selection/editing state changes.
   Widget _buildAnnotationContent(
     BuildContext context, {
     required bool isSelected,
-    required bool isHighlighted,
   }) {
     // Get the custom widget from the annotation implementation
     final content = annotation.buildWidget(context);
@@ -271,20 +220,13 @@ class AnnotationWidget extends StatelessWidget {
 
     // Determine border color and background color based on state
     // When editing, use transparent border for seamless editing experience
-    // Highlight takes precedence over selection for better drag feedback
     // ALWAYS apply a border (transparent if not selected) to prevent content shift
     Color borderColor = Colors.transparent;
     Color? backgroundColor;
 
-    if (!annotation.isEditing) {
-      if (isHighlighted) {
-        // Use highlight colors for drag-over feedback
-        borderColor = annotationTheme.highlightBorderColor;
-        backgroundColor = annotationTheme.highlightBackgroundColor;
-      } else if (isSelected) {
-        borderColor = annotationTheme.selectionBorderColor;
-        backgroundColor = annotationTheme.selectionBackgroundColor;
-      }
+    if (!annotation.isEditing && isSelected) {
+      borderColor = annotationTheme.selectionBorderColor;
+      backgroundColor = annotationTheme.selectionBackgroundColor;
     }
 
     // Apply theme-consistent selection and highlight styling

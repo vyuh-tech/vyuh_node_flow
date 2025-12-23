@@ -397,9 +397,6 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
             movedNodes.add(node);
           }
         }
-        // Update drag-to-group highlight for the dragged node (Command+drag only)
-        final isCommandPressed = HardwareKeyboard.instance.isMetaPressed;
-        annotations.updateDragHighlight(draggedNodeId, isCommandPressed);
       } else {
         // Move single node
         final node = _nodes[draggedNodeId];
@@ -409,9 +406,6 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
           // Update visual position with snapping
           node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
           movedNodes.add(node);
-          // Update drag-to-group highlight (Command+drag only)
-          final isCommandPressed = HardwareKeyboard.instance.isMetaPressed;
-          annotations.updateDragHighlight(draggedNodeId, isCommandPressed);
         }
       }
     });
@@ -445,14 +439,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
         node.dragging.value = false;
       }
 
-      // Handle Command+drag group operations (add/remove from groups)
-      final isCommandPressed = HardwareKeyboard.instance.isMetaPressed;
-      for (final nodeId in draggedNodeIds) {
-        annotations.handleCommandDragGroupOperation(nodeId, isCommandPressed);
-      }
-
-      // Clear drag highlight and drag state
-      annotations.clearDragHighlight();
+      // Clear drag state
       interaction.draggedNodeId.value = null;
       interaction.lastPointerPosition.value = null;
 

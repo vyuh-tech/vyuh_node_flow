@@ -336,6 +336,12 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   // Shift key tracking for selection mode cursor
   bool _isShiftPressed = false;
 
+  // Pointer ID tracking for drag operations.
+  // Used by the safety net in _handlePointerUp to only cleanup if the pointer
+  // that started the drag is the one that ended. This prevents trackpad pointer
+  // ups from prematurely ending mouse drags.
+  int? _dragPointerId;
+
   @override
   void initState() {
     super.initState();
@@ -451,6 +457,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
             // Listener has the canvasKey so we can convert global→local coordinates
             child: Listener(
               key: widget.controller.canvasKey,
+              // IMPORTANT: Use translucent to ensure this Listener receives
+              // events BEFORE child Listeners. Default (deferToChild) can cause
+              // child Listeners to fire before the parent, breaking flag logic.
+              behavior: HitTestBehavior.translucent,
               onPointerDown: _handlePointerDown,
               onPointerMove: _handlePointerMove,
               onPointerUp: _handlePointerUp,
@@ -743,13 +753,21 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // - No annotation is being dragged or resized
     // - No connection is being created
     // - No selection rectangle is being drawn
+    final canPan = widget.behavior.canPan;
+    final draggedNodeId = widget.controller.draggedNodeId;
+    final draggedAnnotationId =
+        widget.controller.annotations.draggedAnnotationId;
+    final isResizing = widget.controller.annotations.isResizing;
+    final isConnecting = widget.controller.isConnecting;
+    final isDrawingSelection = widget.controller.isDrawingSelection;
+
     final newPanEnabled =
-        widget.behavior.canPan &&
-        widget.controller.draggedNodeId == null &&
-        widget.controller.annotations.draggedAnnotationId == null &&
-        !widget.controller.annotations.isResizing &&
-        !widget.controller.isConnecting &&
-        !widget.controller.isDrawingSelection;
+        canPan &&
+        draggedNodeId == null &&
+        draggedAnnotationId == null &&
+        !isResizing &&
+        !isConnecting &&
+        !isDrawingSelection;
 
     widget.controller._updateInteractionState(panEnabled: newPanEnabled);
   }
@@ -890,6 +908,12 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       return;
     }
 
+    // DEFENSIVE CLEANUP: Clear any stale drag state from previous incomplete gestures.
+    // This handles edge cases where quick tap-pan sequences leave nodes in a dragging
+    // state because gesture recognizer callbacks (onEnd/onCancel) were never called.
+    // This is the earliest cleanup point, before gesture recognizers start processing.
+    widget.controller._cleanupStaleDragState();
+
     final hitResult = _performHitTest(event.localPosition);
 
     // Request focus when clicking on canvas background (not on nodes/ports/annotations)
@@ -904,18 +928,19 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     _initialPointerPosition = event.localPosition;
     _shouldClearSelectionOnTap = false;
 
-    // Reset connection hit flag at start of each pointer down
-    // This flag prevents annotation widgets from selecting when a connection was hit
-    widget.controller.interaction.setConnectionHitOnPointerDown(false);
-
     // Store initial pointer position in widget-local coordinates
     widget.controller._setPointerPosition(ScreenPosition(event.localPosition));
 
     // CRITICAL: Disable pan IMMEDIATELY for ANY interactive element (node, annotation, port)
     // This prevents InteractiveViewer from competing for drag gestures in the gesture arena.
     // Pan will be re-enabled by _updatePanState() when drag states change.
+    //
+    // Only capture pointer ID if we're not already tracking a drag pointer.
+    // This prevents a second pointer from overwriting the original drag pointer.
     if (hitResult.isNode || hitResult.isAnnotation || hitResult.isPort) {
       widget.controller._updateInteractionState(panEnabled: false);
+      // Only set drag pointer if not already set (first pointer wins)
+      _dragPointerId ??= event.pointer;
     }
 
     if (HardwareKeyboard.instance.isShiftPressed && widget.behavior.canSelect) {
@@ -939,10 +964,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       // don't participate in Flutter's widget hit testing. We MUST handle
       // connection selection here in the Listener using spatial index hit testing.
       case HitTarget.connection:
-        // Set flag to prevent annotation widgets from selecting (since pointer
-        // events pass through IgnorePointer to widgets below)
-        widget.controller.interaction.setConnectionHitOnPointerDown(true);
-
         final isCmd = HardwareKeyboard.instance.isMetaPressed;
         final isCtrl = HardwareKeyboard.instance.isControlPressed;
         final toggle = isCmd || isCtrl;
@@ -1083,8 +1104,23 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     _initialPointerPosition = null;
     _shouldClearSelectionOnTap = false;
 
-    // Reset connection hit flag so it doesn't affect next interaction
-    widget.controller.interaction.setConnectionHitOnPointerDown(false);
+    // SAFETY NET: If drag state is still set after pointer up, the gesture
+    // recognizer's onEnd/onCancel failed to fire. Clean up here as final fallback.
+    // CRITICAL: Only run safety net if this is the EXACT pointer that started the drag.
+    // Pure pointer ID matching - device kind doesn't matter.
+    final isOriginalDragPointer =
+        _dragPointerId != null && event.pointer == _dragPointerId;
+
+    if (isOriginalDragPointer) {
+      if (widget.controller.draggedNodeId != null) {
+        widget.controller.endNodeDrag();
+      }
+      if (widget.controller.annotations.draggedAnnotationId != null) {
+        widget.controller.endAnnotationDrag();
+      }
+      // Clear the drag pointer ID after cleanup
+      _dragPointerId = null;
+    }
 
     // Cursor is derived from state via Observer - no update needed
   }
