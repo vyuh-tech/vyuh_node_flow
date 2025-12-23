@@ -1,3 +1,7 @@
+## 0.11.0
+
+ - **FEAT**: add ViewportAnimationMixin for smooth viewport animations, integrate animation methods into NodeFlowController and NodeFlowEditor, and provide API for animating to nodes, positions, bounds, and zoom levels.
+
 ## 0.10.9
 
  - **FEAT**: replace custom gesture implementation with ElementScope for streamlined gesture handling, lifecycle management, and drag state cleanup; enhance interaction robustness and trackpad compatibility.
