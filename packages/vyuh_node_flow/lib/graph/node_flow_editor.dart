@@ -16,6 +16,7 @@ import '../graph/node_flow_controller.dart';
 import '../graph/node_flow_events.dart';
 import '../graph/node_flow_theme.dart';
 import '../graph/viewport.dart';
+import '../graph/viewport_animation_mixin.dart';
 import '../nodes/node.dart';
 import '../nodes/node_shape.dart';
 import '../ports/port.dart';
@@ -308,7 +309,7 @@ class NodeFlowEditor<T> extends StatefulWidget {
 }
 
 class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, ViewportAnimationMixin {
   late final TransformationController _transformationController;
   final List<ReactionDisposer> _disposers = [];
 
@@ -367,6 +368,22 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       duration: widget.theme.connectionAnimationDuration,
     );
 
+    // Attach viewport animation mixin - directly animates TransformationController
+    attachViewportAnimation(
+      tickerProvider: this,
+      transformationController: _transformationController,
+      onAnimationComplete: widget.controller.setViewport,
+    );
+
+    // Set up handler for controller animation requests
+    widget.controller.setAnimateToHandler((
+      target, {
+      Duration duration = const Duration(milliseconds: 400),
+      Curve curve = Curves.easeInOut,
+    }) {
+      animateViewportTo(target, duration: duration, curve: curve);
+    });
+
     // Initialize transformation controller with current viewport
     final viewport = widget.controller.viewport;
     final initialMatrix = Matrix4.identity()
@@ -407,6 +424,18 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   void didUpdateWidget(NodeFlowEditor<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Theme is handled by editor, config is immutable in controller
+
+    // Re-register viewport animation handler if controller changed
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.setAnimateToHandler(null);
+      widget.controller.setAnimateToHandler((
+        target, {
+        Duration duration = const Duration(milliseconds: 400),
+        Curve curve = Curves.easeInOut,
+      }) {
+        animateViewportTo(target, duration: duration, curve: curve);
+      });
+    }
 
     // Update behavior mode if it changed
     if (oldWidget.behavior != widget.behavior) {
@@ -668,6 +697,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       ),
     );
 
+    // Note: Viewport animation requests are handled via direct callback
+    // (setAnimateToHandler) to avoid MobX batching issues.
+
     // Note: Snap-to-grid behavior is handled by controller config
   }
 
@@ -811,6 +843,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Remove transform listener before disposing
     _transformationController.removeListener(_syncViewportFromTransform);
 
+    // Clear viewport animation handler and detach mixin
+    widget.controller.setAnimateToHandler(null);
+    detachViewportAnimation();
+
     for (final disposer in _disposers) {
       disposer();
     }
@@ -835,7 +871,16 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   ///
   /// The onInteraction* callbacks also call setViewport, but empirically
   /// they don't work reliably in all cases. This listener is the safety net.
+  ///
+  /// IMPORTANT: This sync is skipped during viewport animation to prevent
+  /// the animation from being interrupted. The viewport is synced once
+  /// when the animation completes via the onAnimationComplete callback.
   void _syncViewportFromTransform() {
+    // Skip sync during animation - final sync happens via onAnimationComplete
+    if (isViewportAnimating) {
+      return;
+    }
+
     final transform = _transformationController.value;
     final translation = transform.getTranslation();
     final currentZoom = transform.getMaxScaleOnAxis();

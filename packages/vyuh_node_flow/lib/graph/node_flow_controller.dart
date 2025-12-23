@@ -13,6 +13,7 @@ import '../graph/node_flow_config.dart';
 import '../graph/node_flow_events.dart';
 import '../graph/node_flow_theme.dart';
 import '../graph/viewport.dart';
+import '../graph/viewport_animation_mixin.dart';
 import '../nodes/interaction_state.dart';
 import '../nodes/node.dart';
 import '../nodes/node_data.dart';
@@ -197,6 +198,14 @@ class NodeFlowController<T> {
   final ObservableSet<String> _selectedConnectionIds = ObservableSet<String>();
   final Observable<GraphViewport> _viewport;
   final Observable<Size> _screenSize = Observable(Size.zero);
+
+  /// Direct callback to trigger viewport animations.
+  ///
+  /// This callback is set by [NodeFlowEditor] and invoked by
+  /// [animateTo] and [animateToNode] to trigger smooth viewport animations.
+  /// Parameters duration and curve are optional with sensible defaults.
+  void Function(GraphViewport target, {Duration duration, Curve curve})?
+  _onAnimateToViewport;
 
   /// Key for the canvas widget, used to convert global coordinates to canvas-local.
   final GlobalKey canvasKey = GlobalKey();

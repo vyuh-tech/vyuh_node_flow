@@ -649,4 +649,260 @@ extension ViewportApi<T> on NodeFlowController<T> {
       _mousePositionWorld.value = position?.offset;
     });
   }
+
+  // ============================================================================
+  // Animated Navigation
+  // ============================================================================
+
+  /// Sets the handler for viewport animations.
+  ///
+  /// This handler is invoked by the animate* methods to trigger smooth
+  /// viewport animations via the [ViewportAnimationMixin] in [NodeFlowEditor].
+  ///
+  /// Called by [NodeFlowEditor] during initialization.
+  void setAnimateToHandler(
+    void Function(GraphViewport target, {Duration duration, Curve curve})?
+    handler,
+  ) {
+    _onAnimateToViewport = handler;
+  }
+
+  /// Animates the viewport to a target state.
+  ///
+  /// The animation is executed by the [NodeFlowEditor] widget using
+  /// Flutter's animation framework with Matrix4 interpolation.
+  ///
+  /// Parameters:
+  /// - [target]: The target viewport state (position and zoom)
+  /// - [duration]: Animation duration (default: 400ms)
+  /// - [curve]: Animation curve (default: easeInOut)
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.animateToViewport(GraphViewport(x: 100, y: 50, zoom: 1.5));
+  /// controller.animateToViewport(target, duration: Duration(milliseconds: 200));
+  /// ```
+  void animateToViewport(
+    GraphViewport target, {
+    Duration duration = const Duration(milliseconds: 400),
+    Curve curve = Curves.easeInOut,
+  }) {
+    _onAnimateToViewport?.call(target, duration: duration, curve: curve);
+  }
+
+  /// Animates the viewport to center on a specific node.
+  ///
+  /// This combines panning and optional zooming into a smooth animation.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to center on
+  /// - [zoom]: Target zoom level (default: 1.0). Pass `null` to keep current zoom.
+  /// - [duration]: Animation duration (default: 400ms)
+  /// - [curve]: Animation curve (default: easeInOut)
+  ///
+  /// Does nothing if the node doesn't exist or screen size is zero.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.animateToNode('node-123');
+  /// controller.animateToNode('node-123', zoom: 1.5);
+  /// controller.animateToNode('node-123', zoom: null); // keep current zoom
+  /// controller.animateToNode('node-123', duration: Duration(milliseconds: 200));
+  /// ```
+  void animateToNode(
+    String nodeId, {
+    double? zoom = 1.0,
+    Duration duration = const Duration(milliseconds: 400),
+    Curve curve = Curves.easeInOut,
+  }) {
+    final node = _nodes[nodeId];
+    if (node == null || _screenSize.value == Size.zero) return;
+
+    final pos = node.position.value;
+    final size = node.size.value;
+    final targetZoom = (zoom ?? _viewport.value.zoom).clamp(
+      _config.minZoom.value,
+      _config.maxZoom.value,
+    );
+
+    // Calculate node center and target viewport
+    final nodeCenterX = pos.dx + size.width / 2;
+    final nodeCenterY = pos.dy + size.height / 2;
+
+    animateToViewport(
+      GraphViewport(
+        x: _screenSize.value.width / 2 - nodeCenterX * targetZoom,
+        y: _screenSize.value.height / 2 - nodeCenterY * targetZoom,
+        zoom: targetZoom,
+      ),
+      duration: duration,
+      curve: curve,
+    );
+  }
+
+  /// Animates the viewport to center on a specific position in graph coordinates.
+  ///
+  /// The current zoom level is preserved unless [zoom] is specified.
+  ///
+  /// Parameters:
+  /// - [position]: The graph coordinate to center on
+  /// - [zoom]: Optional target zoom level (null preserves current zoom)
+  /// - [duration]: Animation duration (default: 400ms)
+  /// - [curve]: Animation curve (default: easeInOut)
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.animateToPosition(GraphPosition.fromXY(500, 300));
+  /// controller.animateToPosition(position, zoom: 1.5);
+  /// ```
+  void animateToPosition(
+    GraphOffset position, {
+    double? zoom,
+    Duration duration = const Duration(milliseconds: 400),
+    Curve curve = Curves.easeInOut,
+  }) {
+    if (_screenSize.value == Size.zero) return;
+
+    final targetZoom = (zoom ?? _viewport.value.zoom).clamp(
+      _config.minZoom.value,
+      _config.maxZoom.value,
+    );
+
+    animateToViewport(
+      GraphViewport(
+        x: _screenSize.value.width / 2 - position.dx * targetZoom,
+        y: _screenSize.value.height / 2 - position.dy * targetZoom,
+        zoom: targetZoom,
+      ),
+      duration: duration,
+      curve: curve,
+    );
+  }
+
+  /// Animates the viewport to fit a bounding rectangle with padding.
+  ///
+  /// The viewport will be adjusted to show all content within the bounds,
+  /// with the specified padding on all sides.
+  ///
+  /// Parameters:
+  /// - [bounds]: The bounding rectangle in graph coordinates
+  /// - [padding]: Padding around the bounds in screen pixels (default: 50)
+  /// - [duration]: Animation duration (default: 400ms)
+  /// - [curve]: Animation curve (default: easeInOut)
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.animateToBounds(GraphRect(Rect.fromLTWH(0, 0, 500, 300)));
+  /// controller.animateToBounds(bounds, padding: 100);
+  /// ```
+  void animateToBounds(
+    GraphRect bounds, {
+    double padding = 50.0,
+    Duration duration = const Duration(milliseconds: 400),
+    Curve curve = Curves.easeInOut,
+  }) {
+    if (_screenSize.value == Size.zero || bounds.isEmpty) return;
+
+    final contentWidth = bounds.width;
+    final contentHeight = bounds.height;
+
+    // Calculate zoom to fit content with padding
+    final scaleX = (_screenSize.value.width - padding * 2) / contentWidth;
+    final scaleY = (_screenSize.value.height - padding * 2) / contentHeight;
+    final targetZoom = (scaleX < scaleY ? scaleX : scaleY).clamp(
+      _config.minZoom.value,
+      _config.maxZoom.value,
+    );
+
+    // Calculate center of bounds
+    final center = bounds.center;
+
+    animateToViewport(
+      GraphViewport(
+        x: _screenSize.value.width / 2 - center.dx * targetZoom,
+        y: _screenSize.value.height / 2 - center.dy * targetZoom,
+        zoom: targetZoom,
+      ),
+      duration: duration,
+      curve: curve,
+    );
+  }
+
+  /// Animates the viewport to a specific zoom level, keeping the center fixed.
+  ///
+  /// Parameters:
+  /// - [scale]: Target zoom level (1.0 = 100%)
+  /// - [duration]: Animation duration (default: 400ms)
+  /// - [curve]: Animation curve (default: easeInOut)
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.animateToScale(1.5); // Zoom to 150%
+  /// controller.animateToScale(1.0); // Reset to 100%
+  /// ```
+  void animateToScale(
+    double scale, {
+    Duration duration = const Duration(milliseconds: 400),
+    Curve curve = Curves.easeInOut,
+  }) {
+    if (_screenSize.value == Size.zero) return;
+
+    final currentVp = _viewport.value;
+    final clampedScale = scale.clamp(
+      _config.minZoom.value,
+      _config.maxZoom.value,
+    );
+
+    // Calculate the current center in graph coordinates
+    final centerX =
+        (_screenSize.value.width / 2 - currentVp.x) / currentVp.zoom;
+    final centerY =
+        (_screenSize.value.height / 2 - currentVp.y) / currentVp.zoom;
+
+    // Calculate new viewport to keep center fixed at new scale
+    animateToViewport(
+      GraphViewport(
+        x: _screenSize.value.width / 2 - centerX * clampedScale,
+        y: _screenSize.value.height / 2 - centerY * clampedScale,
+        zoom: clampedScale,
+      ),
+      duration: duration,
+      curve: curve,
+    );
+  }
+
+  /// Centers the viewport on a node and sets zoom level in one operation.
+  ///
+  /// Unlike [animateToNode], this is an immediate (non-animated) update.
+  ///
+  /// Parameters:
+  /// - [nodeId]: The ID of the node to center on
+  /// - [zoom]: Target zoom level (default: 1.0)
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.centerOnNodeWithZoom('node-123', zoom: 1.5);
+  /// ```
+  void centerOnNodeWithZoom(String nodeId, {double zoom = 1.0}) {
+    final node = _nodes[nodeId];
+    if (node == null || _screenSize.value == Size.zero) return;
+
+    final pos = node.position.value;
+    final size = node.size.value;
+    final clampedZoom = zoom.clamp(
+      _config.minZoom.value,
+      _config.maxZoom.value,
+    );
+
+    final nodeCenterX = pos.dx + size.width / 2;
+    final nodeCenterY = pos.dy + size.height / 2;
+
+    setViewport(
+      GraphViewport(
+        x: _screenSize.value.width / 2 - nodeCenterX * clampedZoom,
+        y: _screenSize.value.height / 2 - nodeCenterY * clampedZoom,
+        zoom: clampedZoom,
+      ),
+    );
+  }
 }

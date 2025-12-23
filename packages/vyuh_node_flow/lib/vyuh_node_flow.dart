@@ -159,6 +159,7 @@ export 'graph/node_flow_viewer.dart';
 export 'graph/resizer_theme.dart';
 export 'graph/selection_theme.dart';
 export 'graph/viewport.dart';
+export 'graph/viewport_animation_mixin.dart';
 export 'grid/grid_styles.dart';
 export 'grid/grid_theme.dart';
 export 'grid/spatial_index_debug_painter.dart';
