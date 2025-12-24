@@ -1,3 +1,7 @@
+## 0.13.0
+
+ - **FEAT**: enhance AutoPan and Viewport Animations, add debug mode with overlays for better visualization, and integrate configurable AutoPan presets. `debugMode` is now moved into `NodeFlowConfig`.
+
 ## 0.12.0
 
  - **FEAT**: introducing Auto-Pan behavior which allows the elements (nodes, annotations, connections) to move freely and go past the edges, while keeping the viewport panning in place. It also does some interesting calculations for avoiding drift, so that the element stays relative to the mouse pointer. This is all implemented on the `ElementScope` with an `AutoPanMixin`.
