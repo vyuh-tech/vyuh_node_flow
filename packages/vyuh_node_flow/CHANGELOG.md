@@ -1,3 +1,7 @@
+## 0.12.0
+
+ - **FEAT**: introducing Auto-Pan behavior which allows the elements (nodes, annotations, connections) to move freely and go past the edges, while keeping the viewport panning in place. It also does some interesting calculations for avoiding drift, so that the element stays relative to the mouse pointer. This is all implemented on the `ElementScope` with an `AutoPanMixin`.
+
 ## 0.11.0
 
  - **FEAT**: add ViewportAnimationMixin for smooth viewport animations, integrate animation methods into NodeFlowController and NodeFlowEditor, and provide API for animating to nodes, positions, bounds, and zoom levels.
