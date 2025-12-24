@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
+import '../shared/auto_pan_config.dart';
+
 /// Reactive configuration class for NodeFlow behavioral properties.
 ///
 /// Visual properties like minimap appearance, colors, and styling are
@@ -16,6 +18,7 @@ class NodeFlowConfig {
     bool showMinimap = false,
     bool isMinimapInteractive = true,
     this.showAttribution = true,
+    this.autoPan = AutoPanConfig.normal,
   }) {
     runInAction(() {
       this.snapToGrid.value = snapToGrid;
@@ -55,6 +58,30 @@ class NodeFlowConfig {
 
   /// Whether to show attribution label
   final bool showAttribution;
+
+  /// Configuration for autopan behavior during drag operations.
+  ///
+  /// Defaults to [AutoPanConfig.normal], which enables autopan with
+  /// balanced settings. The viewport will automatically pan when
+  /// dragging elements near the edges.
+  ///
+  /// Set to `null` to disable autopan entirely.
+  ///
+  /// Example:
+  /// ```dart
+  /// // Use fast autopan for large canvases
+  /// NodeFlowConfig(
+  ///   autoPan: AutoPanConfig.fast,
+  /// )
+  ///
+  /// // Disable autopan
+  /// NodeFlowConfig(
+  ///   autoPan: null,
+  /// )
+  /// ```
+  ///
+  /// See [AutoPanConfig] for configuration options.
+  final AutoPanConfig? autoPan;
 
   /// Toggle grid snapping for both nodes and annotations
   void toggleSnapping() {
@@ -152,6 +179,7 @@ class NodeFlowConfig {
     bool? showMinimap,
     bool? isMinimapInteractive,
     bool? showAttribution,
+    AutoPanConfig? autoPan,
   }) {
     return NodeFlowConfig(
       snapToGrid: snapToGrid ?? this.snapToGrid.value,
@@ -165,6 +193,7 @@ class NodeFlowConfig {
       isMinimapInteractive:
           isMinimapInteractive ?? this.isMinimapInteractive.value,
       showAttribution: showAttribution ?? this.showAttribution,
+      autoPan: autoPan ?? this.autoPan,
     );
   }
 }

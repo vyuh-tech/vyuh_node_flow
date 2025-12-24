@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../connections/connection.dart';
+import '../graph/coordinates.dart';
 import '../graph/cursor_theme.dart';
 import '../graph/node_flow_controller.dart';
 import '../graph/node_flow_theme.dart';
@@ -312,6 +313,23 @@ class NodeWidget<T> extends StatelessWidget {
                     onMouseEnter: onMouseEnter,
                     onMouseLeave: onMouseLeave,
                     cursor: cursor,
+                    // Autopan configuration - ElementScope handles clamping internally
+                    autoPan: controller.config.autoPan,
+                    getViewportBounds: () =>
+                        controller.viewportScreenBounds.rect,
+                    getElementPosition: () => node.visualPosition.value,
+                    screenToGraph: (screenPoint) => controller
+                        .screenToGraph(ScreenPosition(screenPoint))
+                        .offset,
+                    onAutoPan: (delta) {
+                      // Pan viewport (convert graph units to screen units)
+                      final zoom = controller.viewport.zoom;
+                      controller.panBy(
+                        ScreenOffset(
+                          Offset(-delta.dx * zoom, -delta.dy * zoom),
+                        ),
+                      );
+                    },
                     // Node visual
                     child: shape != null
                         ? _buildShapedNode(nodeTheme, isSelected)

@@ -183,6 +183,7 @@ export 'ports/port.dart';
 export 'ports/port_theme.dart';
 export 'ports/port_widget.dart'; // Also exports PortBuilder typedef
 // Shared Utilities
+export 'shared/auto_pan_config.dart';
 export 'shared/element_scope.dart';
 export 'shared/flutter_actions_integration.dart';
 export 'shared/json_converters.dart';

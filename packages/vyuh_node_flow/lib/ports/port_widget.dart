@@ -230,14 +230,15 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
   void _handlePanUpdate(DragUpdateDetails details) {
     if (!_isDragging) return;
 
-    // Convert global position to graph coordinates
-    // Using globalToGraph which handles canvas offset + viewport transformation
-    final graphPosition = widget.controller.globalToGraph(
-      ScreenPosition(details.globalPosition),
-    );
+    final temp = widget.controller.temporaryConnection;
+    if (temp == null) return;
+
+    // Delta is already in graph coordinates since PortWidget is inside
+    // InteractiveViewer's transformed space - no conversion needed.
+    final newEndPoint = temp.currentPoint + details.delta;
 
     // Hit test to find target port for snapping
-    final hitResult = widget.controller.hitTestPort(graphPosition.offset);
+    final hitResult = widget.controller.hitTestPort(newEndPoint);
 
     // Get target node bounds if we have a hit
     Rect? targetNodeBounds;
@@ -248,7 +249,7 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
 
     // Update the connection drag
     widget.controller.updateConnectionDrag(
-      graphPosition: graphPosition.offset,
+      graphPosition: newEndPoint,
       targetNodeId: hitResult?.nodeId,
       targetPortId: hitResult?.portId,
       targetNodeBounds: targetNodeBounds,
@@ -281,6 +282,20 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
     _isDragging = false;
     widget.controller.cancelConnectionDrag();
     setState(() {});
+  }
+
+  /// Handles autopan during connection creation.
+  ///
+  /// Only pans the viewport - ElementScope handles updating the connection
+  /// endpoint by calling onDragUpdate with clamped delta.
+  void _handleAutoPan(Offset delta) {
+    if (!_isDragging) return;
+
+    // Pan viewport (convert graph units to screen units)
+    final zoom = widget.controller.viewport.zoom;
+    widget.controller.panBy(
+      ScreenOffset(Offset(-delta.dx * zoom, -delta.dy * zoom)),
+    );
   }
 
   @override
@@ -410,6 +425,17 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
                   onMouseEnter: () => _handleHoverChange(true),
                   onMouseLeave: () => _handleHoverChange(false),
                   cursor: cursor,
+                  // Autopan configuration - NO clamping for connections.
+                  // Connections track the mouse position, so they should move
+                  // freely without the inner bounds constraint that's used for
+                  // nodes and annotations.
+                  autoPan: widget.controller.config.autoPan,
+                  getViewportBounds: () =>
+                      widget.controller.viewportScreenBounds.rect,
+                  // NOTE: getElementPosition and screenToGraph are intentionally
+                  // NOT provided. This disables clamping, allowing the connection
+                  // endpoint to follow the mouse exactly during autopan.
+                  onAutoPan: _handleAutoPan,
                   child: child,
                 );
               },
