@@ -10,6 +10,7 @@ import '../nodes/node.dart';
 import '../ports/port.dart';
 import '../ports/port_theme.dart';
 import '../shared/element_scope.dart';
+import '../shared/pointer_tracking.dart';
 import '../shared/unbounded_widgets.dart';
 import 'port_shape_widget.dart';
 
@@ -169,6 +170,10 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
   bool _isHovered = false;
   bool _isDragging = false;
 
+  /// Offset between pointer position (in graph coords) and endpoint at drag start.
+  /// Used to calculate endpoint position from absolute pointer position.
+  Offset _pointerToEndpointOffset = Offset.zero;
+
   void _handleHoverChange(bool isHovered) {
     // Suppress hover effects when connection creation is disabled (preview/present modes).
     // In these modes, port hover feedback is misleading since connections can't be created.
@@ -224,6 +229,13 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
 
     if (result.allowed) {
       _isDragging = true;
+
+      // Calculate and store the offset between pointer and endpoint at drag start.
+      // This allows us to use absolute positioning during updates.
+      final pointerGraphPos = widget.controller
+          .screenToGraph(ScreenPosition(details.globalPosition))
+          .offset;
+      _pointerToEndpointOffset = startPoint - pointerGraphPos;
     }
   }
 
@@ -233,9 +245,12 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
     final temp = widget.controller.temporaryConnection;
     if (temp == null) return;
 
-    // Delta is already in graph coordinates since PortWidget is inside
-    // InteractiveViewer's transformed space - no conversion needed.
-    final newEndPoint = temp.currentPoint + details.delta;
+    // Calculate endpoint from absolute pointer position, not deltas.
+    // This prevents offset accumulation from port snapping and drift issues.
+    final pointerGraphPos = widget.controller
+        .screenToGraph(ScreenPosition(details.globalPosition))
+        .offset;
+    final newEndPoint = pointerGraphPos + _pointerToEndpointOffset;
 
     // Hit test to find target port for snapping
     final hitResult = widget.controller.hitTestPort(newEndPoint);
@@ -259,6 +274,7 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
   void _handlePanEnd(DragEndDetails details) {
     if (!_isDragging) return;
     _isDragging = false;
+    _pointerToEndpointOffset = Offset.zero;
 
     // Check if we're over a valid target port
     final temp = widget.controller.temporaryConnection;
@@ -280,6 +296,7 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
   void _handlePanCancel() {
     if (!_isDragging) return;
     _isDragging = false;
+    _pointerToEndpointOffset = Offset.zero;
     widget.controller.cancelConnectionDrag();
     setState(() {});
   }
@@ -425,17 +442,13 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
                   onMouseEnter: () => _handleHoverChange(true),
                   onMouseLeave: () => _handleHoverChange(false),
                   cursor: cursor,
-                  // Autopan configuration - NO clamping for connections.
-                  // Connections track the mouse position, so they should move
-                  // freely without the inner bounds constraint that's used for
-                  // nodes and annotations.
-                  autoPan: widget.controller.config.autoPan,
+                  // Autopan configuration for connection dragging
+                  autoPan: widget.controller.config.autoPan.value,
                   getViewportBounds: () =>
                       widget.controller.viewportScreenBounds.rect,
-                  // NOTE: getElementPosition and screenToGraph are intentionally
-                  // NOT provided. This disables clamping, allowing the connection
-                  // endpoint to follow the mouse exactly during autopan.
                   onAutoPan: _handleAutoPan,
+                  // Connections track the pointer freely everywhere
+                  pointerTracking: PointerTracking.free,
                   child: child,
                 );
               },

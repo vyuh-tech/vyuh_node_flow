@@ -32,7 +32,8 @@ import 'layers/grid_layer.dart';
 import 'layers/interaction_layer.dart';
 import 'layers/minimap_overlay.dart';
 import 'layers/nodes_layer.dart';
-import 'layers/spatial_index_debug_layer.dart';
+import 'layers/autopan_zone_debug_layer.dart';
+import 'layers/debug_layers_stack.dart';
 
 part 'node_flow_controller_extensions.dart';
 part 'node_flow_editor_hit_testing.dart';
@@ -510,6 +511,10 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                   decoration: BoxDecoration(color: theme.backgroundColor),
                   child: Stack(
                     children: [
+                      // Autopan zone debug overlay - screen coordinates, below all content
+                      // Positioned first in stack so it renders behind InteractiveViewer
+                      AutopanZoneDebugLayer<T>(controller: widget.controller),
+
                       // Canvas with InteractiveViewer for pan/zoom
                       // Wrapped in Observer to react to panEnabled changes
                       Observer.withBuiltChild(
@@ -542,6 +547,16 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                                 theme: theme,
                                 transformationController:
                                     _transformationController,
+                              ),
+
+                              // Debug visualization layers (when config.debugMode is enabled)
+                              // Placed above grid but below content for visibility
+                              // Uses Observer internally for reactivity
+                              DebugLayersStack<T>(
+                                controller: widget.controller,
+                                transformationController:
+                                    _transformationController,
+                                theme: theme,
                               ),
 
                               // Background annotations (groups) - drag handled via AnnotationWidget
@@ -605,15 +620,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                                       _handleAnnotationMouseEnter,
                                   onAnnotationMouseLeave:
                                       _handleAnnotationMouseLeave,
-                                ),
-
-                              // Spatial index debug visualization (when debug mode is enabled)
-                              if (theme.debugMode)
-                                SpatialIndexDebugLayer<T>(
-                                  controller: widget.controller,
-                                  transformationController:
-                                      _transformationController,
-                                  theme: theme,
                                 ),
                             ],
                           ),

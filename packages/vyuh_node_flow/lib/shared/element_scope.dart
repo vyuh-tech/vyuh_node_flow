@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'auto_pan_config.dart';
 import 'auto_pan_mixin.dart';
 import 'non_trackpad_pan_gesture_recognizer.dart';
+import 'pointer_tracking.dart';
 
 /// A unified interaction scope for draggable elements (nodes, annotations, ports).
 ///
@@ -74,22 +75,19 @@ import 'non_trackpad_pan_gesture_recognizer.dart';
 /// ## Autopan Support
 ///
 /// When [autoPan] is provided, the widget automatically pans the viewport
-/// when the pointer approaches the edges during a drag operation. The widget
-/// also handles position clamping to keep elements anchored at the inner bounds
-/// edge (viewport minus edge padding).
+/// when the pointer approaches the edges during a drag operation. The element
+/// moves with the viewport during autopan.
 ///
 /// ```dart
 /// ElementScope(
 ///   onDragStart: (_) => controller.startNodeDrag(nodeId),
 ///   onDragUpdate: (details) => controller.moveNodeDrag(details.delta),
 ///   onDragEnd: (_) => controller.endNodeDrag(),
-///   // Enable autopan with centralized clamping
+///   // Enable autopan
 ///   autoPan: AutoPanConfig.normal,
 ///   getViewportBounds: () => controller.viewportScreenBounds.rect,
-///   getElementPosition: () => node.visualPosition.value,
-///   screenToGraph: (screenPoint) => controller.screenToGraph(screenPoint).offset,
 ///   onAutoPan: (delta) {
-///     // Only pan viewport - ElementScope handles element movement with clamping
+///     // Pan viewport - ElementScope also calls onDragUpdate to move element
 ///     final zoom = controller.viewport.zoom;
 ///     controller.panBy(ScreenOffset(Offset(-delta.dx * zoom, -delta.dy * zoom)));
 ///   },
@@ -126,8 +124,8 @@ class ElementScope extends StatefulWidget {
     this.autoPan,
     this.onAutoPan,
     this.getViewportBounds,
-    this.getElementPosition,
     this.screenToGraph,
+    this.pointerTracking = PointerTracking.anchored,
   });
 
   /// The child widget to wrap with interaction handling.
@@ -244,34 +242,28 @@ class ElementScope extends StatefulWidget {
   /// Required when [autoPan] is provided.
   final Rect Function()? getViewportBounds;
 
-  /// Returns the current element position in graph coordinates.
+  /// Converts a screen position to graph coordinates.
   ///
-  /// When provided along with [autoPan], [getViewportBounds], and
-  /// [screenToGraph], enables automatic position clamping during drag
-  /// operations. The element's position will be anchored at the inner bounds
-  /// edge (viewport minus edge padding), ensuring it stays visible while the
-  /// viewport pans behind it.
-  ///
-  /// This is the position used for clamping calculations - typically the
-  /// top-left corner of the element.
+  /// When provided, enables absolute positioning mode where the element
+  /// position is calculated directly from the pointer's graph position.
+  /// This prevents offset accumulation issues that can occur with delta-based
+  /// positioning.
   ///
   /// Example:
   /// ```dart
-  /// getElementPosition: () => node.visualPosition.value,
+  /// screenToGraph: (screenPos) => controller.screenToGraph(screenPos).offset,
   /// ```
-  final Offset Function()? getElementPosition;
+  final Offset Function(Offset screenPosition)? screenToGraph;
 
-  /// Converts a screen coordinate point to graph coordinates.
+  /// How the element tracks the pointer during drag operations.
   ///
-  /// Required for position clamping when [getElementPosition] is provided.
-  /// This is used to convert the inner bounds (viewport minus edge padding)
-  /// from screen coordinates to graph coordinates.
+  /// - [PointerTracking.free]: Element tracks pointer everywhere, even outside
+  ///   bounds. Use for connections.
+  /// - [PointerTracking.anchored]: Element anchors at boundary when pointer
+  ///   exits, snaps back on return. Use for nodes/annotations.
   ///
-  /// Example:
-  /// ```dart
-  /// screenToGraph: (screenPoint) => controller.viewport.toGraph(screenPoint),
-  /// ```
-  final Offset Function(Offset screenPoint)? screenToGraph;
+  /// Defaults to [PointerTracking.anchored].
+  final PointerTracking pointerTracking;
 
   @override
   State<ElementScope> createState() => _ElementScopeState();
@@ -336,16 +328,23 @@ class _ElementScopeState extends State<ElementScope> with AutoPanMixin {
   /// Updates during an active drag operation.
   ///
   /// Guard: Returns early if not dragging to prevent orphaned update events.
-  /// Tracks pointer position for autopan and starts the autopan timer if configured.
-  /// Applies drift consumption and position clamping for sticky behavior.
+  /// Tracks pointer position for autopan and processes delta for drift compensation.
+  ///
+  /// Drift handling:
+  /// - **Inside bounds**: Normal 1:1 movement (drift consumed/compensated if any)
+  /// - **Outside bounds**: Element stays put, drift accumulates
+  /// - **Re-entry**: For [trackPointerDirectly] elements, drift is applied
+  ///   immediately (snap). For others, drift is consumed gradually.
   void _updateDrag(DragUpdateDetails details) {
     if (!_isDragging) return;
 
     // Track pointer position for autopan (uses mixin method)
     updatePointerPosition(details.globalPosition);
 
-    // Process delta through drift and clamping pipeline (uses mixin method)
-    final effectiveDelta = processDelta(details.delta);
+    // Process delta with drift compensation
+    // For trackPointerDirectly: immediate snap on re-entry
+    // For positioned elements: gradual consumption
+    final effectiveDelta = processDragDelta(details.delta);
 
     // Only call onDragUpdate if there's actual movement
     if (effectiveDelta != Offset.zero) {

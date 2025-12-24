@@ -549,15 +549,27 @@ extension ViewportApi<T> on NodeFlowController<T> {
     return GraphRect(Rect.fromLTRB(left, top, right, bottom));
   }
 
-  /// Gets the viewport extent as a [ScreenRect] in screen coordinates.
+  /// Gets the viewport extent as a [ScreenRect] in global screen coordinates.
   ///
-  /// This represents the screen area that displays the graph. Typically this
-  /// is the full size of the canvas/widget.
+  /// This represents the screen area that displays the graph in absolute
+  /// screen coordinates. This is essential for comparing with global pointer
+  /// positions from gesture events (e.g., for autopan edge detection).
   ///
-  /// Returns a [ScreenRect] representing the screen bounds of the viewport.
+  /// Returns a [ScreenRect] representing the global screen bounds of the viewport.
   ScreenRect get viewportScreenBounds {
     final size = _screenSize.value;
-    return ScreenRect.fromLTWH(0, 0, size.width, size.height);
+
+    // Get the global position of the canvas using the canvasKey
+    final renderBox =
+        canvasKey.currentContext?.findRenderObject() as RenderBox?;
+    final globalOffset = renderBox?.localToGlobal(Offset.zero) ?? Offset.zero;
+
+    return ScreenRect.fromLTWH(
+      globalOffset.dx,
+      globalOffset.dy,
+      size.width,
+      size.height,
+    );
   }
 
   /// Checks if a graph coordinate point is visible in the current viewport.

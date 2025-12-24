@@ -32,11 +32,10 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
     super.initState();
 
     _themeControl = ThemeControlStore();
-    _currentTheme = NodeFlowTheme.light.copyWith(
-      debugMode: _themeControl.debugMode,
-    );
+    _currentTheme = NodeFlowTheme.light;
     _controller = NodeFlowController(
       initialViewport: const GraphViewport(x: 0, y: 200, zoom: 1.0),
+      config: NodeFlowConfig(debugMode: _themeControl.debugMode),
     );
     _disposers = [];
 
@@ -301,14 +300,7 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
   }
 
   void _updateThemeWithDebugMode() {
-    final currentTheme = _currentTheme;
-    final newTheme = currentTheme.copyWith(
-      debugMode: _themeControl._debugMode.value,
-    );
-
-    setState(() {
-      _currentTheme = newTheme;
-    });
+    _controller.config.update(debugMode: _themeControl._debugMode.value);
   }
 
   void _handleAnimationToggle(bool isRotating) {

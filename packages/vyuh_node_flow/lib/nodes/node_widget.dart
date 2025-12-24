@@ -313,14 +313,10 @@ class NodeWidget<T> extends StatelessWidget {
                     onMouseEnter: onMouseEnter,
                     onMouseLeave: onMouseLeave,
                     cursor: cursor,
-                    // Autopan configuration - ElementScope handles clamping internally
-                    autoPan: controller.config.autoPan,
+                    // Autopan configuration
+                    autoPan: controller.config.autoPan.value,
                     getViewportBounds: () =>
                         controller.viewportScreenBounds.rect,
-                    getElementPosition: () => node.visualPosition.value,
-                    screenToGraph: (screenPoint) => controller
-                        .screenToGraph(ScreenPosition(screenPoint))
-                        .offset,
                     onAutoPan: (delta) {
                       // Pan viewport (convert graph units to screen units)
                       final zoom = controller.viewport.zoom;

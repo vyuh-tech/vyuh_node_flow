@@ -1,4 +1,5 @@
 import 'package:flutter/animation.dart';
+import 'package:flutter/painting.dart';
 
 /// Configuration for autopan behavior during drag operations.
 ///
@@ -14,12 +15,25 @@ import 'package:flutter/animation.dart';
 ///   autoPan: AutoPanConfig.normal,
 /// )
 ///
-/// // Custom configuration
+/// // Custom configuration with uniform padding
 /// NodeFlowConfig(
 ///   autoPan: AutoPanConfig(
-///     edgePadding: 60.0,
+///     edgePadding: EdgeInsets.all(60.0),
 ///     panAmount: 15.0,
 ///     useProximityScaling: true,
+///   ),
+/// )
+///
+/// // Custom configuration with per-edge padding
+/// NodeFlowConfig(
+///   autoPan: AutoPanConfig(
+///     edgePadding: EdgeInsets.only(
+///       left: 50.0,
+///       right: 50.0,
+///       top: 30.0,
+///       bottom: 80.0,  // Larger to avoid bottom toolbar
+///     ),
+///     panAmount: 10.0,
 ///   ),
 /// )
 /// ```
@@ -28,35 +42,40 @@ import 'package:flutter/animation.dart';
 ///
 /// ```
 /// ┌─────────────────────────────────────────────┐
-/// │░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░│ ← edgePadding (top)
+/// │░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░│ ← edgePadding.top
 /// │░░┌─────────────────────────────────────┐░░░░│
 /// │░░│                                     │░░░░│
 /// │░░│         Safe area (no pan)          │░░░░│
 /// │░░│                                     │░░░░│
 /// │░░└─────────────────────────────────────┘░░░░│
-/// │░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░│ ← edgePadding (bottom)
+/// │░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░│ ← edgePadding.bottom
 /// └─────────────────────────────────────────────┘
 ///  ↑                                           ↑
-///  edgePadding (left)              edgePadding (right)
+///  edgePadding.left               edgePadding.right
 /// ```
 class AutoPanConfig {
   /// Creates an autopan configuration.
   ///
   /// All parameters have sensible defaults for typical use cases.
+  /// Use [EdgeInsets.all] for uniform padding on all edges, or
+  /// [EdgeInsets.only] / [EdgeInsets.symmetric] for per-edge control.
   const AutoPanConfig({
-    this.edgePadding = 50.0,
+    this.edgePadding = const EdgeInsets.all(50.0),
     this.panAmount = 10.0,
     this.panInterval = const Duration(milliseconds: 16),
     this.useProximityScaling = false,
     this.speedCurve,
   });
 
-  /// Distance from viewport edge (in screen pixels) where autopan activates.
+  /// Distance from each viewport edge (in screen pixels) where autopan activates.
   ///
-  /// When the pointer enters this zone during a drag, autopan begins.
+  /// When the pointer enters any of these zones during a drag, autopan begins.
   /// Larger values make it easier to trigger autopan but reduce the
-  /// usable drag area. Typical values range from 30 to 80 pixels.
-  final double edgePadding;
+  /// usable drag area. Typical values range from 30 to 80 pixels per edge.
+  ///
+  /// Use [EdgeInsets.all] for uniform padding, [EdgeInsets.symmetric] for
+  /// horizontal/vertical control, or [EdgeInsets.only] for per-edge values.
+  final EdgeInsets edgePadding;
 
   /// Base pan amount per tick in graph units.
   ///
@@ -103,7 +122,7 @@ class AutoPanConfig {
   ///
   /// Uses larger pan amounts and faster intervals for quick navigation.
   static const AutoPanConfig fast = AutoPanConfig(
-    edgePadding: 60.0,
+    edgePadding: EdgeInsets.all(60.0),
     panAmount: 20.0,
     panInterval: Duration(milliseconds: 12),
   );
@@ -112,30 +131,41 @@ class AutoPanConfig {
   ///
   /// Uses smaller pan amounts and a narrower edge zone for fine control.
   static const AutoPanConfig precise = AutoPanConfig(
-    edgePadding: 30.0,
+    edgePadding: EdgeInsets.all(30.0),
     panAmount: 5.0,
     panInterval: Duration(milliseconds: 20),
   );
 
   /// Whether autopan is effectively enabled.
   ///
-  /// Returns false if edge padding or pan amount is zero or negative.
-  bool get isEnabled => edgePadding > 0 && panAmount > 0;
+  /// Returns false if all edge paddings are zero/negative or pan amount is zero/negative.
+  bool get isEnabled =>
+      (edgePadding.left > 0 ||
+          edgePadding.right > 0 ||
+          edgePadding.top > 0 ||
+          edgePadding.bottom > 0) &&
+      panAmount > 0;
 
-  /// Calculates the scaled pan amount based on proximity to edge.
+  /// Calculates the scaled pan amount based on proximity to a specific edge.
   ///
   /// [proximity] is the distance from the edge zone boundary to the pointer,
-  /// where 0 is at the boundary and [edgePadding] is at the viewport edge.
+  /// where 0 is at the boundary and the edge's padding is at the viewport edge.
+  ///
+  /// [edgePaddingValue] is the padding for the specific edge being checked
+  /// (e.g., [edgePadding.left], [edgePadding.top], etc.).
   ///
   /// Returns [panAmount] scaled according to [useProximityScaling] and
   /// [speedCurve] settings.
-  double calculatePanAmount(double proximity) {
-    if (!useProximityScaling || edgePadding <= 0) {
+  double calculatePanAmount(
+    double proximity, {
+    required double edgePaddingValue,
+  }) {
+    if (!useProximityScaling || edgePaddingValue <= 0) {
       return panAmount;
     }
 
     // Normalize proximity to 0-1 range (0 = at boundary, 1 = at edge)
-    final normalizedProximity = (proximity / edgePadding).clamp(0.0, 1.0);
+    final normalizedProximity = (proximity / edgePaddingValue).clamp(0.0, 1.0);
 
     // Apply curve if provided, otherwise use linear scaling
     final scaleFactor =

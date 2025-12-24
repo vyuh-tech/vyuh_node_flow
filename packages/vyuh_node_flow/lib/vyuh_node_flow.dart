@@ -145,6 +145,8 @@ export 'graph/coordinates.dart';
 export 'graph/cursor_theme.dart';
 export 'graph/graph.dart'; // Needed for examples and serialization
 export 'graph/layers/connection_labels_layer.dart' show LabelBuilder;
+export 'graph/layers/autopan_zone_debug_layer.dart';
+export 'graph/layers/debug_layers_stack.dart';
 export 'graph/layers/spatial_index_debug_layer.dart';
 export 'graph/minimap_theme.dart';
 export 'graph/node_flow_actions.dart';
@@ -185,6 +187,7 @@ export 'ports/port_widget.dart'; // Also exports PortBuilder typedef
 // Shared Utilities
 export 'shared/auto_pan_config.dart';
 export 'shared/element_scope.dart';
+export 'shared/pointer_tracking.dart';
 export 'shared/flutter_actions_integration.dart';
 export 'shared/json_converters.dart';
 export 'shared/resizer_widget.dart';

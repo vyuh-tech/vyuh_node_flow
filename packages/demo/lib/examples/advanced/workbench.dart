@@ -851,7 +851,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
   void _toggleDebugMode() {
     setState(() {
       _debugMode = !_debugMode;
-      _nodeFlowTheme = _nodeFlowTheme.copyWith(debugMode: _debugMode);
+      _controller.config.update(debugMode: _debugMode);
     });
   }
 

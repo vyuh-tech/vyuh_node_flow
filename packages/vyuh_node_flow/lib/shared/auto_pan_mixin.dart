@@ -3,29 +3,36 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'element_scope.dart';
+import 'pointer_tracking.dart';
 
 /// Mixin that provides autopan functionality for [ElementScope].
 ///
-/// This mixin handles:
-/// - Timer-based autopan when pointer is near viewport edges
-/// - Position clamping to keep elements within inner bounds
-/// - Drift tracking for sticky behavior (element stays anchored until
-///   pointer catches up to its original relative position)
+/// When the pointer is near viewport edges during a drag, this mixin
+/// automatically pans the viewport to reveal more canvas.
 ///
-/// ## Usage
+/// ## Behavior Zones
 ///
-/// Apply this mixin to a State class that extends [State<ElementScope>]:
-///
-/// ```dart
-/// class _ElementScopeState extends State<ElementScope> with AutoPanMixin {
-///   bool _isDragging = false;
-///
-///   @override
-///   bool get isDragging => _isDragging;
-///
-///   // Use mixin methods in drag handlers...
-/// }
 /// ```
+/// ┌─────────────────────────────────────────────────────────┐
+/// │                    OUTSIDE BOUNDS                       │
+/// │   (autopan at max speed)                                │
+/// │  ┌───────────────────────────────────────────────────┐  │
+/// │  │░░░░░░░░░░░░░░ EDGE ZONE ░░░░░░░░░░░░░░░░░░░░░░░░░│  │
+/// │  │░░┌─────────────────────────────────────────────┐░░│  │
+/// │  │░░│                                             │░░│  │
+/// │  │░░│          INNER BOUNDS                       │░░│  │
+/// │  │░░│     (normal drag, 1:1 movement)             │░░│  │
+/// │  │░░│                                             │░░│  │
+/// │  │░░└─────────────────────────────────────────────┘░░│  │
+/// │  │░░░░░░░░░░░░░░ (autopan active) ░░░░░░░░░░░░░░░░░░│  │
+/// │  └───────────────────────────────────────────────────┘  │
+/// └─────────────────────────────────────────────────────────┘
+/// ```
+///
+/// ## Pointer Tracking Modes
+///
+/// - [PointerTracking.free]: Element tracks pointer everywhere
+/// - [PointerTracking.anchored]: Element freezes outside, snaps on re-entry
 mixin AutoPanMixin on State<ElementScope> {
   // ---------------------------------------------------------------------------
   // State
@@ -35,38 +42,28 @@ mixin AutoPanMixin on State<ElementScope> {
   Timer? _autoPanTimer;
 
   /// Last known pointer position in screen coordinates.
-  /// Used by the autopan timer to check edge proximity.
   Offset? _lastPointerPosition;
 
-  /// Accumulated drift from clamping.
-  ///
-  /// When the element is clamped at the inner bounds edge and the pointer
-  /// continues moving (during autopan), drift accumulates. This represents
-  /// how far the pointer has "drifted away" from where it would be if the
-  /// element could move freely.
-  ///
-  /// When the pointer returns toward the center, drift is consumed first
-  /// before the element starts moving again. This creates "sticky" behavior
-  /// where the element stays anchored until the pointer catches up to its
-  /// original relative position.
-  Offset _drift = Offset.zero;
+  /// Accumulated offset when pointer is outside bounds (anchored mode only).
+  /// Applied as snap compensation on re-entry.
+  Offset _accumulatedOffset = Offset.zero;
+
+  /// Tracks whether pointer was outside bounds in the previous update.
+  /// Used to detect re-entry for snap compensation.
+  bool _wasOutsideBounds = false;
 
   // ---------------------------------------------------------------------------
   // Abstract Interface
   // ---------------------------------------------------------------------------
 
   /// Whether a drag operation is currently in progress.
-  ///
-  /// The host State must provide this so the mixin can guard autopan operations.
   bool get isDragging;
 
   // ---------------------------------------------------------------------------
   // Public API
   // ---------------------------------------------------------------------------
 
-  /// Updates pointer position and starts autopan timer if configured.
-  ///
-  /// Call this from the drag update handler.
+  /// Updates pointer position and manages autopan timer.
   void updatePointerPosition(Offset globalPosition) {
     _lastPointerPosition = globalPosition;
 
@@ -76,40 +73,49 @@ mixin AutoPanMixin on State<ElementScope> {
     }
   }
 
-  /// Processes a delta through the drift consumption and clamping pipeline.
+  /// Processes a drag delta based on pointer tracking mode.
   ///
-  /// This implements "sticky" behavior:
-  /// 1. First consume any accumulated drift (from previous clamping)
-  /// 2. Apply clamping to the remaining delta
-  /// 3. Accumulate new drift if clamping prevented movement
-  ///
-  /// The result is that when the pointer drifts away during autopan,
-  /// the element stays anchored. When returning, the element doesn't move
-  /// until the pointer catches up to its original relative position.
-  Offset processDelta(Offset delta) {
-    // Step 1: Consume existing drift
-    final afterDriftConsumption = _consumeDrift(delta);
+  /// For [PointerTracking.free]: Always pass delta through.
+  /// For [PointerTracking.anchored]: Freeze outside bounds, snap on re-entry.
+  Offset processDragDelta(Offset delta) {
+    final isOutside = _isPointerOutsideBounds();
 
-    // Step 2: Apply clamping
-    final clampedDelta = _clampDelta(afterDriftConsumption);
+    switch (widget.pointerTracking) {
+      case PointerTracking.free:
+        // Always pass delta through - element tracks pointer freely
+        _wasOutsideBounds = isOutside;
+        return delta;
 
-    // Step 3: Accumulate new drift from clamping
-    _drift += afterDriftConsumption - clampedDelta;
+      case PointerTracking.anchored:
+        if (isOutside) {
+          // Outside bounds - freeze element, accumulate offset for snap
+          _accumulatedOffset += delta;
+          _wasOutsideBounds = true;
+          return Offset.zero;
+        }
 
-    return clampedDelta;
+        // Inside bounds - check for re-entry snap
+        if (_wasOutsideBounds && _accumulatedOffset != Offset.zero) {
+          // Re-entered bounds - apply accumulated offset as snap
+          final snap = _accumulatedOffset;
+          _accumulatedOffset = Offset.zero;
+          _wasOutsideBounds = false;
+          return delta + snap;
+        }
+
+        _wasOutsideBounds = false;
+        return delta;
+    }
   }
 
   /// Resets all autopan state.
-  ///
-  /// Call this at drag start, end, and cancel.
   void resetAutoPanState() {
-    _drift = Offset.zero;
     _lastPointerPosition = null;
+    _accumulatedOffset = Offset.zero;
+    _wasOutsideBounds = false;
   }
 
   /// Stops the autopan timer.
-  ///
-  /// Call this at drag end, cancel, and in dispose.
   void stopAutoPan() {
     _autoPanTimer?.cancel();
     _autoPanTimer = null;
@@ -119,7 +125,50 @@ mixin AutoPanMixin on State<ElementScope> {
   // Private Implementation
   // ---------------------------------------------------------------------------
 
-  /// Starts the autopan timer if configured and not already running.
+  /// Checks if pointer is completely outside editor bounds.
+  bool _isPointerOutsideBounds() {
+    final getViewportBounds = widget.getViewportBounds;
+    final pointer = _lastPointerPosition;
+
+    if (getViewportBounds == null || pointer == null) {
+      return false;
+    }
+
+    final bounds = getViewportBounds();
+    return !bounds.contains(pointer);
+  }
+
+  /// Checks if pointer is in edge zone (autopan zone).
+  bool _isInEdgeZone() {
+    final config = widget.autoPan;
+    final getViewportBounds = widget.getViewportBounds;
+    final pointer = _lastPointerPosition;
+
+    if (config == null || getViewportBounds == null || pointer == null) {
+      return false;
+    }
+
+    final bounds = getViewportBounds();
+
+    // First check if inside bounds at all
+    if (!bounds.contains(pointer)) {
+      return false;
+    }
+
+    final padding = config.edgePadding;
+
+    final inLeftZone =
+        padding.left > 0 && pointer.dx < bounds.left + padding.left;
+    final inRightZone =
+        padding.right > 0 && pointer.dx > bounds.right - padding.right;
+    final inTopZone = padding.top > 0 && pointer.dy < bounds.top + padding.top;
+    final inBottomZone =
+        padding.bottom > 0 && pointer.dy > bounds.bottom - padding.bottom;
+
+    return inLeftZone || inRightZone || inTopZone || inBottomZone;
+  }
+
+  /// Starts the autopan timer.
   void _startAutoPan() {
     final config = widget.autoPan;
     if (config == null || !config.isEnabled || _autoPanTimer != null) {
@@ -132,26 +181,13 @@ mixin AutoPanMixin on State<ElementScope> {
     );
   }
 
-  /// Performs autopan check and triggers pan if pointer is near edges.
-  ///
-  /// Called periodically by [_autoPanTimer] during drag operations.
-  ///
-  /// This method:
-  /// 1. Calculates autopan delta based on pointer proximity to edges
-  /// 2. Calls [onAutoPan] with the FULL delta for viewport panning
-  /// 3. Processes delta through drift/clamping pipeline for element movement
-  ///
-  /// The viewport always pans to reveal more canvas. The element stays
-  /// anchored at the inner bounds edge, and drift accumulates. When the
-  /// pointer returns, the element only moves after drift is consumed
-  /// (sticky behavior).
+  /// Performs autopan when pointer is in edge zone or outside bounds.
   void _performAutoPan() {
     final config = widget.autoPan;
     final onAutoPan = widget.onAutoPan;
     final getViewportBounds = widget.getViewportBounds;
     final pointer = _lastPointerPosition;
 
-    // Guard: All required components must be available
     if (config == null ||
         onAutoPan == null ||
         getViewportBounds == null ||
@@ -162,133 +198,88 @@ mixin AutoPanMixin on State<ElementScope> {
 
     final bounds = getViewportBounds();
     final padding = config.edgePadding;
+    final isOutside = !bounds.contains(pointer);
+
+    // If pointer is inside inner bounds (not in edge zone), no autopan needed
+    if (!isOutside && !_isInEdgeZone()) {
+      return;
+    }
 
     double dx = 0.0;
     double dy = 0.0;
 
-    // Check left edge - pan left (negative delta)
-    if (pointer.dx < bounds.left + padding) {
-      final proximity = bounds.left + padding - pointer.dx;
-      dx = -config.calculatePanAmount(proximity);
-    }
-    // Check right edge - pan right (positive delta)
-    else if (pointer.dx > bounds.right - padding) {
-      final proximity = pointer.dx - (bounds.right - padding);
-      dx = config.calculatePanAmount(proximity);
-    }
+    // Calculate pan amounts based on pointer position relative to bounds
+    // Works for both edge zone (inside but near edge) and outside bounds
 
-    // Check top edge - pan up (negative delta)
-    if (pointer.dy < bounds.top + padding) {
-      final proximity = bounds.top + padding - pointer.dy;
-      dy = -config.calculatePanAmount(proximity);
-    }
-    // Check bottom edge - pan down (positive delta)
-    else if (pointer.dy > bounds.bottom - padding) {
-      final proximity = pointer.dy - (bounds.bottom - padding);
-      dy = config.calculatePanAmount(proximity);
-    }
-
-    // Trigger pan and element movement if any edge is near
-    if (dx != 0.0 || dy != 0.0) {
-      final delta = Offset(dx, dy);
-
-      // 1. Pan viewport by FULL delta (always happens to reveal more canvas)
-      onAutoPan(delta);
-
-      // 2. Process delta through drift/clamping pipeline
-      // This accumulates drift when clamped, enabling sticky behavior
-      final effectiveDelta = processDelta(delta);
-      if (effectiveDelta != Offset.zero) {
-        widget.onDragUpdate(
-          DragUpdateDetails(globalPosition: pointer, delta: effectiveDelta),
+    // Left edge / outside left
+    if (pointer.dx < bounds.left + padding.left) {
+      if (isOutside && pointer.dx < bounds.left) {
+        // Outside left - pan at max speed
+        dx = -config.panAmount;
+      } else if (padding.left > 0) {
+        // In left edge zone - scale by proximity
+        final proximity = bounds.left + padding.left - pointer.dx;
+        dx = -config.calculatePanAmount(
+          proximity,
+          edgePaddingValue: padding.left,
         );
       }
     }
-  }
-
-  /// Clamps a drag delta to anchor the element position at the inner bounds edge.
-  ///
-  /// The inner bounds is the viewport minus the edge padding from autopan config.
-  /// When the element's position reaches the edge, it stays anchored there while
-  /// the viewport pans behind it.
-  ///
-  /// Returns the original delta if clamping is not configured or not needed.
-  Offset _clampDelta(Offset delta) {
-    final config = widget.autoPan;
-    final getViewportBounds = widget.getViewportBounds;
-    final getElementPosition = widget.getElementPosition;
-    final screenToGraph = widget.screenToGraph;
-
-    // Guard: All required components must be available for clamping
-    if (config == null ||
-        !config.isEnabled ||
-        getViewportBounds == null ||
-        getElementPosition == null ||
-        screenToGraph == null) {
-      return delta;
+    // Right edge / outside right
+    else if (pointer.dx > bounds.right - padding.right) {
+      if (isOutside && pointer.dx > bounds.right) {
+        // Outside right - pan at max speed
+        dx = config.panAmount;
+      } else if (padding.right > 0) {
+        // In right edge zone - scale by proximity
+        final proximity = pointer.dx - (bounds.right - padding.right);
+        dx = config.calculatePanAmount(
+          proximity,
+          edgePaddingValue: padding.right,
+        );
+      }
     }
 
-    final currentPos = getElementPosition();
-
-    // Calculate inner bounds in screen coordinates
-    final viewportBounds = getViewportBounds();
-    final innerScreenBounds = viewportBounds.deflate(config.edgePadding);
-
-    // Convert inner bounds corners to graph coordinates
-    final topLeft = screenToGraph(innerScreenBounds.topLeft);
-    final bottomRight = screenToGraph(innerScreenBounds.bottomRight);
-    final innerGraphBounds = Rect.fromPoints(topLeft, bottomRight);
-
-    // Calculate new position after applying delta
-    var newX = currentPos.dx + delta.dx;
-    var newY = currentPos.dy + delta.dy;
-
-    // Clamp position to inner bounds (anchor at edge)
-    newX = newX.clamp(innerGraphBounds.left, innerGraphBounds.right);
-    newY = newY.clamp(innerGraphBounds.top, innerGraphBounds.bottom);
-
-    // Return the clamped delta
-    return Offset(newX - currentPos.dx, newY - currentPos.dy);
-  }
-
-  /// Consumes accumulated drift from the given delta.
-  ///
-  /// When moving in the opposite direction of accumulated drift,
-  /// the drift is reduced first before any movement is applied.
-  /// This ensures the pointer must "catch up" to the element before
-  /// movement resumes.
-  ///
-  /// Returns the effective delta after drift consumption.
-  Offset _consumeDrift(Offset delta) {
-    double effectiveDx = delta.dx;
-    double effectiveDy = delta.dy;
-
-    // X-axis: consume drift if moving in opposite direction
-    if (_drift.dx > 0 && delta.dx < 0) {
-      // Drift is positive (pointer drifted right), moving left to compensate
-      final consume = (-delta.dx).clamp(0.0, _drift.dx);
-      _drift = Offset(_drift.dx - consume, _drift.dy);
-      effectiveDx = delta.dx + consume; // Reduce leftward movement magnitude
-    } else if (_drift.dx < 0 && delta.dx > 0) {
-      // Drift is negative (pointer drifted left), moving right to compensate
-      final consume = delta.dx.clamp(0.0, -_drift.dx);
-      _drift = Offset(_drift.dx + consume, _drift.dy);
-      effectiveDx = delta.dx - consume; // Reduce rightward movement magnitude
+    // Top edge / outside top
+    if (pointer.dy < bounds.top + padding.top) {
+      if (isOutside && pointer.dy < bounds.top) {
+        // Outside top - pan at max speed
+        dy = -config.panAmount;
+      } else if (padding.top > 0) {
+        // In top edge zone - scale by proximity
+        final proximity = bounds.top + padding.top - pointer.dy;
+        dy = -config.calculatePanAmount(
+          proximity,
+          edgePaddingValue: padding.top,
+        );
+      }
+    }
+    // Bottom edge / outside bottom
+    else if (pointer.dy > bounds.bottom - padding.bottom) {
+      if (isOutside && pointer.dy > bounds.bottom) {
+        // Outside bottom - pan at max speed
+        dy = config.panAmount;
+      } else if (padding.bottom > 0) {
+        // In bottom edge zone - scale by proximity
+        final proximity = pointer.dy - (bounds.bottom - padding.bottom);
+        dy = config.calculatePanAmount(
+          proximity,
+          edgePaddingValue: padding.bottom,
+        );
+      }
     }
 
-    // Y-axis: same logic
-    if (_drift.dy > 0 && delta.dy < 0) {
-      // Drift is positive (pointer drifted down), moving up to compensate
-      final consume = (-delta.dy).clamp(0.0, _drift.dy);
-      _drift = Offset(_drift.dx, _drift.dy - consume);
-      effectiveDy = delta.dy + consume;
-    } else if (_drift.dy < 0 && delta.dy > 0) {
-      // Drift is negative (pointer drifted up), moving down to compensate
-      final consume = delta.dy.clamp(0.0, -_drift.dy);
-      _drift = Offset(_drift.dx, _drift.dy + consume);
-      effectiveDy = delta.dy - consume;
-    }
+    if (dx != 0.0 || dy != 0.0) {
+      final delta = Offset(dx, dy);
 
-    return Offset(effectiveDx, effectiveDy);
+      // 1. Pan viewport
+      onAutoPan(delta);
+
+      // 2. Move element by same amount to keep it moving with the pan
+      //    This applies both when inside edge zone and outside bounds
+      widget.onDragUpdate(
+        DragUpdateDetails(globalPosition: pointer, delta: delta),
+      );
+    }
   }
 }

@@ -18,7 +18,8 @@ class NodeFlowConfig {
     bool showMinimap = false,
     bool isMinimapInteractive = true,
     this.showAttribution = true,
-    this.autoPan = AutoPanConfig.normal,
+    AutoPanConfig? autoPan = AutoPanConfig.normal,
+    bool debugMode = false,
   }) {
     runInAction(() {
       this.snapToGrid.value = snapToGrid;
@@ -29,6 +30,8 @@ class NodeFlowConfig {
       this.maxZoom.value = maxZoom;
       this.showMinimap.value = showMinimap;
       this.isMinimapInteractive.value = isMinimapInteractive;
+      this.autoPan.value = autoPan;
+      this.debugMode.value = debugMode;
     });
   }
 
@@ -78,10 +81,23 @@ class NodeFlowConfig {
   /// NodeFlowConfig(
   ///   autoPan: null,
   /// )
+  ///
+  /// // Change autopan at runtime
+  /// controller.config.autoPan.value = AutoPanConfig.precise;
   /// ```
   ///
   /// See [AutoPanConfig] for configuration options.
-  final AutoPanConfig? autoPan;
+  final autoPan = Observable<AutoPanConfig?>(null);
+
+  /// Whether to enable debug mode for visualization.
+  ///
+  /// When true, shows debug overlays like:
+  /// - Spatial index grid
+  /// - Autopan edge zones
+  /// - Hit areas and bounds
+  ///
+  /// Useful for development and understanding behavior.
+  final debugMode = Observable<bool>(false);
 
   /// Toggle grid snapping for both nodes and annotations
   void toggleSnapping() {
@@ -113,6 +129,13 @@ class NodeFlowConfig {
     });
   }
 
+  /// Toggle debug mode
+  void toggleDebugMode() {
+    runInAction(() {
+      debugMode.value = !debugMode.value;
+    });
+  }
+
   /// Update multiple properties at once
   void update({
     bool? snapToGrid,
@@ -123,6 +146,8 @@ class NodeFlowConfig {
     double? maxZoom,
     bool? showMinimap,
     bool? isMinimapInteractive,
+    AutoPanConfig? autoPan,
+    bool? debugMode,
   }) {
     runInAction(() {
       if (snapToGrid != null) this.snapToGrid.value = snapToGrid;
@@ -139,6 +164,22 @@ class NodeFlowConfig {
       if (isMinimapInteractive != null) {
         this.isMinimapInteractive.value = isMinimapInteractive;
       }
+      if (autoPan != null) this.autoPan.value = autoPan;
+      if (debugMode != null) this.debugMode.value = debugMode;
+    });
+  }
+
+  /// Disable autopan
+  void disableAutoPan() {
+    runInAction(() {
+      autoPan.value = null;
+    });
+  }
+
+  /// Set autopan configuration
+  void setAutoPan(AutoPanConfig? config) {
+    runInAction(() {
+      autoPan.value = config;
     });
   }
 
@@ -180,6 +221,7 @@ class NodeFlowConfig {
     bool? isMinimapInteractive,
     bool? showAttribution,
     AutoPanConfig? autoPan,
+    bool? debugMode,
   }) {
     return NodeFlowConfig(
       snapToGrid: snapToGrid ?? this.snapToGrid.value,
@@ -193,7 +235,8 @@ class NodeFlowConfig {
       isMinimapInteractive:
           isMinimapInteractive ?? this.isMinimapInteractive.value,
       showAttribution: showAttribution ?? this.showAttribution,
-      autoPan: autoPan ?? this.autoPan,
+      autoPan: autoPan ?? this.autoPan.value,
+      debugMode: debugMode ?? this.debugMode.value,
     );
   }
 }

@@ -7,6 +7,8 @@ import 'examples/advanced/alignment.dart';
 import 'examples/advanced/animated_connections.dart';
 // Annotations examples
 import 'examples/advanced/annotations.dart';
+// AutoPan example
+import 'examples/advanced/autopan.dart';
 // Connection labels examples
 import 'examples/advanced/connection_labels.dart';
 // // Editable connections examples
@@ -17,6 +19,7 @@ import 'examples/advanced/shortcuts.dart';
 import 'examples/advanced/theming.dart';
 import 'examples/advanced/validation.dart';
 import 'examples/advanced/viewer.dart';
+import 'examples/advanced/viewport_animations.dart';
 import 'examples/advanced/visibility.dart';
 import 'examples/advanced/workbench.dart';
 // Basics examples
@@ -207,6 +210,22 @@ class ExampleRegistry {
               'Custom validation rules, type checking, and connection limits',
           icon: Icons.verified_user,
           builder: (_) => const ConnectionValidationExample(),
+        ),
+        Example(
+          id: 'autopan',
+          title: 'AutoPan',
+          description:
+              'Automatic viewport panning when dragging near edges with switchable presets',
+          icon: Icons.pan_tool_alt,
+          builder: (_) => const AutoPanExample(),
+        ),
+        Example(
+          id: 'viewport-animations',
+          title: 'Viewport Animations',
+          description:
+              'Animated navigation to nodes, positions, bounds, and zoom levels',
+          icon: Icons.animation,
+          builder: (_) => const ViewportAnimationsExample(),
         ),
         Example(
           id: 'workbench',

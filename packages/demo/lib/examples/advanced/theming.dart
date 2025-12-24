@@ -27,7 +27,7 @@ class _ThemingExampleState extends State<ThemingExample> {
     super.initState();
     _theme = NodeFlowTheme.light;
     _controller = NodeFlowController<Map<String, dynamic>>(
-      config: NodeFlowConfig(),
+      config: NodeFlowConfig(debugMode: _debugMode),
     );
     _createExampleGraph();
   }
@@ -214,7 +214,7 @@ class _ThemingExampleState extends State<ThemingExample> {
 
   void _resetToLightTheme() {
     setState(() {
-      _theme = NodeFlowTheme.light.copyWith(debugMode: _debugMode);
+      _theme = NodeFlowTheme.light;
     });
   }
 
@@ -428,7 +428,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           label: 'Dark',
           onPressed: () {
             setState(() {
-              _theme = NodeFlowTheme.dark.copyWith(debugMode: _debugMode);
+              _theme = NodeFlowTheme.dark;
             });
           },
         ),
@@ -1367,7 +1367,7 @@ class _ThemingExampleState extends State<ThemingExample> {
               onChanged: (value) {
                 setState(() {
                   _debugMode = value;
-                  _theme = _theme.copyWith(debugMode: value);
+                  _controller.config.update(debugMode: value);
                 });
               },
             ),

@@ -158,13 +158,9 @@ class AnnotationWidget extends StatelessWidget {
                   onMouseLeave: onMouseLeave,
                   cursor: cursor,
                   hitTestBehavior: HitTestBehavior.translucent,
-                  // Autopan configuration - ElementScope handles clamping internally
-                  autoPan: controller.config.autoPan,
+                  // Autopan configuration
+                  autoPan: controller.config.autoPan.value,
                   getViewportBounds: () => controller.viewportScreenBounds.rect,
-                  getElementPosition: () => annotation.visualPosition,
-                  screenToGraph: (screenPoint) => controller
-                      .screenToGraph(ScreenPosition(screenPoint))
-                      .offset,
                   onAutoPan: (delta) {
                     // Pan viewport (convert graph units to screen units)
                     final zoom = controller.viewport.zoom;
