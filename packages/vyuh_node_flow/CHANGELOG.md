@@ -1,3 +1,7 @@
+## 0.14.0
+
+ - **FEAT**: unify Nodes and Annotations.
+
 ## 0.13.3
 
  - **FEAT**: remove debug logs, simplify null checks in viewport animation, and add lifecycle unit tests for animation handlers.
