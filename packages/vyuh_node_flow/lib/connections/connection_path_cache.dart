@@ -6,7 +6,6 @@ import '../connections/styles/endpoint_position_calculator.dart';
 import '../graph/node_flow_theme.dart';
 import '../nodes/node.dart';
 import '../nodes/node_shape.dart';
-import '../ports/port.dart';
 import '../shared/shapes/none_marker_shape.dart';
 
 /// Cached path data with hit testing capabilities
@@ -129,8 +128,8 @@ class ConnectionPathCache {
     final currentTargetPos = targetNode.position.value;
 
     // Get current port offsets for cache invalidation
-    final sourcePort = _findPort(sourceNode, connection.sourcePortId);
-    final targetPort = _findPort(targetNode, connection.targetPortId);
+    final sourcePort = sourceNode.findPort(connection.sourcePortId);
+    final targetPort = targetNode.findPort(connection.targetPortId);
     final currentSourcePortOffset = sourcePort?.offset ?? Offset.zero;
     final currentTargetPortOffset = targetPort?.offset ?? Offset.zero;
 
@@ -201,8 +200,8 @@ class ConnectionPathCache {
     final currentEndGap = connection.endGap ?? connectionTheme.endGap;
 
     // Get current port offsets for cache invalidation
-    final sourcePort = _findPort(sourceNode, connection.sourcePortId);
-    final targetPort = _findPort(targetNode, connection.targetPortId);
+    final sourcePort = sourceNode.findPort(connection.sourcePortId);
+    final targetPort = targetNode.findPort(connection.targetPortId);
     final currentSourcePortOffset = sourcePort?.offset ?? Offset.zero;
     final currentTargetPortOffset = targetPort?.offset ?? Offset.zero;
 
@@ -235,17 +234,6 @@ class ConnectionPathCache {
     return newPath?.originalPath;
   }
 
-  /// Helper to find a port in a node by ID
-  Port? _findPort(Node node, String portId) {
-    for (final port in node.inputPorts) {
-      if (port.id == portId) return port;
-    }
-    for (final port in node.outputPorts) {
-      if (port.id == portId) return port;
-    }
-    return null;
-  }
-
   /// Create and cache a new connection path
   _CachedConnectionPath? _createAndCachePath({
     required Connection connection,
@@ -266,24 +254,13 @@ class ConnectionPathCache {
     final targetShape = nodeShape?.call(targetNode);
 
     // Get ports first to determine their sizes
-    Port? sourcePort;
-    Port? targetPort;
+    // Use Node.findPort which safely returns null if not found
+    final sourcePort = sourceNode.findPort(connection.sourcePortId);
+    final targetPort = targetNode.findPort(connection.targetPortId);
 
-    try {
-      sourcePort = [
-        ...sourceNode.inputPorts,
-        ...sourceNode.outputPorts,
-      ].firstWhere((port) => port.id == connection.sourcePortId);
-    } catch (e) {
-      return null;
-    }
-
-    try {
-      targetPort = [
-        ...targetNode.inputPorts,
-        ...targetNode.outputPorts,
-      ].firstWhere((port) => port.id == connection.targetPortId);
-    } catch (e) {
+    // Return null if either port is not found - connection may be stale or ports
+    // haven't been set up yet (e.g., during widget initialization)
+    if (sourcePort == null || targetPort == null) {
       return null;
     }
 
@@ -448,8 +425,8 @@ class ConnectionPathCache {
     final currentEndGap = connection.endGap ?? connectionTheme.endGap;
 
     // Get current port offsets for cache invalidation
-    final sourcePort = _findPort(sourceNode, connection.sourcePortId);
-    final targetPort = _findPort(targetNode, connection.targetPortId);
+    final sourcePort = sourceNode.findPort(connection.sourcePortId);
+    final targetPort = targetNode.findPort(connection.targetPortId);
     final currentSourcePortOffset = sourcePort?.offset ?? Offset.zero;
     final currentTargetPortOffset = targetPort?.offset ?? Offset.zero;
 

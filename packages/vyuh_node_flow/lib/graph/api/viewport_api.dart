@@ -671,12 +671,29 @@ extension ViewportApi<T> on NodeFlowController<T> {
   /// This handler is invoked by the animate* methods to trigger smooth
   /// viewport animations via the [ViewportAnimationMixin] in [NodeFlowEditor].
   ///
+  /// The [token] parameter is used to identify which widget set the handler,
+  /// preventing race conditions when widgets are recreated (where the old
+  /// widget's dispose could clear the new widget's handler).
+  ///
   /// Called by [NodeFlowEditor] during initialization.
   void setAnimateToHandler(
     void Function(GraphViewport target, {Duration duration, Curve curve})?
-    handler,
-  ) {
+    handler, {
+    Object? token,
+  }) {
     _onAnimateToViewport = handler;
+    _animateToHandlerToken = token;
+  }
+
+  /// Clears the animation handler only if it was set by the same token.
+  ///
+  /// This prevents race conditions where an old widget's dispose clears
+  /// a handler that was already replaced by a new widget.
+  void clearAnimateToHandler(Object token) {
+    if (_animateToHandlerToken == token) {
+      _onAnimateToViewport = null;
+      _animateToHandlerToken = null;
+    }
   }
 
   /// Animates the viewport to a target state.
@@ -699,6 +716,12 @@ extension ViewportApi<T> on NodeFlowController<T> {
     Duration duration = const Duration(milliseconds: 400),
     Curve curve = Curves.easeInOut,
   }) {
+    if (_onAnimateToViewport == null) {
+      debugPrint(
+        '[ViewportApi] animateToViewport: handler is NULL, cannot animate',
+      );
+      return;
+    }
     _onAnimateToViewport?.call(target, duration: duration, curve: curve);
   }
 
@@ -728,7 +751,16 @@ extension ViewportApi<T> on NodeFlowController<T> {
     Curve curve = Curves.easeInOut,
   }) {
     final node = _nodes[nodeId];
-    if (node == null || _screenSize.value == Size.zero) return;
+    if (node == null) {
+      debugPrint('[ViewportApi] animateToNode: node "$nodeId" not found');
+      return;
+    }
+    if (_screenSize.value == Size.zero) {
+      debugPrint(
+        '[ViewportApi] animateToNode: screen size is Size.zero, cannot animate',
+      );
+      return;
+    }
 
     final pos = node.position.value;
     final size = node.size.value;

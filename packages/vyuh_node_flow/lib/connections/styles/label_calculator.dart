@@ -85,26 +85,9 @@ class LabelCalculator {
   }) {
     try {
       // Find the actual port objects first (needed for their sizes)
-      Port? sourcePort;
-      Port? targetPort;
-
-      try {
-        sourcePort = [
-          ...sourceNode.inputPorts,
-          ...sourceNode.outputPorts,
-        ].firstWhere((port) => port.id == connection.sourcePortId);
-      } catch (e) {
-        // Source port not found
-      }
-
-      try {
-        targetPort = [
-          ...targetNode.inputPorts,
-          ...targetNode.outputPorts,
-        ].firstWhere((port) => port.id == connection.targetPortId);
-      } catch (e) {
-        // Target port not found
-      }
+      // Use Node.findPort which safely returns null if not found
+      final sourcePort = sourceNode.findPort(connection.sourcePortId);
+      final targetPort = targetNode.findPort(connection.targetPortId);
 
       // Get port positions using each port's size
       final sourcePortPosition = sourceNode.getConnectionPoint(

@@ -3,6 +3,7 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/widgets.dart';
 import 'package:vector_math/vector_math_64.dart' show Vector3;
 
+import 'node_flow_controller.dart';
 import 'viewport.dart';
 
 /// A [Tween] that interpolates between two [Matrix4] values.
@@ -87,6 +88,9 @@ mixin ViewportAnimationMixin {
   /// Callback when animation completes to sync final viewport state.
   ViewportSyncCallback? _onAnimationComplete;
 
+  /// The controller to register the animation handler with.
+  NodeFlowController? _nodeFlowController;
+
   /// Whether the animation system is attached.
   bool get isViewportAnimationAttached => _viewportAnimationController != null;
 
@@ -96,20 +100,24 @@ mixin ViewportAnimationMixin {
 
   /// Attach the viewport animation system to a ticker provider.
   ///
-  /// This creates the animation controller and prepares the mixin for animations.
+  /// This creates the animation controller, prepares the mixin for animations,
+  /// and registers the animation handler on the controller.
   /// Must be called before using any animation methods (typically in `initState`).
   ///
   /// Parameters:
   /// - [tickerProvider]: The TickerProvider to use for animations
   /// - [transformationController]: The TransformationController to animate
+  /// - [controller]: The NodeFlowController to register the animation handler with
   /// - [onAnimationComplete]: Optional callback when animation completes
   void attachViewportAnimation({
     required TickerProvider tickerProvider,
     required TransformationController transformationController,
+    required NodeFlowController controller,
     ViewportSyncCallback? onAnimationComplete,
   }) {
     _transformationController = transformationController;
     _onAnimationComplete = onAnimationComplete;
+    _nodeFlowController = controller;
 
     _viewportAnimationController = AnimationController(
       vsync: tickerProvider,
@@ -117,13 +125,27 @@ mixin ViewportAnimationMixin {
     );
     _viewportAnimationController!.addListener(_onAnimationTick);
     _viewportAnimationController!.addStatusListener(_onAnimationStatus);
+
+    // Register the animation handler on the controller
+    // Use 'this' (the State instance) as token to prevent race conditions
+    controller.setAnimateToHandler((
+      target, {
+      Duration duration = const Duration(milliseconds: 400),
+      Curve curve = Curves.easeInOut,
+    }) {
+      animateViewportTo(target, duration: duration, curve: curve);
+    }, token: this);
   }
 
   /// Detach the viewport animation system.
   ///
-  /// This disposes the animation controller and cleans up resources.
+  /// This disposes the animation controller, cleans up resources,
+  /// and unregisters the animation handler from the controller.
   /// Must be called when done with animations (typically in `dispose`).
   void detachViewportAnimation() {
+    // Unregister the animation handler only if it's still ours
+    _nodeFlowController?.clearAnimateToHandler(this);
+
     _viewportAnimationController?.removeListener(_onAnimationTick);
     _viewportAnimationController?.removeStatusListener(_onAnimationStatus);
     _viewportAnimationController?.dispose();
@@ -131,6 +153,7 @@ mixin ViewportAnimationMixin {
     _matrixAnimation = null;
     _transformationController = null;
     _onAnimationComplete = null;
+    _nodeFlowController = null;
   }
 
   /// Animate the viewport to a target state.
@@ -150,8 +173,16 @@ mixin ViewportAnimationMixin {
     Duration duration = const Duration(milliseconds: 400),
     Curve curve = Curves.easeInOut,
   }) {
-    if (_viewportAnimationController == null ||
-        _transformationController == null) {
+    if (_viewportAnimationController == null) {
+      debugPrint(
+        '[ViewportAnimationMixin] animateViewportTo: _viewportAnimationController is NULL',
+      );
+      return;
+    }
+    if (_transformationController == null) {
+      debugPrint(
+        '[ViewportAnimationMixin] animateViewportTo: _transformationController is NULL',
+      );
       return;
     }
 

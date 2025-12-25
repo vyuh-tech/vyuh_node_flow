@@ -111,24 +111,13 @@ class ConnectionPainter {
     );
 
     // Get ports for endpoint drawing
-    Port? sourcePort;
-    Port? targetPort;
+    // Use Node.findPort which safely returns null if not found
+    final sourcePort = sourceNode.findPort(connection.sourcePortId);
+    final targetPort = targetNode.findPort(connection.targetPortId);
 
-    try {
-      sourcePort = [
-        ...sourceNode.inputPorts,
-        ...sourceNode.outputPorts,
-      ].firstWhere((port) => port.id == connection.sourcePortId);
-    } catch (e) {
-      return;
-    }
-
-    try {
-      targetPort = [
-        ...targetNode.inputPorts,
-        ...targetNode.outputPorts,
-      ].firstWhere((port) => port.id == connection.targetPortId);
-    } catch (e) {
+    // Return if either port is not found - connection may be stale or ports
+    // haven't been set up yet (e.g., during widget initialization)
+    if (sourcePort == null || targetPort == null) {
       return;
     }
 

@@ -536,15 +536,13 @@ class Node<T> {
   ///
   /// Returns the [Port] if found, null otherwise.
   Port? findPort(String portId) {
-    try {
-      return inputPorts.firstWhere((port) => port.id == portId);
-    } catch (_) {
-      try {
-        return outputPorts.firstWhere((port) => port.id == portId);
-      } catch (_) {
-        return null;
-      }
+    for (final port in inputPorts) {
+      if (port.id == portId) return port;
     }
+    for (final port in outputPorts) {
+      if (port.id == portId) return port;
+    }
+    return null;
   }
 
   /// Checks if a point is within the node's rectangular bounds.

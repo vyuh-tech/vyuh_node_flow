@@ -207,6 +207,10 @@ class NodeFlowController<T> {
   void Function(GraphViewport target, {Duration duration, Curve curve})?
   _onAnimateToViewport;
 
+  /// Token identifying which widget set the current animation handler.
+  /// Used to prevent race conditions when widgets are recreated.
+  Object? _animateToHandlerToken;
+
   /// Key for the canvas widget, used to convert global coordinates to canvas-local.
   final GlobalKey canvasKey = GlobalKey();
 
