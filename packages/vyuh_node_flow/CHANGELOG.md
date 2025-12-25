@@ -1,3 +1,7 @@
+## 0.13.1
+
+ - **FEAT**: initial set of tests for API, nodes, ports, graph, annotations, connections, rendering and performance.
+
 ## 0.13.0
 
  - **FEAT**: enhance AutoPan and Viewport Animations, add debug mode with overlays for better visualization, and integrate configurable AutoPan presets. `debugMode` is now moved into `NodeFlowConfig`.
