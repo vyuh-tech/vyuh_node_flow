@@ -1,3 +1,7 @@
+## 0.13.2
+
+ - **FEAT**: streamline port retrieval across nodes and improve viewport animation handling with token-based race condition prevention.
+
 ## 0.13.1
 
  - **FEAT**: initial set of tests for API, nodes, ports, graph, annotations, connections, rendering and performance.
