@@ -201,7 +201,7 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
           // positioning with showMenu or similar popup APIs
           widget.controller.events.connection?.onContextMenu?.call(
             connection,
-            event.position,
+            ScreenPosition(event.position),
           );
         }
         break;
@@ -211,7 +211,7 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
           ScreenPosition(event.localPosition),
         );
         widget.controller.events.viewport?.onCanvasContextMenu?.call(
-          graphPosition.offset,
+          graphPosition,
         );
         break;
     }
@@ -273,11 +273,7 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
         if (node != null) {
           final port = _findPort(node, hitResult.portId!);
           if (port != null) {
-            widget.controller.events.port?.onTap?.call(
-              node,
-              port,
-              hitResult.isOutput ?? false,
-            );
+            widget.controller.events.port?.onTap?.call(node, port);
           }
         }
         break;
@@ -300,9 +296,7 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
           final graphPosition = widget.controller.viewport.toGraph(
             ScreenPosition(position),
           );
-          widget.controller.events.viewport?.onCanvasTap?.call(
-            graphPosition.offset,
-          );
+          widget.controller.events.viewport?.onCanvasTap?.call(graphPosition);
         }
         break;
     }
@@ -322,11 +316,7 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
         if (node != null) {
           final port = _findPort(node, hitResult.portId!);
           if (port != null) {
-            widget.controller.events.port?.onDoubleTap?.call(
-              node,
-              port,
-              hitResult.isOutput ?? false,
-            );
+            widget.controller.events.port?.onDoubleTap?.call(node, port);
           }
         }
         break;
@@ -351,7 +341,7 @@ extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
           ScreenPosition(position),
         );
         widget.controller.events.viewport?.onCanvasDoubleTap?.call(
-          graphPosition.offset,
+          graphPosition,
         );
         break;
     }

@@ -118,36 +118,30 @@ typedef NodeLookup = Node? Function(String nodeId);
 class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
   GroupNode({
     required super.id,
-    required Offset position,
-    required Size size,
+    required super.position,
+    required Size super.size,
     required String title,
-    required T data,
+    required super.data,
     Color color = Colors.blue,
     GroupBehavior behavior = GroupBehavior.bounds,
     Set<String>? nodeIds,
     this.padding = kGroupNodeDefaultPadding,
     int zIndex = -1, // Usually behind nodes
     bool isVisible = true,
-    bool locked = false,
+    super.locked,
     // Optional ports for subflow patterns
-    List<Port> inputPorts = const [],
-    List<Port> outputPorts = const [],
+    super.inputPorts,
+    super.outputPorts,
   }) : _nodeIds = ObservableSet.of(nodeIds ?? {}),
        _observableBehavior = Observable(behavior),
        _observableTitle = Observable(title),
        _observableColor = Observable(color),
        super(
          type: 'group',
-         position: position,
-         size: size,
-         data: data,
          layer: NodeRenderLayer.background,
          initialZIndex: zIndex,
          visible: isVisible,
-         locked: locked,
-         selectable: false, // Groups don't participate in marquee selection
-         inputPorts: inputPorts,
-         outputPorts: outputPorts,
+         selectable: false,
        );
 
   final Observable<String> _observableTitle;

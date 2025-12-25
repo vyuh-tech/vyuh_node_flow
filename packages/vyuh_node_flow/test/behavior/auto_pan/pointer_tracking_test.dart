@@ -125,7 +125,7 @@ void main() {
 
     test('outside bounds with free mode: delta still passes through', () {
       const delta = Offset(15.0, 8.0);
-      const isOutsideBounds = true;
+      // isOutsideBounds would be true in this scenario
       const mode = PointerTracking.free;
 
       if (mode == PointerTracking.free) {
@@ -135,7 +135,7 @@ void main() {
     });
 
     test('outside bounds with anchored mode: delta becomes zero', () {
-      const delta = Offset(15.0, 8.0);
+      // Original delta would be non-zero but gets frozen when outside bounds
       const isOutsideBounds = true;
       const mode = PointerTracking.anchored;
 

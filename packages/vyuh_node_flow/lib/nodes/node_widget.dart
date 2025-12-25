@@ -196,12 +196,12 @@ class NodeWidget<T> extends StatelessWidget {
 
   /// Callback invoked when a port is right-clicked (context menu).
   ///
-  /// Parameters: (nodeId, portId, isOutput, globalPosition)
+  /// Parameters: (nodeId, portId, screenPosition)
+  /// The port direction can be checked via [Port.isOutput] or [Port.isInput].
   final void Function(
     String nodeId,
     String portId,
-    bool isOutput,
-    Offset globalPosition,
+    ScreenPosition screenPosition,
   )?
   onPortContextMenu;
 
@@ -265,8 +265,8 @@ class NodeWidget<T> extends StatelessWidget {
 
   /// Callback invoked when the node is right-clicked (context menu).
   ///
-  /// The [Offset] parameter is the global position of the tap.
-  final void Function(Offset globalPosition)? onContextMenu;
+  /// The [screenPosition] is in screen/global coordinates for menu positioning.
+  final void Function(ScreenPosition screenPosition)? onContextMenu;
 
   /// Callback invoked when the mouse enters the node bounds.
   final VoidCallback? onMouseEnter;
@@ -566,7 +566,7 @@ class NodeWidget<T> extends StatelessWidget {
                 ? (data) => onPortHover!(node.id, data.$1.id, data.$2)
                 : null,
             onContextMenu: onPortContextMenu != null
-                ? (pos) => onPortContextMenu!(node.id, port.id, isOutput, pos)
+                ? (pos) => onPortContextMenu!(node.id, port.id, pos)
                 : null,
           );
 

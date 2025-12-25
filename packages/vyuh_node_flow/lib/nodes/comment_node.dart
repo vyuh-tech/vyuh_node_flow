@@ -37,25 +37,22 @@ import 'node.dart';
 class CommentNode<T> extends Node<T> with ResizableMixin<T> {
   CommentNode({
     required super.id,
-    required Offset position,
+    required super.position,
     required String text,
-    required T data,
+    required super.data,
     double width = 200.0,
     double height = 100.0,
     this.color = Colors.yellow,
     int zIndex = 0,
     bool isVisible = true,
-    bool locked = false,
+    super.locked,
   }) : _text = Observable(text),
        super(
          type: 'comment',
-         position: position,
          size: Size(width, height),
-         data: data,
          layer: NodeRenderLayer.foreground,
          initialZIndex: zIndex,
          visible: isVisible,
-         locked: locked,
          selectable: false, // Comments don't participate in marquee selection
          inputPorts: const [],
          outputPorts: const [],

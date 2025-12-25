@@ -51,7 +51,7 @@ extension _WidgetGestureHandlers<T> on _NodeFlowEditorState<T> {
   ///
   /// The [screenPosition] is in screen/global coordinates, passed directly
   /// to the callback for use with [showMenu] or similar popup APIs.
-  void _handleNodeContextMenu(Node<T> node, Offset screenPosition) {
+  void _handleNodeContextMenu(Node<T> node, ScreenPosition screenPosition) {
     widget.controller.events.node?.onContextMenu?.call(node, screenPosition);
   }
 
@@ -78,8 +78,7 @@ extension _WidgetGestureHandlers<T> on _NodeFlowEditorState<T> {
   void _handlePortContextMenu(
     String nodeId,
     String portId,
-    bool isOutput,
-    Offset screenPosition,
+    ScreenPosition screenPosition,
   ) {
     final node = widget.controller.getNode(nodeId);
     if (node == null) return;
@@ -94,7 +93,6 @@ extension _WidgetGestureHandlers<T> on _NodeFlowEditorState<T> {
     widget.controller.events.port?.onContextMenu?.call(
       node,
       port,
-      isOutput,
       screenPosition,
     );
   }

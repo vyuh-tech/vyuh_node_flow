@@ -4,6 +4,7 @@ import '../connections/connection.dart';
 import '../connections/connection_validation.dart';
 import '../nodes/node.dart';
 import '../ports/port.dart';
+import 'coordinates.dart';
 import 'viewport.dart';
 
 /// Comprehensive event system for the NodeFlowEditor
@@ -121,7 +122,8 @@ class NodeEvents<T> {
   ///
   /// The [screenPosition] is in screen/global coordinates, suitable for
   /// positioning popup menus via [showMenu] or similar APIs.
-  final void Function(Node<T> node, Offset screenPosition)? onContextMenu;
+  final void Function(Node<T> node, ScreenPosition screenPosition)?
+  onContextMenu;
 
   NodeEvents<T> copyWith({
     ValueChanged<Node<T>>? onCreated,
@@ -134,7 +136,7 @@ class NodeEvents<T> {
     ValueChanged<Node<T>>? onDragStop,
     ValueChanged<Node<T>>? onMouseEnter,
     ValueChanged<Node<T>>? onMouseLeave,
-    void Function(Node<T> node, Offset screenPosition)? onContextMenu,
+    void Function(Node<T> node, ScreenPosition screenPosition)? onContextMenu,
   }) {
     return NodeEvents<T>(
       onCreated: onCreated ?? this.onCreated,
@@ -152,10 +154,11 @@ class NodeEvents<T> {
   }
 }
 
-/// Events related to port interactions
+/// Events related to port interactions.
 ///
 /// Port events include the parent node for context, since ports are always
-/// associated with a node.
+/// associated with a node. The port's direction (input/output) can be
+/// determined via [Port.isOutput] or [Port.isInput].
 class PortEvents<T> {
   const PortEvents({
     this.onTap,
@@ -165,45 +168,40 @@ class PortEvents<T> {
     this.onContextMenu,
   });
 
-  /// Called when a port is tapped
-  /// Receives the node, port, and whether it's an output port
-  final void Function(Node<T> node, Port port, bool isOutput)? onTap;
+  /// Called when a port is tapped.
+  ///
+  /// Check [Port.isOutput] or [Port.isInput] to determine the port direction.
+  final void Function(Node<T> node, Port port)? onTap;
 
-  /// Called when a port is double-tapped
-  /// Receives the node, port, and whether it's an output port
-  final void Function(Node<T> node, Port port, bool isOutput)? onDoubleTap;
+  /// Called when a port is double-tapped.
+  ///
+  /// Check [Port.isOutput] or [Port.isInput] to determine the port direction.
+  final void Function(Node<T> node, Port port)? onDoubleTap;
 
-  /// Called when mouse enters a port's bounds
-  /// Receives the node, port, and whether it's an output port
-  final void Function(Node<T> node, Port port, bool isOutput)? onMouseEnter;
+  /// Called when mouse enters a port's bounds.
+  ///
+  /// Check [Port.isOutput] or [Port.isInput] to determine the port direction.
+  final void Function(Node<T> node, Port port)? onMouseEnter;
 
-  /// Called when mouse leaves a port's bounds
-  /// Receives the node, port, and whether it's an output port
-  final void Function(Node<T> node, Port port, bool isOutput)? onMouseLeave;
+  /// Called when mouse leaves a port's bounds.
+  ///
+  /// Check [Port.isOutput] or [Port.isInput] to determine the port direction.
+  final void Function(Node<T> node, Port port)? onMouseLeave;
 
   /// Called on secondary tap on a port (right-click/long-press for context menu).
   ///
   /// The [screenPosition] is in screen/global coordinates, suitable for
   /// positioning popup menus via [showMenu] or similar APIs.
-  final void Function(
-    Node<T> node,
-    Port port,
-    bool isOutput,
-    Offset screenPosition,
-  )?
+  /// Check [Port.isOutput] or [Port.isInput] to determine the port direction.
+  final void Function(Node<T> node, Port port, ScreenPosition screenPosition)?
   onContextMenu;
 
   PortEvents<T> copyWith({
-    void Function(Node<T> node, Port port, bool isOutput)? onTap,
-    void Function(Node<T> node, Port port, bool isOutput)? onDoubleTap,
-    void Function(Node<T> node, Port port, bool isOutput)? onMouseEnter,
-    void Function(Node<T> node, Port port, bool isOutput)? onMouseLeave,
-    void Function(
-      Node<T> node,
-      Port port,
-      bool isOutput,
-      Offset screenPosition,
-    )?
+    void Function(Node<T> node, Port port)? onTap,
+    void Function(Node<T> node, Port port)? onDoubleTap,
+    void Function(Node<T> node, Port port)? onMouseEnter,
+    void Function(Node<T> node, Port port)? onMouseLeave,
+    void Function(Node<T> node, Port port, ScreenPosition screenPosition)?
     onContextMenu,
   }) {
     return PortEvents<T>(
@@ -259,17 +257,20 @@ class ConnectionEvents<T> {
   ///
   /// The [screenPosition] is in screen/global coordinates, suitable for
   /// positioning popup menus via [showMenu] or similar APIs.
-  final void Function(Connection connection, Offset screenPosition)?
+  final void Function(Connection connection, ScreenPosition screenPosition)?
   onContextMenu;
 
-  /// Called when starting to create a connection from a port
-  /// Useful for showing UI hints or validation messages
-  final void Function(String nodeId, String portId, bool isOutput)?
-  onConnectStart;
+  /// Called when starting to create a connection from a port.
+  ///
+  /// Provides the source node and port. Check [Port.isOutput] or [Port.isInput]
+  /// to determine the port direction. Useful for showing UI hints or validation messages.
+  final void Function(Node<T> sourceNode, Port sourcePort)? onConnectStart;
 
-  /// Called when connection creation ends (whether successful or cancelled)
-  /// Parameters indicate if a connection was successfully created
-  final void Function(bool success)? onConnectEnd;
+  /// Called when connection creation ends.
+  ///
+  /// If [targetNode] and [targetPort] are non-null, a connection was successfully
+  /// created to that target. If both are null, the connection was cancelled.
+  final void Function(Node<T>? targetNode, Port? targetPort)? onConnectEnd;
 
   /// Validation callback before starting a connection from a port
   /// Return ConnectionValidationResult with allowed: false to prevent connection start
@@ -291,9 +292,10 @@ class ConnectionEvents<T> {
     ValueChanged<Connection>? onDoubleTap,
     ValueChanged<Connection>? onMouseEnter,
     ValueChanged<Connection>? onMouseLeave,
-    void Function(Connection connection, Offset screenPosition)? onContextMenu,
-    void Function(String nodeId, String portId, bool isOutput)? onConnectStart,
-    void Function(bool success)? onConnectEnd,
+    void Function(Connection connection, ScreenPosition screenPosition)?
+    onContextMenu,
+    void Function(Node<T> sourceNode, Port sourcePort)? onConnectStart,
+    void Function(Node<T>? targetNode, Port? targetPort)? onConnectEnd,
     ConnectionValidationResult Function(ConnectionStartContext<T> context)?
     onBeforeStart,
     ConnectionValidationResult Function(ConnectionCompleteContext<T> context)?
@@ -341,23 +343,23 @@ class ViewportEvents {
 
   /// Called when tapping on empty canvas area (not on nodes/connections)
   /// Receives the tap position in graph coordinates
-  final ValueChanged<Offset>? onCanvasTap;
+  final ValueChanged<GraphPosition>? onCanvasTap;
 
   /// Called when double-tapping on empty canvas area (not on nodes/connections)
   /// Receives the tap position in graph coordinates
-  final ValueChanged<Offset>? onCanvasDoubleTap;
+  final ValueChanged<GraphPosition>? onCanvasDoubleTap;
 
   /// Called on secondary tap on empty canvas (right-click/long-press for context menu)
   /// Receives the tap position in graph coordinates
-  final ValueChanged<Offset>? onCanvasContextMenu;
+  final ValueChanged<GraphPosition>? onCanvasContextMenu;
 
   ViewportEvents copyWith({
     ValueChanged<GraphViewport>? onMove,
     ValueChanged<GraphViewport>? onMoveStart,
     ValueChanged<GraphViewport>? onMoveEnd,
-    ValueChanged<Offset>? onCanvasTap,
-    ValueChanged<Offset>? onCanvasDoubleTap,
-    ValueChanged<Offset>? onCanvasContextMenu,
+    ValueChanged<GraphPosition>? onCanvasTap,
+    ValueChanged<GraphPosition>? onCanvasDoubleTap,
+    ValueChanged<GraphPosition>? onCanvasContextMenu,
   }) {
     return ViewportEvents(
       onMove: onMove ?? this.onMove,

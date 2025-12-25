@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../graph/coordinates.dart';
 import 'auto_pan_config.dart';
 import 'auto_pan_mixin.dart';
 import 'non_trackpad_pan_gesture_recognizer.dart';
@@ -195,8 +196,8 @@ class ElementScope extends StatefulWidget {
 
   /// Called when the element is right-clicked (context menu).
   ///
-  /// Receives the global position for showing a context menu.
-  final void Function(Offset globalPosition)? onContextMenu;
+  /// Receives the screen position for showing a context menu.
+  final void Function(ScreenPosition screenPosition)? onContextMenu;
 
   /// Called when the mouse enters the element bounds.
   final VoidCallback? onMouseEnter;
@@ -478,7 +479,9 @@ class _ElementScopeState extends State<ElementScope> with AutoPanMixin {
                   () => TapGestureRecognizer(),
                   (recognizer) {
                     recognizer.onSecondaryTapUp = (details) =>
-                        widget.onContextMenu!(details.globalPosition);
+                        widget.onContextMenu!(
+                          ScreenPosition(details.globalPosition),
+                        );
                   },
                 ),
         },

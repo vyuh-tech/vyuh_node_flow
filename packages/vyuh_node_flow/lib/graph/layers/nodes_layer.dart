@@ -6,6 +6,7 @@ import '../../nodes/node.dart';
 import '../../nodes/node_widget.dart';
 import '../../ports/port_widget.dart';
 import '../../shared/unbounded_widgets.dart';
+import '../coordinates.dart';
 import '../node_flow_controller.dart';
 
 /// Nodes layer widget that renders all nodes with optimized reactivity.
@@ -57,15 +58,11 @@ class NodesLayer<T> extends StatelessWidget {
     PortBuilder<T>? portBuilder,
     void Function(Node<T> node)? onNodeTap,
     void Function(Node<T> node)? onNodeDoubleTap,
-    void Function(Node<T> node, Offset globalPosition)? onNodeContextMenu,
+    void Function(Node<T> node, ScreenPosition screenPosition)?
+    onNodeContextMenu,
     void Function(Node<T> node)? onNodeMouseEnter,
     void Function(Node<T> node)? onNodeMouseLeave,
-    void Function(
-      String nodeId,
-      String portId,
-      bool isOutput,
-      Offset globalPosition,
-    )?
+    void Function(String nodeId, String portId, ScreenPosition screenPosition)?
     onPortContextMenu,
     double portSnapDistance = 8.0,
   }) {
@@ -99,15 +96,11 @@ class NodesLayer<T> extends StatelessWidget {
     PortBuilder<T>? portBuilder,
     void Function(Node<T> node)? onNodeTap,
     void Function(Node<T> node)? onNodeDoubleTap,
-    void Function(Node<T> node, Offset globalPosition)? onNodeContextMenu,
+    void Function(Node<T> node, ScreenPosition screenPosition)?
+    onNodeContextMenu,
     void Function(Node<T> node)? onNodeMouseEnter,
     void Function(Node<T> node)? onNodeMouseLeave,
-    void Function(
-      String nodeId,
-      String portId,
-      bool isOutput,
-      Offset globalPosition,
-    )?
+    void Function(String nodeId, String portId, ScreenPosition screenPosition)?
     onPortContextMenu,
     double portSnapDistance = 8.0,
   }) {
@@ -141,15 +134,11 @@ class NodesLayer<T> extends StatelessWidget {
     PortBuilder<T>? portBuilder,
     void Function(Node<T> node)? onNodeTap,
     void Function(Node<T> node)? onNodeDoubleTap,
-    void Function(Node<T> node, Offset globalPosition)? onNodeContextMenu,
+    void Function(Node<T> node, ScreenPosition screenPosition)?
+    onNodeContextMenu,
     void Function(Node<T> node)? onNodeMouseEnter,
     void Function(Node<T> node)? onNodeMouseLeave,
-    void Function(
-      String nodeId,
-      String portId,
-      bool isOutput,
-      Offset globalPosition,
-    )?
+    void Function(String nodeId, String portId, ScreenPosition screenPosition)?
     onPortContextMenu,
     double portSnapDistance = 8.0,
   }) {
@@ -200,7 +189,9 @@ class NodesLayer<T> extends StatelessWidget {
   final void Function(Node<T> node)? onNodeDoubleTap;
 
   /// Callback invoked when a node is right-clicked (context menu).
-  final void Function(Node<T> node, Offset globalPosition)? onNodeContextMenu;
+  /// The [screenPosition] is in screen/global coordinates for menu positioning.
+  final void Function(Node<T> node, ScreenPosition screenPosition)?
+  onNodeContextMenu;
 
   /// Callback invoked when mouse enters a node.
   final void Function(Node<T> node)? onNodeMouseEnter;
@@ -209,11 +200,11 @@ class NodesLayer<T> extends StatelessWidget {
   final void Function(Node<T> node)? onNodeMouseLeave;
 
   /// Callback invoked when a port is right-clicked (context menu).
+  /// The [screenPosition] is in screen/global coordinates for menu positioning.
   final void Function(
     String nodeId,
     String portId,
-    bool isOutput,
-    Offset globalPosition,
+    ScreenPosition screenPosition,
   )?
   onPortContextMenu;
 

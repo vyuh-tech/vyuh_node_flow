@@ -267,33 +267,33 @@ class _CallbacksExampleState extends State<CallbacksExample> {
 
           // ===== PORT EVENTS =====
           port: PortEvents(
-            onTap: (node, port, isOutput) {
+            onTap: (node, port) {
               _addEvent(
-                'Tapped ${isOutput ? 'output' : 'input'} port ${port.id} on ${node.id}',
+                'Tapped ${port.isOutput ? 'output' : 'input'} port ${port.id} on ${node.id}',
                 EventType.interaction,
               );
             },
-            onDoubleTap: (node, port, isOutput) {
+            onDoubleTap: (node, port) {
               _addEvent(
-                'Double-tapped ${isOutput ? 'output' : 'input'} port ${port.id} on ${node.id}',
+                'Double-tapped ${port.isOutput ? 'output' : 'input'} port ${port.id} on ${node.id}',
                 EventType.interaction,
               );
             },
-            onMouseEnter: (node, port, isOutput) {
+            onMouseEnter: (node, port) {
               _addEvent(
-                'Mouse entered ${isOutput ? 'output' : 'input'} port ${port.id} on ${node.id}',
+                'Mouse entered ${port.isOutput ? 'output' : 'input'} port ${port.id} on ${node.id}',
                 EventType.interaction,
               );
             },
-            onMouseLeave: (node, port, isOutput) {
+            onMouseLeave: (node, port) {
               _addEvent(
-                'Mouse left ${isOutput ? 'output' : 'input'} port ${port.id} on ${node.id}',
+                'Mouse left ${port.isOutput ? 'output' : 'input'} port ${port.id} on ${node.id}',
                 EventType.interaction,
               );
             },
-            onContextMenu: (node, port, isOutput, position) {
+            onContextMenu: (node, port, position) {
               _addEvent(
-                'Context menu on ${isOutput ? 'output' : 'input'} port ${port.id} at ${position.dx.toInt()},${position.dy.toInt()}',
+                'Context menu on ${port.isOutput ? 'output' : 'input'} port ${port.id} at ${position.dx.toInt()},${position.dy.toInt()}',
                 EventType.interaction,
               );
             },
@@ -351,15 +351,18 @@ class _CallbacksExampleState extends State<CallbacksExample> {
                 EventType.interaction,
               );
             },
-            onConnectStart: (nodeId, portId, isOutput) {
+            onConnectStart: (sourceNode, sourcePort) {
               _addEvent(
-                'Started connecting from $nodeId:$portId',
+                'Started connecting from ${sourceNode.id}:${sourcePort.id}',
                 EventType.connection,
               );
             },
-            onConnectEnd: (success) {
+            onConnectEnd: (targetNode, targetPort) {
+              final success = targetNode != null && targetPort != null;
               _addEvent(
-                success ? 'Connection completed' : 'Connection cancelled',
+                success
+                    ? 'Connection completed to ${targetNode.id}:${targetPort.id}'
+                    : 'Connection cancelled',
                 EventType.connection,
               );
             },

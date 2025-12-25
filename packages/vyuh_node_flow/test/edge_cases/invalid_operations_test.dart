@@ -261,7 +261,8 @@ void main() {
 
   group('Invalid Operations - Invalid Viewport Operations', () {
     test('zoomTo with NaN is handled gracefully', () {
-      final initialZoom = controller.currentZoom;
+      // Store initial zoom before attempting invalid operation
+      final _ = controller.currentZoom;
       controller.zoomTo(double.nan);
 
       // NaN is handled - zoom remains finite and valid

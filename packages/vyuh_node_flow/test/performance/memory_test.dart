@@ -321,7 +321,7 @@ void main() {
 
       // Create node and modify its observables
       controller.addNode(createTestNode(id: 'test-node'));
-      final node = controller.getNode('test-node')!;
+      expect(controller.getNode('test-node'), isNotNull);
 
       // Trigger some observable updates
       for (var i = 0; i < 100; i++) {

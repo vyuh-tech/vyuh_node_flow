@@ -747,15 +747,19 @@ extension ConnectionApi<T> on NodeFlowController<T> {
       return validationResult;
     }
 
+    // Get node and port for callbacks
+    final node = getNode(nodeId);
+    final port = node?.allPorts.where((p) => p.id == portId).firstOrNull;
+
     // Fire connection start event
-    events.connection?.onConnectStart?.call(nodeId, portId, isOutput);
+    if (node != null && port != null) {
+      events.connection?.onConnectStart?.call(node, port);
+    }
 
     // Check if we need to remove existing connections
     // (for ports that don't allow multiple connections)
-    final node = getNode(nodeId);
-    if (node != null) {
-      final port = node.allPorts.where((p) => p.id == portId).firstOrNull;
-      if (port != null && !port.multiConnections) {
+    if (node != null && port != null) {
+      if (!port.multiConnections) {
         // Remove existing connections from this port
         final connectionsToRemove = _connections
             .where(
@@ -1097,7 +1101,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
   }) {
     final temp = interaction.temporaryConnection.value;
     if (temp == null) {
-      events.connection?.onConnectEnd?.call(false);
+      events.connection?.onConnectEnd?.call(null, null);
       return null;
     }
 
@@ -1204,7 +1208,12 @@ extension ConnectionApi<T> on NodeFlowController<T> {
       return connection;
     });
 
-    events.connection?.onConnectEnd?.call(true);
+    // Fire connection end event with the target node and port that the user dropped on
+    final droppedOnNode = _nodes[targetNodeId];
+    final droppedOnPort = droppedOnNode?.allPorts
+        .where((p) => p.id == targetPortId)
+        .firstOrNull;
+    events.connection?.onConnectEnd?.call(droppedOnNode, droppedOnPort);
 
     return createdConnection;
   }
@@ -1237,6 +1246,6 @@ extension ConnectionApi<T> on NodeFlowController<T> {
       interaction.panEnabled.value = true;
     });
 
-    events.connection?.onConnectEnd?.call(false);
+    events.connection?.onConnectEnd?.call(null, null);
   }
 }

@@ -235,8 +235,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Store initial viewport
-      final initialViewport = controller.viewport;
+      // Store initial viewport for reference (viewport may change on tap)
+      expect(controller.viewport, isNotNull);
 
       // Tap on minimap
       await tester.tap(find.byType(NodeFlowMinimap<String>));

@@ -130,7 +130,8 @@ class PortWidget<T> extends StatefulWidget {
   final VoidCallback? onDoubleTap;
 
   /// Callback invoked when the port is right-clicked (context menu).
-  final void Function(Offset globalPosition)? onContextMenu;
+  /// The [screenPosition] is in screen/global coordinates for menu positioning.
+  final void Function(ScreenPosition screenPosition)? onContextMenu;
 
   /// Callback invoked when hover state changes.
   final ValueChanged<(Port, bool)>? onHover;

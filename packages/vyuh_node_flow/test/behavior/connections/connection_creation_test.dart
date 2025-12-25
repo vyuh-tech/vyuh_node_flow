@@ -465,17 +465,15 @@ void main() {
     });
 
     test('startConnectionDrag fires onConnectStart callback', () {
-      String? startNodeId;
-      String? startPortId;
-      bool? startIsOutput;
+      Node<String>? startNode;
+      Port? startPort;
 
       controller.setEvents(
         NodeFlowEvents<String>(
           connection: ConnectionEvents(
-            onConnectStart: (nodeId, portId, isOutput) {
-              startNodeId = nodeId;
-              startPortId = portId;
-              startIsOutput = isOutput;
+            onConnectStart: (node, port) {
+              startNode = node;
+              startPort = port;
             },
           ),
         ),
@@ -489,9 +487,9 @@ void main() {
         nodeBounds: const Rect.fromLTWH(0, 0, 100, 100),
       );
 
-      expect(startNodeId, equals('source'));
-      expect(startPortId, equals('out1'));
-      expect(startIsOutput, isTrue);
+      expect(startNode?.id, equals('source'));
+      expect(startPort?.id, equals('out1'));
+      expect(startPort?.isOutput, isTrue);
 
       controller.cancelConnectionDrag();
     });
@@ -577,12 +575,16 @@ void main() {
       expect(controller.interaction.panEnabled.value, isTrue);
     });
 
-    test('completeConnectionDrag fires onConnectEnd with success', () {
-      bool? wasSuccessful;
+    test('completeConnectionDrag fires onConnectEnd with target', () {
+      Node<String>? endTargetNode;
+      Port? endTargetPort;
       controller.setEvents(
         NodeFlowEvents<String>(
           connection: ConnectionEvents(
-            onConnectEnd: (success) => wasSuccessful = success,
+            onConnectEnd: (node, port) {
+              endTargetNode = node;
+              endTargetPort = port;
+            },
           ),
         ),
       );
@@ -600,7 +602,11 @@ void main() {
         targetPortId: 'in1',
       );
 
-      expect(wasSuccessful, isTrue);
+      // On success, target node and port are non-null
+      expect(endTargetNode, isNotNull);
+      expect(endTargetNode?.id, equals('target'));
+      expect(endTargetPort, isNotNull);
+      expect(endTargetPort?.id, equals('in1'));
     });
   });
 
@@ -649,18 +655,24 @@ void main() {
       expect(controller.interaction.panEnabled.value, isTrue);
     });
 
-    test('cancelConnectionDrag fires onConnectEnd with false', () {
+    test('cancelConnectionDrag fires onConnectEnd with null', () {
       final node = createTestNode(
         id: 'node1',
         outputPorts: [createTestPort(id: 'out1', type: PortType.output)],
       );
       controller.addNode(node);
 
-      bool? wasSuccessful;
+      bool callbackFired = false;
+      Node<String>? endTargetNode;
+      Port? endTargetPort;
       controller.setEvents(
         NodeFlowEvents<String>(
           connection: ConnectionEvents(
-            onConnectEnd: (success) => wasSuccessful = success,
+            onConnectEnd: (node, port) {
+              callbackFired = true;
+              endTargetNode = node;
+              endTargetPort = port;
+            },
           ),
         ),
       );
@@ -675,7 +687,10 @@ void main() {
 
       controller.cancelConnectionDrag();
 
-      expect(wasSuccessful, isFalse);
+      // On cancel, callback fires with null values
+      expect(callbackFired, isTrue);
+      expect(endTargetNode, isNull);
+      expect(endTargetPort, isNull);
     });
 
     test('cancelConnectionDrag does not create connection', () {
