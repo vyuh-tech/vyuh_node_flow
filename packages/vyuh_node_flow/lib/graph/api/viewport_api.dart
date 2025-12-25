@@ -716,12 +716,6 @@ extension ViewportApi<T> on NodeFlowController<T> {
     Duration duration = const Duration(milliseconds: 400),
     Curve curve = Curves.easeInOut,
   }) {
-    if (_onAnimateToViewport == null) {
-      debugPrint(
-        '[ViewportApi] animateToViewport: handler is NULL, cannot animate',
-      );
-      return;
-    }
     _onAnimateToViewport?.call(target, duration: duration, curve: curve);
   }
 
@@ -751,14 +745,7 @@ extension ViewportApi<T> on NodeFlowController<T> {
     Curve curve = Curves.easeInOut,
   }) {
     final node = _nodes[nodeId];
-    if (node == null) {
-      debugPrint('[ViewportApi] animateToNode: node "$nodeId" not found');
-      return;
-    }
-    if (_screenSize.value == Size.zero) {
-      debugPrint(
-        '[ViewportApi] animateToNode: screen size is Size.zero, cannot animate',
-      );
+    if (node == null || _screenSize.value == Size.zero) {
       return;
     }
 

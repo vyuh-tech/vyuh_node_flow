@@ -371,7 +371,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
     // Attach viewport animation mixin - directly animates TransformationController
     // This also registers the animation handler on the controller
-    debugPrint('[NodeFlowEditor] initState: attaching viewport animation');
     attachViewportAnimation(
       tickerProvider: this,
       transformationController: _transformationController,
@@ -418,9 +417,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   @override
   void didUpdateWidget(NodeFlowEditor<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    debugPrint(
-      '[NodeFlowEditor] didUpdateWidget: controller changed? ${oldWidget.controller != widget.controller}',
-    );
     // Theme is handled by editor, config is immutable in controller
 
     // Re-attach viewport animation if controller changed
@@ -847,7 +843,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     _transformationController.removeListener(_syncViewportFromTransform);
 
     // Detach viewport animation - this also clears the handler with token check
-    debugPrint('[NodeFlowEditor] dispose: detaching viewport animation');
     detachViewportAnimation();
 
     for (final disposer in _disposers) {

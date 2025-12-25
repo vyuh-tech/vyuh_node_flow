@@ -173,16 +173,8 @@ mixin ViewportAnimationMixin {
     Duration duration = const Duration(milliseconds: 400),
     Curve curve = Curves.easeInOut,
   }) {
-    if (_viewportAnimationController == null) {
-      debugPrint(
-        '[ViewportAnimationMixin] animateViewportTo: _viewportAnimationController is NULL',
-      );
-      return;
-    }
-    if (_transformationController == null) {
-      debugPrint(
-        '[ViewportAnimationMixin] animateViewportTo: _transformationController is NULL',
-      );
+    if (_viewportAnimationController == null ||
+        _transformationController == null) {
       return;
     }
 
