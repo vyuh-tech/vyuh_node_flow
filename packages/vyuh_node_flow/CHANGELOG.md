@@ -1,3 +1,7 @@
+## 0.13.3
+
+ - **FEAT**: remove debug logs, simplify null checks in viewport animation, and add lifecycle unit tests for animation handlers.
+
 ## 0.13.2
 
  - **FEAT**: streamline port retrieval across nodes and improve viewport animation handling with token-based race condition prevention.
