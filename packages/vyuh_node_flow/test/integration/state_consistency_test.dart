@@ -284,37 +284,66 @@ void main() {
     });
   });
 
-  group('State Consistency - Annotation State', () {
-    test('annotation selection cleared when annotation removed', () {
-      final annotation = createTestStickyAnnotation(id: 'sticky-1');
-      controller.addAnnotation(annotation);
-
-      controller.selectAnnotation('sticky-1');
-      expect(
-        controller.annotations.selectedAnnotationIds,
-        contains('sticky-1'),
+  group('State Consistency - CommentNode and GroupNode State', () {
+    test('CommentNode selection cleared when removed', () {
+      final commentNode = createTestCommentNode<String>(
+        data: '',
+        id: 'comment-1',
       );
+      controller.addNode(commentNode);
 
-      controller.removeAnnotation('sticky-1');
-      expect(
-        controller.annotations.selectedAnnotationIds,
-        isNot(contains('sticky-1')),
-      );
+      controller.selectNode('comment-1');
+      expect(controller.selectedNodeIds, contains('comment-1'));
+
+      controller.removeNode('comment-1');
+      expect(controller.selectedNodeIds, isNot(contains('comment-1')));
     });
 
-    test('annotation position updates correctly', () {
-      final annotation = createTestStickyAnnotation(
-        id: 'sticky-1',
+    test('CommentNode position updates correctly', () {
+      final commentNode = createTestCommentNode<String>(
+        data: '',
+        id: 'comment-1',
         position: const Offset(100, 100),
       );
-      controller.addAnnotation(annotation);
+      controller.addNode(commentNode);
 
-      expect(annotation.position, equals(const Offset(100, 100)));
+      expect(commentNode.position.value, equals(const Offset(100, 100)));
 
-      // Move annotation directly
-      annotation.position = const Offset(200, 200);
+      // Move comment node directly
+      commentNode.position.value = const Offset(200, 200);
 
-      expect(annotation.position, equals(const Offset(200, 200)));
+      expect(commentNode.position.value, equals(const Offset(200, 200)));
+    });
+
+    test('GroupNode tracks contained nodes correctly', () {
+      // Create nodes first
+      controller.addNode(
+        createTestNode(
+          id: 'inner-1',
+          position: const Offset(50, 50),
+          size: const Size(100, 80),
+        ),
+      );
+      controller.addNode(
+        createTestNode(
+          id: 'inner-2',
+          position: const Offset(200, 50),
+          size: const Size(100, 80),
+        ),
+      );
+
+      // Create group containing them
+      final groupNode = createTestGroupNode<String>(
+        data: '',
+        id: 'group-1',
+        position: const Offset(0, 0),
+        size: const Size(400, 200),
+        nodeIds: {'inner-1', 'inner-2'},
+      );
+      controller.addNode(groupNode);
+
+      expect(groupNode.nodeIds, contains('inner-1'));
+      expect(groupNode.nodeIds, contains('inner-2'));
     });
   });
 
@@ -324,14 +353,13 @@ void main() {
       controller.addNode(createTestNodeWithOutputPort(id: 'a'));
       controller.addNode(createTestNodeWithInputPort(id: 'b'));
       controller.createConnection('a', 'output-1', 'b', 'input-1');
-      controller.addAnnotation(createTestStickyAnnotation(id: 'note'));
+      controller.addNode(createTestCommentNode<String>(data: '', id: 'note'));
       controller.selectNode('a');
 
       controller.clearGraph();
 
       expect(controller.nodeCount, equals(0));
       expect(controller.connectionCount, equals(0));
-      expect(controller.annotations.sortedAnnotations, isEmpty);
       expect(controller.selectedNodeIds, isEmpty);
     });
 

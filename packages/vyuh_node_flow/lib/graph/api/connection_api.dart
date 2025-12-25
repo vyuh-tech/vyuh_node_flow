@@ -481,7 +481,6 @@ extension ConnectionApi<T> on NodeFlowController<T> {
     runInAction(() {
       // Clear other element types' selections
       clearNodeSelection();
-      annotations.clearAnnotationSelection();
 
       // Find the connection - if it doesn't exist, we can't select it
       final connection = _connections.firstWhere((c) => c.id == connectionId);

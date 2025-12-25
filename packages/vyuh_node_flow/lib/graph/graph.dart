@@ -3,22 +3,31 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
-import '../annotations/annotation.dart';
 import '../connections/connection.dart';
+import '../nodes/comment_node.dart';
+import '../nodes/group_node.dart';
 import '../nodes/node.dart';
 import 'viewport.dart';
 
-/// Default factory for deserializing built-in annotation types.
+/// Default factory for deserializing nodes with type routing.
 ///
-/// Handles: 'sticky', 'group', 'marker' types.
-/// Throws [ArgumentError] for unknown types.
-Annotation defaultAnnotationFromJson(Map<String, dynamic> json) {
+/// Routes to the appropriate Node subclass based on the 'type' field:
+/// - 'group' -> GroupNode
+/// - 'comment' -> CommentNode
+/// - All other types -> Node (base class)
+///
+/// Parameters:
+/// * [json] - The JSON map containing node data
+/// * [fromJsonT] - Function to deserialize the custom data of type [T]
+Node<T> defaultNodeFromJson<T>(
+  Map<String, dynamic> json,
+  T Function(Object? json) fromJsonT,
+) {
   final type = json['type'] as String;
   return switch (type) {
-    'sticky' => StickyAnnotation.fromJsonMap(json),
-    'group' => GroupAnnotation.fromJsonMap(json),
-    'marker' => MarkerAnnotation.fromJsonMap(json),
-    _ => throw ArgumentError('Unknown annotation type: $type'),
+    'group' => GroupNode.fromJsonMap<T>(json, fromJsonT),
+    'comment' => CommentNode.fromJsonMap<T>(json, fromJsonT),
+    _ => Node<T>.fromJson(json, fromJsonT),
   };
 }
 
@@ -28,14 +37,12 @@ class NodeGraph<T> {
   const NodeGraph({
     this.nodes = const [],
     this.connections = const [],
-    this.annotations = const [],
     this.viewport = const GraphViewport(),
     this.metadata = const {},
   });
 
   final List<Node<T>> nodes;
   final List<Connection> connections;
-  final List<Annotation> annotations;
   final GraphViewport viewport;
   final Map<String, dynamic> metadata;
 
@@ -144,55 +151,44 @@ class NodeGraph<T> {
         .toList();
   }
 
-  // Annotation utility methods
+  // Node type filtering methods
 
-  /// Get an annotation by its ID
-  Annotation? getAnnotationById(String annotationId) {
-    return annotations.cast<Annotation?>().firstWhere(
-      (annotation) => annotation?.id == annotationId,
-      orElse: () => null,
-    );
+  /// Get all group nodes
+  List<GroupNode<T>> getGroupNodes() {
+    return nodes.whereType<GroupNode<T>>().toList();
   }
 
-  /// Get annotations of a specific type
-  List<A> getAnnotationsOfType<A extends Annotation>() {
-    return annotations.whereType<A>().toList();
+  /// Get all comment nodes
+  List<CommentNode<T>> getCommentNodes() {
+    return nodes.whereType<CommentNode<T>>().toList();
   }
 
-  /// Get all sticky annotations
-  List<StickyAnnotation> getStickyAnnotations() {
-    return getAnnotationsOfType<StickyAnnotation>();
-  }
-
-  /// Get all group annotations
-  List<GroupAnnotation> getGroupAnnotations() {
-    return getAnnotationsOfType<GroupAnnotation>();
-  }
-
-  /// Get all marker annotations
-  List<MarkerAnnotation> getMarkerAnnotations() {
-    return getAnnotationsOfType<MarkerAnnotation>();
+  /// Get regular nodes (excluding GroupNode and CommentNode)
+  List<Node<T>> getRegularNodes() {
+    return nodes
+        .where((node) => node is! GroupNode<T> && node is! CommentNode<T>)
+        .toList();
   }
 
   factory NodeGraph.fromJson(
     Map<String, dynamic> json,
     T Function(Object? json) fromJsonT, {
-    Annotation Function(Map<String, dynamic> json) annotationFromJson =
-        defaultAnnotationFromJson,
+    Node<T> Function(
+      Map<String, dynamic> json,
+      T Function(Object? json) fromJsonT,
+    )?
+    nodeFromJson,
   }) {
+    final actualNodeFromJson = nodeFromJson ?? defaultNodeFromJson<T>;
+
     final nodesJson = json['nodes'] as List<dynamic>? ?? [];
     final nodes = nodesJson
-        .map((e) => Node<T>.fromJson(e as Map<String, dynamic>, fromJsonT))
+        .map((e) => actualNodeFromJson(e as Map<String, dynamic>, fromJsonT))
         .toList();
 
     final connectionsJson = json['connections'] as List<dynamic>? ?? [];
     final connections = connectionsJson
         .map((e) => Connection.fromJson(e as Map<String, dynamic>))
-        .toList();
-
-    final annotationsJson = json['annotations'] as List<dynamic>? ?? [];
-    final annotations = annotationsJson
-        .map((e) => annotationFromJson(e as Map<String, dynamic>))
         .toList();
 
     final viewport = json['viewport'] != null
@@ -202,7 +198,6 @@ class NodeGraph<T> {
     return NodeGraph<T>(
       nodes: nodes,
       connections: connections,
-      annotations: annotations,
       viewport: viewport,
       metadata: json['metadata'] as Map<String, dynamic>? ?? {},
     );
@@ -212,82 +207,88 @@ class NodeGraph<T> {
   static NodeGraph<T> fromJsonString<T>(
     String jsonString,
     T Function(Object? json) fromJsonT, {
-    Annotation Function(Map<String, dynamic> json) annotationFromJson =
-        defaultAnnotationFromJson,
+    Node<T> Function(
+      Map<String, dynamic> json,
+      T Function(Object? json) fromJsonT,
+    )?
+    nodeFromJson,
   }) {
     final Map<String, dynamic> json = jsonDecode(jsonString);
-    return NodeGraph<T>.fromJson(
-      json,
-      fromJsonT,
-      annotationFromJson: annotationFromJson,
-    );
+    return NodeGraph<T>.fromJson(json, fromJsonT, nodeFromJson: nodeFromJson);
   }
 
   /// Convenience method to load graph from asset file
   static Future<NodeGraph<T>> fromAsset<T>(
     String assetPath,
     T Function(Object? json) fromJsonT, {
-    Annotation Function(Map<String, dynamic> json) annotationFromJson =
-        defaultAnnotationFromJson,
+    Node<T> Function(
+      Map<String, dynamic> json,
+      T Function(Object? json) fromJsonT,
+    )?
+    nodeFromJson,
   }) async {
     final String jsonString = await rootBundle.loadString(assetPath);
-    return fromJsonString<T>(
-      jsonString,
-      fromJsonT,
-      annotationFromJson: annotationFromJson,
-    );
+    return fromJsonString<T>(jsonString, fromJsonT, nodeFromJson: nodeFromJson);
   }
 
   /// Simple factory for Map data type (most common case)
   static NodeGraph<Map<String, dynamic>> fromJsonMap(
     Map<String, dynamic> json, {
-    Annotation Function(Map<String, dynamic> json) annotationFromJson =
-        defaultAnnotationFromJson,
+    Node<Map<String, dynamic>> Function(
+      Map<String, dynamic> json,
+      Map<String, dynamic> Function(Object? json) fromJsonT,
+    )?
+    nodeFromJson,
   }) {
     return NodeGraph<Map<String, dynamic>>.fromJson(
       json,
       (jsonData) => Map<String, dynamic>.from(jsonData as Map? ?? {}),
-      annotationFromJson: annotationFromJson,
+      nodeFromJson: nodeFromJson,
     );
   }
 
   /// Convenience method to load graph with Map data from JSON string
   static NodeGraph<Map<String, dynamic>> fromJsonStringMap(
     String jsonString, {
-    Annotation Function(Map<String, dynamic> json) annotationFromJson =
-        defaultAnnotationFromJson,
+    Node<Map<String, dynamic>> Function(
+      Map<String, dynamic> json,
+      Map<String, dynamic> Function(Object? json) fromJsonT,
+    )?
+    nodeFromJson,
   }) {
     final Map<String, dynamic> json = jsonDecode(jsonString);
-    return fromJsonMap(json, annotationFromJson: annotationFromJson);
+    return fromJsonMap(json, nodeFromJson: nodeFromJson);
   }
 
   /// Convenience method to load graph with Map data from asset file
   static Future<NodeGraph<Map<String, dynamic>>> fromAssetMap(
     String assetPath, {
-    Annotation Function(Map<String, dynamic> json) annotationFromJson =
-        defaultAnnotationFromJson,
+    Node<Map<String, dynamic>> Function(
+      Map<String, dynamic> json,
+      Map<String, dynamic> Function(Object? json) fromJsonT,
+    )?
+    nodeFromJson,
   }) async {
     final String jsonString = await rootBundle.loadString(assetPath);
-    return fromJsonStringMap(
-      jsonString,
-      annotationFromJson: annotationFromJson,
-    );
+    return fromJsonStringMap(jsonString, nodeFromJson: nodeFromJson);
   }
 
   static Future<NodeGraph<Map<String, dynamic>>> fromUrl(
     String url, {
-    Annotation Function(Map<String, dynamic> json) annotationFromJson =
-        defaultAnnotationFromJson,
+    Node<Map<String, dynamic>> Function(
+      Map<String, dynamic> json,
+      Map<String, dynamic> Function(Object? json) fromJsonT,
+    )?
+    nodeFromJson,
   }) async {
     final response = await http.get(Uri.parse(url));
     final Map<String, dynamic> json = jsonDecode(response.body);
-    return fromJsonMap(json, annotationFromJson: annotationFromJson);
+    return fromJsonMap(json, nodeFromJson: nodeFromJson);
   }
 
   Map<String, dynamic> toJson(Object? Function(T value) toJsonT) => {
     'nodes': nodes.map((node) => node.toJson(toJsonT)).toList(),
     'connections': connections.map((e) => e.toJson()).toList(),
-    'annotations': annotations.map((e) => e.toJson()).toList(),
     'viewport': viewport.toJson(),
     'metadata': metadata,
   };

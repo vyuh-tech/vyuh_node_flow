@@ -416,66 +416,11 @@ class _CallbacksExampleState extends State<CallbacksExample> {
             },
           ),
 
-          // ===== ANNOTATION EVENTS =====
-          annotation: AnnotationEvents(
-            onCreated: (annotation) {
-              _addEvent(
-                'Created annotation ${annotation.id}',
-                EventType.lifecycle,
-              );
-            },
-            onDeleted: (annotation) {
-              _addEvent(
-                'Deleted annotation ${annotation.id}',
-                EventType.lifecycle,
-              );
-            },
-            onSelected: (annotation) {
-              _addEvent(
-                annotation != null
-                    ? 'Selected annotation ${annotation.id}'
-                    : 'Deselected annotation',
-                EventType.selection,
-              );
-            },
-            onTap: (annotation) {
-              _addEvent(
-                'Tapped annotation ${annotation.id}',
-                EventType.interaction,
-              );
-            },
-            onDoubleTap: (annotation) {
-              _addEvent(
-                'Double-tapped annotation ${annotation.id}',
-                EventType.interaction,
-              );
-            },
-            onMouseEnter: (annotation) {
-              _addEvent(
-                'Mouse entered annotation ${annotation.id}',
-                EventType.interaction,
-              );
-            },
-            onMouseLeave: (annotation) {
-              _addEvent(
-                'Mouse left annotation ${annotation.id}',
-                EventType.interaction,
-              );
-            },
-            onContextMenu: (annotation, position) {
-              _addEvent(
-                'Context menu on annotation ${annotation.id} at ${position.dx.toInt()},${position.dy.toInt()}',
-                EventType.interaction,
-              );
-            },
-          ),
-
           // ===== TOP-LEVEL EVENTS =====
           onSelectionChange: (state) {
             final nodeCount = state.nodes.length;
             final connCount = state.connections.length;
-            final annoCount = state.annotations.length;
-            final total = nodeCount + connCount + annoCount;
+            final total = nodeCount + connCount;
 
             if (total > 0) {
               final parts = <String>[];
@@ -484,9 +429,6 @@ class _CallbacksExampleState extends State<CallbacksExample> {
               }
               if (connCount > 0) {
                 parts.add('$connCount connection${connCount > 1 ? 's' : ''}');
-              }
-              if (annoCount > 0) {
-                parts.add('$annoCount annotation${annoCount > 1 ? 's' : ''}');
               }
 
               _addEvent(

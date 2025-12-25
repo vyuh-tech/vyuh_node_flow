@@ -336,89 +336,72 @@ List<Node<String>> createNodeGrid({
 }
 
 // =============================================================================
-// Annotation Factories
+// CommentNode and GroupNode Factories
 // =============================================================================
 
-/// Creates a test sticky annotation with sensible defaults.
-StickyAnnotation createTestStickyAnnotation({
+/// Creates a test comment node with sensible defaults.
+CommentNode<T> createTestCommentNode<T>({
   String? id,
   Offset position = Offset.zero,
   String text = 'Test note',
+  required T data,
   double width = 200.0,
   double height = 100.0,
   Color color = Colors.yellow,
   int zIndex = 0,
   bool isVisible = true,
-  bool isInteractive = true,
+  bool locked = false,
 }) {
-  return StickyAnnotation(
-    id: id ?? 'sticky-${_annotationCounter++}',
+  return CommentNode<T>(
+    id: id ?? 'comment-${_specialNodeCounter++}',
     position: position,
     text: text,
+    data: data,
     width: width,
     height: height,
     color: color,
     zIndex: zIndex,
     isVisible: isVisible,
-    isInteractive: isInteractive,
+    locked: locked,
   );
 }
 
-/// Creates a test group annotation with sensible defaults.
-GroupAnnotation createTestGroupAnnotation({
+/// Creates a test group node with sensible defaults.
+GroupNode<T> createTestGroupNode<T>({
   String? id,
   Offset position = Offset.zero,
   Size size = const Size(400, 300),
   String title = 'Test Group',
+  required T data,
   Color color = Colors.blue,
   GroupBehavior behavior = GroupBehavior.bounds,
   Set<String>? nodeIds,
-  EdgeInsets padding = GroupAnnotation.defaultPadding,
+  EdgeInsets padding = kGroupNodeDefaultPadding,
+  List<Port> inputPorts = const [],
+  List<Port> outputPorts = const [],
   int zIndex = -1,
   bool isVisible = true,
-  bool isInteractive = true,
+  bool locked = false,
 }) {
-  return GroupAnnotation(
-    id: id ?? 'group-${_annotationCounter++}',
+  return GroupNode<T>(
+    id: id ?? 'group-${_specialNodeCounter++}',
     position: position,
     size: size,
     title: title,
+    data: data,
     color: color,
     behavior: behavior,
     nodeIds: nodeIds,
     padding: padding,
+    inputPorts: inputPorts,
+    outputPorts: outputPorts,
     zIndex: zIndex,
     isVisible: isVisible,
-    isInteractive: isInteractive,
+    locked: locked,
   );
 }
 
-/// Creates a test marker annotation with sensible defaults.
-MarkerAnnotation createTestMarkerAnnotation({
-  String? id,
-  Offset position = Offset.zero,
-  MarkerType markerType = MarkerType.info,
-  double markerSize = 24.0,
-  Color color = Colors.red,
-  String? tooltip,
-  int zIndex = 0,
-  bool isVisible = true,
-  bool isInteractive = true,
-}) {
-  return MarkerAnnotation(
-    id: id ?? 'marker-${_annotationCounter++}',
-    position: position,
-    markerType: markerType,
-    markerSize: markerSize,
-    color: color,
-    tooltip: tooltip,
-    zIndex: zIndex,
-    isVisible: isVisible,
-    isInteractive: isInteractive,
-  );
-}
-
-int _annotationCounter = 1;
+int _specialNodeCounter = 1;
 
 // =============================================================================
 // Reset Counters
@@ -431,5 +414,5 @@ void resetTestCounters() {
   _nodeCounter = 1;
   _portCounter = 1;
   _connectionCounter = 1;
-  _annotationCounter = 1;
+  _specialNodeCounter = 1;
 }

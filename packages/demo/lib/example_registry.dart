@@ -102,7 +102,7 @@ class ExampleRegistry {
           id: 'callbacks',
           title: 'Event Callbacks',
           description:
-              'Real-time event logging for all node, connection, and annotation lifecycle events',
+              'Real-time event logging for all node, connection, and viewport lifecycle events',
           icon: Icons.monitor_heart,
           builder: (_) => const CallbacksExample(),
         ),
@@ -151,8 +151,9 @@ class ExampleRegistry {
         ),
         Example(
           id: 'annotations',
-          title: 'Annotation System',
-          description: 'Sticky notes, groups, markers, and linked annotations',
+          title: 'Comment & Group Nodes',
+          description:
+              'Comment nodes (formerly sticky notes) and group nodes for organizing your graph',
           icon: Icons.sticky_note_2,
           builder: (_) => const AnnotationExample(),
         ),

@@ -135,15 +135,16 @@ class _AutoPanExampleState extends State<AutoPanExample> {
       ),
     );
 
-    // Add a sticky note to demonstrate annotation autopan
-    _controller.annotations.addAnnotation(
-      StickyAnnotation(
-        id: 'sticky-1',
+    // Add a comment node to demonstrate node autopan
+    _controller.addNode(
+      CommentNode<String>(
+        id: 'comment-1',
         position: const Offset(250, 400),
         width: 200,
         height: 100,
         text:
             'Drag me! Drag this note to the edge of the viewport to see autopan in action.',
+        data: '',
         color: Colors.yellow.shade200,
       ),
     );
@@ -535,7 +536,7 @@ class _AutoPanExampleState extends State<AutoPanExample> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Works with nodes, annotations, and connections!',
+                'Works with all node types and connections!',
                 style: TextStyle(
                   fontSize: 11,
                   fontStyle: FontStyle.italic,

@@ -1,8 +1,6 @@
 @Tags(['widget'])
 library;
 
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
@@ -66,19 +64,20 @@ void main() {
       expect(find.text('node-2'), findsOneWidget);
     });
 
-    testWidgets('editor respects showAnnotations flag', (tester) async {
+    testWidgets('editor renders CommentNode as a node', (tester) async {
       controller.addNode(createTestNode(id: 'node-1'));
-      controller.addAnnotation(createTestStickyAnnotation(id: 'sticky-1'));
+      controller.addNode(
+        createTestCommentNode<String>(data: '', id: 'comment-1'),
+      );
 
-      // Build with annotations disabled
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: NodeFlowEditor<String>(
               controller: controller,
-              nodeBuilder: (context, node) => Container(),
+              nodeBuilder: (context, node) =>
+                  Container(key: ValueKey(node.id), child: Text(node.id)),
               theme: NodeFlowTheme.light,
-              showAnnotations: false,
             ),
           ),
         ),
@@ -86,8 +85,9 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Editor should build successfully
+      // Editor should build successfully with both nodes
       expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      expect(controller.nodeCount, equals(2));
     });
   });
 

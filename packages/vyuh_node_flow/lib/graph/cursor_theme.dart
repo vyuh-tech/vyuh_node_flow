@@ -141,12 +141,12 @@ extension CursorThemeExtension on CursorTheme {
   /// 5. Hovering over connection → [nodeCursor]
   /// 6. Element-specific cursor based on [elementType]
   ///
-  /// For annotations, an additional [isInteractive] parameter determines
-  /// whether to show [nodeCursor] or [canvasCursor].
+  /// For annotations, an additional [isLocked] parameter determines
+  /// whether to show [canvasCursor] (locked) or [nodeCursor] (not locked).
   MouseCursor cursorFor(
     ElementType elementType,
     InteractionState interaction, {
-    bool isInteractive = true,
+    bool isLocked = false,
   }) {
     // Check for cursor override first (highest priority)
     // Used by exclusive operations like resizing that lock the cursor
@@ -175,7 +175,7 @@ extension CursorThemeExtension on CursorTheme {
         ElementType.canvas => canvasCursor,
         ElementType.node => nodeCursor,
         ElementType.port => portCursor,
-        ElementType.annotation => isInteractive ? nodeCursor : canvasCursor,
+        ElementType.annotation => isLocked ? canvasCursor : nodeCursor,
       },
     };
   }

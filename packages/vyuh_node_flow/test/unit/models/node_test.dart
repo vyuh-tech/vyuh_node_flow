@@ -525,8 +525,11 @@ void main() {
 
       expect(json['id'], equals('json-test'));
       expect(json['type'], equals('processor'));
-      expect(json['position'], isNotNull);
-      expect(json['size'], isNotNull);
+      // New simplified format uses x/y/width/height directly
+      expect(json['x'], equals(100.0));
+      expect(json['y'], equals(200.0));
+      expect(json['width'], equals(150.0));
+      expect(json['height'], equals(100.0));
       expect(json['data'], equals('test-data'));
       expect(json['zIndex'], equals(5));
     });

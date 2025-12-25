@@ -11,11 +11,10 @@
 ///   interface
 /// - **Flexible Connections**: Support for multiple connection styles (bezier,
 ///   straight, step) with customizable endpoints and labels
-/// - **Rich Theming**: Comprehensive theming system for nodes, ports, connections,
-///   and annotations
+/// - **Rich Theming**: Comprehensive theming system for nodes, ports, and connections
 /// - **Viewport Controls**: Pan, zoom, and minimap support for navigating large graphs
 /// - **State Management**: Built on MobX for reactive, observable state management
-/// - **Annotations Layer**: Add custom annotations and overlays to your flow diagrams
+/// - **Grouping & Comments**: GroupNode for visual grouping, CommentNode for annotations
 /// - **Validation**: Built-in connection validation and custom validation support
 /// - **Keyboard Shortcuts**: Extensive keyboard shortcuts for productivity
 /// - **Serialization**: JSON serialization support for saving and loading graphs
@@ -32,6 +31,8 @@
 ///
 /// ### Nodes
 /// - [Node]: The core node model representing graph nodes
+/// - [GroupNode]: Special node for visually grouping other nodes
+/// - [CommentNode]: Special node for floating text annotations
 /// - [NodeWidget]: Base widget for rendering nodes
 /// - [NodeData]: Custom data interface for node content
 /// - [InteractionState]: Tracks node interaction states (hover, selected, etc.)
@@ -46,11 +47,6 @@
 /// ### Ports
 /// - [Port]: Model for node input/output ports
 /// - [PortTheme]: Theming for port appearance
-///
-/// ### Annotations
-/// - [Annotation]: Model for canvas annotations and overlays
-/// - [AnnotationWidget]: Base widget for rendering annotations
-/// - [AnnotationLayer]: Layer for managing and rendering annotations
 ///
 /// ## Basic Usage
 ///
@@ -113,13 +109,8 @@
 library;
 
 // Graph (Core editor, controller, config, viewport)
-// Annotations
-export 'annotations/annotation.dart';
-export 'annotations/annotation_layer.dart';
+// Annotation theming (used by GroupNode and CommentNode)
 export 'annotations/annotation_theme.dart';
-export 'annotations/annotation_widget.dart';
-export 'annotations/group_annotation.dart';
-export 'annotations/sticky_annotation.dart';
 // Connections
 export 'connections/connection.dart';
 export 'connections/connection_anchor.dart';
@@ -167,10 +158,17 @@ export 'grid/grid_theme.dart';
 export 'grid/spatial_index_debug_painter.dart';
 export 'grid/styles/grid_style.dart';
 // Nodes
+export 'nodes/comment_node.dart';
+export 'nodes/group_node.dart';
 export 'nodes/interaction_state.dart';
+// Node Mixins (for custom node types)
+export 'nodes/mixins/groupable_mixin.dart';
+export 'nodes/mixins/resizable_mixin.dart';
+// Port geometry extension is exported via node.dart
 export 'nodes/node.dart'; // Needed for Node class in examples
 // Models
 export 'nodes/node_data.dart';
+export 'nodes/node_drag_context.dart';
 export 'nodes/node_shape.dart';
 export 'nodes/node_shape_clipper.dart';
 export 'nodes/node_shape_painter.dart';

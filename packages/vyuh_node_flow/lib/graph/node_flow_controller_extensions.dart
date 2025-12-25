@@ -35,7 +35,7 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
       endNodeDrag();
     }
 
-    // Clean up any nodes with stale dragging flag
+    // Clean up any nodes with stale dragging flag (includes GroupNode and CommentNode)
     runInAction(() {
       for (final node in nodes.values) {
         if (node.dragging.value) {
@@ -44,14 +44,9 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
       }
     });
 
-    // Clean up annotation drag state
-    if (annotations.draggedAnnotationId != null) {
-      endAnnotationDrag();
-    }
-
-    // Clean up annotation resize state
-    if (annotations.isResizing) {
-      annotations.endAnnotationResize();
+    // Clean up resize state (unified for all node types)
+    if (isResizing) {
+      endResize();
     }
 
     // Clean up connection creation state

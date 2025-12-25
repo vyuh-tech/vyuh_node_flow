@@ -200,21 +200,16 @@ class _VisibilityExampleState extends State<VisibilityExample> {
       ),
     );
 
-    // Add initial annotations
-    final sticky = controller.annotations.createStickyAnnotation(
-      id: 'sticky1',
-      position: const Offset(100, 350),
-      text: 'Sticky Note 1',
-      color: Colors.yellow,
+    // Add initial comment nodes
+    controller.addNode(
+      CommentNode<Map<String, dynamic>>(
+        id: 'comment1',
+        position: const Offset(100, 350),
+        text: 'Comment Note 1',
+        data: {},
+        color: Colors.yellow,
+      ),
     );
-    controller.annotations.addAnnotation(sticky);
-
-    final marker = controller.annotations.createMarkerAnnotation(
-      id: 'marker1',
-      position: const Offset(550, 50),
-      markerType: MarkerType.info,
-    );
-    controller.annotations.addAnnotation(marker);
   }
 
   void _addNode() {
@@ -249,34 +244,20 @@ class _VisibilityExampleState extends State<VisibilityExample> {
     controller.addNode(node);
   }
 
-  void _addStickyNote() {
+  void _addCommentNote() {
     final x = 50.0 + _random.nextDouble() * 500;
     final y = 50.0 + _random.nextDouble() * 350;
-    final id = 'sticky_${DateTime.now().millisecondsSinceEpoch}';
+    final id = 'comment_${DateTime.now().millisecondsSinceEpoch}';
 
-    final sticky = controller.annotations.createStickyAnnotation(
-      id: id,
-      position: Offset(x, y),
-      text: 'New sticky note',
-      color: _randomColor(),
+    controller.addNode(
+      CommentNode<Map<String, dynamic>>(
+        id: id,
+        position: Offset(x, y),
+        text: 'New comment note',
+        data: {},
+        color: _randomColor(),
+      ),
     );
-    controller.annotations.addAnnotation(sticky);
-  }
-
-  void _addMarker() {
-    final x = 50.0 + _random.nextDouble() * 550;
-    final y = 50.0 + _random.nextDouble() * 350;
-    final id = 'marker_${DateTime.now().millisecondsSinceEpoch}';
-
-    final types = MarkerType.values;
-    final type = types[_random.nextInt(types.length)];
-
-    final marker = controller.annotations.createMarkerAnnotation(
-      id: id,
-      position: Offset(x, y),
-      markerType: type,
-    );
-    controller.annotations.addAnnotation(marker);
   }
 
   void _addGroup() {
@@ -284,14 +265,17 @@ class _VisibilityExampleState extends State<VisibilityExample> {
     final y = 50.0 + _random.nextDouble() * 250;
     final id = 'group_${DateTime.now().millisecondsSinceEpoch}';
 
-    final group = controller.annotations.createGroupAnnotation(
-      id: id,
-      title: 'New Group',
-      position: Offset(x, y),
-      size: const Size(200, 150),
-      color: _randomGroupColor(),
+    controller.addNode(
+      GroupNode<Map<String, dynamic>>(
+        id: id,
+        title: 'New Group',
+        position: Offset(x, y),
+        size: const Size(200, 150),
+        data: {},
+        color: _randomGroupColor(),
+        behavior: GroupBehavior.bounds,
+      ),
     );
-    controller.annotations.addAnnotation(group);
   }
 
   Color _randomGroupColor() {
@@ -317,24 +301,16 @@ class _VisibilityExampleState extends State<VisibilityExample> {
   }
 
   void _showAll() {
-    // Show all nodes
+    // Show all nodes (including comment and group nodes)
     for (final node in controller.nodes.values) {
       node.isVisible = true;
-    }
-    // Show all annotations
-    for (final annotation in controller.annotations.annotations.values) {
-      annotation.isVisible = true;
     }
   }
 
   void _hideAll() {
-    // Hide all nodes
+    // Hide all nodes (including comment and group nodes)
     for (final node in controller.nodes.values) {
       node.isVisible = false;
-    }
-    // Hide all annotations
-    for (final annotation in controller.annotations.annotations.values) {
-      annotation.isVisible = false;
     }
   }
 
@@ -357,7 +333,7 @@ class _VisibilityExampleState extends State<VisibilityExample> {
         const InfoCard(
           title: 'Instructions',
           content:
-              'Toggle visibility of nodes and annotations using the eye icons. '
+              'Toggle visibility of all node types using the eye icons. '
               'Hidden elements disappear from the canvas but remain in the list. '
               'Connections to hidden nodes are also hidden.',
         ),
@@ -376,24 +352,10 @@ class _VisibilityExampleState extends State<VisibilityExample> {
           ],
         ),
         const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: ControlButton(
-                label: 'Add Sticky',
-                icon: Icons.sticky_note_2,
-                onPressed: _addStickyNote,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ControlButton(
-                label: 'Add Marker',
-                icon: Icons.place,
-                onPressed: _addMarker,
-              ),
-            ),
-          ],
+        ControlButton(
+          label: 'Add Comment',
+          icon: Icons.sticky_note_2,
+          onPressed: _addCommentNote,
         ),
         const SizedBox(height: 8),
         ControlButton(
@@ -422,13 +384,9 @@ class _VisibilityExampleState extends State<VisibilityExample> {
           ],
         ),
         const SizedBox(height: 24),
-        const SectionTitle('Nodes'),
+        const SectionTitle('All Nodes'),
         const SizedBox(height: 8),
         _NodeList(controller: controller),
-        const SizedBox(height: 24),
-        const SectionTitle('Annotations'),
-        const SizedBox(height: 8),
-        _AnnotationList(controller: controller),
       ],
     );
   }
@@ -480,7 +438,7 @@ class _NodeWidget extends StatelessWidget {
   }
 }
 
-/// List of nodes with visibility toggles
+/// List of all nodes (including comment and group nodes) with visibility toggles
 class _NodeList extends StatelessWidget {
   const _NodeList({required this.controller});
 
@@ -502,8 +460,8 @@ class _NodeList extends StatelessWidget {
               .map(
                 (node) => _VisibilityTile(
                   id: node.id,
-                  title: node.data['title'] as String? ?? node.id,
-                  icon: Icons.crop_square,
+                  title: _getNodeTitle(node),
+                  icon: _getNodeIcon(node),
                   isVisible: node.isVisible,
                   onToggle: () {
                     node.isVisible = !node.isVisible;
@@ -518,69 +476,27 @@ class _NodeList extends StatelessWidget {
       },
     );
   }
-}
 
-/// List of annotations with visibility toggles
-class _AnnotationList extends StatelessWidget {
-  const _AnnotationList({required this.controller});
-
-  final NodeFlowController<Map<String, dynamic>> controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Observer(
-      builder: (_) {
-        final annotations = controller.annotations.annotations.values.toList()
-          ..sort((a, b) => a.id.compareTo(b.id));
-
-        if (annotations.isEmpty) {
-          return const _EmptyListMessage(message: 'No annotations');
-        }
-
-        return Column(
-          children: annotations
-              .map(
-                (annotation) => _VisibilityTile(
-                  id: annotation.id,
-                  title: _getAnnotationTitle(annotation),
-                  icon: _getAnnotationIcon(annotation),
-                  isVisible: annotation.isVisible,
-                  onToggle: () {
-                    annotation.isVisible = !annotation.isVisible;
-                  },
-                  onTap: () {
-                    controller.annotations.selectAnnotation(annotation.id);
-                  },
-                ),
-              )
-              .toList(),
-        );
-      },
-    );
-  }
-
-  String _getAnnotationTitle(Annotation annotation) {
-    if (annotation is StickyAnnotation) {
-      final text = annotation.text;
+  String _getNodeTitle(Node node) {
+    if (node is CommentNode) {
+      final text = node.text;
       return text.length > 20 ? '${text.substring(0, 20)}...' : text;
-    } else if (annotation is MarkerAnnotation) {
-      return 'Marker (${annotation.markerType.name})';
-    } else if (annotation is GroupAnnotation) {
-      final title = annotation.currentTitle;
+    } else if (node is GroupNode) {
+      final title = node.currentTitle;
       return title.isNotEmpty ? title : 'Group';
+    } else if (node.data is Map && (node.data as Map).containsKey('title')) {
+      return (node.data as Map)['title'] as String? ?? node.id;
     }
-    return annotation.type;
+    return node.id;
   }
 
-  IconData _getAnnotationIcon(Annotation annotation) {
-    if (annotation is StickyAnnotation) {
+  IconData _getNodeIcon(Node node) {
+    if (node is CommentNode) {
       return Icons.sticky_note_2;
-    } else if (annotation is MarkerAnnotation) {
-      return Icons.place;
-    } else if (annotation is GroupAnnotation) {
+    } else if (node is GroupNode) {
       return Icons.group_work;
     }
-    return Icons.note;
+    return Icons.crop_square;
   }
 }
 

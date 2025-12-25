@@ -364,36 +364,46 @@ void main() {
     });
   });
 
-  group('Concurrent Operations - Annotation Operations', () {
-    test('rapid annotation creation', () {
-      // Use addAnnotation with explicit IDs to avoid timestamp collision
+  group('Concurrent Operations - CommentNode and GroupNode Operations', () {
+    test('rapid CommentNode creation', () {
+      // Use addNode with explicit IDs to avoid timestamp collision
       for (var i = 0; i < 50; i++) {
-        controller.addAnnotation(
-          createTestStickyAnnotation(
-            id: 'sticky-rapid-$i',
+        controller.addNode(
+          createTestCommentNode<String>(
+            data: '',
+            id: 'comment-rapid-$i',
             position: Offset(i * 50.0, i * 50.0),
             text: 'Note $i',
           ),
         );
       }
 
-      expect(controller.annotations.sortedAnnotations.length, equals(50));
+      final commentNodes = controller.nodes.values
+          .whereType<CommentNode<String>>()
+          .toList();
+      expect(commentNodes.length, equals(50));
     });
 
-    test('annotation operations during node operations', () {
+    test('CommentNode operations during regular node operations', () {
       for (var i = 0; i < 20; i++) {
         controller.addNode(createTestNode(id: 'node-$i'));
-        controller.addAnnotation(
-          createTestStickyAnnotation(
-            id: 'sticky-mixed-$i',
+        controller.addNode(
+          createTestCommentNode<String>(
+            data: '',
+            id: 'comment-mixed-$i',
             position: Offset(i * 100.0, i * 100.0),
             text: 'Note $i',
           ),
         );
       }
 
-      expect(controller.nodeCount, equals(20));
-      expect(controller.annotations.sortedAnnotations.length, equals(20));
+      // Total: 20 regular nodes + 20 comment nodes
+      expect(controller.nodeCount, equals(40));
+
+      final commentNodes = controller.nodes.values
+          .whereType<CommentNode<String>>()
+          .toList();
+      expect(commentNodes.length, equals(20));
     });
   });
 

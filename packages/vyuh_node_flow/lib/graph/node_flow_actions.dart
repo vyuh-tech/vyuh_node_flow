@@ -660,7 +660,7 @@ class _DeleteSelectedAction<T> extends NodeFlowAction<T> {
       return false;
     }
 
-    // Delete selected nodes
+    // Delete selected nodes (includes GroupNode and CommentNode)
     for (final nodeId in controller.selectedNodeIds.toList()) {
       controller.removeNode(nodeId);
     }
@@ -670,17 +670,12 @@ class _DeleteSelectedAction<T> extends NodeFlowAction<T> {
       controller.removeConnection(connectionId);
     }
 
-    // Delete selected annotations
-    controller.annotations.deleteSelectedAnnotations();
-
     return true;
   }
 
   @override
   bool canExecute(NodeFlowController<T> controller) {
-    return controller.behavior.canDelete &&
-        (controller.hasSelection ||
-            controller.annotations.selectedAnnotationIds.isNotEmpty);
+    return controller.behavior.canDelete && controller.hasSelection;
   }
 }
 
@@ -864,22 +859,13 @@ class _BringToFrontAction<T> extends NodeFlowAction<T> {
     : super(
         id: 'bring_to_front',
         label: 'Bring to Front',
-        description: 'Bring selected nodes and annotations to front',
+        description: 'Bring selected nodes to front',
         category: 'Arrangement',
       );
 
   @override
   bool execute(NodeFlowController<T> controller, BuildContext? context) {
-    // Handle selected annotations first
-    final selectedAnnotationIds = controller.annotations.selectedAnnotationIds;
-    if (selectedAnnotationIds.isNotEmpty) {
-      for (final annotationId in selectedAnnotationIds) {
-        controller.annotations.bringAnnotationToFront(annotationId);
-      }
-      return true;
-    }
-
-    // Handle selected nodes (original behavior)
+    // Handle all selected nodes (includes GroupNode and CommentNode)
     for (final nodeId in controller.selectedNodeIds) {
       controller.bringNodeToFront(nodeId);
     }
@@ -888,8 +874,7 @@ class _BringToFrontAction<T> extends NodeFlowAction<T> {
 
   @override
   bool canExecute(NodeFlowController<T> controller) {
-    return controller.selectedNodeIds.isNotEmpty ||
-        controller.annotations.selectedAnnotationIds.isNotEmpty;
+    return controller.selectedNodeIds.isNotEmpty;
   }
 }
 
@@ -898,22 +883,13 @@ class _SendToBackAction<T> extends NodeFlowAction<T> {
     : super(
         id: 'send_to_back',
         label: 'Send to Back',
-        description: 'Send selected nodes and annotations to back',
+        description: 'Send selected nodes to back',
         category: 'Arrangement',
       );
 
   @override
   bool execute(NodeFlowController<T> controller, BuildContext? context) {
-    // Handle selected annotations first
-    final selectedAnnotationIds = controller.annotations.selectedAnnotationIds;
-    if (selectedAnnotationIds.isNotEmpty) {
-      for (final annotationId in selectedAnnotationIds) {
-        controller.annotations.sendAnnotationToBack(annotationId);
-      }
-      return true;
-    }
-
-    // Handle selected nodes (original behavior)
+    // Handle all selected nodes (includes GroupNode and CommentNode)
     for (final nodeId in controller.selectedNodeIds) {
       controller.sendNodeToBack(nodeId);
     }
@@ -922,8 +898,7 @@ class _SendToBackAction<T> extends NodeFlowAction<T> {
 
   @override
   bool canExecute(NodeFlowController<T> controller) {
-    return controller.selectedNodeIds.isNotEmpty ||
-        controller.annotations.selectedAnnotationIds.isNotEmpty;
+    return controller.selectedNodeIds.isNotEmpty;
   }
 }
 
@@ -932,22 +907,13 @@ class _BringForwardAction<T> extends NodeFlowAction<T> {
     : super(
         id: 'bring_forward',
         label: 'Bring Forward',
-        description: 'Bring selected nodes and annotations forward one layer',
+        description: 'Bring selected nodes forward one layer',
         category: 'Arrangement',
       );
 
   @override
   bool execute(NodeFlowController<T> controller, BuildContext? context) {
-    // Handle selected annotations first
-    final selectedAnnotationIds = controller.annotations.selectedAnnotationIds;
-    if (selectedAnnotationIds.isNotEmpty) {
-      for (final annotationId in selectedAnnotationIds) {
-        controller.annotations.bringAnnotationForward(annotationId);
-      }
-      return true;
-    }
-
-    // Handle selected nodes
+    // Handle all selected nodes (includes GroupNode and CommentNode)
     for (final nodeId in controller.selectedNodeIds) {
       controller.bringNodeForward(nodeId);
     }
@@ -956,8 +922,7 @@ class _BringForwardAction<T> extends NodeFlowAction<T> {
 
   @override
   bool canExecute(NodeFlowController<T> controller) {
-    return controller.selectedNodeIds.isNotEmpty ||
-        controller.annotations.selectedAnnotationIds.isNotEmpty;
+    return controller.selectedNodeIds.isNotEmpty;
   }
 }
 
@@ -966,22 +931,13 @@ class _SendBackwardAction<T> extends NodeFlowAction<T> {
     : super(
         id: 'send_backward',
         label: 'Send Backward',
-        description: 'Send selected nodes and annotations backward one layer',
+        description: 'Send selected nodes backward one layer',
         category: 'Arrangement',
       );
 
   @override
   bool execute(NodeFlowController<T> controller, BuildContext? context) {
-    // Handle selected annotations first
-    final selectedAnnotationIds = controller.annotations.selectedAnnotationIds;
-    if (selectedAnnotationIds.isNotEmpty) {
-      for (final annotationId in selectedAnnotationIds) {
-        controller.annotations.sendAnnotationBackward(annotationId);
-      }
-      return true;
-    }
-
-    // Handle selected nodes
+    // Handle all selected nodes (includes GroupNode and CommentNode)
     for (final nodeId in controller.selectedNodeIds) {
       controller.sendNodeBackward(nodeId);
     }
@@ -990,8 +946,7 @@ class _SendBackwardAction<T> extends NodeFlowAction<T> {
 
   @override
   bool canExecute(NodeFlowController<T> controller) {
-    return controller.selectedNodeIds.isNotEmpty ||
-        controller.annotations.selectedAnnotationIds.isNotEmpty;
+    return controller.selectedNodeIds.isNotEmpty;
   }
 }
 
@@ -1202,28 +1157,27 @@ class _EditAnnotationAction<T> extends NodeFlowAction<T> {
   const _EditAnnotationAction()
     : super(
         id: 'edit_annotation',
-        label: 'Edit Annotation',
-        description:
-            'Edit the selected annotation (sticky note text or group title)',
-        category: 'Annotation',
+        label: 'Edit Node',
+        description: 'Edit the selected node (comment text or group title)',
+        category: 'Editing',
       );
 
   @override
   bool execute(NodeFlowController<T> controller, BuildContext? context) {
-    final selectedIds = controller.annotations.selectedAnnotationIds;
+    final selectedIds = controller.selectedNodeIds;
     if (selectedIds.length != 1) return false;
 
-    final annotation = controller.annotations.getAnnotation(selectedIds.first);
-    if (annotation == null) return false;
+    final node = controller.getNode(selectedIds.first);
+    if (node == null) return false;
 
-    // Start editing mode on the annotation
-    annotation.isEditing = true;
+    // Start editing mode on the node (works for GroupNode and CommentNode)
+    node.isEditing = true;
     return true;
   }
 
   @override
   bool canExecute(NodeFlowController<T> controller) {
-    // Only enable when exactly one annotation is selected
-    return controller.annotations.selectedAnnotationIds.length == 1;
+    // Only enable when exactly one node is selected
+    return controller.selectedNodeIds.length == 1;
   }
 }

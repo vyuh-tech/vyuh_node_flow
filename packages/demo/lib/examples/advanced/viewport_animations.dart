@@ -134,23 +134,29 @@ class _ViewportAnimationsExampleState extends State<ViewportAnimationsExample> {
     }
 
     // Add some groups for bounds animation demo
-    _controller.annotations.addAnnotation(
-      GroupAnnotation(
+    _controller.addNode(
+      GroupNode<String>(
         id: 'group-main',
         position: const Offset(80, 80),
         size: const Size(700, 280),
         title: 'Main Pipeline',
+        data: '',
         color: Colors.blue.withValues(alpha: 0.1),
+        behavior: GroupBehavior.bounds,
+        zIndex: -1,
       ),
     );
 
-    _controller.annotations.addAnnotation(
-      GroupAnnotation(
+    _controller.addNode(
+      GroupNode<String>(
         id: 'group-outputs',
         position: const Offset(830, 80),
         size: const Size(300, 280),
         title: 'Outputs',
+        data: '',
         color: Colors.orange.withValues(alpha: 0.1),
+        behavior: GroupBehavior.bounds,
+        zIndex: -1,
       ),
     );
 

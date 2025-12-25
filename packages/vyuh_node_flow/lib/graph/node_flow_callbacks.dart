@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../annotations/annotation.dart';
 import '../connections/connection.dart';
 import '../nodes/node.dart';
 
-/// Callback functions that the NodeFlowController can invoke for lifecycle events
+/// Callback functions that the NodeFlowController can invoke for lifecycle events.
+///
+/// Note: GroupNode and CommentNode lifecycle events are handled through the
+/// node callbacks since they are now regular nodes. Use type checks like
+/// `node is GroupNode` or `node is CommentNode` to filter by node type.
 class NodeFlowCallbacks<T> {
   const NodeFlowCallbacks({
     this.onNodeCreated,
@@ -13,25 +16,21 @@ class NodeFlowCallbacks<T> {
     this.onConnectionCreated,
     this.onConnectionDeleted,
     this.onConnectionSelected,
-    this.onAnnotationCreated,
-    this.onAnnotationDeleted,
-    this.onAnnotationSelected,
   });
 
-  // Node lifecycle callbacks
+  /// Called when a node is created (includes GroupNode and CommentNode)
   final ValueChanged<Node<T>>? onNodeCreated;
+
+  /// Called when a node is deleted (includes GroupNode and CommentNode)
   final ValueChanged<Node<T>>? onNodeDeleted;
+
+  /// Called when node selection changes (includes GroupNode and CommentNode)
   final ValueChanged<Node<T>?>? onNodeSelected;
 
   // Connection lifecycle callbacks
   final ValueChanged<Connection>? onConnectionCreated;
   final ValueChanged<Connection>? onConnectionDeleted;
   final ValueChanged<Connection?>? onConnectionSelected;
-
-  // Annotation lifecycle callbacks
-  final ValueChanged<Annotation>? onAnnotationCreated;
-  final ValueChanged<Annotation>? onAnnotationDeleted;
-  final ValueChanged<Annotation?>? onAnnotationSelected;
 
   /// Create a new callbacks object with updated values
   NodeFlowCallbacks<T> copyWith({
@@ -41,9 +40,6 @@ class NodeFlowCallbacks<T> {
     ValueChanged<Connection>? onConnectionCreated,
     ValueChanged<Connection>? onConnectionDeleted,
     ValueChanged<Connection?>? onConnectionSelected,
-    ValueChanged<Annotation>? onAnnotationCreated,
-    ValueChanged<Annotation>? onAnnotationDeleted,
-    ValueChanged<Annotation?>? onAnnotationSelected,
   }) {
     return NodeFlowCallbacks<T>(
       onNodeCreated: onNodeCreated ?? this.onNodeCreated,
@@ -52,9 +48,6 @@ class NodeFlowCallbacks<T> {
       onConnectionCreated: onConnectionCreated ?? this.onConnectionCreated,
       onConnectionDeleted: onConnectionDeleted ?? this.onConnectionDeleted,
       onConnectionSelected: onConnectionSelected ?? this.onConnectionSelected,
-      onAnnotationCreated: onAnnotationCreated ?? this.onAnnotationCreated,
-      onAnnotationDeleted: onAnnotationDeleted ?? this.onAnnotationDeleted,
-      onAnnotationSelected: onAnnotationSelected ?? this.onAnnotationSelected,
     );
   }
 }

@@ -5,8 +5,6 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart' hide Listener;
 import 'package:vector_math/vector_math_64.dart' hide Colors;
 
-import '../annotations/annotation.dart';
-import '../annotations/annotation_layer.dart';
 import '../connections/connection.dart';
 import '../connections/connection_style_overrides.dart';
 import '../graph/cursor_theme.dart';
@@ -43,11 +41,10 @@ part 'node_flow_editor_widget_handlers.dart';
 ///
 /// This is the main widget for displaying and interacting with a node-based graph.
 /// It provides a highly interactive canvas with support for:
-/// - Node rendering with custom builders
+/// - Node rendering with custom builders (including GroupNode and CommentNode)
 /// - Connection creation and management
 /// - Multiple selection modes
 /// - Viewport panning and zooming
-/// - Annotations (sticky notes, markers, groups)
 /// - Keyboard shortcuts
 /// - Touch and mouse interactions
 ///
@@ -83,8 +80,8 @@ class NodeFlowEditor<T> extends StatefulWidget {
 
   /// The controller that manages the graph state.
   ///
-  /// This controller holds all nodes, connections, annotations, viewport state,
-  /// and provides methods for manipulating the graph.
+  /// This controller holds all nodes (including GroupNode and CommentNode),
+  /// connections, viewport state, and provides methods for manipulating the graph.
   final NodeFlowController<T> controller;
 
   /// Builder function for rendering node content.
@@ -299,9 +296,10 @@ class NodeFlowEditor<T> extends StatefulWidget {
   /// Defaults to `true`.
   final bool scrollToZoom;
 
-  /// Whether to show the annotation layers (sticky notes, markers, groups).
+  /// Whether to show the annotation node layers (GroupNode, CommentNode).
   ///
-  /// When `false`, annotations are not rendered but remain in the graph data.
+  /// When `false`, background (groups) and foreground (comments) layers are
+  /// not rendered, but the nodes remain in the graph data.
   /// Defaults to `true`.
   final bool showAnnotations;
 
@@ -552,19 +550,26 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                                 theme: theme,
                               ),
 
-                              // Background annotations (groups) - drag handled via AnnotationWidget
+                              // Background nodes (GroupNode) - drag handled via NodeWidget
                               if (widget.showAnnotations)
-                                AnnotationLayer.background(
+                                NodesLayer.background(
                                   widget.controller,
-                                  onAnnotationTap: _handleAnnotationTap,
-                                  onAnnotationDoubleTap:
-                                      _handleAnnotationDoubleTap,
-                                  onAnnotationContextMenu:
-                                      _handleAnnotationContextMenu,
-                                  onAnnotationMouseEnter:
-                                      _handleAnnotationMouseEnter,
-                                  onAnnotationMouseLeave:
-                                      _handleAnnotationMouseLeave,
+                                  widget.nodeBuilder,
+                                  widget.controller.connections,
+                                  nodeContainerBuilder:
+                                      widget.nodeContainerBuilder,
+                                  portBuilder: widget.portBuilder,
+                                  onNodeTap: _handleNodeTap,
+                                  onNodeDoubleTap: _handleNodeDoubleTap,
+                                  onNodeContextMenu: _handleNodeContextMenu,
+                                  onNodeMouseEnter: _handleNodeMouseEnter,
+                                  onNodeMouseLeave: _handleNodeMouseLeave,
+                                  onPortContextMenu: _handlePortContextMenu,
+                                  portSnapDistance: widget
+                                      .controller
+                                      .config
+                                      .portSnapDistance
+                                      .value,
                                 ),
 
                               // Connections
@@ -579,40 +584,47 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                                 labelBuilder: widget.labelBuilder,
                               ),
 
-                              // Nodes - drag handled directly by NodeWidget via controller
-                              NodesLayer<T>(
-                                controller: widget.controller,
-                                nodeBuilder: widget.nodeBuilder,
+                              // Middle layer nodes (regular nodes)
+                              NodesLayer.middle(
+                                widget.controller,
+                                widget.nodeBuilder,
+                                widget.controller.connections,
                                 nodeContainerBuilder:
                                     widget.nodeContainerBuilder,
                                 portBuilder: widget.portBuilder,
-                                connections: widget.controller.connections,
-                                portSnapDistance: widget
-                                    .controller
-                                    .config
-                                    .portSnapDistance
-                                    .value,
                                 onNodeTap: _handleNodeTap,
                                 onNodeDoubleTap: _handleNodeDoubleTap,
                                 onNodeContextMenu: _handleNodeContextMenu,
                                 onNodeMouseEnter: _handleNodeMouseEnter,
                                 onNodeMouseLeave: _handleNodeMouseLeave,
                                 onPortContextMenu: _handlePortContextMenu,
+                                portSnapDistance: widget
+                                    .controller
+                                    .config
+                                    .portSnapDistance
+                                    .value,
                               ),
 
-                              // Foreground annotations (stickies, markers) - drag handled via AnnotationWidget
+                              // Foreground nodes (CommentNode) - drag handled via NodeWidget
                               if (widget.showAnnotations)
-                                AnnotationLayer.foreground(
+                                NodesLayer.foreground(
                                   widget.controller,
-                                  onAnnotationTap: _handleAnnotationTap,
-                                  onAnnotationDoubleTap:
-                                      _handleAnnotationDoubleTap,
-                                  onAnnotationContextMenu:
-                                      _handleAnnotationContextMenu,
-                                  onAnnotationMouseEnter:
-                                      _handleAnnotationMouseEnter,
-                                  onAnnotationMouseLeave:
-                                      _handleAnnotationMouseLeave,
+                                  widget.nodeBuilder,
+                                  widget.controller.connections,
+                                  nodeContainerBuilder:
+                                      widget.nodeContainerBuilder,
+                                  portBuilder: widget.portBuilder,
+                                  onNodeTap: _handleNodeTap,
+                                  onNodeDoubleTap: _handleNodeDoubleTap,
+                                  onNodeContextMenu: _handleNodeContextMenu,
+                                  onNodeMouseEnter: _handleNodeMouseEnter,
+                                  onNodeMouseLeave: _handleNodeMouseLeave,
+                                  onPortContextMenu: _handlePortContextMenu,
+                                  portSnapDistance: widget
+                                      .controller
+                                      .config
+                                      .portSnapDistance
+                                      .value,
                                 ),
                             ],
                           ),
@@ -674,8 +686,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       reaction(
         (_) => (
           widget.controller.draggedNodeId != null,
-          widget.controller.annotations.draggedAnnotationId != null,
-          widget.controller.annotations.isResizing,
+          widget.controller.isResizing,
           widget.controller.isConnecting,
           widget.controller.isDrawingSelection,
         ),
@@ -741,9 +752,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Initialize spatial indexes
     spatialIndex.rebuildFromNodes(widget.controller.nodes.values);
     _rebuildConnectionSpatialIndex();
-    spatialIndex.rebuildFromAnnotations(
-      widget.controller.annotations.annotations.values,
-    );
   }
 
   void _rebuildConnectionSpatialIndex() {
@@ -781,21 +789,18 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Centralized pan state calculation - pan is enabled only when:
     // - Behavior allows panning
     // - No node is being dragged
-    // - No annotation is being dragged or resized
+    // - No node is being resized
     // - No connection is being created
     // - No selection rectangle is being drawn
     final canPan = widget.behavior.canPan;
     final draggedNodeId = widget.controller.draggedNodeId;
-    final draggedAnnotationId =
-        widget.controller.annotations.draggedAnnotationId;
-    final isResizing = widget.controller.annotations.isResizing;
+    final isResizing = widget.controller.isResizing;
     final isConnecting = widget.controller.isConnecting;
     final isDrawingSelection = widget.controller.isDrawingSelection;
 
     final newPanEnabled =
         canPan &&
         draggedNodeId == null &&
-        draggedAnnotationId == null &&
         !isResizing &&
         !isConnecting &&
         !isDrawingSelection;
@@ -959,10 +964,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
     final hitResult = _performHitTest(event.localPosition);
 
-    // Request focus when clicking on canvas background (not on nodes/ports/annotations)
+    // Request focus when clicking on canvas background (not on nodes/ports)
     if (!hitResult.isNode &&
         !hitResult.isPort &&
-        !hitResult.isAnnotation &&
         !widget.controller.canvasFocusNode.hasFocus) {
       widget.controller.canvasFocusNode.requestFocus();
     }
@@ -974,13 +978,13 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Store initial pointer position in widget-local coordinates
     widget.controller._setPointerPosition(ScreenPosition(event.localPosition));
 
-    // CRITICAL: Disable pan IMMEDIATELY for ANY interactive element (node, annotation, port)
+    // CRITICAL: Disable pan IMMEDIATELY for ANY interactive element (node or port)
     // This prevents InteractiveViewer from competing for drag gestures in the gesture arena.
     // Pan will be re-enabled by _updatePanState() when drag states change.
     //
     // Only capture pointer ID if we're not already tracking a drag pointer.
     // This prevents a second pointer from overwriting the original drag pointer.
-    if (hitResult.isNode || hitResult.isAnnotation || hitResult.isPort) {
+    if (hitResult.isNode || hitResult.isPort) {
       widget.controller._updateInteractionState(panEnabled: false);
       // Only set drag pointer if not already set (first pointer wins)
       _dragPointerId ??= event.pointer;
@@ -999,6 +1003,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       // Node selection is handled by widget-level handlers:
       // - _handleNodeTap for tap gestures
       // - startNodeDrag for drag gestures (selects if not already selected)
+      // This includes GroupNode and CommentNode which are now regular nodes.
       // Pan is already disabled above for nodes, so just break here.
       case HitTarget.node:
         break;
@@ -1023,12 +1028,8 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         widget.controller.events.connection?.onTap?.call(connection);
         break;
 
-      // Annotations ARE widgets with their own GestureDetectors, so selection
-      // is handled by widget-level handlers (_handleAnnotationTap). This:
-      // - Respects Flutter's natural z-order for overlapping annotations
-      // - Allows resize handles (positioned outside bounds) to work correctly
-      // - Avoids conflicts with drag gesture recognition
-      // Pan is already disabled above for annotations, so just break here.
+      // Legacy annotation hit type - now handled as nodes
+      // GroupNode and CommentNode use the node hit path above
       case HitTarget.annotation:
         break;
 
@@ -1061,8 +1062,8 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Note: Node drag is now handled by GestureDetector in NodeWidget
     // (via _handleNodeDragUpdate) to allow widgets inside nodes to win drag gestures.
 
-    // Note: Annotation drag is now handled by GestureDetector in AnnotationWidget
-    // with direct controller access, so no Listener handling needed here.
+    // Note: Node drag (including GroupNode, CommentNode) is handled by
+    // GestureDetector in NodeWidget with direct controller access.
 
     // Note: Connection drag is now handled by GestureDetector in PortWidget
     // with dragStartBehavior.down to win the gesture arena immediately.
@@ -1104,8 +1105,8 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Note: Node drag end is now handled by GestureDetector in NodeWidget
     // (via _handleNodeDragEnd) to allow widgets inside nodes to win drag gestures.
 
-    // Note: Annotation drag end is now handled by GestureDetector in AnnotationWidget
-    // with direct controller access, so no Listener handling needed here.
+    // Note: All node drag ends (including GroupNode, CommentNode) are handled
+    // by GestureDetector in NodeWidget with direct controller access.
 
     // Note: Connection drag end is now handled by pan gestures in PortWidget.
     // The GestureDetector's onPanEnd handles completion/cancellation.
@@ -1158,9 +1159,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       if (widget.controller.draggedNodeId != null) {
         widget.controller.endNodeDrag();
       }
-      if (widget.controller.annotations.draggedAnnotationId != null) {
-        widget.controller.endAnnotationDrag();
-      }
       // Clear the drag pointer ID after cleanup
       _dragPointerId = null;
     }
@@ -1211,6 +1209,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Find all nodes currently intersecting with the rectangle
     if (rect.width >= 1 && rect.height >= 1) {
       for (final node in widget.controller.nodes.values) {
+        // Skip nodes that don't participate in marquee selection
+        if (!node.selectable) continue;
+
         final nodePos = node.position.value;
         final nodeSize = node.size.value;
 

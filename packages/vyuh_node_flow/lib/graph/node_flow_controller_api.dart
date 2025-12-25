@@ -1,206 +1,124 @@
 part of 'node_flow_controller.dart';
 
-/// Annotation and drag operations for [NodeFlowController].
+/// Factory methods and drag operations for [NodeFlowController].
 ///
 /// This extension provides methods for:
-/// - Annotation CRUD operations
-/// - Annotation factory methods
-/// - Annotation selection and bulk operations
-/// - Widget-level drag operations for nodes, connections, and annotations
+/// - Factory methods for creating GroupNode and CommentNode
+/// - Widget-level drag operations for nodes and connections
+/// - Utility methods for group operations
 extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   // ============================================================================
-  // Annotation CRUD
+  // GroupNode and CommentNode Factory Methods
   // ============================================================================
 
-  /// Adds an annotation to the graph.
+  /// Creates and adds a comment node to the graph.
   ///
-  /// Annotations are visual elements like sticky notes, markers, or group containers
-  /// that provide additional context to the graph.
-  ///
-  /// Triggers the `onAnnotationCreated` callback after successful addition.
-  ///
-  /// Parameters:
-  /// - `annotation`: The annotation to add
-  ///
-  /// See also:
-  /// - `createStickyNote` for creating sticky note annotations
-  /// - `createGroupAnnotation` for creating group annotations
-  /// - `createMarker` for creating marker annotations
-  void addAnnotation(Annotation annotation) {
-    annotations.addAnnotation(annotation);
-    // Fire event after successful addition
-    events.annotation?.onCreated?.call(annotation);
-  }
-
-  /// Removes an annotation from the graph.
-  ///
-  /// Triggers the `onAnnotationDeleted` callback after successful removal.
-  ///
-  /// Parameters:
-  /// - [annotationId]: The ID of the annotation to remove
-  void removeAnnotation(String annotationId) {
-    final annotationToDelete = annotations.getAnnotation(annotationId);
-    annotations.removeAnnotation(annotationId);
-    // Fire event after successful removal
-    if (annotationToDelete != null) {
-      events.annotation?.onDeleted?.call(annotationToDelete);
-    }
-  }
-
-  /// Gets an annotation by its ID.
-  ///
-  /// Returns `null` if the annotation doesn't exist.
-  ///
-  /// Parameters:
-  /// - [annotationId]: The ID of the annotation to retrieve
-  ///
-  /// Returns the annotation if found, otherwise `null`.
-  Annotation? getAnnotation(String annotationId) =>
-      annotations.getAnnotation(annotationId);
-
-  // ============================================================================
-  // Annotation Selection
-  // ============================================================================
-
-  /// Selects an annotation in the graph.
-  ///
-  /// Automatically clears selections of other element types (nodes, connections).
-  /// Requests canvas focus.
-  ///
-  /// Triggers the `onAnnotationSelected` callback after selection changes.
-  ///
-  /// Parameters:
-  /// - [annotationId]: The ID of the annotation to select
-  /// - [toggle]: If `true`, toggles the annotation's selection state. If `false`
-  ///   (default), clears other selections and selects only this annotation.
-  void selectAnnotation(String annotationId, {bool toggle = false}) {
-    runInAction(() {
-      // Clear other element types' selections
-      clearNodeSelection();
-      clearConnectionSelection();
-    });
-
-    annotations.selectAnnotation(annotationId, toggle: toggle);
-
-    // Fire selection callback with current selection state
-    final selectedAnnotation = annotations.isAnnotationSelected(annotationId)
-        ? annotations.getAnnotation(annotationId)
-        : null;
-    events.annotation?.onSelected?.call(selectedAnnotation);
-
-    canvasFocusNode.requestFocus();
-  }
-
-  /// Clears all annotation selections.
-  ///
-  /// Triggers the `onAnnotationSelected` callback with `null` if there was a selection.
-  void clearAnnotationSelection() {
-    final hadSelection = annotations.hasAnnotationSelection;
-    annotations.clearAnnotationSelection();
-
-    // Fire selection event with null to indicate no selection
-    if (hadSelection) {
-      events.annotation?.onSelected?.call(null);
-    }
-  }
-
-  /// Checks if an annotation is currently selected.
-  ///
-  /// Parameters:
-  /// - [annotationId]: The ID of the annotation to check
-  ///
-  /// Returns `true` if the annotation is selected, otherwise `false`.
-  bool isAnnotationSelected(String annotationId) =>
-      annotations.isAnnotationSelected(annotationId);
-
-  // ============================================================================
-  // Annotation Factory Methods
-  // ============================================================================
-
-  /// Creates and adds a sticky note annotation to the graph.
-  ///
-  /// Sticky notes are floating text annotations that can be placed anywhere on the canvas.
+  /// Comment nodes are floating text elements that can be placed anywhere on the canvas.
+  /// They support inline editing and auto-grow when text exceeds bounds.
   ///
   /// Parameters:
   /// - [position]: Position in graph coordinates
-  /// - [text]: The text content of the sticky note
+  /// - [text]: The text content of the comment
+  /// - [data]: Custom data of type [T] associated with this node
   /// - [id]: Optional custom ID (auto-generated if not provided)
-  /// - [width]: Width of the sticky note (default: 200.0)
-  /// - [height]: Height of the sticky note (default: 100.0)
+  /// - [width]: Width of the comment (default: 200.0)
+  /// - [height]: Height of the comment (default: 100.0)
   /// - [color]: Background color (default: light yellow)
   ///
-  /// Returns the created [StickyAnnotation].
+  /// Returns the created [CommentNode].
   ///
   /// Example:
   /// ```dart
-  /// controller.createStickyNote(
+  /// controller.createCommentNode(
   ///   position: Offset(100, 100),
   ///   text: 'Important note here',
+  ///   data: MyNodeData(),
   ///   color: Colors.yellow,
   /// );
   /// ```
-  StickyAnnotation createStickyNote({
+  CommentNode<T> createCommentNode({
     required Offset position,
     required String text,
+    required T data,
     String? id,
     double width = 200.0,
     double height = 100.0,
     Color color = const Color(0xFFFFF59D), // Light yellow
   }) {
-    final annotation = annotations.createStickyAnnotation(
-      id: id ?? 'sticky-${DateTime.now().millisecondsSinceEpoch}',
+    final node = CommentNode<T>(
+      id: id ?? 'comment-${DateTime.now().millisecondsSinceEpoch}',
       position: position,
       text: text,
+      data: data,
       width: width,
       height: height,
       color: color,
     );
-    addAnnotation(annotation);
-    return annotation;
+    addNode(node);
+    return node;
   }
 
-  /// Creates and adds a group annotation that visually groups multiple nodes.
+  /// Creates and adds a group node that visually groups multiple nodes.
   ///
-  /// Group annotations automatically resize to encompass their contained nodes.
-  /// They appear as colored rectangles behind the nodes with a title.
+  /// Group nodes create visual boundaries that can contain nodes. The behavior
+  /// determines how node membership is managed (see [GroupBehavior]).
   ///
   /// Parameters:
   /// - [title]: Title displayed at the top of the group
   /// - [position]: Position in graph coordinates
   /// - [size]: Size of the group
+  /// - [data]: Custom data of type [T] associated with this node
   /// - [id]: Optional custom ID (auto-generated if not provided)
   /// - [color]: Background color of the group (default: blue)
+  /// - [behavior]: How the group manages node membership (default: bounds)
+  /// - [nodeIds]: Initial set of node IDs for explicit/parent behavior
+  /// - [padding]: Padding around member nodes (default: kGroupNodeDefaultPadding)
+  /// - [inputPorts]: Optional input ports for subflow patterns
+  /// - [outputPorts]: Optional output ports for subflow patterns
   ///
-  /// Returns the created [GroupAnnotation].
+  /// Returns the created [GroupNode].
   ///
   /// Example:
   /// ```dart
-  /// controller.createGroupAnnotation(
+  /// controller.createGroupNode(
   ///   title: 'Input Processing',
   ///   position: Offset(100, 100),
   ///   size: Size(400, 300),
+  ///   data: MyNodeData(),
   ///   color: Colors.blue,
   /// );
   /// ```
-  GroupAnnotation createGroupAnnotation({
+  GroupNode<T> createGroupNode({
     required String title,
     required Offset position,
     required Size size,
+    required T data,
     String? id,
     Color color = const Color(0xFF2196F3), // Blue
+    GroupBehavior behavior = GroupBehavior.bounds,
+    Set<String>? nodeIds,
+    EdgeInsets padding = kGroupNodeDefaultPadding,
+    List<Port> inputPorts = const [],
+    List<Port> outputPorts = const [],
   }) {
-    final annotation = annotations.createGroupAnnotation(
+    final node = GroupNode<T>(
       id: id ?? 'group-${DateTime.now().millisecondsSinceEpoch}',
       title: title,
       position: position,
       size: size,
+      data: data,
       color: color,
+      behavior: behavior,
+      nodeIds: nodeIds,
+      padding: padding,
+      inputPorts: inputPorts,
+      outputPorts: outputPorts,
     );
-    addAnnotation(annotation);
-    return annotation;
+    addNode(node);
+    return node;
   }
 
-  /// Creates and adds a group annotation that surrounds the specified nodes.
+  /// Creates and adds a group node that surrounds the specified nodes.
   ///
   /// This is a convenience method that calculates the bounding box of the
   /// given nodes and creates a group that encompasses them with padding.
@@ -208,109 +126,135 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   /// Parameters:
   /// - [title]: Display title for the group header
   /// - [nodeIds]: Set of node IDs to surround
+  /// - [data]: Custom data of type [T] associated with this node
   /// - [id]: Optional custom ID (auto-generated if not provided)
   /// - [padding]: Space between the group boundary and the nodes (default: 20.0)
   /// - [color]: Background color of the group (default: blue)
+  /// - [behavior]: How the group manages node membership (default: bounds)
+  /// - [inputPorts]: Optional input ports for subflow patterns
+  /// - [outputPorts]: Optional output ports for subflow patterns
   ///
-  /// Returns the created [GroupAnnotation].
+  /// Returns the created [GroupNode].
   ///
   /// Example:
   /// ```dart
-  /// controller.createGroupAnnotationAroundNodes(
+  /// controller.createGroupNodeAroundNodes(
   ///   title: 'Input Processing',
   ///   nodeIds: {'node1', 'node2', 'node3'},
+  ///   data: MyNodeData(),
   ///   padding: EdgeInsets.all(30),
   ///   color: Colors.blue,
   /// );
   /// ```
-  GroupAnnotation createGroupAnnotationAroundNodes({
+  GroupNode<T> createGroupNodeAroundNodes({
     required String title,
     required Set<String> nodeIds,
+    required T data,
     String? id,
     EdgeInsets padding = const EdgeInsets.all(20.0),
     Color color = const Color(0xFF2196F3), // Blue
+    GroupBehavior behavior = GroupBehavior.bounds,
+    List<Port> inputPorts = const [],
+    List<Port> outputPorts = const [],
   }) {
-    final annotation = annotations.createGroupAnnotationAroundNodes(
+    final dependentNodes = nodeIds
+        .map((nodeId) => _nodes[nodeId])
+        .where((node) => node != null)
+        .cast<Node<T>>()
+        .toList();
+
+    Offset initialPosition = Offset.zero;
+    Size initialSize = const Size(200, 150);
+
+    if (dependentNodes.isNotEmpty) {
+      // Calculate bounding box of all dependent nodes
+      double minX = double.infinity;
+      double minY = double.infinity;
+      double maxX = double.negativeInfinity;
+      double maxY = double.negativeInfinity;
+
+      for (final node in dependentNodes) {
+        final pos = node.visualPosition.value;
+        final size = node.size.value;
+
+        minX = math.min(minX, pos.dx);
+        minY = math.min(minY, pos.dy);
+        maxX = math.max(maxX, pos.dx + size.width);
+        maxY = math.max(maxY, pos.dy + size.height);
+      }
+
+      // Add padding around the nodes
+      minX -= padding.left;
+      minY -= padding.top;
+      maxX += padding.right;
+      maxY += padding.bottom;
+
+      initialPosition = Offset(minX, minY);
+      initialSize = Size(maxX - minX, maxY - minY);
+    }
+
+    final node = GroupNode<T>(
       id: id ?? 'group-${DateTime.now().millisecondsSinceEpoch}',
+      position: initialPosition,
+      size: initialSize,
       title: title,
-      nodeIds: nodeIds,
+      data: data,
+      color: color,
+      behavior: behavior,
+      nodeIds: behavior != GroupBehavior.bounds ? nodeIds : null,
       padding: padding,
-      color: color,
+      inputPorts: inputPorts,
+      outputPorts: outputPorts,
     );
-    addAnnotation(annotation);
-    return annotation;
-  }
-
-  /// Creates and adds a marker annotation to the graph.
-  ///
-  /// Markers are small icons that can be used to highlight specific locations
-  /// or draw attention to important points.
-  ///
-  /// Parameters:
-  /// - [position]: Position in graph coordinates
-  /// - [markerType]: Type of marker (info, warning, error, success, etc.)
-  /// - [id]: Optional custom ID (auto-generated if not provided)
-  /// - [size]: Size of the marker icon (default: 24.0)
-  /// - [color]: Color of the marker (default: red)
-  /// - [tooltip]: Optional tooltip text shown on hover
-  ///
-  /// Returns the created [MarkerAnnotation].
-  ///
-  /// Example:
-  /// ```dart
-  /// controller.createMarker(
-  ///   position: Offset(200, 150),
-  ///   markerType: MarkerType.warning,
-  ///   tooltip: 'Check this connection',
-  ///   color: Colors.orange,
-  /// );
-  /// ```
-  MarkerAnnotation createMarker({
-    required Offset position,
-    MarkerType markerType = MarkerType.info,
-    String? id,
-    double size = 24.0,
-    Color color = const Color(0xFFF44336), // Red
-    String? tooltip,
-  }) {
-    final annotation = annotations.createMarkerAnnotation(
-      id: id ?? 'marker-${DateTime.now().millisecondsSinceEpoch}',
-      position: position,
-      markerType: markerType,
-      size: size,
-      color: color,
-      tooltip: tooltip,
-    );
-    addAnnotation(annotation);
-    return annotation;
+    addNode(node);
+    return node;
   }
 
   // ============================================================================
-  // Annotation Bulk Operations
+  // Group Utility Methods
   // ============================================================================
 
-  /// Deletes all currently selected annotations.
+  /// Finds all nodes that are completely contained within a group's bounds.
   ///
-  /// This is a convenience method for batch deletion.
-  void deleteSelectedAnnotations() => annotations.deleteSelectedAnnotations();
+  /// This implements the fluid containment rule: a node is part of a group
+  /// if and only if its bounding box is completely within the group's bounds.
+  Set<String> findContainedNodes(GroupNode<T> group) {
+    return _findNodesInBounds(group.bounds);
+  }
 
-  /// Hides all annotations in the graph.
+  /// Hides all group and comment nodes.
   ///
-  /// Hidden annotations are not rendered but remain in the graph data.
-  void hideAllAnnotations() => annotations.hideAllAnnotations();
+  /// Hidden nodes are not rendered but remain in the graph data.
+  void hideAllAnnotationNodes() {
+    runInAction(() {
+      for (final node in _nodes.values) {
+        if (node is GroupNode || node is CommentNode) {
+          node.isVisible = false;
+        }
+      }
+    });
+  }
 
-  /// Shows all annotations in the graph.
+  /// Shows all group and comment nodes.
   ///
-  /// This makes all previously hidden annotations visible again.
-  void showAllAnnotations() => annotations.showAllAnnotations();
+  /// This makes all previously hidden annotation nodes visible again.
+  void showAllAnnotationNodes() {
+    runInAction(() {
+      for (final node in _nodes.values) {
+        if (node is GroupNode || node is CommentNode) {
+          node.isVisible = true;
+        }
+      }
+    });
+  }
 
   // ============================================================================
   // Widget-Level Drag API
   // ============================================================================
   //
   // These methods are designed to be called directly by widgets (NodeWidget,
-  // PortWidget, AnnotationWidget) to handle drag operations. This eliminates
-  // callback chains and gives widgets direct controller access.
+  // PortWidget) to handle drag operations. This eliminates callback chains
+  // and gives widgets direct controller access.
 
   // ---------------------------------------------------------------------------
   // Node Drag Operations
@@ -327,6 +271,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   /// - Sets up drag state and cursor
   /// - Disables canvas panning during drag
   /// - Fires the drag start event
+  /// - Notifies monitoring nodes (like GroupNode) of drag start
   ///
   /// Parameters:
   /// - [nodeId]: The ID of the node being dragged
@@ -361,6 +306,15 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       }
     });
 
+    // Notify monitoring nodes of drag start
+    final context = _createDragContext();
+    for (final id
+        in selectedNodeIds.contains(nodeId)
+            ? selectedNodeIds.toList()
+            : [nodeId]) {
+      _nodes[id]?.onDragStart(context);
+    }
+
     // Fire drag start event
     final node = _nodes[nodeId];
     if (node != null) {
@@ -383,29 +337,26 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     // Collect nodes that will be moved for event firing
     final movedNodes = <Node<T>>[];
 
+    // Get nodes to move
+    final nodeIdsToMove = selectedNodeIds.contains(draggedNodeId)
+        ? selectedNodeIds.toList()
+        : [draggedNodeId];
+
+    final context = _createDragContext();
+
     runInAction(() {
       // Update node positions and visual positions
-      if (selectedNodeIds.contains(draggedNodeId)) {
-        // Move all selected nodes
-        for (final nodeId in selectedNodeIds) {
-          final node = _nodes[nodeId];
-          if (node != null) {
-            final newPosition = node.position.value + graphDelta;
-            node.position.value = newPosition;
-            // Update visual position with snapping
-            node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
-            movedNodes.add(node);
-          }
-        }
-      } else {
-        // Move single node
-        final node = _nodes[draggedNodeId];
+      for (final nodeId in nodeIdsToMove) {
+        final node = _nodes[nodeId];
         if (node != null) {
           final newPosition = node.position.value + graphDelta;
           node.position.value = newPosition;
           // Update visual position with snapping
           node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
           movedNodes.add(node);
+
+          // Notify the node of its own drag move
+          node.onDragMove(graphDelta, context);
         }
       }
     });
@@ -433,6 +384,14 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       }
     }
 
+    // Notify nodes of drag end
+    for (final node in draggedNodes) {
+      node.onDragEnd();
+    }
+
+    // Ensure proper z-ordering for nested groups after drag
+    _ensureNestedGroupZOrdering(draggedNodes);
+
     runInAction(() {
       // Clear dragging state on nodes
       for (final node in draggedNodes) {
@@ -458,38 +417,39 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Annotation Drag Operations
-  // ---------------------------------------------------------------------------
+  /// Ensures dragged groups that are now inside other groups have proper z-ordering.
+  ///
+  /// When a group is dragged into another group, the child group's z-index must be
+  /// higher than the parent group's z-index so it renders on top and remains clickable.
+  void _ensureNestedGroupZOrdering(List<Node<T>> draggedNodes) {
+    // Get all group nodes
+    final allGroups = _nodes.values.whereType<GroupNode<T>>().toList();
+    if (allGroups.length < 2) return; // Need at least 2 groups for nesting
 
-  /// Starts an annotation drag operation.
-  ///
-  /// Call this from AnnotationWidget's GestureDetector.onPanStart.
-  /// Pan is disabled by the editor's pointer down handler before gesture arena runs.
-  ///
-  /// Parameters:
-  /// - [annotationId]: The ID of the annotation being dragged
-  void startAnnotationDrag(String annotationId) {
-    annotations.internalStartAnnotationDrag(annotationId);
-  }
+    runInAction(() {
+      // For each dragged group, check if it's now inside another group
+      for (final draggedNode in draggedNodes) {
+        if (draggedNode is! GroupNode<T>) continue;
 
-  /// Moves an annotation during a drag operation.
-  ///
-  /// Call this from AnnotationWidget's GestureDetector.onPanUpdate. The delta
-  /// is already in graph coordinates since GestureDetector is inside
-  /// InteractiveViewer's transformed space - no conversion needed.
-  ///
-  /// Parameters:
-  /// - [graphDelta]: The movement delta in graph coordinates
-  void moveAnnotationDrag(Offset graphDelta) {
-    annotations.internalMoveAnnotationDrag(graphDelta, _nodes);
-  }
+        final draggedGroup = draggedNode;
+        final draggedBounds = draggedGroup.bounds;
 
-  /// Ends an annotation drag operation.
-  ///
-  /// Call this from AnnotationWidget's GestureDetector.onPanEnd.
-  /// Pan is re-enabled by the editor's _updatePanState reaction when drag state clears.
-  void endAnnotationDrag() {
-    annotations.internalEndAnnotationDrag();
+        // Check against all other groups
+        for (final parentGroup in allGroups) {
+          if (parentGroup.id == draggedGroup.id) continue;
+
+          final parentBounds = parentGroup.bounds;
+
+          // Check if dragged group is completely inside parent group
+          if (parentBounds.contains(draggedBounds.topLeft) &&
+              parentBounds.contains(draggedBounds.bottomRight)) {
+            // Dragged group is inside parent - ensure it has higher z-index
+            if (draggedGroup.zIndex.value <= parentGroup.zIndex.value) {
+              draggedGroup.zIndex.value = parentGroup.zIndex.value + 1;
+            }
+          }
+        }
+      }
+    });
   }
 }

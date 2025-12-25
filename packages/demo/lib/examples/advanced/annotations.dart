@@ -6,7 +6,7 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../shared/ui_widgets.dart';
 
-/// Example showing how to use the annotation system
+/// Example showing how to use comment nodes and group nodes (formerly the annotation system)
 class AnnotationExample extends StatefulWidget {
   const AnnotationExample({super.key});
 
@@ -148,58 +148,92 @@ class _AnnotationExampleState extends State<AnnotationExample> {
       ),
     );
 
-    // Create different types of annotations
+    // Create different types of nodes (formerly annotations)
 
-    // 1. Sticky note annotation (free-floating)
-    controller.createStickyNote(
-      position: const Offset(400, 50),
-      text: 'This is a sticky note!\n\nYou can drag me around.',
-      width: 180,
-      height: 120,
-      color: Colors.yellow.shade200,
+    // 1. Comment node (free-floating, formerly sticky note)
+    controller.addNode(
+      CommentNode<Map<String, dynamic>>(
+        id: 'comment1',
+        position: const Offset(400, 50),
+        text: 'This is a comment node!\n\nYou can drag me around.',
+        data: {},
+        width: 180,
+        height: 120,
+        color: Colors.yellow.shade200,
+      ),
     );
 
-    // 2. Group annotation (surrounds nodes)
-    controller.createGroupAnnotationAroundNodes(
-      title: 'Core Processes',
-      nodeIds: {'node1', 'node2'},
-      color: Colors.blue.shade300,
-      padding: const EdgeInsets.all(30),
+    // 2. Group node (surrounds nodes)
+    // Calculate bounds for nodes
+    final node1Bounds = controller.getNode('node1')!.getBounds();
+    final node2Bounds = controller.getNode('node2')!.getBounds();
+    final groupBounds = node1Bounds.expandToInclude(node2Bounds);
+    final padding = const EdgeInsets.all(30);
+
+    controller.addNode(
+      GroupNode<Map<String, dynamic>>(
+        id: 'group1',
+        position: Offset(
+          groupBounds.left - padding.left,
+          groupBounds.top - padding.top,
+        ),
+        size: Size(
+          groupBounds.width + padding.left + padding.right,
+          groupBounds.height + padding.top + padding.bottom,
+        ),
+        title: 'Core Processes',
+        data: {},
+        color: Colors.blue.shade300,
+        behavior: GroupBehavior.explicit,
+        nodeIds: {'node1', 'node2'},
+        padding: padding,
+      ),
     );
 
-    // 3. Marker annotations (small indicators)
-    controller.createMarker(
-      position: const Offset(80, 80),
-      markerType: MarkerType.warning,
-      color: Colors.orange,
-      tooltip: 'Important: Check prerequisites',
-    );
+    // 3. MarkerAnnotation has been REMOVED - no replacement needed
+    // (If you need markers, consider using CommentNode with smaller dimensions)
 
-    controller.createMarker(
-      position: const Offset(350, 80),
-      markerType: MarkerType.info,
-      color: Colors.blue,
-      tooltip: 'Info: This process takes ~5 minutes',
-    );
-
-    // 4. Simple sticky note near a node
-    controller.createStickyNote(
-      position: const Offset(250, 350),
-      text: 'Note for Process C\nContext and details here',
-      width: 180,
-      height: 80,
-      color: Colors.green.shade200,
+    // 4. Simple comment node near a node
+    controller.addNode(
+      CommentNode<Map<String, dynamic>>(
+        id: 'comment2',
+        position: const Offset(250, 350),
+        text: 'Note for Process C\nContext and details here',
+        data: {},
+        width: 180,
+        height: 80,
+        color: Colors.green.shade200,
+      ),
     );
 
     // 5. Another group for demonstration
-    final group2 = controller.createGroupAnnotationAroundNodes(
+    final allNodesBounds = [
+      controller.getNode('node1')!.getBounds(),
+      controller.getNode('node2')!.getBounds(),
+      controller.getNode('node3')!.getBounds(),
+    ].reduce((a, b) => a.expandToInclude(b));
+    final padding2 = const EdgeInsets.all(50);
+
+    final group2 = GroupNode<Map<String, dynamic>>(
+      id: 'group2',
+      position: Offset(
+        allNodesBounds.left - padding2.left,
+        allNodesBounds.top - padding2.top,
+      ),
+      size: Size(
+        allNodesBounds.width + padding2.left + padding2.right,
+        allNodesBounds.height + padding2.top + padding2.bottom,
+      ),
       title: 'All Processes',
-      nodeIds: {'node1', 'node2', 'node3'},
+      data: {},
       color: Colors.purple.shade300,
-      padding: const EdgeInsets.all(50),
+      behavior: GroupBehavior.explicit,
+      // Include child group 'group1' so it moves with parent and gets correct z-index
+      nodeIds: {'node1', 'node2', 'node3', 'group1'},
+      padding: padding2,
+      zIndex: -1, // Put this group behind others
     );
-    // Put this group behind others
-    controller.annotations.sendAnnotationToBack(group2.id);
+    controller.addNode(group2);
   }
 
   @override
@@ -255,21 +289,15 @@ class _AnnotationExampleState extends State<AnnotationExample> {
         const InfoCard(
           title: 'Instructions',
           content:
-              'Drag sticky notes and markers around. Group annotations follow their nodes. Select nodes and create groups.',
+              'Drag comment nodes around. Group nodes follow their contained nodes. Select nodes and create groups.',
         ),
         const SizedBox(height: 24),
-        const SectionTitle('Add Annotations'),
+        const SectionTitle('Add Nodes'),
         const SizedBox(height: 8),
         ControlButton(
-          label: 'Add Sticky Note',
+          label: 'Add Comment Node',
           icon: Icons.add_comment,
-          onPressed: _addRandomStickyNote,
-        ),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Add Marker',
-          icon: Icons.place,
-          onPressed: _addRandomMarker,
+          onPressed: _addRandomCommentNode,
         ),
         const SizedBox(height: 8),
         ControlButton(
@@ -281,8 +309,14 @@ class _AnnotationExampleState extends State<AnnotationExample> {
         // Show behavior selector when a group is selected
         Observer(
           builder: (_) {
-            final selected = controller.annotations.selectedAnnotation;
-            if (selected is! GroupAnnotation) {
+            final selectedNodeId = controller.selectedNodeIds.isNotEmpty
+                ? controller.selectedNodeIds.first
+                : null;
+            if (selectedNodeId == null) {
+              return const SizedBox.shrink();
+            }
+            final selected = controller.getNode(selectedNodeId);
+            if (selected is! GroupNode<Map<String, dynamic>>) {
               return const SizedBox.shrink();
             }
             return Column(
@@ -299,79 +333,123 @@ class _AnnotationExampleState extends State<AnnotationExample> {
         const SectionTitle('Visibility'),
         const SizedBox(height: 8),
         ControlButton(
-          label: 'Hide All Annotations',
+          label: 'Hide All Comment/Group Nodes',
           icon: Icons.visibility_off,
-          onPressed: () => controller.hideAllAnnotations(),
+          onPressed: () {
+            for (final node in controller.nodes.values) {
+              if (node is CommentNode || node is GroupNode) {
+                node.isVisible = false;
+              }
+            }
+          },
         ),
         const SizedBox(height: 8),
         ControlButton(
-          label: 'Show All Annotations',
+          label: 'Show All Comment/Group Nodes',
           icon: Icons.visibility,
-          onPressed: () => controller.showAllAnnotations(),
+          onPressed: () {
+            for (final node in controller.nodes.values) {
+              if (node is CommentNode || node is GroupNode) {
+                node.isVisible = true;
+              }
+            }
+          },
         ),
         const SizedBox(height: 24),
         const SectionTitle('Actions'),
         const SizedBox(height: 8),
         ControlButton(
-          label: 'Clear All Annotations',
+          label: 'Clear All Comment/Group Nodes',
           icon: Icons.clear,
-          onPressed: _clearAllAnnotations,
+          onPressed: _clearAllCommentAndGroupNodes,
         ),
       ],
     );
   }
 
-  void _addRandomStickyNote() {
+  void _addRandomCommentNode() {
     final random = DateTime.now().millisecondsSinceEpoch;
-    controller.createStickyNote(
-      position: Offset(
-        50 + (random % 400).toDouble(),
-        50 + ((random ~/ 400) % 300).toDouble(),
-      ),
-      text: 'Sticky Note #${controller.annotations.annotations.length + 1}',
-      color: Colors.primaries[random % Colors.primaries.length].shade200,
-    );
-  }
+    final commentNodes = controller.nodes.values
+        .whereType<CommentNode<Map<String, dynamic>>>()
+        .length;
 
-  void _addRandomMarker() {
-    final random = DateTime.now().millisecondsSinceEpoch;
-
-    controller.createMarker(
-      position: Offset(
-        100 + (random % 300).toDouble(),
-        100 + ((random ~/ 300) % 200).toDouble(),
+    controller.addNode(
+      CommentNode<Map<String, dynamic>>(
+        id: 'comment_$random',
+        position: Offset(
+          50 + (random % 400).toDouble(),
+          50 + ((random ~/ 400) % 300).toDouble(),
+        ),
+        text: 'Comment Node #${commentNodes + 1}',
+        data: {},
+        color: Colors.primaries[random % Colors.primaries.length].shade200,
       ),
-      markerType: MarkerType.values[random % MarkerType.values.length],
-      color: Colors.primaries[random % Colors.primaries.length],
-      tooltip: 'Marker #${controller.annotations.annotations.length + 1}',
     );
   }
 
   void _createRandomGroup() {
-    // Group selected nodes (or all nodes if none selected)
+    // Group selected nodes (or all regular nodes if none selected)
     final selectedNodeIds = controller.selectedNodeIds;
+    final regularNodes = controller.nodes.values
+        .where((n) => n is! CommentNode && n is! GroupNode)
+        .map((n) => n.id)
+        .toSet();
+
     final nodeIdsToGroup = selectedNodeIds.isNotEmpty
-        ? selectedNodeIds
-        : controller.nodes.keys.toSet();
+        ? selectedNodeIds.where(regularNodes.contains).toSet()
+        : regularNodes;
 
     if (nodeIdsToGroup.isEmpty) {
       // No nodes to group
       return;
     }
 
-    controller.createGroupAnnotationAroundNodes(
-      title: 'Group ${DateTime.now().second}',
-      nodeIds: nodeIdsToGroup,
-      color: Colors
-          .primaries[DateTime.now().millisecond % Colors.primaries.length]
-          .shade100,
+    // Calculate bounds for all nodes to group
+    final nodesToGroup = nodeIdsToGroup
+        .map((id) => controller.getNode(id))
+        .whereType<Node<Map<String, dynamic>>>()
+        .toList();
+
+    if (nodesToGroup.isEmpty) return;
+
+    final groupBounds = nodesToGroup
+        .map((n) => n.getBounds())
+        .reduce((a, b) => a.expandToInclude(b));
+
+    final padding = const EdgeInsets.all(30);
+    final random = DateTime.now().millisecondsSinceEpoch;
+
+    controller.addNode(
+      GroupNode<Map<String, dynamic>>(
+        id: 'group_$random',
+        position: Offset(
+          groupBounds.left - padding.left,
+          groupBounds.top - padding.top,
+        ),
+        size: Size(
+          groupBounds.width + padding.left + padding.right,
+          groupBounds.height + padding.top + padding.bottom,
+        ),
+        title: 'Group ${DateTime.now().second}',
+        data: {},
+        color: Colors
+            .primaries[DateTime.now().millisecond % Colors.primaries.length]
+            .shade100,
+        behavior: GroupBehavior.explicit,
+        nodeIds: nodeIdsToGroup,
+        padding: padding,
+      ),
     );
   }
 
-  void _clearAllAnnotations() {
-    final annotationIds = controller.annotations.annotations.keys.toList();
-    for (final id in annotationIds) {
-      controller.removeAnnotation(id);
+  void _clearAllCommentAndGroupNodes() {
+    final nodeIds = controller.nodes.values
+        .where((n) => n is CommentNode || n is GroupNode)
+        .map((n) => n.id)
+        .toList();
+
+    for (final id in nodeIds) {
+      controller.removeNode(id);
     }
   }
 
@@ -386,27 +464,15 @@ class _AnnotationExampleState extends State<AnnotationExample> {
 class _GroupBehaviorSelector extends StatelessWidget {
   const _GroupBehaviorSelector({required this.group, required this.controller});
 
-  final GroupAnnotation group;
+  final GroupNode group;
   final NodeFlowController<Map<String, dynamic>> controller;
 
   void _changeBehavior(GroupBehavior newBehavior) {
-    // If switching from bounds, capture currently contained nodes
-    Set<String>? captureNodes;
-    if (group.behavior == GroupBehavior.bounds &&
-        newBehavior != GroupBehavior.bounds) {
-      captureNodes = controller.annotations.findContainedNodes(group);
-    }
-
-    // Create node lookup for fitToNodes
-    NodeLookup? nodeLookup;
-    if (newBehavior == GroupBehavior.explicit) {
-      nodeLookup = (nodeId) => controller.nodes[nodeId];
-    }
-
+    // GroupNode behavior changes are handled through the node's setBehavior method
+    // The implementation is in the GroupNode class itself
     group.setBehavior(
       newBehavior,
-      captureContainedNodes: captureNodes,
-      nodeLookup: nodeLookup,
+      nodeLookup: (nodeId) => controller.nodes[nodeId],
     );
   }
 

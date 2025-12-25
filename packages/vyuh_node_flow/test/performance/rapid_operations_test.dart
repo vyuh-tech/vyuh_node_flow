@@ -376,25 +376,29 @@ void main() {
     });
   });
 
-  group('Rapid Operations - Annotation Operations', () {
-    test('100 annotation creations under 300ms', () {
+  group('Rapid Operations - CommentNode Operations', () {
+    test('100 CommentNode creations under 300ms', () {
       final stopwatch = Stopwatch()..start();
 
       for (var i = 0; i < 100; i++) {
-        controller.addAnnotation(
-          createTestStickyAnnotation(
-            id: 'sticky-$i',
+        controller.addNode(
+          createTestCommentNode<String>(
+            data: '',
+            id: 'comment-$i',
             position: Offset(i * 50.0, i * 50.0),
           ),
         );
       }
 
       stopwatch.stop();
-      expect(controller.annotations.sortedAnnotations.length, equals(100));
+      final commentNodes = controller.nodes.values
+          .whereType<CommentNode<String>>()
+          .toList();
+      expect(commentNodes.length, equals(100));
       expect(
         stopwatch.elapsedMilliseconds,
         lessThan(300),
-        reason: '100 annotation creations should complete in under 300ms',
+        reason: '100 CommentNode creations should complete in under 300ms',
       );
     });
   });

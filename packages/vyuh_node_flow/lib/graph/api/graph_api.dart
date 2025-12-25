@@ -18,22 +18,22 @@ extension GraphApi<T> on NodeFlowController<T> {
   ///
   /// This method:
   /// 1. Clears the existing graph state
-  /// 2. Bulk loads all nodes, connections, and annotations
+  /// 2. Bulk loads all nodes and connections
   /// 3. Sets the viewport to match the saved state
   /// 4. Sets up visual positioning and hit-testing infrastructure
+  /// 5. Sets up node monitoring for GroupNode and CommentNode
   ///
   /// This is the preferred method for loading saved graphs as it performs
   /// efficient bulk loading rather than individual additions.
   ///
   /// Parameters:
-  /// - `graph`: The graph to load containing nodes, connections, annotations, and viewport state
+  /// - `graph`: The graph to load containing nodes, connections, and viewport state
   ///
   /// Example:
   /// ```dart
   /// final graph = NodeGraph<MyData>(
   ///   nodes: savedNodes,
   ///   connections: savedConnections,
-  ///   annotations: savedAnnotations,
   ///   viewport: savedViewport,
   /// );
   /// controller.loadGraph(graph);
@@ -48,9 +48,6 @@ extension GraphApi<T> on NodeFlowController<T> {
         _nodes[node.id] = node;
       }
       _connections.addAll(graph.connections);
-      for (final annotation in graph.annotations) {
-        annotations.annotations[annotation.id] = annotation;
-      }
 
       // Set viewport
       _viewport.value = graph.viewport;
@@ -62,11 +59,17 @@ extension GraphApi<T> on NodeFlowController<T> {
 
   /// Sets up all necessary infrastructure after bulk loading graph data.
   ///
-  /// This includes visual positioning, hit-testing setup, and other post-load configuration.
+  /// This includes visual positioning, hit-testing setup, node context attachment,
+  /// and other post-load configuration.
   void _setupLoadedGraphInfrastructure() {
-    // Setup node visual positions with snapping
+    // Setup node visual positions with snapping and attach context for groupable nodes
     for (final node in _nodes.values) {
       node.setVisualPosition(_config.snapToGridIfEnabled(node.position.value));
+
+      // Attach context for nodes with GroupableMixin (e.g., GroupNode)
+      if (node is GroupableMixin<T>) {
+        node.attachContext(_createGroupableContext());
+      }
     }
 
     // Rebuild spatial indexes for hit testing
@@ -75,13 +78,15 @@ extension GraphApi<T> on NodeFlowController<T> {
       _connections,
       (connection) => _calculateConnectionBounds(connection) ?? Rect.zero,
     );
-    _spatialIndex.rebuildFromAnnotations(annotations.annotations.values);
   }
 
-  /// Exports the current graph state including all nodes, connections, annotations, and viewport.
+  /// Exports the current graph state including all nodes, connections, and viewport.
   ///
   /// This creates a snapshot of the entire graph that can be serialized and saved.
   /// Use `loadGraph` to restore the graph from the exported data.
+  ///
+  /// Note: GroupNode and CommentNode are included in the nodes list and will be
+  /// serialized with their specific type fields for proper deserialization.
   ///
   /// Returns a [NodeGraph] containing all current graph data.
   ///
@@ -97,18 +102,17 @@ extension GraphApi<T> on NodeFlowController<T> {
     return NodeGraph<T>(
       nodes: _nodes.values.toList(),
       connections: _connections,
-      annotations: annotations.sortedAnnotations,
       viewport: _viewport.value,
     );
   }
 
-  /// Clears the entire graph, removing all nodes, connections, annotations, and selections.
+  /// Clears the entire graph, removing all nodes, connections, and selections.
   ///
   /// This operation:
-  /// - Removes all nodes
+  /// - Removes all nodes (including GroupNode and CommentNode)
   /// - Removes all connections
   /// - Clears all selections
-  /// - Removes all annotations
+  /// - Clears node monitoring reactions
   /// - Clears the connection painter cache
   ///
   /// Does nothing if the graph is already empty.
@@ -120,13 +124,18 @@ extension GraphApi<T> on NodeFlowController<T> {
   void clearGraph() {
     if (_nodes.isEmpty && _connections.isEmpty) return;
 
+    // Detach context from groupable nodes before clearing
+    for (final node in _nodes.values) {
+      if (node is GroupableMixin<T>) {
+        node.detachContext();
+      }
+    }
+
     runInAction(() {
       _nodes.clear();
       _connections.clear();
       _selectedNodeIds.clear();
       _selectedConnectionIds.clear();
-      annotations.annotations.clear();
-      annotations.clearAnnotationSelection();
     });
 
     // Clear spatial indexes to prevent stale hit test entries
@@ -264,18 +273,6 @@ extension GraphApi<T> on NodeFlowController<T> {
     return null;
   }
 
-  /// Hit test annotations at a specific position.
-  ///
-  /// This is a delegating method for the editor's hit testing.
-  ///
-  /// Parameters:
-  /// - [graphPosition]: The position to test in graph/world coordinates
-  ///
-  /// Returns the annotation if hit, `null` otherwise.
-  Annotation? hitTestAnnotations(Offset graphPosition) {
-    return annotations.internalHitTestAnnotations(graphPosition);
-  }
-
   /// Hit test for a port at the given graph position.
   ///
   /// Returns a record containing (nodeId, portId, isOutput) if a port is found
@@ -380,29 +377,33 @@ extension GraphApi<T> on NodeFlowController<T> {
   // Batch Selection Operations
   // ============================================================================
 
-  /// Clears all selections (nodes, connections, and annotations) and exits
-  /// any active editing mode.
+  /// Clears all selections (nodes and connections) and exits any active
+  /// editing mode.
   ///
-  /// This is a convenience method that calls `clearNodeSelection`,
-  /// `clearConnectionSelection`, `clearAnnotationSelection`, and
-  /// `clearAnnotationEditing`.
+  /// This is a convenience method that calls `clearNodeSelection` and
+  /// `clearConnectionSelection`, and also clears any inline editing state
+  /// on nodes like CommentNode.
   void clearSelection() {
     runInAction(() {
-      // Always clear editing state (even if nothing is selected)
-      annotations.clearAnnotationEditing();
+      // Clear any inline editing state on nodes
+      for (final node in _nodes.values) {
+        if (node.isEditing) {
+          node.isEditing = false;
+        }
+      }
 
       // Only clear selections if something is selected
-      if (_selectedNodeIds.isNotEmpty ||
-          _selectedConnectionIds.isNotEmpty ||
-          annotations.hasAnnotationSelection) {
+      if (_selectedNodeIds.isNotEmpty || _selectedConnectionIds.isNotEmpty) {
         clearNodeSelection();
         clearConnectionSelection();
-        annotations.clearAnnotationSelection();
       }
     });
   }
 
-  /// Selects all nodes in the graph.
+  /// Selects all selectable nodes in the graph.
+  ///
+  /// Only nodes with `selectable: true` are included. GroupNode and CommentNode
+  /// have `selectable: false` by default and won't be selected.
   ///
   /// This is a convenience method for selecting everything. Use Cmd+A / Ctrl+A
   /// keyboard shortcut to trigger this.
@@ -414,9 +415,11 @@ extension GraphApi<T> on NodeFlowController<T> {
   void selectAllNodes() {
     runInAction(() {
       _selectedNodeIds.clear();
-      _selectedNodeIds.addAll(_nodes.keys);
       for (final node in _nodes.values) {
-        node.selected.value = true;
+        if (node.selectable) {
+          _selectedNodeIds.add(node.id);
+          node.selected.value = true;
+        }
       }
     });
   }

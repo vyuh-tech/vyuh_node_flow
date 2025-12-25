@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../annotations/annotation.dart';
 import '../connections/connection.dart';
 import '../connections/connection_validation.dart';
 import '../nodes/node.dart';
@@ -10,19 +9,22 @@ import 'viewport.dart';
 /// Comprehensive event system for the NodeFlowEditor
 ///
 /// Organizes all callbacks into logical groups for better discoverability and maintainability.
+///
+/// Note: GroupNode and CommentNode events are handled through [NodeEvents] since
+/// they are now regular nodes. Use `node is GroupNode` or `node is CommentNode`
+/// in callbacks to handle these specifically.
 class NodeFlowEvents<T> {
   const NodeFlowEvents({
     this.node,
     this.port,
     this.connection,
     this.viewport,
-    this.annotation,
     this.onSelectionChange,
     this.onInit,
     this.onError,
   });
 
-  /// Node-related events
+  /// Node-related events (includes GroupNode and CommentNode)
   final NodeEvents<T>? node;
 
   /// Port-related events
@@ -34,10 +36,7 @@ class NodeFlowEvents<T> {
   /// Viewport/canvas events (pan, zoom, taps on empty canvas)
   final ViewportEvents? viewport;
 
-  /// Annotation events
-  final AnnotationEvents? annotation;
-
-  /// Called when the selection changes (nodes, connections, or annotations)
+  /// Called when the selection changes (nodes or connections)
   /// Provides the complete current selection state
   final ValueChanged<SelectionState<T>>? onSelectionChange;
 
@@ -54,7 +53,6 @@ class NodeFlowEvents<T> {
     PortEvents<T>? port,
     ConnectionEvents<T>? connection,
     ViewportEvents? viewport,
-    AnnotationEvents? annotation,
     ValueChanged<SelectionState<T>>? onSelectionChange,
     VoidCallback? onInit,
     ValueChanged<FlowError>? onError,
@@ -64,7 +62,6 @@ class NodeFlowEvents<T> {
       port: port ?? this.port,
       connection: connection ?? this.connection,
       viewport: viewport ?? this.viewport,
-      annotation: annotation ?? this.annotation,
       onSelectionChange: onSelectionChange ?? this.onSelectionChange,
       onInit: onInit ?? this.onInit,
       onError: onError ?? this.onError,
@@ -374,90 +371,20 @@ class ViewportEvents {
 }
 
 /// Represents the current selection state
+///
+/// This includes both regular nodes and special node types (GroupNode, CommentNode).
+/// Use type checks like `node is GroupNode` to filter by node type.
 class SelectionState<T> {
-  const SelectionState({
-    required this.nodes,
-    required this.connections,
-    required this.annotations,
-  });
+  const SelectionState({required this.nodes, required this.connections});
 
-  /// Currently selected nodes
+  /// Currently selected nodes (includes GroupNode and CommentNode)
   final List<Node<T>> nodes;
 
   /// Currently selected connections
   final List<Connection> connections;
 
-  /// Currently selected annotations
-  final List<Annotation> annotations;
-
   /// Whether anything is selected
-  bool get hasSelection =>
-      nodes.isNotEmpty || connections.isNotEmpty || annotations.isNotEmpty;
-}
-
-/// Events related to annotation interactions
-class AnnotationEvents {
-  const AnnotationEvents({
-    this.onCreated,
-    this.onDeleted,
-    this.onSelected,
-    this.onTap,
-    this.onDoubleTap,
-    this.onMouseEnter,
-    this.onMouseLeave,
-    this.onContextMenu,
-  });
-
-  /// Called when an annotation is created
-  final ValueChanged<Annotation>? onCreated;
-
-  /// Called when an annotation is deleted
-  final ValueChanged<Annotation>? onDeleted;
-
-  /// Called when an annotation's selection state changes
-  /// Receives the selected annotation, or null if selection was cleared
-  final ValueChanged<Annotation?>? onSelected;
-
-  /// Called when an annotation is tapped
-  final ValueChanged<Annotation>? onTap;
-
-  /// Called when an annotation is double-tapped
-  final ValueChanged<Annotation>? onDoubleTap;
-
-  /// Called when mouse enters an annotation's bounds
-  final ValueChanged<Annotation>? onMouseEnter;
-
-  /// Called when mouse leaves an annotation's bounds
-  final ValueChanged<Annotation>? onMouseLeave;
-
-  /// Called on secondary tap on an annotation (right-click/long-press for context menu).
-  ///
-  /// The [screenPosition] is in screen/global coordinates, suitable for
-  /// positioning popup menus via [showMenu] or similar APIs.
-  final void Function(Annotation annotation, Offset screenPosition)?
-  onContextMenu;
-
-  AnnotationEvents copyWith({
-    ValueChanged<Annotation>? onCreated,
-    ValueChanged<Annotation>? onDeleted,
-    ValueChanged<Annotation?>? onSelected,
-    ValueChanged<Annotation>? onTap,
-    ValueChanged<Annotation>? onDoubleTap,
-    ValueChanged<Annotation>? onMouseEnter,
-    ValueChanged<Annotation>? onMouseLeave,
-    void Function(Annotation annotation, Offset screenPosition)? onContextMenu,
-  }) {
-    return AnnotationEvents(
-      onCreated: onCreated ?? this.onCreated,
-      onDeleted: onDeleted ?? this.onDeleted,
-      onSelected: onSelected ?? this.onSelected,
-      onTap: onTap ?? this.onTap,
-      onDoubleTap: onDoubleTap ?? this.onDoubleTap,
-      onMouseEnter: onMouseEnter ?? this.onMouseEnter,
-      onMouseLeave: onMouseLeave ?? this.onMouseLeave,
-      onContextMenu: onContextMenu ?? this.onContextMenu,
-    );
-  }
+  bool get hasSelection => nodes.isNotEmpty || connections.isNotEmpty;
 }
 
 /// Error information

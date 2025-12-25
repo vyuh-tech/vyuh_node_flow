@@ -224,17 +224,19 @@ void main() {
     });
   });
 
-  group('Invalid Operations - Non-Existent Annotations', () {
-    test('removeAnnotation handles non-existent ID gracefully', () {
+  group('Invalid Operations - Non-Existent CommentNode/GroupNode', () {
+    test('removeNode handles non-existent CommentNode ID gracefully', () {
+      // Try to remove a non-existent CommentNode ID
       expect(
-        () => controller.removeAnnotation('non-existent'),
+        () => controller.removeNode('non-existent-comment'),
         returnsNormally,
       );
     });
 
-    test('selectAnnotation handles non-existent ID gracefully', () {
+    test('selectNode handles non-existent GroupNode ID gracefully', () {
+      // Try to select a non-existent GroupNode ID
       expect(
-        () => controller.selectAnnotation('non-existent'),
+        () => controller.selectNode('non-existent-group'),
         returnsNormally,
       );
     });

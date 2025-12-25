@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
-import '../annotations/annotation.dart';
 import '../connections/connection.dart';
 import '../connections/connection_painter.dart';
 import '../connections/connection_validation.dart';
@@ -14,7 +13,11 @@ import '../graph/node_flow_events.dart';
 import '../graph/node_flow_theme.dart';
 import '../graph/viewport.dart';
 import '../graph/viewport_animation_mixin.dart';
+import '../nodes/comment_node.dart';
+import '../nodes/group_node.dart';
 import '../nodes/interaction_state.dart';
+import '../nodes/mixins/groupable_mixin.dart';
+import '../nodes/mixins/resizable_mixin.dart';
 import '../nodes/node.dart';
 import '../nodes/node_data.dart';
 import '../nodes/node_shape.dart';
@@ -26,7 +29,6 @@ import 'coordinates.dart';
 import 'node_flow_actions.dart';
 import 'node_flow_behavior.dart';
 
-part '../annotations/annotation_controller.dart';
 part 'api/connection_api.dart';
 part 'api/graph_api.dart';
 // Domain-specific API extensions
@@ -66,15 +68,12 @@ class NodeFlowController<T> {
         initialViewport ?? const GraphViewport(x: 0, y: 0, zoom: 1.0),
       ),
       _config = config ?? NodeFlowConfig.defaultConfig {
-    // Initialize annotation controller with reference to this controller
-    annotations = AnnotationController<T>(this);
-
     // Initialize actions and shortcuts system
     shortcuts = NodeFlowShortcutManager<T>();
     shortcuts.registerActions(DefaultNodeFlowActions.createDefaultActions<T>());
 
-    // Setup annotation reactions after construction
-    _setupAnnotationReactions();
+    // Setup node monitoring reactions (for GroupNode tracking)
+    _setupNodeMonitoringReactions();
 
     // Setup selection change reactions
     _setupSelectionReactions();
@@ -221,8 +220,11 @@ class NodeFlowController<T> {
   // Interaction state - organized in separate object
   final InteractionState interaction = InteractionState();
 
-  // Annotation management
-  late final AnnotationController<T> annotations;
+  // Node monitoring for GroupNode tracking
+  // Track previous node IDs to detect additions/deletions
+  Set<String> _previousNodeIds = {};
+  // Flag to prevent cyclic updates when moving group child nodes
+  bool _isMovingGroupNodes = false;
 
   // Connection painting and hit-testing
   ConnectionPainter? _connectionPainter;
@@ -234,7 +236,6 @@ class NodeFlowController<T> {
 
   // Pending spatial index updates (dirty tracking)
   final Set<String> _pendingNodeUpdates = {};
-  final Set<String> _pendingAnnotationUpdates = {};
   final Set<String> _pendingConnectionUpdates = {};
 
   // Connection index for O(1) lookup by node ID
@@ -336,6 +337,21 @@ class NodeFlowController<T> {
   /// connection creation.
   bool get panEnabled => interaction.isPanEnabled;
 
+  // ===========================================================================
+  // Resize State (unified for Node and Annotation)
+  // ===========================================================================
+
+  /// Gets the ID of the node currently being resized (package-private).
+  ///
+  /// Works for both regular nodes and annotations since Annotation extends Node.
+  /// Returns null if no resize operation is in progress.
+  String? get resizingNodeId => interaction.currentResizingNodeId;
+
+  /// Checks if any resize operation is in progress (package-private).
+  ///
+  /// Returns true when a node or annotation is being resized.
+  bool get isResizing => interaction.isResizing;
+
   /// Gets the IDs of all currently selected connections (package-private).
   ///
   /// Returns a set of connection IDs. An empty set means no connections are selected.
@@ -361,20 +377,32 @@ class NodeFlowController<T> {
     return nodesList;
   }
 
-  void _setupAnnotationReactions() {
-    // Update annotations when nodes change position
-    reaction(
-      (_) {
-        // Observe all node visual positions (what's actually rendered)
-        for (final node in _nodes.values) {
-          node.visualPosition.value; // Trigger observation on visual position
-        }
-        return _nodes.values.map((node) => node.visualPosition.value).toList();
-      },
-      (_) {
-        // Node positions observed - annotations monitor nodes via their own reactions
-      },
-    );
+  /// Sets up reactions for node monitoring (used by GroupNode to track child nodes).
+  ///
+  /// This enables GroupNodes with explicit or parent behavior to react when
+  /// their member nodes move, resize, or are deleted.
+  void _setupNodeMonitoringReactions() {
+    // Global reaction for node additions/deletions
+    reaction((_) => _nodes.keys.toSet(), (Set<String> currentNodeIds) {
+      // Skip if we're currently moving nodes during group drag
+      if (_isMovingGroupNodes) return;
+
+      final context = _createDragContext();
+
+      // Detect deleted nodes
+      final deletedIds = _previousNodeIds.difference(currentNodeIds);
+      if (deletedIds.isNotEmpty) {
+        _notifyNodesOfNodeDeletions(deletedIds, context);
+      }
+
+      // Detect added nodes
+      final addedIds = currentNodeIds.difference(_previousNodeIds);
+      if (addedIds.isNotEmpty) {
+        _notifyNodesOfNodeAdditions(addedIds, context);
+      }
+
+      _previousNodeIds = currentNodeIds;
+    }, fireImmediately: true);
   }
 
   void _setupSelectionReactions() {
@@ -382,11 +410,7 @@ class NodeFlowController<T> {
     reaction(
       (_) {
         // Observe all selection state
-        return (
-          _selectedNodeIds.toSet(),
-          _selectedConnectionIds.toSet(),
-          annotations.selectedAnnotationIds.toSet(),
-        );
+        return (_selectedNodeIds.toSet(), _selectedConnectionIds.toSet());
       },
       (_) {
         // Build selection state
@@ -400,16 +424,9 @@ class NodeFlowController<T> {
             .map((id) => _connections.firstWhere((c) => c.id == id))
             .toList();
 
-        final selectedAnnotations = annotations.selectedAnnotationIds
-            .map((id) => annotations.annotations[id])
-            .where((anno) => anno != null)
-            .cast<Annotation>()
-            .toList();
-
         final selectionState = SelectionState<T>(
           nodes: selectedNodes,
           connections: selectedConnections,
-          annotations: selectedAnnotations,
         );
 
         // Fire the selection change event
@@ -420,19 +437,14 @@ class NodeFlowController<T> {
 
   void _setupSpatialIndexReactions() {
     // === DRAG STATE FLUSH REACTION ===
-    // When any drag ends (node or annotation), flush all pending spatial index updates.
+    // When any drag ends, flush all pending spatial index updates.
     // This is the single point where pending updates are committed.
-    reaction(
-      (_) => (interaction.draggedNodeId.value, annotations.draggedAnnotationId),
-      ((String?, String?) dragState) {
-        final (nodeDragId, annotationDragId) = dragState;
-        // Only flush when ALL drags have ended
-        if (nodeDragId == null && annotationDragId == null) {
-          _flushPendingSpatialUpdates();
-        }
-      },
-      fireImmediately: false,
-    );
+    reaction((_) => interaction.draggedNodeId.value, (String? nodeDragId) {
+      // Only flush when drag has ended
+      if (nodeDragId == null) {
+        _flushPendingSpatialUpdates();
+      }
+    }, fireImmediately: false);
 
     // === NODE ADD/REMOVE SYNC ===
     // When nodes are added/removed, rebuild the node spatial index
@@ -457,13 +469,6 @@ class NodeFlowController<T> {
       // Theme properties that affect path geometry have changed
       // Rebuild all connection segments in spatial index
       rebuildAllConnectionSegments();
-    }, fireImmediately: false);
-
-    // === ANNOTATION ADD/REMOVE SYNC ===
-    reaction((_) => annotations.annotations.keys.toSet(), (
-      Set<String> annotationIds,
-    ) {
-      _spatialIndex.rebuildFromAnnotations(annotations.annotations.values);
     }, fireImmediately: false);
 
     // === NODE VISIBILITY CHANGE SYNC ===
@@ -502,6 +507,50 @@ class NodeFlowController<T> {
   /// Use this to guard access to [connectionPainter] during initialization.
   bool get isConnectionPainterInitialized => _connectionPainter != null;
 
+  // ===========================================================================
+  // Unified Resize Methods (works for any resizable Node, including Annotations)
+  // ===========================================================================
+
+  /// Starts a resize operation for any resizable node.
+  ///
+  /// Works for any node with `isResizable = true`, including [GroupNode]
+  /// and [CommentNode]. The node must have [Node.isResizable] set to `true`.
+  void startResize(String nodeId, ResizeHandle handle) {
+    final node = _nodes[nodeId];
+    if (node != null && node.isResizable) {
+      interaction.startResize(nodeId, handle);
+    }
+  }
+
+  /// Updates the size of the currently resizing node during a resize operation.
+  ///
+  /// Delegates to [Node.resize] which handles all resize handle calculations
+  /// and size constraints. After resize, updates visual position with snapping.
+  void updateResize(Offset delta) {
+    final nodeId = interaction.currentResizingNodeId;
+    final handle = interaction.currentResizeHandle;
+    if (nodeId == null || handle == null) return;
+
+    final node = _nodes[nodeId];
+    if (node != null && node.isResizable) {
+      // Safe cast: isResizable guarantees ResizableMixin
+      (node as ResizableMixin<T>).resize(handle, delta);
+      runInAction(() {
+        node.setVisualPosition(
+          _config.snapToGridIfEnabled(node.position.value),
+        );
+      });
+      internalMarkNodeDirty(nodeId);
+    }
+  }
+
+  /// Ends the current resize operation.
+  ///
+  /// Clears resize state and re-enables panning.
+  void endResize() {
+    interaction.endResize();
+  }
+
   /// Disposes of the controller and releases resources.
   ///
   /// Call this when you're done using the controller to clean up resources
@@ -518,8 +567,152 @@ class NodeFlowController<T> {
   void dispose() {
     _canvasFocusNode.dispose();
     _connectionPainter?.dispose();
-    annotations.dispose();
-    // Other disposal logic...
+
+    // Detach context from all groupable nodes to clean up their reactions
+    for (final node in _nodes.values) {
+      if (node is GroupableMixin<T>) {
+        node.detachContext();
+      }
+    }
+  }
+
+  // ============================================================
+  // Node Monitoring Helpers
+  // ============================================================
+
+  /// Creates a drag context for node lifecycle methods.
+  ///
+  /// The context provides callbacks for nodes (like [GroupNode]) that need
+  /// to move child nodes, look up node bounds, etc.
+  NodeDragContext<T> _createDragContext() {
+    return NodeDragContext<T>(
+      moveNodes: _moveNodesByDelta,
+      findNodesInBounds: _findNodesInBounds,
+      getNode: (nodeId) => _nodes[nodeId],
+    );
+  }
+
+  /// Creates a context for GroupableMixin nodes.
+  ///
+  /// This extends the drag context with `shouldSkipUpdates` to prevent
+  /// recursive updates during group drag operations.
+  NodeDragContext<T> _createGroupableContext() {
+    return NodeDragContext<T>(
+      moveNodes: _moveNodesByDelta,
+      findNodesInBounds: _findNodesInBounds,
+      getNode: (nodeId) => _nodes[nodeId],
+      shouldSkipUpdates: () => _isMovingGroupNodes,
+    );
+  }
+
+  /// Moves nodes by a given delta, handling position and visual position with snapping.
+  void _moveNodesByDelta(Set<String> nodeIds, Offset delta) {
+    // Check if already moving to prevent nested calls
+    if (_isMovingGroupNodes) {
+      return;
+    }
+
+    if (nodeIds.isEmpty) return;
+
+    // Temporarily disable updates to prevent cycles
+    _isMovingGroupNodes = true;
+
+    try {
+      runInAction(() {
+        for (final nodeId in nodeIds) {
+          final node = _nodes[nodeId];
+          if (node != null) {
+            final newPosition = node.position.value + delta;
+
+            // Update both position and visual position
+            node.position.value = newPosition;
+            final snappedPosition = _config.snapToGridIfEnabled(newPosition);
+            node.setVisualPosition(snappedPosition);
+          }
+        }
+      });
+
+      // Mark nodes dirty (deferred during drag)
+      internalMarkNodesDirty(nodeIds);
+    } finally {
+      _isMovingGroupNodes = false;
+    }
+  }
+
+  /// Finds all node IDs whose bounds are completely contained within the given rect.
+  ///
+  /// This includes both regular nodes AND GroupNodes, enabling nested groups.
+  /// A node cannot contain itself because Rect.contains uses exclusive bounds
+  /// for bottom-right (the bottomRight point won't satisfy `< right` and `< bottom`).
+  Set<String> _findNodesInBounds(Rect bounds) {
+    final containedNodeIds = <String>{};
+
+    for (final entry in _nodes.entries) {
+      final node = entry.value;
+
+      final nodeRect = Rect.fromLTWH(
+        node.visualPosition.value.dx,
+        node.visualPosition.value.dy,
+        node.size.value.width,
+        node.size.value.height,
+      );
+
+      // Node must be completely inside the bounds
+      if (bounds.contains(nodeRect.topLeft) &&
+          bounds.contains(nodeRect.bottomRight)) {
+        containedNodeIds.add(entry.key);
+      }
+    }
+
+    return containedNodeIds;
+  }
+
+  /// Notifies groupable nodes when other nodes are deleted.
+  void _notifyNodesOfNodeDeletions(
+    Set<String> deletedIds,
+    NodeDragContext<T> context,
+  ) {
+    final nodesToRemove = <String>[];
+
+    for (final node in _nodes.values) {
+      // Only nodes with GroupableMixin can monitor other nodes
+      if (node is GroupableMixin<T>) {
+        if (node.isGroupable) {
+          node.onChildrenDeleted(deletedIds);
+
+          // Check if node wants to be removed
+          if (node.shouldRemoveWhenEmpty && node.isEmpty) {
+            nodesToRemove.add(node.id);
+          }
+        }
+      }
+    }
+
+    // Remove empty nodes
+    for (final nodeId in nodesToRemove) {
+      removeNode(nodeId);
+    }
+  }
+
+  /// Notifies groupable nodes when other nodes are added.
+  void _notifyNodesOfNodeAdditions(
+    Set<String> addedIds,
+    NodeDragContext<T> context,
+  ) {
+    for (final addedNodeId in addedIds) {
+      final addedNode = _nodes[addedNodeId];
+      if (addedNode == null) continue;
+
+      final nodeBounds = addedNode.getBounds();
+      for (final node in _nodes.values) {
+        // Only nodes with GroupableMixin can monitor other nodes
+        if (node is GroupableMixin<T> && node.id != addedNodeId) {
+          if (node.isGroupable) {
+            node.onNodeAdded(addedNodeId, nodeBounds);
+          }
+        }
+      }
+    }
   }
 }
 
@@ -530,15 +723,13 @@ class NodeFlowController<T> {
 /// operations and batches them when the drag ends.
 ///
 /// Key concepts:
-/// - Dirty tracking: Nodes/annotations/connections are marked "dirty" during drag
+/// - Dirty tracking: Nodes/connections are marked "dirty" during drag
 /// - Deferred updates: Spatial index updates are deferred to pending sets
 /// - Batch flush: All pending updates are flushed when drag ends
 /// - Connection index: O(1) lookup of connections by node ID
 extension DirtyTrackingExtension<T> on NodeFlowController<T> {
-  /// Checks if any drag operation is in progress (node or annotation)
-  bool get _isAnyDragInProgress =>
-      interaction.draggedNodeId.value != null ||
-      annotations.draggedAnnotationId != null;
+  /// Checks if any drag operation is in progress
+  bool get _isAnyDragInProgress => interaction.draggedNodeId.value != null;
 
   /// Checks if spatial index updates should be deferred.
   /// Updates are deferred during drag UNLESS debug mode is on (for live visualization).
@@ -569,18 +760,6 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
       hadUpdates = true;
       _flushPendingConnectionUpdates();
       _pendingConnectionUpdates.clear();
-    }
-
-    // Flush annotation updates
-    if (_pendingAnnotationUpdates.isNotEmpty) {
-      hadUpdates = true;
-      for (final annotationId in _pendingAnnotationUpdates) {
-        final annotation = annotations.annotations[annotationId];
-        if (annotation != null) {
-          _spatialIndex.updateAnnotation(annotation);
-        }
-      }
-      _pendingAnnotationUpdates.clear();
     }
 
     // Always notify at the end of flush to ensure debug layer updates
@@ -723,19 +902,6 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
         }
       });
       _updateConnectionBoundsForNodeIds(nodeIds);
-    }
-  }
-
-  // @nodoc - Internal framework use only - do not use in user code
-  /// Marks an annotation as needing spatial index update.
-  void internalMarkAnnotationDirty(String annotationId) {
-    if (_shouldDeferSpatialUpdates) {
-      _pendingAnnotationUpdates.add(annotationId);
-    } else {
-      final annotation = annotations.annotations[annotationId];
-      if (annotation != null) {
-        _spatialIndex.updateAnnotation(annotation);
-      }
     }
   }
 }

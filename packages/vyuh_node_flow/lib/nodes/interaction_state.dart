@@ -4,6 +4,7 @@ import 'package:mobx/mobx.dart';
 
 import '../connections/temporary_connection.dart';
 import '../graph/coordinates.dart';
+import '../shared/resizer_widget.dart';
 
 /// Contains all interaction-related state for the node flow editor.
 ///
@@ -112,6 +113,23 @@ class InteractionState {
   /// initiate a selection rectangle. Typically set when Shift key is held.
   final Observable<bool> selectionStarted = Observable(false);
 
+  // ===========================================================================
+  // Resize State (works for any resizable Node, including Annotations)
+  // ===========================================================================
+
+  /// Observable ID of the node currently being resized.
+  ///
+  /// This works for both regular nodes and annotations since Annotation
+  /// extends Node. Null when no resize operation is in progress.
+  final Observable<String?> resizingNodeId = Observable<String?>(null);
+
+  /// Observable handle being used for the current resize operation.
+  ///
+  /// Determines which edge/corner is being dragged and the resize behavior.
+  final Observable<ResizeHandle?> resizeHandle = Observable<ResizeHandle?>(
+    null,
+  );
+
   /// Checks if a connection is currently being created.
   ///
   /// Returns true when the user is dragging from a port to create a connection.
@@ -186,6 +204,22 @@ class InteractionState {
   ///
   /// When true, shows selection cursor to indicate selection mode is available.
   bool get hasStartedSelection => selectionStarted.value;
+
+  /// Gets the ID of the node currently being resized.
+  ///
+  /// Returns null if no resize operation is in progress.
+  /// Works for both regular nodes and annotations.
+  String? get currentResizingNodeId => resizingNodeId.value;
+
+  /// Gets the current resize handle.
+  ///
+  /// Returns null if no resize operation is in progress.
+  ResizeHandle? get currentResizeHandle => resizeHandle.value;
+
+  /// Checks if any resize operation is in progress.
+  ///
+  /// Returns true when a node or annotation is being resized.
+  bool get isResizing => resizingNodeId.value != null;
 
   /// Sets the currently dragged node.
   ///
@@ -324,6 +358,8 @@ class InteractionState {
       hoveringConnection.value = false;
       cursorOverride.value = null;
       selectionStarted.value = false;
+      resizingNodeId.value = null;
+      resizeHandle.value = null;
     });
   }
 
@@ -372,6 +408,38 @@ class InteractionState {
   void setSelectionStarted(bool started) {
     runInAction(() {
       selectionStarted.value = started;
+    });
+  }
+
+  // ===========================================================================
+  // Resize Methods (unified for Node and Annotation)
+  // ===========================================================================
+
+  /// Starts a resize operation for a node.
+  ///
+  /// Works for any resizable Node, including annotations. The node must have
+  /// [Node.isResizable] set to `true`.
+  ///
+  /// Parameters:
+  /// * [nodeId] - The ID of the node being resized
+  /// * [handle] - The resize handle being dragged
+  void startResize(String nodeId, ResizeHandle handle) {
+    runInAction(() {
+      resizingNodeId.value = nodeId;
+      resizeHandle.value = handle;
+      panEnabled.value = false;
+      setCursorOverride(handle.cursor);
+    });
+  }
+
+  /// Ends the current resize operation.
+  ///
+  /// Clears resize state and re-enables panning.
+  void endResize() {
+    runInAction(() {
+      resizingNodeId.value = null;
+      resizeHandle.value = null;
+      setCursorOverride(null);
     });
   }
 }

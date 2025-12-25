@@ -36,10 +36,13 @@ void main() {
       }
 
       for (var i = 0; i < 10; i++) {
-        controller.addAnnotation(createTestStickyAnnotation(id: 'sticky-$i'));
+        controller.addNode(
+          createTestCommentNode<String>(data: '', id: 'comment-$i'),
+        );
       }
 
-      expect(controller.nodeCount, equals(100));
+      // 100 regular nodes + 10 CommentNodes = 110
+      expect(controller.nodeCount, equals(110));
       expect(controller.connectionCount, equals(99));
 
       // Dispose should complete without error
@@ -206,25 +209,25 @@ void main() {
       controller.dispose();
     });
 
-    test('annotation add/remove cycles dont leak', () {
+    test('CommentNode add/remove cycles dont leak', () {
       final controller = createTestController();
       controller.setScreenSize(const Size(800, 600));
 
       final stopwatch = Stopwatch()..start();
 
       for (var i = 0; i < 500; i++) {
-        controller.addAnnotation(
-          createTestStickyAnnotation(id: 'temp-annotation'),
+        controller.addNode(
+          createTestCommentNode<String>(data: '', id: 'temp-comment'),
         );
-        controller.removeAnnotation('temp-annotation');
+        controller.removeNode('temp-comment');
       }
 
       stopwatch.stop();
-      expect(controller.annotations.sortedAnnotations.length, equals(0));
+      expect(controller.nodeCount, equals(0));
       expect(
         stopwatch.elapsedMilliseconds,
         lessThan(1000),
-        reason: '500 annotation add/remove cycles should be under 1 second',
+        reason: '500 CommentNode add/remove cycles should be under 1 second',
       );
 
       controller.dispose();
@@ -495,10 +498,13 @@ void main() {
           );
         }
 
-        // Add annotations
+        // Add CommentNodes
         for (var i = 0; i < 5; i++) {
-          controller.addAnnotation(
-            createTestStickyAnnotation(id: 'round-$round-sticky-$i'),
+          controller.addNode(
+            createTestCommentNode<String>(
+              data: '',
+              id: 'round-$round-comment-$i',
+            ),
           );
         }
 
@@ -525,7 +531,8 @@ void main() {
       stopwatch.stop();
 
       // Verify final state is consistent
-      expect(controller.nodeCount, equals((50 - 20) * 5));
+      // 50 regular nodes - 20 removed = 30, plus 5 CommentNodes = 35 per round × 5 = 175
+      expect(controller.nodeCount, equals((50 - 20 + 5) * 5));
       expect(
         stopwatch.elapsedMilliseconds,
         lessThan(5000),

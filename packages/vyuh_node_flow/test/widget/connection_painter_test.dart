@@ -1,8 +1,6 @@
 @Tags(['widget'])
 library;
 
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
@@ -41,7 +39,7 @@ void main() {
               child: NodeFlowEditor<String>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
-                    Container(width: 100, height: 60, child: Text(node.id)),
+                    SizedBox(width: 100, height: 60, child: Text(node.id)),
                 theme: NodeFlowTheme.light,
               ),
             ),
@@ -76,7 +74,7 @@ void main() {
               child: NodeFlowEditor<String>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
-                    Container(width: 100, height: 60),
+                    SizedBox(width: 100, height: 60),
                 theme: NodeFlowTheme.light,
               ),
             ),
@@ -103,7 +101,7 @@ void main() {
               child: NodeFlowEditor<String>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
-                    Container(width: 100, height: 60),
+                    SizedBox(width: 100, height: 60),
                 theme: NodeFlowTheme.light,
               ),
             ),
@@ -138,7 +136,7 @@ void main() {
               child: NodeFlowEditor<String>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
-                    Container(width: 100, height: 60),
+                    SizedBox(width: 100, height: 60),
                 theme: NodeFlowTheme.light,
               ),
             ),
@@ -190,7 +188,7 @@ void main() {
               child: NodeFlowEditor<String>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
-                    Container(width: 100, height: 60),
+                    SizedBox(width: 100, height: 60),
                 theme: NodeFlowTheme.light,
               ),
             ),
@@ -229,7 +227,7 @@ void main() {
               child: NodeFlowEditor<String>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
-                    Container(width: 100, height: 60),
+                    SizedBox(width: 100, height: 60),
                 labelBuilder: (context, conn, label, rect, onTap) {
                   customLabelBuilderCalled = true;
                   // Note: Do NOT return Positioned - the library wraps it
@@ -289,7 +287,7 @@ void main() {
               child: NodeFlowEditor<String>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
-                    Container(width: 100, height: 60),
+                    SizedBox(width: 100, height: 60),
                 theme: NodeFlowTheme.light,
               ),
             ),
@@ -338,7 +336,7 @@ void main() {
               child: NodeFlowEditor<String>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
-                    Container(width: 100, height: 60),
+                    SizedBox(width: 100, height: 60),
                 connectionStyleResolver: (connection) {
                   // Return custom style overrides
                   return ConnectionStyleOverrides(
@@ -388,7 +386,7 @@ void main() {
               child: NodeFlowEditor<String>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
-                    Container(width: 100, height: 60),
+                    SizedBox(width: 100, height: 60),
                 theme: NodeFlowTheme.light,
               ),
             ),
@@ -433,7 +431,7 @@ void main() {
               child: NodeFlowEditor<String>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
-                    Container(width: 100, height: 60),
+                    SizedBox(width: 100, height: 60),
                 theme: NodeFlowTheme.light,
               ),
             ),
@@ -468,7 +466,7 @@ void main() {
               child: NodeFlowEditor<String>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
-                    Container(width: 100, height: 60),
+                    SizedBox(width: 100, height: 60),
                 theme: NodeFlowTheme.light,
               ),
             ),
@@ -500,7 +498,7 @@ void main() {
               child: NodeFlowEditor<String>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
-                    Container(width: 100, height: 60),
+                    SizedBox(width: 100, height: 60),
                 theme: NodeFlowTheme.light,
               ),
             ),

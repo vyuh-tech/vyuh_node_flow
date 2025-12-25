@@ -173,58 +173,64 @@ void main() {
       expect(graph.connections.length, equals(connectionCount));
     });
 
-    test('mixed element types: nodes, connections, and annotations', () {
-      // Create nodes
-      for (var i = 0; i < 5; i++) {
+    test(
+      'mixed element types: nodes, connections, GroupNode, and CommentNode',
+      () {
+        // Create regular nodes
+        for (var i = 0; i < 5; i++) {
+          controller.addNode(
+            createTestNodeWithPorts(
+              id: 'node-$i',
+              inputPortId: 'in',
+              outputPortId: 'out',
+            ),
+          );
+        }
+
+        // Create connections
+        for (var i = 0; i < 4; i++) {
+          controller.createConnection('node-$i', 'out', 'node-${i + 1}', 'in');
+        }
+
+        // Create CommentNode (replaces StickyAnnotation)
         controller.addNode(
-          createTestNodeWithPorts(
-            id: 'node-$i',
-            inputPortId: 'in',
-            outputPortId: 'out',
+          createTestCommentNode<String>(
+            data: '',
+            id: 'note-1',
+            text: 'Processing pipeline',
+            position: const Offset(0, -50),
           ),
         );
-      }
 
-      // Create connections
-      for (var i = 0; i < 4; i++) {
-        controller.createConnection('node-$i', 'out', 'node-${i + 1}', 'in');
-      }
+        // Create GroupNode (replaces GroupAnnotation)
+        controller.addNode(
+          createTestGroupNode<String>(
+            data: '',
+            id: 'group-1',
+            title: 'Data Processing',
+            position: const Offset(-20, -20),
+            size: const Size(800, 200),
+          ),
+        );
 
-      // Create annotations
-      controller.addAnnotation(
-        createTestStickyAnnotation(
-          id: 'note-1',
-          text: 'Processing pipeline',
-          position: const Offset(0, -50),
-        ),
-      );
+        // Verify counts (7 total: 5 regular + 1 comment + 1 group)
+        expect(controller.nodeCount, equals(7));
+        expect(controller.connectionCount, equals(4));
 
-      controller.addAnnotation(
-        createTestGroupAnnotation(
-          id: 'group-1',
-          title: 'Data Processing',
-          position: const Offset(-20, -20),
-          size: const Size(800, 200),
-        ),
-      );
+        // Export and verify
+        final graph = controller.exportGraph();
+        expect(graph.nodes.length, equals(7));
+        expect(graph.connections.length, equals(4));
 
-      controller.addAnnotation(
-        createTestMarkerAnnotation(
-          id: 'marker-1',
-          position: const Offset(100, 100),
-        ),
-      );
-
-      // Verify counts
-      expect(controller.nodeCount, equals(5));
-      expect(controller.connectionCount, equals(4));
-      expect(controller.annotations.sortedAnnotations.length, equals(3));
-
-      // Export and verify
-      final graph = controller.exportGraph();
-      expect(graph.nodes.length, equals(5));
-      expect(graph.connections.length, equals(4));
-    });
+        // Verify node types
+        final commentNodes = graph.nodes
+            .whereType<CommentNode<String>>()
+            .toList();
+        final groupNodes = graph.nodes.whereType<GroupNode<String>>().toList();
+        expect(commentNodes.length, equals(1));
+        expect(groupNodes.length, equals(1));
+      },
+    );
   });
 
   group('Graph Operations - Pipeline Patterns', () {
@@ -631,8 +637,9 @@ void main() {
       controller.createConnection('input', 'output-1', 'process', 'input-1');
       controller.createConnection('process', 'output-1', 'output', 'input-1');
 
-      controller.addAnnotation(
-        createTestStickyAnnotation(id: 'note', text: 'Test'),
+      // Add a CommentNode (replaces StickyAnnotation)
+      controller.addNode(
+        createTestCommentNode<String>(data: '', id: 'note', text: 'Test'),
       );
 
       // Export to JSON
@@ -653,7 +660,7 @@ void main() {
         (json) => json as String,
       );
 
-      expect(loadedGraph.nodes.length, equals(3));
+      expect(loadedGraph.nodes.length, equals(4)); // 3 regular + 1 comment
       expect(loadedGraph.connections.length, equals(2));
     });
 

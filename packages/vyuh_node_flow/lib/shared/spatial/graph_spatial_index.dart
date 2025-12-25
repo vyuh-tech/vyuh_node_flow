@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
-import '../../annotations/annotation.dart';
 import '../../connections/connection.dart';
 import '../../graph/hit_test_result.dart';
 import '../../nodes/node.dart';
@@ -24,13 +23,11 @@ export '../../graph/hit_test_result.dart';
 ///
 /// ```dart
 /// // Adding/updating elements
-/// index.update(node);
-/// index.updateAnnotation(annotation);
+/// index.update(node);  // Works for all node types including GroupNode, CommentNode
 /// index.updateConnection(connection, segmentBounds);
 ///
 /// // Removing elements
 /// index.remove(node);
-/// index.removeAnnotation(annotationId);
 /// index.removeConnection(connectionId);
 ///
 /// // Querying
@@ -61,7 +58,6 @@ class GraphSpatialIndex<T> {
   // Domain object storage for type-safe retrieval
   final Map<String, Node<T>> _nodes = {};
   final Map<String, Connection> _connections = {};
-  final Map<String, Annotation> _annotations = {};
 
   // Track connection segment IDs for cleanup
   final Map<String, List<String>> _connectionSegmentIds = {};
@@ -199,18 +195,6 @@ class GraphSpatialIndex<T> {
     }
   }
 
-  /// Updates an annotation in the spatial index.
-  void updateAnnotation(Annotation annotation) {
-    _annotations[annotation.id] = annotation;
-    final item = AnnotationSpatialItem(
-      annotationId: annotation.id,
-      bounds: annotation.bounds,
-    );
-    _grid.addOrUpdate(item);
-    _autoFlush();
-    _notifyChanged();
-  }
-
   /// Updates a connection in the spatial index with segment bounds.
   ///
   /// Connections use multiple segments for accurate curved path hit testing.
@@ -252,15 +236,6 @@ class GraphSpatialIndex<T> {
     }
   }
 
-  /// Removes an annotation from the spatial index.
-  void removeAnnotation(String annotationId) {
-    _annotations.remove(annotationId);
-    _grid.remove(
-      AnnotationSpatialItem(annotationId: annotationId, bounds: Rect.zero).id,
-    );
-    _notifyChanged();
-  }
-
   /// Removes a connection from the spatial index.
   void removeConnection(String connectionId) {
     _connections.remove(connectionId);
@@ -284,7 +259,6 @@ class GraphSpatialIndex<T> {
   void clear() {
     _nodes.clear();
     _connections.clear();
-    _annotations.clear();
     _connectionSegmentIds.clear();
     _nodePortIds.clear();
     _grid.clear();
@@ -325,30 +299,39 @@ class GraphSpatialIndex<T> {
   /// Performs hit testing at a point.
   ///
   /// Tests in priority order matching visual z-order (top to bottom):
-  /// foreground annotations → ports → nodes → connections → background annotations → canvas
+  /// foreground nodes (CommentNode) → ports → middle nodes → connections → background nodes (GroupNode) → canvas
   ///
   /// This order ensures that elements visually on top receive hit priority.
-  /// Foreground annotations (stickies, markers) are above everything except the
-  /// interaction layer. Background annotations (groups) are behind nodes/connections.
+  /// Foreground nodes (comments) are above everything except the interaction layer.
+  /// Background nodes (groups) are behind regular nodes and connections.
   HitTestResult hitTest(Offset point) {
-    // 1. Foreground annotations (highest priority - visually on top)
-    final foregroundResult = _hitTestAnnotations(point, foreground: true);
+    // 1. Foreground nodes (CommentNode - highest priority, visually on top)
+    final foregroundResult = _hitTestNodesByLayer(
+      point,
+      layer: NodeRenderLayer.foreground,
+    );
     if (foregroundResult != null) return foregroundResult;
 
     // 2. Ports
     final portResult = _hitTestPorts(point);
     if (portResult != null) return portResult;
 
-    // 3. Nodes
-    final nodeResult = _hitTestNodes(point);
+    // 3. Middle layer nodes (regular nodes)
+    final nodeResult = _hitTestNodesByLayer(
+      point,
+      layer: NodeRenderLayer.middle,
+    );
     if (nodeResult != null) return nodeResult;
 
     // 4. Connections
     final connectionResult = _hitTestConnections(point);
     if (connectionResult != null) return connectionResult;
 
-    // 5. Background annotations (groups - behind nodes/connections)
-    final backgroundResult = _hitTestAnnotations(point, foreground: false);
+    // 5. Background nodes (GroupNode - behind regular nodes/connections)
+    final backgroundResult = _hitTestNodesByLayer(
+      point,
+      layer: NodeRenderLayer.background,
+    );
     if (backgroundResult != null) return backgroundResult;
 
     // 6. Canvas (background)
@@ -399,16 +382,6 @@ class GraphSpatialIndex<T> {
         .toList();
   }
 
-  /// Gets all annotations at a point.
-  List<Annotation> annotationsAt(Offset point, {double radius = 0}) {
-    return _grid
-        .queryPoint(point, radius: radius)
-        .whereType<AnnotationSpatialItem>()
-        .map((item) => _annotations[item.annotationId])
-        .whereType<Annotation>()
-        .toList();
-  }
-
   /// Hit test for a port at the given position.
   ///
   /// Returns the hit test result containing nodeId, portId, and isOutput
@@ -423,9 +396,6 @@ class GraphSpatialIndex<T> {
   /// Gets a connection by ID.
   Connection? getConnection(String id) => _connections[id];
 
-  /// Gets an annotation by ID.
-  Annotation? getAnnotation(String id) => _annotations[id];
-
   // ═══════════════════════════════════════════════════════════════════════════
   // BULK REBUILD
   // ═══════════════════════════════════════════════════════════════════════════
@@ -433,10 +403,10 @@ class GraphSpatialIndex<T> {
   /// Rebuilds the entire index from the given elements.
   ///
   /// Use this after loading a graph or performing major structural changes.
+  /// Nodes include all node types: regular nodes, GroupNode, CommentNode.
   void rebuild({
     required Iterable<Node<T>> nodes,
     required Iterable<Connection> connections,
-    required Iterable<Annotation> annotations,
     required List<Rect> Function(Connection) connectionSegmentCalculator,
   }) {
     clear();
@@ -447,9 +417,6 @@ class GraphSpatialIndex<T> {
       for (final connection in connections) {
         final segments = connectionSegmentCalculator(connection);
         updateConnection(connection, segments);
-      }
-      for (final annotation in annotations) {
-        updateAnnotation(annotation);
       }
     });
   }
@@ -504,31 +471,12 @@ class GraphSpatialIndex<T> {
     );
   }
 
-  /// Rebuilds only annotations from the given iterable.
-  void rebuildFromAnnotations(Iterable<Annotation> annotations) {
-    // Clear existing annotations
-    for (final annotationId in _annotations.keys.toList()) {
-      _grid.remove(
-        AnnotationSpatialItem(annotationId: annotationId, bounds: Rect.zero).id,
-      );
-    }
-    _annotations.clear();
-
-    // Add new annotations
-    batch(() {
-      for (final annotation in annotations) {
-        updateAnnotation(annotation);
-      }
-    });
-  }
-
   // ═══════════════════════════════════════════════════════════════════════════
   // STATISTICS
   // ═══════════════════════════════════════════════════════════════════════════
 
   int get nodeCount => _nodes.length;
   int get connectionCount => _connections.length;
-  int get annotationCount => _annotations.length;
   int get portCount =>
       _nodePortIds.values.fold(0, (sum, list) => sum + list.length);
   SpatialIndexStats get stats => _grid.stats;
@@ -556,7 +504,7 @@ class GraphSpatialIndex<T> {
   /// Returns a list of [CellDebugInfo] containing:
   /// - `bounds`: The world-coordinate bounding rectangle of the cell
   /// - `cellX`, `cellY`: The grid cell coordinates (not pixels)
-  /// - Type breakdown: `nodeCount`, `portCount`, `connectionCount`, `annotationCount`
+  /// - Type breakdown: `nodeCount`, `portCount`, `connectionCount`
   ///
   /// This is useful for visualizing how the spatial index partitions space.
   List<CellDebugInfo> getActiveCellsInfo() => _grid.getActiveCellsInfo();
@@ -700,13 +648,20 @@ class GraphSpatialIndex<T> {
     return false;
   }
 
-  HitTestResult? _hitTestNodes(Offset point) {
+  /// Hit tests nodes filtered by their render layer.
+  ///
+  /// This unified method replaces separate node and annotation hit testing.
+  /// Nodes include all types: regular nodes, GroupNode (background), CommentNode (foreground).
+  HitTestResult? _hitTestNodesByLayer(
+    Offset point, {
+    required NodeRenderLayer layer,
+  }) {
     final candidates = _grid
         .queryPoint(point)
         .whereType<NodeSpatialItem>()
         .map((item) => _nodes[item.nodeId])
         .whereType<Node<T>>()
-        .where((node) => node.isVisible) // Skip hidden nodes
+        .where((node) => node.isVisible && node.layer == layer)
         .toList();
     candidates.sort((a, b) => b.zIndex.value.compareTo(a.zIndex.value));
 
@@ -752,35 +707,6 @@ class GraphSpatialIndex<T> {
         return HitTestResult(
           connectionId: connection.id,
           hitType: HitTarget.connection,
-        );
-      }
-    }
-    return null;
-  }
-
-  /// Hit tests annotations, optionally filtering by render layer.
-  ///
-  /// When [foreground] is true, only tests foreground annotations (stickies, markers).
-  /// When [foreground] is false, only tests background annotations (groups).
-  HitTestResult? _hitTestAnnotations(Offset point, {required bool foreground}) {
-    final targetLayer = foreground
-        ? AnnotationRenderLayer.foreground
-        : AnnotationRenderLayer.background;
-
-    final candidates = _grid
-        .queryPoint(point)
-        .whereType<AnnotationSpatialItem>()
-        .map((item) => _annotations[item.annotationId])
-        .whereType<Annotation>()
-        .where((annotation) => annotation.layer == targetLayer)
-        .toList();
-    candidates.sort((a, b) => b.zIndex.compareTo(a.zIndex));
-
-    for (final annotation in candidates) {
-      if (annotation.isVisible && annotation.containsPoint(point)) {
-        return HitTestResult(
-          annotationId: annotation.id,
-          hitType: HitTarget.annotation,
         );
       }
     }

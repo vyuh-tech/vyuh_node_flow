@@ -96,6 +96,12 @@ extension NodeApi<T> on NodeFlowController<T> {
       // Initialize visual position with snapping
       node.setVisualPosition(_config.snapToGridIfEnabled(node.position.value));
       // Note: Spatial index is auto-synced via MobX reaction
+
+      // Attach context for nodes with GroupableMixin (e.g., GroupNode)
+      // This enables the node to monitor child nodes, look up other nodes, etc.
+      if (node is GroupableMixin<T>) {
+        node.attachContext(_createGroupableContext());
+      }
     });
     // Fire event after successful addition
     events.node?.onCreated?.call(node);
@@ -114,6 +120,12 @@ extension NodeApi<T> on NodeFlowController<T> {
   void removeNode(String nodeId) {
     final nodeToDelete = _nodes[nodeId]; // Capture before deletion
     runInAction(() {
+      // Detach context for nodes with GroupableMixin before removal
+      // This disposes MobX reactions and cleans up the context
+      if (nodeToDelete is GroupableMixin<T>) {
+        nodeToDelete.detachContext();
+      }
+
       _nodes.remove(nodeId);
       _selectedNodeIds.remove(nodeId);
       // Remove from spatial index
@@ -134,8 +146,8 @@ extension NodeApi<T> on NodeFlowController<T> {
         (c) => c.sourceNodeId == nodeId || c.targetNodeId == nodeId,
       );
 
-      // Note: Annotations are notified via MobX reaction in AnnotationController
-      // that watches _nodes.keys for additions/deletions
+      // Note: Groupable nodes (like GroupNode) are notified of deletions via MobX reaction
+      // in _setupNodeMonitoringReactions that watches _nodes.keys for additions/deletions
     });
     // Fire event after successful removal
     if (nodeToDelete != null) {
@@ -611,7 +623,7 @@ extension NodeApi<T> on NodeFlowController<T> {
 
   /// Selects a node in the graph.
   ///
-  /// Automatically clears selections of other element types (connections, annotations).
+  /// Automatically clears connection selections.
   /// Requests canvas focus if not already focused.
   ///
   /// Triggers the `onNodeSelected` callback after selection changes.
@@ -631,9 +643,8 @@ extension NodeApi<T> on NodeFlowController<T> {
   /// ```
   void selectNode(String nodeId, {bool toggle = false}) {
     runInAction(() {
-      // Clear other element types' selections
+      // Clear connection selections
       clearConnectionSelection();
-      annotations.clearAnnotationSelection();
 
       if (toggle) {
         if (_selectedNodeIds.contains(nodeId)) {
@@ -675,7 +686,7 @@ extension NodeApi<T> on NodeFlowController<T> {
 
   /// Selects multiple nodes in the graph.
   ///
-  /// Automatically clears selections of other element types (connections, annotations).
+  /// Automatically clears connection selections.
   ///
   /// Example:
   /// ```dart
@@ -687,9 +698,8 @@ extension NodeApi<T> on NodeFlowController<T> {
   /// ```
   void selectNodes(List<String> nodeIds, {bool toggle = false}) {
     runInAction(() {
-      // Clear other element types' selections
+      // Clear connection selections
       clearConnectionSelection();
-      annotations.clearAnnotationSelection();
 
       if (toggle) {
         for (final nodeId in nodeIds) {

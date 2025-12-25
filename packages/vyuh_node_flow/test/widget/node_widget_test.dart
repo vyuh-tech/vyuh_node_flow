@@ -1,8 +1,6 @@
 @Tags(['widget'])
 library;
 
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
@@ -92,7 +90,7 @@ void main() {
             body: NodeFlowEditor<String>(
               controller: controller,
               nodeBuilder: (context, node) =>
-                  Container(width: 100, height: 60, child: Text(node.id)),
+                  SizedBox(width: 100, height: 60, child: Text(node.id)),
               theme: NodeFlowTheme.light,
             ),
           ),
@@ -116,7 +114,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowEditor<String>(
               controller: controller,
-              nodeBuilder: (context, node) => Container(width: 100, height: 60),
+              nodeBuilder: (context, node) => SizedBox(width: 100, height: 60),
               portBuilder:
                   (
                     context,
@@ -159,7 +157,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowEditor<String>(
               controller: controller,
-              nodeBuilder: (context, node) => Container(
+              nodeBuilder: (context, node) => SizedBox(
                 key: const ValueKey('node-content'),
                 width: 100,
                 height: 60,
@@ -199,7 +197,7 @@ void main() {
               height: 600,
               child: NodeFlowEditor<String>(
                 controller: controller,
-                nodeBuilder: (context, node) => Container(
+                nodeBuilder: (context, node) => SizedBox(
                   width: 100,
                   height: 60,
                   child: Text(
@@ -238,10 +236,8 @@ void main() {
               height: 600,
               child: NodeFlowEditor<String>(
                 controller: controller,
-                nodeBuilder: (context, node) => Container(
-                  child: Text(
-                    'Size: ${node.size.value.width.toInt()}x${node.size.value.height.toInt()}',
-                  ),
+                nodeBuilder: (context, node) => Text(
+                  'Size: ${node.size.value.width.toInt()}x${node.size.value.height.toInt()}',
                 ),
                 theme: NodeFlowTheme.light,
               ),
@@ -311,7 +307,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowEditor<String>(
               controller: controller,
-              nodeBuilder: (context, node) => Container(
+              nodeBuilder: (context, node) => SizedBox(
                 width: 100,
                 height: 60,
                 child: Text(node.dragging.value ? 'Dragging' : 'Not Dragging'),
@@ -357,8 +353,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowEditor<String>(
               controller: controller,
-              nodeBuilder: (context, node) =>
-                  Container(child: Text('Data: ${node.data ?? "none"}')),
+              nodeBuilder: (context, node) => Text('Data: ${node.data}'),
               theme: NodeFlowTheme.light,
             ),
           ),
@@ -390,7 +385,7 @@ void main() {
               height: 1080,
               child: NodeFlowEditor<String>(
                 controller: controller,
-                nodeBuilder: (context, node) => Container(
+                nodeBuilder: (context, node) => SizedBox(
                   key: ValueKey(node.id),
                   width: 100,
                   height: 60,
@@ -422,7 +417,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowEditor<String>(
               controller: controller,
-              nodeBuilder: (context, node) => Container(child: Text(node.id)),
+              nodeBuilder: (context, node) => Text(node.id),
               nodeShapeBuilder: (context, node) {
                 // Return a circle shape
                 return CircleShape(

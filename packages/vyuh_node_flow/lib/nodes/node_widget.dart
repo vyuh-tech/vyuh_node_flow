@@ -14,26 +14,37 @@ import '../nodes/node_theme.dart';
 import '../ports/port.dart';
 import '../ports/port_widget.dart';
 import '../shared/element_scope.dart';
+import '../shared/resizer_widget.dart';
 import '../shared/unbounded_widgets.dart';
 
-/// A unified node widget that handles positioning, rendering, and interactions.
+/// A unified node widget that handles positioning, rendering, and interactions
+/// for both regular nodes and annotations.
 ///
-/// This widget is the primary UI component for rendering nodes in the flow graph.
+/// This widget is the primary UI component for rendering all graph elements.
 /// It handles:
 /// * Positioning and sizing based on [Node] state
-/// * Rendering ports at appropriate positions
+/// * Rendering ports at appropriate positions (for nodes in middle layer)
 /// * Applying theme-based or custom styling
 /// * Reactive updates via MobX observables
 /// * Gesture handling (tap, double-tap, drag, context menu, hover)
+/// * Resize handles for resizable elements (annotations)
+/// * Self-rendering nodes via [Node.buildWidget]
 ///
 /// Gesture handling is delegated to [ElementScope] which provides:
 /// * Consistent drag lifecycle management
 /// * Proper cleanup on widget disposal
 /// * Guard clauses to prevent duplicate start/end calls
 ///
-/// The widget supports two usage patterns:
-/// 1. **Custom content**: Provide a [child] widget for complete control over node appearance
-/// 2. **Default style**: Use [NodeWidget.defaultStyle] for standard node rendering
+/// The widget supports three rendering modes:
+/// 1. **Self-rendering**: When [Node.buildWidget] returns non-null, it's used directly
+/// 2. **Custom content**: Provide a [child] widget for complete control over node appearance
+/// 3. **Default style**: Use [NodeWidget.defaultStyle] for standard node rendering
+///
+/// ## Layer-Based Behavior
+///
+/// The widget automatically adjusts behavior based on [Node.layer]:
+/// * **Background/Foreground**: Uses annotation drag methods and styling
+/// * **Middle (default)**: Uses node drag methods and styling
 ///
 /// Appearance can be customized per-node by providing optional appearance parameters
 /// which will override values from the theme.
@@ -61,6 +72,7 @@ import '../shared/unbounded_widgets.dart';
 /// * [NodeTheme], which defines default styling
 /// * [PortWidget], which renders individual ports
 /// * [ElementScope], which handles gesture lifecycle
+/// * [ResizerWidget], which provides resize handles for resizable nodes
 class NodeWidget<T> extends StatelessWidget {
   /// Creates a node widget with optional custom content.
   ///
@@ -265,6 +277,9 @@ class NodeWidget<T> extends StatelessWidget {
   /// Distance around ports that expands the hit area for easier targeting.
   final double portSnapDistance;
 
+  /// Checks if this node is in an annotation layer (background or foreground).
+  bool get _isAnnotationLayer => node.layer != NodeRenderLayer.middle;
+
   @override
   Widget build(BuildContext context) {
     // Use controller's theme as single source of truth
@@ -283,11 +298,15 @@ class NodeWidget<T> extends StatelessWidget {
         final isSelected = node.isSelected;
         final size = node.size.value;
 
-        // Derive cursor from interaction state
+        // Derive cursor from interaction state based on layer
         final cursor = theme.cursorTheme.cursorFor(
-          ElementType.node,
+          _isAnnotationLayer ? ElementType.annotation : ElementType.node,
           controller.interaction,
+          isLocked: node.locked,
         );
+
+        // Determine if resize handles should be shown
+        final showResizeHandles = isSelected && node.isResizable;
 
         return Positioned(
           left: position.dx,
@@ -296,12 +315,13 @@ class NodeWidget<T> extends StatelessWidget {
             width: size.width,
             height: size.height,
             child: UnboundedStack(
-              clipBehavior: Clip.none, // Allow ports to overflow the bounds
+              clipBehavior: Clip.none, // Allow ports/handles to overflow
               children: [
                 // Main node visual with gesture handling via ElementScope
                 Positioned.fill(
                   child: ElementScope(
-                    // Drag lifecycle - delegated to controller
+                    // Drag lifecycle - unified for all node types (including GroupNode, CommentNode)
+                    isDraggable: !node.locked,
                     onDragStart: (_) => controller.startNodeDrag(node.id),
                     onDragUpdate: (details) =>
                         controller.moveNodeDrag(details.delta),
@@ -313,6 +333,10 @@ class NodeWidget<T> extends StatelessWidget {
                     onMouseEnter: onMouseEnter,
                     onMouseLeave: onMouseLeave,
                     cursor: cursor,
+                    // Background/foreground layers use translucent for hit testing to allow clicks through transparent areas
+                    hitTestBehavior: _isAnnotationLayer
+                        ? HitTestBehavior.translucent
+                        : HitTestBehavior.opaque,
                     // Autopan configuration
                     autoPan: controller.config.autoPan.value,
                     getViewportBounds: () =>
@@ -326,27 +350,100 @@ class NodeWidget<T> extends StatelessWidget {
                         ),
                       );
                     },
-                    // Node visual
-                    child: shape != null
-                        ? _buildShapedNode(nodeTheme, isSelected)
-                        : _buildRectangularNode(nodeTheme, isSelected),
+                    // Node visual - check for self-rendering first
+                    child: _buildNodeVisual(context, nodeTheme, isSelected),
                   ),
                 ),
 
-                // Input ports (positioned on edges - OUTSIDE node's gesture scope)
-                ...node.inputPorts.map(
-                  (port) => _buildPort(context, port, false, nodeTheme),
-                ),
+                // Input ports (positioned on edges - only for middle layer nodes)
+                if (!_isAnnotationLayer)
+                  ...node.inputPorts.map(
+                    (port) => _buildPort(context, port, false, nodeTheme),
+                  ),
 
-                // Output ports (positioned on edges - OUTSIDE node's gesture scope)
-                ...node.outputPorts.map(
-                  (port) => _buildPort(context, port, true, nodeTheme),
-                ),
+                // Output ports (positioned on edges - only for middle layer nodes)
+                if (!_isAnnotationLayer)
+                  ...node.outputPorts.map(
+                    (port) => _buildPort(context, port, true, nodeTheme),
+                  ),
+
+                // Resize handles (only when selected and resizable)
+                if (showResizeHandles)
+                  Positioned.fill(
+                    child: ResizerWidget(
+                      handleSize: theme.resizerTheme.handleSize,
+                      color: theme.resizerTheme.color,
+                      borderColor: theme.resizerTheme.borderColor,
+                      borderWidth: theme.resizerTheme.borderWidth,
+                      snapDistance: theme.resizerTheme.snapDistance,
+                      onResizeStart: (handle) =>
+                          controller.startResize(node.id, handle),
+                      onResizeUpdate: (delta) => controller.updateResize(delta),
+                      onResizeEnd: () => controller.endResize(),
+                      child: const SizedBox.expand(),
+                    ),
+                  ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  /// Builds the node visual based on rendering mode.
+  ///
+  /// Priority:
+  /// 1. Self-rendering: [node.buildWidget] returns non-null
+  /// 2. Custom content: [child] parameter is provided
+  /// 3. Default rendering: Shape or rectangular based on [shape]
+  Widget _buildNodeVisual(
+    BuildContext context,
+    NodeTheme nodeTheme,
+    bool isSelected,
+  ) {
+    // Check if node provides its own widget (annotations, custom nodes)
+    final selfRenderedWidget = node.buildWidget(context);
+    if (selfRenderedWidget != null) {
+      // For self-rendering nodes (annotations), apply selection styling
+      return _wrapWithSelectionStyling(context, selfRenderedWidget, isSelected);
+    }
+
+    // Use custom child or default rendering
+    if (shape != null) {
+      return _buildShapedNode(nodeTheme, isSelected);
+    } else {
+      return _buildRectangularNode(nodeTheme, isSelected);
+    }
+  }
+
+  /// Wraps self-rendered content with selection styling for annotations.
+  Widget _wrapWithSelectionStyling(
+    BuildContext context,
+    Widget content,
+    bool isSelected,
+  ) {
+    final theme = controller.theme ?? NodeFlowTheme.light;
+    final annotationTheme = theme.annotationTheme;
+    final borderWidth = annotationTheme.borderWidth;
+
+    // Determine border color and background color based on state
+    // When editing, use transparent border for seamless editing experience
+    Color borderColor = Colors.transparent;
+    Color? backgroundColor;
+
+    if (!node.isEditing && isSelected) {
+      borderColor = annotationTheme.selectionBorderColor;
+      backgroundColor = annotationTheme.selectionBackgroundColor;
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: borderColor, width: borderWidth),
+        borderRadius: annotationTheme.borderRadius,
+        color: backgroundColor,
+      ),
+      child: content,
     );
   }
 
