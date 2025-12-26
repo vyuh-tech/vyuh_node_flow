@@ -9,7 +9,6 @@
 @Tags(['unit'])
 library;
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
@@ -285,10 +284,6 @@ void main() {
       final node1 = createTestNode(
         id: 'node-1',
         position: const Offset(10, 20),
-      );
-      final node2 = createTestNode(
-        id: 'node-2',
-        position: const Offset(30, 40),
       );
 
       // Constructor initialization
