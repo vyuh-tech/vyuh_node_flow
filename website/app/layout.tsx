@@ -16,14 +16,20 @@ const fontMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://flow.vyuh.tech'),
   title: {
     default: 'Vyuh Node Flow',
     template: '%s | Vyuh Node Flow',
   },
   description:
     'A flexible, high-performance node-based flow editor for Flutter applications.',
-  icons: {
-    icon: '/favicon.ico',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    siteName: 'Vyuh Node Flow',
+  },
+  twitter: {
+    card: 'summary_large_image',
   },
 };
 
