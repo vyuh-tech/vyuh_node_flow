@@ -118,7 +118,7 @@ function FeatureSection({
   title,
   description,
   icon,
-  image,
+  media,
   features: featureList,
 }: {
   align: 'left' | 'right';
@@ -126,9 +126,11 @@ function FeatureSection({
   title: string;
   description: string;
   icon: React.ReactNode;
-  image: string;
+  media: string;
   features: string[];
 }) {
+  const isVideo = media.endsWith('.webm') || media.endsWith('.mp4');
+
   return (
     <div className="py-24 md:py-40 overflow-hidden">
       <div className="container px-4 md:px-6 mx-auto">
@@ -151,15 +153,26 @@ function FeatureSection({
           <div className="flex-1 w-full relative perspective-[1500px]">
             <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-200 dark:border-white/10 bg-white/40 dark:bg-white/5 backdrop-blur-xl group">
               <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-transparent pointer-events-none z-10" />
-              <Image
-                src={image}
-                alt={title}
-                width={800}
-                height={600}
-                className="w-full h-auto object-cover opacity-90"
-                loading="lazy"
-                unoptimized
-              />
+              {isVideo ? (
+                <video
+                  src={media}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-auto object-cover opacity-90"
+                />
+              ) : (
+                <Image
+                  src={media}
+                  alt={title}
+                  width={800}
+                  height={600}
+                  className="w-full h-auto object-cover opacity-90"
+                  loading="lazy"
+                  unoptimized
+                />
+              )}
             </div>
             <div
               className={cn(
@@ -246,7 +259,7 @@ export function FeatureDeepDivesSection() {
         title="Designed for Your Brand"
         description="Don't settle for default styles. Our comprehensive theming system allows you to customize every pixel - from node borders and shadows to connection colors and grid patterns."
         icon={<Type className="w-6 h-6 text-purple-500" />}
-        image="/image-2.png"
+        media="/image-2.png"
         features={[
           'Dark & Light mode support out of the box',
           'Granular control over ports, labels, and handles',
@@ -260,7 +273,7 @@ export function FeatureDeepDivesSection() {
         title="Fluid Interactions"
         description="Make your flows feel tangible. Connections snap into place, nodes glow on selection, and data flow is visualized with beautiful, performant animations."
         icon={<MousePointer2 className="w-6 h-6 text-blue-500" />}
-        image="/connection-effects.gif"
+        media="/connection-effects.webm"
         features={[
           '60fps animations even with complex graphs',
           'Connection effects: FlowingDash, Particles, Pulse, Rainbow',
@@ -274,7 +287,7 @@ export function FeatureDeepDivesSection() {
         title="Built for Scale"
         description="Whether you're rendering 10 nodes or 10,000, Vyuh Node Flow maintains buttery smooth performance using efficient rendering techniques and virtualization."
         icon={<Cpu className="w-6 h-6 text-amber-500" />}
-        image="/image-1.png"
+        media="/image-1.png"
         features={[
           'Virtualized viewport rendering',
           'Optimized gesture handling',
@@ -288,7 +301,7 @@ export function FeatureDeepDivesSection() {
         title="Touch Optimized"
         description="Designing for mobile? No problem. Our interaction model adapts seamlessly to touch gestures, making it perfect for tablet and phone interfaces."
         icon={<Smartphone className="w-6 h-6 text-green-500" />}
-        image="/in-action.gif"
+        media="/in-action.webm"
         features={[
           'Multi-touch zoom and pan support',
           'Large touch targets for ports and handles',

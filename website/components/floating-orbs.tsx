@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'motion/react';
 import { useMemo } from 'react';
 import { useIsMobile, useReducedMotion } from '@/hooks/use-mobile';
 
@@ -48,26 +47,16 @@ export function FloatingOrbs() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {orbs.map((orb) => (
-        <motion.div
+        <div
           key={orb.id}
-          className={`absolute rounded-full blur-3xl ${orb.color}`}
+          className={`absolute rounded-full blur-3xl ${orb.color} animate-float-orb`}
           style={{
             width: orb.size,
             height: orb.size,
             left: `${orb.x}%`,
             top: `${orb.y}%`,
-            transform: 'translate(-50%, -50%)',
-          }}
-          animate={{
-            x: [0, 50, -30, 20, 0],
-            y: [0, -40, 30, -20, 0],
-            scale: [1, 1.1, 0.9, 1.05, 1],
-          }}
-          transition={{
-            duration: orb.duration,
-            delay: orb.delay,
-            repeat: Infinity,
-            ease: 'easeInOut',
+            animationDuration: `${orb.duration}s`,
+            animationDelay: `${orb.delay}s`,
           }}
         />
       ))}

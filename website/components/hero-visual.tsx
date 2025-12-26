@@ -1,6 +1,5 @@
 'use client';
 
-import { motion, AnimatePresence } from 'motion/react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import React from 'react';
@@ -93,53 +92,44 @@ export function HeroVisual({ nodes, connections }: HeroVisualProps) {
                 <stop offset="100%" stopColor="#a855f7" stopOpacity="0.8" />
               </linearGradient>
             </defs>
-            <AnimatePresence>
-              {connections.map((conn) => (
-                <PathWithAnimation
-                  key={conn.id}
-                  d={getPathForConnection(conn, nodes)}
-                  delay={conn.delay || 0}
-                  color={conn.color}
-                />
-              ))}
-            </AnimatePresence>
+            {connections.map((conn, i) => (
+              <ConnectionPath
+                key={conn.id}
+                d={getPathForConnection(conn, nodes)}
+                delay={i * 0.2}
+                color={conn.color}
+              />
+            ))}
           </svg>
 
           {/* Nodes */}
-          <AnimatePresence>
-            {nodes.map((node, i) => (
-              <StaticNode key={node.id} data={node} delay={0.2 + (i * 0.1)} />
-            ))}
-          </AnimatePresence>
+          {nodes.map((node, i) => (
+            <StaticNode key={node.id} data={node} delay={i * 0.1} />
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
-// Static node - no hover interactions
+// Static node with CSS animations
 function StaticNode({ data, delay }: { data: NodeData; delay: number }) {
   const { x, y, width, height, type, title } = data;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.8 }}
-      transition={{ delay, duration: 0.5, type: "spring" }}
+    <div
       style={{
         position: 'absolute',
         left: x,
         top: y,
         width,
         height,
+        animationDelay: `${delay}s`,
       }}
-      className="font-mono"
+      className="font-mono animate-node-enter"
     >
       {/* Shadow layer */}
-      <div
-        className="absolute inset-4 rounded-xl bg-blue-500/10 dark:bg-black/40 blur-xl opacity-40"
-      />
+      <div className="absolute inset-4 rounded-xl bg-blue-500/10 dark:bg-black/40 blur-xl opacity-40" />
 
       {/* Node card */}
       <div
@@ -175,7 +165,7 @@ function StaticNode({ data, delay }: { data: NodeData; delay: number }) {
         {/* Glass highlight */}
         <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 to-transparent opacity-30 pointer-events-none" />
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -203,19 +193,11 @@ function NodeContent({ type }: { type: NodeType }) {
     case 'process': return (
       <div className="flex items-center gap-2 h-full">
         <div className="w-8 h-8 rounded-lg bg-blue-600/10 dark:bg-blue-500/10 border-2 border-blue-600/20 dark:border-blue-500/20 flex items-center justify-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            className="w-4 h-4 rounded-full border-2 border-blue-600/40 dark:border-blue-500/40 border-t-blue-700 dark:border-t-blue-400"
-          />
+          <div className="w-4 h-4 rounded-full border-2 border-blue-600/40 dark:border-blue-500/40 border-t-blue-700 dark:border-t-blue-400 animate-spin-slow" />
         </div>
         <div className="space-y-1 flex-1">
           <div className="h-1.5 w-full bg-slate-300/40 dark:bg-white/5 rounded-full overflow-hidden">
-            <motion.div
-              animate={{ width: ['0%', '100%'] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="h-full bg-blue-600 dark:bg-blue-500/40"
-            />
+            <div className="h-full bg-blue-600 dark:bg-blue-500/40 animate-progress" />
           </div>
         </div>
       </div>
@@ -230,11 +212,10 @@ function NodeContent({ type }: { type: NodeType }) {
     case 'output': return (
       <div className="flex items-end gap-1 h-full pb-1">
         {[30, 60, 45, 80].map((h, i) => (
-          <motion.div
+          <div
             key={i}
-            animate={{ height: [`${h/2}%`, `${h}%`, `${h/2}%`] }}
-            transition={{ duration: 1.5, delay: i * 0.1, repeat: Infinity }}
-            className="flex-1 bg-purple-600/40 dark:bg-white/10 rounded-t-[1px] border-t-2 border-purple-600 dark:border-white/20"
+            style={{ animationDelay: `${i * 0.1}s` }}
+            className="flex-1 bg-purple-600/40 dark:bg-white/10 rounded-t-[1px] border-t-2 border-purple-600 dark:border-white/20 animate-bar-pulse"
           />
         ))}
       </div>
@@ -253,25 +234,19 @@ function NodeContent({ type }: { type: NodeType }) {
           <div className="h-1 w-1 rounded-full bg-indigo-600/60 dark:bg-white/10" />
           <div className="h-1 w-1 rounded-full bg-indigo-600/30 dark:bg-white/5" />
         </div>
-        <div className="h-1.5 w-full bg-indigo-600/10 dark:bg-white/5 rounded-full border border-indigo-600/20 dark:border-white/5">
-          <motion.div
-            animate={{ width: ['0%', '100%'] }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="h-full bg-indigo-600/60 dark:bg-indigo-400/40 rounded-full"
-          />
+        <div className="h-1.5 w-full bg-indigo-600/10 dark:bg-white/5 rounded-full border border-indigo-600/20 dark:border-white/5 overflow-hidden">
+          <div className="h-full bg-indigo-600/60 dark:bg-indigo-400/40 rounded-full animate-progress-slow" />
         </div>
       </div>
     );
     case 'broadcast': return (
       <div className="flex items-center justify-center h-full pt-1">
         <div className="relative flex items-center justify-center w-12 h-12">
-          {[0, 0.6, 1.2].map((d, i) => (
-            <motion.div
+          {[0, 1, 2].map((i) => (
+            <div
               key={i}
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 2.2, opacity: 0 }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: [0.165, 0.84, 0.44, 1], delay: d }}
-              className="absolute inset-0 rounded-full border-2 border-pink-600/40 dark:border-white/20"
+              style={{ animationDelay: `${i * 0.6}s` }}
+              className="absolute inset-0 rounded-full border-2 border-pink-600/40 dark:border-white/20 animate-ripple"
             />
           ))}
           <div className="relative w-3.5 h-3.5 bg-pink-600 dark:bg-pink-400 rounded-full shadow-[0_0_15px_rgba(236,72,153,0.6)] dark:shadow-[0_0_15px_rgba(236,72,153,0.4)]" />
@@ -281,29 +256,18 @@ function NodeContent({ type }: { type: NodeType }) {
   }
 }
 
-function PathWithAnimation({ d, delay, color }: { d: string, delay: number, color?: string }) {
+function ConnectionPath({ d, delay, color }: { d: string; delay: number; color?: string }) {
   return (
-    <motion.g initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+    <g style={{ animationDelay: `${delay}s` }} className="animate-connection-enter">
       <path d={d} stroke={color || "url(#gradient-line)"} strokeWidth="3" fill="none" className="opacity-20" />
-      <motion.path
+      <path
         d={d}
         stroke={color || "url(#gradient-line)"}
         strokeWidth="3"
         fill="none"
         strokeDasharray="8 8"
-        initial={{ strokeDashoffset: 100, opacity: 0 }}
-        animate={{ strokeDashoffset: 0, opacity: 1 }}
-        transition={{ delay, duration: 3, ease: "linear", repeat: Infinity }}
+        className="animate-dash"
       />
-      <motion.circle
-        r="4"
-        fill={color || "#3b82f6"}
-        initial={{ offsetDistance: "0%", opacity: 0 }}
-        animate={{ offsetDistance: "100%", opacity: [0, 1, 1, 0] }}
-        style={{ offsetPath: `path('${d}')` }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay }}
-        className="shadow-[0_0_15px_currentColor]"
-      />
-    </motion.g>
+    </g>
   );
 }
