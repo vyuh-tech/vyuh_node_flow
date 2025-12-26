@@ -386,9 +386,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Set up reactions for efficient updates
     _setupReactions();
 
-    // Initialize pan state based on widget properties
-    _updatePanState();
-
     // Set up node shape builder BEFORE theme (so ConnectionPainter gets the shape builder)
     _updateNodeShapeBuilder();
 
@@ -507,9 +504,11 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                       AutopanZoneDebugLayer<T>(controller: widget.controller),
 
                       // Canvas with InteractiveViewer for pan/zoom
-                      // Wrapped in Observer to react to panEnabled changes
+                      // Wrapped in Observer to react to canvasLocked changes
                       Observer.withBuiltChild(
                         builder: (context, child) {
+                          // When canvas is locked, disable both pan and zoom
+                          final isLocked = widget.controller.canvasLocked;
                           return InteractiveViewer(
                             transformationController: _transformationController,
                             boundaryMargin: const EdgeInsets.all(
@@ -518,8 +517,9 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                             constrained: false,
                             minScale: widget.controller.config.minZoom.value,
                             maxScale: widget.controller.config.maxZoom.value,
-                            panEnabled: widget.controller.panEnabled,
-                            scaleEnabled: widget.behavior.canZoom,
+                            // Respect both behavior config and lock state
+                            panEnabled: widget.behavior.canPan && !isLocked,
+                            scaleEnabled: widget.behavior.canZoom && !isLocked,
                             trackpadScrollCausesScale: widget.scrollToZoom,
                             onInteractionStart: _onInteractionStart,
                             onInteractionUpdate: _onInteractionUpdate,
@@ -680,20 +680,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       }, fireImmediately: true),
     );
 
-    // Update pan state based on interaction state
-    // Centralized pan state management - watches all drag/resize/connection states
-    _disposers.add(
-      reaction(
-        (_) => (
-          widget.controller.draggedNodeId != null,
-          widget.controller.isResizing,
-          widget.controller.isConnecting,
-          widget.controller.isDrawingSelection,
-        ),
-        (_) => _updatePanState(),
-      ),
-    );
-
     // Start/stop animation controller based on whether any connections are animated
     _disposers.add(
       reaction(
@@ -783,29 +769,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
         connectionStyle: connectionStyle,
       );
     });
-  }
-
-  void _updatePanState() {
-    // Centralized pan state calculation - pan is enabled only when:
-    // - Behavior allows panning
-    // - No node is being dragged
-    // - No node is being resized
-    // - No connection is being created
-    // - No selection rectangle is being drawn
-    final canPan = widget.behavior.canPan;
-    final draggedNodeId = widget.controller.draggedNodeId;
-    final isResizing = widget.controller.isResizing;
-    final isConnecting = widget.controller.isConnecting;
-    final isDrawingSelection = widget.controller.isDrawingSelection;
-
-    final newPanEnabled =
-        canPan &&
-        draggedNodeId == null &&
-        !isResizing &&
-        !isConnecting &&
-        !isDrawingSelection;
-
-    widget.controller._updateInteractionState(panEnabled: newPanEnabled);
   }
 
   /// Updates the animation controller based on theme and connection animation effects.
@@ -978,14 +941,14 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Store initial pointer position in widget-local coordinates
     widget.controller._setPointerPosition(ScreenPosition(event.localPosition));
 
-    // CRITICAL: Disable pan IMMEDIATELY for ANY interactive element (node or port)
+    // CRITICAL: Lock canvas IMMEDIATELY for ANY interactive element (node or port)
     // This prevents InteractiveViewer from competing for drag gestures in the gesture arena.
-    // Pan will be re-enabled by _updatePanState() when drag states change.
+    // Canvas will be unlocked in _handlePointerUp or by the operation's end handler.
     //
     // Only capture pointer ID if we're not already tracking a drag pointer.
     // This prevents a second pointer from overwriting the original drag pointer.
     if (hitResult.isNode || hitResult.isPort) {
-      widget.controller._updateInteractionState(panEnabled: false);
+      widget.controller._updateInteractionState(canvasLocked: true);
       // Only set drag pointer if not already set (first pointer wins)
       _dragPointerId ??= event.pointer;
     }
@@ -1071,7 +1034,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Ultra-fast path for viewport panning - let InteractiveViewer handle it
     if (!widget.controller.isDrawingSelection &&
         !widget.controller.isConnecting &&
-        widget.controller.panEnabled) {
+        !widget.controller.canvasLocked) {
       // Skip all processing during viewport panning for maximum performance
       return;
     }
@@ -1111,8 +1074,15 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Note: Connection drag end is now handled by pan gestures in PortWidget.
     // The GestureDetector's onPanEnd handles completion/cancellation.
 
-    // Re-enable panning if it was disabled
-    _updatePanState();
+    // Unlock canvas if no operation is active.
+    // This handles the case where pointer down locked canvas but no drag started.
+    final controller = widget.controller;
+    if (!controller.isConnecting &&
+        controller.draggedNodeId == null &&
+        !controller.isResizing &&
+        !controller.isDrawingSelection) {
+      controller._updateInteractionState(canvasLocked: false);
+    }
 
     if (widget.controller.isDrawingSelection) {
       widget.controller._finishSelectionDrag();
@@ -1182,8 +1152,8 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
     // Cursor is derived from isDrawingSelection state via Observer
 
-    // Force pan state update to disable panning during selection
-    _updatePanState();
+    // Lock canvas during selection drag
+    widget.controller._updateInteractionState(canvasLocked: true);
   }
 
   void _updateSelectionDrag(Offset currentPosition) {

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import '../graph/coordinates.dart';
 import 'auto_pan_config.dart';
 import 'auto_pan_mixin.dart';
+import 'drag_session.dart';
 import 'non_trackpad_pan_gesture_recognizer.dart';
-import 'pointer_tracking.dart';
 
 /// A unified interaction scope for draggable elements (nodes, annotations, ports).
 ///
@@ -112,6 +112,7 @@ class ElementScope extends StatefulWidget {
     required this.onDragUpdate,
     required this.onDragEnd,
     this.onDragCancel,
+    this.createSession,
     this.isDraggable = true,
     this.dragStartBehavior = DragStartBehavior.start,
     this.onTap,
@@ -126,7 +127,6 @@ class ElementScope extends StatefulWidget {
     this.onAutoPan,
     this.getViewportBounds,
     this.screenToGraph,
-    this.pointerTracking = PointerTracking.anchored,
   });
 
   /// The child widget to wrap with interaction handling.
@@ -184,6 +184,28 @@ class ElementScope extends StatefulWidget {
   ///
   /// If null, [onDragEnd] is called with empty [DragEndDetails] as a fallback.
   final VoidCallback? onDragCancel;
+
+  /// Factory function to create a [DragSession] for this element.
+  ///
+  /// When provided, ElementScope manages the session lifecycle:
+  /// - On drag start: calls [createSession], then [DragSession.start] (locks canvas)
+  /// - On drag end: calls [DragSession.end] (unlocks canvas)
+  /// - On drag cancel: calls [DragSession.cancel] (unlocks canvas)
+  ///
+  /// Elements manage their own business state (positions, sizes) internally.
+  /// The session purely handles canvas lock coordination.
+  ///
+  /// Example:
+  /// ```dart
+  /// ElementScope(
+  ///   createSession: () => controller.createSession(),
+  ///   onDragStart: (_) => controller.startNodeDrag(nodeId),
+  ///   onDragUpdate: (details) => controller.moveNodeDrag(details.delta),
+  ///   onDragEnd: (_) => controller.endNodeDrag(),
+  ///   // ... other callbacks
+  /// )
+  /// ```
+  final DragSession Function()? createSession;
 
   /// Called when the element is tapped.
   ///
@@ -256,16 +278,6 @@ class ElementScope extends StatefulWidget {
   /// ```
   final Offset Function(Offset screenPosition)? screenToGraph;
 
-  /// How the element tracks the pointer during drag operations.
-  ///
-  /// - [PointerTracking.free]: Element tracks pointer everywhere, even outside
-  ///   bounds. Use for connections.
-  /// - [PointerTracking.anchored]: Element anchors at boundary when pointer
-  ///   exits, snaps back on return. Use for nodes/annotations.
-  ///
-  /// Defaults to [PointerTracking.anchored].
-  final PointerTracking pointerTracking;
-
   @override
   State<ElementScope> createState() => _ElementScopeState();
 }
@@ -291,6 +303,12 @@ class _ElementScopeState extends State<ElementScope> with AutoPanMixin {
   /// from the Listener's onPointerDown (which fires immediately) and use
   /// it when the gesture recognizer's onStart fires (after gesture arena).
   int? _pendingPointerId;
+
+  /// The current drag session, if any.
+  ///
+  /// Created via [ElementScope.createSession] at drag start, manages canvas
+  /// locking/unlocking automatically.
+  DragSession? _session;
 
   // ---------------------------------------------------------------------------
   // AutoPanMixin Implementation
@@ -318,11 +336,21 @@ class _ElementScopeState extends State<ElementScope> with AutoPanMixin {
   ///
   /// Guard: Returns early if already dragging to prevent duplicate starts.
   /// Uses the pointer ID captured from onPointerDown (stored in _pendingPointerId).
+  ///
+  /// If [createSession] is provided, creates a session and starts it,
+  /// which automatically locks the canvas.
   void _startDrag(DragStartDetails details) {
     if (_isDragging) return;
     _isDragging = true;
     _dragPointerId = _pendingPointerId;
     resetAutoPanState(); // Reset drift at drag start (from mixin)
+
+    // Create and start session if factory provided (locks canvas automatically)
+    if (widget.createSession != null) {
+      _session = widget.createSession!();
+      _session!.start();
+    }
+
     widget.onDragStart(details);
   }
 
@@ -365,26 +393,37 @@ class _ElementScopeState extends State<ElementScope> with AutoPanMixin {
   ///
   /// Guard: Returns early if not dragging to prevent duplicate ends.
   /// Stops the autopan timer and clears pointer position and drift.
+  /// Ends the session if active (unlocks canvas automatically).
   void _endDrag(DragEndDetails details) {
     if (!_isDragging) return;
-    stopAutoPan(); // From mixin
-    resetAutoPanState(); // From mixin
+    stopAutoPan(); // From AutoPanMixin
+    resetAutoPanState(); // From AutoPanMixin
     _isDragging = false;
     _dragPointerId = null;
+
+    // End session if active (unlocks canvas automatically)
+    _session?.end();
+    _session = null;
+
     widget.onDragEnd(details);
   }
 
   /// Cancels the current drag operation.
   ///
   /// Called when the drag is interrupted (gesture cancelled, widget disposed,
-  /// or pointer released). Calls [onDragCancel] if provided, otherwise falls
-  /// back to [onDragEnd] with empty details.
+  /// or pointer released). Cancels the session if active (unlocks canvas).
+  /// Then calls [onDragCancel] if provided, otherwise falls back to [onDragEnd].
   void _cancelDrag() {
     if (!_isDragging) return;
-    stopAutoPan(); // From mixin
-    resetAutoPanState(); // From mixin
+    stopAutoPan(); // From AutoPanMixin
+    resetAutoPanState(); // From AutoPanMixin
     _isDragging = false;
     _dragPointerId = null;
+
+    // Cancel session if active (unlocks canvas automatically)
+    _session?.cancel();
+    _session = null;
+
     // Use dedicated cancel callback if provided, otherwise fall back to onDragEnd
     if (widget.onDragCancel != null) {
       widget.onDragCancel!();

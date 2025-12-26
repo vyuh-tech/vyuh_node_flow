@@ -783,8 +783,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
         : startPoint;
 
     runInAction(() {
-      // Disable panning during connection drag
-      interaction.panEnabled.value = false;
+      // Note: Canvas locking is now handled by DragSession
 
       interaction.temporaryConnection.value = TemporaryConnection(
         startNodeId: nodeId,
@@ -1201,9 +1200,9 @@ extension ConnectionApi<T> on NodeFlowController<T> {
       );
       addConnection(connection);
 
-      // Clear temporary connection state and re-enable panning
+      // Clear temporary connection state
+      // Note: Canvas unlocking is now handled by DragSession
       interaction.temporaryConnection.value = null;
-      interaction.panEnabled.value = true;
 
       return connection;
     });
@@ -1241,10 +1240,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
 
     interaction.cancelConnection();
 
-    // Re-enable panning after connection drag ends
-    runInAction(() {
-      interaction.panEnabled.value = true;
-    });
+    // Note: Canvas unlocking is now handled by DragSession
 
     events.connection?.onConnectEnd?.call(null, null);
   }

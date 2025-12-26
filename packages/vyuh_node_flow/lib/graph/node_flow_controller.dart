@@ -22,6 +22,7 @@ import '../nodes/node.dart';
 import '../nodes/node_data.dart';
 import '../nodes/node_shape.dart';
 import '../ports/port.dart';
+import '../shared/drag_session.dart';
 import '../shared/resizer_widget.dart';
 import '../shared/shortcuts_viewer_dialog.dart';
 import '../shared/spatial/graph_spatial_index.dart';
@@ -220,6 +221,52 @@ class NodeFlowController<T> {
   // Interaction state - organized in separate object
   final InteractionState interaction = InteractionState();
 
+  /// Creates a drag session for managing drag operation lifecycle.
+  ///
+  /// The session automatically handles canvas locking/unlocking. Elements
+  /// just need to call lifecycle methods: [start], [end], [cancel].
+  ///
+  /// Only one session can be active at a time. Creating a new session while
+  /// one is active will cancel the existing session first.
+  ///
+  /// Example:
+  /// ```dart
+  /// DragSession? _session;
+  ///
+  /// void _handleDragStart(details) {
+  ///   _originalPosition = node.position.value; // Capture state
+  ///   _session = controller.createSession(DragSessionType.nodeDrag);
+  ///   _session!.start(); // Locks canvas
+  /// }
+  ///
+  /// void _handleDragEnd(details) {
+  ///   _session?.end(); // Unlocks canvas
+  ///   _session = null;
+  /// }
+  ///
+  /// void _handleDragCancel() {
+  ///   _session?.cancel(); // Unlocks canvas
+  ///   _session = null;
+  ///   node.position.value = _originalPosition!; // Restore state
+  /// }
+  /// ```
+  DragSession createSession(DragSessionType type) {
+    // Cancel any existing active session
+    _activeSession?.cancel();
+
+    // Create new session
+    _activeSession = _DragSessionImpl(type, interaction, _onSessionEnded);
+    return _activeSession!;
+  }
+
+  /// The currently active drag session, if any.
+  _DragSessionImpl? _activeSession;
+
+  /// Called when a session ends (either by end() or cancel()).
+  void _onSessionEnded() {
+    _activeSession = null;
+  }
+
   // Node monitoring for GroupNode tracking
   // Track previous node IDs to detect additions/deletions
   Set<String> _previousNodeIds = {};
@@ -331,11 +378,11 @@ class NodeFlowController<T> {
   /// This is where the user first pressed to begin the selection drag.
   GraphPosition? get selectionStartPoint => interaction.selectionStartPoint;
 
-  /// Checks if viewport panning is currently enabled (package-private).
+  /// Checks if the canvas is locked (pan/zoom disabled) (package-private).
   ///
-  /// Panning is disabled during certain interactions like node dragging or
-  /// connection creation.
-  bool get panEnabled => interaction.isPanEnabled;
+  /// Canvas is locked during drag operations (nodes, connections, resize)
+  /// to prevent coordinate misalignment when the viewport changes mid-drag.
+  bool get canvasLocked => interaction.isCanvasLocked;
 
   // ===========================================================================
   // Resize State (unified for Node and Annotation)
@@ -549,6 +596,40 @@ class NodeFlowController<T> {
   /// Clears resize state and re-enables panning.
   void endResize() {
     interaction.endResize();
+  }
+
+  /// Cancels a resize operation and reverts to original position/size.
+  ///
+  /// Call this to abort a resize and restore the node to its state before
+  /// the resize started. The caller provides the original values since
+  /// the widget that initiated the resize owns that state.
+  ///
+  /// Parameters:
+  /// - [originalPosition]: The node's position before resize
+  /// - [originalSize]: The node's size before resize
+  void cancelResize({
+    required Offset originalPosition,
+    required Size originalSize,
+  }) {
+    final nodeId = interaction.currentResizingNodeId;
+    if (nodeId == null) return;
+
+    final node = _nodes[nodeId];
+    if (node != null && node.isResizable) {
+      runInAction(() {
+        node.position.value = originalPosition;
+        node.setVisualPosition(_config.snapToGridIfEnabled(originalPosition));
+        (node as ResizableMixin<T>).size.value = originalSize;
+      });
+      internalMarkNodeDirty(nodeId);
+    }
+
+    interaction.endResize();
+
+    // Fire resize cancel event
+    if (node != null) {
+      events.node?.onResizeCancel?.call(node);
+    }
   }
 
   /// Disposes of the controller and releases resources.
@@ -903,5 +984,59 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
       });
       _updateConnectionBoundsForNodeIds(nodeIds);
     }
+  }
+}
+
+/// Private implementation of [DragSession].
+///
+/// This class is internal to the controller and should not be exposed.
+/// It handles canvas locking/unlocking and notifies the controller when ended.
+class _DragSessionImpl implements DragSession {
+  _DragSessionImpl(this._type, this._interaction, this._onEnded);
+
+  final DragSessionType _type;
+  final InteractionState _interaction;
+  final VoidCallback _onEnded;
+
+  bool _isActive = false;
+
+  @override
+  DragSessionType get type => _type;
+
+  @override
+  bool get isActive => _isActive;
+
+  @override
+  void start() {
+    if (_isActive) return;
+
+    runInAction(() {
+      _isActive = true;
+      _interaction.canvasLocked.value = true;
+    });
+  }
+
+  @override
+  void end() {
+    if (!_isActive) return;
+
+    runInAction(() {
+      _isActive = false;
+      _interaction.canvasLocked.value = false;
+    });
+
+    _onEnded();
+  }
+
+  @override
+  void cancel() {
+    if (!_isActive) return;
+
+    runInAction(() {
+      _isActive = false;
+      _interaction.canvasLocked.value = false;
+    });
+
+    _onEnded();
   }
 }

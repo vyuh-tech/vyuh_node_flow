@@ -81,6 +81,8 @@ class NodeEvents<T> {
     this.onDragStart,
     this.onDrag,
     this.onDragStop,
+    this.onDragCancel,
+    this.onResizeCancel,
     this.onMouseEnter,
     this.onMouseLeave,
     this.onContextMenu,
@@ -109,8 +111,14 @@ class NodeEvents<T> {
   /// Useful for real-time updates or validation during drag
   final ValueChanged<Node<T>>? onDrag;
 
-  /// Called when node dragging ends
+  /// Called when node dragging ends successfully
   final ValueChanged<Node<T>>? onDragStop;
+
+  /// Called when node dragging is cancelled (reverted to original position)
+  final ValueChanged<Node<T>>? onDragCancel;
+
+  /// Called when node resizing is cancelled (reverted to original size)
+  final ValueChanged<Node<T>>? onResizeCancel;
 
   /// Called when mouse enters a node's bounds
   final ValueChanged<Node<T>>? onMouseEnter;
@@ -134,6 +142,8 @@ class NodeEvents<T> {
     ValueChanged<Node<T>>? onDragStart,
     ValueChanged<Node<T>>? onDrag,
     ValueChanged<Node<T>>? onDragStop,
+    ValueChanged<Node<T>>? onDragCancel,
+    ValueChanged<Node<T>>? onResizeCancel,
     ValueChanged<Node<T>>? onMouseEnter,
     ValueChanged<Node<T>>? onMouseLeave,
     void Function(Node<T> node, ScreenPosition screenPosition)? onContextMenu,
@@ -147,6 +157,8 @@ class NodeEvents<T> {
       onDragStart: onDragStart ?? this.onDragStart,
       onDrag: onDrag ?? this.onDrag,
       onDragStop: onDragStop ?? this.onDragStop,
+      onDragCancel: onDragCancel ?? this.onDragCancel,
+      onResizeCancel: onResizeCancel ?? this.onResizeCancel,
       onMouseEnter: onMouseEnter ?? this.onMouseEnter,
       onMouseLeave: onMouseLeave ?? this.onMouseLeave,
       onContextMenu: onContextMenu ?? this.onContextMenu,

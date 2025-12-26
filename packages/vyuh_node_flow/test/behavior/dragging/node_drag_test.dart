@@ -36,15 +36,21 @@ void main() {
       expect(node.dragging.value, isTrue);
     });
 
-    test('startNodeDrag disables canvas panning', () {
-      final node = createTestNode(id: 'node1');
-      controller.addNode(node);
-      expect(controller.interaction.panEnabled.value, isTrue);
+    test(
+      'startNodeDrag does not lock canvas directly (session handles locking)',
+      () {
+        // Note: Canvas locking is now handled by DragSession in the UI layer,
+        // not by controller methods. This test verifies the separation of concerns.
+        final node = createTestNode(id: 'node1');
+        controller.addNode(node);
+        expect(controller.interaction.canvasLocked.value, isFalse);
 
-      controller.startNodeDrag('node1');
+        controller.startNodeDrag('node1');
 
-      expect(controller.interaction.panEnabled.value, isFalse);
-    });
+        // Controller method does NOT lock canvas - that's the session's job
+        expect(controller.interaction.canvasLocked.value, isFalse);
+      },
+    );
 
     test('startNodeDrag selects node if not already selected', () {
       final node = createTestNode(id: 'node1');
@@ -277,16 +283,22 @@ void main() {
       expect(controller.interaction.draggedNodeId.value, isNull);
     });
 
-    test('endNodeDrag re-enables panning', () {
-      final node = createTestNode(id: 'node1');
-      controller.addNode(node);
-      controller.startNodeDrag('node1');
-      expect(controller.interaction.panEnabled.value, isFalse);
+    test(
+      'endNodeDrag does not manage canvas lock (session handles locking)',
+      () {
+        // Note: Canvas locking is now handled by DragSession in the UI layer.
+        final node = createTestNode(id: 'node1');
+        controller.addNode(node);
+        controller.startNodeDrag('node1');
+        // Canvas was never locked by startNodeDrag - session handles that
+        expect(controller.interaction.canvasLocked.value, isFalse);
 
-      controller.endNodeDrag();
+        controller.endNodeDrag();
 
-      expect(controller.interaction.panEnabled.value, isTrue);
-    });
+        // Canvas lock state unchanged by controller methods
+        expect(controller.interaction.canvasLocked.value, isFalse);
+      },
+    );
 
     test('endNodeDrag fires onDragStop callback', () {
       final node = createTestNode(id: 'node1');
@@ -341,7 +353,7 @@ void main() {
 
       // endNodeDrag without startNodeDrag should be safe
       expect(() => controller.endNodeDrag(), returnsNormally);
-      expect(controller.interaction.panEnabled.value, isTrue);
+      expect(controller.interaction.canvasLocked.value, isFalse);
     });
 
     test('endNodeDrag clears dragging on all affected nodes', () {
@@ -372,7 +384,7 @@ void main() {
       // Start
       controller.startNodeDrag('node1');
       expect(node.dragging.value, isTrue);
-      expect(controller.interaction.panEnabled.value, isFalse);
+      // Canvas locking is handled by DragSession in UI layer, not controller
 
       // Move
       controller.moveNodeDrag(const Offset(100, 50));
@@ -381,7 +393,6 @@ void main() {
       // End
       controller.endNodeDrag();
       expect(node.dragging.value, isFalse);
-      expect(controller.interaction.panEnabled.value, isTrue);
       // Position should be preserved
       expect(node.position.value, equals(const Offset(100, 50)));
     });

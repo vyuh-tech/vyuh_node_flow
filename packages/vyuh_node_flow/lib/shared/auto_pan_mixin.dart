@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'element_scope.dart';
-import 'pointer_tracking.dart';
 
 /// Mixin that provides autopan functionality for [ElementScope].
 ///
@@ -15,7 +14,7 @@ import 'pointer_tracking.dart';
 /// ```
 /// ┌─────────────────────────────────────────────────────────┐
 /// │                    OUTSIDE BOUNDS                       │
-/// │   (autopan at max speed)                                │
+/// │   (autopan at max speed, element frozen at edge)        │
 /// │  ┌───────────────────────────────────────────────────┐  │
 /// │  │░░░░░░░░░░░░░░ EDGE ZONE ░░░░░░░░░░░░░░░░░░░░░░░░░│  │
 /// │  │░░┌─────────────────────────────────────────────┐░░│  │
@@ -29,10 +28,12 @@ import 'pointer_tracking.dart';
 /// └─────────────────────────────────────────────────────────┘
 /// ```
 ///
-/// ## Pointer Tracking Modes
+/// ## Element Tracking Behavior
 ///
-/// - [PointerTracking.free]: Element tracks pointer everywhere
-/// - [PointerTracking.anchored]: Element freezes outside, snaps on re-entry
+/// All elements use anchored tracking:
+/// - Inside bounds: Element follows pointer 1:1
+/// - Outside bounds: Element freezes at edge, offset accumulates
+/// - Re-entry: Element snaps to match current pointer position
 mixin AutoPanMixin on State<ElementScope> {
   // ---------------------------------------------------------------------------
   // State
@@ -44,7 +45,7 @@ mixin AutoPanMixin on State<ElementScope> {
   /// Last known pointer position in screen coordinates.
   Offset? _lastPointerPosition;
 
-  /// Accumulated offset when pointer is outside bounds (anchored mode only).
+  /// Accumulated offset when pointer is outside bounds.
   /// Applied as snap compensation on re-entry.
   Offset _accumulatedOffset = Offset.zero;
 
@@ -73,39 +74,32 @@ mixin AutoPanMixin on State<ElementScope> {
     }
   }
 
-  /// Processes a drag delta based on pointer tracking mode.
+  /// Processes a drag delta with anchored tracking behavior.
   ///
-  /// For [PointerTracking.free]: Always pass delta through.
-  /// For [PointerTracking.anchored]: Freeze outside bounds, snap on re-entry.
+  /// - Inside bounds: Pass delta through (1:1 movement)
+  /// - Outside bounds: Freeze element, accumulate offset
+  /// - Re-entry: Apply accumulated offset as snap
   Offset processDragDelta(Offset delta) {
     final isOutside = _isPointerOutsideBounds();
 
-    switch (widget.pointerTracking) {
-      case PointerTracking.free:
-        // Always pass delta through - element tracks pointer freely
-        _wasOutsideBounds = isOutside;
-        return delta;
-
-      case PointerTracking.anchored:
-        if (isOutside) {
-          // Outside bounds - freeze element, accumulate offset for snap
-          _accumulatedOffset += delta;
-          _wasOutsideBounds = true;
-          return Offset.zero;
-        }
-
-        // Inside bounds - check for re-entry snap
-        if (_wasOutsideBounds && _accumulatedOffset != Offset.zero) {
-          // Re-entered bounds - apply accumulated offset as snap
-          final snap = _accumulatedOffset;
-          _accumulatedOffset = Offset.zero;
-          _wasOutsideBounds = false;
-          return delta + snap;
-        }
-
-        _wasOutsideBounds = false;
-        return delta;
+    if (isOutside) {
+      // Outside bounds - freeze element, accumulate offset for snap
+      _accumulatedOffset += delta;
+      _wasOutsideBounds = true;
+      return Offset.zero;
     }
+
+    // Inside bounds - check for re-entry snap
+    if (_wasOutsideBounds && _accumulatedOffset != Offset.zero) {
+      // Re-entered bounds - apply accumulated offset as snap
+      final snap = _accumulatedOffset;
+      _accumulatedOffset = Offset.zero;
+      _wasOutsideBounds = false;
+      return delta + snap;
+    }
+
+    _wasOutsideBounds = false;
+    return delta;
   }
 
   /// Resets all autopan state.

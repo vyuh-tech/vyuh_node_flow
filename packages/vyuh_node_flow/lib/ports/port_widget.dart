@@ -9,8 +9,8 @@ import '../graph/node_flow_theme.dart';
 import '../nodes/node.dart';
 import '../ports/port.dart';
 import '../ports/port_theme.dart';
+import '../shared/drag_session.dart';
 import '../shared/element_scope.dart';
-import '../shared/pointer_tracking.dart';
 import '../shared/unbounded_widgets.dart';
 import 'port_shape_widget.dart';
 
@@ -425,6 +425,10 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
                     : cursorTheme.canvasCursor;
 
                 return ElementScope(
+                  // Session for canvas locking during connection drag
+                  createSession: () => widget.controller.createSession(
+                    DragSessionType.connectionDrag,
+                  ),
                   // Only allow dragging when connection creation is enabled
                   isDraggable: widget.controller.behavior.canCreate,
                   // Start immediately on pointer down for instant feedback
@@ -448,8 +452,6 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
                   getViewportBounds: () =>
                       widget.controller.viewportScreenBounds.rect,
                   onAutoPan: _handleAutoPan,
-                  // Connections track the pointer freely everywhere
-                  pointerTracking: PointerTracking.free,
                   child: child,
                 );
               },

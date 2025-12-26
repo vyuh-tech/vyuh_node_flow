@@ -185,10 +185,10 @@ export 'ports/port_widget.dart'; // Also exports PortBuilder typedef
 // Shared Utilities
 export 'shared/auto_pan_config.dart';
 export 'shared/element_scope.dart';
-export 'shared/pointer_tracking.dart';
 export 'shared/flutter_actions_integration.dart';
 export 'shared/json_converters.dart';
 export 'shared/resizer_widget.dart';
+export 'shared/drag_session.dart';
 // Marker Shapes (for ports and connection endpoints)
 export 'shared/shapes/marker_shape.dart';
 export 'shared/shapes/marker_shapes.dart';

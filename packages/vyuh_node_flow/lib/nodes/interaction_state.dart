@@ -81,10 +81,12 @@ class InteractionState {
   /// Used to prevent flickering during toggle selection mode.
   Set<String> _previouslyIntersecting = <String>{};
 
-  /// Observable flag for whether panning is enabled.
+  /// Observable flag for whether the canvas is locked (pan/zoom disabled).
   ///
-  /// When false, pan gestures are disabled (e.g., during node dragging).
-  final Observable<bool> panEnabled = Observable(true);
+  /// When true, both pan and zoom gestures are disabled. This is set during
+  /// drag operations (nodes, connections, resize) to prevent coordinate
+  /// misalignment when the viewport changes mid-drag.
+  final Observable<bool> canvasLocked = Observable(false);
 
   /// Observable flag for whether the viewport is currently being interacted with.
   ///
@@ -174,10 +176,10 @@ class InteractionState {
   /// Returns null if no selection is active.
   GraphRect? get currentSelectionRect => selectionRect.value;
 
-  /// Gets whether panning is enabled.
+  /// Gets whether the canvas is locked (pan/zoom disabled).
   ///
-  /// Returns false during interactions that should disable panning.
-  bool get isPanEnabled => panEnabled.value;
+  /// Returns true during drag operations to prevent coordinate misalignment.
+  bool get isCanvasLocked => canvasLocked.value;
 
   /// Gets whether the viewport is currently being interacted with (panning/zooming).
   ///
@@ -247,11 +249,11 @@ class InteractionState {
   /// multiple related state properties in a single action.
   ///
   /// Parameters:
-  /// * [panEnabled] - Whether panning should be enabled
+  /// * [canvasLocked] - Whether canvas interactions (pan/zoom) should be disabled
   /// * [temporaryConnection] - New temporary connection state
-  void update({bool? panEnabled, TemporaryConnection? temporaryConnection}) {
+  void update({bool? canvasLocked, TemporaryConnection? temporaryConnection}) {
     runInAction(() {
-      if (panEnabled != null) this.panEnabled.value = panEnabled;
+      if (canvasLocked != null) this.canvasLocked.value = canvasLocked;
       if (temporaryConnection != null) {
         this.temporaryConnection.value = temporaryConnection;
       }
@@ -343,7 +345,7 @@ class InteractionState {
 
   /// Resets all interaction state to default values.
   ///
-  /// Clears all ongoing interactions and resets the pan state.
+  /// Clears all ongoing interactions and unlocks the canvas.
   /// This is useful when canceling all interactions or resetting the editor.
   /// Note: Cursor is derived from state, so clearing state automatically resets cursor.
   void resetState() {
@@ -353,7 +355,7 @@ class InteractionState {
       temporaryConnection.value = null;
       selectionStart.value = null;
       selectionRect.value = null;
-      panEnabled.value = true;
+      canvasLocked.value = false;
       isViewportInteracting.value = false;
       hoveringConnection.value = false;
       cursorOverride.value = null;
@@ -427,18 +429,19 @@ class InteractionState {
     runInAction(() {
       resizingNodeId.value = nodeId;
       resizeHandle.value = handle;
-      panEnabled.value = false;
+      canvasLocked.value = true;
       setCursorOverride(handle.cursor);
     });
   }
 
   /// Ends the current resize operation.
   ///
-  /// Clears resize state and re-enables panning.
+  /// Clears resize state and unlocks the canvas.
   void endResize() {
     runInAction(() {
       resizingNodeId.value = null;
       resizeHandle.value = null;
+      canvasLocked.value = false;
       setCursorOverride(null);
     });
   }

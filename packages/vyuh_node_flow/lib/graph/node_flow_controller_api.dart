@@ -268,10 +268,12 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
   /// This method:
   /// - Selects the node if not already selected
   /// - Brings the node to front (increases z-index)
-  /// - Sets up drag state and cursor
-  /// - Disables canvas panning during drag
+  /// - Sets up drag state
   /// - Fires the drag start event
   /// - Notifies monitoring nodes (like GroupNode) of drag start
+  ///
+  /// Note: Canvas locking is handled by [DragSession], not this method.
+  /// Widgets should create a session and call [DragSession.start] to lock canvas.
   ///
   /// Parameters:
   /// - [nodeId]: The ID of the node being dragged
@@ -293,11 +295,9 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
 
       // Cursor is handled by widgets via their MouseRegion
 
-      // Disable panning during node drag
-      interaction.panEnabled.value = false;
+      // Note: Canvas locking is now handled by DragSession
 
       // Update visual dragging state on all affected nodes
-      // Re-check selection since we might have just selected the node
       final nodeIds = selectedNodeIds.contains(nodeId)
           ? selectedNodeIds.toList()
           : [nodeId];
@@ -402,8 +402,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
       interaction.draggedNodeId.value = null;
       interaction.lastPointerPosition.value = null;
 
-      // Re-enable panning after node drag ends
-      interaction.panEnabled.value = true;
+      // Note: Canvas unlocking is now handled by DragSession
     });
 
     // Rebuild connection segments with accurate path bounds after drag ends
@@ -414,6 +413,56 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     // Fire drag stop event for all dragged nodes
     for (final node in draggedNodes) {
       events.node?.onDragStop?.call(node);
+    }
+  }
+
+  /// Cancels a node drag operation and reverts to original positions.
+  ///
+  /// Call this to abort a drag and restore nodes to their positions before
+  /// the drag started. The caller provides the original positions since
+  /// the widget that initiated the drag owns that state.
+  ///
+  /// Parameters:
+  /// - [originalPositions]: Map of node ID to original position before drag
+  void cancelNodeDrag(Map<String, Offset> originalPositions) {
+    // Capture dragged nodes before clearing state
+    final draggedNodes = <Node<T>>[];
+    for (final node in _nodes.values) {
+      if (node.dragging.value) {
+        draggedNodes.add(node);
+      }
+    }
+
+    // Revert positions
+    runInAction(() {
+      for (final entry in originalPositions.entries) {
+        final node = _nodes[entry.key];
+        if (node != null) {
+          node.position.value = entry.value;
+          node.setVisualPosition(_config.snapToGridIfEnabled(entry.value));
+        }
+      }
+
+      // Clear dragging state on nodes
+      for (final node in draggedNodes) {
+        node.dragging.value = false;
+      }
+
+      // Clear drag state
+      interaction.draggedNodeId.value = null;
+      interaction.lastPointerPosition.value = null;
+
+      // Note: Canvas unlocking is now handled by DragSession
+    });
+
+    // Rebuild connection segments
+    if (originalPositions.isNotEmpty) {
+      rebuildConnectionSegmentsForNodes(originalPositions.keys.toList());
+    }
+
+    // Fire drag cancel event for all dragged nodes
+    for (final node in draggedNodes) {
+      events.node?.onDragCancel?.call(node);
     }
   }
 

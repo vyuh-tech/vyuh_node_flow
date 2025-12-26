@@ -13,6 +13,7 @@ import '../nodes/node_shape_painter.dart';
 import '../nodes/node_theme.dart';
 import '../ports/port.dart';
 import '../ports/port_widget.dart';
+import '../shared/drag_session.dart';
 import '../shared/element_scope.dart';
 import '../shared/resizer_widget.dart';
 import '../shared/unbounded_widgets.dart';
@@ -320,6 +321,9 @@ class NodeWidget<T> extends StatelessWidget {
                 // Main node visual with gesture handling via ElementScope
                 Positioned.fill(
                   child: ElementScope(
+                    // Session for canvas locking during drag
+                    createSession: () =>
+                        controller.createSession(DragSessionType.nodeDrag),
                     // Drag lifecycle - unified for all node types (including GroupNode, CommentNode)
                     isDraggable: !node.locked,
                     onDragStart: (_) => controller.startNodeDrag(node.id),

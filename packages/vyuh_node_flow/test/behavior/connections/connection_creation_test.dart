@@ -448,21 +448,26 @@ void main() {
       controller.cancelConnectionDrag();
     });
 
-    test('startConnectionDrag disables panning', () {
-      expect(controller.interaction.panEnabled.value, isTrue);
+    test(
+      'startConnectionDrag does not lock canvas directly (session handles locking)',
+      () {
+        // Note: Canvas locking is now handled by DragSession in the UI layer.
+        expect(controller.interaction.canvasLocked.value, isFalse);
 
-      controller.startConnectionDrag(
-        nodeId: 'source',
-        portId: 'out1',
-        isOutput: true,
-        startPoint: const Offset(100, 50),
-        nodeBounds: const Rect.fromLTWH(0, 0, 100, 100),
-      );
+        controller.startConnectionDrag(
+          nodeId: 'source',
+          portId: 'out1',
+          isOutput: true,
+          startPoint: const Offset(100, 50),
+          nodeBounds: const Rect.fromLTWH(0, 0, 100, 100),
+        );
 
-      expect(controller.interaction.panEnabled.value, isFalse);
+        // Controller method does NOT lock canvas - that's the session's job
+        expect(controller.interaction.canvasLocked.value, isFalse);
 
-      controller.cancelConnectionDrag();
-    });
+        controller.cancelConnectionDrag();
+      },
+    );
 
     test('startConnectionDrag fires onConnectStart callback', () {
       Node<String>? startNode;
@@ -556,24 +561,30 @@ void main() {
       expect(controller.interaction.temporaryConnection.value, isNull);
     });
 
-    test('completeConnectionDrag re-enables panning', () {
-      controller.startConnectionDrag(
-        nodeId: 'source',
-        portId: 'out1',
-        isOutput: true,
-        startPoint: const Offset(100, 50),
-        nodeBounds: const Rect.fromLTWH(0, 0, 100, 100),
-      );
+    test(
+      'completeConnectionDrag does not manage canvas lock (session handles locking)',
+      () {
+        // Note: Canvas locking is now handled by DragSession in the UI layer.
+        controller.startConnectionDrag(
+          nodeId: 'source',
+          portId: 'out1',
+          isOutput: true,
+          startPoint: const Offset(100, 50),
+          nodeBounds: const Rect.fromLTWH(0, 0, 100, 100),
+        );
 
-      expect(controller.interaction.panEnabled.value, isFalse);
+        // Canvas was never locked by startConnectionDrag - session handles that
+        expect(controller.interaction.canvasLocked.value, isFalse);
 
-      controller.completeConnectionDrag(
-        targetNodeId: 'target',
-        targetPortId: 'in1',
-      );
+        controller.completeConnectionDrag(
+          targetNodeId: 'target',
+          targetPortId: 'in1',
+        );
 
-      expect(controller.interaction.panEnabled.value, isTrue);
-    });
+        // Canvas lock state unchanged by controller methods
+        expect(controller.interaction.canvasLocked.value, isFalse);
+      },
+    );
 
     test('completeConnectionDrag fires onConnectEnd with target', () {
       Node<String>? endTargetNode;
@@ -633,27 +644,33 @@ void main() {
       expect(controller.interaction.temporaryConnection.value, isNull);
     });
 
-    test('cancelConnectionDrag re-enables panning', () {
-      final node = createTestNode(
-        id: 'node1',
-        outputPorts: [createTestPort(id: 'out1', type: PortType.output)],
-      );
-      controller.addNode(node);
+    test(
+      'cancelConnectionDrag does not manage canvas lock (session handles locking)',
+      () {
+        // Note: Canvas locking is now handled by DragSession in the UI layer.
+        final node = createTestNode(
+          id: 'node1',
+          outputPorts: [createTestPort(id: 'out1', type: PortType.output)],
+        );
+        controller.addNode(node);
 
-      controller.startConnectionDrag(
-        nodeId: 'node1',
-        portId: 'out1',
-        isOutput: true,
-        startPoint: const Offset(100, 50),
-        nodeBounds: const Rect.fromLTWH(0, 0, 100, 100),
-      );
+        controller.startConnectionDrag(
+          nodeId: 'node1',
+          portId: 'out1',
+          isOutput: true,
+          startPoint: const Offset(100, 50),
+          nodeBounds: const Rect.fromLTWH(0, 0, 100, 100),
+        );
 
-      expect(controller.interaction.panEnabled.value, isFalse);
+        // Canvas was never locked by startConnectionDrag - session handles that
+        expect(controller.interaction.canvasLocked.value, isFalse);
 
-      controller.cancelConnectionDrag();
+        controller.cancelConnectionDrag();
 
-      expect(controller.interaction.panEnabled.value, isTrue);
-    });
+        // Canvas lock state unchanged by controller methods
+        expect(controller.interaction.canvasLocked.value, isFalse);
+      },
+    );
 
     test('cancelConnectionDrag fires onConnectEnd with null', () {
       final node = createTestNode(

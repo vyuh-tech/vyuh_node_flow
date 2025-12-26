@@ -42,37 +42,66 @@ void main() {
       expect(pan.dy, equals(50));
     });
 
-    test('pan is disabled during node drag', () {
-      final node = createTestNode(id: 'node1');
-      controller.addNode(node);
+    // Note: Canvas locking is now handled by DragSession, not controller methods.
+    // These tests verify the session-based locking mechanism.
 
-      expect(controller.interaction.panEnabled.value, isTrue);
+    test('canvas is locked during drag session', () {
+      expect(controller.interaction.canvasLocked.value, isFalse);
 
-      controller.startNodeDrag('node1');
+      final session = controller.createSession(DragSessionType.nodeDrag);
+      session.start();
 
-      expect(controller.interaction.panEnabled.value, isFalse);
+      expect(controller.interaction.canvasLocked.value, isTrue);
+
+      session.end();
     });
 
-    test('pan is re-enabled after node drag ends', () {
+    test('canvas is unlocked after drag session ends', () {
+      final session = controller.createSession(DragSessionType.nodeDrag);
+      session.start();
+      expect(controller.interaction.canvasLocked.value, isTrue);
+
+      session.end();
+
+      expect(controller.interaction.canvasLocked.value, isFalse);
+    });
+
+    test('canvas is unlocked after drag session is cancelled', () {
+      final session = controller.createSession(DragSessionType.nodeDrag);
+      session.start();
+      expect(controller.interaction.canvasLocked.value, isTrue);
+
+      session.cancel();
+
+      expect(controller.interaction.canvasLocked.value, isFalse);
+    });
+
+    test('node drag controller methods do not lock canvas directly', () {
+      // Controller methods handle node-specific logic but delegate
+      // canvas locking to the session layer (handled by ElementScope).
       final node = createTestNode(id: 'node1');
       controller.addNode(node);
 
+      expect(controller.interaction.canvasLocked.value, isFalse);
+
       controller.startNodeDrag('node1');
-      expect(controller.interaction.panEnabled.value, isFalse);
+      // Canvas is NOT locked by controller - that's the session's job
+      expect(controller.interaction.canvasLocked.value, isFalse);
 
       controller.endNodeDrag();
-
-      expect(controller.interaction.panEnabled.value, isTrue);
+      expect(controller.interaction.canvasLocked.value, isFalse);
     });
 
-    test('pan is disabled during connection drag', () {
+    test('connection drag controller methods do not lock canvas directly', () {
+      // Controller methods handle connection-specific logic but delegate
+      // canvas locking to the session layer (handled by ElementScope).
       final node = createTestNode(
         id: 'node1',
         outputPorts: [createTestPort(id: 'out1', type: PortType.output)],
       );
       controller.addNode(node);
 
-      expect(controller.interaction.panEnabled.value, isTrue);
+      expect(controller.interaction.canvasLocked.value, isFalse);
 
       controller.startConnectionDrag(
         nodeId: 'node1',
@@ -81,31 +110,11 @@ void main() {
         startPoint: const Offset(100, 50),
         nodeBounds: const Rect.fromLTWH(0, 0, 100, 100),
       );
-
-      expect(controller.interaction.panEnabled.value, isFalse);
-
-      controller.cancelConnectionDrag();
-    });
-
-    test('pan is re-enabled after connection drag ends', () {
-      final node = createTestNode(
-        id: 'node1',
-        outputPorts: [createTestPort(id: 'out1', type: PortType.output)],
-      );
-      controller.addNode(node);
-
-      controller.startConnectionDrag(
-        nodeId: 'node1',
-        portId: 'out1',
-        isOutput: true,
-        startPoint: const Offset(100, 50),
-        nodeBounds: const Rect.fromLTWH(0, 0, 100, 100),
-      );
-      expect(controller.interaction.panEnabled.value, isFalse);
+      // Canvas is NOT locked by controller - that's the session's job
+      expect(controller.interaction.canvasLocked.value, isFalse);
 
       controller.cancelConnectionDrag();
-
-      expect(controller.interaction.panEnabled.value, isTrue);
+      expect(controller.interaction.canvasLocked.value, isFalse);
     });
 
     test('panBy with zero offset does not change viewport', () {

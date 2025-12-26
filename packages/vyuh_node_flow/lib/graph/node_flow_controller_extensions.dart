@@ -13,8 +13,8 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
     interaction.setPointerPosition(position);
   }
 
-  void _updateInteractionState({bool? panEnabled}) {
-    interaction.update(panEnabled: panEnabled);
+  void _updateInteractionState({bool? canvasLocked}) {
+    interaction.update(canvasLocked: canvasLocked);
   }
 
   /// Cleans up any stale interaction state from previous incomplete gestures.
@@ -59,10 +59,10 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
       interaction.finishSelection();
     }
 
-    // Force re-enable pan if it's still disabled after cleanup
-    if (!interaction.isPanEnabled) {
+    // Force unlock canvas if it's still locked after cleanup
+    if (interaction.isCanvasLocked) {
       runInAction(() {
-        interaction.panEnabled.value = true;
+        interaction.canvasLocked.value = false;
       });
     }
   }
