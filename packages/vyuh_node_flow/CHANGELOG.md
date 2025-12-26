@@ -1,3 +1,8 @@
+## 0.14.1
+
+ - **FEAT**: simplify drag operations across nodes, connections and resizers.
+ - **FEAT**: refactor context menu callbacks to use `ScreenPosition`, enhance port interaction APIs, and simplify node constructor parameters.
+
 ## 0.14.0
 
  - **FEAT**: unify Nodes and Annotations.
