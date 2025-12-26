@@ -1,0 +1,150 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+@source "../node_modules/fumadocs-ui/dist/**/*.js";
+
+@theme {
+  --color-primary: hsl(221 83% 53%);
+  --color-primary-foreground: hsl(210 40% 98%);
+  
+  --color-secondary: hsl(265 83% 57%);
+  --color-secondary-foreground: hsl(210 40% 98%);
+  
+  --color-accent: hsl(210 40% 96.1%);
+  --color-accent-foreground: hsl(222.2 47.4% 11.2%);
+
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* 
+  Fuma Docs UI Variables
+  Values must be in HSL format (h s% l%) for the preset to work correctly with opacity modifiers.
+*/
+:root {
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
+  
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 47.4% 11.2%;
+  
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 47.4% 11.2%;
+  
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  
+  --primary: 221 83% 53%;
+  --primary-foreground: 210 40% 98%;
+  
+  --secondary: 265 83% 57%;
+  --secondary-foreground: 210 40% 98%;
+  
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  
+  --ring: 221 83% 53%;
+  
+  /* Fuma Docs specific overrides */
+  --fd-background: 210 40% 98%;
+  --fd-foreground: 222 47% 11%;
+  --fd-primary: 221 83% 53%;
+  --fd-primary-foreground: 210 40% 98%;
+  --fd-secondary: 265 83% 57%;
+  --fd-secondary-foreground: 210 40% 98%;
+  --fd-muted: 210 40% 96.1%;
+  --fd-muted-foreground: 215.4 16.3% 46.9%;
+  --fd-accent: 210 40% 96.1%;
+  --fd-accent-foreground: 222.2 47.4% 11.2%;
+  --fd-popover: 0 0% 100%;
+  --fd-popover-foreground: 222.2 47.4% 11.2%;
+  --fd-card: 0 0% 100%;
+  --fd-card-foreground: 222.2 47.4% 11.2%;
+  --fd-border: 214.3 31.8% 91.4%;
+  --fd-input: 214.3 31.8% 91.4%;
+}
+
+.dark {
+  --background: 220 25% 18%;
+  --foreground: 210 40% 98%;
+
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 65%;
+
+  --popover: 222 47% 11%;
+  --popover-foreground: 210 40% 98%;
+
+  --card: 222 47% 11%;
+  --card-foreground: 210 40% 98%;
+
+  --border: 217 33% 20%;
+  --input: 217 33% 20%;
+
+  --primary: 221 83% 53%;
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 265 83% 57%;
+  --secondary-foreground: 210 40% 98%;
+
+  --accent: 217 33% 17%;
+  --accent-foreground: 210 40% 98%;
+
+  --ring: 221 83% 53%;
+
+  /* Fuma Docs specific overrides */
+  --fd-background: 222 47% 11%;
+  --fd-foreground: 210 40% 98%;
+  --fd-primary: 221 83% 53%;
+  --fd-primary-foreground: 210 40% 98%;
+  --fd-secondary: 265 83% 57%;
+  --fd-secondary-foreground: 210 40% 98%;
+  --fd-muted: 217 33% 17%;
+  --fd-muted-foreground: 215 20% 65%;
+  --fd-accent: 217 33% 17%;
+  --fd-accent-foreground: 210 40% 98%;
+  --fd-popover: 222 47% 11%;
+  --fd-popover-foreground: 210 40% 98%;
+  --fd-card: 222 47% 11%;
+  --fd-card-foreground: 210 40% 98%;
+  --fd-border: 217 33% 20%;
+  --fd-input: 217 33% 20%;
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes marquee-reverse {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes gradient-x {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@layer utilities {
+  .animate-marquee {
+    animation: marquee 40s linear infinite;
+  }
+  .animate-marquee-reverse {
+    animation: marquee-reverse 40s linear infinite;
+  }
+  .animate-marquee-slow {
+    animation: marquee 60s linear infinite;
+  }
+  .animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradient-x 3s ease infinite;
+  }
+}
+

@@ -1,0 +1,126 @@
+---
+title: API Reference
+description: Complete API documentation for Vyuh Node Flow
+---
+
+import { Card, Cards } from 'fumadocs-ui/components/card';
+
+# API Reference
+
+Complete reference documentation for all classes, methods, and properties in Vyuh Node Flow.
+
+## Core Classes
+
+<Cards>
+  <Card
+    title="NodeFlowController"
+    description="Central controller for managing the graph state"
+    href="/docs/node-flow/api-reference/controller"
+  />
+  <Card
+    title="Node"
+    description="Individual nodes in the graph with data and ports"
+    href="/docs/node-flow/api-reference/node"
+  />
+  <Card
+    title="Port"
+    description="Connection points on nodes"
+    href="/docs/node-flow/api-reference/port"
+  />
+  <Card
+    title="Connection"
+    description="Links between node ports"
+    href="/docs/node-flow/api-reference/connection"
+  />
+</Cards>
+
+## Widgets
+
+<Cards>
+  <Card
+    title="NodeFlowEditor"
+    description="Main editor widget for interactive graphs"
+    href="/docs/node-flow/components/node-flow-editor"
+  />
+  <Card
+    title="Minimap"
+    description="Navigation overview widget"
+    href="/docs/node-flow/components/minimap"
+  />
+</Cards>
+
+## Events
+
+<Cards>
+  <Card
+    title="NodeFlowEvents"
+    description="Event handling for all interactions"
+    href="/docs/node-flow/api-reference/events"
+  />
+</Cards>
+
+## Theming
+
+<Cards>
+  <Card
+    title="NodeFlowTheme"
+    description="Complete theme configuration"
+    href="/docs/node-flow/api-reference/theme"
+  />
+</Cards>
+
+## Quick Reference
+
+### Controller Methods
+
+| Method | Description |
+|--------|-------------|
+| `addNode(node)` | Add a node to the graph |
+| `removeNode(id)` | Remove a node by ID |
+| `moveNode(id, delta)` | Move a node by offset |
+| `setNodeSize(id, size)` | Update node size |
+| `addConnection(conn)` | Create a connection |
+| `removeConnection(id)` | Remove a connection |
+| `selectNode(id)` | Select a node |
+| `clearSelection()` | Clear all selections |
+| `fitToView()` | Fit viewport to content |
+| `zoomTo(level)` | Set zoom level |
+| `panBy(delta)` | Pan by offset |
+| `loadGraph(graph)` | Load complete graph |
+| `exportGraph()` | Export graph state |
+
+### Node Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | `String` | Unique identifier |
+| `type` | `String?` | Node type for categorization |
+| `position` | `Offset` | Position on canvas |
+| `size` | `Size` | Node dimensions |
+| `data` | `T` | Custom data payload |
+| `inputPorts` | `List<Port>` | Input connection ports |
+| `outputPorts` | `List<Port>` | Output connection ports |
+| `shape` | `NodeShape` | Visual shape (rectangle, circle, etc.) |
+
+### Port Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | `String` | Unique identifier |
+| `name` | `String?` | Display name |
+| `position` | `PortPosition` | Side of node (top, right, bottom, left) |
+| `shape` | `PortShape` | Visual shape (circle, square, diamond, triangle) |
+| `color` | `Color?` | Port color override |
+
+### Connection Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | `String` | Unique identifier |
+| `sourceNodeId` | `String` | Source node ID |
+| `sourcePortId` | `String` | Source port ID |
+| `targetNodeId` | `String` | Target node ID |
+| `targetPortId` | `String` | Target port ID |
+| `label` | `String?` | Center label |
+| `startLabel` | `String?` | Label at source |
+| `endLabel` | `String?` | Label at target |

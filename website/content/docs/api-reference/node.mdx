@@ -1,0 +1,377 @@
+---
+title: Node
+description: API reference for the Node class
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+# Node
+
+The `Node` class represents an individual node in the graph. Nodes contain custom data, ports for connections, and use MobX observables for reactive state management.
+
+## Constructor
+
+```dart
+Node<T>({
+  required String id,
+  required String type,
+  required Offset position,
+  required T data,
+  Size? size,
+  List<Port> inputPorts = const [],
+  List<Port> outputPorts = const [],
+  int initialZIndex = 0,
+})
+```
+
+## Properties
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `id` | `String` | required | Unique identifier |
+| `type` | `String` | required | Node type for categorization |
+| `position` | `Observable<Offset>` | required | Top-left position on canvas |
+| `size` | `Observable<Size>` | `Size(150, 100)` | Width and height |
+| `data` | `T` | required | Custom data payload |
+| `inputPorts` | `ObservableList<Port>` | `[]` | Input connection ports |
+| `outputPorts` | `ObservableList<Port>` | `[]` | Output connection ports |
+| `zIndex` | `Observable<int>` | `0` | Stacking order (higher = on top) |
+| `selected` | `Observable<bool>` | `false` | Selection state (not serialized) |
+| `dragging` | `Observable<bool>` | `false` | Dragging state (not serialized) |
+| `visualPosition` | `Observable<Offset>` | same as `position` | Position for rendering (may differ with snap-to-grid) |
+
+<Callout type="info">
+  Properties like `position`, `size`, and `selected` are MobX observables. Access their values using `.value` (e.g., `node.position.value`).
+</Callout>
+
+## Convenience Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `currentZIndex` | `int` | Get/set z-index value |
+| `isSelected` | `bool` | Get/set selection state |
+| `isDragging` | `bool` | Get/set dragging state |
+| `allPorts` | `List<Port>` | Combined list of input and output ports |
+
+## Examples
+
+<Tabs items={['Basic Node', 'With Ports', 'Complete Example']}>
+  <Tab value="Basic Node">
+    ```dart
+    final node = Node<String>(
+      id: 'node-1',
+      type: 'process',
+      position: Offset(100, 100),
+      data: 'My Node',
+    );
+    ```
+  </Tab>
+  <Tab value="With Ports">
+    ```dart
+    final node = Node<TaskData>(
+      id: 'task-1',
+      type: 'task',
+      position: Offset(100, 100),
+      size: Size(180, 100),
+      data: TaskData(
+        title: 'Process Data',
+        status: TaskStatus.pending,
+      ),
+      inputPorts: [
+        Port(id: 'task-1-in', name: 'Input', position: PortPosition.left),
+      ],
+      outputPorts: [
+        Port(id: 'task-1-success', name: 'Success', position: PortPosition.right),
+        Port(id: 'task-1-error', name: 'Error', position: PortPosition.right),
+      ],
+    );
+    ```
+  </Tab>
+  <Tab value="Complete Example">
+    ```dart
+    final startNode = Node<WorkflowData>(
+      id: 'start',
+      type: 'trigger',
+      position: Offset(50, 100),
+      size: Size(80, 80),
+      data: WorkflowData(label: 'Start'),
+      outputPorts: [
+        Port(id: 'start-out', name: 'Begin', position: PortPosition.right),
+      ],
+      initialZIndex: 1,
+    );
+
+    final processNode = Node<WorkflowData>(
+      id: 'process',
+      type: 'action',
+      position: Offset(200, 100),
+      size: Size(150, 80),
+      data: WorkflowData(label: 'Process'),
+      inputPorts: [
+        Port(id: 'process-in', name: 'Input', position: PortPosition.left),
+      ],
+      outputPorts: [
+        Port(id: 'process-out', name: 'Output', position: PortPosition.right),
+      ],
+    );
+    ```
+  </Tab>
+</Tabs>
+
+## Methods
+
+### Port Management
+
+#### findPort
+
+Find a port by ID in either input or output ports.
+
+```dart
+Port? findPort(String portId)
+```
+
+**Example:**
+```dart
+final port = node.findPort('task-1-in');
+if (port != null) {
+  print('Found port: ${port.name}');
+}
+```
+
+#### addInputPort / addOutputPort
+
+Add ports to an existing node.
+
+```dart
+void addInputPort(Port port)
+void addOutputPort(Port port)
+```
+
+**Example:**
+```dart
+node.addInputPort(Port(id: 'new-input', name: 'New Input'));
+node.addOutputPort(Port(id: 'new-output', name: 'New Output'));
+```
+
+#### removeInputPort / removeOutputPort / removePort
+
+Remove ports from a node.
+
+```dart
+bool removeInputPort(String portId)
+bool removeOutputPort(String portId)
+bool removePort(String portId)  // Searches both input and output
+```
+
+Returns `true` if the port was found and removed.
+
+#### updateInputPort / updateOutputPort / updatePort
+
+Update an existing port.
+
+```dart
+bool updateInputPort(String portId, Port updatedPort)
+bool updateOutputPort(String portId, Port updatedPort)
+bool updatePort(String portId, Port updatedPort)  // Searches both
+```
+
+Returns `true` if the port was found and updated.
+
+### Geometry Methods
+
+#### getBounds
+
+Get the node's bounding rectangle.
+
+```dart
+Rect getBounds()
+```
+
+**Example:**
+```dart
+final bounds = node.getBounds();
+print('Node area: ${bounds.width} x ${bounds.height}');
+```
+
+#### containsPoint
+
+Check if a point is within the node's rectangular bounds.
+
+```dart
+bool containsPoint(Offset point)
+```
+
+#### getPortPosition
+
+Get the connection point for a port in graph coordinates.
+
+```dart
+Offset getPortPosition(
+  String portId, {
+  required Size portSize,
+  NodeShape? shape,
+})
+```
+
+#### getVisualPortPosition
+
+Get the visual position where a port should be rendered within the node container.
+
+```dart
+Offset getVisualPortPosition(
+  String portId, {
+  required Size portSize,
+  NodeShape? shape,
+})
+```
+
+### Visual Position
+
+#### setVisualPosition
+
+Update the visual position (used with snap-to-grid).
+
+```dart
+void setVisualPosition(Offset snappedPosition)
+```
+
+### Serialization
+
+#### toJson
+
+Serialize to JSON.
+
+```dart
+Map<String, dynamic> toJson(Object? Function(T value) toJsonT)
+```
+
+**Example:**
+```dart
+final json = node.toJson((data) => data.toJson());
+```
+
+#### fromJson
+
+Create from JSON.
+
+```dart
+factory Node.fromJson(
+  Map<String, dynamic> json,
+  T Function(Object? json) fromJsonT,
+)
+```
+
+**Example:**
+```dart
+final node = Node.fromJson(json, (data) => MyData.fromJson(data as Map<String, dynamic>));
+```
+
+## Custom Data
+
+The `data` property holds your custom data type. Define a class that implements `toJson` and `fromJson` for serialization:
+
+```dart
+class TaskData {
+  final String title;
+  final String description;
+  final TaskStatus status;
+  final DateTime? dueDate;
+
+  TaskData({
+    required this.title,
+    this.description = '',
+    this.status = TaskStatus.pending,
+    this.dueDate,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'title': title,
+    'description': description,
+    'status': status.name,
+    'dueDate': dueDate?.toIso8601String(),
+  };
+
+  factory TaskData.fromJson(Map<String, dynamic> json) => TaskData(
+    title: json['title'],
+    description: json['description'] ?? '',
+    status: TaskStatus.values.byName(json['status']),
+    dueDate: json['dueDate'] != null ? DateTime.parse(json['dueDate']) : null,
+  );
+}
+
+enum TaskStatus { pending, inProgress, completed, failed }
+```
+
+## Node Shapes
+
+Node shapes are handled separately through the `NodeShape` abstract class for custom rendering. The library provides these built-in shapes:
+
+- `CircleShape` - Circular nodes
+- `DiamondShape` - Diamond/rhombus shaped nodes
+- `HexagonShape` - Hexagonal nodes
+
+Custom shapes can be created by extending `NodeShape` and implementing the required methods for path generation and port anchor calculation.
+
+<Callout type="tip">
+  Shapes affect how nodes are rendered and where ports are positioned. The default rectangular rendering is used when no shape is specified.
+</Callout>
+
+## Node Widget
+
+The `nodeBuilder` function receives the node and returns the visual representation:
+
+```dart
+NodeFlowEditor<TaskData>(
+  controller: controller,
+  nodeBuilder: (context, node) {
+    return Container(
+      padding: EdgeInsets.all(12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            node.data.title,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 4),
+          StatusBadge(status: node.data.status),
+        ],
+      ),
+    );
+  },
+)
+```
+
+<Callout type="tip">
+  The node widget is rendered inside the node's bounds. The `NodeFlowTheme` handles background, border, and shadow. Your widget only needs to render the content.
+</Callout>
+
+## Reactive Updates
+
+Node properties use MobX observables. Use `Observer` widgets to react to changes:
+
+```dart
+Observer(
+  builder: (_) {
+    return Text('Position: ${node.position.value}');
+  },
+)
+```
+
+Or use MobX's `runInAction` for batch updates:
+
+```dart
+runInAction(() {
+  node.position.value = Offset(200, 200);
+  node.selected.value = true;
+});
+```
+
+## Best Practices
+
+1. **Unique IDs**: Use UUIDs or timestamps for reliable uniqueness
+2. **Appropriate Sizing**: Size nodes to fit their content plus padding
+3. **Type Categorization**: Use `type` to differentiate node categories (required)
+4. **Port Organization**: Group related ports and use consistent naming
+5. **Dispose**: Call `node.dispose()` when removing nodes (currently a no-op but good practice)

@@ -1,0 +1,602 @@
+---
+title: Ports
+description: Understanding ports - connection points on nodes
+---
+
+import { MediaPlaceholder } from '@/components/media-placeholder';
+
+# Ports
+
+Ports are connection points on nodes where edges can be attached. They define how nodes can connect to each other in your graph.
+
+## Port Structure
+
+```dart
+class Port {
+  final String id;              // Unique identifier
+  final String name;            // Display name
+  final PortPosition position;  // left, right, top, bottom
+  final PortType type;          // source, target, both
+  final Offset offset;          // Offset from default position
+  final bool multiConnections;  // Allow multiple connections
+}
+```
+
+## Port Positions
+
+<MediaPlaceholder
+  type="image"
+  title="Port Position Options"
+  description="Diagram showing a node with ports on all four sides: left (input), right (output), top (trigger), bottom (result). Each port labeled with its PortPosition enum value. Arrows indicate typical flow direction for each position."
+/>
+
+Ports can be positioned on any side of a node:
+
+```dart
+enum PortPosition {
+  left,   // Left edge of node
+  right,  // Right edge of node
+  top,    // Top edge of node
+  bottom, // Bottom edge of node
+}
+```
+
+### Positioning Examples
+
+```dart
+// Port on the left side
+Port(
+  id: 'input-port',
+  name: 'Input',
+  position: PortPosition.left,
+  type: PortType.target,
+)
+
+// Port on the right side
+Port(
+  id: 'output-port',
+  name: 'Output',
+  position: PortPosition.right,
+  type: PortType.source,
+)
+
+// Port on top
+Port(
+  id: 'trigger-port',
+  name: 'Trigger',
+  position: PortPosition.top,
+  type: PortType.target,
+)
+
+// Port on bottom
+Port(
+  id: 'result-port',
+  name: 'Result',
+  position: PortPosition.bottom,
+  type: PortType.source,
+)
+```
+
+## Port Types
+
+Ports have three types that control connection direction:
+
+```dart
+enum PortType {
+  source,  // Can only output connections
+  target,  // Can only receive connections
+  both,    // Can both send and receive
+}
+```
+
+### Source Ports
+
+Output ports that create connections to other nodes:
+
+```dart
+Port(
+  id: 'out-1',
+  name: 'Output',
+  position: PortPosition.right,
+  type: PortType.source,
+)
+```
+
+### Target Ports
+
+Input ports that receive connections from other nodes:
+
+```dart
+Port(
+  id: 'in-1',
+  name: 'Input',
+  position: PortPosition.left,
+  type: PortType.target,
+)
+```
+
+### Bidirectional Ports
+
+Ports that can both send and receive:
+
+```dart
+Port(
+  id: 'data-1',
+  name: 'Data',
+  position: PortPosition.left,
+  type: PortType.both,
+)
+```
+
+## Port Offsets
+
+Fine-tune port positioning with offsets:
+
+```dart
+// Default position (centered)
+Port(
+  id: 'port-1',
+  name: 'Port 1',
+  position: PortPosition.right,
+  type: PortType.source,
+  offset: Offset.zero, // Default
+)
+
+// Offset from center
+Port(
+  id: 'port-2',
+  name: 'Port 2',
+  position: PortPosition.right,
+  type: PortType.source,
+  offset: Offset(0, 20), // 20 pixels down from center
+)
+
+Port(
+  id: 'port-3',
+  name: 'Port 3',
+  position: PortPosition.right,
+  type: PortType.source,
+  offset: Offset(0, -20), // 20 pixels up from center
+)
+```
+
+### Multiple Ports with Offsets
+
+<MediaPlaceholder
+  type="image"
+  title="Port Offset Positioning"
+  description="Node diagram showing three output ports on the right edge with offset values: Port 1 at offset (0, -20), Port 2 at offset (0, 0) (center), Port 3 at offset (0, 20). Visual guides showing the offset measurements from the node's vertical center."
+/>
+
+Create evenly spaced ports:
+
+```dart
+List<Port> createMultipleOutputPorts(int count, String nodeId) {
+  final ports = <Port>[];
+  final spacing = 60.0;
+  final startOffset = -(spacing * (count - 1)) / 2;
+
+  for (int i = 0; i < count; i++) {
+    ports.add(
+      Port(
+        id: '$nodeId-out-$i',
+        name: 'Output $i',
+        position: PortPosition.right,
+        type: PortType.source,
+        offset: Offset(0, startOffset + (i * spacing)),
+      ),
+    );
+  }
+
+  return ports;
+}
+
+// Usage
+final node = Node(
+  id: 'multi-output',
+  // ...
+  outputPorts: createMultipleOutputPorts(4, 'multi-output'),
+);
+```
+
+## Multi-Connections
+
+Control whether a port can have multiple connections:
+
+```dart
+// Single connection only (default for source ports)
+Port(
+  id: 'single-out',
+  name: 'Output',
+  position: PortPosition.right,
+  type: PortType.source,
+  multiConnections: false,
+)
+
+// Allow multiple connections (common for target ports)
+Port(
+  id: 'multi-in',
+  name: 'Input',
+  position: PortPosition.left,
+  type: PortType.target,
+  multiConnections: true,
+)
+```
+
+## Common Port Patterns
+
+<MediaPlaceholder
+  type="image"
+  title="Common Port Patterns"
+  description="Four-panel diagram showing: (1) Simple Flow - one input left, one output right, (2) Conditional - one input, two outputs (True/False), (3) Merge - multiple inputs left, one output right, (4) Split - one input, multiple outputs. Each with sample connection lines showing data flow direction."
+  aspectRatio="21/9"
+/>
+
+### Simple Flow Node
+
+```dart
+// Input on left, output on right
+final flowNode = Node<MyData>(
+  id: 'flow-node',
+  type: 'process',
+  position: Offset(200, 100),
+  size: Size(150, 80),
+  data: MyData(label: 'Process'),
+  inputPorts: [
+    Port(
+      id: 'flow-in',
+      name: 'Input',
+      position: PortPosition.left,
+      type: PortType.target,
+    ),
+  ],
+  outputPorts: [
+    Port(
+      id: 'flow-out',
+      name: 'Output',
+      position: PortPosition.right,
+      type: PortType.source,
+    ),
+  ],
+);
+```
+
+### Conditional Node
+
+```dart
+// One input, two outputs
+final conditionNode = Node<MyData>(
+  id: 'condition',
+  type: 'condition',
+  position: Offset(200, 100),
+  size: Size(180, 100),
+  data: MyData(label: 'If/Else'),
+  inputPorts: [
+    Port(
+      id: 'cond-in',
+      name: 'Input',
+      position: PortPosition.left,
+      type: PortType.target,
+    ),
+  ],
+  outputPorts: [
+    Port(
+      id: 'cond-true',
+      name: 'True',
+      position: PortPosition.right,
+      type: PortType.source,
+      offset: Offset(0, -25),
+    ),
+    Port(
+      id: 'cond-false',
+      name: 'False',
+      position: PortPosition.right,
+      type: PortType.source,
+      offset: Offset(0, 25),
+    ),
+  ],
+);
+```
+
+### Merge Node
+
+```dart
+// Multiple inputs, one output
+final mergeNode = Node<MyData>(
+  id: 'merge',
+  type: 'merge',
+  position: Offset(200, 100),
+  size: Size(150, 120),
+  data: MyData(label: 'Merge'),
+  inputPorts: [
+    Port(
+      id: 'merge-in-1',
+      name: 'Input 1',
+      position: PortPosition.left,
+      type: PortType.target,
+      multiConnections: true,
+      offset: Offset(0, -30),
+    ),
+    Port(
+      id: 'merge-in-2',
+      name: 'Input 2',
+      position: PortPosition.left,
+      type: PortType.target,
+      multiConnections: true,
+      offset: Offset(0, 0),
+    ),
+    Port(
+      id: 'merge-in-3',
+      name: 'Input 3',
+      position: PortPosition.left,
+      type: PortType.target,
+      multiConnections: true,
+      offset: Offset(0, 30),
+    ),
+  ],
+  outputPorts: [
+    Port(
+      id: 'merge-out',
+      name: 'Output',
+      position: PortPosition.right,
+      type: PortType.source,
+    ),
+  ],
+);
+```
+
+### Split Node
+
+```dart
+// One input, multiple outputs
+final splitNode = Node<MyData>(
+  id: 'split',
+  type: 'split',
+  position: Offset(200, 100),
+  size: Size(150, 120),
+  data: MyData(label: 'Split'),
+  inputPorts: [
+    Port(
+      id: 'split-in',
+      name: 'Input',
+      position: PortPosition.left,
+      type: PortType.target,
+    ),
+  ],
+  outputPorts: [
+    Port(
+      id: 'split-out-1',
+      name: 'Output 1',
+      position: PortPosition.right,
+      type: PortType.source,
+      offset: Offset(0, -30),
+    ),
+    Port(
+      id: 'split-out-2',
+      name: 'Output 2',
+      position: PortPosition.right,
+      type: PortType.source,
+      offset: Offset(0, 0),
+    ),
+    Port(
+      id: 'split-out-3',
+      name: 'Output 3',
+      position: PortPosition.right,
+      type: PortType.source,
+      offset: Offset(0, 30),
+    ),
+  ],
+);
+```
+
+## Port Theming
+
+Customize port appearance with `PortTheme`:
+
+```dart
+theme: NodeFlowTheme(
+  portTheme: PortTheme(
+    size: 12,                    // Port circle size
+    color: Colors.blue,          // Default color
+    hoverColor: Colors.blue[700]!, // Hover color
+    borderColor: Colors.white,   // Border color
+    borderWidth: 2,              // Border width
+  ),
+)
+```
+
+### Custom Port Colors by Type
+
+```dart
+Widget buildPortWithTypeColor(Port port) {
+  Color portColor;
+  switch (port.type) {
+    case PortType.source:
+      portColor = Colors.green;
+      break;
+    case PortType.target:
+      portColor = Colors.blue;
+      break;
+    case PortType.both:
+      portColor = Colors.purple;
+      break;
+  }
+
+  // Port is automatically rendered by the editor
+  // This is just for visualization
+  return Container(
+    width: 12,
+    height: 12,
+    decoration: BoxDecoration(
+      color: portColor,
+      shape: BoxShape.circle,
+      border: Border.all(color: Colors.white, width: 2),
+    ),
+  );
+}
+```
+
+## Querying Ports
+
+### Get Port from Node
+
+```dart
+final node = controller.getNode('node-1');
+if (node != null) {
+  // Get specific port
+  final port = node.inputPorts.firstWhere(
+    (p) => p.id == 'input-1',
+    orElse: () => throw Exception('Port not found'),
+  );
+
+  // Get all input ports
+  final allInputs = node.inputPorts;
+
+  // Get all output ports
+  final allOutputs = node.outputPorts;
+
+  // Get all ports
+  final allPorts = [...node.inputPorts, ...node.outputPorts];
+}
+```
+
+### Find Connections to/from Port
+
+```dart
+// Find connections from a source port (built-in method)
+final fromPort = controller.getConnectionsFromPort('node-1', 'out-1');
+
+// Find connections to a target port (built-in method)
+final toPort = controller.getConnectionsToPort('node-2', 'in-1');
+
+// Check if port has connections (custom helper)
+bool hasConnections(String nodeId, String portId) {
+  return controller.connections.any(
+    (c) =>
+        (c.sourceNodeId == nodeId && c.sourcePortId == portId) ||
+        (c.targetNodeId == nodeId && c.targetPortId == portId),
+  );
+}
+```
+
+## Dynamic Ports
+
+Add or remove ports at runtime using the controller's port methods:
+
+```dart
+// Add an input port to an existing node
+controller.addInputPort('node-1', Port(
+  id: 'new-input',
+  name: 'New Input',
+  position: PortPosition.left,
+  type: PortType.target,
+));
+
+// Add an output port to an existing node
+controller.addOutputPort('node-1', Port(
+  id: 'new-output',
+  name: 'New Output',
+  position: PortPosition.right,
+  type: PortType.source,
+));
+
+// Remove a port (also removes its connections)
+controller.removePort('node-1', 'port-id');
+
+// Replace all ports on a node
+controller.setNodePorts(
+  'node-1',
+  inputPorts: [/* new input ports */],
+  outputPorts: [/* new output ports */],
+);
+```
+
+## Port Labels
+
+Ports can have labels displayed near them:
+
+```dart
+// Port names are used as labels automatically
+Port(
+  id: 'data-in',
+  name: 'Data Input',  // This becomes the label
+  position: PortPosition.left,
+  type: PortType.target,
+)
+```
+
+Customize label appearance in theme:
+
+```dart
+theme: NodeFlowTheme(
+  labelTheme: LabelTheme(
+    fontSize: 10,
+    color: Colors.black87,
+    backgroundColor: Colors.white,
+    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    borderRadius: 3,
+  ),
+)
+```
+
+## Best Practices
+
+1. **Unique IDs**: Ensure port IDs are unique across all nodes
+2. **Meaningful Names**: Use descriptive port names
+3. **Consistent Positioning**: Keep similar ports in similar positions
+4. **Logical Flow**: Input ports on left/top, output ports on right/bottom
+5. **Multi-Connections**: Enable for merge points, disable for one-to-one
+6. **Offset Spacing**: Use consistent spacing between multiple ports
+7. **Type Safety**: Use appropriate port types to guide connections
+
+## Common Patterns
+
+### Port ID Generation
+
+```dart
+String generatePortId(String nodeId, String portName) {
+  return '$nodeId-${portName.toLowerCase().replaceAll(' ', '-')}';
+}
+
+// Usage
+final port = Port(
+  id: generatePortId('node-1', 'Data Input'),  // 'node-1-data-input'
+  name: 'Data Input',
+  position: PortPosition.left,
+  type: PortType.target,
+);
+```
+
+### Port Factory
+
+```dart
+class PortFactory {
+  static Port createInputPort(String nodeId, String name, {Offset offset = Offset.zero}) {
+    return Port(
+      id: '$nodeId-in-${name.toLowerCase().replaceAll(' ', '-')}',
+      name: name,
+      position: PortPosition.left,
+      type: PortType.target,
+      offset: offset,
+      multiConnections: true,
+    );
+  }
+
+  static Port createOutputPort(String nodeId, String name, {Offset offset = Offset.zero}) {
+    return Port(
+      id: '$nodeId-out-${name.toLowerCase().replaceAll(' ', '-')}',
+      name: name,
+      position: PortPosition.right,
+      type: PortType.source,
+      offset: offset,
+      multiConnections: false,
+    );
+  }
+}
+```
+
+## Next Steps
+
+- Learn about [Connections](/docs/node-flow/core-concepts/connections)
+- Explore [Connection Validation](/docs/node-flow/advanced/validation)
+- See [Port Examples](/docs/examples/custom-ports)

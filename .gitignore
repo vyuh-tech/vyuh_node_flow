@@ -15,3 +15,6 @@ pubspec_overrides.yaml
 *.iml
 *.lock
 devtools_options.yaml
+
+.gemini*
+.claude*

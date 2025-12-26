@@ -1,0 +1,424 @@
+---
+title: Events API
+description: API reference for the event system classes
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+# Events API
+
+Complete reference for all event classes in Vyuh Node Flow.
+
+## NodeFlowEvents
+
+The top-level container for all event handlers.
+
+```dart
+NodeFlowEvents<T>({
+  NodeEvents<T>? node,
+  PortEvents<T>? port,
+  ConnectionEvents<T>? connection,
+  ViewportEvents? viewport,
+  AnnotationEvents? annotation,
+  ValueChanged<SelectionState<T>>? onSelectionChange,
+  VoidCallback? onInit,
+  ValueChanged<FlowError>? onError,
+})
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `node` | `NodeEvents<T>?` | Node interaction events |
+| `port` | `PortEvents<T>?` | Port interaction events |
+| `connection` | `ConnectionEvents<T>?` | Connection lifecycle events |
+| `viewport` | `ViewportEvents?` | Canvas pan/zoom events |
+| `annotation` | `AnnotationEvents?` | Annotation events |
+| `onSelectionChange` | `ValueChanged<SelectionState<T>>?` | Selection state changes |
+| `onInit` | `VoidCallback?` | Editor initialization |
+| `onError` | `ValueChanged<FlowError>?` | Error handling |
+
+## NodeEvents
+
+Events for node interactions.
+
+```dart
+NodeEvents<T>({
+  ValueChanged<Node<T>>? onCreated,
+  ValueChanged<Node<T>>? onDeleted,
+  ValueChanged<Node<T>?>? onSelected,
+  ValueChanged<Node<T>>? onTap,
+  ValueChanged<Node<T>>? onDoubleTap,
+  void Function(Node<T>, Offset)? onContextMenu,
+  ValueChanged<Node<T>>? onDragStart,
+  ValueChanged<Node<T>>? onDrag,
+  ValueChanged<Node<T>>? onDragStop,
+  ValueChanged<Node<T>>? onMouseEnter,
+  ValueChanged<Node<T>>? onMouseLeave,
+})
+```
+
+| Event | Trigger | Signature |
+|-------|---------|-----------|
+| `onCreated` | Node added to graph | `ValueChanged<Node<T>>` |
+| `onDeleted` | Node removed from graph | `ValueChanged<Node<T>>` |
+| `onSelected` | Selection changes | `ValueChanged<Node<T>?>` |
+| `onTap` | Single tap | `ValueChanged<Node<T>>` |
+| `onDoubleTap` | Double tap | `ValueChanged<Node<T>>` |
+| `onContextMenu` | Right-click/long-press | `(Node<T>, Offset)` |
+| `onDragStart` | Drag begins | `ValueChanged<Node<T>>` |
+| `onDrag` | During drag | `ValueChanged<Node<T>>` |
+| `onDragStop` | Drag ends | `ValueChanged<Node<T>>` |
+| `onMouseEnter` | Mouse enters node bounds | `ValueChanged<Node<T>>` |
+| `onMouseLeave` | Mouse leaves node bounds | `ValueChanged<Node<T>>` |
+
+**Example:**
+```dart
+NodeEvents<MyData>(
+  onTap: (node) => print('Tapped: ${node.id}'),
+  onDoubleTap: (node) => _editNode(node),
+  onDragStop: (node) => _savePosition(node),
+  onContextMenu: (node, pos) => _showMenu(node, pos),
+)
+```
+
+## PortEvents
+
+Events for port interactions. All callbacks include the parent node for context.
+
+```dart
+PortEvents<T>({
+  void Function(Node<T>, Port, bool)? onTap,
+  void Function(Node<T>, Port, bool)? onDoubleTap,
+  void Function(Node<T>, Port, bool)? onMouseEnter,
+  void Function(Node<T>, Port, bool)? onMouseLeave,
+  void Function(Node<T>, Port, bool, Offset)? onContextMenu,
+})
+```
+
+The `bool` parameter indicates whether it's an output port (`true`) or input port (`false`).
+
+| Event | Trigger | Signature |
+|-------|---------|-----------|
+| `onTap` | Port tapped | `(Node<T>, Port, bool isOutput)` |
+| `onDoubleTap` | Port double-tapped | `(Node<T>, Port, bool isOutput)` |
+| `onMouseEnter` | Mouse enters port | `(Node<T>, Port, bool isOutput)` |
+| `onMouseLeave` | Mouse leaves port | `(Node<T>, Port, bool isOutput)` |
+| `onContextMenu` | Right-click on port | `(Node<T>, Port, bool isOutput, Offset)` |
+
+**Example:**
+```dart
+PortEvents<MyData>(
+  onTap: (node, port, isOutput) {
+    print('Tapped ${isOutput ? 'output' : 'input'} port: ${port.id}');
+  },
+  onMouseEnter: (node, port, isOutput) => _showTooltip(port),
+  onMouseLeave: (node, port, isOutput) => _hideTooltip(),
+)
+```
+
+## ConnectionEvents
+
+Events for connection lifecycle and validation.
+
+```dart
+ConnectionEvents<T>({
+  ValueChanged<Connection>? onCreated,
+  ValueChanged<Connection>? onDeleted,
+  ValueChanged<Connection?>? onSelected,
+  ValueChanged<Connection>? onTap,
+  ValueChanged<Connection>? onDoubleTap,
+  ValueChanged<Connection>? onMouseEnter,
+  ValueChanged<Connection>? onMouseLeave,
+  void Function(Connection, Offset)? onContextMenu,
+  void Function(String nodeId, String portId, bool isOutput)? onConnectStart,
+  void Function(bool success)? onConnectEnd,
+  ConnectionValidationResult Function(ConnectionStartContext<T>)? onBeforeStart,
+  ConnectionValidationResult Function(ConnectionCompleteContext<T>)? onBeforeComplete,
+})
+```
+
+| Event | Trigger | Signature |
+|-------|---------|-----------|
+| `onCreated` | Connection added | `ValueChanged<Connection>` |
+| `onDeleted` | Connection removed | `ValueChanged<Connection>` |
+| `onSelected` | Selection changes | `ValueChanged<Connection?>` |
+| `onTap` | Single tap | `ValueChanged<Connection>` |
+| `onDoubleTap` | Double tap | `ValueChanged<Connection>` |
+| `onMouseEnter` | Mouse enters path | `ValueChanged<Connection>` |
+| `onMouseLeave` | Mouse leaves path | `ValueChanged<Connection>` |
+| `onContextMenu` | Right-click | `(Connection, Offset)` |
+| `onConnectStart` | Drag begins from port | `(nodeId, portId, isOutput)` |
+| `onConnectEnd` | Drag ends | `(bool success)` |
+| `onBeforeStart` | Before connection starts | Returns validation result |
+| `onBeforeComplete` | Before connection completes | Returns validation result |
+
+## ConnectionStartContext
+
+Context provided to `onBeforeStart` when starting a connection drag.
+
+```dart
+class ConnectionStartContext<T> {
+  final Node<T> sourceNode;
+  final Port sourcePort;
+  final List<String> existingConnections;
+
+  // Computed properties
+  bool get isOutputPort;
+  bool get isInputPort;
+}
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `sourceNode` | `Node<T>` | Node where connection is starting |
+| `sourcePort` | `Port` | Port where connection is starting |
+| `existingConnections` | `List<String>` | IDs of existing connections from this port |
+| `isOutputPort` | `bool` | Whether this is an output port |
+| `isInputPort` | `bool` | Whether this is an input port |
+
+## ConnectionCompleteContext
+
+Context provided to `onBeforeComplete` when attempting to complete a connection.
+
+```dart
+class ConnectionCompleteContext<T> {
+  final Node<T> sourceNode;
+  final Port sourcePort;
+  final Node<T> targetNode;
+  final Port targetPort;
+  final List<String> existingSourceConnections;
+  final List<String> existingTargetConnections;
+
+  // Computed properties
+  bool get isOutputToInput;
+  bool get isInputToOutput;
+  bool get isSelfConnection;
+  bool get isSamePort;
+}
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `sourceNode` | `Node<T>` | Source node |
+| `sourcePort` | `Port` | Source port |
+| `targetNode` | `Node<T>` | Target node |
+| `targetPort` | `Port` | Target port |
+| `existingSourceConnections` | `List<String>` | Existing connection IDs from source port |
+| `existingTargetConnections` | `List<String>` | Existing connection IDs to target port |
+| `isOutputToInput` | `bool` | Output-to-input direction (typical) |
+| `isInputToOutput` | `bool` | Input-to-output direction (reverse) |
+| `isSelfConnection` | `bool` | Connecting a node to itself |
+| `isSamePort` | `bool` | Connecting a port to itself |
+
+## ConnectionValidationResult
+
+Return value for validation callbacks.
+
+```dart
+class ConnectionValidationResult {
+  final bool allowed;
+  final String? reason;
+  final bool showMessage;
+
+  // Factory constructors
+  const ConnectionValidationResult.allow();
+  const ConnectionValidationResult.deny({String? reason, bool showMessage = false});
+}
+```
+
+**Example:**
+```dart
+ConnectionEvents<MyData>(
+  onBeforeStart: (context) {
+    // Validate port can start connections
+    if (!context.sourcePort.isConnectable) {
+      return ConnectionValidationResult.deny(
+        reason: 'Port is not connectable',
+        showMessage: true,
+      );
+    }
+    return ConnectionValidationResult.allow();
+  },
+  onBeforeComplete: (context) {
+    // Prevent self-connections
+    if (context.isSelfConnection) {
+      return ConnectionValidationResult.deny(
+        reason: 'Cannot connect to same node',
+        showMessage: true,
+      );
+    }
+    // Only allow output-to-input
+    if (!context.isOutputToInput) {
+      return ConnectionValidationResult.deny(
+        reason: 'Must connect output to input',
+      );
+    }
+    return ConnectionValidationResult.allow();
+  },
+)
+```
+
+## ViewportEvents
+
+Events for canvas interactions.
+
+```dart
+ViewportEvents({
+  ValueChanged<GraphViewport>? onMoveStart,
+  ValueChanged<GraphViewport>? onMove,
+  ValueChanged<GraphViewport>? onMoveEnd,
+  ValueChanged<Offset>? onCanvasTap,
+  ValueChanged<Offset>? onCanvasDoubleTap,
+  ValueChanged<Offset>? onCanvasContextMenu,
+})
+```
+
+| Event | Trigger | Signature |
+|-------|---------|-----------|
+| `onMoveStart` | Pan/zoom begins | `ValueChanged<GraphViewport>` |
+| `onMove` | During pan/zoom | `ValueChanged<GraphViewport>` |
+| `onMoveEnd` | Pan/zoom ends | `ValueChanged<GraphViewport>` |
+| `onCanvasTap` | Tap on empty canvas | `ValueChanged<Offset>` |
+| `onCanvasDoubleTap` | Double-tap on canvas | `ValueChanged<Offset>` |
+| `onCanvasContextMenu` | Right-click on canvas | `ValueChanged<Offset>` |
+
+<Callout type="info">
+  Canvas positions are in **graph coordinates**, automatically adjusted for pan and zoom.
+</Callout>
+
+**Example:**
+```dart
+ViewportEvents(
+  onCanvasTap: (pos) => controller.clearSelection(),
+  onCanvasDoubleTap: (pos) => _addNodeAt(pos),
+  onCanvasContextMenu: (pos) => _showAddMenu(pos),
+  onMove: (viewport) => _updateMinimap(viewport),
+)
+```
+
+## AnnotationEvents
+
+Events for annotation interactions (sticky notes, groups).
+
+```dart
+AnnotationEvents({
+  ValueChanged<Annotation>? onCreated,
+  ValueChanged<Annotation>? onDeleted,
+  ValueChanged<Annotation?>? onSelected,
+  ValueChanged<Annotation>? onTap,
+  ValueChanged<Annotation>? onDoubleTap,
+  void Function(Annotation, Offset)? onContextMenu,
+  ValueChanged<Annotation>? onMouseEnter,
+  ValueChanged<Annotation>? onMouseLeave,
+})
+```
+
+| Event | Trigger | Signature |
+|-------|---------|-----------|
+| `onCreated` | Annotation created | `ValueChanged<Annotation>` |
+| `onDeleted` | Annotation deleted | `ValueChanged<Annotation>` |
+| `onSelected` | Selection changes | `ValueChanged<Annotation?>` |
+| `onTap` | Single tap | `ValueChanged<Annotation>` |
+| `onDoubleTap` | Double tap | `ValueChanged<Annotation>` |
+| `onContextMenu` | Right-click | `(Annotation, Offset)` |
+| `onMouseEnter` | Mouse enters bounds | `ValueChanged<Annotation>` |
+| `onMouseLeave` | Mouse leaves bounds | `ValueChanged<Annotation>` |
+
+## SelectionState
+
+Provided to `onSelectionChange` when selection changes.
+
+```dart
+class SelectionState<T> {
+  final List<Node<T>> nodes;
+  final List<Connection> connections;
+  final List<Annotation> annotations;
+
+  bool get hasSelection;
+}
+```
+
+**Example:**
+```dart
+onSelectionChange: (state) {
+  if (state.hasSelection) {
+    _showSelectionToolbar(state);
+    print('Selected ${state.nodes.length} nodes');
+  } else {
+    _hideSelectionToolbar();
+  }
+}
+```
+
+## FlowError
+
+Error information passed to `onError`.
+
+```dart
+class FlowError {
+  final String message;
+  final Object? error;
+  final StackTrace? stackTrace;
+}
+```
+
+**Example:**
+```dart
+onError: (error) {
+  print('Flow error: ${error.message}');
+  if (error.error != null) {
+    print('Caused by: ${error.error}');
+  }
+}
+```
+
+## Complete Example
+
+```dart
+NodeFlowEditor<WorkflowData>(
+  controller: controller,
+  events: NodeFlowEvents(
+    node: NodeEvents(
+      onTap: (node) => setState(() => _selected = node),
+      onDoubleTap: (node) => _editNode(node),
+      onDragStop: (node) => _log('Moved: ${node.id}'),
+      onContextMenu: (node, pos) => _showNodeMenu(node, pos),
+    ),
+    port: PortEvents(
+      onMouseEnter: (node, port, _) => _showPortInfo(port),
+      onMouseLeave: (_, __, ___) => _hidePortInfo(),
+    ),
+    connection: ConnectionEvents(
+      onCreated: (conn) => _log('Connected: ${conn.id}'),
+      onDeleted: (conn) => _log('Disconnected: ${conn.id}'),
+      onMouseEnter: (conn) => conn.animated = true,
+      onMouseLeave: (conn) => conn.animated = false,
+      onBeforeComplete: (ctx) => _validateConnection(ctx),
+    ),
+    viewport: ViewportEvents(
+      onCanvasTap: (_) => controller.clearSelection(),
+      onCanvasContextMenu: (pos) => _showAddNodeMenu(pos),
+    ),
+    onSelectionChange: (state) {
+      setState(() => _selectionCount = state.nodes.length);
+    },
+    onInit: () => _log('Editor ready'),
+    onError: (error) => _log('Error: ${error.message}'),
+  ),
+)
+```
+
+## copyWith Methods
+
+All event classes support `copyWith` for creating modified copies:
+
+```dart
+final baseEvents = NodeFlowEvents<MyData>(
+  node: NodeEvents(onTap: (n) => print('tap')),
+);
+
+final extendedEvents = baseEvents.copyWith(
+  connection: ConnectionEvents(onCreated: (c) => print('created')),
+);
+```
