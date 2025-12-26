@@ -114,6 +114,7 @@ const useCases = [
 
 function FeatureSection({
   align,
+  tag,
   title,
   description,
   icon,
@@ -121,6 +122,7 @@ function FeatureSection({
   features: featureList,
 }: {
   align: 'left' | 'right';
+  tag: string;
   title: string;
   description: string;
   icon: React.ReactNode;
@@ -139,7 +141,7 @@ function FeatureSection({
           <div className="flex-1">
             <SectionHeader
               icon={icon}
-              tag={title}
+              tag={tag}
               title={title}
               subtitle={description}
               features={featureList}
@@ -182,7 +184,7 @@ export function CodeShowcaseSection() {
             <SectionHeader
               align="left"
               icon={<Code2 className="w-5 h-5" />}
-              tag="Developer First"
+              tag="Dev"
               tagColor="blue"
               title="Declarative & Type-Safe"
               subtitle="Built for Flutter developers who love clean, maintainable code. Define your nodes, connections, and logic in pure Dart with full type safety."
@@ -240,6 +242,7 @@ export function FeatureDeepDivesSection() {
     <section className="relative z-20">
       <FeatureSection
         align="right"
+        tag="Theming"
         title="Designed for Your Brand"
         description="Don't settle for default styles. Our comprehensive theming system allows you to customize every pixel - from node borders and shadows to connection colors and grid patterns."
         icon={<Type className="w-6 h-6 text-purple-500" />}
@@ -253,6 +256,7 @@ export function FeatureDeepDivesSection() {
 
       <FeatureSection
         align="left"
+        tag="Interactions"
         title="Fluid Interactions"
         description="Make your flows feel tangible. Connections snap into place, nodes glow on selection, and data flow is visualized with beautiful, performant animations."
         icon={<MousePointer2 className="w-6 h-6 text-blue-500" />}
@@ -266,6 +270,7 @@ export function FeatureDeepDivesSection() {
 
       <FeatureSection
         align="right"
+        tag="Performance"
         title="Built for Scale"
         description="Whether you're rendering 10 nodes or 10,000, Vyuh Node Flow maintains buttery smooth performance using efficient rendering techniques and virtualization."
         icon={<Cpu className="w-6 h-6 text-amber-500" />}
@@ -279,6 +284,7 @@ export function FeatureDeepDivesSection() {
 
       <FeatureSection
         align="left"
+        tag="Touch"
         title="Touch Optimized"
         description="Designing for mobile? No problem. Our interaction model adapts seamlessly to touch gestures, making it perfect for tablet and phone interfaces."
         icon={<Smartphone className="w-6 h-6 text-green-500" />}
@@ -293,6 +299,36 @@ export function FeatureDeepDivesSection() {
   );
 }
 
+function MarqueeRow({
+  items,
+  colorClass,
+  dotClass,
+  animationClass,
+}: {
+  items: string[];
+  colorClass: string;
+  dotClass: string;
+  animationClass: string;
+}) {
+  // Duplicate items for seamless loop
+  const duplicatedItems = [...items, ...items];
+
+  return (
+    <div className="flex overflow-hidden py-2">
+      <div className={cn('flex shrink-0', animationClass)}>
+        {duplicatedItems.map((feature, i) => (
+          <div key={i} className="flex items-center shrink-0">
+            <span className={cn('text-xl font-bold cursor-default', colorClass)}>
+              {feature}
+            </span>
+            <span className={cn('mx-8 font-black', dotClass)}>•</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function MarqueeSection() {
   return (
     <section className="py-24 relative overflow-hidden z-20 border-y border-slate-200/50 dark:border-white/5 bg-white/30 dark:bg-black/20 backdrop-blur-md">
@@ -300,38 +336,24 @@ export function MarqueeSection() {
       <div className="absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-slate-50/80 dark:from-slate-900/80 to-transparent z-10 pointer-events-none" />
 
       <div className="flex flex-col gap-8">
-        <div className="flex animate-marquee whitespace-nowrap py-2">
-          {[...MARQUEE_ROW_1, ...MARQUEE_ROW_1].map((feature, i) => (
-            <div key={i} className="flex items-center">
-              <span className="text-xl font-bold text-blue-600/70 dark:text-blue-400/60 cursor-default">
-                {feature}
-              </span>
-              <span className="mx-8 text-blue-500/40 font-black">•</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex animate-marquee-reverse whitespace-nowrap py-2">
-          {[...MARQUEE_ROW_2, ...MARQUEE_ROW_2].map((feature, i) => (
-            <div key={i} className="flex items-center">
-              <span className="text-xl font-bold text-purple-600/70 dark:text-purple-400/60 cursor-default">
-                {feature}
-              </span>
-              <span className="mx-8 text-purple-500/40 font-black">•</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex animate-marquee-slow whitespace-nowrap py-2">
-          {[...MARQUEE_ROW_3, ...MARQUEE_ROW_3].map((feature, i) => (
-            <div key={i} className="flex items-center">
-              <span className="text-xl font-bold text-teal-600/70 dark:text-teal-400/60 cursor-default">
-                {feature}
-              </span>
-              <span className="mx-8 text-teal-500/40 font-black">•</span>
-            </div>
-          ))}
-        </div>
+        <MarqueeRow
+          items={MARQUEE_ROW_1}
+          colorClass="text-blue-600/70 dark:text-blue-400/60"
+          dotClass="text-blue-500/40"
+          animationClass="animate-marquee"
+        />
+        <MarqueeRow
+          items={MARQUEE_ROW_2}
+          colorClass="text-purple-600/70 dark:text-purple-400/60"
+          dotClass="text-purple-500/40"
+          animationClass="animate-marquee-reverse"
+        />
+        <MarqueeRow
+          items={MARQUEE_ROW_3}
+          colorClass="text-teal-600/70 dark:text-teal-400/60"
+          dotClass="text-teal-500/40"
+          animationClass="animate-marquee-slow"
+        />
       </div>
     </section>
   );
@@ -345,7 +367,7 @@ export function LiveDemoSection() {
         <div className="mb-16">
           <SectionHeader
             icon={<Play className="w-5 h-5" />}
-            tag="Try It Live"
+            tag="Demo"
             tagColor="green"
             title="See It in Action"
             subtitle="Experience the full power of Vyuh Node Flow with our interactive demo."
@@ -369,7 +391,7 @@ export function LiveDemoSection() {
                 <div className="w-24 h-24 rounded-full bg-blue-500/20 flex items-center justify-center mb-6 backdrop-blur-sm border border-blue-500/30 group-hover:bg-blue-500/40 group-hover:border-blue-500/50 transition-all">
                   <Play className="w-10 h-10 text-blue-400 fill-blue-400" />
                 </div>
-                <h3 className="text-3xl font-black font-heading text-white mb-2 drop-shadow-lg">
+                <h3 className="text-lg sm:text-xl md:text-3xl font-black font-heading text-white mb-2 drop-shadow-lg">
                   Launch Interactive Demo
                 </h3>
                 <p className="text-blue-300 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
@@ -397,7 +419,7 @@ export function UseCasesSection() {
         <div className="mb-20">
           <SectionHeader
             icon={<Workflow className="w-5 h-5" />}
-            tag="Built for Complexity"
+            tag="Scale"
             tagColor="amber"
             title="Infinite Use Cases"
             subtitle="From simple logic to complex state machines, Vyuh Node Flow handles it with ease."
@@ -453,7 +475,7 @@ export function CTASection() {
             and Vyuh Node Flow.
           </p>
 
-          <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 text-lg font-bold text-slate-500 dark:text-slate-400">
+          <div className="flex flex-col items-start gap-3 md:flex-row md:flex-wrap md:justify-center md:items-center md:gap-x-8 md:gap-y-4 text-base md:text-lg font-bold text-slate-500 dark:text-slate-400">
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]" />
               <span>Open Source (MIT License)</span>
@@ -475,10 +497,10 @@ export function CTASection() {
             <div className="absolute -inset-6 rounded-full bg-blue-500/20 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
             <Link
               href="/docs/getting-started"
-              className="relative inline-flex items-center justify-center h-20 px-16 rounded-full bg-blue-600 text-white font-black font-heading text-3xl transition-all duration-150 hover:bg-blue-500 hover:scale-105 shadow-2xl shadow-blue-500/40 active:scale-95"
+              className="relative inline-flex items-center justify-center h-14 px-8 md:h-20 md:px-16 rounded-full bg-blue-600 text-white font-black font-heading text-lg md:text-3xl transition-all duration-150 hover:bg-blue-500 hover:scale-105 shadow-2xl shadow-blue-500/40 active:scale-95"
             >
               Get Started Now
-              <ArrowRight className="ml-3 h-8 w-8" />
+              <ArrowRight className="ml-2 h-5 w-5 md:ml-3 md:h-8 md:w-8" />
             </Link>
           </div>
         </div>
@@ -493,8 +515,15 @@ export function CTASection() {
 
 export function FooterSection() {
   return (
-    <section className="py-16 relative z-20 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-[#020617]/50 backdrop-blur-sm">
-      <div className="container px-4 md:px-6 mx-auto text-center">
+    <section className="py-16 relative z-20 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-[#020617]/50 backdrop-blur-sm overflow-hidden">
+      {/* Ghosted watermark text */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
+        <span className="text-[8rem] sm:text-[10rem] md:text-[12rem] lg:text-[14rem] font-black font-heading tracking-tighter whitespace-nowrap text-slate-300/[0.12] dark:text-white/[0.03] uppercase">
+          Vyuh Node Flow
+        </span>
+      </div>
+
+      <div className="container px-4 md:px-6 mx-auto text-center relative z-10">
         <div className="flex flex-wrap justify-center items-center gap-8 text-sm font-medium text-slate-600 dark:text-slate-400">
           <Link
             href="/docs"
@@ -538,3 +567,6 @@ export function FooterSection() {
     </section>
   );
 }
+
+// Re-export BentoGridSection from its own file (client component)
+export { BentoGridSection } from './bento-section';

@@ -1,5 +1,3 @@
-'use client';
-
 const GRID_SIZE = 40;
 const LARGE_GRID_SIZE = 200;
 
@@ -14,7 +12,7 @@ export function GridBackground({
 }) {
   const opacity = prominent
     ? 'opacity-[0.35] dark:opacity-[0.25]'
-    : 'opacity-[0.25] dark:opacity-[0.18]';
+    : 'opacity-[0.25] dark:opacity-[0.15]';
 
   return (
     <div className={`absolute inset-0 pointer-events-none ${className}`}>

@@ -2,6 +2,7 @@
 
 import { motion } from 'motion/react';
 import { useMemo } from 'react';
+import { useIsMobile, useReducedMotion } from '@/hooks/use-mobile';
 
 interface Orb {
   id: number;
@@ -14,7 +15,16 @@ interface Orb {
 }
 
 export function FloatingOrbs() {
+  const isMobile = useIsMobile();
+  const prefersReducedMotion = useReducedMotion();
+
+  // Disable animations on mobile or when reduced motion is preferred
+  const shouldAnimate = !isMobile && !prefersReducedMotion;
+
   const orbs = useMemo<Orb[]>(() => {
+    // Return fewer orbs on mobile, or none if animations disabled
+    if (!shouldAnimate) return [];
+
     const colors = [
       'bg-blue-400/20 dark:bg-blue-500/15',
       'bg-purple-400/20 dark:bg-purple-500/15',
@@ -31,7 +41,9 @@ export function FloatingOrbs() {
       delay: Math.random() * 5,
       color: colors[i % colors.length],
     }));
-  }, []);
+  }, [shouldAnimate]);
+
+  if (!shouldAnimate) return null;
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">

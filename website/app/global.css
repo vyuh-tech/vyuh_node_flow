@@ -132,6 +132,21 @@
   }
 }
 
+@keyframes fade-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes progress-bar {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes float-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @layer utilities {
   .animate-marquee {
     animation: marquee 40s linear infinite;
@@ -145,6 +160,15 @@
   .animate-gradient-x {
     background-size: 200% 200%;
     animation: gradient-x 3s ease infinite;
+  }
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+  .animate-progress-bar {
+    animation: progress-bar var(--duration, 5000ms) linear forwards;
+  }
+  .animate-float-up {
+    animation: float-up 0.6s ease-out forwards;
   }
 }
 

@@ -1,9 +1,6 @@
-'use client';
-
 import { ReactNode } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { motion } from 'motion/react';
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
@@ -20,7 +17,7 @@ export function BentoGrid({
     <div
       className={cn(
         'grid grid-cols-1 md:grid-cols-6 lg:grid-cols-3 gap-4 lg:gap-8 max-w-7xl mx-auto',
-        className,
+        className
       )}
     >
       {children}
@@ -46,27 +43,27 @@ export function BentoCard({
   cta: string;
 }) {
   return (
-    <motion.div
-      whileHover={{ y: -8, scale: 1.02 }}
-      transition={{ type: "tween", duration: 0.1, ease: "easeOut" }}
+    <div
       key={name}
       className={cn(
         'group relative col-span-3 flex flex-col justify-between overflow-hidden rounded-3xl',
         'bg-white/40 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/10',
         'shadow-sm hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-150 backdrop-blur-md',
-        className,
+        // CSS hover animation instead of Framer Motion
+        'hover:-translate-y-2 hover:scale-[1.02]',
+        className
       )}
     >
       <div className="absolute inset-0 z-0 transition-transform duration-200 group-hover:scale-105 opacity-60">
         {background}
       </div>
-      
+
       {/* Subtle Glass Gradient Overlay */}
       <div className="absolute inset-0 z-10 bg-gradient-to-t from-white/80 via-white/20 to-transparent dark:from-black/80 dark:via-black/20 dark:to-transparent pointer-events-none" />
 
       <div className="pointer-events-none z-20 flex flex-col gap-2 p-6 mt-auto">
         <div className="w-10 h-10 rounded-xl bg-white/60 dark:bg-white/10 flex items-center justify-center backdrop-blur-md mb-2 shadow-sm border border-white/20 dark:border-white/10">
-            <Icon className="h-5 w-5 text-slate-700 dark:text-slate-200" />
+          <Icon className="h-5 w-5 text-slate-700 dark:text-slate-200" />
         </div>
         <h3 className="text-lg font-bold font-heading text-slate-900 dark:text-neutral-100">
           {name}
@@ -78,7 +75,7 @@ export function BentoCard({
 
       <div
         className={cn(
-          'pointer-events-none absolute bottom-6 right-6 z-30 opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0',
+          'pointer-events-none absolute bottom-6 right-6 z-30 opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0'
         )}
       >
         <div className="pointer-events-auto">
@@ -104,6 +101,6 @@ export function BentoCard({
         </div>
       </div>
       <div className="pointer-events-none absolute inset-0 transition-all duration-150 group-hover:bg-blue-500/[0.02] dark:group-hover:bg-blue-500/[0.05]" />
-    </motion.div>
+    </div>
   );
 }

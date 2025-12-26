@@ -1,5 +1,3 @@
-'use client';
-
 import {
   Zap,
   Palette,
@@ -153,7 +151,7 @@ export function BentoGridSection() {
         <div className="mb-20">
           <SectionHeader
             icon={<Sparkles className="w-5 h-5" />}
-            tag="Packed with Features"
+            tag="Features"
             tagColor="purple"
             title="Everything You Need"
             subtitle="A complete toolkit for building professional node-based interfaces."
