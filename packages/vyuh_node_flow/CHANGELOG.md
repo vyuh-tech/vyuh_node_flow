@@ -1,3 +1,7 @@
+## 0.15.0
+
+ - **FEAT**: refactor test factory and add unit tests for constructor initialization.
+
 ## 0.14.1
 
  - **FEAT**: simplify drag operations across nodes, connections and resizers.
