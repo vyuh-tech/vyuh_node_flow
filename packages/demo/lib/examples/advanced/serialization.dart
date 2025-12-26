@@ -14,7 +14,11 @@ class SerializationExample extends StatefulWidget {
 }
 
 class _SerializationExampleState extends State<SerializationExample> {
-  late final NodeFlowController<Map<String, dynamic>> _controller;
+  final _controller = NodeFlowController<Map<String, dynamic>>(
+    config: NodeFlowConfig(),
+    nodes: _createNodes(),
+    connections: _createConnections(),
+  );
   String _savedJson = '';
   String _statusMessage = '';
   Highlighter? _highlighter;
@@ -24,15 +28,6 @@ class _SerializationExampleState extends State<SerializationExample> {
   void initState() {
     super.initState();
     _initializeHighlighter();
-    _controller = NodeFlowController<Map<String, dynamic>>(
-      config: NodeFlowConfig(),
-    );
-
-    _createInitialGraph();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.fitToView();
-    });
   }
 
   Future<void> _initializeHighlighter() async {
@@ -58,99 +53,95 @@ class _SerializationExampleState extends State<SerializationExample> {
     super.dispose();
   }
 
-  void _createInitialGraph() {
-    final node1 = Node<Map<String, dynamic>>(
-      id: 'input-1',
-      type: 'input',
-      position: const Offset(100, 150),
-      size: const Size(150, 80),
-      data: {'label': 'Input', 'value': 42},
-      outputPorts: [
-        Port(
-          id: 'out',
-          name: 'Output',
-          position: PortPosition.right,
-          offset: Offset(2, 40), // Vertical center of 80 height
-        ),
-      ],
-    );
+  static List<Node<Map<String, dynamic>>> _createNodes() {
+    return [
+      Node<Map<String, dynamic>>(
+        id: 'input-1',
+        type: 'input',
+        position: const Offset(100, 150),
+        size: const Size(150, 80),
+        data: {'label': 'Input', 'value': 42},
+        outputPorts: [
+          Port(
+            id: 'out',
+            name: 'Output',
+            position: PortPosition.right,
+            offset: Offset(2, 40), // Vertical center of 80 height
+          ),
+        ],
+      ),
+      Node<Map<String, dynamic>>(
+        id: 'process-1',
+        type: 'process',
+        position: const Offset(350, 100),
+        size: const Size(150, 100),
+        data: {'label': 'Process A', 'operation': 'multiply'},
+        inputPorts: [
+          Port(
+            id: 'in',
+            name: 'Input',
+            position: PortPosition.left,
+            offset: Offset(-2, 50), // Vertical center of 100 height
+          ),
+        ],
+        outputPorts: [
+          Port(
+            id: 'out',
+            name: 'Result',
+            position: PortPosition.right,
+            offset: Offset(2, 50), // Vertical center of 100 height
+          ),
+        ],
+      ),
+      Node<Map<String, dynamic>>(
+        id: 'process-2',
+        type: 'process',
+        position: const Offset(350, 250),
+        size: const Size(150, 100),
+        data: {'label': 'Process B', 'operation': 'add'},
+        inputPorts: [
+          Port(
+            id: 'in',
+            name: 'Input',
+            position: PortPosition.left,
+            offset: Offset(-2, 50), // Vertical center of 100 height
+          ),
+        ],
+        outputPorts: [
+          Port(
+            id: 'out',
+            name: 'Result',
+            position: PortPosition.right,
+            offset: Offset(2, 50), // Vertical center of 100 height
+          ),
+        ],
+      ),
+      Node<Map<String, dynamic>>(
+        id: 'output-1',
+        type: 'output',
+        position: const Offset(600, 150),
+        size: const Size(150, 80),
+        data: {'label': 'Output', 'format': 'json'},
+        inputPorts: [
+          Port(
+            id: 'in1',
+            name: 'Input 1',
+            position: PortPosition.left,
+            offset: Offset(-2, 20), // Multiple ports: starting offset 20
+          ),
+          Port(
+            id: 'in2',
+            name: 'Input 2',
+            position: PortPosition.left,
+            offset: Offset(-2, 50), // Multiple ports: 20 + 30 separation
+          ),
+        ],
+      ),
+    ];
+  }
 
-    final node2 = Node<Map<String, dynamic>>(
-      id: 'process-1',
-      type: 'process',
-      position: const Offset(350, 100),
-      size: const Size(150, 100),
-      data: {'label': 'Process A', 'operation': 'multiply'},
-      inputPorts: [
-        Port(
-          id: 'in',
-          name: 'Input',
-          position: PortPosition.left,
-          offset: Offset(-2, 50), // Vertical center of 100 height
-        ),
-      ],
-      outputPorts: [
-        Port(
-          id: 'out',
-          name: 'Result',
-          position: PortPosition.right,
-          offset: Offset(2, 50), // Vertical center of 100 height
-        ),
-      ],
-    );
-
-    final node3 = Node<Map<String, dynamic>>(
-      id: 'process-2',
-      type: 'process',
-      position: const Offset(350, 250),
-      size: const Size(150, 100),
-      data: {'label': 'Process B', 'operation': 'add'},
-      inputPorts: [
-        Port(
-          id: 'in',
-          name: 'Input',
-          position: PortPosition.left,
-          offset: Offset(-2, 50), // Vertical center of 100 height
-        ),
-      ],
-      outputPorts: [
-        Port(
-          id: 'out',
-          name: 'Result',
-          position: PortPosition.right,
-          offset: Offset(2, 50), // Vertical center of 100 height
-        ),
-      ],
-    );
-
-    final node4 = Node<Map<String, dynamic>>(
-      id: 'output-1',
-      type: 'output',
-      position: const Offset(600, 150),
-      size: const Size(150, 80),
-      data: {'label': 'Output', 'format': 'json'},
-      inputPorts: [
-        Port(
-          id: 'in1',
-          name: 'Input 1',
-          position: PortPosition.left,
-          offset: Offset(-2, 20), // Multiple ports: starting offset 20
-        ),
-        Port(
-          id: 'in2',
-          name: 'Input 2',
-          position: PortPosition.left,
-          offset: Offset(-2, 50), // Multiple ports: 20 + 30 separation
-        ),
-      ],
-    );
-
-    _controller.addNode(node1);
-    _controller.addNode(node2);
-    _controller.addNode(node3);
-    _controller.addNode(node4);
-
-    _controller.addConnection(
+  static List<Connection> _createConnections() {
+    return [
       Connection(
         id: 'conn-1',
         sourceNodeId: 'input-1',
@@ -158,9 +149,6 @@ class _SerializationExampleState extends State<SerializationExample> {
         targetNodeId: 'process-1',
         targetPortId: 'in',
       ),
-    );
-
-    _controller.addConnection(
       Connection(
         id: 'conn-2',
         sourceNodeId: 'input-1',
@@ -168,9 +156,6 @@ class _SerializationExampleState extends State<SerializationExample> {
         targetNodeId: 'process-2',
         targetPortId: 'in',
       ),
-    );
-
-    _controller.addConnection(
       Connection(
         id: 'conn-3',
         sourceNodeId: 'process-1',
@@ -178,9 +163,6 @@ class _SerializationExampleState extends State<SerializationExample> {
         targetNodeId: 'output-1',
         targetPortId: 'in1',
       ),
-    );
-
-    _controller.addConnection(
       Connection(
         id: 'conn-4',
         sourceNodeId: 'process-2',
@@ -188,7 +170,7 @@ class _SerializationExampleState extends State<SerializationExample> {
         targetNodeId: 'output-1',
         targetPortId: 'in2',
       ),
-    );
+    ];
   }
 
   void _exportGraph() {
@@ -374,9 +356,7 @@ class _SerializationExampleState extends State<SerializationExample> {
             '(${graph.nodes.length} nodes, ${graph.connections.length} connections)';
       });
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _controller.fitToView();
-      });
+      _controller.fitToView();
     } catch (e) {
       setState(() {
         _statusMessage = 'Import failed: $e';
@@ -397,13 +377,17 @@ class _SerializationExampleState extends State<SerializationExample> {
 
   void _resetToInitial() {
     _controller.clearGraph();
-    _createInitialGraph();
+    // Re-add nodes and connections from static methods
+    for (final node in _createNodes()) {
+      _controller.addNode(node);
+    }
+    for (final connection in _createConnections()) {
+      _controller.addConnection(connection);
+    }
     setState(() {
       _statusMessage = 'Reset to initial graph';
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.fitToView();
-    });
+    _controller.fitToView();
   }
 
   Widget _buildNode(BuildContext context, Node<Map<String, dynamic>> node) {
@@ -462,6 +446,7 @@ class _SerializationExampleState extends State<SerializationExample> {
             style: ConnectionStyles.smoothstep,
           ),
         ),
+        events: NodeFlowEvents(onInit: () => _controller.fitToView()),
       ),
       children: [
         const Text(

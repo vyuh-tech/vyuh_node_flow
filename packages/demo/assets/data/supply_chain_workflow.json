@@ -3,10 +3,8 @@
     {
       "id": "supplier-1",
       "type": "Supplier",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -36,19 +34,15 @@
         "lead_time": "30 days",
         "reliability": "95%"
       },
-      "position": {
-        "x": 100,
-        "y": 100
-      },
+      "x": 100,
+      "y": 100,
       "zIndex": 1
     },
     {
       "id": "supplier-2",
       "type": "Supplier",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -78,19 +72,15 @@
         "lead_time": "14 days",
         "reliability": "98%"
       },
-      "position": {
-        "x": 100,
-        "y": 250
-      },
+      "x": 100,
+      "y": 250,
       "zIndex": 1
     },
     {
       "id": "supplier-3",
       "type": "Supplier",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -120,19 +110,15 @@
         "lead_time": "3 days",
         "reliability": "99%"
       },
-      "position": {
-        "x": 100,
-        "y": 400
-      },
+      "x": 100,
+      "y": 400,
       "zIndex": 1
     },
     {
       "id": "ocean-freight",
       "type": "Transport",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "cargo-in",
@@ -174,19 +160,15 @@
         "transit_time": "25 days",
         "capacity": "40ft containers"
       },
-      "position": {
-        "x": 300,
-        "y": 100
-      },
+      "x": 300,
+      "y": 100,
       "zIndex": 2
     },
     {
       "id": "air-freight",
       "type": "Transport",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "cargo-in",
@@ -228,19 +210,15 @@
         "transit_time": "2 days",
         "capacity": "LD3 containers"
       },
-      "position": {
-        "x": 300,
-        "y": 250
-      },
+      "x": 300,
+      "y": 250,
       "zIndex": 2
     },
     {
       "id": "truck-transport",
       "type": "Transport",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "cargo-in",
@@ -282,19 +260,15 @@
         "transit_time": "1 day",
         "capacity": "53ft trailer"
       },
-      "position": {
-        "x": 300,
-        "y": 400
-      },
+      "x": 300,
+      "y": 400,
       "zIndex": 2
     },
     {
       "id": "customs-clearance",
       "type": "Regulatory",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "goods-in",
@@ -346,19 +320,15 @@
         "average_time": "3 days",
         "compliance_rate": "99.5%"
       },
-      "position": {
-        "x": 500,
-        "y": 100
-      },
+      "x": 500,
+      "y": 100,
       "zIndex": 3
     },
     {
       "id": "distribution-center",
       "type": "Warehouse",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "ocean-in",
@@ -420,19 +390,15 @@
         "capacity": "100,000 SKUs",
         "automation": "85%"
       },
-      "position": {
-        "x": 700,
-        "y": 250
-      },
+      "x": 700,
+      "y": 250,
       "zIndex": 4
     },
     {
       "id": "inventory-management",
       "type": "System",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "stock-levels",
@@ -494,19 +460,15 @@
         "accuracy": "96%",
         "lead_time_buffer": "Dynamic"
       },
-      "position": {
-        "x": 700,
-        "y": 500
-      },
+      "x": 700,
+      "y": 500,
       "zIndex": 4
     },
     {
       "id": "order-management",
       "type": "System",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "orders-in",
@@ -562,19 +524,15 @@
         "sla": "Same day ship",
         "accuracy": "99.8%"
       },
-      "position": {
-        "x": 950,
-        "y": 250
-      },
+      "x": 950,
+      "y": 250,
       "zIndex": 5
     },
     {
       "id": "last-mile-delivery",
       "type": "Delivery",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "packages-in",
@@ -624,19 +582,15 @@
         ],
         "coverage": "98% US zip codes"
       },
-      "position": {
-        "x": 1150,
-        "y": 250
-      },
+      "x": 1150,
+      "y": 250,
       "zIndex": 6
     },
     {
       "id": "customer",
       "type": "Customer",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "delivery-in",
@@ -671,19 +625,15 @@
         "satisfaction": "4.5/5",
         "return_rate": "3%"
       },
-      "position": {
-        "x": 1350,
-        "y": 250
-      },
+      "x": 1350,
+      "y": 250,
       "zIndex": 7
     },
     {
       "id": "returns-processing",
       "type": "Returns",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "returns-in",
@@ -735,19 +685,15 @@
         "inspection": "100%",
         "refund_method": "Original payment"
       },
-      "position": {
-        "x": 1150,
-        "y": 450
-      },
+      "x": 1150,
+      "y": 450,
       "zIndex": 6
     },
     {
       "id": "supply-chain-analytics",
       "type": "Analytics",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "transport-data",
@@ -817,10 +763,8 @@
         ],
         "dashboard": "Power BI"
       },
-      "position": {
-        "x": 950,
-        "y": 500
-      },
+      "x": 950,
+      "y": 500,
       "zIndex": 5
     }
   ],

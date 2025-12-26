@@ -3,10 +3,8 @@
     {
       "id": "product-intake",
       "type": "Intake",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -35,19 +33,15 @@
         "capacity": "1000 units/hour",
         "source": "Production Line A"
       },
-      "position": {
-        "x": 100,
-        "y": 100
-      },
+      "x": 100,
+      "y": 100,
       "zIndex": 1
     },
     {
       "id": "visual-inspection",
       "type": "Inspection",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "product-in",
@@ -102,19 +96,15 @@
         ],
         "pass_rate": "95%"
       },
-      "position": {
-        "x": 350,
-        "y": 100
-      },
+      "x": 350,
+      "y": 100,
       "zIndex": 2
     },
     {
       "id": "dimensional-check",
       "type": "Measurement",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "product-in",
@@ -170,19 +160,15 @@
           "Angles"
         ]
       },
-      "position": {
-        "x": 600,
-        "y": 100
-      },
+      "x": 600,
+      "y": 100,
       "zIndex": 3
     },
     {
       "id": "functional-test",
       "type": "Testing",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "product-in",
@@ -238,19 +224,15 @@
         "duration": "15 minutes",
         "stations": 8
       },
-      "position": {
-        "x": 850,
-        "y": 100
-      },
+      "x": 850,
+      "y": 100,
       "zIndex": 4
     },
     {
       "id": "chemical-analysis",
       "type": "Analysis",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "sample-in",
@@ -308,19 +290,15 @@
           "ASTM"
         ]
       },
-      "position": {
-        "x": 600,
-        "y": 300
-      },
+      "x": 600,
+      "y": 300,
       "zIndex": 3
     },
     {
       "id": "stress-test",
       "type": "Testing",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "product-in",
@@ -376,19 +354,15 @@
         "equipment": "Universal Testing Machine",
         "cycles": "10,000"
       },
-      "position": {
-        "x": 850,
-        "y": 300
-      },
+      "x": 850,
+      "y": 300,
       "zIndex": 4
     },
     {
       "id": "final-inspection",
       "type": "Inspection",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "visual-in",
@@ -459,19 +433,15 @@
         "approval_criteria": "All tests passed",
         "certification": "ISO 9001"
       },
-      "position": {
-        "x": 1100,
-        "y": 200
-      },
+      "x": 1100,
+      "y": 200,
       "zIndex": 5
     },
     {
       "id": "packaging",
       "type": "Packaging",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "product-in",
@@ -502,19 +472,15 @@
         "labeling": "QC Pass Sticker",
         "tracking": "Serial Number"
       },
-      "position": {
-        "x": 1350,
-        "y": 200
-      },
+      "x": 1350,
+      "y": 200,
       "zIndex": 6
     },
     {
       "id": "rework-station",
       "type": "Rework",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "visual-fail",
@@ -579,19 +545,15 @@
           "Component Replace"
         ]
       },
-      "position": {
-        "x": 600,
-        "y": 500
-      },
+      "x": 600,
+      "y": 500,
       "zIndex": 3
     },
     {
       "id": "data-analytics",
       "type": "Analytics",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "visual-data",
@@ -669,19 +631,15 @@
         ],
         "reporting": "Real-time"
       },
-      "position": {
-        "x": 1100,
-        "y": 500
-      },
+      "x": 1100,
+      "y": 500,
       "zIndex": 5
     },
     {
       "id": "calibration-lab",
       "type": "Calibration",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "equipment-in",
@@ -726,19 +684,15 @@
           "Testers"
         ]
       },
-      "position": {
-        "x": 100,
-        "y": 400
-      },
+      "x": 100,
+      "y": 400,
       "zIndex": 1
     },
     {
       "id": "sample-storage",
       "type": "Storage",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "samples-in",
@@ -769,10 +723,8 @@
         "conditions": "Temperature Controlled",
         "tracking": "Barcode System"
       },
-      "position": {
-        "x": 350,
-        "y": 400
-      },
+      "x": 350,
+      "y": 400,
       "zIndex": 2
     }
   ],

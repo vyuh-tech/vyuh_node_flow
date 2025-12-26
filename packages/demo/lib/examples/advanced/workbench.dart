@@ -18,7 +18,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
   late NodeFlowConfig _nodeFlowConfig;
   bool _isLoading = true;
   final bool _scrollToZoom = false;
-  bool _debugMode = false;
+  DebugMode _debugMode = DebugMode.none;
 
   // Workflow dropdown
   String _selectedWorkflow = 'simple_workflow.json';
@@ -407,7 +407,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
           onPressed: _toggleMinimap,
         ),
         GridButton(
-          label: _debugMode ? 'Debug: ON' : 'Debug: OFF',
+          label: _debugMode.isEnabled ? 'Debug: ON' : 'Debug: OFF',
           icon: Icons.bug_report,
           onPressed: _toggleDebugMode,
         ),
@@ -850,8 +850,8 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
 
   void _toggleDebugMode() {
     setState(() {
-      _debugMode = !_debugMode;
-      _controller.config.update(debugMode: _debugMode);
+      _debugMode = _debugMode.isEnabled ? DebugMode.none : DebugMode.all;
+      _controller.config.setDebugMode(_debugMode);
     });
   }
 

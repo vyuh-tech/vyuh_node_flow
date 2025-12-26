@@ -13,173 +13,164 @@ class ThemingExample extends StatefulWidget {
 }
 
 class _ThemingExampleState extends State<ThemingExample> {
-  late final NodeFlowController<Map<String, dynamic>> _controller;
   late NodeFlowTheme _theme;
   MarkerShape _selectedPortShape = MarkerShapes.capsuleHalf;
   bool _scrollToZoom = true;
   Size _endpointSize = const Size.square(5.0);
   bool _useCustomPortBuilder = false;
   bool _useCustomLabelBuilder = false;
-  bool _debugMode = false;
+  DebugMode _debugMode = DebugMode.none;
 
-  @override
-  void initState() {
-    super.initState();
-    _theme = NodeFlowTheme.light;
-    _controller = NodeFlowController<Map<String, dynamic>>(
-      config: NodeFlowConfig(debugMode: _debugMode),
-    );
-    _createExampleGraph();
+  // Create controller with initial nodes and connections
+  final _controller = NodeFlowController<Map<String, dynamic>>(
+    config: NodeFlowConfig(),
+    nodes: _createNodes(),
+    connections: _createConnections(),
+  );
+
+  static List<Node<Map<String, dynamic>>> _createNodes() {
+    const portShape = MarkerShapes.capsuleHalf;
+    return [
+      // Create a sample graph to demonstrate theming
+      // Port offsets specify the CENTER of the port shape:
+      // - For left/right ports: offset.dy is the vertical center
+      // - For top/bottom ports: offset.dx is the horizontal center
+      Node<Map<String, dynamic>>(
+        id: 'node1',
+        type: 'source',
+        position: const Offset(100, 100),
+        size: const Size(150, 100),
+        data: {'label': 'Source'},
+        inputPorts: [
+          Port(
+            id: 'in1',
+            name: 'Input 1',
+            position: PortPosition.left,
+            offset: const Offset(
+              -2,
+              20,
+            ), // Starting offset for loopback testing
+            shape: portShape,
+            showLabel: true,
+          ),
+          Port(
+            id: 'in2',
+            name: 'Input 2',
+            position: PortPosition.left,
+            offset: const Offset(-2, 50), // Second input for loopback testing
+            shape: portShape,
+            showLabel: true,
+          ),
+        ],
+        outputPorts: [
+          Port(
+            id: 'out1',
+            name: 'Output 1',
+            position: PortPosition.right,
+            offset: const Offset(2, 20), // Starting offset
+            shape: portShape,
+            showLabel: true,
+          ),
+          Port(
+            id: 'out2',
+            name: 'Output 2',
+            position: PortPosition.right,
+            offset: const Offset(2, 50), // 20 + 30 separation
+            shape: portShape,
+            showLabel: true,
+          ),
+          Port(
+            id: 'out-top',
+            name: 'Top',
+            position: PortPosition.top,
+            offset: const Offset(75, -2), // Horizontal center at mid-width
+            shape: portShape,
+            showLabel: true,
+          ),
+          Port(
+            id: 'out-bottom',
+            name: 'Bottom',
+            position: PortPosition.bottom,
+            offset: const Offset(75, 2), // Horizontal center at mid-width
+            shape: portShape,
+            showLabel: true,
+          ),
+        ],
+      ),
+      Node<Map<String, dynamic>>(
+        id: 'node2',
+        type: 'transform',
+        position: const Offset(350, 80),
+        size: const Size(150, 100),
+        data: {'label': 'Transform'},
+        inputPorts: [
+          Port(
+            id: 'in1',
+            name: 'Input',
+            position: PortPosition.left,
+            offset: const Offset(-2, 50), // Vertical center at mid-height
+            shape: portShape,
+            showLabel: true,
+          ),
+        ],
+        outputPorts: [
+          Port(
+            id: 'out1',
+            name: 'Output',
+            position: PortPosition.right,
+            offset: const Offset(2, 50), // Vertical center at mid-height
+            shape: portShape,
+            showLabel: true,
+          ),
+        ],
+      ),
+      Node<Map<String, dynamic>>(
+        id: 'node3',
+        type: 'sink',
+        position: const Offset(600, 100),
+        size: const Size(150, 100),
+        data: {'label': 'Sink'},
+        inputPorts: [
+          Port(
+            id: 'in1',
+            name: 'Input 1',
+            position: PortPosition.left,
+            offset: const Offset(-2, 20), // Starting offset
+            shape: portShape,
+            showLabel: true,
+          ),
+          Port(
+            id: 'in2',
+            name: 'Input 2',
+            position: PortPosition.left,
+            offset: const Offset(-2, 50), // 20 + 30 separation
+            shape: portShape,
+            showLabel: true,
+          ),
+          Port(
+            id: 'in-top',
+            name: 'Top',
+            position: PortPosition.top,
+            offset: const Offset(75, -2), // Horizontal center at mid-width
+            shape: portShape,
+            showLabel: true,
+          ),
+          Port(
+            id: 'in-bottom',
+            name: 'Bottom',
+            position: PortPosition.bottom,
+            type: PortType.input,
+            offset: const Offset(75, 2), // Horizontal center at mid-width
+            shape: portShape,
+            showLabel: true,
+          ),
+        ],
+      ),
+    ];
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _createExampleGraph() {
-    // Create a sample graph to demonstrate theming
-    // Port offsets specify the CENTER of the port shape:
-    // - For left/right ports: offset.dy is the vertical center
-    // - For top/bottom ports: offset.dx is the horizontal center
-    final node1 = Node<Map<String, dynamic>>(
-      id: 'node1',
-      type: 'source',
-      position: const Offset(100, 100),
-      size: const Size(150, 100),
-      data: {'label': 'Source'},
-      inputPorts: [
-        Port(
-          id: 'in1',
-          name: 'Input 1',
-          position: PortPosition.left,
-          offset: const Offset(-2, 20), // Starting offset for loopback testing
-          shape: _selectedPortShape,
-          showLabel: true,
-        ),
-        Port(
-          id: 'in2',
-          name: 'Input 2',
-          position: PortPosition.left,
-          offset: const Offset(-2, 50), // Second input for loopback testing
-          shape: _selectedPortShape,
-          showLabel: true,
-        ),
-      ],
-      outputPorts: [
-        Port(
-          id: 'out1',
-          name: 'Output 1',
-          position: PortPosition.right,
-          offset: const Offset(2, 20), // Starting offset
-          shape: _selectedPortShape,
-          showLabel: true,
-        ),
-        Port(
-          id: 'out2',
-          name: 'Output 2',
-          position: PortPosition.right,
-          offset: const Offset(2, 50), // 20 + 30 separation
-          shape: _selectedPortShape,
-          showLabel: true,
-        ),
-        Port(
-          id: 'out-top',
-          name: 'Top',
-          position: PortPosition.top,
-          offset: const Offset(75, -2), // Horizontal center at mid-width
-          shape: _selectedPortShape,
-          showLabel: true,
-        ),
-        Port(
-          id: 'out-bottom',
-          name: 'Bottom',
-          position: PortPosition.bottom,
-          offset: const Offset(75, 2), // Horizontal center at mid-width
-          shape: _selectedPortShape,
-          showLabel: true,
-        ),
-      ],
-    );
-
-    final node2 = Node<Map<String, dynamic>>(
-      id: 'node2',
-      type: 'transform',
-      position: const Offset(350, 80),
-      size: const Size(150, 100),
-      data: {'label': 'Transform'},
-      inputPorts: [
-        Port(
-          id: 'in1',
-          name: 'Input',
-          position: PortPosition.left,
-          offset: const Offset(-2, 50), // Vertical center at mid-height
-          shape: _selectedPortShape,
-          showLabel: true,
-        ),
-      ],
-      outputPorts: [
-        Port(
-          id: 'out1',
-          name: 'Output',
-          position: PortPosition.right,
-          offset: const Offset(2, 50), // Vertical center at mid-height
-          shape: _selectedPortShape,
-          showLabel: true,
-        ),
-      ],
-    );
-
-    final node3 = Node<Map<String, dynamic>>(
-      id: 'node3',
-      type: 'sink',
-      position: const Offset(600, 100),
-      size: const Size(150, 100),
-      data: {'label': 'Sink'},
-      inputPorts: [
-        Port(
-          id: 'in1',
-          name: 'Input 1',
-          position: PortPosition.left,
-          offset: const Offset(-2, 20), // Starting offset
-          shape: _selectedPortShape,
-          showLabel: true,
-        ),
-        Port(
-          id: 'in2',
-          name: 'Input 2',
-          position: PortPosition.left,
-          offset: const Offset(-2, 50), // 20 + 30 separation
-          shape: _selectedPortShape,
-          showLabel: true,
-        ),
-        Port(
-          id: 'in-top',
-          name: 'Top',
-          position: PortPosition.top,
-          offset: const Offset(75, -2), // Horizontal center at mid-width
-          shape: _selectedPortShape,
-          showLabel: true,
-        ),
-        Port(
-          id: 'in-bottom',
-          name: 'Bottom',
-          position: PortPosition.bottom,
-          type: PortType.input,
-          offset: const Offset(75, 2), // Horizontal center at mid-width
-          shape: _selectedPortShape,
-          showLabel: true,
-        ),
-      ],
-    );
-
-    _controller.addNode(node1);
-    _controller.addNode(node2);
-    _controller.addNode(node3);
-
-    // Add connections with labels
-    _controller.addConnection(
+  static List<Connection> _createConnections() {
+    return [
       Connection(
         id: 'conn1',
         sourceNodeId: 'node1',
@@ -188,9 +179,6 @@ class _ThemingExampleState extends State<ThemingExample> {
         targetPortId: 'in1',
         label: ConnectionLabel.center(text: 'Data Flow'),
       ),
-    );
-
-    _controller.addConnection(
       Connection(
         id: 'conn2',
         sourceNodeId: 'node2',
@@ -199,11 +187,19 @@ class _ThemingExampleState extends State<ThemingExample> {
         targetPortId: 'in1',
         label: ConnectionLabel.center(text: 'Transform'),
       ),
-    );
+    ];
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.fitToView();
-    });
+  @override
+  void initState() {
+    super.initState();
+    _theme = NodeFlowTheme.light;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   void _updateTheme(NodeFlowTheme newTheme) {
@@ -390,6 +386,7 @@ class _ThemingExampleState extends State<ThemingExample> {
         scrollToZoom: _scrollToZoom,
         portBuilder: _useCustomPortBuilder ? _buildCustomPort : null,
         labelBuilder: _useCustomLabelBuilder ? _buildCustomLabel : null,
+        events: NodeFlowEvents(onInit: () => _controller.fitToView()),
       ),
       children: [
         _buildThemePresets(),
@@ -1363,11 +1360,11 @@ class _ThemingExampleState extends State<ThemingExample> {
             const Text('Debug Mode', style: TextStyle(fontSize: 12)),
             const Spacer(),
             Switch(
-              value: _debugMode,
+              value: _debugMode.isEnabled,
               onChanged: (value) {
                 setState(() {
-                  _debugMode = value;
-                  _controller.config.update(debugMode: value);
+                  _debugMode = value ? DebugMode.all : DebugMode.none;
+                  _controller.config.setDebugMode(_debugMode);
                 });
               },
             ),

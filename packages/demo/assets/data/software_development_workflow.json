@@ -3,10 +3,8 @@
     {
       "id": "github-repo",
       "type": "Repository",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "commit-in",
@@ -51,19 +49,15 @@
         "language": "TypeScript",
         "size": "250 MB"
       },
-      "position": {
-        "x": 100,
-        "y": 200
-      },
+      "x": 100,
+      "y": 200,
       "zIndex": 1
     },
     {
       "id": "ci-pipeline",
       "type": "CI",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "trigger-in",
@@ -139,19 +133,15 @@
         "parallel_jobs": 4,
         "duration": "~15 min"
       },
-      "position": {
-        "x": 350,
-        "y": 200
-      },
+      "x": 350,
+      "y": 200,
       "zIndex": 2
     },
     {
       "id": "unit-tests",
       "type": "Testing",
-      "size": {
-        "width": 120,
-        "height": 170
-      },
+      "width": 120,
+      "height": 170,
       "inputPorts": [
         {
           "id": "code-in",
@@ -192,19 +182,15 @@
         "tests": 1250,
         "coverage_target": "80%"
       },
-      "position": {
-        "x": 350,
-        "y": 50
-      },
+      "x": 350,
+      "y": 50,
       "zIndex": 2
     },
     {
       "id": "code-quality",
       "type": "Analysis",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "code-in",
@@ -264,19 +250,15 @@
           "Maintainability"
         ]
       },
-      "position": {
-        "x": 600,
-        "y": 50
-      },
+      "x": 600,
+      "y": 50,
       "zIndex": 3
     },
     {
       "id": "security-scan",
       "type": "Security",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "code-in",
@@ -331,19 +313,15 @@
         "scan_type": "SAST + SCA",
         "severity_threshold": "High"
       },
-      "position": {
-        "x": 600,
-        "y": 200
-      },
+      "x": 600,
+      "y": 200,
       "zIndex": 3
     },
     {
       "id": "artifact-registry",
       "type": "Registry",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "artifact-in",
@@ -384,19 +362,15 @@
         "namespace": "mycompany",
         "retention": "Last 10 versions"
       },
-      "position": {
-        "x": 850,
-        "y": 200
-      },
+      "x": 850,
+      "y": 200,
       "zIndex": 4
     },
     {
       "id": "staging-deploy",
       "type": "Deployment",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "artifact-in",
@@ -458,19 +432,15 @@
         "resources": "2 CPU, 4GB RAM",
         "auto_scaling": true
       },
-      "position": {
-        "x": 1100,
-        "y": 100
-      },
+      "x": 1100,
+      "y": 100,
       "zIndex": 5
     },
     {
       "id": "integration-tests",
       "type": "Testing",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "endpoint-in",
@@ -512,19 +482,15 @@
         "parallel": true,
         "duration": "~20 min"
       },
-      "position": {
-        "x": 1350,
-        "y": 100
-      },
+      "x": 1350,
+      "y": 100,
       "zIndex": 6
     },
     {
       "id": "performance-test",
       "type": "Testing",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "endpoint-in",
@@ -566,19 +532,15 @@
         "duration": "5 min",
         "threshold": "<200ms p95"
       },
-      "position": {
-        "x": 1350,
-        "y": 250
-      },
+      "x": 1350,
+      "y": 250,
       "zIndex": 6
     },
     {
       "id": "production-deploy",
       "type": "Deployment",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "artifact-in",
@@ -644,19 +606,15 @@
         "cdn": "CloudFront",
         "rollback": "Automatic"
       },
-      "position": {
-        "x": 1100,
-        "y": 350
-      },
+      "x": 1100,
+      "y": 350,
       "zIndex": 5
     },
     {
       "id": "monitoring",
       "type": "Monitoring",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "app-metrics",
@@ -723,19 +681,15 @@
         "alerts": 45,
         "sla": "99.9%"
       },
-      "position": {
-        "x": 1350,
-        "y": 450
-      },
+      "x": 1350,
+      "y": 450,
       "zIndex": 6
     },
     {
       "id": "feedback-loop",
       "type": "Analytics",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "metrics-in",
@@ -781,19 +735,15 @@
         "ml_insights": true,
         "reporting": "Weekly"
       },
-      "position": {
-        "x": 850,
-        "y": 450
-      },
+      "x": 850,
+      "y": 450,
       "zIndex": 4
     },
     {
       "id": "rollback-system",
       "type": "Recovery",
-      "size": {
-        "width": 120,
-        "height": 170
-      },
+      "width": 120,
+      "height": 170,
       "inputPorts": [
         {
           "id": "alert-in",
@@ -824,10 +774,8 @@
         "time": "<30 seconds",
         "strategy": "Previous version"
       },
-      "position": {
-        "x": 1100,
-        "y": 550
-      },
+      "x": 1100,
+      "y": 550,
       "zIndex": 5
     }
   ],

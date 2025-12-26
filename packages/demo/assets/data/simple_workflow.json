@@ -3,10 +3,8 @@
     {
       "id": "data-source",
       "type": "DataSource",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -25,19 +23,15 @@
         "format": "CSV",
         "records": 10000
       },
-      "position": {
-        "x": 100,
-        "y": 200
-      },
+      "x": 100,
+      "y": 200,
       "zIndex": 1
     },
     {
       "id": "filter",
       "type": "Filter",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "data-in",
@@ -66,19 +60,15 @@
         "name": "Age Filter",
         "condition": "age > 18"
       },
-      "position": {
-        "x": 300,
-        "y": 200
-      },
+      "x": 300,
+      "y": 200,
       "zIndex": 2
     },
     {
       "id": "transform",
       "type": "Transform",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "data-in",
@@ -107,19 +97,15 @@
         "name": "Normalize Data",
         "operation": "normalize"
       },
-      "position": {
-        "x": 500,
-        "y": 200
-      },
+      "x": 500,
+      "y": 200,
       "zIndex": 3
     },
     {
       "id": "aggregate",
       "type": "Aggregate",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "data-in",
@@ -149,19 +135,15 @@
         "groupBy": "category",
         "operation": "sum"
       },
-      "position": {
-        "x": 700,
-        "y": 200
-      },
+      "x": 700,
+      "y": 200,
       "zIndex": 4
     },
     {
       "id": "output",
       "type": "Output",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "data-in",
@@ -179,10 +161,8 @@
         "name": "Export to Database",
         "destination": "PostgreSQL"
       },
-      "position": {
-        "x": 900,
-        "y": 200
-      },
+      "x": 900,
+      "y": 200,
       "zIndex": 5
     }
   ],

@@ -3,10 +3,8 @@
     {
       "id": "raw-supplier-1",
       "type": "Supplier",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -57,10 +55,8 @@
         "material": "Steel Coils",
         "grade": "A572"
       },
-      "position": {
-        "x": -450.0885001714225,
-        "y": 269.4001297115244
-      },
+      "x": -450.0885001714225,
+      "y": 269.4001297115244,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -68,10 +64,8 @@
     {
       "id": "chem-supplier-1",
       "type": "Supplier",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -122,10 +116,8 @@
         "material": "Coating Solution",
         "grade": "Industrial"
       },
-      "position": {
-        "x": 2666.8834287633067,
-        "y": 414.49785570892107
-      },
+      "x": 2666.8834287633067,
+      "y": 414.49785570892107,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -133,10 +125,8 @@
     {
       "id": "incoming-qc-1",
       "type": "QualityControl",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "material-in",
@@ -251,10 +241,8 @@
         "stage": "receiving",
         "tolerance": "\u00b10.1mm"
       },
-      "position": {
-        "x": 129.4786894182296,
-        "y": 269.22445768623174
-      },
+      "x": 129.4786894182296,
+      "y": 269.22445768623174,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -262,10 +250,8 @@
     {
       "id": "warehouse-1",
       "type": "Warehouse",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "material-in",
@@ -338,10 +324,8 @@
         "capacity": "10000 units",
         "current": "8500"
       },
-      "position": {
-        "x": 348.01149405991464,
-        "y": -53.202074146250155
-      },
+      "x": 348.01149405991464,
+      "y": -53.202074146250155,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -349,10 +333,8 @@
     {
       "id": "prod-planner-1",
       "type": "ProductionPlanner",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "orders-in",
@@ -446,10 +428,8 @@
         "schedule": "Daily",
         "efficiency": "92%"
       },
-      "position": {
-        "x": 615.7990724886847,
-        "y": 444.12643469957777
-      },
+      "x": 615.7990724886847,
+      "y": 444.12643469957777,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -457,10 +437,8 @@
     {
       "id": "laser-cutter-1",
       "type": "CuttingMachine",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "material-in",
@@ -554,10 +532,8 @@
         "power": "3000W",
         "precision": "\u00b10.05mm"
       },
-      "position": {
-        "x": 739.6235014390581,
-        "y": -226.46529425589372
-      },
+      "x": 739.6235014390581,
+      "y": -226.46529425589372,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -565,10 +541,8 @@
     {
       "id": "plasma-cutter-1",
       "type": "CuttingMachine",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "material-in",
@@ -662,10 +636,8 @@
         "current": "200A",
         "thickness": "25mm"
       },
-      "position": {
-        "x": 171.34586783063082,
-        "y": 1169.605978612898
-      },
+      "x": 171.34586783063082,
+      "y": 1169.605978612898,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -673,10 +645,8 @@
     {
       "id": "press-brake-1",
       "type": "FormingMachine",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "parts-in",
@@ -749,10 +719,8 @@
         "force": "200T",
         "length": "3000mm"
       },
-      "position": {
-        "x": 1079.343458793282,
-        "y": -526.8725712193041
-      },
+      "x": 1079.343458793282,
+      "y": -526.8725712193041,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -760,10 +728,8 @@
     {
       "id": "roll-former-1",
       "type": "FormingMachine",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "coil-in",
@@ -836,10 +802,8 @@
         "speed": "15m/min",
         "profile": "C-Channel"
       },
-      "position": {
-        "x": 498.25867595507805,
-        "y": 1169.605978612898
-      },
+      "x": 498.25867595507805,
+      "y": 1169.605978612898,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -847,10 +811,8 @@
     {
       "id": "robotic-welder-1",
       "type": "WeldingStation",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "parts-in",
@@ -965,10 +927,8 @@
         "process": "MIG",
         "wire": "ER70S-6"
       },
-      "position": {
-        "x": 1389.7715602313149,
-        "y": -386.7370806698404
-      },
+      "x": 1389.7715602313149,
+      "y": -386.7370806698404,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -976,10 +936,8 @@
     {
       "id": "manual-weld-1",
       "type": "WeldingStation",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "parts-in",
@@ -1052,10 +1010,8 @@
         "process": "TIG",
         "operator": "Certified"
       },
-      "position": {
-        "x": 825.1714840795253,
-        "y": 1169.605978612898
-      },
+      "x": 825.1714840795253,
+      "y": 1169.605978612898,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -1063,10 +1019,8 @@
     {
       "id": "cnc-mill-1",
       "type": "MachiningCenter",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "parts-in",
@@ -1181,10 +1135,8 @@
         "spindle": "15000 RPM",
         "travel": "XYZ"
       },
-      "position": {
-        "x": 1688.509180769774,
-        "y": -93.08896353386541
-      },
+      "x": 1688.509180769774,
+      "y": -93.08896353386541,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -1192,10 +1144,8 @@
     {
       "id": "cnc-lathe-1",
       "type": "MachiningCenter",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "stock-in",
@@ -1268,10 +1218,8 @@
         "diameter": "400mm",
         "length": "1000mm"
       },
-      "position": {
-        "x": 2010.7421875,
-        "y": 393.6651133537496
-      },
+      "x": 2010.7421875,
+      "y": 393.6651133537496,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -1279,10 +1227,8 @@
     {
       "id": "assembly-line-1",
       "type": "AssemblyLine",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "parts-in-1",
@@ -1376,10 +1322,8 @@
         "stations": 5,
         "takt_time": "2.5min"
       },
-      "position": {
-        "x": 2332.4473131789387,
-        "y": -214.1285007545651
-      },
+      "x": 2332.4473131789387,
+      "y": -214.1285007545651,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -1387,10 +1331,8 @@
     {
       "id": "coating-booth-1",
       "type": "CoatingStation",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "product-in",
@@ -1484,10 +1426,8 @@
         "type": "Electrostatic",
         "cure_temp": "180\u00b0C"
       },
-      "position": {
-        "x": 2920.4580446004297,
-        "y": 15.227366910832473
-      },
+      "x": 2920.4580446004297,
+      "y": 15.227366910832473,
       "zIndex": 50,
       "selected": true,
       "dragging": false
@@ -1495,10 +1435,8 @@
     {
       "id": "final-qc-1",
       "type": "QualityControl",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "product-in",
@@ -1592,10 +1530,8 @@
         "stage": "finished_goods",
         "inspection": "100%"
       },
-      "position": {
-        "x": 4018.0962181023165,
-        "y": -387.5917276908933
-      },
+      "x": 4018.0962181023165,
+      "y": -387.5917276908933,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -1603,10 +1539,8 @@
     {
       "id": "packaging-line-1",
       "type": "PackagingLine",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "product-in",
@@ -1679,10 +1613,8 @@
         "speed": "120 units/hr",
         "packaging": "Shrink Wrap"
       },
-      "position": {
-        "x": 4608.8719129489355,
-        "y": -394.44489546973654
-      },
+      "x": 4608.8719129489355,
+      "y": -394.44489546973654,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -1690,10 +1622,8 @@
     {
       "id": "shipping-dock-1",
       "type": "ShippingDock",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "package-in",
@@ -1745,10 +1675,8 @@
         "bays": 4,
         "capacity": "48 pallets"
       },
-      "position": {
-        "x": 4957.122960074293,
-        "y": -394.44489546973654
-      },
+      "x": 4957.122960074293,
+      "y": -394.44489546973654,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -1756,10 +1684,8 @@
     {
       "id": "scrap-processor-1",
       "type": "WasteProcessor",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "waste-in-1",
@@ -1832,10 +1758,8 @@
         "type": "Metal Recycling",
         "recovery_rate": "95%"
       },
-      "position": {
-        "x": 1040.1903565013893,
-        "y": 315.8742735368974
-      },
+      "x": 1040.1903565013893,
+      "y": 315.8742735368974,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -1843,10 +1767,8 @@
     {
       "id": "maintenance-center-1",
       "type": "MaintenanceCenter",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -1897,10 +1819,8 @@
         "schedule": "Preventive",
         "uptime": "98.5%"
       },
-      "position": {
-        "x": -209.62486649927365,
-        "y": 1100.0674897859606
-      },
+      "x": -209.62486649927365,
+      "y": 1100.0674897859606,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -1908,10 +1828,8 @@
     {
       "id": "tool-crib-1",
       "type": "ToolCrib",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "tool-request",
@@ -1963,10 +1881,8 @@
         "inventory": "2500 tools",
         "system": "RFID Tracking"
       },
-      "position": {
-        "x": 1404.631228198443,
-        "y": -638.2229690731547
-      },
+      "x": 1404.631228198443,
+      "y": -638.2229690731547,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -1974,10 +1890,8 @@
     {
       "id": "erp-system-1",
       "type": "ERPSystem",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -2028,10 +1942,8 @@
         "software": "SAP",
         "modules": "ALL"
       },
-      "position": {
-        "x": 6.972431559914639,
-        "y": 680.605905361014
-      },
+      "x": 6.972431559914639,
+      "y": 680.605905361014,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -2039,10 +1951,8 @@
     {
       "id": "electronics-supplier-1",
       "type": "Supplier",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -2093,10 +2003,8 @@
         "material": "PCBs & Sensors",
         "grade": "Industrial"
       },
-      "position": {
-        "x": -191.99394423031524,
-        "y": 94.28225520627069
-      },
+      "x": -191.99394423031524,
+      "y": 94.28225520627069,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -2104,10 +2012,8 @@
     {
       "id": "fastener-supplier-1",
       "type": "Supplier",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -2158,10 +2064,8 @@
         "material": "Bolts & Screws",
         "grade": "Grade 8"
       },
-      "position": {
-        "x": -46.76899970572605,
-        "y": -257.8922749010891
-      },
+      "x": -46.76899970572605,
+      "y": -257.8922749010891,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -2169,10 +2073,8 @@
     {
       "id": "packaging-supplier-1",
       "type": "Supplier",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -2223,10 +2125,8 @@
         "material": "Cardboard & Foam",
         "grade": "Recyclable"
       },
-      "position": {
-        "x": 4521.696503962949,
-        "y": -784.0475088234858
-      },
+      "x": 4521.696503962949,
+      "y": -784.0475088234858,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -2234,10 +2134,8 @@
     {
       "id": "3d-printer-1",
       "type": "AdditiveManufacturing",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "filament-in",
@@ -2331,10 +2229,8 @@
         "technology": "FDM",
         "material": "PLA/ABS"
       },
-      "position": {
-        "x": 2015.1394386360748,
-        "y": 1452.9492104480914
-      },
+      "x": 2015.1394386360748,
+      "y": 1452.9492104480914,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -2342,10 +2238,8 @@
     {
       "id": "edm-machine-1",
       "type": "MachiningCenter",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "workpiece-in",
@@ -2460,10 +2354,8 @@
         "type": "Wire EDM",
         "precision": "\u00b10.002mm"
       },
-      "position": {
-        "x": 1162.5703125,
-        "y": -950.5078125
-      },
+      "x": 1162.5703125,
+      "y": -950.5078125,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -2471,10 +2363,8 @@
     {
       "id": "cmm-machine-1",
       "type": "QualityControl",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "parts-in",
@@ -2589,10 +2479,8 @@
         "accuracy": "\u00b10.001mm",
         "volume": "1000x800x600mm"
       },
-      "position": {
-        "x": 2303.2482281888842,
-        "y": 1309.1327757380668
-      },
+      "x": 2303.2482281888842,
+      "y": 1309.1327757380668,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -2600,10 +2488,8 @@
     {
       "id": "xray-inspection-1",
       "type": "QualityControl",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "assemblies-in",
@@ -2697,10 +2583,8 @@
         "voltage": "160kV",
         "resolution": "5\u03bcm"
       },
-      "position": {
-        "x": 2576.7967381694652,
-        "y": -672.7224793204734
-      },
+      "x": 2576.7967381694652,
+      "y": -672.7224793204734,
       "zIndex": 50,
       "selected": false,
       "dragging": false
@@ -2708,10 +2592,8 @@
     {
       "id": "conveyor-system-1",
       "type": "MaterialHandling",
-      "size": {
-        "width": 200,
-        "height": 170
-      },
+      "width": 200,
+      "height": 170,
       "inputPorts": [
         {
           "id": "parts-in",
@@ -2763,10 +2645,8 @@
         "speed": "2m/min",
         "length": "50m"
       },
-      "position": {
-        "x": 1917.1641711406664,
-        "y": 88.53682005149929
-      },
+      "x": 1917.1641711406664,
+      "y": 88.53682005149929,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -2774,10 +2654,8 @@
     {
       "id": "agv-system-1",
       "type": "MaterialHandling",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "pickup-request",
@@ -2871,10 +2749,8 @@
         "capacity": "500kg",
         "battery": "8 hours"
       },
-      "position": {
-        "x": 569.6004234006581,
-        "y": 1574.3804934000348
-      },
+      "x": 569.6004234006581,
+      "y": 1574.3804934000348,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -2882,10 +2758,8 @@
     {
       "id": "overhead-crane-1",
       "type": "MaterialHandling",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "lift-request",
@@ -2937,10 +2811,8 @@
         "capacity": "10 tons",
         "span": "30m"
       },
-      "position": {
-        "x": 960.1902671506577,
-        "y": 1574.3804934000348
-      },
+      "x": 960.1902671506577,
+      "y": 1574.3804934000348,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -2948,10 +2820,8 @@
     {
       "id": "waste-treatment-1",
       "type": "Environmental",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "liquid-waste-in",
@@ -3045,10 +2915,8 @@
         "capacity": "1000L/hr",
         "efficiency": "99.5%"
       },
-      "position": {
-        "x": 2997.945845423743,
-        "y": 437.9038124963832
-      },
+      "x": 2997.945845423743,
+      "y": 437.9038124963832,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -3056,10 +2924,8 @@
     {
       "id": "air-filtration-1",
       "type": "Environmental",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "contaminated-air",
@@ -3132,10 +2998,8 @@
         "flow": "10000 CFM",
         "efficiency": "99.97%"
       },
-      "position": {
-        "x": 2657.0426864985825,
-        "y": -352.80987680662224
-      },
+      "x": 2657.0426864985825,
+      "y": -352.80987680662224,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -3143,10 +3007,8 @@
     {
       "id": "power-distribution-1",
       "type": "Utilities",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "grid-power",
@@ -3219,10 +3081,8 @@
         "voltage": "480V",
         "capacity": "2MW"
       },
-      "position": {
-        "x": 331.24325133310725,
-        "y": -419.95854961036696
-      },
+      "x": 331.24325133310725,
+      "y": -419.95854961036696,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -3230,10 +3090,8 @@
     {
       "id": "plc-controller-1",
       "type": "Automation",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "sensor-data",
@@ -3327,10 +3185,8 @@
         "model": "Allen Bradley",
         "io_count": "128"
       },
-      "position": {
-        "x": 179.01057965065814,
-        "y": 1574.3804934000348
-      },
+      "x": 179.01057965065814,
+      "y": 1574.3804934000348,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -3338,10 +3194,8 @@
     {
       "id": "scada-system-1",
       "type": "Automation",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "plc-data",
@@ -3435,10 +3289,8 @@
         "software": "Wonderware",
         "tags": "10000"
       },
-      "position": {
-        "x": -26.568787453292416,
-        "y": 446.73133706376905
-      },
+      "x": -26.568787453292416,
+      "y": 446.73133706376905,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -3446,10 +3298,8 @@
     {
       "id": "stress-test-1",
       "type": "Testing",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "test-samples",
@@ -3543,10 +3393,8 @@
         "max_force": "100kN",
         "test_types": "Tensile, Compression"
       },
-      "position": {
-        "x": 3495.2792616573693,
-        "y": -960.2486862311197
-      },
+      "x": 3495.2792616573693,
+      "y": -960.2486862311197,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -3554,10 +3402,8 @@
     {
       "id": "receiving-dock-1",
       "type": "Logistics",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "deliveries-in",
@@ -3630,10 +3476,8 @@
         "bays": "8",
         "capacity": "40ft containers"
       },
-      "position": {
-        "x": -768.2070942852395,
-        "y": -35.21584353635733
-      },
+      "x": -768.2070942852395,
+      "y": -35.21584353635733,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -3641,10 +3485,8 @@
     {
       "id": "cross-dock-1",
       "type": "Logistics",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "inbound-shipment",
@@ -3696,10 +3538,8 @@
         "throughput": "500 pallets/day",
         "automation": "Sortation System"
       },
-      "position": {
-        "x": 5037.46662839868,
-        "y": -782.6334189686391
-      },
+      "x": 5037.46662839868,
+      "y": -782.6334189686391,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -3707,10 +3547,8 @@
     {
       "id": "calibration-lab-1",
       "type": "SupportService",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "instruments-in",
@@ -3783,10 +3621,8 @@
         "standards": "NIST Traceable",
         "frequency": "Annual"
       },
-      "position": {
-        "x": 2015.1394386360748,
-        "y": 1121.785921946717
-      },
+      "x": 2015.1394386360748,
+      "y": 1121.785921946717,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -3794,10 +3630,8 @@
     {
       "id": "training-center-1",
       "type": "SupportService",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "training-request",
@@ -3870,10 +3704,8 @@
         "capacity": "50 students",
         "programs": "Safety, Technical"
       },
-      "position": {
-        "x": 2250.640625,
-        "y": -938.55859375
-      },
+      "x": 2250.640625,
+      "y": -938.55859375,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -3881,10 +3713,8 @@
     {
       "id": "grinding-station-1",
       "type": "MachiningCenter",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "parts-in",
@@ -3978,10 +3808,8 @@
         "precision": "\u00b10.001mm",
         "wheel_speed": "3000 RPM"
       },
-      "position": {
-        "x": 1508.28125,
-        "y": -950.5078125
-      },
+      "x": 1508.28125,
+      "y": -950.5078125,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -3989,10 +3817,8 @@
     {
       "id": "heat-treatment-1",
       "type": "ProcessingStation",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "parts-in",
@@ -4086,10 +3912,8 @@
         "max_temp": "1200\u00b0C",
         "atmosphere": "Controlled"
       },
-      "position": {
-        "x": 1793.5406701653583,
-        "y": -950.5078125
-      },
+      "x": 1793.5406701653583,
+      "y": -950.5078125,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -4097,10 +3921,8 @@
     {
       "id": "leak-test-1",
       "type": "QualityControl",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "assemblies-in",
@@ -4215,10 +4037,8 @@
         "sensitivity": "1x10^-9 mbar\u00b7l/s",
         "method": "Helium Mass Spec"
       },
-      "position": {
-        "x": 3005.293733623937,
-        "y": -751.9598866462502
-      },
+      "x": 3005.293733623937,
+      "y": -751.9598866462502,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -4226,10 +4046,8 @@
     {
       "id": "forklift-1",
       "type": "MaterialHandling",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "move-request",
@@ -4281,10 +4099,8 @@
         "capacity": "2 tons",
         "fuel": "Electric"
       },
-      "position": {
-        "x": 1350.7801109006577,
-        "y": 1574.3804934000348
-      },
+      "x": 1350.7801109006577,
+      "y": 1574.3804934000348,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -4292,10 +4108,8 @@
     {
       "id": "compressed-air-1",
       "type": "Utilities",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "power-in",
@@ -4368,10 +4182,8 @@
         "pressure": "100 PSI",
         "flow": "500 CFM"
       },
-      "position": {
-        "x": 711.0050717869669,
-        "y": -762.2721931734745
-      },
+      "x": 711.0050717869669,
+      "y": -762.2721931734745,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -4379,10 +4191,8 @@
     {
       "id": "hvac-system-1",
       "type": "Utilities",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "power-in",
@@ -4476,10 +4286,8 @@
         "capacity": "500 tons",
         "zones": "12"
       },
-      "position": {
-        "x": -211.57926409934174,
-        "y": 1574.3804934000348
-      },
+      "x": -211.57926409934174,
+      "y": 1574.3804934000348,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -4487,10 +4295,8 @@
     {
       "id": "environmental-chamber-1",
       "type": "Testing",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "test-samples",
@@ -4584,10 +4390,8 @@
         "temp_range": "-70\u00b0C to +180\u00b0C",
         "humidity": "10% to 95% RH"
       },
-      "position": {
-        "x": 3926.0882213638765,
-        "y": -916.6186390137439
-      },
+      "x": 3926.0882213638765,
+      "y": -916.6186390137439,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -4595,10 +4399,8 @@
     {
       "id": "safety-system-1",
       "type": "SupportService",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "safety-signals",
@@ -4671,10 +4473,8 @@
         "standard": "ISO 13849",
         "category": "Category 3"
       },
-      "position": {
-        "x": 1055.9605105262067,
-        "y": -311.8857348191296
-      },
+      "x": 1055.9605105262067,
+      "y": -311.8857348191296,
       "zIndex": 0,
       "selected": false,
       "dragging": false
@@ -4682,10 +4482,8 @@
     {
       "id": "allports-1750756371721",
       "type": "AllPorts",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "input-left",
@@ -4861,10 +4659,8 @@
       "data": {
         "label": "AllPorts Node"
       },
-      "position": {
-        "x": -1287.2924517608353,
-        "y": 294.68895000038617
-      },
+      "x": -1287.2924517608353,
+      "y": 294.68895000038617,
       "zIndex": 52,
       "selected": true,
       "dragging": false
@@ -4872,10 +4668,8 @@
     {
       "id": "allports-1750756371724",
       "type": "AllPorts",
-      "size": {
-        "width": 150,
-        "height": 170
-      },
+      "width": 150,
+      "height": 170,
       "inputPorts": [
         {
           "id": "input-left",
@@ -5051,10 +4845,8 @@
       "data": {
         "label": "AllPorts Node"
       },
-      "position": {
-        "x": -1448.0238932968045,
-        "y": 96.23175422759692
-      },
+      "x": -1448.0238932968045,
+      "y": 96.23175422759692,
       "zIndex": 52,
       "selected": true,
       "dragging": false

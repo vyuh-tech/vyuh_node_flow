@@ -3,6 +3,40 @@ import 'package:mobx/mobx.dart';
 
 import '../shared/auto_pan_config.dart';
 
+/// Debug visualization mode for NodeFlow.
+///
+/// Controls which debug overlays are displayed in the editor.
+enum DebugMode {
+  /// No debug visualizations shown.
+  none,
+
+  /// Show all debug visualizations (spatial index, autopan zones, etc.).
+  all,
+
+  /// Show only the spatial index grid visualization.
+  ///
+  /// Displays how the canvas is partitioned into cells for efficient
+  /// spatial querying, including cell coordinates and object counts.
+  spatialIndex,
+
+  /// Show only the autopan zone visualization.
+  ///
+  /// Displays the edge zones where automatic panning is triggered
+  /// during drag operations.
+  autoPanZone;
+
+  /// Whether any debug visualization is enabled.
+  bool get isEnabled => this != DebugMode.none;
+
+  /// Whether the spatial index debug layer should be shown.
+  bool get showSpatialIndex =>
+      this == DebugMode.all || this == DebugMode.spatialIndex;
+
+  /// Whether the autopan zone debug layer should be shown.
+  bool get showAutoPanZone =>
+      this == DebugMode.all || this == DebugMode.autoPanZone;
+}
+
 /// Reactive configuration class for NodeFlow behavioral properties.
 ///
 /// Visual properties like minimap appearance, colors, and styling are
@@ -19,7 +53,7 @@ class NodeFlowConfig {
     bool isMinimapInteractive = true,
     this.showAttribution = true,
     AutoPanConfig? autoPan = AutoPanConfig.normal,
-    bool debugMode = false,
+    DebugMode debugMode = DebugMode.none,
   }) {
     runInAction(() {
       this.snapToGrid.value = snapToGrid;
@@ -89,15 +123,16 @@ class NodeFlowConfig {
   /// See [AutoPanConfig] for configuration options.
   final autoPan = Observable<AutoPanConfig?>(null);
 
-  /// Whether to enable debug mode for visualization.
+  /// Debug visualization mode.
   ///
-  /// When true, shows debug overlays like:
-  /// - Spatial index grid
-  /// - Autopan edge zones
-  /// - Hit areas and bounds
+  /// Controls which debug overlays are shown:
+  /// - [DebugMode.none] - No debug visualizations
+  /// - [DebugMode.all] - All debug visualizations
+  /// - [DebugMode.spatialIndex] - Only spatial index grid
+  /// - [DebugMode.autoPanZone] - Only autopan edge zones
   ///
   /// Useful for development and understanding behavior.
-  final debugMode = Observable<bool>(false);
+  final debugMode = Observable<DebugMode>(DebugMode.none);
 
   /// Toggle grid snapping for both nodes and annotations
   void toggleSnapping() {
@@ -129,10 +164,32 @@ class NodeFlowConfig {
     });
   }
 
-  /// Toggle debug mode
+  /// Toggle debug mode between none and all.
+  ///
+  /// For more granular control, use [setDebugMode] instead.
   void toggleDebugMode() {
     runInAction(() {
-      debugMode.value = !debugMode.value;
+      debugMode.value = debugMode.value == DebugMode.none
+          ? DebugMode.all
+          : DebugMode.none;
+    });
+  }
+
+  /// Set a specific debug mode.
+  void setDebugMode(DebugMode mode) {
+    runInAction(() {
+      debugMode.value = mode;
+    });
+  }
+
+  /// Cycle through all debug modes in order:
+  /// none → all → spatialIndex → autoPanZone → none
+  void cycleDebugMode() {
+    runInAction(() {
+      final modes = DebugMode.values;
+      final currentIndex = modes.indexOf(debugMode.value);
+      final nextIndex = (currentIndex + 1) % modes.length;
+      debugMode.value = modes[nextIndex];
     });
   }
 
@@ -147,7 +204,7 @@ class NodeFlowConfig {
     bool? showMinimap,
     bool? isMinimapInteractive,
     AutoPanConfig? autoPan,
-    bool? debugMode,
+    DebugMode? debugMode,
   }) {
     runInAction(() {
       if (snapToGrid != null) this.snapToGrid.value = snapToGrid;
@@ -221,7 +278,7 @@ class NodeFlowConfig {
     bool? isMinimapInteractive,
     bool? showAttribution,
     AutoPanConfig? autoPan,
-    bool? debugMode,
+    DebugMode? debugMode,
   }) {
     return NodeFlowConfig(
       snapToGrid: snapToGrid ?? this.snapToGrid.value,

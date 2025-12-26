@@ -105,6 +105,8 @@ extension NodeApi<T> on NodeFlowController<T> {
     });
     // Fire event after successful addition
     events.node?.onCreated?.call(node);
+    // Emit extension event
+    _emitEvent(NodeAdded<T>(node));
   }
 
   /// Removes a node from the graph along with all its connections.
@@ -119,6 +121,13 @@ extension NodeApi<T> on NodeFlowController<T> {
   /// Triggers the `onNodeDeleted` callback after successful removal.
   void removeNode(String nodeId) {
     final nodeToDelete = _nodes[nodeId]; // Capture before deletion
+    if (nodeToDelete == null) return;
+
+    // Capture connections to emit events for
+    final connectionsToRemove = _connections
+        .where((c) => c.sourceNodeId == nodeId || c.targetNodeId == nodeId)
+        .toList();
+
     runInAction(() {
       // Detach context for nodes with GroupableMixin before removal
       // This disposes MobX reactions and cleans up the context
@@ -132,9 +141,6 @@ extension NodeApi<T> on NodeFlowController<T> {
       _spatialIndex.removeNode(nodeId);
 
       // Remove connections involving this node from spatial index first
-      final connectionsToRemove = _connections
-          .where((c) => c.sourceNodeId == nodeId || c.targetNodeId == nodeId)
-          .toList();
       for (final connection in connectionsToRemove) {
         _spatialIndex.removeConnection(connection.id);
         // Also remove from path cache to prevent stale rendering
@@ -150,9 +156,13 @@ extension NodeApi<T> on NodeFlowController<T> {
       // in _setupNodeMonitoringReactions that watches _nodes.keys for additions/deletions
     });
     // Fire event after successful removal
-    if (nodeToDelete != null) {
-      events.node?.onDeleted?.call(nodeToDelete);
+    events.node?.onDeleted?.call(nodeToDelete);
+    // Emit extension events for removed connections first
+    for (final connection in connectionsToRemove) {
+      _emitEvent(ConnectionRemoved(connection));
     }
+    // Emit extension event for removed node
+    _emitEvent(NodeRemoved<T>(nodeToDelete));
   }
 
   /// Creates a duplicate of a node and adds it to the graph.
@@ -442,13 +452,16 @@ extension NodeApi<T> on NodeFlowController<T> {
   void moveNode(String nodeId, Offset delta) {
     final node = _nodes[nodeId];
     if (node != null) {
+      final previousPosition = node.position.value;
       runInAction(() {
-        final newPosition = node.position.value + delta;
+        final newPosition = previousPosition + delta;
         node.position.value = newPosition;
         // Update visual position with snapping
         node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
       });
       internalMarkNodeDirty(nodeId);
+      // Emit extension event
+      _emitEvent(NodeMoved<T>(node, previousPosition));
     }
   }
 
@@ -458,6 +471,15 @@ extension NodeApi<T> on NodeFlowController<T> {
   void moveSelectedNodes(Offset delta) {
     final nodeIds = _selectedNodeIds.toList();
     if (nodeIds.isEmpty) return;
+
+    // Capture previous positions for events
+    final previousPositions = <String, Offset>{};
+    for (final nodeId in nodeIds) {
+      final node = _nodes[nodeId];
+      if (node != null) {
+        previousPositions[nodeId] = node.position.value;
+      }
+    }
 
     runInAction(() {
       for (final nodeId in nodeIds) {
@@ -471,6 +493,15 @@ extension NodeApi<T> on NodeFlowController<T> {
       }
     });
     internalMarkNodesDirty(nodeIds);
+
+    // Emit extension events for each moved node
+    for (final nodeId in nodeIds) {
+      final node = _nodes[nodeId];
+      final previousPosition = previousPositions[nodeId];
+      if (node != null && previousPosition != null) {
+        _emitEvent(NodeMoved<T>(node, previousPosition));
+      }
+    }
   }
 
   /// Sets a node's position to an absolute position.
@@ -485,11 +516,14 @@ extension NodeApi<T> on NodeFlowController<T> {
   void setNodePosition(String nodeId, Offset position) {
     final node = _nodes[nodeId];
     if (node != null) {
+      final previousPosition = node.position.value;
       runInAction(() {
         node.position.value = position;
         node.setVisualPosition(_config.snapToGridIfEnabled(position));
       });
       internalMarkNodeDirty(nodeId);
+      // Emit extension event
+      _emitEvent(NodeMoved<T>(node, previousPosition));
     }
   }
 
@@ -510,10 +544,13 @@ extension NodeApi<T> on NodeFlowController<T> {
     final node = _nodes[nodeId];
     if (node == null) return;
 
+    final previousSize = node.size.value;
     runInAction(() {
       node.size.value = size;
     });
     internalMarkNodeDirty(nodeId);
+    // Emit extension event
+    _emitEvent(NodeResized<T>(node, previousSize));
   }
 
   // ============================================================================
@@ -531,9 +568,12 @@ extension NodeApi<T> on NodeFlowController<T> {
     final node = _nodes[nodeId];
     if (node == null) return;
 
+    final wasVisible = node.isVisible;
     runInAction(() {
       node.isVisible = visible;
     });
+    // Emit extension event
+    _emitEvent(NodeVisibilityChanged<T>(node, wasVisible));
   }
 
   /// Sets visibility for multiple nodes at once.

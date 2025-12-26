@@ -15,122 +15,115 @@ class ConnectionValidationExample extends StatefulWidget {
 
 class _ConnectionValidationExampleState
     extends State<ConnectionValidationExample> {
-  late final NodeFlowController<String> _controller;
-  late final NodeFlowTheme _theme;
+  final _theme = NodeFlowTheme.light;
+  final _controller = NodeFlowController<String>(
+    nodes: _createNodes(),
+    connections: _createConnections(),
+  );
   String _lastMessage = '';
 
-  @override
-  void initState() {
-    super.initState();
-    _theme = NodeFlowTheme.light;
-    _controller = NodeFlowController<String>();
-    _setupExampleGraph();
+  static List<Node<String>> _createNodes() {
+    return [
+      // Input node with multiple output ports
+      Node<String>(
+        id: 'input',
+        type: 'input',
+        position: const Offset(100, 100),
+        size: const Size(120, 80),
+        data: 'Input Node',
+        outputPorts: [
+          Port(
+            id: 'out1',
+            name: 'Output 1',
+            position: PortPosition.right,
+            offset: Offset(2, 20), // Multiple ports: starting offset 20
+          ),
+          Port(
+            id: 'out2',
+            name: 'Output 2',
+            position: PortPosition.right,
+            multiConnections: true,
+            offset: Offset(2, 50), // Multiple ports: 20 + 30 separation
+          ),
+        ],
+      ),
+      // Processing node with input and output ports
+      Node<String>(
+        id: 'processing',
+        type: 'processing',
+        position: const Offset(300, 100),
+        size: const Size(140, 100),
+        data: 'Processing Node',
+        inputPorts: [
+          Port(
+            id: 'in1',
+            name: 'Input 1',
+            position: PortPosition.left,
+            offset: Offset(-2, 20), // Multiple ports: starting offset 20
+          ),
+          Port(
+            id: 'in2',
+            name: 'Input 2',
+            position: PortPosition.left,
+            multiConnections: true,
+            offset: Offset(-2, 50), // Multiple ports: 20 + 30 separation
+          ),
+        ],
+        outputPorts: [
+          Port(
+            id: 'out1',
+            name: 'Result',
+            position: PortPosition.right,
+            offset: Offset(2, 50), // Vertical center of 100 height
+          ),
+        ],
+      ),
+      // Output node
+      Node<String>(
+        id: 'output',
+        type: 'output',
+        position: const Offset(500, 120),
+        size: const Size(120, 80),
+        data: 'Output Node',
+        inputPorts: [
+          Port(
+            id: 'in1',
+            name: 'Input',
+            position: PortPosition.left,
+            offset: Offset(-2, 40), // Vertical center of 80 height
+          ),
+        ],
+      ),
+      // Special "locked" node that doesn't allow new connections
+      Node<String>(
+        id: 'locked',
+        type: 'locked',
+        position: const Offset(300, 250),
+        size: const Size(120, 80),
+        data: 'Locked Node',
+        inputPorts: [
+          Port(
+            id: 'in1',
+            name: 'Locked In',
+            position: PortPosition.left,
+            offset: Offset(-2, 40), // Vertical center of 80 height
+          ),
+        ],
+        outputPorts: [
+          Port(
+            id: 'out1',
+            name: 'Locked Out',
+            position: PortPosition.right,
+            offset: Offset(2, 40), // Vertical center of 80 height
+          ),
+        ],
+      ),
+    ];
   }
 
-  void _setupExampleGraph() {
-    // Create nodes with different types and port configurations
-    final inputNode = Node<String>(
-      id: 'input',
-      type: 'input',
-      position: const Offset(100, 100),
-      size: const Size(120, 80),
-      data: 'Input Node',
-      outputPorts: [
-        Port(
-          id: 'out1',
-          name: 'Output 1',
-          position: PortPosition.right,
-          offset: Offset(2, 20), // Multiple ports: starting offset 20
-        ),
-        Port(
-          id: 'out2',
-          name: 'Output 2',
-          position: PortPosition.right,
-          multiConnections: true,
-          offset: Offset(2, 50), // Multiple ports: 20 + 30 separation
-        ),
-      ],
-    );
-
-    final processingNode = Node<String>(
-      id: 'processing',
-      type: 'processing',
-      position: const Offset(300, 100),
-      size: const Size(140, 100),
-      data: 'Processing Node',
-      inputPorts: [
-        Port(
-          id: 'in1',
-          name: 'Input 1',
-          position: PortPosition.left,
-          offset: Offset(-2, 20), // Multiple ports: starting offset 20
-        ),
-        Port(
-          id: 'in2',
-          name: 'Input 2',
-          position: PortPosition.left,
-          multiConnections: true,
-          offset: Offset(-2, 50), // Multiple ports: 20 + 30 separation
-        ),
-      ],
-      outputPorts: [
-        Port(
-          id: 'out1',
-          name: 'Result',
-          position: PortPosition.right,
-          offset: Offset(2, 50), // Vertical center of 100 height
-        ),
-      ],
-    );
-
-    final outputNode = Node<String>(
-      id: 'output',
-      type: 'output',
-      position: const Offset(500, 120),
-      size: const Size(120, 80),
-      data: 'Output Node',
-      inputPorts: [
-        Port(
-          id: 'in1',
-          name: 'Input',
-          position: PortPosition.left,
-          offset: Offset(-2, 40), // Vertical center of 80 height
-        ),
-      ],
-    );
-
-    // Create a special "locked" node that doesn't allow new connections
-    final lockedNode = Node<String>(
-      id: 'locked',
-      type: 'locked',
-      position: const Offset(300, 250),
-      size: const Size(120, 80),
-      data: 'Locked Node',
-      inputPorts: [
-        Port(
-          id: 'in1',
-          name: 'Locked In',
-          position: PortPosition.left,
-          offset: Offset(-2, 40), // Vertical center of 80 height
-        ),
-      ],
-      outputPorts: [
-        Port(
-          id: 'out1',
-          name: 'Locked Out',
-          position: PortPosition.right,
-          offset: Offset(2, 40), // Vertical center of 80 height
-        ),
-      ],
-    );
-
-    _controller.addNode(inputNode);
-    _controller.addNode(processingNode);
-    _controller.addNode(outputNode);
-    _controller.addNode(lockedNode);
-
-    // Add an existing connection to demonstrate validation with existing connections
-    _controller.addConnection(
+  static List<Connection> _createConnections() {
+    return [
+      // Initial connection to demonstrate validation with existing connections
       Connection(
         id: 'initial_conn',
         sourceNodeId: 'input',
@@ -138,11 +131,7 @@ class _ConnectionValidationExampleState
         targetNodeId: 'processing',
         targetPortId: 'in1',
       ),
-    );
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.fitToView();
-    });
+    ];
   }
 
   void _showMessage(String message) {
@@ -268,6 +257,7 @@ class _ConnectionValidationExampleState
         theme: _theme,
         nodeBuilder: (context, node) => _buildNode(node),
         events: NodeFlowEvents<String>(
+          onInit: () => _controller.fitToView(),
           connection: ConnectionEvents<String>(
             onBeforeStart: _onBeforeStartConnection,
             onBeforeComplete: _onBeforeCompleteConnection,

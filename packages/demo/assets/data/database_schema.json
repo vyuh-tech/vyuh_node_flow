@@ -3,10 +3,8 @@
     {
       "id": "users",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 266
-      },
+      "width": 160,
+      "height": 266,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -40,19 +38,15 @@
           "UNIQUE(email)"
         ]
       },
-      "position": {
-        "x": 100,
-        "y": 100
-      },
+      "x": 100,
+      "y": 100,
       "zIndex": 1
     },
     {
       "id": "addresses",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 294
-      },
+      "width": 160,
+      "height": 294,
       "inputPorts": [
         {
           "id": "user-fk",
@@ -97,19 +91,15 @@
           "FK user_id -> users.user_id"
         ]
       },
-      "position": {
-        "x": 400,
-        "y": 50
-      },
+      "x": 400,
+      "y": 50,
       "zIndex": 2
     },
     {
       "id": "categories",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 238
-      },
+      "width": 160,
+      "height": 238,
       "inputPorts": [
         {
           "id": "parent-fk",
@@ -163,19 +153,15 @@
           "FK parent_id -> categories.category_id"
         ]
       },
-      "position": {
-        "x": 100,
-        "y": 400
-      },
+      "x": 100,
+      "y": 400,
       "zIndex": 1
     },
     {
       "id": "products",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 322
-      },
+      "width": 160,
+      "height": 322,
       "inputPorts": [
         {
           "id": "category-fk",
@@ -223,19 +209,15 @@
           "FK category_id -> categories.category_id"
         ]
       },
-      "position": {
-        "x": 400,
-        "y": 400
-      },
+      "x": 400,
+      "y": 400,
       "zIndex": 2
     },
     {
       "id": "product_images",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 210
-      },
+      "width": 160,
+      "height": 210,
       "inputPorts": [
         {
           "id": "product-fk",
@@ -266,19 +248,15 @@
           "FK product_id -> products.product_id"
         ]
       },
-      "position": {
-        "x": 700,
-        "y": 350
-      },
+      "x": 700,
+      "y": 350,
       "zIndex": 3
     },
     {
       "id": "inventory",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 210
-      },
+      "width": 160,
+      "height": 210,
       "inputPorts": [
         {
           "id": "product-fk-inv",
@@ -309,19 +287,15 @@
           "FK product_id -> products.product_id"
         ]
       },
-      "position": {
-        "x": 700,
-        "y": 550
-      },
+      "x": 700,
+      "y": 550,
       "zIndex": 3
     },
     {
       "id": "suppliers",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 238
-      },
+      "width": 160,
+      "height": 238,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -351,19 +325,15 @@
         ],
         "constraints": []
       },
-      "position": {
-        "x": 100,
-        "y": 700
-      },
+      "x": 100,
+      "y": 700,
       "zIndex": 1
     },
     {
       "id": "product_suppliers",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 210
-      },
+      "width": 160,
+      "height": 210,
       "inputPorts": [
         {
           "id": "product-fk-sup",
@@ -406,19 +376,15 @@
           "FK supplier_id -> suppliers.supplier_id"
         ]
       },
-      "position": {
-        "x": 400,
-        "y": 700
-      },
+      "x": 400,
+      "y": 700,
       "zIndex": 2
     },
     {
       "id": "orders",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 322
-      },
+      "width": 160,
+      "height": 322,
       "inputPorts": [
         {
           "id": "user-fk-order",
@@ -477,19 +443,15 @@
           "FK shipping_address_id -> addresses.address_id"
         ]
       },
-      "position": {
-        "x": 1000,
-        "y": 100
-      },
+      "x": 1000,
+      "y": 100,
       "zIndex": 3
     },
     {
       "id": "order_items",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 238
-      },
+      "width": 160,
+      "height": 238,
       "inputPorts": [
         {
           "id": "order-fk",
@@ -533,19 +495,15 @@
           "FK product_id -> products.product_id"
         ]
       },
-      "position": {
-        "x": 1300,
-        "y": 100
-      },
+      "x": 1300,
+      "y": 100,
       "zIndex": 4
     },
     {
       "id": "payments",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 238
-      },
+      "width": 160,
+      "height": 238,
       "inputPorts": [
         {
           "id": "order-fk-payment",
@@ -578,19 +536,15 @@
           "FK order_id -> orders.order_id"
         ]
       },
-      "position": {
-        "x": 1300,
-        "y": 350
-      },
+      "x": 1300,
+      "y": 350,
       "zIndex": 4
     },
     {
       "id": "shipments",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 238
-      },
+      "width": 160,
+      "height": 238,
       "inputPorts": [
         {
           "id": "order-fk-shipment",
@@ -623,19 +577,15 @@
           "FK order_id -> orders.order_id"
         ]
       },
-      "position": {
-        "x": 1300,
-        "y": 580
-      },
+      "x": 1300,
+      "y": 580,
       "zIndex": 4
     },
     {
       "id": "shopping_cart",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 182
-      },
+      "width": 160,
+      "height": 182,
       "inputPorts": [
         {
           "id": "user-fk-cart",
@@ -677,19 +627,15 @@
           "FK product_id -> products.product_id"
         ]
       },
-      "position": {
-        "x": 700,
-        "y": 100
-      },
+      "x": 700,
+      "y": 100,
       "zIndex": 3
     },
     {
       "id": "wishlists",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 182
-      },
+      "width": 160,
+      "height": 182,
       "inputPorts": [
         {
           "id": "user-fk-wish",
@@ -731,19 +677,15 @@
           "FK product_id -> products.product_id"
         ]
       },
-      "position": {
-        "x": 700,
-        "y": 900
-      },
+      "x": 700,
+      "y": 900,
       "zIndex": 3
     },
     {
       "id": "reviews",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 266
-      },
+      "width": 160,
+      "height": 266,
       "inputPorts": [
         {
           "id": "user-fk-review",
@@ -789,19 +731,15 @@
           "FK product_id -> products.product_id"
         ]
       },
-      "position": {
-        "x": 1000,
-        "y": 600
-      },
+      "x": 1000,
+      "y": 600,
       "zIndex": 4
     },
     {
       "id": "promotions",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 294
-      },
+      "width": 160,
+      "height": 294,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -837,19 +775,15 @@
           "UNIQUE(code)"
         ]
       },
-      "position": {
-        "x": 1000,
-        "y": 900
-      },
+      "x": 1000,
+      "y": 900,
       "zIndex": 3
     },
     {
       "id": "order_promotions",
       "type": "Table",
-      "size": {
-        "width": 160,
-        "height": 154
-      },
+      "width": 160,
+      "height": 154,
       "inputPorts": [
         {
           "id": "order-fk-promo",
@@ -890,10 +824,8 @@
           "FK promotion_id -> promotions.promotion_id"
         ]
       },
-      "position": {
-        "x": 1300,
-        "y": 900
-      },
+      "x": 1300,
+      "y": 900,
       "zIndex": 4
     }
   ],

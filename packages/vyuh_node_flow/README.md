@@ -151,36 +151,29 @@ class SimpleFlowEditor extends StatefulWidget {
 }
 
 class _SimpleFlowEditorState extends State<SimpleFlowEditor> {
-  late final NodeFlowController<String> controller;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // 1. Create the controller
-    controller = NodeFlowController<String>();
-
-    // 2. Add some nodes
-    controller.addNode(Node<String>(
-      id: 'node-1',
-      type: 'input',
-      position: const Offset(100, 100),
-      data: 'Input Node',
-      outputPorts: const [
-        Port(id: 'out', name: 'Output', offset: Offset(2, 40)),
-      ],
-    ));
-
-    controller.addNode(Node<String>(
-      id: 'node-2',
-      type: 'output',
-      position: const Offset(400, 100),
-      data: 'Output Node',
-      inputPorts: const [
-        Port(id: 'in', name: 'Input', offset: Offset(-2, 40)),
-      ],
-    ));
-  }
+  // Create the controller with initial nodes
+  late final controller = NodeFlowController<String>(
+    nodes: [
+      Node<String>(
+        id: 'node-1',
+        type: 'input',
+        position: const Offset(100, 100),
+        data: 'Input Node',
+        outputPorts: const [
+          Port(id: 'out', name: 'Output', offset: Offset(2, 40)),
+        ],
+      ),
+      Node<String>(
+        id: 'node-2',
+        type: 'output',
+        position: const Offset(400, 100),
+        data: 'Output Node',
+        inputPorts: const [
+          Port(id: 'in', name: 'Input', offset: Offset(-2, 40)),
+        ],
+      ),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -208,22 +201,62 @@ class _SimpleFlowEditorState extends State<SimpleFlowEditor> {
 
 ### The Controller
 
-The `NodeFlowController` is the central piece that manages all state:
+The `NodeFlowController` is the central piece that manages all state. You can
+create a controller with initial nodes, connections, viewport, and configuration:
 
 ```dart
-final controller = NodeFlowController<T>(
+final controller = NodeFlowController<String>(
+  // Optional: Pre-populate with initial nodes
+  nodes: [
+    Node<String>(
+      id: 'node-1',
+      type: 'input',
+      position: const Offset(100, 100),
+      size: const Size(140, 70),
+      data: 'Start Node',
+      outputPorts: const [
+        Port(id: 'out', name: 'Output', position: PortPosition.right),
+      ],
+    ),
+    Node<String>(
+      id: 'node-2',
+      type: 'output',
+      position: const Offset(400, 100),
+      size: const Size(140, 70),
+      data: 'End Node',
+      inputPorts: const [
+        Port(id: 'in', name: 'Input', position: PortPosition.left),
+      ],
+    ),
+  ],
+  // Optional: Pre-populate with initial connections
+  connections: [
+    Connection(
+      id: 'conn-1',
+      sourceNodeId: 'node-1',
+      sourcePortId: 'out',
+      targetNodeId: 'node-2',
+      targetPortId: 'in',
+    ),
+  ],
+  // Optional: Set initial viewport position and zoom
+  initialViewport: GraphViewport(x: 0, y: 0, zoom: 1.0),
+  // Optional: Configure behavior settings
   config: NodeFlowConfig(
     snapToGrid: true,
     gridSize: 20.0,
     minZoom: 0.5,
     maxZoom: 2.0,
   ),
-  initialViewport: GraphViewport(x: 0, y: 0, zoom: 1.0),
 );
 ```
 
+This declarative approach lets you define your entire initial graph state in one
+place, making your code cleaner and more readable than calling `addNode()` and
+`addConnection()` imperatively.
+
 > [!TIP] The type parameter `<T>` represents the data type stored in each node.
-> We recommend using a \* \*sealed class hierarchy\*\* with multiple subclasses
+> We recommend using a **sealed class hierarchy** with multiple subclasses
 > to create a strongly-typed collection of node types that work together. This
 > provides excellent type safety and pattern matching capabilities.
 

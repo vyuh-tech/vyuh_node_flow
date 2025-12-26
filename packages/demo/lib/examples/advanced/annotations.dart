@@ -15,22 +15,15 @@ class AnnotationExample extends StatefulWidget {
 }
 
 class _AnnotationExampleState extends State<AnnotationExample> {
-  late final NodeFlowController<Map<String, dynamic>> controller;
-  late final NodeFlowTheme _theme;
+  final _theme = NodeFlowTheme.light;
+  final controller = NodeFlowController<Map<String, dynamic>>(
+    config: NodeFlowConfig.defaultConfig,
+  );
 
   @override
   void initState() {
     super.initState();
-    _theme = NodeFlowTheme.light;
-    controller = NodeFlowController<Map<String, dynamic>>(
-      config: NodeFlowConfig.defaultConfig,
-    );
     _setupExampleGraph();
-
-    // Fit view to show all content after first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.resetViewport();
-    });
   }
 
   void _setupExampleGraph() {
@@ -247,6 +240,7 @@ class _AnnotationExampleState extends State<AnnotationExample> {
           NodeFlowEditor<Map<String, dynamic>>(
             controller: controller,
             theme: _theme,
+            events: NodeFlowEvents(onInit: () => controller.resetViewport()),
             nodeBuilder: (context, node) {
               // Calculate inner border radius
               final outerBorderRadius = _theme.nodeTheme.borderRadius;

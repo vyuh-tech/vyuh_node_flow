@@ -14,87 +14,70 @@ class DynamicPortsExample extends StatefulWidget {
 }
 
 class _DynamicPortsExampleState extends State<DynamicPortsExample> {
-  late final NodeFlowController<Map<String, dynamic>> _controller;
-  late final NodeFlowTheme _theme;
+  final _theme = NodeFlowTheme.light;
   int _nodeCounter = 2; // Start from 2 since we have 2 initial nodes
   int _portCounter = 4; // Start from 4 since initial nodes have 4 ports total
 
-  @override
-  void initState() {
-    super.initState();
-    _theme = NodeFlowTheme.light;
-    _controller = NodeFlowController<Map<String, dynamic>>(
-      config: NodeFlowConfig(),
-    );
-
-    _addInitialNodes();
-  }
-
-  void _addInitialNodes() {
-    // Node 1: Horizontal layout (left/right ports)
-    final node1 = Node<Map<String, dynamic>>(
-      id: 'node-1',
-      type: 'custom',
-      position: const Offset(150, 150),
-      size: const Size(120, 100),
-      data: {'label': 'Horizontal'},
-      inputPorts: [
-        Port(
-          id: 'port-1',
-          name: 'Input',
-          position: PortPosition.left,
-          offset: Offset(-2, 50),
-          type: PortType.input,
-          multiConnections: true,
-        ),
-      ],
-      outputPorts: [
-        Port(
-          id: 'port-2',
-          name: 'Output',
-          position: PortPosition.right,
-          offset: Offset(2, 50),
-          type: PortType.output,
-        ),
-      ],
-    );
-
-    // Node 2: Vertical layout (top/bottom ports)
-    final node2 = Node<Map<String, dynamic>>(
-      id: 'node-2',
-      type: 'custom',
-      position: const Offset(400, 150),
-      size: const Size(120, 100),
-      data: {'label': 'Vertical'},
-      inputPorts: [
-        Port(
-          id: 'port-3',
-          name: 'Input',
-          position: PortPosition.top,
-          offset: Offset(60, -2),
-          type: PortType.input,
-          multiConnections: true,
-        ),
-      ],
-      outputPorts: [
-        Port(
-          id: 'port-4',
-          name: 'Output',
-          position: PortPosition.bottom,
-          offset: Offset(60, 2),
-          type: PortType.output,
-        ),
-      ],
-    );
-
-    _controller.addNode(node1);
-    _controller.addNode(node2);
-
-    // Fit view to show all nodes centered
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.fitToView();
-    });
-  }
+  // Create controller with initial nodes
+  final _controller = NodeFlowController<Map<String, dynamic>>(
+    config: NodeFlowConfig(),
+    nodes: [
+      // Node 1: Horizontal layout (left/right ports)
+      Node<Map<String, dynamic>>(
+        id: 'node-1',
+        type: 'custom',
+        position: const Offset(150, 150),
+        size: const Size(120, 100),
+        data: {'label': 'Horizontal'},
+        inputPorts: [
+          Port(
+            id: 'port-1',
+            name: 'Input',
+            position: PortPosition.left,
+            offset: Offset(-2, 50),
+            type: PortType.input,
+            multiConnections: true,
+          ),
+        ],
+        outputPorts: [
+          Port(
+            id: 'port-2',
+            name: 'Output',
+            position: PortPosition.right,
+            offset: Offset(2, 50),
+            type: PortType.output,
+          ),
+        ],
+      ),
+      // Node 2: Vertical layout (top/bottom ports)
+      Node<Map<String, dynamic>>(
+        id: 'node-2',
+        type: 'custom',
+        position: const Offset(400, 150),
+        size: const Size(120, 100),
+        data: {'label': 'Vertical'},
+        inputPorts: [
+          Port(
+            id: 'port-3',
+            name: 'Input',
+            position: PortPosition.top,
+            offset: Offset(60, -2),
+            type: PortType.input,
+            multiConnections: true,
+          ),
+        ],
+        outputPorts: [
+          Port(
+            id: 'port-4',
+            name: 'Output',
+            position: PortPosition.bottom,
+            offset: Offset(60, 2),
+            type: PortType.output,
+          ),
+        ],
+      ),
+    ],
+  );
 
   @override
   void dispose() {
@@ -314,6 +297,7 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
         controller: _controller,
         nodeBuilder: _buildNode,
         theme: _theme,
+        events: NodeFlowEvents(onInit: () => _controller.fitToView()),
       ),
       children: [
         const InfoCard(

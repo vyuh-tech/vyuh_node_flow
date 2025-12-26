@@ -132,6 +132,8 @@ extension ConnectionApi<T> on NodeFlowController<T> {
     });
     // Fire event after successful addition
     events.connection?.onCreated?.call(connection);
+    // Emit extension event
+    _emitEvent(ConnectionAdded(connection));
   }
 
   /// Removes a connection from the graph.
@@ -158,6 +160,8 @@ extension ConnectionApi<T> on NodeFlowController<T> {
 
     // Fire event after successful removal
     events.connection?.onDeleted?.call(connectionToDelete);
+    // Emit extension event
+    _emitEvent(ConnectionRemoved(connectionToDelete));
   }
 
   /// Creates a connection between two ports.

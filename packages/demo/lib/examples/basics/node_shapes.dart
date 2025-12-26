@@ -11,108 +11,97 @@ class NodeShapesExample extends StatefulWidget {
 }
 
 class _NodeShapesExampleState extends State<NodeShapesExample> {
-  late final NodeFlowController<Map<String, dynamic>> _controller;
-  late final NodeFlowTheme _theme;
+  final _theme = NodeFlowTheme.light;
 
-  @override
-  void initState() {
-    super.initState();
-    _theme = NodeFlowTheme.light;
-    _controller = NodeFlowController<Map<String, dynamic>>(
-      config: NodeFlowConfig(),
-    );
+  // Create controller with initial nodes
+  final _controller = NodeFlowController<Map<String, dynamic>>(
+    config: NodeFlowConfig(),
+    nodes: _createNodes(),
+    connections: _createConnections(),
+  );
 
-    // Add example nodes with different shapes
-    _addExampleNodes();
+  static List<Node<Map<String, dynamic>>> _createNodes() {
+    return [
+      // Rectangle (default) node - output only
+      Node<Map<String, dynamic>>(
+        id: 'rectangle',
+        type: 'Process',
+        position: const Offset(100, 100),
+        data: {'label': 'Rectangle\n(Default)'},
+        size: const Size(150, 100),
+        outputPorts: [
+          Port(
+            id: 'output',
+            name: 'Out',
+            position: PortPosition.right,
+            offset: Offset(2, 50),
+          ),
+        ],
+      ),
+      // Circle node - input only, allows multiple connections
+      // Shaped nodes use Offset.zero (default) since anchors define port positions
+      Node<Map<String, dynamic>>(
+        id: 'circle',
+        type: 'Terminal',
+        position: const Offset(300, 100),
+        data: {'label': 'Circle\nStart/End'},
+        size: const Size(120, 120),
+        inputPorts: [
+          Port(
+            id: 'input',
+            name: 'In',
+            position: PortPosition.left,
+            multiConnections: true,
+          ),
+        ],
+      ),
+      // Diamond node
+      // Shaped nodes use Offset.zero (default) since anchors define port positions
+      Node<Map<String, dynamic>>(
+        id: 'diamond',
+        type: 'Decision',
+        position: const Offset(100, 280),
+        data: {'label': 'Diamond\nDecision'},
+        size: const Size(140, 100),
+        inputPorts: [Port(id: 'input', name: 'In', position: PortPosition.top)],
+        outputPorts: [
+          Port(id: 'output-yes', name: 'Yes', position: PortPosition.right),
+          Port(id: 'output-no', name: 'No', position: PortPosition.bottom),
+        ],
+      ),
+      // Hexagon node - horizontal
+      // Shaped nodes use Offset.zero (default) since anchors define port positions
+      Node<Map<String, dynamic>>(
+        id: 'hexagon',
+        type: 'Preparation',
+        position: const Offset(300, 280),
+        data: {'label': 'Hexagon\nPreparation'},
+        size: const Size(160, 100),
+        inputPorts: [
+          Port(id: 'input', name: 'In', position: PortPosition.left),
+        ],
+        outputPorts: [
+          Port(id: 'output', name: 'Out', position: PortPosition.right),
+        ],
+      ),
+      // Vertical hexagon node
+      // Shaped nodes use Offset.zero (default) since anchors define port positions
+      Node<Map<String, dynamic>>(
+        id: 'hexagon-vertical',
+        type: 'VerticalPreparation',
+        position: const Offset(500, 280),
+        data: {'label': 'Vertical\nHexagon'},
+        size: const Size(120, 150),
+        inputPorts: [Port(id: 'input', name: 'In', position: PortPosition.top)],
+        outputPorts: [
+          Port(id: 'output', name: 'Out', position: PortPosition.bottom),
+        ],
+      ),
+    ];
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _addExampleNodes() {
-    // Rectangle (default) node - output only
-    final rectangleNode = Node<Map<String, dynamic>>(
-      id: 'rectangle',
-      type: 'Process',
-      position: const Offset(100, 100),
-      data: {'label': 'Rectangle\n(Default)'},
-      size: const Size(150, 100),
-      outputPorts: [
-        Port(
-          id: 'output',
-          name: 'Out',
-          position: PortPosition.right,
-          offset: Offset(2, 50),
-        ),
-      ],
-    );
-
-    // Circle node - input only, allows multiple connections
-    // Shaped nodes use Offset.zero (default) since anchors define port positions
-    final circleNode = Node<Map<String, dynamic>>(
-      id: 'circle',
-      type: 'Terminal',
-      position: const Offset(300, 100),
-      data: {'label': 'Circle\nStart/End'},
-      size: const Size(120, 120),
-      inputPorts: [
-        Port(
-          id: 'input',
-          name: 'In',
-          position: PortPosition.left,
-          multiConnections: true,
-        ),
-      ],
-    );
-
-    // Diamond node
-    // Shaped nodes use Offset.zero (default) since anchors define port positions
-    final diamondNode = Node<Map<String, dynamic>>(
-      id: 'diamond',
-      type: 'Decision',
-      position: const Offset(100, 280),
-      data: {'label': 'Diamond\nDecision'},
-      size: const Size(140, 100),
-      inputPorts: [Port(id: 'input', name: 'In', position: PortPosition.top)],
-      outputPorts: [
-        Port(id: 'output-yes', name: 'Yes', position: PortPosition.right),
-        Port(id: 'output-no', name: 'No', position: PortPosition.bottom),
-      ],
-    );
-
-    // Hexagon node - horizontal
-    // Shaped nodes use Offset.zero (default) since anchors define port positions
-    final hexagonNode = Node<Map<String, dynamic>>(
-      id: 'hexagon',
-      type: 'Preparation',
-      position: const Offset(300, 280),
-      data: {'label': 'Hexagon\nPreparation'},
-      size: const Size(160, 100),
-      inputPorts: [Port(id: 'input', name: 'In', position: PortPosition.left)],
-      outputPorts: [
-        Port(id: 'output', name: 'Out', position: PortPosition.right),
-      ],
-    );
-
-    // Vertical hexagon node
-    // Shaped nodes use Offset.zero (default) since anchors define port positions
-    final verticalHexagonNode = Node<Map<String, dynamic>>(
-      id: 'hexagon-vertical',
-      type: 'VerticalPreparation',
-      position: const Offset(500, 280),
-      data: {'label': 'Vertical\nHexagon'},
-      size: const Size(120, 150),
-      inputPorts: [Port(id: 'input', name: 'In', position: PortPosition.top)],
-      outputPorts: [
-        Port(id: 'output', name: 'Out', position: PortPosition.bottom),
-      ],
-    );
-
-    // Add connections
-    final connections = [
+  static List<Connection> _createConnections() {
+    return [
       Connection(
         id: 'conn-1',
         sourceNodeId: 'rectangle',
@@ -135,21 +124,12 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
         targetPortId: 'input',
       ),
     ];
+  }
 
-    _controller.addNode(rectangleNode);
-    _controller.addNode(circleNode);
-    _controller.addNode(diamondNode);
-    _controller.addNode(hexagonNode);
-    _controller.addNode(verticalHexagonNode);
-
-    for (final connection in connections) {
-      _controller.addConnection(connection);
-    }
-
-    // Fit the view to show all nodes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.fitToView();
-    });
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Widget _buildNode(BuildContext context, Node<Map<String, dynamic>> node) {
@@ -204,6 +184,19 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
     }
   }
 
+  void _resetGraph() {
+    _controller.clearGraph();
+
+    for (final node in _createNodes()) {
+      _controller.addNode(node);
+    }
+    for (final connection in _createConnections()) {
+      _controller.addConnection(connection);
+    }
+
+    _controller.fitToView();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ResponsiveControlPanel(
@@ -214,6 +207,7 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
         nodeBuilder: _buildNode,
         nodeShapeBuilder: _buildNodeShape,
         theme: _theme,
+        events: NodeFlowEvents(onInit: () => _controller.fitToView()),
       ),
       children: [
         const InfoCard(
@@ -227,10 +221,7 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
         ControlButton(
           label: 'Reset',
           icon: Icons.refresh,
-          onPressed: () {
-            _controller.clearGraph();
-            _addExampleNodes();
-          },
+          onPressed: _resetGraph,
         ),
       ],
     );

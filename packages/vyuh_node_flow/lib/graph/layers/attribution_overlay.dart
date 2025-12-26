@@ -19,18 +19,20 @@ class AttributionOverlay extends StatelessWidget {
       bottom: 4,
       left: 0,
       right: 0,
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            border: Border.all(color: colorScheme.outlineVariant, width: 0.5),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Text(
-            'Powered by Vyuh',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurface.withValues(alpha: 0.5),
+      child: IgnorePointer(
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              border: Border.all(color: colorScheme.outlineVariant, width: 0.5),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              'Powered by Vyuh',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
             ),
           ),
         ),

@@ -15,45 +15,113 @@ class ControllingNodesExample extends StatefulWidget {
 }
 
 class _ControllingNodesExampleState extends State<ControllingNodesExample> {
-  late final NodeFlowController<Map<String, dynamic>> _controller;
-  late final NodeFlowTheme _theme;
+  final _theme = NodeFlowTheme.light;
   int _nodeCounter = 4; // Start from 4 since we have 3 initial nodes
 
-  @override
-  void initState() {
-    super.initState();
-    _theme = NodeFlowTheme.light;
-    _controller = NodeFlowController<Map<String, dynamic>>(
-      config: NodeFlowConfig(),
-    );
-
-    // Add initial nodes after first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _addInitialNodes();
-    });
-  }
-
-  void _addInitialNodes() {
-    final initialNodes = [
-      _createNode('input', 1, const Offset(100, 150)),
-      _createNode('process', 2, const Offset(300, 150)),
-      _createNode('output', 3, const Offset(500, 150)),
-    ];
-
-    for (final node in initialNodes) {
-      _controller.addNode(node);
-    }
-
-    // Fit view to show all nodes centered
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.fitToView();
-    });
-  }
+  // Create controller with initial nodes
+  final _controller = NodeFlowController<Map<String, dynamic>>(
+    config: NodeFlowConfig(),
+    nodes: [
+      _createNodeStatic('input', 1, const Offset(100, 150)),
+      _createNodeStatic('process', 2, const Offset(300, 150)),
+      _createNodeStatic('output', 3, const Offset(500, 150)),
+    ],
+  );
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  // Static version for constructor initialization
+  static Node<Map<String, dynamic>> _createNodeStatic(
+    String nodeType,
+    int counter,
+    Offset position,
+  ) {
+    final config = _getNodeConfigStatic(nodeType);
+    return Node<Map<String, dynamic>>(
+      id: 'node-$counter',
+      type: nodeType,
+      position: position,
+      data: {
+        'label': '${config['label']} $counter',
+        'colorType': config['colorType'],
+      },
+      size: config['size'] as Size,
+      inputPorts: config['inputPorts'] as List<Port>,
+      outputPorts: config['outputPorts'] as List<Port>,
+    );
+  }
+
+  static Map<String, dynamic> _getNodeConfigStatic(String nodeType) {
+    switch (nodeType) {
+      case 'input':
+        return {
+          'label': 'Input',
+          'colorType': 'primary',
+          'size': const Size(120, 70),
+          'inputPorts': const <Port>[],
+          'outputPorts': [
+            Port(
+              id: 'output',
+              name: 'Out',
+              position: PortPosition.right,
+              offset: Offset(2, 35),
+              type: PortType.output,
+            ),
+          ],
+        };
+      case 'process':
+        return {
+          'label': 'Process',
+          'colorType': 'primaryContainer',
+          'size': const Size(150, 80),
+          'inputPorts': [
+            Port(
+              id: 'input',
+              name: 'In',
+              position: PortPosition.left,
+              offset: Offset(-2, 40),
+              type: PortType.input,
+            ),
+          ],
+          'outputPorts': [
+            Port(
+              id: 'output',
+              name: 'Out',
+              position: PortPosition.right,
+              offset: Offset(2, 40),
+              type: PortType.output,
+            ),
+          ],
+        };
+      case 'output':
+        return {
+          'label': 'Output',
+          'colorType': 'tertiaryContainer',
+          'size': const Size(120, 70),
+          'inputPorts': [
+            Port(
+              id: 'input',
+              name: 'In',
+              position: PortPosition.left,
+              offset: Offset(-2, 35),
+              type: PortType.input,
+            ),
+          ],
+          'outputPorts': const <Port>[],
+        };
+      default:
+        return {
+          'label': 'Node',
+          'colorType': 'surfaceContainerHighest',
+          'size': const Size(150, 80),
+          'inputPorts': const <Port>[],
+          'outputPorts': const <Port>[],
+        };
+    }
   }
 
   void _addNode(String nodeType) {
@@ -359,6 +427,7 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
         controller: _controller,
         nodeBuilder: _buildNode,
         theme: _theme,
+        events: NodeFlowEvents(onInit: () => _controller.fitToView()),
       ),
       children: [
         // Instructions

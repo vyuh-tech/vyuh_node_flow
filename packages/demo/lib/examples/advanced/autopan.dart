@@ -36,7 +36,7 @@ class _AutoPanExampleState extends State<AutoPanExample> {
     _controller = NodeFlowController<String>(
       config: NodeFlowConfig(
         autoPan: AutoPanConfig.normal,
-        debugMode: true, // Show edge zones overlay by default
+        debugMode: DebugMode.autoPanZone, // Show edge zones overlay by default
       ),
     );
     _createExampleGraph();
@@ -320,9 +320,11 @@ class _AutoPanExampleState extends State<AutoPanExample> {
                 ),
               ),
               Switch(
-                value: _controller.config.debugMode.value,
+                value: _controller.config.debugMode.value.showAutoPanZone,
                 onChanged: (value) {
-                  _controller.config.update(debugMode: value);
+                  _controller.config.setDebugMode(
+                    value ? DebugMode.autoPanZone : DebugMode.none,
+                  );
                   setState(() {});
                 },
               ),

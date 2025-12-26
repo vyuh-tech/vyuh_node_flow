@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
+import '../node_flow_config.dart';
 import '../node_flow_controller.dart';
 import '../node_flow_theme.dart';
 import 'spatial_index_debug_layer.dart';
@@ -66,29 +67,30 @@ class DebugLayersStack<T> extends StatelessWidget {
       builder: (context) {
         final debugMode = controller.config.debugMode.value;
 
-        if (!debugMode) {
+        if (!debugMode.isEnabled) {
           return const SizedBox.shrink();
         }
 
-        return Stack(children: _buildDebugLayers());
+        return Stack(children: _buildDebugLayers(debugMode));
       },
     );
   }
 
-  /// Builds the list of debug layers.
+  /// Builds the list of debug layers based on the current debug mode.
   ///
-  /// Override this in subclasses to add custom debug layers.
+  /// Only layers relevant to the current [debugMode] are included.
   /// Note: These layers are in graph coordinates (inside InteractiveViewer).
   /// Screen-coordinate overlays like AutopanZoneDebugLayer should be added
   /// separately outside the InteractiveViewer.
-  List<Widget> _buildDebugLayers() {
+  List<Widget> _buildDebugLayers(DebugMode debugMode) {
     return [
       // Spatial index grid visualization (graph coordinates)
-      SpatialIndexDebugLayer<T>(
-        controller: controller,
-        transformationController: transformationController,
-        theme: theme,
-      ),
+      if (debugMode.showSpatialIndex)
+        SpatialIndexDebugLayer<T>(
+          controller: controller,
+          transformationController: transformationController,
+          theme: theme,
+        ),
 
       // Future debug layers in graph coordinates can be added here:
       // - HitAreaDebugLayer

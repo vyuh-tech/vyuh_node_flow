@@ -3,10 +3,8 @@
     {
       "id": "raw-supplier-steel",
       "type": "Supplier",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -40,19 +38,15 @@
           "ISO 14001"
         ]
       },
-      "position": {
-        "x": 100,
-        "y": 100
-      },
+      "x": 100,
+      "y": 100,
       "zIndex": 1
     },
     {
       "id": "raw-supplier-aluminum",
       "type": "Supplier",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -86,19 +80,15 @@
           "AS9100"
         ]
       },
-      "position": {
-        "x": 100,
-        "y": 300
-      },
+      "x": 100,
+      "y": 300,
       "zIndex": 1
     },
     {
       "id": "raw-supplier-plastic",
       "type": "Supplier",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -132,19 +122,15 @@
           "FDA Approved"
         ]
       },
-      "position": {
-        "x": 100,
-        "y": 500
-      },
+      "x": 100,
+      "y": 500,
       "zIndex": 1
     },
     {
       "id": "raw-supplier-electronics",
       "type": "Supplier",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -179,19 +165,15 @@
           "REACH"
         ]
       },
-      "position": {
-        "x": 100,
-        "y": 700
-      },
+      "x": 100,
+      "y": 700,
       "zIndex": 1
     },
     {
       "id": "warehouse-raw-materials",
       "type": "Warehouse",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "steel-in",
@@ -263,19 +245,15 @@
         "climate_controlled": true,
         "security_level": "High"
       },
-      "position": {
-        "x": 350,
-        "y": 400
-      },
+      "x": 350,
+      "y": 400,
       "zIndex": 2
     },
     {
       "id": "quality-inspection-raw",
       "type": "QualityControl",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "material-in",
@@ -340,19 +318,15 @@
           "3D Scanner"
         ]
       },
-      "position": {
-        "x": 600,
-        "y": 400
-      },
+      "x": 600,
+      "y": 400,
       "zIndex": 2
     },
     {
       "id": "production-line-1",
       "type": "Production",
-      "size": {
-        "width": 180,
-        "height": 170
-      },
+      "width": 180,
+      "height": 170,
       "inputPorts": [
         {
           "id": "material-in",
@@ -426,19 +400,15 @@
         "efficiency": "94%",
         "oee": "87%"
       },
-      "position": {
-        "x": 850,
-        "y": 100
-      },
+      "x": 850,
+      "y": 100,
       "zIndex": 3
     },
     {
       "id": "production-line-2",
       "type": "Production",
-      "size": {
-        "width": 180,
-        "height": 170
-      },
+      "width": 180,
+      "height": 170,
       "inputPorts": [
         {
           "id": "material-in",
@@ -512,19 +482,15 @@
         "efficiency": "96%",
         "oee": "89%"
       },
-      "position": {
-        "x": 850,
-        "y": 300
-      },
+      "x": 850,
+      "y": 300,
       "zIndex": 3
     },
     {
       "id": "production-line-3",
       "type": "Production",
-      "size": {
-        "width": 180,
-        "height": 170
-      },
+      "width": 180,
+      "height": 170,
       "inputPorts": [
         {
           "id": "material-in",
@@ -598,19 +564,15 @@
         "efficiency": "92%",
         "oee": "85%"
       },
-      "position": {
-        "x": 850,
-        "y": 500
-      },
+      "x": 850,
+      "y": 500,
       "zIndex": 3
     },
     {
       "id": "production-line-4",
       "type": "Production",
-      "size": {
-        "width": 180,
-        "height": 170
-      },
+      "width": 180,
+      "height": 170,
       "inputPorts": [
         {
           "id": "material-in",
@@ -684,19 +646,15 @@
         "efficiency": "98%",
         "oee": "91%"
       },
-      "position": {
-        "x": 850,
-        "y": 700
-      },
+      "x": 850,
+      "y": 700,
       "zIndex": 3
     },
     {
       "id": "final-assembly",
       "type": "Assembly",
-      "size": {
-        "width": 200,
-        "height": 170
-      },
+      "width": 200,
+      "height": 170,
       "inputPorts": [
         {
           "id": "body-in",
@@ -769,19 +727,15 @@
         "stations": 35,
         "workers": 150
       },
-      "position": {
-        "x": 1150,
-        "y": 400
-      },
+      "x": 1150,
+      "y": 400,
       "zIndex": 4
     },
     {
       "id": "quality-testing-final",
       "type": "QualityControl",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "vehicle-in",
@@ -848,19 +802,15 @@
         "pass_rate": "97.8%",
         "average_test_time": "45 minutes"
       },
-      "position": {
-        "x": 1450,
-        "y": 400
-      },
+      "x": 1450,
+      "y": 400,
       "zIndex": 4
     },
     {
       "id": "paint-shop",
       "type": "Processing",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "body-in",
@@ -913,19 +863,15 @@
         "drying_ovens": 4,
         "voc_recovery": "95%"
       },
-      "position": {
-        "x": 1150,
-        "y": 100
-      },
+      "x": 1150,
+      "y": 100,
       "zIndex": 3
     },
     {
       "id": "warehouse-finished",
       "type": "Warehouse",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "vehicle-in",
@@ -977,19 +923,15 @@
         "loading_bays": 20,
         "security": "24/7 Surveillance"
       },
-      "position": {
-        "x": 1750,
-        "y": 400
-      },
+      "x": 1750,
+      "y": 400,
       "zIndex": 5
     },
     {
       "id": "shipping-domestic",
       "type": "Shipping",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "vehicle-in",
@@ -1044,19 +986,15 @@
         "average_transit": "3-5 days",
         "tracking_system": "GPS + RFID"
       },
-      "position": {
-        "x": 2000,
-        "y": 300
-      },
+      "x": 2000,
+      "y": 300,
       "zIndex": 5
     },
     {
       "id": "shipping-export",
       "type": "Shipping",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "vehicle-in",
@@ -1112,19 +1050,15 @@
         "average_transit": "15-30 days",
         "compliance": "ISO, EPA, EU Standards"
       },
-      "position": {
-        "x": 2000,
-        "y": 500
-      },
+      "x": 2000,
+      "y": 500,
       "zIndex": 5
     },
     {
       "id": "dealer-network",
       "type": "Distribution",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "vehicle-in",
@@ -1171,19 +1105,15 @@
         "average_inventory": "60 days",
         "customer_satisfaction": "4.5/5"
       },
-      "position": {
-        "x": 2250,
-        "y": 400
-      },
+      "x": 2250,
+      "y": 400,
       "zIndex": 6
     },
     {
       "id": "erp-system",
       "type": "System",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "data-in",
@@ -1240,19 +1170,15 @@
         "integration_points": 127,
         "uptime": "99.9%"
       },
-      "position": {
-        "x": 1450,
-        "y": 700
-      },
+      "x": 1450,
+      "y": 700,
       "zIndex": 7
     },
     {
       "id": "mes-system",
       "type": "System",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "production-data",
@@ -1304,19 +1230,15 @@
         "data_points": "10,000/second",
         "dashboards": 75
       },
-      "position": {
-        "x": 1450,
-        "y": 900
-      },
+      "x": 1450,
+      "y": 900,
       "zIndex": 7
     },
     {
       "id": "scada-system",
       "type": "System",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "sensor-data",
@@ -1368,19 +1290,15 @@
         "response_time": "<100ms",
         "redundancy": "N+1"
       },
-      "position": {
-        "x": 1450,
-        "y": 1100
-      },
+      "x": 1450,
+      "y": 1100,
       "zIndex": 7
     },
     {
       "id": "waste-management",
       "type": "WasteManagement",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "solid-waste",
@@ -1449,19 +1367,15 @@
           "R2"
         ]
       },
-      "position": {
-        "x": 850,
-        "y": 900
-      },
+      "x": 850,
+      "y": 900,
       "zIndex": 6
     },
     {
       "id": "energy-management",
       "type": "Utility",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "grid-power",
@@ -1524,19 +1438,15 @@
         "peak_shaving": "15%",
         "renewable_percentage": "20%"
       },
-      "position": {
-        "x": 850,
-        "y": 1100
-      },
+      "x": 850,
+      "y": 1100,
       "zIndex": 6
     },
     {
       "id": "water-treatment",
       "type": "Utility",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "water-in",
@@ -1588,19 +1498,15 @@
         "treatment_stages": 5,
         "quality_standard": "EPA Compliant"
       },
-      "position": {
-        "x": 850,
-        "y": 1300
-      },
+      "x": 850,
+      "y": 1300,
       "zIndex": 6
     },
     {
       "id": "research-development",
       "type": "R&D",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "market-data",
@@ -1663,19 +1569,15 @@
         "active_projects": 45,
         "budget": "$50M/year"
       },
-      "position": {
-        "x": 100,
-        "y": 900
-      },
+      "x": 100,
+      "y": 900,
       "zIndex": 2
     },
     {
       "id": "supplier-portal",
       "type": "System",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "orders-in",
@@ -1727,19 +1629,15 @@
         "integration": "EDI, API, Web",
         "languages": 15
       },
-      "position": {
-        "x": 100,
-        "y": 1100
-      },
+      "x": 100,
+      "y": 1100,
       "zIndex": 2
     },
     {
       "id": "customer-portal",
       "type": "System",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "orders-in",
@@ -1796,19 +1694,15 @@
         ],
         "mobile_app": true
       },
-      "position": {
-        "x": 2250,
-        "y": 700
-      },
+      "x": 2250,
+      "y": 700,
       "zIndex": 6
     },
     {
       "id": "training-center",
       "type": "HumanResources",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "staff-in",
@@ -1861,19 +1755,15 @@
         "vr_stations": 8,
         "certification_rate": "94%"
       },
-      "position": {
-        "x": 350,
-        "y": 900
-      },
+      "x": 350,
+      "y": 900,
       "zIndex": 2
     },
     {
       "id": "maintenance-depot",
       "type": "Maintenance",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "equipment-in",
@@ -1926,19 +1816,15 @@
         "mtbf": "2500 hours",
         "availability": "98.5%"
       },
-      "position": {
-        "x": 350,
-        "y": 1100
-      },
+      "x": 350,
+      "y": 1100,
       "zIndex": 2
     },
     {
       "id": "tool-crib",
       "type": "Storage",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "tools-in",
@@ -1981,19 +1867,15 @@
         "rfid_tracking": true,
         "utilization": "87%"
       },
-      "position": {
-        "x": 350,
-        "y": 1300
-      },
+      "x": 350,
+      "y": 1300,
       "zIndex": 2
     },
     {
       "id": "cafeteria",
       "type": "Facility",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "supplies-in",
@@ -2031,19 +1913,15 @@
         ],
         "satisfaction": "4.2/5"
       },
-      "position": {
-        "x": 600,
-        "y": 900
-      },
+      "x": 600,
+      "y": 900,
       "zIndex": 2
     },
     {
       "id": "medical-center",
       "type": "Facility",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "patients-in",
@@ -2090,19 +1968,15 @@
         ],
         "response_time": "<5 minutes"
       },
-      "position": {
-        "x": 600,
-        "y": 1100
-      },
+      "x": 600,
+      "y": 1100,
       "zIndex": 2
     },
     {
       "id": "security-office",
       "type": "Facility",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "alerts-in",
@@ -2145,19 +2019,15 @@
         "monitoring": "24/7",
         "incident_response": "<2 minutes"
       },
-      "position": {
-        "x": 600,
-        "y": 1300
-      },
+      "x": 600,
+      "y": 1300,
       "zIndex": 2
     },
     {
       "id": "it-datacenter",
       "type": "System",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "data-in",
@@ -2210,19 +2080,15 @@
         "cooling": "N+1 Redundant",
         "uptime": "99.99%"
       },
-      "position": {
-        "x": 1750,
-        "y": 900
-      },
+      "x": 1750,
+      "y": 900,
       "zIndex": 7
     },
     {
       "id": "ai-analytics",
       "type": "System",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "bigdata-in",
@@ -2283,19 +2149,15 @@
           "Demand Forecast"
         ]
       },
-      "position": {
-        "x": 1750,
-        "y": 1100
-      },
+      "x": 1750,
+      "y": 1100,
       "zIndex": 7
     },
     {
       "id": "sustainability-office",
       "type": "Management",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "metrics-in",
@@ -2341,19 +2203,15 @@
           "LEED Platinum"
         ]
       },
-      "position": {
-        "x": 1150,
-        "y": 1300
-      },
+      "x": 1150,
+      "y": 1300,
       "zIndex": 5
     },
     {
       "id": "finance-office",
       "type": "Management",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "transactions-in",
@@ -2406,19 +2264,15 @@
         "payment_terms": "Net 30",
         "roi": "15.2%"
       },
-      "position": {
-        "x": 2000,
-        "y": 900
-      },
+      "x": 2000,
+      "y": 900,
       "zIndex": 6
     },
     {
       "id": "hr-office",
       "type": "Management",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "applications-in",
@@ -2471,19 +2325,15 @@
         "satisfaction": "4.3/5",
         "diversity_index": "0.75"
       },
-      "position": {
-        "x": 2000,
-        "y": 1100
-      },
+      "x": 2000,
+      "y": 1100,
       "zIndex": 6
     },
     {
       "id": "executive-dashboard",
       "type": "System",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "kpi-in",
@@ -2526,10 +2376,8 @@
         "ai_insights": true,
         "what_if_scenarios": true
       },
-      "position": {
-        "x": 2250,
-        "y": 1000
-      },
+      "x": 2250,
+      "y": 1000,
       "zIndex": 8
     }
   ],

@@ -10,28 +10,15 @@ class ViewerExample extends StatefulWidget {
 }
 
 class _ViewerExampleState extends State<ViewerExample> {
-  late final NodeFlowController<String> _controller;
+  final _controller = NodeFlowController<String>(
+    nodes: _createSampleNodes(),
+    connections: _createSampleConnections(),
+  );
 
   @override
   void initState() {
     super.initState();
-    _controller = NodeFlowController<String>();
-
-    // Load sample data
-    final nodes = _createSampleNodes();
-    final connections = _createSampleConnections();
-
-    // Add nodes to controller
-    for (final node in nodes.values) {
-      _controller.addNode(node);
-    }
-
-    // Add connections to controller
-    for (final connection in connections) {
-      _controller.addConnection(connection);
-    }
-
-    // Fit view to show all nodes centered
+    // NodeFlowViewer doesn't support events, so use post-frame callback
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.fitToView();
     });
@@ -56,9 +43,9 @@ class _ViewerExampleState extends State<ViewerExample> {
   }
 
   /// Create sample nodes for the viewer
-  Map<String, Node<String>> _createSampleNodes() {
-    return {
-      'input': Node<String>(
+  static List<Node<String>> _createSampleNodes() {
+    return [
+      Node<String>(
         id: 'input',
         type: 'input',
         data: 'Input Node',
@@ -74,7 +61,7 @@ class _ViewerExampleState extends State<ViewerExample> {
           ),
         ],
       ),
-      'process': Node<String>(
+      Node<String>(
         id: 'process',
         type: 'process',
         data: 'Processing Node',
@@ -103,7 +90,7 @@ class _ViewerExampleState extends State<ViewerExample> {
           ),
         ],
       ),
-      'output1': Node<String>(
+      Node<String>(
         id: 'output1',
         type: 'output',
         data: 'Output Node 1',
@@ -119,7 +106,7 @@ class _ViewerExampleState extends State<ViewerExample> {
         ],
         outputPorts: [],
       ),
-      'output2': Node<String>(
+      Node<String>(
         id: 'output2',
         type: 'output',
         data: 'Output Node 2',
@@ -135,11 +122,11 @@ class _ViewerExampleState extends State<ViewerExample> {
         ],
         outputPorts: [],
       ),
-    };
+    ];
   }
 
   /// Create sample connections between nodes
-  List<Connection> _createSampleConnections() {
+  static List<Connection> _createSampleConnections() {
     return [
       Connection(
         id: 'conn1',

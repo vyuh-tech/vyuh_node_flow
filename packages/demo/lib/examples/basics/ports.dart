@@ -16,30 +16,129 @@ class PortCombinationsDemo extends StatefulWidget {
 }
 
 class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
-  late final NodeFlowController _controller;
-  late final ThemeControlStore _themeControl;
+  final _themeControl = ThemeControlStore();
   late NodeFlowTheme _currentTheme;
   Timer? _rotationTimer;
   late final List<ReactionDisposer> _disposers;
   bool _isUpdatingTheme = false;
 
   // Node IDs
-  final String sourceNodeId = 'source-node';
-  final String targetNodeId = 'target-node';
+  static const String sourceNodeId = 'source-node';
+  static const String targetNodeId = 'target-node';
+
+  // Create controller with initial nodes
+  late final NodeFlowController _controller = NodeFlowController(
+    initialViewport: const GraphViewport(x: 0, y: 200, zoom: 1.0),
+    config: NodeFlowConfig(debugMode: _themeControl.debugMode),
+    nodes: _createNodes(),
+  );
+
+  static List<Node> _createNodes() {
+    return [
+      // Source node (center) with all ports
+      Node(
+        id: sourceNodeId,
+        position: const Offset(400, 100),
+        size: const Size(100, 100),
+        inputPorts: [
+          Port(
+            id: 'source-left',
+            position: PortPosition.left,
+            name: 'Left',
+            type: PortType.output,
+            shape: MarkerShapes.triangle,
+            size: const Size(12, 12),
+            offset: const Offset(-2, 50),
+          ),
+          Port(
+            id: 'source-top',
+            position: PortPosition.top,
+            name: 'Top',
+            type: PortType.output,
+            shape: MarkerShapes.triangle,
+            size: const Size(12, 12),
+            offset: const Offset(50, -2),
+          ),
+          Port(
+            id: 'source-right',
+            position: PortPosition.right,
+            name: 'Right',
+            type: PortType.output,
+            shape: MarkerShapes.triangle,
+            size: const Size(12, 12),
+            offset: const Offset(2, 50),
+          ),
+          Port(
+            id: 'source-bottom',
+            position: PortPosition.bottom,
+            name: 'Bottom',
+            type: PortType.output,
+            shape: MarkerShapes.triangle,
+            size: const Size(12, 12),
+            offset: const Offset(50, 2),
+          ),
+        ],
+        type: 'Source',
+        data: null,
+      ),
+      // Target node with all ports
+      Node(
+        id: targetNodeId,
+        type: 'Target',
+        position: const Offset(700, 300),
+        size: const Size(100, 100),
+        outputPorts: [
+          Port(
+            id: 'target-left',
+            position: PortPosition.left,
+            name: 'Left',
+            type: PortType.input,
+            shape: MarkerShapes.triangle,
+            size: const Size(12, 12),
+            offset: const Offset(-2, 50),
+          ),
+          Port(
+            id: 'target-top',
+            position: PortPosition.top,
+            name: 'Top',
+            type: PortType.input,
+            shape: MarkerShapes.triangle,
+            size: const Size(12, 12),
+            offset: const Offset(50, -2),
+          ),
+          Port(
+            id: 'target-right',
+            position: PortPosition.right,
+            name: 'Right',
+            type: PortType.input,
+            shape: MarkerShapes.triangle,
+            size: const Size(12, 12),
+            offset: const Offset(2, 50),
+          ),
+          Port(
+            id: 'target-bottom',
+            position: PortPosition.bottom,
+            name: 'Bottom',
+            type: PortType.input,
+            shape: MarkerShapes.triangle,
+            size: const Size(12, 12),
+            offset: const Offset(50, 2),
+          ),
+        ],
+        data: null,
+      ),
+    ];
+  }
 
   @override
   void initState() {
     super.initState();
 
-    _themeControl = ThemeControlStore();
     _currentTheme = NodeFlowTheme.light;
-    _controller = NodeFlowController(
-      initialViewport: const GraphViewport(x: 0, y: 200, zoom: 1.0),
-      config: NodeFlowConfig(debugMode: _themeControl.debugMode),
-    );
     _disposers = [];
 
-    _initializeNodes();
+    // Create initial connection
+    _updateConnection();
 
     _setupThemeReactions();
     _updateThemeWithValues(); // Initialize theme with current store values
@@ -55,6 +154,7 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
       child: NodeFlowEditor(
         controller: _controller,
         theme: _currentTheme,
+        events: NodeFlowEvents(onInit: () => _controller.resetViewport()),
         nodeBuilder: (context, node) {
           return Container(
             padding: const EdgeInsets.all(8),
@@ -88,113 +188,6 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
     }
     _themeControl.dispose();
     super.dispose();
-  }
-
-  void _initializeNodes() {
-    // Create source node (center) with all ports
-    final sourceNode = Node(
-      id: sourceNodeId,
-      position: const Offset(400, 100),
-      size: const Size(100, 100),
-      inputPorts: [
-        Port(
-          id: 'source-left',
-          position: PortPosition.left,
-          name: 'Left',
-          type: PortType.output,
-          shape: MarkerShapes.triangle,
-          size: const Size(12, 12),
-          offset: const Offset(-2, 50),
-        ),
-        Port(
-          id: 'source-top',
-          position: PortPosition.top,
-          name: 'Top',
-          type: PortType.output,
-          shape: MarkerShapes.triangle,
-          size: const Size(12, 12),
-          offset: const Offset(50, -2),
-        ),
-        Port(
-          id: 'source-right',
-          position: PortPosition.right,
-          name: 'Right',
-          type: PortType.output,
-          shape: MarkerShapes.triangle,
-          size: const Size(12, 12),
-          offset: const Offset(2, 50),
-        ),
-        Port(
-          id: 'source-bottom',
-          position: PortPosition.bottom,
-          name: 'Bottom',
-          type: PortType.output,
-          shape: MarkerShapes.triangle,
-          size: const Size(12, 12),
-          offset: const Offset(50, 2),
-        ),
-      ],
-      type: 'Source',
-      data: null,
-    );
-
-    // Create target node with all ports
-    final targetNode = Node(
-      id: targetNodeId,
-      type: 'Target',
-      position: const Offset(700, 300),
-      size: const Size(100, 100),
-      outputPorts: [
-        Port(
-          id: 'target-left',
-          position: PortPosition.left,
-          name: 'Left',
-          type: PortType.input,
-          shape: MarkerShapes.triangle,
-          size: const Size(12, 12),
-          offset: const Offset(-2, 50),
-        ),
-        Port(
-          id: 'target-top',
-          position: PortPosition.top,
-          name: 'Top',
-          type: PortType.input,
-          shape: MarkerShapes.triangle,
-          size: const Size(12, 12),
-          offset: const Offset(50, -2),
-        ),
-        Port(
-          id: 'target-right',
-          position: PortPosition.right,
-          name: 'Right',
-          type: PortType.input,
-          shape: MarkerShapes.triangle,
-          size: const Size(12, 12),
-          offset: const Offset(2, 50),
-        ),
-        Port(
-          id: 'target-bottom',
-          position: PortPosition.bottom,
-          name: 'Bottom',
-          type: PortType.input,
-          shape: MarkerShapes.triangle,
-          size: const Size(12, 12),
-          offset: const Offset(50, 2),
-        ),
-      ],
-      data: null,
-    );
-
-    _controller.addNode(sourceNode);
-    _controller.addNode(targetNode);
-
-    // Create initial connection
-    _updateConnection();
-
-    // Fit view to show all nodes centered
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.resetViewport();
-    });
   }
 
   void _setupThemeReactions() {
@@ -300,7 +293,7 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
   }
 
   void _updateThemeWithDebugMode() {
-    _controller.config.update(debugMode: _themeControl._debugMode.value);
+    _controller.config.setDebugMode(_themeControl._debugMode.value);
   }
 
   void _handleAnimationToggle(bool isRotating) {
@@ -894,11 +887,11 @@ class ThemeControlStore {
   set orbitRadius(double value) =>
       runInAction(() => _orbitRadius.value = value);
 
-  final Observable<bool> _debugMode = Observable(false);
+  final Observable<DebugMode> _debugMode = Observable(DebugMode.none);
 
-  bool get debugMode => _debugMode.value;
+  DebugMode get debugMode => _debugMode.value;
 
-  set debugMode(bool value) => runInAction(() => _debugMode.value = value);
+  set debugMode(DebugMode value) => runInAction(() => _debugMode.value = value);
 
   void dispose() {
     // Cleanup if needed

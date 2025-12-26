@@ -39,10 +39,13 @@ extension ViewportApi<T> on NodeFlowController<T> {
   /// controller.setViewport(GraphViewport(x: 100, y: 50, zoom: 1.5));
   /// ```
   void setViewport(GraphViewport viewport) {
+    final previousViewport = _viewport.value;
     // Immediate viewport updates for real-time panning responsiveness
     runInAction(() {
       _viewport.value = viewport;
     });
+    // Emit extension event
+    _emitEvent(ViewportChanged(viewport, previousViewport));
   }
 
   /// Sets the screen size used for viewport calculations.

@@ -13,7 +13,6 @@ class CallbacksExample extends StatefulWidget {
 }
 
 class _CallbacksExampleState extends State<CallbacksExample> {
-  late final NodeFlowController<Map<String, dynamic>> _controller;
   final List<String> _events = [];
   final ScrollController _scrollController = ScrollController();
   bool _autoScroll = true;
@@ -29,83 +28,71 @@ class _CallbacksExampleState extends State<CallbacksExample> {
     EventType.interaction: 0,
   };
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = NodeFlowController<Map<String, dynamic>>(
-      config: NodeFlowConfig(),
-    );
-
-    _createInitialNodes();
-  }
+  // Create controller with initial nodes
+  final _controller = NodeFlowController<Map<String, dynamic>>(
+    config: NodeFlowConfig(),
+    nodes: [
+      Node<Map<String, dynamic>>(
+        id: 'node-1',
+        type: 'start',
+        position: const Offset(100, 150),
+        size: const Size(120, 80),
+        data: {'label': 'Start'},
+        outputPorts: [
+          Port(
+            id: 'out',
+            name: 'Output',
+            position: PortPosition.right,
+            offset: Offset(2, 40),
+          ),
+        ],
+      ),
+      Node<Map<String, dynamic>>(
+        id: 'node-2',
+        type: 'process',
+        position: const Offset(300, 150),
+        size: const Size(120, 80),
+        data: {'label': 'Process'},
+        inputPorts: [
+          Port(
+            id: 'in',
+            name: 'Input',
+            position: PortPosition.left,
+            offset: Offset(-2, 40),
+          ),
+        ],
+        outputPorts: [
+          Port(
+            id: 'out',
+            name: 'Output',
+            position: PortPosition.right,
+            offset: Offset(2, 40),
+          ),
+        ],
+      ),
+      Node<Map<String, dynamic>>(
+        id: 'node-3',
+        type: 'end',
+        position: const Offset(500, 150),
+        size: const Size(120, 80),
+        data: {'label': 'End'},
+        inputPorts: [
+          Port(
+            id: 'in',
+            name: 'Input',
+            position: PortPosition.left,
+            offset: Offset(-2, 40),
+          ),
+        ],
+      ),
+    ],
+  );
 
   @override
   void dispose() {
     _scrollController.dispose();
     _controller.dispose();
     super.dispose();
-  }
-
-  void _createInitialNodes() {
-    final node1 = Node<Map<String, dynamic>>(
-      id: 'node-1',
-      type: 'start',
-      position: const Offset(100, 150),
-      size: const Size(120, 80),
-      data: {'label': 'Start'},
-      outputPorts: [
-        Port(
-          id: 'out',
-          name: 'Output',
-          position: PortPosition.right,
-          offset: Offset(2, 40), // Vertical center of 80 height
-        ),
-      ],
-    );
-
-    final node2 = Node<Map<String, dynamic>>(
-      id: 'node-2',
-      type: 'process',
-      position: const Offset(300, 150),
-      size: const Size(120, 80),
-      data: {'label': 'Process'},
-      inputPorts: [
-        Port(
-          id: 'in',
-          name: 'Input',
-          position: PortPosition.left,
-          offset: Offset(-2, 40), // Vertical center of 80 height
-        ),
-      ],
-      outputPorts: [
-        Port(
-          id: 'out',
-          name: 'Output',
-          position: PortPosition.right,
-          offset: Offset(2, 40), // Vertical center of 80 height
-        ),
-      ],
-    );
-
-    final node3 = Node<Map<String, dynamic>>(
-      id: 'node-3',
-      type: 'end',
-      position: const Offset(500, 150),
-      size: const Size(120, 80),
-      data: {'label': 'End'},
-      inputPorts: [
-        Port(
-          id: 'in',
-          name: 'Input',
-          position: PortPosition.left,
-          offset: Offset(-2, 40), // Vertical center of 80 height
-        ),
-      ],
-    );
-
-    _controller.addNode(node1);
-    _controller.addNode(node2);
-    _controller.addNode(node3);
   }
 
   void _addEvent(String message, EventType type) {
@@ -444,12 +431,8 @@ class _CallbacksExampleState extends State<CallbacksExample> {
           },
           onInit: () {
             _addEvent('Editor initialized', EventType.lifecycle);
-
-            // Center and fit the viewport after initialization
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              _controller.fitToView();
-              _addEvent('Viewport fitted to view', EventType.viewport);
-            });
+            _controller.fitToView();
+            _addEvent('Viewport fitted to view', EventType.viewport);
           },
           onError: (error) {
             _addEvent('Error: ${error.message}', EventType.lifecycle);

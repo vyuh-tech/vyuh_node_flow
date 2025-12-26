@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
 import '../connections/connection.dart';
+import '../extensions/extension.dart';
 import '../connections/connection_painter.dart';
 import '../connections/connection_validation.dart';
 import '../connections/temporary_connection.dart';
@@ -64,11 +65,35 @@ enum NodeAlignment {
 /// );
 /// ```
 class NodeFlowController<T> {
-  NodeFlowController({GraphViewport? initialViewport, NodeFlowConfig? config})
-    : _viewport = Observable(
-        initialViewport ?? const GraphViewport(x: 0, y: 0, zoom: 1.0),
-      ),
-      _config = config ?? NodeFlowConfig.defaultConfig {
+  /// Creates a new node flow controller.
+  ///
+  /// Parameters:
+  /// * [initialViewport] - Initial viewport position and zoom (defaults to origin at 1x zoom)
+  /// * [config] - Configuration settings for behavior like snap-to-grid, zoom limits, etc.
+  /// * [nodes] - Optional initial nodes to populate the graph with
+  /// * [connections] - Optional initial connections between nodes
+  ///
+  /// Example:
+  /// ```dart
+  /// // Create an empty controller
+  /// final controller = NodeFlowController<MyData>();
+  ///
+  /// // Create a pre-populated controller
+  /// final controller = NodeFlowController<MyData>(
+  ///   nodes: [node1, node2, node3],
+  ///   connections: [conn1, conn2],
+  ///   initialViewport: GraphViewport(x: 0, y: 0, zoom: 1.0),
+  /// );
+  /// ```
+  NodeFlowController({
+    GraphViewport? initialViewport,
+    NodeFlowConfig? config,
+    List<Node<T>>? nodes,
+    List<Connection>? connections,
+  }) : _viewport = Observable(
+         initialViewport ?? const GraphViewport(x: 0, y: 0, zoom: 1.0),
+       ),
+       _config = config ?? NodeFlowConfig.defaultConfig {
     // Initialize actions and shortcuts system
     shortcuts = NodeFlowShortcutManager<T>();
     shortcuts.registerActions(DefaultNodeFlowActions.createDefaultActions<T>());
@@ -85,6 +110,28 @@ class NodeFlowController<T> {
     // Provide render order to spatial index for accurate hit testing
     // when nodes have the same zIndex
     _spatialIndex.renderOrderProvider = () => sortedNodes;
+
+    // Load initial nodes and connections if provided
+    if (nodes != null && nodes.isNotEmpty) {
+      _loadInitialGraph(nodes, connections ?? const []);
+    }
+  }
+
+  /// Loads initial graph data during construction.
+  ///
+  /// This is similar to [loadGraph] but designed for constructor use.
+  /// Infrastructure setup is deferred until the theme is set by the editor.
+  void _loadInitialGraph(List<Node<T>> nodes, List<Connection> connections) {
+    runInAction(() {
+      for (final node in nodes) {
+        _nodes[node.id] = node;
+      }
+      _connections.addAll(connections);
+    });
+
+    // Note: Full infrastructure setup (_setupLoadedGraphInfrastructure)
+    // happens when setTheme is called by the editor, since we need the
+    // theme for proper spatial index setup.
   }
 
   // Behavioral configuration
@@ -649,10 +696,140 @@ class NodeFlowController<T> {
     _canvasFocusNode.dispose();
     _connectionPainter?.dispose();
 
+    // Detach all extensions
+    for (final extension in _extensions.toList()) {
+      extension.detach();
+    }
+    _extensions.clear();
+
     // Detach context from all groupable nodes to clean up their reactions
     for (final node in _nodes.values) {
       if (node is GroupableMixin<T>) {
         node.detachContext();
+      }
+    }
+  }
+
+  // ============================================================
+  // Extension System
+  // ============================================================
+
+  /// Registered extensions for this controller.
+  final List<NodeFlowExtension<T>> _extensions = [];
+
+  /// Current batch nesting depth.
+  /// When > 0, we're inside a batch operation.
+  int _batchDepth = 0;
+
+  /// Registers an extension with this controller.
+  ///
+  /// The extension's [NodeFlowExtension.attach] method is called immediately.
+  /// Throws a [StateError] if an extension with the same ID is already registered.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.addExtension(UndoRedoExtension<MyData>());
+  /// ```
+  void addExtension(NodeFlowExtension<T> extension) {
+    if (_extensions.any((e) => e.id == extension.id)) {
+      throw StateError(
+        'Extension "${extension.id}" is already registered. '
+        'Remove it first before adding a new instance.',
+      );
+    }
+    _extensions.add(extension);
+    extension.attach(this);
+  }
+
+  /// Removes an extension by its ID.
+  ///
+  /// The extension's [NodeFlowExtension.detach] method is called before removal.
+  /// Does nothing if no extension with the given ID is registered.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.removeExtension('undo-redo');
+  /// ```
+  void removeExtension(String id) {
+    final index = _extensions.indexWhere((e) => e.id == id);
+    if (index == -1) return;
+
+    final extension = _extensions.removeAt(index);
+    extension.detach();
+  }
+
+  /// Gets an extension by its type.
+  ///
+  /// Returns `null` if no extension of the given type is registered.
+  /// Useful for Pro extensions that expose additional capabilities.
+  ///
+  /// Example:
+  /// ```dart
+  /// final history = controller.getExtension<HistoryExtension<MyData>>();
+  /// if (history?.canUndo ?? false) {
+  ///   history!.undo();
+  /// }
+  /// ```
+  E? getExtension<E extends NodeFlowExtension<T>>() {
+    for (final ext in _extensions) {
+      if (ext is E) return ext;
+    }
+    return null;
+  }
+
+  /// Checks if an extension with the given ID is registered.
+  ///
+  /// Example:
+  /// ```dart
+  /// if (controller.hasExtension('undo-redo')) {
+  ///   // Undo/redo is available
+  /// }
+  /// ```
+  bool hasExtension(String id) => _extensions.any((e) => e.id == id);
+
+  /// Gets all registered extensions.
+  ///
+  /// Returns an unmodifiable view of the extensions list.
+  List<NodeFlowExtension<T>> get extensions => List.unmodifiable(_extensions);
+
+  /// Emits an event to all registered extensions.
+  ///
+  /// Called internally by mutation methods. Extensions receive events
+  /// in the order they were registered.
+  void _emitEvent(GraphEvent event) {
+    for (final extension in _extensions) {
+      extension.onEvent(event);
+    }
+  }
+
+  /// Wraps multiple operations in a batch.
+  ///
+  /// Extensions will see [BatchStarted] before the operations and
+  /// [BatchEnded] after. This allows extensions like undo/redo to
+  /// group multiple operations into a single undoable action.
+  ///
+  /// Batches can be nested. Only the outermost batch emits events.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.batch('delete-selection', () {
+  ///   for (final id in selectedNodeIds.toList()) {
+  ///     controller.removeNode(id);
+  ///   }
+  /// });
+  /// ```
+  void batch(String reason, void Function() operations) {
+    if (_batchDepth == 0) {
+      _emitEvent(BatchStarted(reason));
+    }
+    _batchDepth++;
+
+    try {
+      operations();
+    } finally {
+      _batchDepth--;
+      if (_batchDepth == 0) {
+        _emitEvent(BatchEnded());
       }
     }
   }
@@ -815,7 +992,7 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
   /// Checks if spatial index updates should be deferred.
   /// Updates are deferred during drag UNLESS debug mode is on (for live visualization).
   bool get _shouldDeferSpatialUpdates =>
-      _isAnyDragInProgress && !(_theme?.debugMode ?? false);
+      _isAnyDragInProgress && !(_theme?.debugMode.isEnabled ?? false);
 
   /// Flushes all pending spatial index updates.
   /// Called when drag operations end.

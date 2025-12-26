@@ -3,10 +3,8 @@
     {
       "id": "temp-sensor-1",
       "type": "Sensor",
-      "size": {
-        "width": 120,
-        "height": 170
-      },
+      "width": 120,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -26,19 +24,15 @@
         "frequency": "1Hz",
         "range": "-40\u00b0C to 125\u00b0C"
       },
-      "position": {
-        "x": 100,
-        "y": 50
-      },
+      "x": 100,
+      "y": 50,
       "zIndex": 1
     },
     {
       "id": "humidity-sensor-1",
       "type": "Sensor",
-      "size": {
-        "width": 120,
-        "height": 170
-      },
+      "width": 120,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -58,19 +52,15 @@
         "frequency": "1Hz",
         "range": "0-100% RH"
       },
-      "position": {
-        "x": 100,
-        "y": 150
-      },
+      "x": 100,
+      "y": 150,
       "zIndex": 1
     },
     {
       "id": "motion-sensor-1",
       "type": "Sensor",
-      "size": {
-        "width": 120,
-        "height": 170
-      },
+      "width": 120,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -90,19 +80,15 @@
         "detection_range": "10m",
         "angle": "120\u00b0"
       },
-      "position": {
-        "x": 100,
-        "y": 250
-      },
+      "x": 100,
+      "y": 250,
       "zIndex": 1
     },
     {
       "id": "energy-meter-1",
       "type": "Sensor",
-      "size": {
-        "width": 120,
-        "height": 170
-      },
+      "width": 120,
+      "height": 170,
       "inputPorts": [],
       "outputPorts": [
         {
@@ -122,19 +108,15 @@
         "phases": 3,
         "accuracy": "\u00b10.5%"
       },
-      "position": {
-        "x": 100,
-        "y": 350
-      },
+      "x": 100,
+      "y": 350,
       "zIndex": 1
     },
     {
       "id": "edge-gateway",
       "type": "Gateway",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "temp-in",
@@ -206,19 +188,15 @@
         "edge_compute": true,
         "compression": "gzip"
       },
-      "position": {
-        "x": 300,
-        "y": 200
-      },
+      "x": 300,
+      "y": 200,
       "zIndex": 2
     },
     {
       "id": "mqtt-broker",
       "type": "MessageBroker",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "messages-in",
@@ -274,19 +252,15 @@
         "connections": 10000,
         "throughput": "100k msg/sec"
       },
-      "position": {
-        "x": 550,
-        "y": 200
-      },
+      "x": 550,
+      "y": 200,
       "zIndex": 3
     },
     {
       "id": "stream-processor",
       "type": "StreamProcessing",
-      "size": {
-        "width": 160,
-        "height": 170
-      },
+      "width": 160,
+      "height": 170,
       "inputPorts": [
         {
           "id": "temp-stream",
@@ -353,19 +327,15 @@
           "Window"
         ]
       },
-      "position": {
-        "x": 800,
-        "y": 100
-      },
+      "x": 800,
+      "y": 100,
       "zIndex": 4
     },
     {
       "id": "time-series-db",
       "type": "Database",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "data-in",
@@ -417,19 +387,15 @@
         "precision": "nanosecond",
         "compression": "TSM"
       },
-      "position": {
-        "x": 1050,
-        "y": 200
-      },
+      "x": 1050,
+      "y": 200,
       "zIndex": 5
     },
     {
       "id": "ml-engine",
       "type": "MLProcessing",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "training-data",
@@ -494,19 +460,15 @@
         "accuracy": "94%",
         "inference_time": "<50ms"
       },
-      "position": {
-        "x": 800,
-        "y": 350
-      },
+      "x": 800,
+      "y": 350,
       "zIndex": 4
     },
     {
       "id": "dashboard",
       "type": "Visualization",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "metrics-in",
@@ -558,19 +520,15 @@
         "alerts": 15,
         "users": 50
       },
-      "position": {
-        "x": 1300,
-        "y": 100
-      },
+      "x": 1300,
+      "y": 100,
       "zIndex": 6
     },
     {
       "id": "alert-manager",
       "type": "AlertSystem",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "anomalies-in",
@@ -647,19 +605,15 @@
         ],
         "deduplication": true
       },
-      "position": {
-        "x": 1050,
-        "y": 450
-      },
+      "x": 1050,
+      "y": 450,
       "zIndex": 5
     },
     {
       "id": "automation-engine",
       "type": "Automation",
-      "size": {
-        "width": 140,
-        "height": 170
-      },
+      "width": 140,
+      "height": 170,
       "inputPorts": [
         {
           "id": "triggers-in",
@@ -705,10 +659,8 @@
         ],
         "response_time": "<100ms"
       },
-      "position": {
-        "x": 1300,
-        "y": 350
-      },
+      "x": 1300,
+      "y": 350,
       "zIndex": 6
     }
   ],

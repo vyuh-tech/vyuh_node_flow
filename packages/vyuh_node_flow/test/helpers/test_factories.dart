@@ -175,27 +175,20 @@ int _connectionCounter = 1;
 
 /// Creates a test controller with optional initial nodes and connections.
 ///
+/// Uses constructor initialization pattern for efficient graph setup.
 /// The controller uses String as its data type for simplicity.
 NodeFlowController<String> createTestController({
   List<Node<String>>? nodes,
   List<Connection>? connections,
   NodeFlowConfig? config,
+  GraphViewport? initialViewport,
 }) {
-  final controller = NodeFlowController<String>(config: config);
-
-  if (nodes != null) {
-    for (final node in nodes) {
-      controller.addNode(node);
-    }
-  }
-
-  if (connections != null) {
-    for (final connection in connections) {
-      controller.addConnection(connection);
-    }
-  }
-
-  return controller;
+  return NodeFlowController<String>(
+    nodes: nodes,
+    connections: connections,
+    config: config,
+    initialViewport: initialViewport,
+  );
 }
 
 /// Creates a test controller with two connected nodes.
@@ -247,6 +240,7 @@ NodeFlowConfig createTestConfig({
   double portSnapDistance = 8.0,
   double minZoom = 0.1,
   double maxZoom = 4.0,
+  DebugMode debugMode = DebugMode.none,
 }) {
   return NodeFlowConfig(
     snapToGrid: snapToGrid,
@@ -254,6 +248,7 @@ NodeFlowConfig createTestConfig({
     portSnapDistance: portSnapDistance,
     minZoom: minZoom,
     maxZoom: maxZoom,
+    debugMode: debugMode,
   );
 }
 

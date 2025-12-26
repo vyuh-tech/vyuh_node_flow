@@ -111,6 +111,8 @@ library;
 // Graph (Core editor, controller, config, viewport)
 // Annotation theming (used by GroupNode and CommentNode)
 export 'annotations/annotation_theme.dart';
+// Extensions (for Pro package and custom extensions)
+export 'extensions/extension.dart';
 // Connections
 export 'connections/connection.dart';
 export 'connections/connection_anchor.dart';

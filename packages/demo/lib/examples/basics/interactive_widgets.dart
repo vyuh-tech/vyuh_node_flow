@@ -37,27 +37,12 @@ class _InteractiveWidgetsExampleState extends State<InteractiveWidgetsExample> {
     _theme = NodeFlowTheme.light;
     _controller = NodeFlowController<InteractiveNodeData>(
       config: NodeFlowConfig(),
+      nodes: [
+        _createButtonNode('node-1', const Offset(100, 100)),
+        _createTextFieldNode('node-2', const Offset(400, 100)),
+        _createSliderNode('node-3', const Offset(100, 350)),
+      ],
     );
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _addInitialNodes();
-    });
-  }
-
-  void _addInitialNodes() {
-    final initialNodes = [
-      _createButtonNode('node-1', const Offset(100, 100)),
-      _createTextFieldNode('node-2', const Offset(400, 100)),
-      _createSliderNode('node-3', const Offset(100, 350)),
-    ];
-
-    for (final node in initialNodes) {
-      _controller.addNode(node);
-    }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.fitToView();
-    });
   }
 
   Node<InteractiveNodeData> _createButtonNode(String id, Offset position) {
@@ -258,6 +243,7 @@ class _InteractiveWidgetsExampleState extends State<InteractiveWidgetsExample> {
         controller: _controller,
         nodeBuilder: _buildNode,
         theme: _theme,
+        events: NodeFlowEvents(onInit: () => _controller.fitToView()),
       ),
       children: [
         const SectionTitle('Add Nodes'),

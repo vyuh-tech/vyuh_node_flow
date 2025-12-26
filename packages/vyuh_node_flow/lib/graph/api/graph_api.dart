@@ -530,8 +530,10 @@ extension GraphApi<T> on NodeFlowController<T> {
   /// Parameters:
   /// - [theme]: The theme to apply to the graph editor
   void setTheme(NodeFlowTheme theme) {
+    final isFirstTimeSetup = _connectionPainter == null;
+
     // Create painter if it doesn't exist, otherwise update its theme
-    if (_connectionPainter == null) {
+    if (isFirstTimeSetup) {
       _connectionPainter = ConnectionPainter(
         theme: theme,
         // Cast to Node<dynamic> since ConnectionPainter is not generic
@@ -545,6 +547,12 @@ extension GraphApi<T> on NodeFlowController<T> {
 
     // Update observable theme - this triggers the reaction for spatial index rebuild
     runInAction(() => _themeObservable.value = theme);
+
+    // If this is the first time setup and we have pre-loaded nodes from
+    // the constructor, set up the infrastructure now that we have a theme
+    if (isFirstTimeSetup && _nodes.isNotEmpty) {
+      _setupLoadedGraphInfrastructure();
+    }
   }
 
   /// Update the events that the controller will use.

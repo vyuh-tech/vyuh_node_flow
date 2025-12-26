@@ -30,10 +30,6 @@ class _MinimapExampleState extends State<MinimapExample> {
 
     _theme = _buildTheme();
     _createLargeGraph();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.fitToView();
-    });
   }
 
   NodeFlowTheme _buildTheme() {
@@ -195,6 +191,7 @@ class _MinimapExampleState extends State<MinimapExample> {
         controller: _controller,
         nodeBuilder: _buildNode,
         theme: _theme,
+        events: NodeFlowEvents(onInit: () => _controller.fitToView()),
       ),
       children: [
         const Text(

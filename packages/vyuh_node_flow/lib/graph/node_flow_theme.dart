@@ -10,6 +10,7 @@ import '../nodes/node_theme.dart';
 import '../ports/port_theme.dart';
 import 'cursor_theme.dart';
 import 'minimap_theme.dart';
+import 'node_flow_config.dart';
 import 'resizer_theme.dart';
 import 'selection_theme.dart';
 
@@ -76,7 +77,7 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     required this.minimapTheme,
     required this.resizerTheme,
     this.backgroundColor = Colors.white,
-    this.debugMode = false,
+    this.debugMode = DebugMode.none,
     this.debugTheme = DebugTheme.light,
   });
 
@@ -123,10 +124,13 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   /// Background color of the canvas.
   final Color backgroundColor;
 
-  /// Whether to enable debug visualization.
+  /// Debug visualization mode.
   ///
-  /// When true, may show additional overlays like bounds, hit areas, etc.
-  final bool debugMode;
+  /// Controls which debug overlays are shown. Used by connection painters
+  /// and other visual debugging features.
+  ///
+  /// See [DebugMode] for available options.
+  final DebugMode debugMode;
 
   /// Theme for debug visualization (spatial index grid, hit areas, etc.).
   ///
@@ -148,7 +152,7 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     MinimapTheme? minimapTheme,
     ResizerTheme? resizerTheme,
     Color? backgroundColor,
-    bool? debugMode,
+    DebugMode? debugMode,
     DebugTheme? debugTheme,
   }) {
     return NodeFlowTheme(

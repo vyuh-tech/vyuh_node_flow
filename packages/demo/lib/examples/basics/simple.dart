@@ -14,26 +14,13 @@ class SimpleNodeAdditionExample extends StatefulWidget {
 }
 
 class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
-  late final NodeFlowController<Map<String, dynamic>> _controller;
-  late final NodeFlowTheme _theme;
+  final _theme = NodeFlowTheme.light;
   int _nodeCounter = 4; // Start from 4 since we have 3 initial nodes
 
-  @override
-  void initState() {
-    super.initState();
-    _theme = NodeFlowTheme.light;
-    _controller = NodeFlowController<Map<String, dynamic>>(
-      config: NodeFlowConfig(),
-    );
-
-    // Add initial nodes after first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _addInitialNodes();
-    });
-  }
-
-  void _addInitialNodes() {
-    final initialNodes = [
+  // Create controller with initial nodes
+  final _controller = NodeFlowController<Map<String, dynamic>>(
+    config: NodeFlowConfig(),
+    nodes: [
       Node<Map<String, dynamic>>(
         id: 'node-1',
         type: 'simple',
@@ -103,17 +90,8 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
           ),
         ],
       ),
-    ];
-
-    for (final node in initialNodes) {
-      _controller.addNode(node);
-    }
-
-    // Fit view to show all nodes centered
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.fitToView();
-    });
-  }
+    ],
+  );
 
   @override
   void dispose() {
@@ -193,6 +171,7 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample> {
         controller: _controller,
         nodeBuilder: _buildNode,
         theme: _theme,
+        events: NodeFlowEvents(onInit: () => _controller.fitToView()),
       ),
       children: [
         const SectionTitle('Actions'),

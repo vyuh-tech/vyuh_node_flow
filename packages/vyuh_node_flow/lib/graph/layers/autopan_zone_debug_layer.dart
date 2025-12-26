@@ -54,7 +54,10 @@ class AutopanZoneDebugLayer<T> extends StatelessWidget {
         final autoPan = controller.config.autoPan.value;
         final debugMode = controller.config.debugMode.value;
 
-        if (!debugMode || autoPan == null || !autoPan.isEnabled) {
+        // Only show if autopan zone debug is enabled and autopan is configured
+        if (!debugMode.showAutoPanZone ||
+            autoPan == null ||
+            !autoPan.isEnabled) {
           return const SizedBox.shrink();
         }
 
