@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
+import Badge from './Badge.vue';
 import MediaPlaceholder from './MediaPlaceholder.vue';
 
 export interface MediaConfig {
@@ -23,10 +24,7 @@ defineProps<{
 <template>
   <div class="detail-row" :class="{ 'detail-row-reverse': reverse }">
     <div class="detail-content">
-      <div class="badge" :class="'badge-' + tagColor">
-        <Icon :icon="tagIcon" />
-        <span>{{ tag }}</span>
-      </div>
+      <Badge :icon="tagIcon" :color="tagColor">{{ tag }}</Badge>
       <h2 class="section-title">{{ title }}</h2>
       <p class="detail-subtitle">{{ subtitle }}</p>
       <ul class="detail-bullets">

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
+import Badge from './Badge.vue';
 
 defineProps<{
   badge: string;
@@ -14,10 +14,7 @@ defineProps<{
 
 <template>
   <div class="section-header" :class="{ centered }">
-    <div class="badge" :class="'badge-' + badgeColor">
-      <Icon :icon="badgeIcon" />
-      <span>{{ badge }}</span>
-    </div>
+    <Badge :icon="badgeIcon" :color="badgeColor">{{ badge }}</Badge>
     <h2 class="section-title" :class="{ 'section-title-large': largeTitle }">{{ title }}</h2>
     <p v-if="subtitle" class="section-subtitle">{{ subtitle }}</p>
   </div>

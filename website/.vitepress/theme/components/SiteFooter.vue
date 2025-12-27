@@ -23,12 +23,14 @@ defineProps<{
           <a href="/docs/getting-started/installation" class="footer-link"><Icon icon="ph:book-open-fill" /> Documentation</a>
           <a href="/docs/api-reference/" class="footer-link"><Icon icon="ph:code-fill" /> API Reference</a>
           <a href="/docs/examples/" class="footer-link"><Icon icon="ph:folder-open-fill" /> Examples</a>
+          <a href="https://flow.demo.vyuh.tech" target="_blank" class="footer-link"><Icon icon="ph:play-fill" /> Live Demo</a>
         </div>
         <div class="footer-column">
           <h4 class="footer-heading">Community</h4>
           <a href="https://github.com/vyuh-tech/vyuh_node_flow" target="_blank" class="footer-link"><Icon icon="ph:github-logo-fill" /> GitHub</a>
           <a href="https://pub.dev/packages/vyuh_node_flow" target="_blank" class="footer-link"><Icon icon="simple-icons:dart" /> pub.dev</a>
-          <a href="https://flow.demo.vyuh.tech" target="_blank" class="footer-link"><Icon icon="ph:play-fill" /> Live Demo</a>
+          <a href="https://youtube.com/@vyuh_tech" target="_blank" class="footer-link"><Icon icon="ph:youtube-logo-fill" /> YouTube</a>
+          <a href="https://x.com/vyuh_tech" target="_blank" class="footer-link"><Icon icon="ph:x-logo-fill" /> X</a>
         </div>
         <div class="footer-column">
           <h4 class="footer-heading">Product</h4>

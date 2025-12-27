@@ -13,6 +13,8 @@ The `NodeFlowController` manages all graph state including nodes, connections, s
 NodeFlowController<T>({
   GraphViewport? initialViewport,
   NodeFlowConfig? config,
+  List<Node<T>>? nodes,
+  List<Connection>? connections,
 })
 ```
 
@@ -20,6 +22,8 @@ NodeFlowController<T>({
 |-----------|------|-------------|
 | `initialViewport` | `GraphViewport?` | Initial viewport position and zoom |
 | `config` | `NodeFlowConfig?` | Behavioral configuration (snap-to-grid, zoom limits, etc.) |
+| `nodes` | `List<Node<T>>?` | Initial nodes to populate the graph |
+| `connections` | `List<Connection>?` | Initial connections between nodes |
 
 ## Node Operations
 
@@ -35,8 +39,8 @@ void addNode(Node<T> node)
 ```dart
 final node = Node<MyData>(
   id: 'node-1',
+  type: 'process',
   position: Offset(100, 100),
-  size: Size(150, 80),
   data: MyData(label: 'Process'),
   inputPorts: [Port(id: 'in-1', name: 'Input')],
   outputPorts: [Port(id: 'out-1', name: 'Output')],
@@ -647,72 +651,50 @@ void distributeNodesHorizontally(List<String> nodeIds)
 void distributeNodesVertically(List<String> nodeIds)
 ```
 
-## Annotations
+## Annotations (GroupNode & CommentNode)
 
-Annotations are accessed via `controller.annotations`:
+Annotations in Vyuh Node Flow are special node types: `GroupNode` and `CommentNode`. They're added and managed using the same `addNode`/`removeNode` methods as regular nodes.
 
-::: code-group
+### GroupNode
 
-```dart [addAnnotation / removeAnnotation]
-controller.annotations.addAnnotation(annotation);
-controller.annotations.removeAnnotation(annotationId);
-```
-
-```dart [getAnnotation]
-Annotation? annotation = controller.annotations.getAnnotation(annotationId);
-```
-
-```dart [selectAnnotation / clearAnnotationSelection]
-controller.annotations.selectAnnotation(annotationId, toggle: false);
-controller.annotations.clearAnnotationSelection();
-```
-
-:::
-
-Convenience methods for creating common annotation types (on `controller.annotations`):
+Create visual groups around other nodes:
 
 ```dart
-// Create a sticky note
-final sticky = controller.annotations.createStickyAnnotation(
-  id: 'sticky-1',
+// Create a group node
+final group = GroupNode<MyData>(
+  id: 'group-1',
+  position: Offset(50, 50),
+  data: myData,
+  title: 'Processing Pipeline',
+  color: Colors.blue.withOpacity(0.2),
+  childNodeIds: {'node-1', 'node-2', 'node-3'},
+);
+controller.addNode(group);
+```
+
+### CommentNode
+
+Create floating text annotations:
+
+```dart
+// Create a comment node
+final comment = CommentNode<MyData>(
+  id: 'comment-1',
   position: Offset(100, 100),
-  text: 'Remember this!',
-  width: 200.0,
-  height: 100.0,
+  data: myData,
+  text: 'This section handles user input validation',
   color: Colors.yellow,
 );
-controller.annotations.addAnnotation(sticky);
+controller.addNode(comment);
+```
 
-// Create a group annotation with position and size
-final group = controller.annotations.createGroupAnnotation(
-  id: 'group-1',
-  title: 'My Group',
-  position: Offset(50, 50),
-  size: Size(300, 200),
-  color: Colors.blue,
-);
-controller.annotations.addAnnotation(group);
+### Selecting Annotations
 
-// Create a group around existing nodes
-final groupAroundNodes = controller.annotations.createGroupAnnotationAroundNodes(
-  id: 'group-2',
-  title: 'Node Group',
-  nodeIds: {'node-1', 'node-2'},
-  padding: EdgeInsets.all(20.0),
-  color: Colors.green,
-);
-controller.annotations.addAnnotation(groupAroundNodes);
+Since GroupNode and CommentNode are nodes, use the standard selection methods:
 
-// Create a marker
-final marker = controller.annotations.createMarkerAnnotation(
-  id: 'marker-1',
-  position: Offset(200, 200),
-  markerType: MarkerType.info,
-  size: 24.0,
-  color: Colors.red,
-  tooltip: 'Important point',
-);
-controller.annotations.addAnnotation(marker);
+```dart
+controller.selectNode('group-1');
+controller.selectNode('comment-1', toggle: true);
 ```
 
 ## Lifecycle
@@ -751,17 +733,17 @@ class _WorkflowEditorState extends State<WorkflowEditor> {
   void _setupGraph() {
     controller.addNode(Node(
       id: 'start',
+      type: 'trigger',
       position: Offset(100, 100),
-      size: Size(120, 60),
-      data: WorkflowData(label: 'Start', type: 'trigger'),
+      data: WorkflowData(label: 'Start'),
       outputPorts: [Port(id: 'start-out', name: 'Next')],
     ));
 
     controller.addNode(Node(
       id: 'process',
+      type: 'action',
       position: Offset(300, 100),
-      size: Size(120, 60),
-      data: WorkflowData(label: 'Process', type: 'action'),
+      data: WorkflowData(label: 'Process'),
       inputPorts: [Port(id: 'process-in', name: 'Input')],
       outputPorts: [Port(id: 'process-out', name: 'Output')],
     ));
@@ -783,9 +765,9 @@ class _WorkflowEditorState extends State<WorkflowEditor> {
     final id = 'node-${DateTime.now().millisecondsSinceEpoch}';
     controller.addNode(Node(
       id: id,
+      type: 'action',
       position: Offset(200, 200),
-      size: Size(120, 60),
-      data: WorkflowData(label: 'New Node', type: 'action'),
+      data: WorkflowData(label: 'New Node'),
       inputPorts: [Port(id: '$id-in', name: 'Input')],
       outputPorts: [Port(id: '$id-out', name: 'Output')],
     ));

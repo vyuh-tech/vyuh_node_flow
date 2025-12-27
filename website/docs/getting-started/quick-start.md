@@ -330,18 +330,15 @@ NodeFlowEditor<String>(
 )
 ```
 
-```dart [Features]
+```dart [Behavior]
 NodeFlowEditor<String>(
   controller: controller,
-  // Toggle features on/off
-  enablePanning: true,
-  enableZooming: true,
-  enableSelection: true,
-  enableNodeDragging: true,
-  enableConnectionCreation: true,
-  enableNodeDeletion: true,
-  scrollToZoom: true,
-  showAnnotations: true,
+  // Use behavior presets to control interaction modes
+  behavior: NodeFlowBehavior.design,   // Full editing (default)
+  // behavior: NodeFlowBehavior.preview, // Navigate only, no structural changes
+  // behavior: NodeFlowBehavior.present, // Display only, no interaction
+  scrollToZoom: true,      // Enable scroll wheel zoom
+  showAnnotations: true,   // Show GroupNode/CommentNode annotations
 )
 ```
 

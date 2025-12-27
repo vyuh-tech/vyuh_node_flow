@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import SiteFooter from './SiteFooter.vue';
+import Badge from './Badge.vue';
+import CtaButton from './CtaButton.vue';
+import DetailRow from './DetailRow.vue';
+import FlutterBrand from './FlutterBrand.vue';
+import SectionHeader from './SectionHeader.vue';
 
 // Blinking grid cells generator
 const generateBlinkCells = (count: number, seed: number) => {
@@ -28,6 +33,81 @@ const proFeatures = [
   { icon: 'ph:export-fill', title: 'Export & Import', desc: 'Export to multiple formats including PNG, SVG, PDF, and custom schemas.' },
   { icon: 'ph:lock-key-fill', title: 'Access Control', desc: 'Role-based permissions for collaborative editing and view-only modes.' },
   { icon: 'ph:headset-fill', title: 'Priority Support', desc: 'Direct access to the development team with priority issue resolution.' },
+];
+
+const workflowFeatures = [
+  {
+    tag: 'Visual Design',
+    tagIcon: 'ph:flow-arrow-fill',
+    tagColor: 'purple' as const,
+    title: 'BPMN-Style Workflow Editor',
+    subtitle: 'Design complex workflows visually with an intuitive drag-and-drop interface inspired by industry-standard BPMN notation.',
+    bullets: [
+      'Visual canvas for designing workflow processes',
+      'Pre-built activity, gateway, and event nodes',
+      'Conditional branching and parallel execution paths',
+      'Reusable sub-workflows and templates',
+    ],
+    media: {
+      type: 'video' as const,
+      title: 'Workflow Editor Demo',
+      description: 'See the visual workflow designer in action',
+    },
+  },
+  {
+    tag: 'Dart Execution',
+    tagIcon: 'ph:terminal-fill',
+    tagColor: 'teal' as const,
+    title: 'Native Dart Executors',
+    subtitle: 'Run workflows on the server with type-safe Dart executors. Full control over execution logic with native performance.',
+    bullets: [
+      'Type-safe activity implementations in Dart',
+      'Async/await support for non-blocking execution',
+      'Built-in retry policies and error handling',
+      'Custom executor plugins for specialized tasks',
+    ],
+    media: {
+      type: 'animation' as const,
+      title: 'Executor Pipeline',
+      description: 'Watch workflows execute step-by-step',
+    },
+  },
+  {
+    tag: 'Observability',
+    tagIcon: 'ph:chart-line-fill',
+    tagColor: 'amber' as const,
+    title: 'Real-Time Monitoring',
+    subtitle: 'Track every workflow execution with comprehensive monitoring, event streams, and detailed analytics dashboards.',
+    bullets: [
+      'Live execution status and progress tracking',
+      'Complete event history and audit trails',
+      'Performance metrics and bottleneck detection',
+      'Alerting and notification integrations',
+    ],
+    media: {
+      type: 'image' as const,
+      title: 'Monitoring Dashboard',
+      description: 'Live workflow analytics and insights',
+    },
+  },
+  {
+    tag: 'Enterprise Ready',
+    tagIcon: 'ph:buildings-fill',
+    tagColor: 'blue' as const,
+    title: 'Production-Grade Infrastructure',
+    subtitle: 'Deploy workflows with confidence using enterprise features designed for reliability, scalability, and security.',
+    bullets: [
+      'Distributed execution across multiple workers',
+      'Workflow versioning and migration support',
+      'Role-based access control for workflows',
+      'Integration with external systems and APIs',
+    ],
+    media: {
+      type: 'image' as const,
+      title: 'Infrastructure Overview',
+      description: 'Scalable workflow architecture',
+    },
+  },
 ];
 </script>
 
@@ -74,43 +154,37 @@ const proFeatures = [
 
     <!-- Hero Section -->
     <section class="pro-hero">
-      <div class="pro-badge">
-        <Icon icon="ph:crown-fill" />
-        <span>Pro Edition</span>
-      </div>
+      <Badge icon="ph:crown-fill" color="purple">Pro Edition</Badge>
       <h1 class="pro-title">
         <span class="pro-title-gradient">Vyuh Node Flow</span>
         <span class="pro-title-sub">Pro</span>
       </h1>
       <p class="pro-subtitle">
-        Enterprise-grade features for building sophisticated visual editors.
-        Unlimited power, complete control.
+        Enterprise-grade features for building sophisticated visual editors,
+        workflow engines, and BPMN-style automation.
       </p>
       <div class="pro-coming-soon">
-        <div class="coming-soon-badge">
-          <Icon icon="ph:rocket-launch-fill" />
-          <span>Coming Soon</span>
-        </div>
+        <Badge icon="ph:users-three-fill" color="amber">Select Program</Badge>
         <p class="coming-soon-text">
-          Be the first to know when Pro launches. Join the waitlist for early access.
+          We're working closely with select customers to refine the Vyuh Node Flow package,
+          editor, and workflow engine. Want to shape the future of visual flow editing in Flutter?
         </p>
-        <a href="https://vyuh.tech" target="_blank" class="pro-btn">
-          <Icon icon="ph:envelope-fill" />
-          Join Waitlist
-        </a>
+        <CtaButton href="https://vyuh.tech" icon="ph:envelope-fill" variant="primary" external>
+          Join the Waitlist
+        </CtaButton>
       </div>
     </section>
 
     <!-- Features Grid -->
     <section class="pro-features-section">
-      <div class="pro-section-header">
-        <div class="badge badge-purple">
-          <Icon icon="ph:star-fill" />
-          <span>Pro Features</span>
-        </div>
-        <h2 class="section-title">Everything in Free, Plus...</h2>
-        <p class="section-subtitle">Powerful capabilities designed for professional development teams and enterprise applications.</p>
-      </div>
+      <SectionHeader
+        badge="Pro Features"
+        badge-icon="ph:star-fill"
+        badge-color="purple"
+        title="Everything in Free, Plus..."
+        subtitle="Powerful capabilities designed for professional development teams and enterprise applications."
+        centered
+      />
       <div class="pro-features-grid">
         <div
           v-for="(feature, index) in proFeatures"
@@ -128,18 +202,50 @@ const proFeatures = [
       </div>
     </section>
 
+    <!-- Workflow Engine Section -->
+    <section class="workflow-engine-section">
+      <SectionHeader
+        badge="Workflow Engine"
+        badge-icon="ph:git-branch-fill"
+        badge-color="teal"
+        title="Server-Side Workflow Automation"
+        subtitle="Design, execute, and monitor BPMN-style workflows with native Dart executors and real-time observability."
+        centered
+        large-title
+      />
+
+      <div class="workflow-details">
+        <DetailRow
+          v-for="(feature, index) in workflowFeatures"
+          :key="index"
+          :tag="feature.tag"
+          :tag-icon="feature.tagIcon"
+          :tag-color="feature.tagColor"
+          :title="feature.title"
+          :subtitle="feature.subtitle"
+          :bullets="feature.bullets"
+          :media="feature.media"
+          :reverse="index % 2 === 1"
+        />
+      </div>
+    </section>
+
     <!-- CTA Section -->
     <section class="pro-cta-section">
       <div class="pro-cta-content">
-        <h2 class="pro-cta-title">Ready to Go Pro?</h2>
-        <p class="pro-cta-subtitle">Get notified when Pro launches and receive exclusive early-bird pricing.</p>
+        <Badge icon="ph:handshake-fill" color="purple">Partner With Us</Badge>
+        <h2 class="pro-cta-title">Join Our Select Program</h2>
+        <p class="pro-cta-subtitle">
+          We're collaborating with a select group of customers to build the future of visual flow editing in
+          <FlutterBrand />. Get early access, direct support, and help shape the product roadmap.
+        </p>
         <div class="pro-cta-actions">
-          <a href="https://vyuh.tech" target="_blank" class="pro-btn pro-btn-primary">
-            <Icon icon="ph:envelope-fill" /> Join the Waitlist
-          </a>
-          <a href="/docs/getting-started/installation" class="pro-btn pro-btn-secondary">
-            <Icon icon="ph:download-fill" /> Try Free Version
-          </a>
+          <CtaButton href="https://vyuh.tech" icon="ph:rocket-launch-fill" variant="primary" size="large" external>
+            Apply for Select Access
+          </CtaButton>
+          <CtaButton href="/docs/getting-started/installation" icon="ph:github-logo-fill" variant="secondary" size="large">
+            Try Free Version
+          </CtaButton>
         </div>
       </div>
     </section>

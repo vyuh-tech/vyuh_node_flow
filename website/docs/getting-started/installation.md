@@ -123,10 +123,10 @@ The `vyuh_node_flow` package exports everything you need:
 | `Node<T>` | Node with generic data type, position, size, and ports |
 | `Port` | Connection point with position, shape, and constraints |
 | `Connection` | Link between output and input ports with optional styling |
-| `Annotation` | Base class for visual overlays (sticky notes, groups, markers) |
-| `StickyAnnotation` | Free-floating text notes |
-| `GroupAnnotation` | Visual containers that surround nodes |
-| `MarkerAnnotation` | Compact icon badges for status and semantic indicators |
+| `ConnectionEndpoint` | Defines connection start and end points with node/port IDs |
+| `GroupNode` | Special node for visually grouping other nodes |
+| `CommentNode` | Special node for floating text annotations |
+| `Graph` | Container for nodes and connections (used for serialization) |
 
 ### Theming
 

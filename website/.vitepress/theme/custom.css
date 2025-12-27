@@ -385,19 +385,6 @@ body {
   opacity: 0;
 }
 
-.flutter-brand {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.2em;
-  font-weight: 900;
-  color: var(--vn-blue);
-}
-
-.flutter-brand svg {
-  position: relative;
-  top: 0.1em;
-}
-
 .hero-actions {
   display: flex;
   gap: var(--vn-space-sm);
@@ -1817,6 +1804,49 @@ body {
   margin: 0;
 }
 
+/* ============================================
+   Workflow Engine Section Styles
+   ============================================ */
+
+.workflow-engine-section {
+  position: relative;
+  z-index: 1;
+  padding: var(--vn-space-xl) var(--vn-space-md);
+  background: linear-gradient(
+    180deg,
+    var(--vn-bg-base) 0%,
+    color-mix(in srgb, var(--vn-teal) 5%, var(--vn-bg-base)) 50%,
+    var(--vn-bg-base) 100%
+  );
+}
+
+.workflow-engine-section .section-header {
+  max-width: 800px;
+  margin: 0 auto var(--vn-space-xl);
+}
+
+.workflow-details {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Add more gap between detail rows in workflow section */
+.workflow-details .detail-row {
+  padding: var(--vn-space-xl) 0;
+  border-bottom: 1px solid var(--vn-border);
+}
+
+.workflow-details .detail-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.workflow-details .detail-row:first-child {
+  padding-top: 0;
+}
+
 .pro-cta-section {
   position: relative;
   z-index: 1;
@@ -1835,7 +1865,8 @@ body {
   font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 900;
   color: var(--vn-text-primary);
-  margin: 0 0 var(--vn-space-sm);
+  margin: var(--vn-space-sm) 0;
+  line-height: 1.2;
 }
 
 .pro-cta-subtitle {
@@ -1967,6 +1998,7 @@ body:has(.pro-page) .VPNavBarAppearance {
   .detail-row {
     gap: var(--vn-space-lg);
   }
+
 }
 
 /* Mobile (< 768px) */
@@ -2083,6 +2115,11 @@ body:has(.pro-page) .VPNavBarAppearance {
 
   .detail-bullets li {
     font-size: 0.9rem;
+  }
+
+  /* Workflow section mobile */
+  .workflow-engine-section {
+    padding: var(--vn-space-xl) var(--vn-space-sm);
   }
 
   /* Use cases mobile */

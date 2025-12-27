@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
+import Badge from './components/Badge.vue';
+import CtaButton from './components/CtaButton.vue';
 import SectionHeader from './components/SectionHeader.vue';
 import FeatureCard from './components/FeatureCard.vue';
 import DetailRow from './components/DetailRow.vue';
+import FlutterBrand from './components/FlutterBrand.vue';
 import MarqueeSection from './components/MarqueeSection.vue';
 import CodePreview from './components/CodePreview.vue';
 import UseCaseCard from './components/UseCaseCard.vue';
@@ -444,35 +447,23 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
 
       <div class="hero-content">
         <div class="hero-text">
-          <div class="badge badge-blue">
-            <Icon icon="simple-icons:flutter" />
-            <span>Built for Flutter</span>
-          </div>
+          <Badge icon="simple-icons:flutter" color="blue">Built for Flutter</Badge>
           <h1 class="hero-title">
             <span class="hero-title-static">Visualize any</span>
             <WordFlipper :words="flipperWords" :interval="1500" />
           </h1>
           <p class="hero-subtitle">
             A flexible, high-performance node-based flow editor for
-            <span class="flutter-brand"
-              ><Icon icon="simple-icons:flutter" /> Flutter</span
-            >. Build workflow editors, visual programming interfaces, and
+            <FlutterBrand />. Build workflow editors, visual programming interfaces, and
             interactive diagrams.
           </p>
           <div class="hero-actions">
-            <a
-              href="/docs/getting-started/installation"
-              class="hero-btn hero-btn-primary hero-btn-lg"
-            >
+            <CtaButton href="/docs/getting-started/installation" variant="primary" size="large">
               Get Started <Icon icon="ph:arrow-right-bold" />
-            </a>
-            <a
-              href="https://flow.demo.vyuh.tech"
-              class="hero-btn hero-btn-secondary hero-btn-lg"
-              target="_blank"
-            >
-              <Icon icon="ph:play-fill" /> Live Demo
-            </a>
+            </CtaButton>
+            <CtaButton href="https://flow.demo.vyuh.tech" icon="ph:play-fill" variant="secondary" size="large" external>
+              Live Demo
+            </CtaButton>
           </div>
         </div>
 
