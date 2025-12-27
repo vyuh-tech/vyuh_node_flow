@@ -1,6 +1,7 @@
 /* Vyuh Node Flow - Global Tailwind CSS Styles */
 
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
+/* Reduced font weights for better performance */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Montserrat:wght@400;600;800;900&display=swap');
 @import "tailwindcss";
 
 /* Configure Tailwind to use class-based dark mode (VitePress uses .dark class) */
@@ -126,4 +127,75 @@ body {
 }
 .dark .VPNavBarMenuGroup .VPMenuLink a[href*="demo.vyuh"]::before {
   background-image: url("https://api.iconify.design/ph:play-circle-fill.svg?color=%23aaaaaa");
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE PERFORMANCE OPTIMIZATIONS
+   Disable expensive effects on mobile devices for better performance
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* Disable blur effects on mobile - they're extremely expensive */
+  .hero-blur,
+  .cta-blur,
+  .pro-blur {
+    filter: none !important;
+    opacity: 0.08 !important;
+  }
+
+  /* Reduce backdrop-blur to a simple semi-transparent background */
+  .marquee-section,
+  .pro-marquee-section,
+  .custom-footer {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Disable cell blink animations on mobile */
+  .blink-cell,
+  .grid-blink .blink-cell {
+    animation: none !important;
+    opacity: 0.5;
+  }
+
+  /* Simplify grid patterns on mobile (use simpler single-layer pattern) */
+  .grid-background {
+    background-size: 40px 40px !important;
+  }
+
+  /* Disable fade-slide animations on mobile for faster LCP */
+  .hero-text,
+  .hero-title,
+  .hero-subtitle,
+  .hero-actions,
+  .hero-visual {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+
+  /* Slow down marquee animation on mobile to reduce CPU usage */
+  .marquee-content {
+    animation-duration: 60s !important;
+  }
+
+  /* Disable beacon animation on code markers */
+  .code-marker {
+    animation: none !important;
+  }
+
+  /* Hide demo iframe on mobile to improve initial load */
+  .demo-iframe {
+    min-height: 300px;
+  }
+}
+
+/* Respect user's reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

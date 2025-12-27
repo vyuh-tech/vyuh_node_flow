@@ -14,6 +14,10 @@ export default defineConfig({
   cleanUrls: true,
 
   head: [
+    // Preconnect for faster font loading
+    ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
+    ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    ['link', { rel: 'preconnect', href: 'https://api.iconify.design' }],
     ['link', { rel: 'icon', href: '/icon.svg', type: 'image/svg+xml' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:title', content: 'Vyuh Node Flow - Visual Flow Editor for Flutter' }],

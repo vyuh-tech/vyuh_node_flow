@@ -12,6 +12,7 @@ import CodePreview from './components/CodePreview.vue';
 import UseCaseCard from './components/UseCaseCard.vue';
 import SiteFooter from './components/SiteFooter.vue';
 import WordFlipper from './components/WordFlipper.vue';
+import CtaSection from './components/CtaSection.vue';
 
 // Full words for the flipper
 const flipperWords = [
@@ -386,69 +387,13 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
 
 <template>
   <div class="home-page">
-    <!-- Shared Grid Background -->
-    <GridBackground color="blue" />
+    <!-- Canvas-based Grid Background with blinking cells -->
+    <GridBackground color="blue" :blinkCells="heroBlinkCells" />
 
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="hero-background">
-        <svg class="hero-grid-svg" width="100%" height="100%">
-          <defs>
-            <pattern
-              id="smallGrid"
-              width="40"
-              height="40"
-              patternUnits="userSpaceOnUse"
-            >
-              <path
-                d="M 40 0 L 0 0 0 40"
-                fill="none"
-                stroke="rgba(37, 99, 235, 0.08)"
-                stroke-width="1"
-              />
-            </pattern>
-            <pattern
-              id="largeGrid"
-              width="200"
-              height="200"
-              patternUnits="userSpaceOnUse"
-            >
-              <rect width="200" height="200" fill="url(#smallGrid)" />
-              <path
-                d="M 200 0 L 0 0 0 200"
-                fill="none"
-                stroke="rgba(37, 99, 235, 0.15)"
-                stroke-width="1"
-              />
-            </pattern>
-            <radialGradient id="gridFade" cx="50%" cy="50%" r="70%">
-              <stop offset="0%" stop-color="white" stop-opacity="1" />
-              <stop offset="100%" stop-color="white" stop-opacity="0" />
-            </radialGradient>
-            <mask id="gridMask">
-              <rect width="100%" height="100%" fill="url(#gridFade)" />
-            </mask>
-          </defs>
-          <rect
-            width="100%"
-            height="100%"
-            fill="url(#largeGrid)"
-            mask="url(#gridMask)"
-          />
-        </svg>
-        <div class="hero-grid-blink">
-          <div
-            class="blink-cell"
-            v-for="(cell, n) in heroBlinkCells"
-            :key="n"
-            :style="{
-              left: `${cell.left}px`,
-              top: `${cell.top}px`,
-              animationDelay: `${cell.delay}s`,
-              animationDuration: `${cell.duration}s`,
-            }"
-          />
-        </div>
+        <!-- Blur effects only - grid now handled by canvas -->
         <div class="hero-blur hero-blur-blue" />
         <div class="hero-blur hero-blur-purple" />
         <div class="hero-blur hero-blur-teal" />
@@ -513,7 +458,7 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
     </section>
 
     <!-- Code Preview Section -->
-    <section class="code-section">
+    <section class="code-section content-section content-section-first">
       <div class="code-container">
         <SectionHeader
           badge="Quick Start"
@@ -530,7 +475,7 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
     </section>
 
     <!-- Detailed Feature Sections -->
-    <section class="feature-sections">
+    <section class="feature-sections content-section">
       <div class="feature-sections-container">
         <FeatureSection
           v-for="(feature, index) in detailedFeatures"
@@ -548,7 +493,7 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
     </section>
 
     <!-- Capabilities Grid -->
-    <section class="features-section">
+    <section class="features-section content-section">
       <SectionHeader
         badge="Capabilities"
         badge-icon="ph:squares-four-fill"
@@ -577,7 +522,7 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
     </section>
 
     <!-- Use Cases Section -->
-    <section class="use-cases-section">
+    <section class="use-cases-section content-section">
       <SectionHeader
         badge="Infinite Possibilities"
         badge-icon="ph:infinity"
@@ -599,103 +544,32 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
     </section>
 
     <!-- CTA Section -->
-    <section class="cta-section">
-      <svg class="cta-grid-svg" width="100%" height="100%">
-        <defs>
-          <pattern
-            id="ctaSmallGrid"
-            width="40"
-            height="40"
-            patternUnits="userSpaceOnUse"
-          >
-            <path
-              d="M 40 0 L 0 0 0 40"
-              fill="none"
-              stroke="rgba(245, 158, 11, 0.12)"
-              stroke-width="1"
-            />
-          </pattern>
-          <pattern
-            id="ctaLargeGrid"
-            width="200"
-            height="200"
-            patternUnits="userSpaceOnUse"
-          >
-            <rect width="200" height="200" fill="url(#ctaSmallGrid)" />
-            <path
-              d="M 200 0 L 0 0 0 200"
-              fill="none"
-              stroke="rgba(245, 158, 11, 0.25)"
-              stroke-width="1"
-            />
-          </pattern>
-          <radialGradient id="ctaGridFade" cx="50%" cy="50%" r="70%">
-            <stop offset="0%" stop-color="white" stop-opacity="1" />
-            <stop offset="100%" stop-color="white" stop-opacity="0" />
-          </radialGradient>
-          <mask id="ctaGridMask">
-            <rect width="100%" height="100%" fill="url(#ctaGridFade)" />
-          </mask>
-        </defs>
-        <rect
-          width="100%"
-          height="100%"
-          fill="url(#ctaLargeGrid)"
-          mask="url(#ctaGridMask)"
-        />
-      </svg>
-      <div class="cta-grid-blink">
-        <div
-          class="blink-cell blink-cell-amber"
-          v-for="(cell, n) in ctaBlinkCells"
-          :key="n"
-          :style="{
-            left: `${cell.left}px`,
-            top: `${cell.top}px`,
-            animationDelay: `${cell.delay}s`,
-            animationDuration: `${cell.duration}s`,
-          }"
-        />
-      </div>
-      <div class="cta-blur cta-blur-blue" />
-      <div class="cta-blur cta-blur-purple" />
-      <div class="cta-content">
-        <SectionHeader
-          badge="Ready"
-          badge-icon="ph:rocket-launch-fill"
-          badge-color="amber"
-          title="Ready to Create?"
-          centered
-          large-title
-        />
-        <p class="cta-subtitle">
-          Join developers building next-generation visual editors with Flutter.
-          Production-ready, fully typed, and beautifully designed.
-        </p>
-        <div class="cta-actions">
-          <a
-            href="/docs/getting-started/installation"
-            class="hero-btn hero-btn-primary hero-btn-lg"
-          >
-            <Icon icon="ph:book-open-fill" /> Read the Docs
-          </a>
-          <a
-            href="https://pub.dev/packages/vyuh_node_flow"
-            class="hero-btn hero-btn-secondary hero-btn-lg"
-            target="_blank"
-          >
-            <Icon icon="simple-icons:dart" /> View on pub.dev
-          </a>
-          <a
-            href="https://github.com/vyuh-tech/vyuh_node_flow"
-            class="hero-btn hero-btn-secondary hero-btn-lg"
-            target="_blank"
-          >
-            <Icon icon="ph:github-logo-fill" /> Star on GitHub
-          </a>
-        </div>
-      </div>
-    </section>
+    <CtaSection
+      badge="Ready"
+      badge-icon="ph:rocket-launch-fill"
+      badge-color="amber"
+      title="Ready to Create?"
+      subtitle="Join developers building next-generation visual editors with Flutter. Production-ready, fully typed, and beautifully designed."
+      :primary-action="{
+        href: '/docs/getting-started/installation',
+        icon: 'ph:book-open-fill',
+        label: 'Read the Docs',
+      }"
+      :secondary-actions="[
+        {
+          href: 'https://pub.dev/packages/vyuh_node_flow',
+          icon: 'simple-icons:dart',
+          label: 'View on pub.dev',
+          external: true,
+        },
+        {
+          href: 'https://github.com/vyuh-tech/vyuh_node_flow',
+          icon: 'ph:github-logo-fill',
+          label: 'Star on GitHub',
+          external: true,
+        },
+      ]"
+    />
 
     <!-- Footer -->
     <SiteFooter />
@@ -715,6 +589,20 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   CONTENT SECTIONS - Darker background to demarcate from hero
+   ═══════════════════════════════════════════════════════════════════ */
+
+.content-section {
+  @apply relative;
+  @apply bg-slate-100/50 dark:bg-zinc-900/60;
+}
+
+/* Only the first content section has a top border */
+.content-section-first {
+  @apply border-t border-slate-200/50 dark:border-zinc-700/50;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    HERO SECTION
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -724,28 +612,6 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
 
 .hero-background {
   @apply absolute inset-0 z-0;
-}
-
-.hero-grid-svg {
-  @apply absolute inset-0 w-full h-full;
-}
-
-.hero-grid-blink {
-  @apply fixed inset-0 pointer-events-none z-0;
-}
-
-.blink-cell {
-  @apply absolute w-10 h-10 bg-blue-500/10 dark:bg-blue-400/20 rounded-sm;
-  animation: cellBlink 6s ease-in-out infinite;
-}
-
-.blink-cell-amber {
-  @apply bg-amber-500/10 dark:bg-amber-400/20;
-}
-
-@keyframes cellBlink {
-  0%, 100% { opacity: 0; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1); }
 }
 
 .hero-blur {
@@ -781,8 +647,14 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
 }
 
 @keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .hero-title {
@@ -843,7 +715,9 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
 
 .demo-frame-wrapper {
   @apply relative rounded-lg overflow-hidden border border-slate-200/50 dark:border-zinc-600/50 bg-white dark:bg-zinc-800;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1), 0 0 60px rgba(139, 92, 246, 0.15);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.1),
+    0 0 60px rgba(139, 92, 246, 0.15);
 }
 
 .demo-frame-header {
@@ -854,9 +728,15 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
   @apply w-2 h-2 rounded-full;
 }
 
-.demo-frame-dot-red { @apply bg-red-500; }
-.demo-frame-dot-yellow { @apply bg-yellow-500; }
-.demo-frame-dot-green { @apply bg-green-500; }
+.demo-frame-dot-red {
+  @apply bg-red-500;
+}
+.demo-frame-dot-yellow {
+  @apply bg-yellow-500;
+}
+.demo-frame-dot-green {
+  @apply bg-green-500;
+}
 
 .demo-frame-url {
   @apply flex-1 ml-2 px-2.5 py-1 bg-white dark:bg-zinc-800 rounded-md text-xs text-slate-400 dark:text-zinc-500 no-underline transition-colors;
@@ -903,30 +783,68 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
 }
 
 /* Bento grid layout */
-.feature-card:nth-child(1) { grid-column: span 2; }
-.feature-card:nth-child(2) { grid-column: span 2; }
-.feature-card:nth-child(3) { grid-column: span 1; }
-.feature-card:nth-child(4) { grid-column: span 1; }
-.feature-card:nth-child(5) { grid-column: span 2; }
-.feature-card:nth-child(6) { grid-column: span 2; }
-.feature-card:nth-child(7) { grid-column: span 2; }
-.feature-card:nth-child(8) { grid-column: span 1; }
-.feature-card:nth-child(9) { grid-column: span 2; }
-.feature-card:nth-child(10) { grid-column: span 2; }
-.feature-card:nth-child(11) { grid-column: span 1; }
-.feature-card:nth-child(12) { grid-column: span 2; }
+.feature-card:nth-child(1) {
+  grid-column: span 2;
+}
+.feature-card:nth-child(2) {
+  grid-column: span 2;
+}
+.feature-card:nth-child(3) {
+  grid-column: span 1;
+}
+.feature-card:nth-child(4) {
+  grid-column: span 1;
+}
+.feature-card:nth-child(5) {
+  grid-column: span 2;
+}
+.feature-card:nth-child(6) {
+  grid-column: span 2;
+}
+.feature-card:nth-child(7) {
+  grid-column: span 2;
+}
+.feature-card:nth-child(8) {
+  grid-column: span 1;
+}
+.feature-card:nth-child(9) {
+  grid-column: span 2;
+}
+.feature-card:nth-child(10) {
+  grid-column: span 2;
+}
+.feature-card:nth-child(11) {
+  grid-column: span 1;
+}
+.feature-card:nth-child(12) {
+  grid-column: span 2;
+}
 
 @media (max-width: 1100px) and (min-width: 768px) {
-  .features-grid { grid-template-columns: repeat(3, 1fr); }
-  .feature-card:nth-child(4n+1) { grid-column: span 2; }
-  .feature-card:nth-child(4n+2) { grid-column: span 1; }
-  .feature-card:nth-child(4n+3) { grid-column: span 1; }
-  .feature-card:nth-child(4n) { grid-column: span 2; }
+  .features-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .feature-card:nth-child(4n + 1) {
+    grid-column: span 2;
+  }
+  .feature-card:nth-child(4n + 2) {
+    grid-column: span 1;
+  }
+  .feature-card:nth-child(4n + 3) {
+    grid-column: span 1;
+  }
+  .feature-card:nth-child(4n) {
+    grid-column: span 2;
+  }
 }
 
 @media (max-width: 767px) {
-  .features-grid { @apply grid-cols-1; }
-  .feature-card:nth-child(n) { grid-column: span 1; }
+  .features-grid {
+    @apply grid-cols-1;
+  }
+  .feature-card:nth-child(n) {
+    grid-column: span 1;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -962,46 +880,5 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
 .use-cases-grid {
   @apply grid gap-6 max-w-6xl mx-auto;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   CTA SECTION
-   ═══════════════════════════════════════════════════════════════════ */
-
-.cta-section {
-  @apply relative py-32 px-6 text-center overflow-hidden;
-}
-
-.cta-grid-svg {
-  @apply absolute inset-0 w-full h-full z-0;
-}
-
-.cta-grid-blink {
-  @apply absolute inset-0 pointer-events-none z-0;
-}
-
-.cta-blur {
-  @apply absolute rounded-full;
-  filter: blur(150px);
-}
-
-.cta-blur-blue {
-  @apply w-[600px] h-[600px] bg-blue-500 -top-48 left-[10%] opacity-12 dark:opacity-20;
-}
-
-.cta-blur-purple {
-  @apply w-[500px] h-[500px] bg-violet-500 -bottom-36 right-[10%] opacity-10 dark:opacity-18;
-}
-
-.cta-content {
-  @apply relative z-10 max-w-3xl mx-auto;
-}
-
-.cta-subtitle {
-  @apply text-xl font-medium text-slate-600 dark:text-zinc-300 leading-relaxed mb-10;
-}
-
-.cta-actions {
-  @apply flex justify-center gap-4 flex-wrap;
 }
 </style>

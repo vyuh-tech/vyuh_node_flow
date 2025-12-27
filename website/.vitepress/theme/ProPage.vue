@@ -3,6 +3,7 @@ import { Icon } from '@iconify/vue';
 import SiteFooter from './components/SiteFooter.vue';
 import Badge from './components/Badge.vue';
 import CtaButton from './components/CtaButton.vue';
+import CtaSection from './components/CtaSection.vue';
 import FeatureCard from './components/FeatureCard.vue';
 import FeatureSection from './components/FeatureSection.vue';
 import FlutterBrand from './components/FlutterBrand.vue';
@@ -291,37 +292,30 @@ const marqueeAmber = [
     </section>
 
     <!-- CTA Section -->
-    <section class="pro-cta-section">
-      <div class="pro-cta-content">
-        <Badge icon="ph:handshake-fill" color="purple">Partner With Us</Badge>
-        <h2 class="pro-cta-title">Join Our Select Program</h2>
-        <p class="pro-cta-subtitle">
+    <CtaSection
+      badge="Partner With Us"
+      badge-icon="ph:handshake-fill"
+      badge-color="purple"
+      title="Join Our Select Program"
+      :primary-action="{
+        href: 'https://vyuh.tech',
+        icon: 'ph:rocket-launch-fill',
+        label: 'Apply for Select Access',
+        external: true
+      }"
+      :secondary-actions="[
+        { href: '/docs/getting-started/installation', icon: 'ph:github-logo-fill', label: 'Try Free Version' }
+      ]"
+    >
+      <template #subtitle>
+        <p class="cta-subtitle">
           We're collaborating with a select group of customers to build the
           future of visual flow editing in
           <FlutterBrand />. Get early access, direct support, and help shape the
           product roadmap.
         </p>
-        <div class="pro-cta-actions">
-          <CtaButton
-            href="https://vyuh.tech"
-            icon="ph:rocket-launch-fill"
-            variant="primary"
-            size="large"
-            external
-          >
-            Apply for Select Access
-          </CtaButton>
-          <CtaButton
-            href="/docs/getting-started/installation"
-            icon="ph:github-logo-fill"
-            variant="secondary"
-            size="large"
-          >
-            Try Free Version
-          </CtaButton>
-        </div>
-      </div>
-    </section>
+      </template>
+    </CtaSection>
 
     <!-- Footer -->
     <SiteFooter :is-pro-page="true" />
@@ -451,30 +445,5 @@ const marqueeAmber = [
 
 .workflow-details {
   @apply mt-16;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   CTA SECTION
-   ═══════════════════════════════════════════════════════════════════ */
-
-.pro-cta-section {
-  @apply relative z-10 py-24 px-6;
-}
-
-.pro-cta-content {
-  @apply max-w-3xl mx-auto text-center;
-}
-
-.pro-cta-title {
-  @apply text-4xl sm:text-5xl font-black text-slate-900 dark:text-zinc-100 mb-6 tracking-tight;
-  font-family: var(--vn-font-display);
-}
-
-.pro-cta-subtitle {
-  @apply text-lg text-slate-600 dark:text-zinc-400 leading-relaxed mb-10;
-}
-
-.pro-cta-actions {
-  @apply flex flex-col sm:flex-row items-center justify-center gap-4;
 }
 </style>
