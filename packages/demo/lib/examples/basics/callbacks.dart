@@ -344,7 +344,7 @@ class _CallbacksExampleState extends State<CallbacksExample> {
                 EventType.connection,
               );
             },
-            onConnectEnd: (targetNode, targetPort) {
+            onConnectEnd: (targetNode, targetPort, _) {
               final success = targetNode != null && targetPort != null;
               _addEvent(
                 success
