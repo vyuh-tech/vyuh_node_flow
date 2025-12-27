@@ -1,4 +1,4 @@
-name: Deploy Website to Cloudflare Pages
+name: Deploy Website to Cloudflare Workers
 
 on:
   push:
@@ -38,13 +38,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build static site
-        run: pnpm build
+      - name: Build for Cloudflare Workers
+        run: pnpm exec opennextjs-cloudflare build
 
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: website
-          command: pages deploy out --project-name=vyuh-node-flow-website
+          command: deploy
