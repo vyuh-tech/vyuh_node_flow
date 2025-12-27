@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@iconify/vue": "^5.0.0",
+    "rollup-plugin-visualizer": "^6.0.5",
     "vitepress": "next",
     "vue": "^3.5.26"
   },

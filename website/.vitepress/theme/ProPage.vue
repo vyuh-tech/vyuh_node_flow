@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
-import SiteFooter from './components/SiteFooter.vue';
 import Badge from './components/Badge.vue';
-import CtaButton from './components/CtaButton.vue';
+import CtaSection from './components/CtaSection.vue';
 import FeatureCard from './components/FeatureCard.vue';
 import FeatureSection from './components/FeatureSection.vue';
 import FlutterBrand from './components/FlutterBrand.vue';
 import GridBackground from './components/GridBackground.vue';
-import MarqueeSection from './components/MarqueeSection.vue';
+import HeroSection from './components/HeroSection.vue';
+import MarqueeGroup from './components/MarqueeGroup.vue';
+import Section from './components/Section.vue';
 import SectionHeader from './components/SectionHeader.vue';
+import SelectProgramCard from './components/SelectProgramCard.vue';
+import SiteFooter from './components/SiteFooter.vue';
 import TitleBadge from './components/TitleBadge.vue';
 
 // Blinking grid cells generator
@@ -159,53 +161,56 @@ const workflowFeatures = [
 ];
 
 // Marquee content for Pro features
-const marqueePurple = [
-  'Unlimited Undo/Redo',
-  'Step-through Debugging',
-  'Workflow Versioning',
-  'Custom Tasks',
-  'Task Libraries',
-  'Auto-Save',
-  'Collaboration',
-];
-
-const marqueeTeal = [
-  'BPMN Activities',
-  'Saga Patterns',
-  'Retry Policies',
-  'Error Handling',
-  'Async Execution',
-  'Event Streams',
-  'Audit Trails',
-  'Worker Pools',
-];
-
-const marqueeAmber = [
-  'Priority Support',
-  'Custom Integrations',
-  'SSO Authentication',
-  'Role-Based Access',
-  'API Access',
-  'Webhooks',
-  'Custom Branding',
-  'SLA Guarantee',
+const marqueeLines = [
+  {
+    items: [
+      'Unlimited Undo/Redo',
+      'Step-through Debugging',
+      'Workflow Versioning',
+      'Custom Tasks',
+      'Task Libraries',
+      'Auto-Save',
+      'Collaboration',
+    ],
+    color: 'purple' as const,
+  },
+  {
+    items: [
+      'BPMN Activities',
+      'Saga Patterns',
+      'Retry Policies',
+      'Error Handling',
+      'Async Execution',
+      'Event Streams',
+      'Audit Trails',
+      'Worker Pools',
+    ],
+    color: 'teal' as const,
+    reverse: true,
+  },
+  {
+    items: [
+      'Priority Support',
+      'Custom Integrations',
+      'SSO Authentication',
+      'Role-Based Access',
+      'API Access',
+      'Webhooks',
+      'Custom Branding',
+      'SLA Guarantee',
+    ],
+    color: 'purple' as const,
+  },
 ];
 </script>
 
 <template>
-  <div class="pro-page">
-    <!-- Grid Background (reused component) -->
+  <div class="min-h-screen relative overflow-x-hidden">
+    <!-- Grid Background -->
     <GridBackground color="purple" :blinkCells="proBlinkCells" />
 
-    <!-- Blur Effects -->
-    <div class="pro-background">
-      <div class="pro-blur pro-blur-purple" />
-      <div class="pro-blur pro-blur-blue" />
-      <div class="pro-blur pro-blur-teal" />
-    </div>
-
-    <!-- Hero Section -->
-    <section class="pro-hero">
+    <!-- Hero Section with centered variant -->
+    <HeroSection variant="centered">
       <Badge icon="ph:crown-fill" color="purple">Pro Edition</Badge>
       <h1 class="pro-title">
         <span class="pro-title-gradient">Vyuh Node Flow</span>
@@ -215,26 +220,13 @@ const marqueeAmber = [
         Enterprise-grade features for building sophisticated visual editors,
         workflow engines, and BPMN-style automation.
       </p>
-      <div class="pro-select-card">
-        <Badge icon="ph:users-three-fill" color="amber">Select Program</Badge>
-        <p class="pro-select-text">
-          We're working closely with select customers to refine the Vyuh Node
-          Flow package, editor, and workflow engine. Want to shape the future of
-          visual flow editing in Flutter?
-        </p>
-        <CtaButton
-          href="https://vyuh.tech"
-          icon="ph:envelope-fill"
-          variant="primary"
-          external
-        >
-          Join the Waitlist
-        </CtaButton>
+      <div class="mt-12">
+        <SelectProgramCard />
       </div>
-    </section>
+    </HeroSection>
 
-    <!-- Features Grid -->
-    <section class="pro-features-section">
+    <!-- Pro Features Grid -->
+    <Section first background>
       <SectionHeader
         badge="Pro Features"
         badge-icon="ph:star-fill"
@@ -243,7 +235,7 @@ const marqueeAmber = [
         subtitle="Powerful capabilities designed for professional development teams and enterprise applications."
         centered
       />
-      <div class="pro-features-grid">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <FeatureCard
           v-for="(feature, index) in proFeatures"
           :key="index"
@@ -253,17 +245,13 @@ const marqueeAmber = [
           :color="feature.color"
         />
       </div>
-    </section>
+    </Section>
 
     <!-- Marquee -->
-    <section class="pro-marquee-section">
-      <MarqueeSection :items="marqueePurple" color="purple" />
-      <MarqueeSection :items="marqueeTeal" color="teal" reverse />
-      <MarqueeSection :items="marqueeAmber" color="purple" />
-    </section>
+    <MarqueeGroup :lines="marqueeLines" />
 
     <!-- Workflow Engine Section -->
-    <section class="workflow-engine-section">
+    <Section background>
       <SectionHeader
         badge="Workflow Engine"
         badge-icon="ph:git-branch-fill"
@@ -274,7 +262,7 @@ const marqueeAmber = [
         large-title
       />
 
-      <div class="workflow-details">
+      <div class="mt-16">
         <FeatureSection
           v-for="(feature, index) in workflowFeatures"
           :key="index"
@@ -288,40 +276,39 @@ const marqueeAmber = [
           :reverse="index % 2 === 1"
         />
       </div>
-    </section>
+    </Section>
 
     <!-- CTA Section -->
-    <section class="pro-cta-section">
-      <div class="pro-cta-content">
-        <Badge icon="ph:handshake-fill" color="purple">Partner With Us</Badge>
-        <h2 class="pro-cta-title">Join Our Select Program</h2>
-        <p class="pro-cta-subtitle">
+    <CtaSection
+      badge="Partner With Us"
+      badge-icon="ph:handshake-fill"
+      badge-color="purple"
+      title="Join Our Select Program"
+      :primary-action="{
+        href: 'https://vyuh.tech',
+        icon: 'ph:rocket-launch-fill',
+        label: 'Apply for Select Access',
+        external: true,
+      }"
+      :secondary-actions="[
+        {
+          href: '/docs/getting-started/installation',
+          icon: 'ph:github-logo-fill',
+          label: 'Try Free Version',
+        },
+      ]"
+    >
+      <template #subtitle>
+        <p
+          class="text-lg text-slate-600 dark:text-zinc-400 leading-relaxed mb-10"
+        >
           We're collaborating with a select group of customers to build the
           future of visual flow editing in
           <FlutterBrand />. Get early access, direct support, and help shape the
           product roadmap.
         </p>
-        <div class="pro-cta-actions">
-          <CtaButton
-            href="https://vyuh.tech"
-            icon="ph:rocket-launch-fill"
-            variant="primary"
-            size="large"
-            external
-          >
-            Apply for Select Access
-          </CtaButton>
-          <CtaButton
-            href="/docs/getting-started/installation"
-            icon="ph:github-logo-fill"
-            variant="secondary"
-            size="large"
-          >
-            Try Free Version
-          </CtaButton>
-        </div>
-      </div>
-    </section>
+      </template>
+    </CtaSection>
 
     <!-- Footer -->
     <SiteFooter :is-pro-page="true" />
@@ -331,50 +318,15 @@ const marqueeAmber = [
 <style>
 @reference "./style.css";
 
-/* ═══════════════════════════════════════════════════════════════════
-   PRO PAGE BASE
-   ═══════════════════════════════════════════════════════════════════ */
-
-.pro-page {
-  @apply min-h-screen relative overflow-x-hidden;
-  /* No solid background - let the grid show through */
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   BACKGROUND EFFECTS
-   ═══════════════════════════════════════════════════════════════════ */
-
-.pro-background {
-  @apply fixed inset-0 z-[1] pointer-events-none overflow-hidden;
-}
-
-.pro-blur {
-  @apply absolute w-96 h-96 rounded-full blur-3xl;
-}
-
-.pro-blur-purple {
-  @apply bg-violet-500/20 dark:bg-violet-400/15 top-1/4 left-1/4;
-}
-
-.pro-blur-blue {
-  @apply bg-blue-500/15 dark:bg-blue-400/10 top-1/2 right-1/4;
-}
-
-.pro-blur-teal {
-  @apply bg-teal-500/15 dark:bg-teal-400/10 bottom-1/4 left-1/3;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   HERO SECTION
-   ═══════════════════════════════════════════════════════════════════ */
-
-.pro-hero {
-  @apply relative z-10 py-32 px-6 text-center max-w-4xl mx-auto;
-}
-
+/* Pro page title - unique gradient styling */
 .pro-title {
   @apply text-5xl sm:text-6xl lg:text-7xl font-black leading-none mb-6;
   font-family: var(--vn-font-display);
+}
+
+.pro-subtitle {
+  @apply text-xl text-slate-600 dark:text-zinc-400 leading-relaxed;
+  @apply text-center max-w-2xl mx-auto;
 }
 
 .pro-title-gradient {
@@ -398,83 +350,5 @@ const marqueeAmber = [
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-}
-
-.pro-subtitle {
-  @apply text-xl text-slate-600 dark:text-zinc-400 leading-relaxed mb-10 max-w-2xl mx-auto;
-}
-
-.pro-select-card {
-  @apply flex flex-col items-center gap-4 p-8 rounded-2xl max-w-xl mx-auto;
-  @apply bg-white/80 dark:bg-zinc-800/60 backdrop-blur-sm;
-  @apply border border-slate-200/60 dark:border-zinc-600/40;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-}
-
-.dark .pro-select-card {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
-
-.pro-select-text {
-  @apply text-base text-slate-500 dark:text-zinc-400 text-center;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   FEATURES SECTION
-   ═══════════════════════════════════════════════════════════════════ */
-
-.pro-features-section {
-  @apply relative z-10 py-24 px-6 max-w-6xl mx-auto;
-}
-
-.pro-features-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   MARQUEE SECTION
-   ═══════════════════════════════════════════════════════════════════ */
-
-.pro-marquee-section {
-  @apply relative z-10 py-10 overflow-hidden;
-  @apply bg-white/70 dark:bg-zinc-800/50;
-  @apply backdrop-blur-md;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   WORKFLOW ENGINE SECTION
-   ═══════════════════════════════════════════════════════════════════ */
-
-.workflow-engine-section {
-  @apply relative z-10 py-24 px-6 max-w-6xl mx-auto;
-}
-
-.workflow-details {
-  @apply mt-16;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   CTA SECTION
-   ═══════════════════════════════════════════════════════════════════ */
-
-.pro-cta-section {
-  @apply relative z-10 py-24 px-6;
-}
-
-.pro-cta-content {
-  @apply max-w-3xl mx-auto text-center;
-}
-
-.pro-cta-title {
-  @apply text-4xl sm:text-5xl font-black text-slate-900 dark:text-zinc-100 mb-6 tracking-tight;
-  font-family: var(--vn-font-display);
-}
-
-.pro-cta-subtitle {
-  @apply text-lg text-slate-600 dark:text-zinc-400 leading-relaxed mb-10;
-}
-
-.pro-cta-actions {
-  @apply flex flex-col sm:flex-row items-center justify-center gap-4;
 }
 </style>

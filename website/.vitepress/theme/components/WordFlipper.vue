@@ -81,6 +81,12 @@ onUnmounted(() => {
   background-clip: text;
 }
 
+.dark .flipper-word {
+  background: linear-gradient(135deg, theme('colors.blue.400'), theme('colors.violet.400'));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
 /* Previous word takes up space */
 .flipper-previous {
   @apply relative;

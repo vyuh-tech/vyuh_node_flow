@@ -170,6 +170,10 @@ onUnmounted(() => {
 
 .code-body code {
   font-family: var(--vn-font-mono);
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+  min-width: 100%;
 }
 
 /* Shiki Line Focus Styling */
@@ -184,13 +188,19 @@ onUnmounted(() => {
 }
 
 .code-body .line.focused {
-  @apply relative bg-blue-500/20 -mx-6 px-6 inline-block border-l-[3px] border-blue-500;
-  width: calc(100% + 3rem);
+  @apply bg-blue-500/20 border-l-[3px] border-blue-500;
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  padding-left: calc(1.5rem - 3px);
+  padding-right: 1.5rem;
 }
 
 .code-body .line.highlighted {
-  @apply relative bg-amber-500/20 -mx-6 px-6 inline-block border-l-[3px] border-amber-500;
-  width: calc(100% + 3rem);
+  @apply bg-amber-500/20 border-l-[3px] border-amber-500;
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  padding-left: calc(1.5rem - 3px);
+  padding-right: 1.5rem;
 }
 
 /* Code Markers */
