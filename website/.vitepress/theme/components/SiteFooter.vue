@@ -43,7 +43,90 @@ defineProps<{
 
     <div class="footer-bottom">
       <p class="footer-copyright">&copy; {{ new Date().getFullYear() }} Vyuh Technologies Private Limited. All rights reserved.</p>
-      <p class="footer-license">Released under the <a href="https://opensource.org/licenses/MIT" target="_blank">MIT License</a></p>
     </div>
   </footer>
 </template>
+
+<style>
+@reference "../style.css";
+
+.custom-footer {
+  @apply relative z-10 py-16 px-6;
+  @apply bg-white/50 dark:bg-zinc-800/50;
+  @apply backdrop-blur-md;
+}
+
+.footer-container {
+  @apply max-w-6xl mx-auto grid grid-cols-[1fr_2fr] gap-16;
+}
+
+@media (max-width: 900px) {
+  .footer-container {
+    @apply grid-cols-1;
+  }
+}
+
+.footer-brand {
+  @apply flex flex-col gap-4;
+}
+
+.footer-logo {
+  @apply flex items-center gap-4;
+}
+
+.footer-logo-img {
+  @apply w-8 h-8;
+}
+
+.footer-logo-text {
+  @apply text-lg font-bold text-slate-900 dark:text-zinc-100;
+  font-family: var(--vn-font-display);
+}
+
+.footer-tagline {
+  @apply text-sm text-slate-600 dark:text-zinc-400;
+}
+
+.footer-links {
+  @apply grid grid-cols-3 gap-10;
+}
+
+@media (max-width: 600px) {
+  .footer-links {
+    @apply grid-cols-1;
+  }
+}
+
+.footer-column {
+  @apply flex flex-col gap-2;
+}
+
+.footer-heading {
+  @apply text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-zinc-100 mb-2;
+  font-family: var(--vn-font-mono);
+}
+
+.footer-link {
+  @apply inline-flex items-center gap-2 text-sm text-slate-600 dark:text-zinc-400 no-underline transition-colors;
+}
+
+.footer-link:hover {
+  @apply text-violet-600 dark:text-violet-400;
+}
+
+.footer-link-pro {
+  @apply text-amber-500 dark:text-amber-400;
+}
+
+.footer-link-pro:hover {
+  @apply text-amber-600 dark:text-amber-300;
+}
+
+.footer-bottom {
+  @apply max-w-6xl mx-auto mt-10 pt-6 text-center;
+}
+
+.footer-copyright {
+  @apply text-sm text-slate-400 dark:text-zinc-500;
+}
+</style>

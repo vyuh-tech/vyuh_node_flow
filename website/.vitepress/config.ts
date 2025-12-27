@@ -1,6 +1,13 @@
 import { defineConfig } from 'vitepress';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+  vite: {
+    plugins: [tailwindcss()],
+  },
+
+  appearance: true, // Enable dark mode toggle
+
   title: 'Vyuh Node Flow',
   description:
     'A flexible, high-performance node-based flow editor for Flutter applications',

@@ -1,9 +1,6 @@
 ---
 layout: page
+title: Vyuh Node Flow Pro - Enterprise Visual Flow Editor
 ---
-
-<script setup>
-import ProPage from './.vitepress/theme/components/ProPage.vue'
-</script>
 
 <ProPage />

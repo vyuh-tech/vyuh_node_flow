@@ -7,16 +7,13 @@ import { Icon } from '@iconify/vue';
 </template>
 
 <style>
+@reference "../style.css";
+
 .flutter-brand {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.2em;
-  font-weight: 900;
-  color: var(--vn-blue);
+  @apply inline-flex items-baseline gap-1 font-black text-blue-600 dark:text-blue-400;
 }
 
 .flutter-brand svg {
-  position: relative;
-  top: 0.1em;
+  @apply relative top-[0.1em];
 }
 </style>

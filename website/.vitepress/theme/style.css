@@ -1,0 +1,129 @@
+/* Vyuh Node Flow - Global Tailwind CSS Styles */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+/* Configure Tailwind to use class-based dark mode (VitePress uses .dark class) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ═══════════════════════════════════════════════════════════════════
+   CSS CUSTOM PROPERTIES
+   These are values that Tailwind can't handle directly
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Typography */
+  --vn-font-display: 'Montserrat', sans-serif;
+  --vn-font-mono: 'JetBrains Mono', monospace;
+
+  /* Animation */
+  --vn-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Glow effects (complex shadows Tailwind can't do) */
+  --glow-blue: 0 0 20px rgba(37, 99, 235, 0.4), inset 0 0 20px rgba(37, 99, 235, 0.05);
+  --glow-purple: 0 0 20px rgba(139, 92, 246, 0.4), inset 0 0 20px rgba(139, 92, 246, 0.05);
+  --glow-teal: 0 0 20px rgba(20, 184, 166, 0.4), inset 0 0 20px rgba(20, 184, 166, 0.05);
+  --glow-amber: 0 0 20px rgba(245, 158, 11, 0.4), inset 0 0 20px rgba(245, 158, 11, 0.05);
+}
+
+.dark {
+  --glow-blue: 0 0 25px rgba(96, 165, 250, 0.5), inset 0 0 20px rgba(96, 165, 250, 0.08);
+  --glow-purple: 0 0 25px rgba(167, 139, 250, 0.5), inset 0 0 20px rgba(167, 139, 250, 0.08);
+  --glow-teal: 0 0 25px rgba(45, 212, 191, 0.5), inset 0 0 20px rgba(45, 212, 191, 0.08);
+  --glow-amber: 0 0 25px rgba(251, 191, 36, 0.5), inset 0 0 20px rgba(251, 191, 36, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   VITEPRESS OVERRIDES
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  --vp-c-bg: theme('colors.slate.50');
+  --vp-c-bg-soft: theme('colors.white');
+  --vp-c-bg-mute: theme('colors.slate.100');
+  --vp-c-brand-1: theme('colors.violet.600');
+  --vp-c-brand-2: theme('colors.violet.500');
+  --vp-c-brand-3: theme('colors.violet.400');
+  --vp-c-text-1: theme('colors.slate.900');
+  --vp-c-text-2: theme('colors.slate.600');
+}
+
+.dark {
+  --vp-c-bg: theme('colors.zinc.800');
+  --vp-c-bg-soft: theme('colors.zinc.700');
+  --vp-c-bg-mute: theme('colors.zinc.700');
+  --vp-c-brand-1: theme('colors.violet.400');
+  --vp-c-brand-2: theme('colors.violet.300');
+  --vp-c-brand-3: theme('colors.violet.200');
+  --vp-c-text-1: theme('colors.zinc.100');
+  --vp-c-text-2: theme('colors.zinc.400');
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   GLOBAL BASE STYLES
+   ═══════════════════════════════════════════════════════════════════ */
+
+html {
+  scroll-behavior: smooth;
+  background: theme('colors.slate.50');
+}
+
+.dark html,
+html.dark {
+  background: theme('colors.zinc.900');
+}
+
+body {
+  font-family: var(--vn-font-display);
+}
+
+/* Hide VitePress defaults on custom pages */
+.home-page + .VPHome,
+.home-page ~ .VPFooter,
+.pro-page + .VPHome,
+.pro-page ~ .VPFooter {
+  display: none !important;
+}
+
+.VPNav {
+  z-index: 50;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   NAV DROPDOWN ICONS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.VPNavBarMenuGroup .VPMenuLink a[href*="github.com"]::before,
+.VPNavBarMenuGroup .VPMenuLink a[href*="pub.dev"]::before,
+.VPNavBarMenuGroup .VPMenuLink a[href*="demo.vyuh"]::before {
+  content: '';
+  display: inline-block;
+  width: 1.1em;
+  height: 1.1em;
+  margin-right: 0.5rem;
+  vertical-align: -0.2em;
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.8;
+}
+
+.VPNavBarMenuGroup .VPMenuLink a[href*="github.com"]::before {
+  background-image: url("https://api.iconify.design/mdi:github.svg?color=%23666666");
+}
+.dark .VPNavBarMenuGroup .VPMenuLink a[href*="github.com"]::before {
+  background-image: url("https://api.iconify.design/mdi:github.svg?color=%23aaaaaa");
+}
+
+.VPNavBarMenuGroup .VPMenuLink a[href*="pub.dev"]::before {
+  background-image: url("https://api.iconify.design/simple-icons:dart.svg?color=%23666666");
+}
+.dark .VPNavBarMenuGroup .VPMenuLink a[href*="pub.dev"]::before {
+  background-image: url("https://api.iconify.design/simple-icons:dart.svg?color=%23aaaaaa");
+}
+
+.VPNavBarMenuGroup .VPMenuLink a[href*="demo.vyuh"]::before {
+  background-image: url("https://api.iconify.design/ph:play-circle-fill.svg?color=%23666666");
+}
+.dark .VPNavBarMenuGroup .VPMenuLink a[href*="demo.vyuh"]::before {
+  background-image: url("https://api.iconify.design/ph:play-circle-fill.svg?color=%23aaaaaa");
+}

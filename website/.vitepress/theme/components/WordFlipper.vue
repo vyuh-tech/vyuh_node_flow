@@ -59,25 +59,23 @@ onUnmounted(() => {
 </template>
 
 <style>
+@reference "../style.css";
+
 .word-flipper {
-  display: flex;
-  position: relative;
-  overflow: visible;
-  width: 100%;
+  @apply flex relative overflow-visible w-full;
 }
 
 /* Center on mobile/tablet when hero is centered */
 @media (max-width: 1100px) {
   .word-flipper {
-    justify-content: center;
+    @apply justify-center;
   }
 }
 
 .flipper-word {
-  white-space: nowrap;
-  padding-right: 0.1em;
+  @apply whitespace-nowrap pr-[0.1em];
   /* Gradient text effect */
-  background: linear-gradient(135deg, #2563eb, #8b5cf6);
+  background: linear-gradient(135deg, theme('colors.blue.600'), theme('colors.violet.500'));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -85,15 +83,12 @@ onUnmounted(() => {
 
 /* Previous word takes up space */
 .flipper-previous {
-  position: relative;
+  @apply relative;
 }
 
 /* Next word overlays the previous */
 .flipper-next {
-  position: absolute;
-  top: 0;
-  left: 0;
-  visibility: hidden;
+  @apply absolute top-0 left-0 invisible;
   filter: opacity(0);
   transform: translateY(0.3em);
 }
@@ -101,7 +96,7 @@ onUnmounted(() => {
 /* Center next word on mobile */
 @media (max-width: 1100px) {
   .flipper-next {
-    left: 50%;
+    @apply left-1/2;
     transform: translateX(-50%) translateY(0.3em);
   }
 }
@@ -113,7 +108,7 @@ onUnmounted(() => {
 
 /* Next word fades in and moves up */
 .flipper-next.animating-in {
-  visibility: visible;
+  @apply visible;
   animation: slideInDesktop 0.4s ease-out forwards;
 }
 

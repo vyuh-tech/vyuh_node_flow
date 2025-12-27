@@ -13,10 +13,10 @@ defineProps<{
 <template>
   <a
     :href="href"
-    class="cta-button"
+    class="hero-btn"
     :class="[
-      variant === 'secondary' ? 'cta-button-secondary' : 'cta-button-primary',
-      size === 'large' ? 'cta-button-lg' : ''
+      variant === 'secondary' ? 'hero-btn-secondary' : 'hero-btn-primary',
+      size === 'large' ? 'hero-btn-lg' : '',
     ]"
     :target="external ? '_blank' : undefined"
   >
@@ -26,55 +26,49 @@ defineProps<{
 </template>
 
 <style>
-.cta-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1.75rem;
-  font-family: var(--vn-font-sans);
-  font-size: 0.95rem;
-  font-weight: 600;
-  border-radius: var(--vn-radius-md);
-  cursor: pointer;
-  transition: all 0.4s var(--vn-ease-out);
-  text-decoration: none;
-  border: none;
+@reference "../style.css";
+
+.hero-btn {
+  @apply inline-flex items-center gap-2 px-7 py-3.5 font-semibold text-sm rounded-xl cursor-pointer no-underline;
+  font-family: var(--vn-font-display);
+  transition: all 0.3s var(--vn-ease-out);
 }
 
-.cta-button-primary {
-  background: linear-gradient(135deg, var(--vn-blue), var(--vn-purple));
-  color: white;
+.hero-btn-primary {
+  @apply text-white border-none;
+  background: linear-gradient(
+    135deg,
+    theme('colors.blue.600'),
+    theme('colors.violet.500')
+  );
   box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
 }
 
-.cta-button-primary:hover {
-  box-shadow: 0 12px 40px rgba(37, 99, 235, 0.5), 0 0 60px rgba(139, 92, 246, 0.3);
-  transform: translateY(-4px);
+.hero-btn-primary:hover {
+  @apply -translate-y-1;
+  box-shadow:
+    0 12px 40px rgba(37, 99, 235, 0.5),
+    0 0 60px rgba(139, 92, 246, 0.3);
 }
 
-.cta-button-secondary {
-  background: var(--vn-bg-surface);
-  color: var(--vn-text-primary);
-  border: 1px solid var(--vn-border-strong);
-  box-shadow: var(--vn-shadow);
+.hero-btn-secondary {
+  @apply bg-white text-slate-700 border border-slate-200;
+  @apply dark:bg-zinc-700 dark:text-zinc-300 dark:border-zinc-500;
 }
 
-.cta-button-secondary:hover {
-  border-color: var(--vn-blue);
-  color: var(--vn-blue);
-  background: var(--vn-blue-dim);
+.hero-btn-secondary:hover {
+  @apply border-violet-600 text-violet-600;
+  @apply dark:border-violet-400 dark:text-violet-400;
 }
 
-.cta-button-lg {
-  padding: 1.125rem 2.5rem;
-  font-size: 1.1rem;
+.hero-btn-lg {
+  @apply px-10 py-4 text-base;
 }
 
 /* Mobile responsiveness */
 @media (max-width: 767px) {
-  .cta-button {
-    justify-content: center;
-    width: 100%;
+  .hero-btn {
+    @apply justify-center w-full;
   }
 }
 </style>

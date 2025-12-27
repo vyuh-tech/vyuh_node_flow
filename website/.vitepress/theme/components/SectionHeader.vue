@@ -20,13 +20,27 @@ defineProps<{
   </div>
 </template>
 
-<style scoped>
+<style>
+@reference "../style.css";
+
 .section-header.centered {
-  text-align: center;
+  @apply text-center;
 }
 
 .section-header.centered .section-subtitle {
-  margin-left: auto;
-  margin-right: auto;
+  @apply mx-auto;
+}
+
+.section-title {
+  @apply text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-slate-100 leading-tight mb-4 tracking-tight;
+  font-family: var(--vn-font-display);
+}
+
+.section-title-large {
+  @apply text-5xl sm:text-6xl lg:text-7xl;
+}
+
+.section-subtitle {
+  @apply text-lg font-medium text-slate-600 dark:text-slate-400 mb-16 max-w-xl;
 }
 </style>

@@ -1,14 +1,16 @@
 import DefaultTheme from 'vitepress/theme';
 import type { Theme } from 'vitepress';
-import CustomHome from './CustomHome.vue';
+import HomePage from './HomePage.vue';
+import ProPage from './ProPage.vue';
 import PackageShields from './components/PackageShields.vue';
 import PubVersion from './components/PubVersion.vue';
-import './custom.css';
+import './style.css';
 
 export default {
   extends: DefaultTheme,
   enhanceApp({ app }) {
-    app.component('CustomHome', CustomHome);
+    app.component('HomePage', HomePage);
+    app.component('ProPage', ProPage);
     app.component('PackageShields', PackageShields);
     app.component('PubVersion', PubVersion);
   },
