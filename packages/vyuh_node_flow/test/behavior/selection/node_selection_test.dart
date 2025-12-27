@@ -414,7 +414,7 @@ void main() {
       String? selectedNodeId;
       final node = createTestNode(id: 'node1');
       controller.addNode(node);
-      controller.setEvents(
+      controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           node: NodeEvents<String>(
             onSelected: (n) {
@@ -433,7 +433,7 @@ void main() {
       String? lastSelectedNodeId = 'initial';
       final node = createTestNode(id: 'node1');
       controller.addNode(node);
-      controller.setEvents(
+      controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           node: NodeEvents<String>(
             onSelected: (n) {

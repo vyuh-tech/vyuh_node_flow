@@ -50,7 +50,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
     _controller = NodeFlowController<Map<String, dynamic>>(
       config: _nodeFlowConfig,
     );
-    _controller.setTheme(_nodeFlowTheme); // Set initial theme in controller
+    // NOTE: Theme is handled by NodeFlowEditor - no need to set it on the controller
     _loadInitialWorkflow();
   }
 
