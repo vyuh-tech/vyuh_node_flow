@@ -56,7 +56,7 @@ void main() {
       controller.addNode(node2);
 
       Connection? createdConnection;
-      controller.setEvents(
+      controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           connection: ConnectionEvents(onCreated: (c) => createdConnection = c),
         ),
@@ -473,7 +473,7 @@ void main() {
       Node<String>? startNode;
       Port? startPort;
 
-      controller.setEvents(
+      controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           connection: ConnectionEvents(
             onConnectStart: (node, port) {
@@ -589,7 +589,7 @@ void main() {
     test('completeConnectionDrag fires onConnectEnd with target', () {
       Node<String>? endTargetNode;
       Port? endTargetPort;
-      controller.setEvents(
+      controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           connection: ConnectionEvents(
             onConnectEnd: (node, port, _) {
@@ -682,7 +682,7 @@ void main() {
       bool callbackFired = false;
       Node<String>? endTargetNode;
       Port? endTargetPort;
-      controller.setEvents(
+      controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           connection: ConnectionEvents(
             onConnectEnd: (node, port, _) {
@@ -848,7 +848,7 @@ void main() {
       );
       controller.addNode(node);
 
-      controller.setEvents(
+      controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           connection: ConnectionEvents<String>(
             onBeforeStart: (context) {
@@ -882,7 +882,7 @@ void main() {
       controller.addNode(source);
       controller.addNode(target);
 
-      controller.setEvents(
+      controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           connection: ConnectionEvents<String>(
             onBeforeComplete: (context) {
@@ -926,7 +926,7 @@ void main() {
       controller.addNode(target);
 
       ConnectionCompleteContext<String>? capturedContext;
-      controller.setEvents(
+      controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           connection: ConnectionEvents<String>(
             onBeforeComplete: (context) {

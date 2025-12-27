@@ -515,6 +515,27 @@ class GraphSpatialIndex<T> {
   /// in world/pixel coordinates.
   Rect cellBounds(int cellX, int cellY) => _grid.cellBounds(cellX, cellY);
 
+  /// Diagnostic: Check consistency between _objects and _spatialGrid.
+  ///
+  /// Use this to diagnose why hit testing might be failing even though
+  /// debug visualization shows correct rectangles.
+  ///
+  /// Returns a record with:
+  /// - objectsCount: items in _objects (what debug draws)
+  /// - spatialGridItemCount: unique IDs in _spatialGrid (what hit testing uses)
+  /// - pendingCount: items waiting to be processed
+  /// - missingFromGrid: IDs in _objects but NOT in _spatialGrid
+  ///
+  /// If missingFromGrid is not empty, that's the bug - items aren't being
+  /// added to the spatial hash grid for hit testing.
+  ({
+    int objectsCount,
+    int spatialGridItemCount,
+    int pendingCount,
+    List<String> missingFromGrid,
+  })
+  diagnoseConsistency() => _grid.diagnoseConsistency();
+
   // ═══════════════════════════════════════════════════════════════════════════
   // PRIVATE IMPLEMENTATION
   // ═══════════════════════════════════════════════════════════════════════════
@@ -547,16 +568,21 @@ class GraphSpatialIndex<T> {
 
     if (candidates.isEmpty) return null;
 
-    // Sort by node zIndex (highest first), then by distance (closest first)
+    // Sort by render layer (highest first), then zIndex (highest first), then distance (closest first)
     candidates.sort((a, b) {
       final nodeA = _nodes[a.item.nodeId];
       final nodeB = _nodes[b.item.nodeId];
       if (nodeA == null || nodeB == null) return 0;
 
+      // 1. Compare render layers (foreground > middle > background)
+      final layerCompare = nodeB.layer.index.compareTo(nodeA.layer.index);
+      if (layerCompare != 0) return layerCompare;
+
+      // 2. Same layer - compare zIndex
       final zIndexCompare = nodeB.zIndex.value.compareTo(nodeA.zIndex.value);
       if (zIndexCompare != 0) return zIndexCompare;
 
-      // Same zIndex - prefer closer port
+      // 3. Same layer and zIndex - prefer closer port
       return a.distance.compareTo(b.distance);
     });
 
@@ -583,9 +609,14 @@ class GraphSpatialIndex<T> {
 
   /// Checks if a point is covered by any node that renders above [excludeNode].
   ///
-  /// A node renders above another if:
-  /// 1. It has a higher zIndex, OR
-  /// 2. It has the same zIndex but appears later in the render order
+  /// A node renders above another if (in priority order):
+  /// 1. It is at a higher render layer (foreground > middle > background)
+  /// 2. Same layer but higher zIndex
+  /// 3. Same layer and zIndex but appears later in the render order
+  ///
+  /// This ensures that:
+  /// - Background nodes (GroupNode) never cover middle layer nodes
+  /// - Only nodes that are visually on top can block port hit testing
   ///
   /// Used to ensure that ports visually obscured by overlapping nodes are not hit.
   bool _isPointCoveredByOtherNode(Offset point, Node<T> excludeNode) {
@@ -620,9 +651,31 @@ class GraphSpatialIndex<T> {
 
   /// Determines if [nodeA] renders above [nodeB] in the visual stack.
   ///
-  /// Returns true if nodeA has a higher zIndex, or if they have the same zIndex
-  /// and nodeA appears later in the render order (based on _renderOrderProvider).
+  /// The render priority is determined in this order:
+  /// 1. **Render layer**: background < middle < foreground
+  ///    A node at a higher layer ALWAYS renders above nodes at lower layers,
+  ///    regardless of zIndex.
+  /// 2. **zIndex**: Within the same layer, higher zIndex renders on top.
+  /// 3. **Render order**: For same layer and same zIndex, the node appearing
+  ///    later in the render order (based on _renderOrderProvider) is on top.
+  ///
+  /// This ensures that:
+  /// - GroupNodes (background) never cover regular nodes (middle)
+  /// - Regular nodes (middle) never cover CommentNodes (foreground)
+  /// - Within a layer, zIndex and render order determine stacking
   bool _nodeRendersAbove(Node<T> nodeA, Node<T> nodeB) {
+    // 1. Compare render layers first
+    // NodeRenderLayer enum order: background(0) < middle(1) < foreground(2)
+    final layerA = nodeA.layer.index;
+    final layerB = nodeB.layer.index;
+
+    if (layerA > layerB) {
+      return true; // nodeA is at a higher layer, always renders above
+    } else if (layerA < layerB) {
+      return false; // nodeA is at a lower layer, always renders below
+    }
+
+    // 2. Same layer - compare zIndex
     final zIndexA = nodeA.zIndex.value;
     final zIndexB = nodeB.zIndex.value;
 
@@ -632,7 +685,7 @@ class GraphSpatialIndex<T> {
       return false;
     }
 
-    // Same zIndex - check render order if provider is available
+    // 3. Same layer and same zIndex - check render order if provider is available
     if (_renderOrderProvider != null) {
       final renderOrder = _renderOrderProvider!();
       final indexA = renderOrder.indexWhere((n) => n.id == nodeA.id);

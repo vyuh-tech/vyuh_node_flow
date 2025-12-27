@@ -459,7 +459,7 @@ void main() {
 
       controller = createTestController();
       // Create events directly to avoid type inference issues with copyWith
-      controller.setEvents(
+      controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           node: NodeEvents<String>(
             onCreated: (node) => nodeCreatedCount++,

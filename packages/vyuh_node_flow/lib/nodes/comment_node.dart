@@ -42,11 +42,12 @@ class CommentNode<T> extends Node<T> with ResizableMixin<T> {
     required super.data,
     double width = 200.0,
     double height = 100.0,
-    this.color = Colors.yellow,
+    Color color = Colors.yellow,
     int zIndex = 0,
     bool isVisible = true,
     super.locked,
   }) : _text = Observable(text),
+       _color = Observable(color),
        super(
          type: 'comment',
          size: Size(width, height),
@@ -65,14 +66,18 @@ class CommentNode<T> extends Node<T> with ResizableMixin<T> {
   String get text => _text.value;
   set text(String value) => runInAction(() => _text.value = value);
 
+  /// Observable background color of the comment.
+  final Observable<Color> _color;
+
+  /// The background color of the comment.
+  Color get color => _color.value;
+  set color(Color value) => runInAction(() => _color.value = value);
+
   /// The width of the comment in pixels.
   double get width => size.value.width;
 
   /// The height of the comment in pixels.
   double get height => size.value.height;
-
-  /// The background color of the comment.
-  final Color color;
 
   /// Minimum and maximum size constraints for comments.
   static const double minWidth = 100.0;
@@ -129,24 +134,24 @@ class CommentNode<T> extends Node<T> with ResizableMixin<T> {
 
   /// Creates a [CommentNode] from a JSON map.
   ///
-  /// This factory method is used during workflow deserialization to recreate
+  /// This factory constructor is used during workflow deserialization to recreate
   /// comment nodes from saved data.
   ///
   /// Parameters:
   /// * [json] - The JSON map containing node data
-  /// * [fromJsonT] - Function to deserialize the custom data of type [R]
-  static CommentNode<R> fromJsonMap<R>(
-    Map<String, dynamic> json,
-    R Function(Object? json) fromJsonT,
-  ) {
-    return CommentNode<R>(
+  /// * [dataFromJson] - Function to deserialize the custom data of type [T]
+  factory CommentNode.fromJson(
+    Map<String, dynamic> json, {
+    required T Function(Object? json) dataFromJson,
+  }) {
+    return CommentNode<T>(
       id: json['id'] as String,
       position: Offset(
         (json['x'] as num).toDouble(),
         (json['y'] as num).toDouble(),
       ),
       text: json['text'] as String? ?? '',
-      data: fromJsonT(json['data']),
+      data: dataFromJson(json['data']),
       width: (json['width'] as num?)?.toDouble() ?? 200.0,
       height: (json['height'] as num?)?.toDouble() ?? 100.0,
       color: Color(json['color'] as int? ?? Colors.yellow.toARGB32()),

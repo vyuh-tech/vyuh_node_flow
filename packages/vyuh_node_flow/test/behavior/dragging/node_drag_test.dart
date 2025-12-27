@@ -79,7 +79,7 @@ void main() {
       controller.addNode(node);
 
       Node<String>? draggedNode;
-      controller.setEvents(
+      controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           node: NodeEvents<String>(
             onDragStart: (n) {
@@ -148,7 +148,7 @@ void main() {
       controller.addNode(node);
 
       Node<String>? movedNode;
-      controller.setEvents(
+      controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           node: NodeEvents<String>(
             onDrag: (n) {
@@ -215,7 +215,7 @@ void main() {
       controller.addNode(node2);
 
       final movedNodeIds = <String>[];
-      controller.setEvents(
+      controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           node: NodeEvents<String>(
             onDrag: (n) {
@@ -305,7 +305,7 @@ void main() {
       controller.addNode(node);
 
       Node<String>? stoppedNode;
-      controller.setEvents(
+      controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           node: NodeEvents<String>(
             onDragStop: (n) {
@@ -328,7 +328,7 @@ void main() {
       controller.addNode(node2);
 
       final stoppedNodeIds = <String>[];
-      controller.setEvents(
+      controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           node: NodeEvents<String>(
             onDragStop: (n) {
@@ -402,7 +402,7 @@ void main() {
       controller.addNode(node);
 
       final events = <String>[];
-      controller.setEvents(
+      controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           node: NodeEvents<String>(
             onDragStart: (n) => events.add('start'),

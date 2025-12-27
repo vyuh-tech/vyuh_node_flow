@@ -25,8 +25,8 @@ Node<T> defaultNodeFromJson<T>(
 ) {
   final type = json['type'] as String;
   return switch (type) {
-    'group' => GroupNode.fromJsonMap<T>(json, fromJsonT),
-    'comment' => CommentNode.fromJsonMap<T>(json, fromJsonT),
+    'group' => GroupNode<T>.fromJson(json, dataFromJson: fromJsonT),
+    'comment' => CommentNode<T>.fromJson(json, dataFromJson: fromJsonT),
     _ => Node<T>.fromJson(json, fromJsonT),
   };
 }

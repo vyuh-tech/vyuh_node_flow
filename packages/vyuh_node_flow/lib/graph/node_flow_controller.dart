@@ -32,6 +32,7 @@ import 'node_flow_actions.dart';
 import 'node_flow_behavior.dart';
 
 part 'api/connection_api.dart';
+part 'api/editor_init_api.dart';
 part 'api/graph_api.dart';
 // Domain-specific API extensions
 part 'api/node_api.dart';
@@ -104,12 +105,15 @@ class NodeFlowController<T> {
     // Setup selection change reactions
     _setupSelectionReactions();
 
-    // Setup spatial index auto-sync reactions
-    _setupSpatialIndexReactions();
-
-    // Provide render order to spatial index for accurate hit testing
-    // when nodes have the same zIndex
-    _spatialIndex.renderOrderProvider = () => sortedNodes;
+    // NOTE: Spatial index reactions are NOT set up here.
+    // They are deferred to _initController() because the spatial index requires
+    // callbacks (portSizeResolver, nodeShapeBuilder) that are set by the
+    // editor widget. If reactions fire before callbacks are set, ports
+    // will be indexed with incorrect bounds causing hit testing to fail.
+    //
+    // The canonical initialization point is _initController() in editor_init_api.dart.
+    // That method sets up: theme, node shape builder, spatial index callbacks,
+    // connection painter, hit testers, reactions, and initializes loaded nodes.
 
     // Load initial nodes and connections if provided
     if (nodes != null && nodes.isNotEmpty) {
@@ -323,6 +327,9 @@ class NodeFlowController<T> {
   // Connection painting and hit-testing
   ConnectionPainter? _connectionPainter;
 
+  // Connection segment calculator for spatial index (set by _initController)
+  List<Rect> Function(Connection connection)? _connectionSegmentCalculator;
+
   // Spatial hit testing
   late final GraphSpatialIndex<T> _spatialIndex = GraphSpatialIndex<T>(
     portSnapDistance: _config.portSnapDistance.value,
@@ -334,6 +341,9 @@ class NodeFlowController<T> {
 
   // Connection index for O(1) lookup by node ID
   final Map<String, Set<String>> _connectionsByNodeId = {};
+
+  // Editor initialization tracking - set to true after initializeForEditor() is called
+  bool _editorInitialized = false;
 
   // Actions and shortcuts management
   late final NodeFlowShortcutManager<T> shortcuts;
@@ -529,58 +539,8 @@ class NodeFlowController<T> {
     );
   }
 
-  void _setupSpatialIndexReactions() {
-    // === DRAG STATE FLUSH REACTION ===
-    // When any drag ends, flush all pending spatial index updates.
-    // This is the single point where pending updates are committed.
-    reaction((_) => interaction.draggedNodeId.value, (String? nodeDragId) {
-      // Only flush when drag has ended
-      if (nodeDragId == null) {
-        _flushPendingSpatialUpdates();
-      }
-    }, fireImmediately: false);
-
-    // === NODE ADD/REMOVE SYNC ===
-    // When nodes are added/removed, rebuild the node spatial index
-    reaction((_) => _nodes.keys.toSet(), (Set<String> currentNodeIds) {
-      _spatialIndex.rebuildFromNodes(_nodes.values);
-    }, fireImmediately: false);
-
-    // === CONNECTION ADD/REMOVE SYNC ===
-    // When connections are added/removed, rebuild connection spatial index and update index
-    reaction((_) => _connections.map((c) => c.id).toSet(), (
-      Set<String> connectionIds,
-    ) {
-      // Rebuild connection-by-node index
-      _rebuildConnectionsByNodeIndex();
-      // Rebuild connection spatial index with proper segments
-      rebuildAllConnectionSegments();
-    }, fireImmediately: false);
-
-    // === THEME/STYLE CHANGE SYNC ===
-    // When path-affecting theme properties change, rebuild connection segments
-    reaction((_) => _getPathAffectingSignature(), (_) {
-      // Theme properties that affect path geometry have changed
-      // Rebuild all connection segments in spatial index
-      rebuildAllConnectionSegments();
-    }, fireImmediately: false);
-
-    // === NODE VISIBILITY CHANGE SYNC ===
-    // When node visibility changes, rebuild connection segments
-    // (connections are visible only when both endpoint nodes are visible)
-    reaction(
-      (_) {
-        // Create a signature of all node visibility states
-        return _nodes.values.map((n) => (n.id, n.isVisible)).toList();
-      },
-      (_) {
-        // Rebuild connection spatial index segments
-        // Hidden connections will return empty segments from the path cache
-        rebuildAllConnectionSegments();
-      },
-      fireImmediately: false,
-    );
-  }
+  // NOTE: _setupSpatialIndexReactions() is now defined in editor_init_api.dart
+  // It is called during _initController() to set up spatial index synchronization.
 
   /// Gets the connection painter used for rendering and hit-testing connections.
   ///
