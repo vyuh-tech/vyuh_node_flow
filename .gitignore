@@ -18,3 +18,4 @@ devtools_options.yaml
 
 .gemini*
 .claude*
+*report.html
