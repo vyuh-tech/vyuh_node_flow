@@ -1,3 +1,9 @@
+## 0.15.1
+
+ - **REFACTOR**: replace static `fromJsonMap` methods with unified factory constructors and improve `CommentNode` color observability.
+ - **REFACTOR**: remove unused imports and redundant test node creation in controller_init_test.
+ - **FEAT**: add EditorInitApi for unified initialization, improve spatial index diagnostics, and update render layer prioritization.
+
 ## 0.15.0
 
  - **FEAT**: refactor test factory and add unit tests for constructor initialization.
