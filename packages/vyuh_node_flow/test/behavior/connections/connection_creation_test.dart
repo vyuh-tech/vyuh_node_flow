@@ -592,7 +592,7 @@ void main() {
       controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           connection: ConnectionEvents(
-            onConnectEnd: (node, port) {
+            onConnectEnd: (node, port, _) {
               endTargetNode = node;
               endTargetPort = port;
             },
@@ -685,7 +685,7 @@ void main() {
       controller.internalUpdateEvents(
         NodeFlowEvents<String>(
           connection: ConnectionEvents(
-            onConnectEnd: (node, port) {
+            onConnectEnd: (node, port, _) {
               callbackFired = true;
               endTargetNode = node;
               endTargetPort = port;

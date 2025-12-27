@@ -1103,8 +1103,13 @@ extension ConnectionApi<T> on NodeFlowController<T> {
     required String targetPortId,
   }) {
     final temp = interaction.temporaryConnection.value;
+
+    final eventPosition = interaction.pointerPosition == null
+        ? GraphPosition.zero
+        : viewport.toGraph(interaction.pointerPosition!);
+
     if (temp == null) {
-      events.connection?.onConnectEnd?.call(null, null);
+      events.connection?.onConnectEnd?.call(null, null, eventPosition);
       return null;
     }
 
@@ -1213,10 +1218,16 @@ extension ConnectionApi<T> on NodeFlowController<T> {
 
     // Fire connection end event with the target node and port that the user dropped on
     final droppedOnNode = _nodes[targetNodeId];
+
     final droppedOnPort = droppedOnNode?.allPorts
         .where((p) => p.id == targetPortId)
         .firstOrNull;
-    events.connection?.onConnectEnd?.call(droppedOnNode, droppedOnPort);
+
+    events.connection?.onConnectEnd?.call(
+      droppedOnNode,
+      droppedOnPort,
+      eventPosition,
+    );
 
     return createdConnection;
   }
@@ -1228,6 +1239,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
   void cancelConnectionDrag() {
     // Reset highlighted port before canceling
     final temp = interaction.temporaryConnection.value;
+
     if (temp != null &&
         temp.targetNodeId != null &&
         temp.targetPortId != null) {
@@ -1245,7 +1257,10 @@ extension ConnectionApi<T> on NodeFlowController<T> {
     interaction.cancelConnection();
 
     // Note: Canvas unlocking is now handled by DragSession
-
-    events.connection?.onConnectEnd?.call(null, null);
+    events.connection?.onConnectEnd?.call(
+      null,
+      null,
+      temp == null ? GraphPosition.zero : GraphPosition(temp.currentPoint),
+    );
   }
 }
