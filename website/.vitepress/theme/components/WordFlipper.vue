@@ -50,7 +50,7 @@ onUnmounted(() => {
       :class="{ 'animating-out': isAnimating }"
     >{{ previousWord }}</span>
 
-    <!-- Next word - overlays, fades in during animation -->
+    <!-- Next word - overlays the previous, fades in during animation -->
     <span
       class="flipper-word flipper-next"
       :class="{ 'animating-in': isAnimating }"
@@ -60,14 +60,20 @@ onUnmounted(() => {
 
 <style>
 .word-flipper {
-  display: block;
+  display: flex;
   position: relative;
   overflow: visible;
   width: 100%;
 }
 
+/* Center on mobile/tablet when hero is centered */
+@media (max-width: 1100px) {
+  .word-flipper {
+    justify-content: center;
+  }
+}
+
 .flipper-word {
-  display: inline-block;
   white-space: nowrap;
   padding-right: 0.1em;
   /* Gradient text effect */
@@ -92,6 +98,14 @@ onUnmounted(() => {
   transform: translateY(0.3em);
 }
 
+/* Center next word on mobile */
+@media (max-width: 1100px) {
+  .flipper-next {
+    left: 50%;
+    transform: translateX(-50%) translateY(0.3em);
+  }
+}
+
 /* Previous word fades out and moves up */
 .flipper-previous.animating-out {
   animation: slideOut 0.4s ease-in forwards;
@@ -100,7 +114,13 @@ onUnmounted(() => {
 /* Next word fades in and moves up */
 .flipper-next.animating-in {
   visibility: visible;
-  animation: slideIn 0.4s ease-out forwards;
+  animation: slideInDesktop 0.4s ease-out forwards;
+}
+
+@media (max-width: 1100px) {
+  .flipper-next.animating-in {
+    animation: slideInMobile 0.4s ease-out forwards;
+  }
 }
 
 @keyframes slideOut {
@@ -114,7 +134,7 @@ onUnmounted(() => {
   }
 }
 
-@keyframes slideIn {
+@keyframes slideInDesktop {
   0% {
     filter: opacity(0);
     transform: translateY(0.3em);
@@ -122,6 +142,17 @@ onUnmounted(() => {
   100% {
     filter: opacity(1);
     transform: translateY(0);
+  }
+}
+
+@keyframes slideInMobile {
+  0% {
+    filter: opacity(0);
+    transform: translateX(-50%) translateY(0.3em);
+  }
+  100% {
+    filter: opacity(1);
+    transform: translateX(-50%) translateY(0);
   }
 }
 </style>

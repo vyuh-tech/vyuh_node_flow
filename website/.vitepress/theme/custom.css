@@ -74,6 +74,10 @@
 }
 
 /* Global Styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -87,6 +91,16 @@ body {
 /* Custom Home Page Container */
 .custom-home {
   min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Grid background - fixed to viewport, always bottom layer */
+.custom-home::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background:
     linear-gradient(to right, rgba(37, 99, 235, 0.06) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(37, 99, 235, 0.06) 1px, transparent 1px),
@@ -94,7 +108,7 @@ body {
     linear-gradient(to bottom, rgba(37, 99, 235, 0.02) 1px, transparent 1px),
     var(--vn-bg-deep);
   background-size: 200px 200px, 200px 200px, 40px 40px, 40px 40px, 100% 100%;
-  overflow-x: hidden;
+  pointer-events: none;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -201,11 +215,12 @@ body {
   height: 100%;
 }
 
-/* Blinking Cells Overlay */
+/* Blinking Cells Overlay - fixed to viewport to align with CSS grid */
 .hero-grid-blink {
-  position: absolute;
+  position: fixed;
   inset: 0;
   pointer-events: none;
+  z-index: 0;
 }
 
 .blink-cell {
@@ -512,7 +527,7 @@ body {
   background: white;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .demo-iframe {
     height: 400px;
   }
@@ -620,20 +635,22 @@ body {
 .feature-card:nth-child(11) { grid-column: span 1; }
 .feature-card:nth-child(12) { grid-column: span 2; }
 
-/* Tablet bento (3 columns) */
-@media (max-width: 1100px) and (min-width: 769px) {
+/* Tablet bento (3 columns) - alternating row patterns */
+@media (max-width: 1100px) and (min-width: 768px) {
   .features-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-  .feature-card:nth-child(n) { grid-column: span 1; }
-  .feature-card:nth-child(1),
-  .feature-card:nth-child(4),
-  .feature-card:nth-child(7),
-  .feature-card:nth-child(10) { grid-column: span 2; }
+  /* Row pattern alternates: 2+1, then 1+2, then 2+1, etc. */
+  /* Odd rows (1,3,5): first card wide, second narrow */
+  .feature-card:nth-child(4n+1) { grid-column: span 2; }
+  .feature-card:nth-child(4n+2) { grid-column: span 1; }
+  /* Even rows (2,4,6): first card narrow, second wide */
+  .feature-card:nth-child(4n+3) { grid-column: span 1; }
+  .feature-card:nth-child(4n)   { grid-column: span 2; }
 }
 
 /* Mobile (single column) */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .features-grid {
     grid-template-columns: 1fr;
   }
@@ -883,6 +900,9 @@ body {
   display: flex;
   align-items: stretch;
   justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .detail-image-wrapper {
@@ -910,6 +930,8 @@ body {
   width: 100%;
   min-height: 280px;
   height: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   background: var(--vn-bg-elevated);
   border: 2px dashed var(--vn-border-strong);
   border-radius: var(--vn-radius-lg);
@@ -928,7 +950,8 @@ body {
 .media-placeholder-inner {
   text-align: center;
   padding: var(--vn-space-lg);
-  max-width: 280px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .media-placeholder-badge {
@@ -1368,7 +1391,7 @@ body {
   gap: var(--vn-space-xl);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .footer-container {
     grid-template-columns: 1fr;
     gap: var(--vn-space-lg);
@@ -1412,16 +1435,11 @@ body {
   gap: var(--vn-space-lg);
 }
 
-@media (max-width: 600px) {
-  .footer-links {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
 .footer-column {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  align-items: flex-start;
 }
 
 .footer-heading {
@@ -1892,7 +1910,7 @@ body {
   margin: 0;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .pro-footer-content {
     flex-direction: column;
     text-align: center;
@@ -1921,7 +1939,7 @@ body:has(.pro-page) .VPNavBarAppearance {
    ═══════════════════════════════════════════════════════════════════ */
 
 /* Tablet (768px - 1100px) */
-@media (max-width: 1100px) and (min-width: 769px) {
+@media (max-width: 1100px) and (min-width: 768px) {
   :root {
     --vn-space-xl: 3rem;
     --vn-space-2xl: 4rem;
@@ -1931,9 +1949,19 @@ body:has(.pro-page) .VPNavBarAppearance {
     font-size: clamp(2rem, 5vw, 3rem);
   }
 
-  .features-grid,
   .use-cases-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .footer-links {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* CTA buttons - horizontal layout on tablet */
+  .cta-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .detail-row {
@@ -1942,7 +1970,7 @@ body:has(.pro-page) .VPNavBarAppearance {
 }
 
 /* Mobile (< 768px) */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   :root {
     --vn-space-lg: 2rem;
     --vn-space-xl: 2.5rem;
@@ -2108,30 +2136,29 @@ body:has(.pro-page) .VPNavBarAppearance {
   .footer-container {
     grid-template-columns: 1fr;
     gap: var(--vn-space-lg);
-    text-align: center;
   }
 
   .footer-brand {
-    align-items: center;
+    align-items: flex-start;
   }
 
   .footer-logo {
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .footer-tagline {
-    text-align: center;
+    text-align: left;
     max-width: 100%;
   }
 
   .footer-links {
     grid-template-columns: repeat(2, 1fr);
     gap: var(--vn-space-md);
-    justify-items: center;
+    justify-items: start;
   }
 
   .footer-column {
-    align-items: center;
+    align-items: flex-start;
   }
 
   .footer-bottom {
@@ -2213,7 +2240,7 @@ body:has(.pro-page) .VPNavBarAppearance {
   }
 
   .footer-links {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .demo-iframe {

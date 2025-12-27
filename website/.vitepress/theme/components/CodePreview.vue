@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { createHighlighter } from 'shiki';
 import {
   transformerNotationFocus,
   transformerNotationHighlight,
 } from '@shikijs/transformers';
-import { Icon } from '@iconify/vue';
 
 export interface CodeMarker {
   line: number;
@@ -23,23 +22,45 @@ const props = defineProps<{
 const highlightedCode = ref('');
 const activeMarker = ref<CodeMarker | null>(null);
 const markerPosition = ref({ top: 0, right: 0 });
+const markerPositions = ref<{ [key: number]: number }>({});
+const codeBodyRef = ref<HTMLElement | null>(null);
 
-const showTooltip = (marker: CodeMarker, event: MouseEvent) => {
+const showTooltip = (marker: CodeMarker, event: MouseEvent | FocusEvent) => {
   activeMarker.value = marker;
   const target = event.currentTarget as HTMLElement;
   const rect = target.getBoundingClientRect();
   const container = target.closest('.code-window')?.getBoundingClientRect();
   if (container) {
-    // Position tooltip to the left of the marker, vertically centered using CSS transform
     markerPosition.value = {
-      top: rect.top - container.top + (rect.height / 2), // marker vertical center
-      right: container.right - rect.left + 12, // 12px gap from marker
+      top: rect.top - container.top + (rect.height / 2),
+      right: container.right - rect.left + 12,
     };
   }
 };
 
 const hideTooltip = () => {
   activeMarker.value = null;
+};
+
+const calculateMarkerPositions = () => {
+  if (!codeBodyRef.value || !props.markers) return;
+
+  const codeElement = codeBodyRef.value;
+  const lines = codeElement.querySelectorAll('.line');
+  const positions: { [key: number]: number } = {};
+
+  props.markers.forEach((marker) => {
+    const lineIndex = marker.line - 1;
+    if (lines[lineIndex]) {
+      const lineElement = lines[lineIndex] as HTMLElement;
+      const codeBodyRect = codeElement.getBoundingClientRect();
+      const lineRect = lineElement.getBoundingClientRect();
+      // Calculate position relative to code-body-wrapper (parent of code-body)
+      positions[marker.line] = lineRect.top - codeBodyRect.top + (lineRect.height / 2) - 10;
+    }
+  });
+
+  markerPositions.value = positions;
 };
 
 onMounted(async () => {
@@ -55,6 +76,17 @@ onMounted(async () => {
       transformerNotationHighlight(),
     ],
   });
+
+  // Calculate marker positions after code is rendered
+  await nextTick();
+  calculateMarkerPositions();
+
+  // Recalculate on resize
+  window.addEventListener('resize', calculateMarkerPositions);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', calculateMarkerPositions);
 });
 </script>
 
@@ -67,15 +99,15 @@ onMounted(async () => {
       <span class="code-filename">{{ filename }}</span>
     </div>
     <div class="code-body-wrapper">
-      <div class="code-body" v-html="highlightedCode"></div>
+      <div ref="codeBodyRef" class="code-body" v-html="highlightedCode"></div>
 
-      <!-- Code markers -->
-      <div v-if="markers" class="code-markers">
+      <!-- Code markers - positioned dynamically based on actual line positions -->
+      <div v-if="markers && Object.keys(markerPositions).length > 0" class="code-markers">
         <button
           v-for="(marker, index) in markers"
           :key="marker.line"
           class="code-marker"
-          :style="{ top: `calc(1.5rem + ${(marker.line - 1) * 1.28}rem)` }"
+          :style="{ top: `${markerPositions[marker.line] || 0}px` }"
           @mouseenter="showTooltip(marker, $event)"
           @mouseleave="hideTooltip"
           @focus="showTooltip(marker, $event)"
