@@ -64,8 +64,8 @@ class _SimpleFlowEditorState extends State<SimpleFlowEditor> {
   @override
   Widget build(BuildContext context) => NodeFlowEditor<String>( // [!code focus]
     controller: controller, // [!code focus]
-    theme: NodeFlowTheme.light, // [!code focus]
-    nodeBuilder: (context, node) => Container(
+    theme: NodeFlowTheme.light,
+    nodeBuilder: (context, node) => Container( // [!code focus]
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -89,6 +89,12 @@ const codeMarkers = [
     title: 'NodeFlowEditor Widget',
     description:
       'The Flutter widget that renders the visual editor. Features include pan & zoom, node dragging, connection creation, selection, and customizable theming.',
+  },
+  {
+    line: 41,
+    title: 'Custom Node Builder',
+    description:
+      'Create custom nodes and appearances using any Flutter widget. Full control over node styling, content, and interactions.',
   },
 ];
 
