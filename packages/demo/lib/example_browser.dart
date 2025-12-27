@@ -58,9 +58,8 @@ class _ExampleBrowserState extends State<ExampleBrowser> {
     // Navigate using GoRouter which will update the URL
     context.go('/$categoryId/${example.id}');
 
-    // Close drawer on mobile after selection
-    if (Responsive.isMobile(context) &&
-        _scaffoldKey.currentState?.isDrawerOpen == true) {
+    // Close drawer on mobile/tablet after selection
+    if (_scaffoldKey.currentState?.isDrawerOpen == true) {
       Navigator.of(context).pop();
     }
   }
@@ -69,15 +68,16 @@ class _ExampleBrowserState extends State<ExampleBrowser> {
   Widget build(BuildContext context) {
     final isMobile = Responsive.isMobile(context);
     final isTablet = Responsive.isTablet(context);
+    final useDrawerNavigation = isMobile || isTablet;
 
     return Scaffold(
       key: _scaffoldKey,
-      appBar: isMobile ? _buildMobileAppBar() : null,
-      drawer: (isMobile || isTablet) ? _buildDrawer() : null,
+      appBar: useDrawerNavigation ? _buildCompactAppBar() : null,
+      drawer: useDrawerNavigation ? _buildDrawer() : null,
       body: Row(
         children: [
           // Desktop: Show navigation sidebar
-          if (!isMobile && !isTablet)
+          if (!useDrawerNavigation)
             ExampleNavigation(
               categories: widget.categories,
               state: _navState,
@@ -91,7 +91,7 @@ class _ExampleBrowserState extends State<ExampleBrowser> {
     );
   }
 
-  PreferredSizeWidget _buildMobileAppBar() {
+  PreferredSizeWidget _buildCompactAppBar() {
     final theme = Theme.of(context);
 
     return AppBar(
