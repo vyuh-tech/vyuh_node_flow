@@ -282,7 +282,13 @@ class ConnectionEvents<T> {
   ///
   /// If [targetNode] and [targetPort] are non-null, a connection was successfully
   /// created to that target. If both are null, the connection was cancelled.
-  final void Function(Node<T>? targetNode, Port? targetPort)? onConnectEnd;
+  /// [position] provides the graph coordinates where the event occurred.
+  final void Function(
+    Node<T>? targetNode,
+    Port? targetPort,
+    GraphPosition position,
+  )?
+  onConnectEnd;
 
   /// Validation callback before starting a connection from a port
   /// Return ConnectionValidationResult with allowed: false to prevent connection start
@@ -307,7 +313,12 @@ class ConnectionEvents<T> {
     void Function(Connection connection, ScreenPosition screenPosition)?
     onContextMenu,
     void Function(Node<T> sourceNode, Port sourcePort)? onConnectStart,
-    void Function(Node<T>? targetNode, Port? targetPort)? onConnectEnd,
+    void Function(
+      Node<T>? targetNode,
+      Port? targetPort,
+      GraphPosition position,
+    )?
+    onConnectEnd,
     ConnectionValidationResult Function(ConnectionStartContext<T> context)?
     onBeforeStart,
     ConnectionValidationResult Function(ConnectionCompleteContext<T> context)?
