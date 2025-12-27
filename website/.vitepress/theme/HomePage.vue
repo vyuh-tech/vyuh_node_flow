@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import Badge from './components/Badge.vue';
+import BentoGrid from './components/BentoGrid.vue';
+import CodePreview from './components/CodePreview.vue';
 import CtaButton from './components/CtaButton.vue';
-import SectionHeader from './components/SectionHeader.vue';
+import CtaSection from './components/CtaSection.vue';
+import DemoFrame from './components/DemoFrame.vue';
 import FeatureCard from './components/FeatureCard.vue';
 import FeatureSection from './components/FeatureSection.vue';
 import FlutterBrand from './components/FlutterBrand.vue';
 import GridBackground from './components/GridBackground.vue';
-import MarqueeSection from './components/MarqueeSection.vue';
-import CodePreview from './components/CodePreview.vue';
-import UseCaseCard from './components/UseCaseCard.vue';
+import HeroSection from './components/HeroSection.vue';
+import MarqueeGroup from './components/MarqueeGroup.vue';
+import Section from './components/Section.vue';
+import SectionHeader from './components/SectionHeader.vue';
 import SiteFooter from './components/SiteFooter.vue';
 import WordFlipper from './components/WordFlipper.vue';
-import CtaSection from './components/CtaSection.vue';
 
 // Full words for the flipper
 const flipperWords = [
@@ -101,37 +104,20 @@ const codeMarkers = [
 ];
 
 // Marquee content
-const marqueeBlue = [
-  'Annotations & Sticky Notes',
-  'Keyboard Shortcuts',
-  'Read-Only Viewer',
-  'Multi-touch Gestures',
-  'Undo/Redo Support',
-  'Auto Pan',
-  'Bezier Curves',
-  'Straight Lines',
-];
-
-const marqueePurple = [
-  'Dark & Light Themes',
-  'Snap to Grid',
-  'Zoom Controls',
-  'Drag Selection',
-  'Viewport Animations',
-  'Infinite Canvas',
-  'Custom Markers',
-  'Gradient Flow',
-];
-
-const marqueeTeal = [
-  'Port Validation',
-  'Event Callbacks',
-  'Viewport Controls',
-  'Grid Styles',
-  'Node Resizing',
-  'Connection Effects',
-  'JSON Serialization',
-  'Reactive State',
+const marqueeLines = [
+  {
+    items: ['Annotations & Sticky Notes', 'Keyboard Shortcuts', 'Read-Only Viewer', 'Multi-touch Gestures', 'Undo/Redo Support', 'Auto Pan', 'Bezier Curves', 'Straight Lines'],
+    color: 'blue' as const,
+  },
+  {
+    items: ['Dark & Light Themes', 'Snap to Grid', 'Zoom Controls', 'Drag Selection', 'Viewport Animations', 'Infinite Canvas', 'Custom Markers', 'Gradient Flow'],
+    color: 'purple' as const,
+    reverse: true,
+  },
+  {
+    items: ['Port Validation', 'Event Callbacks', 'Viewport Controls', 'Grid Styles', 'Node Resizing', 'Connection Effects', 'JSON Serialization', 'Reactive State'],
+    color: 'teal' as const,
+  },
 ];
 
 // Capability cards for the grid
@@ -382,118 +368,87 @@ const generateBlinkCells = (count: number, seed: number) => {
 };
 
 const heroBlinkCells = generateBlinkCells(20, 42);
-const ctaBlinkCells = generateBlinkCells(15, 73);
 </script>
 
 <template>
-  <div class="home-page">
+  <div class="min-h-screen relative overflow-x-hidden">
     <!-- Canvas-based Grid Background with blinking cells -->
     <GridBackground color="blue" :blinkCells="heroBlinkCells" />
 
     <!-- Hero Section -->
-    <section class="hero-section">
-      <div class="hero-background">
-        <!-- Blur effects only - grid now handled by canvas -->
-        <div class="hero-blur hero-blur-blue" />
-        <div class="hero-blur hero-blur-purple" />
-        <div class="hero-blur hero-blur-teal" />
-      </div>
-
-      <div class="hero-content">
-        <div class="hero-text">
-          <Badge icon="simple-icons:flutter" color="blue"
-            >Built for Flutter</Badge
+    <HeroSection>
+      <template #text>
+        <Badge icon="simple-icons:flutter" color="blue">Built for Flutter</Badge>
+        <h1 class="hero-title">
+          <span class="block text-5xl sm:text-6xl lg:text-7xl mb-2">Visualize any</span>
+          <WordFlipper :words="flipperWords" :interval="1500" />
+        </h1>
+        <p class="text-xl font-medium text-slate-600 dark:text-zinc-300 leading-relaxed max-w-lg hero-animate-3 opacity-0 max-lg:mx-auto">
+          A flexible, high-performance node-based flow editor for
+          <FlutterBrand />. Build workflow editors, visual programming
+          interfaces, and interactive diagrams.
+        </p>
+        <div class="flex gap-4 flex-wrap hero-animate-4 opacity-0 max-lg:justify-center mt-12">
+          <CtaButton
+            href="/docs/getting-started/installation"
+            variant="primary"
+            size="large"
           >
-          <h1 class="hero-title">
-            <span class="hero-title-static">Visualize any</span>
-            <WordFlipper :words="flipperWords" :interval="1500" />
-          </h1>
-          <p class="hero-subtitle">
-            A flexible, high-performance node-based flow editor for
-            <FlutterBrand />. Build workflow editors, visual programming
-            interfaces, and interactive diagrams.
-          </p>
-          <div class="hero-actions">
-            <CtaButton
-              href="/docs/getting-started/installation"
-              variant="primary"
-              size="large"
-            >
-              Get Started <Icon icon="ph:arrow-right-bold" />
-            </CtaButton>
-            <CtaButton
-              href="https://flow.demo.vyuh.tech"
-              icon="ph:play-fill"
-              variant="secondary"
-              size="large"
-              external
-            >
-              Live Demo
-            </CtaButton>
-          </div>
+            Get Started <Icon icon="ph:arrow-right-bold" />
+          </CtaButton>
+          <CtaButton
+            href="https://flow.demo.vyuh.tech"
+            icon="ph:play-fill"
+            variant="secondary"
+            size="large"
+            external
+          >
+            Live Demo
+          </CtaButton>
         </div>
+      </template>
 
-        <div class="hero-visual">
-          <div class="demo-frame-wrapper">
-            <div class="demo-frame-header">
-              <span class="demo-frame-dot demo-frame-dot-red" />
-              <span class="demo-frame-dot demo-frame-dot-yellow" />
-              <span class="demo-frame-dot demo-frame-dot-green" />
-              <a
-                href="https://flow.demo.vyuh.tech"
-                target="_blank"
-                class="demo-frame-url"
-                >flow.demo.vyuh.tech</a
-              >
-            </div>
-            <iframe
-              src="https://flow.demo.vyuh.tech"
-              class="demo-iframe"
-              title="Vyuh Node Flow Demo"
-              loading="lazy"
-            />
-          </div>
-        </div>
-      </div>
-    </section>
+      <template #visual>
+        <DemoFrame
+          url="flow.demo.vyuh.tech"
+          title="Vyuh Node Flow Demo"
+        />
+      </template>
+    </HeroSection>
 
     <!-- Code Preview Section -->
-    <section class="code-section content-section content-section-first">
-      <div class="code-container">
-        <SectionHeader
-          badge="Quick Start"
-          badge-icon="simple-icons:flutter"
-          badge-color="blue"
-          title="Simple & Intuitive API"
-        />
-        <CodePreview
-          :code="codeExample"
-          filename="simple_flow_editor.dart"
-          :markers="codeMarkers"
-        />
-      </div>
-    </section>
+    <Section first background size="sm">
+      <SectionHeader
+        badge="Quick Start"
+        badge-icon="simple-icons:flutter"
+        badge-color="blue"
+        title="Simple & Intuitive API"
+      />
+      <CodePreview
+        :code="codeExample"
+        filename="simple_flow_editor.dart"
+        :markers="codeMarkers"
+      />
+    </Section>
 
     <!-- Detailed Feature Sections -->
-    <section class="feature-sections content-section">
-      <div class="feature-sections-container">
-        <FeatureSection
-          v-for="(feature, index) in detailedFeatures"
-          :key="index"
-          :tag="feature.tag"
-          :tag-icon="feature.icon"
-          :tag-color="feature.tagColor"
-          :title="feature.title"
-          :subtitle="feature.subtitle"
-          :bullets="feature.bullets"
-          :placeholder="feature.placeholder"
-          :reverse="index % 2 === 1"
-        />
-      </div>
-    </section>
+    <Section background>
+      <FeatureSection
+        v-for="(feature, index) in detailedFeatures"
+        :key="index"
+        :tag="feature.tag"
+        :tag-icon="feature.icon"
+        :tag-color="feature.tagColor"
+        :title="feature.title"
+        :subtitle="feature.subtitle"
+        :bullets="feature.bullets"
+        :placeholder="feature.placeholder"
+        :reverse="index % 2 === 1"
+      />
+    </Section>
 
     <!-- Capabilities Grid -->
-    <section class="features-section content-section">
+    <Section background>
       <SectionHeader
         badge="Capabilities"
         badge-icon="ph:squares-four-fill"
@@ -502,7 +457,7 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
         subtitle="Build sophisticated visual editors with a complete toolkit designed for Flutter."
         centered
       />
-      <div class="features-grid">
+      <BentoGrid>
         <FeatureCard
           v-for="(cap, index) in capabilities"
           :key="index"
@@ -511,18 +466,14 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
           :description="cap.desc"
           :color="cap.color"
         />
-      </div>
-    </section>
+      </BentoGrid>
+    </Section>
 
     <!-- Marquee -->
-    <section class="marquee-section">
-      <MarqueeSection :items="marqueeBlue" color="blue" />
-      <MarqueeSection :items="marqueePurple" color="purple" reverse />
-      <MarqueeSection :items="marqueeTeal" color="teal" />
-    </section>
+    <MarqueeGroup :lines="marqueeLines" />
 
     <!-- Use Cases Section -->
-    <section class="use-cases-section content-section">
+    <Section background>
       <SectionHeader
         badge="Infinite Possibilities"
         badge-icon="ph:infinity"
@@ -531,17 +482,18 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
         subtitle="From simple diagrams to complex visual programming environments, Vyuh Node Flow adapts to your needs."
         centered
       />
-      <div class="use-cases-grid">
-        <UseCaseCard
+      <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <FeatureCard
           v-for="(useCase, index) in useCases"
           :key="index"
           :icon="useCase.icon"
           :title="useCase.title"
           :description="useCase.desc"
           :color="useCase.color"
+          layout="horizontal"
         />
       </div>
-    </section>
+    </Section>
 
     <!-- CTA Section -->
     <CtaSection
@@ -579,71 +531,26 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
 <style>
 @reference "./style.css";
 
-/* ═══════════════════════════════════════════════════════════════════
-   CUSTOM HOME PAGE
-   ═══════════════════════════════════════════════════════════════════ */
-
-.home-page {
-  @apply min-h-screen relative overflow-x-hidden;
-  /* No solid background - let the grid show through */
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   CONTENT SECTIONS - Darker background to demarcate from hero
-   ═══════════════════════════════════════════════════════════════════ */
-
-.content-section {
-  @apply relative;
-  @apply bg-slate-100/50 dark:bg-zinc-900/60;
-}
-
-/* Only the first content section has a top border */
-.content-section-first {
-  @apply border-t border-slate-200/50 dark:border-zinc-700/50;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   HERO SECTION
-   ═══════════════════════════════════════════════════════════════════ */
-
-.hero-section {
-  @apply relative min-h-screen flex items-center justify-center py-10 px-6 overflow-hidden;
-}
-
-.hero-background {
-  @apply absolute inset-0 z-0;
-}
-
-.hero-blur {
-  @apply absolute rounded-full;
-  filter: blur(120px);
-}
-
-.hero-blur-blue {
-  @apply w-[600px] h-[600px] bg-blue-500 -top-48 -left-24 opacity-15 dark:opacity-25;
-}
-
-.hero-blur-purple {
-  @apply w-[500px] h-[500px] bg-violet-500 top-24 -right-36 opacity-12 dark:opacity-20;
-}
-
-.hero-blur-teal {
-  @apply w-[400px] h-[400px] bg-teal-500 -bottom-24 left-1/3 opacity-10 dark:opacity-18;
-}
-
-.hero-content {
-  @apply relative z-10 max-w-7xl w-full grid lg:grid-cols-[1fr_1.4fr] gap-16 items-center;
-}
-
-@media (max-width: 1100px) {
-  .hero-content {
-    @apply grid-cols-1 text-center;
-  }
-}
-
-.hero-text {
-  animation: fadeSlideUp 0.8s var(--vn-ease-out) forwards;
+/* Hero title styling - kept here as it's page-specific */
+.hero-title {
+  @apply text-4xl sm:text-5xl lg:text-6xl font-black leading-tight mb-6 text-slate-900 dark:text-zinc-100 tracking-tight;
+  font-family: var(--vn-font-display);
+  animation: fadeSlideUp 0.8s var(--vn-ease-out) 0.2s forwards;
   @apply opacity-0;
+}
+
+/* WordFlipper text one notch smaller */
+.hero-title .word-flipper {
+  @apply text-3xl sm:text-4xl lg:text-5xl;
+}
+
+/* Staggered animation delays */
+.hero-animate-3 {
+  animation: fadeSlideUp 0.8s var(--vn-ease-out) 0.3s forwards;
+}
+
+.hero-animate-4 {
+  animation: fadeSlideUp 0.8s var(--vn-ease-out) 0.4s forwards;
 }
 
 @keyframes fadeSlideUp {
@@ -655,230 +562,5 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.hero-title {
-  @apply text-4xl sm:text-5xl lg:text-6xl font-black leading-tight mb-6 text-slate-900 dark:text-zinc-100 tracking-tight;
-  font-family: var(--vn-font-display);
-  animation: fadeSlideUp 0.8s var(--vn-ease-out) 0.2s forwards;
-  @apply opacity-0;
-}
-
-.hero-title-static {
-  @apply block text-5xl sm:text-6xl lg:text-7xl;
-}
-
-/* WordFlipper text one notch smaller to prevent overflow */
-.hero-title .word-flipper {
-  @apply text-3xl sm:text-4xl lg:text-5xl;
-}
-
-.hero-subtitle {
-  @apply text-xl font-medium text-slate-600 dark:text-zinc-300 leading-relaxed mb-10 max-w-lg;
-  animation: fadeSlideUp 0.8s var(--vn-ease-out) 0.3s forwards;
-  @apply opacity-0;
-}
-
-@media (max-width: 1100px) {
-  .hero-subtitle {
-    @apply mx-auto;
-  }
-}
-
-.hero-actions {
-  @apply flex gap-4 flex-wrap;
-  animation: fadeSlideUp 0.8s var(--vn-ease-out) 0.4s forwards;
-  @apply opacity-0;
-}
-
-@media (max-width: 1100px) {
-  .hero-actions {
-    @apply justify-center;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   DEMO FRAME
-   ═══════════════════════════════════════════════════════════════════ */
-
-.hero-visual {
-  @apply relative;
-  animation: fadeSlideUp 0.8s var(--vn-ease-out) 0.5s forwards;
-  @apply opacity-0;
-}
-
-@media (max-width: 1100px) {
-  .hero-visual {
-    @apply max-w-full;
-  }
-}
-
-.demo-frame-wrapper {
-  @apply relative rounded-lg overflow-hidden border border-slate-200/50 dark:border-zinc-600/50 bg-white dark:bg-zinc-800;
-  box-shadow:
-    0 20px 50px rgba(0, 0, 0, 0.1),
-    0 0 60px rgba(139, 92, 246, 0.15);
-}
-
-.demo-frame-header {
-  @apply flex items-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-zinc-700 border-b border-slate-200 dark:border-zinc-600;
-}
-
-.demo-frame-dot {
-  @apply w-2 h-2 rounded-full;
-}
-
-.demo-frame-dot-red {
-  @apply bg-red-500;
-}
-.demo-frame-dot-yellow {
-  @apply bg-yellow-500;
-}
-.demo-frame-dot-green {
-  @apply bg-green-500;
-}
-
-.demo-frame-url {
-  @apply flex-1 ml-2 px-2.5 py-1 bg-white dark:bg-zinc-800 rounded-md text-xs text-slate-400 dark:text-zinc-500 no-underline transition-colors;
-  font-family: var(--vn-font-mono);
-}
-
-.demo-frame-url:hover {
-  @apply text-blue-600 bg-blue-600/10 dark:text-blue-400 dark:bg-blue-400/10;
-}
-
-.demo-iframe {
-  @apply w-full h-[520px] border-none bg-white;
-}
-
-@media (max-width: 767px) {
-  .demo-iframe {
-    @apply h-[400px];
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   CODE SECTION
-   ═══════════════════════════════════════════════════════════════════ */
-
-.code-section {
-  @apply relative py-24 px-6;
-}
-
-.code-container {
-  @apply max-w-4xl mx-auto;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   FEATURES SECTION
-   ═══════════════════════════════════════════════════════════════════ */
-
-.features-section {
-  @apply relative py-24 px-6;
-}
-
-.features-grid {
-  @apply grid gap-6 max-w-7xl mx-auto;
-  grid-template-columns: repeat(5, 1fr);
-}
-
-/* Bento grid layout */
-.feature-card:nth-child(1) {
-  grid-column: span 2;
-}
-.feature-card:nth-child(2) {
-  grid-column: span 2;
-}
-.feature-card:nth-child(3) {
-  grid-column: span 1;
-}
-.feature-card:nth-child(4) {
-  grid-column: span 1;
-}
-.feature-card:nth-child(5) {
-  grid-column: span 2;
-}
-.feature-card:nth-child(6) {
-  grid-column: span 2;
-}
-.feature-card:nth-child(7) {
-  grid-column: span 2;
-}
-.feature-card:nth-child(8) {
-  grid-column: span 1;
-}
-.feature-card:nth-child(9) {
-  grid-column: span 2;
-}
-.feature-card:nth-child(10) {
-  grid-column: span 2;
-}
-.feature-card:nth-child(11) {
-  grid-column: span 1;
-}
-.feature-card:nth-child(12) {
-  grid-column: span 2;
-}
-
-@media (max-width: 1100px) and (min-width: 768px) {
-  .features-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .feature-card:nth-child(4n + 1) {
-    grid-column: span 2;
-  }
-  .feature-card:nth-child(4n + 2) {
-    grid-column: span 1;
-  }
-  .feature-card:nth-child(4n + 3) {
-    grid-column: span 1;
-  }
-  .feature-card:nth-child(4n) {
-    grid-column: span 2;
-  }
-}
-
-@media (max-width: 767px) {
-  .features-grid {
-    @apply grid-cols-1;
-  }
-  .feature-card:nth-child(n) {
-    grid-column: span 1;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   FEATURE SECTIONS
-   ═══════════════════════════════════════════════════════════════════ */
-
-.feature-sections {
-  @apply py-16 px-6;
-}
-
-.feature-sections-container {
-  @apply max-w-6xl mx-auto;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   MARQUEE SECTION
-   ═══════════════════════════════════════════════════════════════════ */
-
-.marquee-section {
-  @apply py-10 overflow-hidden;
-  @apply bg-white/70 dark:bg-zinc-800/50;
-  @apply backdrop-blur-md;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   USE CASES SECTION
-   ═══════════════════════════════════════════════════════════════════ */
-
-.use-cases-section {
-  @apply relative py-24 px-6;
-}
-
-.use-cases-grid {
-  @apply grid gap-6 max-w-6xl mx-auto;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 </style>
