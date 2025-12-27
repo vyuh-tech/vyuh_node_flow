@@ -1,7 +1,6 @@
 /* Vyuh Node Flow - Global Tailwind CSS Styles */
 
-/* Reduced font weights for better performance */
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Montserrat:wght@400;600;800;900&display=swap');
+/* Fonts are loaded via <link> tags in config.ts head for non-blocking loading */
 @import "tailwindcss";
 
 /* Configure Tailwind to use class-based dark mode (VitePress uses .dark class) */
@@ -13,9 +12,9 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* Typography */
-  --vn-font-display: 'Montserrat', sans-serif;
-  --vn-font-mono: 'JetBrains Mono', monospace;
+  /* Typography - system font stacks as fallbacks for FOUT prevention */
+  --vn-font-display: 'Montserrat', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --vn-font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
 
   /* Animation */
   --vn-ease-out: cubic-bezier(0.16, 1, 0.3, 1);

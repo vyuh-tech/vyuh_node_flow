@@ -1,9 +1,28 @@
 import { defineConfig } from 'vitepress';
 import tailwindcss from '@tailwindcss/vite';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [
+      tailwindcss(),
+      // Bundle analyzer - generates stats.html after build
+      visualizer({
+        filename: '.vitepress/dist/stats.html',
+        open: false,
+        gzipSize: true,
+        brotliSize: true,
+      }),
+    ],
+  },
+
+  // Configure Shiki for minimal bundle size
+  // See: https://shiki.style/guide/bundles
+  markdown: {
+    theme: {
+      light: 'github-light',
+      dark: 'github-dark',
+    },
   },
 
   appearance: true, // Enable dark mode toggle
@@ -14,10 +33,20 @@ export default defineConfig({
   cleanUrls: true,
 
   head: [
-    // Preconnect for faster font loading
+    // Preconnect for faster resource loading
     ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
     ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
     ['link', { rel: 'preconnect', href: 'https://api.iconify.design' }],
+    ['link', { rel: 'preconnect', href: 'https://flow.demo.vyuh.tech' }],
+    // Non-blocking font loading (moved from CSS @import for better performance)
+    ['link', {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Montserrat:wght@400;600;800;900&display=swap',
+      media: 'print',
+      onload: "this.media='all'"
+    }],
+    // Fallback for browsers with JS disabled
+    ['noscript', {}, '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Montserrat:wght@400;600;800;900&display=swap">'],
     ['link', { rel: 'icon', href: '/icon.svg', type: 'image/svg+xml' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:title', content: 'Vyuh Node Flow - Visual Flow Editor for Flutter' }],
