@@ -1,3 +1,9 @@
+## 0.16.0
+
+ - Added the GraphPosition to the connection end callback
+
+ - **FIX**: replace `setEvents` with `internalUpdateEvents` across tests for consistency.
+
 ## 0.15.1
 
  - **REFACTOR**: replace static `fromJsonMap` methods with unified factory constructors and improve `CommentNode` color observability.
