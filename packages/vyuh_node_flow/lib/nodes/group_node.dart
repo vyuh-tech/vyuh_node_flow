@@ -514,16 +514,16 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
 
   /// Creates a [GroupNode] from a JSON map.
   ///
-  /// This factory method is used during workflow deserialization to recreate
+  /// This factory constructor is used during workflow deserialization to recreate
   /// group nodes from saved data.
   ///
   /// Parameters:
   /// * [json] - The JSON map containing node data
-  /// * [fromJsonT] - Function to deserialize the custom data of type [R]
-  static GroupNode<R> fromJsonMap<R>(
-    Map<String, dynamic> json,
-    R Function(Object? json) fromJsonT,
-  ) {
+  /// * [dataFromJson] - Function to deserialize the custom data of type [T]
+  factory GroupNode.fromJson(
+    Map<String, dynamic> json, {
+    required T Function(Object? json) dataFromJson,
+  }) {
     // Parse padding from JSON (stored as LTRB array or object)
     EdgeInsets padding = kGroupNodeDefaultPadding;
     final paddingJson = json['padding'];
@@ -557,7 +557,7 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
             .toList() ??
         const [];
 
-    final node = GroupNode<R>(
+    return GroupNode<T>(
       id: json['id'] as String,
       position: Offset(
         (json['x'] as num).toDouble(),
@@ -568,16 +568,14 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
         (json['height'] as num?)?.toDouble() ?? 150.0,
       ),
       title: json['title'] as String? ?? '',
-      data: fromJsonT(json['data']),
+      data: dataFromJson(json['data']),
       color: Color(json['color'] as int? ?? Colors.blue.toARGB32()),
       behavior: GroupBehavior.values.byName(
         json['behavior'] as String? ?? 'bounds',
       ),
-      nodeIds:
-          (json['nodeIds'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toSet() ??
-          {},
+      nodeIds: (json['nodeIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toSet(),
       padding: padding,
       zIndex: json['zIndex'] as int? ?? -1,
       isVisible: json['isVisible'] as bool? ?? true,
@@ -585,7 +583,6 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
       inputPorts: inputPorts,
       outputPorts: outputPorts,
     );
-    return node;
   }
 
   /// Converts this group node to a JSON map.
