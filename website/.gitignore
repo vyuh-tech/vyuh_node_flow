@@ -1,30 +1,23 @@
-# deps
-/node_modules
+# Dependencies
+node_modules/
 
-# generated content
-.source
+# Build output
+.vitepress/dist/
+.vitepress/cache/
 
-# test & build
-/coverage
-/.next/
-/out/
-/build
-*.tsbuildinfo
+# Logs
+*.log
 
-# misc
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
 .DS_Store
-*.pem
-/.pnp
-.pnp.js
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+Thumbs.db
 
-# others
-.env*.local
-.vercel
-next-env.d.ts
-
-# Cloudflare
-.open-next/
-.wrangler/
+# Temp
+*.tmp
+convert-mdx.py

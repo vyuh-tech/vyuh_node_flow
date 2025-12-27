@@ -1,0 +1,506 @@
+---
+title: Annotations
+description: Add sticky notes, groups, and markers to enrich your node flows
+---
+
+# Annotations
+
+::: details 🖼️ All Annotation Types
+Canvas showing all three annotation types: yellow Sticky Note with multi-line text, blue Group containing several nodes with 'Data Processing' label header, and circular Markers (timer, warning, milestone icons) attached near nodes. Each labeled with type name.
+:::
+
+Annotations are visual overlays that add context to your node flows without affecting the underlying graph logic. Use them for documentation, organization, and semantic indicators.
+
+  <Card title="Sticky Notes" href="#sticky-notes">
+Free-floating notes for comments and documentation
+  </Card>
+  <Card title="Groups" href="#groups">
+Visual containers that surround related nodes
+  </Card>
+  <Card title="Markers" href="#markers">
+Compact icons for status and semantic indicators
+  </Card>
+
+## Three Annotation Types
+
+### Sticky Notes
+
+Free-floating notes that can be placed anywhere on the canvas. Perfect for comments, reminders, and documentation.
+
+```dart
+final sticky = controller.annotations.createStickyAnnotation(
+  id: 'sticky-1',
+  position: const Offset(400, 50),
+  text: 'This is a reminder!\n\nMulti-line text supported.',
+  width: 200,
+  height: 120,
+  color: Colors.yellow.shade200,
+);
+controller.annotations.addAnnotation(sticky);
+```
+
+**Properties:**
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `text` | `String` | required | The note content |
+| `width` | `double` | `200.0` | Width in pixels |
+| `height` | `double` | `100.0` | Height in pixels |
+| `color` | `Color` | `Colors.yellow` | Background color |
+
+### Groups
+
+Visual containers that automatically surround a set of nodes. Groups resize and reposition as their contained nodes move.
+
+::: details 🖼️ Group Auto-Resize Behavior
+Animation showing a group containing three nodes. When one node is dragged, the group boundary automatically expands/contracts to maintain padding around all contained nodes.
+:::
+
+```dart
+final group = controller.annotations.createGroupAnnotationAroundNodes(
+  id: 'group-1',
+  title: 'Data Processing',
+  nodeIds: {'node1', 'node2', 'node3'},
+  color: Colors.blue.shade300,
+  padding: const EdgeInsets.all(30),
+);
+controller.annotations.addAnnotation(group);
+```
+
+**Properties:**
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `title` | `String` | required | Header label |
+| `nodeIds` | `Set<String>` | required | Nodes to contain |
+| `color` | `Color` | `Colors.blue` | Header and tint color |
+| `padding` | `EdgeInsets` | `EdgeInsets.all(20)` | Space around nodes |
+
+::: info
+Groups have a default z-index of `-1`, placing them behind nodes. Use `sendAnnotationToBack()` to layer multiple groups.
+
+:::
+
+### Markers
+
+Compact circular badges with icons. Use them for BPMN-style workflow indicators, status badges, and semantic tags.
+
+```dart
+final marker = controller.annotations.createMarkerAnnotation(
+  id: 'marker-1',
+  position: const Offset(80, 80),
+  markerType: MarkerType.warning,
+  color: Colors.orange,
+  tooltip: 'Check prerequisites before proceeding',
+);
+controller.annotations.addAnnotation(marker);
+```
+
+**Marker Types:**
+
+  ### Status
+
+| Type | Icon | Use Case |
+|------|------|----------|
+| `MarkerType.error` | Error icon | Errors, failures |
+| `MarkerType.warning` | Warning icon | Warnings, cautions |
+| `MarkerType.info` | Info icon | Information, tips |
+| `MarkerType.risk` | Problem icon | Risk indicators |
+
+  ### Tasks
+
+| Type | Icon | Use Case |
+|------|------|----------|
+| `MarkerType.user` | Person icon | Human tasks |
+| `MarkerType.script` | Code icon | Automated scripts |
+| `MarkerType.service` | Settings icon | Service calls |
+| `MarkerType.manual` | Hand icon | Manual steps |
+
+  ### Workflow
+
+| Type | Icon | Use Case |
+|------|------|----------|
+| `MarkerType.timer` | Timer icon | Time-based events |
+| `MarkerType.message` | Message icon | Communications |
+| `MarkerType.decision` | Question icon | Decision points |
+| `MarkerType.milestone` | Flag icon | Checkpoints |
+| `MarkerType.subprocess` | Arrow icon | Sub-workflows |
+| `MarkerType.compliance` | Verified icon | Regulatory items |
+
+## Node-Following Annotations
+
+Annotations can follow nodes, moving automatically when the node moves. This is powerful for attaching persistent notes or markers to specific nodes.
+
+::: code-group
+
+```dart [Create the Annotation]
+final note = controller.annotations.createStickyAnnotation(
+  id: 'linked-note',
+  position: const Offset(0, 0), // Will be overridden
+  text: 'Always visible next to this node',
+  offset: const Offset(50, 100), // Offset from node center
+);
+controller.annotations.addAnnotation(note);
+```
+
+```dart [Link to a Node]
+controller.annotations.addNodeDependency(note.id, 'target-node-id');
+```
+
+:::
+
+When the node moves, the annotation moves with it, maintaining its offset.
+
+The `offset` property determines the annotation's position relative to the dependent node's center:
+
+```dart
+StickyAnnotation(
+  id: 'linked-note',
+  position: Offset.zero,
+  text: 'I follow the node!',
+  offset: const Offset(80, 50), // 80px right, 50px down from node center
+);
+```
+
+## Managing Annotations
+
+### Access the Annotation Controller
+
+All annotation operations are done through `controller.annotations`:
+
+```dart
+// Add and remove annotations
+controller.annotations.addAnnotation(myAnnotation);
+controller.annotations.removeAnnotation(id);
+
+// Get annotation by ID
+final annotation = controller.annotations.getAnnotation(id);
+
+// Factory methods for creating annotations
+final sticky = controller.annotations.createStickyAnnotation(...);
+final group = controller.annotations.createGroupAnnotation(...);
+final groupAroundNodes = controller.annotations.createGroupAnnotationAroundNodes(...);
+final marker = controller.annotations.createMarkerAnnotation(...);
+
+// Add created annotation to the graph
+controller.annotations.addAnnotation(sticky);
+```
+
+### Visibility Control
+
+```dart
+// Individual annotation visibility
+controller.annotations.setAnnotationVisible(id, false);
+controller.annotations.setAnnotationVisible(id, true);
+```
+
+### Z-Index and Layering
+
+Annotations are rendered in z-index order. Lower values appear behind higher values.
+
+```dart
+// Groups typically use negative z-index to appear behind nodes
+controller.annotations.sendAnnotationToBack(groupId);
+
+// Bring a sticky note to front
+controller.annotations.bringAnnotationToFront(noteId);
+```
+
+### Selection
+
+Annotations can be selected like nodes:
+
+```dart
+// Programmatic selection
+controller.annotations.selectAnnotation(id);
+controller.annotations.selectAnnotation(id, toggle: true); // Toggle selection
+controller.clearSelection(); // Clears nodes, connections, AND annotations
+controller.annotations.clearAnnotationSelection(); // Clears only annotations
+
+// Check selection state
+final isSelected = annotation.currentSelected;
+```
+
+::: tip
+Set `isInteractive: false` on an annotation to make it purely decorative - it won't respond to clicks or selection.
+
+:::
+
+## Configuration
+
+### Grid Snapping
+
+Annotations can snap to grid independently of nodes:
+
+```dart
+NodeFlowController(
+  config: NodeFlowConfig(
+    snapToGrid: true,
+    snapAnnotationsToGrid: false, // Annotations move freely
+  ),
+);
+```
+
+### Theme Integration
+
+Annotations respect the `AnnotationTheme` in your `NodeFlowTheme`:
+
+```dart
+NodeFlowTheme(
+  annotationTheme: AnnotationTheme(
+    selectionBorderColor: Colors.blue,
+    selectionBorderWidth: 2.0,
+    // Additional theming options...
+  ),
+);
+```
+
+## Complete Example
+
+Here's a workflow with all three annotation types:
+
+::: details 🎬 Annotated Workflow Demo
+Complete workflow showing: indigo group surrounding Start→Process→End flow, yellow sticky note with documentation below, timer marker on Process node, milestone marker on End node. Interactive demo showing annotation selection and z-index layering.
+:::
+
+```dart
+class AnnotatedWorkflow extends StatefulWidget {
+  @override
+  State<AnnotatedWorkflow> createState() => _AnnotatedWorkflowState();
+}
+
+class _AnnotatedWorkflowState extends State<AnnotatedWorkflow> {
+  late final NodeFlowController<Map<String, dynamic>> controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = NodeFlowController();
+    _setupWorkflow();
+  }
+
+  void _setupWorkflow() {
+    // Add nodes
+    controller.addNode(Node(
+      id: 'start',
+      type: 'start',
+      position: const Offset(100, 100),
+      size: const Size(120, 60),
+      data: {'label': 'Start'},
+      outputPorts: const [Port(id: 'out', position: PortPosition.right)],
+    ));
+
+    controller.addNode(Node(
+      id: 'process',
+      type: 'process',
+      position: const Offset(280, 100),
+      size: const Size(140, 80),
+      data: {'label': 'Process Data'},
+      inputPorts: const [Port(id: 'in', position: PortPosition.left)],
+      outputPorts: const [Port(id: 'out', position: PortPosition.right)],
+    ));
+
+    controller.addNode(Node(
+      id: 'end',
+      type: 'end',
+      position: const Offset(480, 100),
+      size: const Size(120, 60),
+      data: {'label': 'End'},
+      inputPorts: const [Port(id: 'in', position: PortPosition.left)],
+    ));
+
+    // Connect nodes
+    controller.addConnection(Connection(
+      id: 'c1',
+      sourceNodeId: 'start',
+      sourcePortId: 'out',
+      targetNodeId: 'process',
+      targetPortId: 'in',
+    ));
+
+    controller.addConnection(Connection(
+      id: 'c2',
+      sourceNodeId: 'process',
+      sourcePortId: 'out',
+      targetNodeId: 'end',
+      targetPortId: 'in',
+    ));
+
+    // Add a group around the workflow
+    final group = controller.annotations.createGroupAnnotationAroundNodes(
+      id: 'main-group',
+      title: 'Main Workflow',
+      nodeIds: {'start', 'process', 'end'},
+      color: Colors.indigo.shade200,
+      padding: const EdgeInsets.all(40),
+    );
+    controller.annotations.addAnnotation(group);
+
+    // Add a documentation sticky note
+    final sticky = controller.annotations.createStickyAnnotation(
+      id: 'doc-note',
+      position: const Offset(100, 220),
+      text: 'This workflow processes incoming data and outputs results.',
+      width: 220,
+      height: 80,
+      color: Colors.amber.shade100,
+    );
+    controller.annotations.addAnnotation(sticky);
+
+    // Add status markers
+    final timerMarker = controller.annotations.createMarkerAnnotation(
+      id: 'timer-marker',
+      position: const Offset(260, 80),
+      markerType: MarkerType.timer,
+      color: Colors.blue,
+      tooltip: 'Estimated time: 5 minutes',
+    );
+    controller.annotations.addAnnotation(timerMarker);
+
+    final milestoneMarker = controller.annotations.createMarkerAnnotation(
+      id: 'milestone-marker',
+      position: const Offset(460, 80),
+      markerType: MarkerType.milestone,
+      color: Colors.green,
+      tooltip: 'Completion checkpoint',
+    );
+    controller.annotations.addAnnotation(milestoneMarker);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return NodeFlowEditor<Map<String, dynamic>>(
+      controller: controller,
+      nodeBuilder: (context, node) => Center(
+        child: Text(node.data['label'] ?? ''),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+}
+```
+
+## Creating Custom Annotations
+
+Extend the `Annotation` base class to create custom annotation types:
+
+```dart
+class BadgeAnnotation extends Annotation {
+  final String label;
+  final Color badgeColor;
+  final double radius;
+
+  BadgeAnnotation({
+    required super.id,
+    required Offset position,
+    required this.label,
+    this.badgeColor = Colors.purple,
+    this.radius = 30,
+  }) : super(
+         type: 'badge',
+         initialPosition: position,
+       );
+
+  @override
+  Size get size => Size(radius * 2, radius * 2);
+
+  @override
+  Widget buildWidget(BuildContext context) {
+    return Container(
+      width: size.width,
+      height: size.height,
+      decoration: BoxDecoration(
+        color: badgeColor,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: badgeColor.withOpacity(0.3),
+            blurRadius: 8,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'type': type,
+    'x': currentPosition.dx,
+    'y': currentPosition.dy,
+    'label': label,
+    'badgeColor': badgeColor.value,
+    'radius': radius,
+  };
+
+  @override
+  void fromJson(Map<String, dynamic> json) {
+    setPosition(Offset(
+      (json['x'] as num).toDouble(),
+      (json['y'] as num).toDouble(),
+    ));
+  }
+}
+```
+
+### Required Overrides
+
+| Method | Purpose |
+|--------|---------|
+| `Size get size` | Dimensions for hit testing |
+| `Widget buildWidget(BuildContext)` | Visual representation |
+| `Map<String, dynamic> toJson()` | Serialization |
+| `void fromJson(Map<String, dynamic>)` | Deserialization |
+
+::: info
+The framework automatically handles positioning, selection feedback, drag interactions, and reactivity. You just define the visual appearance and serialization.
+
+:::
+
+## Serialization
+
+Annotations are automatically included when you serialize the graph:
+
+```dart
+// Export includes annotations
+final graph = controller.exportGraph();
+final json = graph.toJson((data) => data);
+
+// Import restores annotations
+final loadedGraph = NodeGraph.fromJson(
+  json,
+  (json) => json as Map<String, dynamic>,
+);
+controller.loadGraph(loadedGraph);
+```
+
+For custom annotation types, register them in `Annotation.fromJsonByType()` or handle deserialization manually.
+
+## Best Practices
+
+1. **Use groups sparingly** - Too many overlapping groups create visual clutter
+2. **Match markers to semantics** - Use consistent marker types for consistent meanings
+3. **Keep notes concise** - Sticky notes work best for short reminders, not documentation
+4. **Layer thoughtfully** - Put groups behind nodes, markers at the same level, notes on top
+5. **Consider interactivity** - Set `isInteractive: false` for purely decorative annotations
+
+## See Also
+
+- [Serialization](/docs/advanced/serialization) - Save and load workflows with annotations
+- [Theming Overview](/docs/theming/overview) - Customize annotation appearance
+- [Controller](/docs/core-concepts/controller) - Full annotation controller API

@@ -1,4 +1,4 @@
-name: Deploy Website to Cloudflare Workers
+name: Deploy Website to Cloudflare Pages
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'website/**'
-  workflow_dispatch: # Allow manual triggering
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -38,13 +38,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build for Cloudflare Workers
-        run: pnpm exec opennextjs-cloudflare build
+      - name: Build VitePress
+        run: pnpm build
 
-      - name: Deploy to Cloudflare Workers
+      - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: website
-          command: deploy
+          command: pages deploy .vitepress/dist --project-name=vyuh-node-flow-website

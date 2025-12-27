@@ -1,0 +1,464 @@
+---
+title: Event System
+description: Handle user interactions with nodes, connections, and the canvas
+---
+
+# Event System
+
+::: details 🖼️ Event System Overview
+Diagram showing event flow architecture: NodeFlowEvents container with five event groups (NodeEvents, PortEvents, ConnectionEvents, ViewportEvents, AnnotationEvents) plus top-level callbacks (onSelectionChange, onInit, onError). Arrows showing event propagation from user interactions.
+:::
+
+The event system provides comprehensive callbacks for all user interactions. Events are organized into logical groups for nodes, ports, connections, viewport, and annotations.
+
+## Event Structure
+
+Events are passed via the `events` parameter on `NodeFlowEditor`:
+
+```dart
+NodeFlowEditor<MyData>(
+  controller: controller,
+  events: NodeFlowEvents(
+    node: NodeEvents(...),
+    port: PortEvents(...),
+    connection: ConnectionEvents(...),
+    viewport: ViewportEvents(...),
+    annotation: AnnotationEvents(...),
+    onSelectionChange: (state) => ...,
+    onInit: () => ...,
+    onError: (error) => ...,
+  ),
+)
+```
+
+## Node Events
+
+React to node lifecycle and interaction events.
+
+::: details 🖼️ Node Events Demo
+Animated demonstration of node events: clicking (onTap), double-clicking (onDoubleTap), dragging (onDragStart/onDrag/onDragStop), hovering (onMouseEnter/onMouseLeave), and right-clicking (onContextMenu). Shows visual feedback for each event.
+:::
+
+```dart
+NodeEvents<MyData>(
+  // Lifecycle
+  onCreated: (node) => print('Created: ${node.id}'),
+  onDeleted: (node) => print('Deleted: ${node.id}'),
+  onSelected: (node) => print('Selected: ${node?.id}'),
+
+  // Interactions
+  onTap: (node) => _showDetails(node),
+  onDoubleTap: (node) => _editNode(node),
+  onContextMenu: (node, position) => _showMenu(node, position),
+
+  // Drag operations
+  onDragStart: (node) => _startDrag(node),
+  onDrag: (node) => _updatePosition(node),
+  onDragStop: (node) => _savePosition(node),
+
+  // Hover
+  onMouseEnter: (node) => _highlightNode(node),
+  onMouseLeave: (node) => _unhighlightNode(node),
+)
+```
+
+| Event | Trigger | Signature |
+|-------|---------|-----------|
+| `onCreated` | Node added to graph | `ValueChanged<Node<T>>` |
+| `onDeleted` | Node removed from graph | `ValueChanged<Node<T>>` |
+| `onSelected` | Selection state changes | `ValueChanged<Node<T>?>` |
+| `onTap` | Single tap on node | `ValueChanged<Node<T>>` |
+| `onDoubleTap` | Double tap on node | `ValueChanged<Node<T>>` |
+| `onDragStart` | Drag begins | `ValueChanged<Node<T>>` |
+| `onDrag` | During drag | `ValueChanged<Node<T>>` |
+| `onDragStop` | Drag ends | `ValueChanged<Node<T>>` |
+| `onMouseEnter` | Mouse enters node | `ValueChanged<Node<T>>` |
+| `onMouseLeave` | Mouse leaves node | `ValueChanged<Node<T>>` |
+| `onContextMenu` | Right-click / long-press | `(Node<T>, Offset)` |
+
+## Port Events
+
+Handle interactions with connection ports.
+
+```dart
+PortEvents<MyData>(
+  onTap: (node, port, isOutput) {
+    print('Tapped ${isOutput ? 'output' : 'input'} port: ${port.id}');
+  },
+  onDoubleTap: (node, port, isOutput) => _configurePort(port),
+  onMouseEnter: (node, port, isOutput) => _showPortTooltip(port),
+  onMouseLeave: (node, port, isOutput) => _hideTooltip(),
+  onContextMenu: (node, port, isOutput, position) {
+    _showPortMenu(node, port, position);
+  },
+)
+```
+
+::: info
+Port events include the parent `node` and `isOutput` flag for context, since ports are always attached to nodes.
+
+:::
+
+## Connection Events
+
+Handle connection lifecycle and interactions, including validation.
+
+::: details 🖼️ Connection Events Demo
+Animated demonstration of connection creation with validation: drag from port (onConnectStart), hover over valid/invalid targets showing validation feedback, complete connection (onConnectEnd with success), and connection rejection showing error reason.
+:::
+
+```dart
+ConnectionEvents<MyData>(
+  // Lifecycle
+  onCreated: (conn) => print('Connected: ${conn.id}'),
+  onDeleted: (conn) => print('Disconnected: ${conn.id}'),
+  onSelected: (conn) => _highlightConnection(conn),
+
+  // Interactions
+  onTap: (conn) => _selectConnection(conn),
+  onDoubleTap: (conn) => _editConnection(conn),
+  onContextMenu: (conn, position) => _showConnectionMenu(conn, position),
+
+  // Connection creation process
+  onConnectStart: (nodeId, portId, isOutput) {
+    print('Starting connection from $nodeId:$portId');
+  },
+  onConnectEnd: (success) {
+    print(success ? 'Connection created' : 'Connection cancelled');
+  },
+
+  // Validation hooks
+  onBeforeStart: (context) => _validateStart(context),
+  onBeforeComplete: (context) => _validateComplete(context),
+)
+```
+
+### Connection Validation
+
+Use validation callbacks to control which connections are allowed:
+
+  ### Start Validation
+
+Prevent connection creation from certain ports:
+
+```dart
+ConnectionEvents<MyData>(
+  onBeforeStart: (context) {
+    final node = context.sourceNode;
+    final port = context.sourcePort;
+
+    // Prevent connections from disabled nodes
+    if (node.data.isDisabled) {
+      return ConnectionValidationResult(
+        allowed: false,
+        reason: 'Cannot connect from disabled node',
+      );
+    }
+
+    // Check port connection limit
+    if (port.maxConnections != null) {
+      final existing = controller.getConnectionsForPort(node.id, port.id);
+      if (existing.length >= port.maxConnections!) {
+        return ConnectionValidationResult(
+          allowed: false,
+          reason: 'Port has reached maximum connections',
+        );
+      }
+    }
+
+    return ConnectionValidationResult(allowed: true);
+  },
+)
+```
+
+  ### Complete Validation
+
+Validate before completing a connection:
+
+```dart
+ConnectionEvents<MyData>(
+  onBeforeComplete: (context) {
+    final source = context.sourceNode;
+    final target = context.targetNode;
+
+    // Prevent self-connections
+    if (source.id == target.id) {
+      return ConnectionValidationResult(
+        allowed: false,
+        reason: 'Cannot connect to same node',
+      );
+    }
+
+    // Type checking
+    if (source.data.outputType != target.data.inputType) {
+      return ConnectionValidationResult(
+        allowed: false,
+        reason: 'Incompatible types',
+      );
+    }
+
+    // Prevent duplicate connections
+    final existing = context.existingConnections;
+    final isDuplicate = existing.any((c) =>
+      c.sourceNodeId == source.id &&
+      c.targetNodeId == target.id
+    );
+    if (isDuplicate) {
+      return ConnectionValidationResult(
+        allowed: false,
+        reason: 'Connection already exists',
+      );
+    }
+
+    return ConnectionValidationResult(allowed: true);
+  },
+)
+```
+
+### Validation Context Objects
+
+```dart
+// Available in onBeforeStart
+class ConnectionStartContext<T> {
+  final Node<T> sourceNode;
+  final Port sourcePort;
+  final bool isOutput;
+}
+
+// Available in onBeforeComplete
+class ConnectionCompleteContext<T> {
+  final Node<T> sourceNode;
+  final Port sourcePort;
+  final Node<T> targetNode;
+  final Port targetPort;
+  final List<Connection> existingConnections;
+}
+```
+
+## Viewport Events
+
+React to canvas pan, zoom, and background interactions.
+
+```dart
+ViewportEvents(
+  // Pan/zoom tracking
+  onMoveStart: (viewport) => _saveInitialState(viewport),
+  onMove: (viewport) => _updateMinimap(viewport),
+  onMoveEnd: (viewport) => _saveViewportState(viewport),
+
+  // Canvas interactions
+  onCanvasTap: (position) => _addNodeAt(position),
+  onCanvasDoubleTap: (position) => _openQuickMenu(position),
+  onCanvasContextMenu: (position) => _showCanvasMenu(position),
+)
+```
+
+| Event | Trigger | Signature |
+|-------|---------|-----------|
+| `onMoveStart` | Pan/zoom begins | `ValueChanged<GraphViewport>` |
+| `onMove` | During pan/zoom | `ValueChanged<GraphViewport>` |
+| `onMoveEnd` | Pan/zoom ends | `ValueChanged<GraphViewport>` |
+| `onCanvasTap` | Tap on empty canvas | `ValueChanged<Offset>` |
+| `onCanvasDoubleTap` | Double-tap on canvas | `ValueChanged<Offset>` |
+| `onCanvasContextMenu` | Right-click on canvas | `ValueChanged<Offset>` |
+
+::: tip
+Canvas positions are in **graph coordinates**, not screen coordinates. They account for pan and zoom automatically.
+
+:::
+
+## Annotation Events
+
+Handle interactions with sticky notes, groups, and markers.
+
+```dart
+AnnotationEvents(
+  onCreated: (annotation) => print('Created: ${annotation.id}'),
+  onDeleted: (annotation) => print('Deleted: ${annotation.id}'),
+  onSelected: (annotation) => _showAnnotationTools(annotation),
+  onTap: (annotation) => _selectAnnotation(annotation),
+  onDoubleTap: (annotation) => _editAnnotation(annotation),
+  onContextMenu: (annotation, position) => _showMenu(annotation, position),
+  onMouseEnter: (annotation) => _highlight(annotation),
+  onMouseLeave: (annotation) => _unhighlight(annotation),
+)
+```
+
+## Selection State
+
+Track the complete selection state across all element types:
+
+```dart
+NodeFlowEvents<MyData>(
+  onSelectionChange: (state) {
+    print('Selected nodes: ${state.nodes.length}');
+    print('Selected connections: ${state.connections.length}');
+    print('Selected annotations: ${state.annotations.length}');
+
+    // Update toolbar based on selection
+    if (state.hasSelection) {
+      _showSelectionToolbar(state);
+    } else {
+      _hideSelectionToolbar();
+    }
+  },
+)
+```
+
+The `SelectionState` object provides:
+
+```dart
+class SelectionState<T> {
+  final List<Node<T>> nodes;
+  final List<Connection> connections;
+  final List<Annotation> annotations;
+
+  bool get hasSelection; // True if anything is selected
+}
+```
+
+## Top-Level Events
+
+```dart
+NodeFlowEvents<MyData>(
+  // Called when editor is ready
+  onInit: () {
+    print('Editor initialized');
+    controller.fitToView();
+  },
+
+  // Called on errors
+  onError: (error) {
+    print('Error: ${error.message}');
+    if (error.stackTrace != null) {
+      print(error.stackTrace);
+    }
+  },
+)
+```
+
+## Complete Example
+
+Here's a full example with event handling for a workflow editor:
+
+::: details 🎬 Interactive Event Log Demo
+Split-screen demo: left side shows NodeFlowEditor with nodes and connections, right side shows real-time event log with timestamps. User interactions (clicks, drags, connections) instantly appear in the log panel.
+:::
+
+```dart
+class WorkflowEditor extends StatefulWidget {
+  @override
+  State<WorkflowEditor> createState() => _WorkflowEditorState();
+}
+
+class _WorkflowEditorState extends State<WorkflowEditor> {
+  late final NodeFlowController<WorkflowData> controller;
+  SelectionState<WorkflowData>? _selection;
+  final List<String> _eventLog = [];
+
+  @override
+  void initState() {
+    super.initState();
+    controller = NodeFlowController<WorkflowData>();
+  }
+
+  void _log(String message) {
+    setState(() {
+      _eventLog.insert(0, '${DateTime.now().toIso8601String()}: $message');
+      if (_eventLog.length > 50) _eventLog.removeLast();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        // Editor
+        Expanded(
+          child: NodeFlowEditor<WorkflowData>(
+            controller: controller,
+            theme: NodeFlowTheme.light,
+            nodeBuilder: (context, node) => WorkflowNodeWidget(node: node),
+            events: NodeFlowEvents(
+              node: NodeEvents(
+                onTap: (node) => _log('Tapped: ${node.data.name}'),
+                onDoubleTap: (node) => _editNode(node),
+                onDragStop: (node) => _log('Moved: ${node.data.name}'),
+                onContextMenu: (node, pos) => _showNodeMenu(node, pos),
+              ),
+              connection: ConnectionEvents(
+                onCreated: (conn) => _log('Connected: ${conn.id}'),
+                onDeleted: (conn) => _log('Disconnected: ${conn.id}'),
+                onBeforeComplete: (context) => _validateConnection(context),
+              ),
+              viewport: ViewportEvents(
+                onCanvasTap: (pos) => _clearSelection(),
+                onCanvasContextMenu: (pos) => _showAddNodeMenu(pos),
+              ),
+              onSelectionChange: (state) {
+                setState(() => _selection = state);
+              },
+              onInit: () => _log('Editor ready'),
+              onError: (error) => _log('Error: ${error.message}'),
+            ),
+          ),
+        ),
+        // Event log sidebar
+        SizedBox(
+          width: 300,
+          child: ListView.builder(
+            itemCount: _eventLog.length,
+            itemBuilder: (context, index) => Text(
+              _eventLog[index],
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  ConnectionValidationResult _validateConnection(
+    ConnectionCompleteContext<WorkflowData> context,
+  ) {
+    // Implement your validation logic
+    return ConnectionValidationResult(allowed: true);
+  }
+
+  void _editNode(Node<WorkflowData> node) {
+    // Show edit dialog
+  }
+
+  void _showNodeMenu(Node<WorkflowData> node, Offset position) {
+    // Show context menu
+  }
+
+  void _showAddNodeMenu(Offset position) {
+    // Show menu to add new node at position
+  }
+
+  void _clearSelection() {
+    controller.clearSelection();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+}
+```
+
+## Best Practices
+
+1. **Keep handlers lightweight** - Heavy operations should be async or debounced
+2. **Use `onBeforeComplete` for validation** - Prevent invalid connections before they're created
+3. **Track selection state** - Use `onSelectionChange` for toolbar/panel updates
+4. **Handle errors** - Use `onError` for logging and user notifications
+5. **Context menus need position** - All `onContextMenu` callbacks include `Offset` for menu placement
+
+## See Also
+
+- [Controller](/docs/core-concepts/controller) - Programmatic graph manipulation
+- [Connection Validation](/docs/advanced/validation) - Advanced validation patterns
+- [Keyboard Shortcuts](/docs/advanced/keyboard-shortcuts) - Keyboard event handling
