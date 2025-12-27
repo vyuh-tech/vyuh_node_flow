@@ -20,7 +20,6 @@ const flipperWords = [
   'PROCESS FLOW',
   'NODE FLOW',
   'CONTENT FLOW',
-  'MIND FLOW',
   'STATE FLOW',
   'CODE FLOW',
 ];
@@ -447,21 +446,33 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
 
       <div class="hero-content">
         <div class="hero-text">
-          <Badge icon="simple-icons:flutter" color="blue">Built for Flutter</Badge>
+          <Badge icon="simple-icons:flutter" color="blue"
+            >Built for Flutter</Badge
+          >
           <h1 class="hero-title">
             <span class="hero-title-static">Visualize any</span>
             <WordFlipper :words="flipperWords" :interval="1500" />
           </h1>
           <p class="hero-subtitle">
             A flexible, high-performance node-based flow editor for
-            <FlutterBrand />. Build workflow editors, visual programming interfaces, and
-            interactive diagrams.
+            <FlutterBrand />. Build workflow editors, visual programming
+            interfaces, and interactive diagrams.
           </p>
           <div class="hero-actions">
-            <CtaButton href="/docs/getting-started/installation" variant="primary" size="large">
+            <CtaButton
+              href="/docs/getting-started/installation"
+              variant="primary"
+              size="large"
+            >
               Get Started <Icon icon="ph:arrow-right-bold" />
             </CtaButton>
-            <CtaButton href="https://flow.demo.vyuh.tech" icon="ph:play-fill" variant="secondary" size="large" external>
+            <CtaButton
+              href="https://flow.demo.vyuh.tech"
+              icon="ph:play-fill"
+              variant="secondary"
+              size="large"
+              external
+            >
               Live Demo
             </CtaButton>
           </div>
@@ -496,7 +507,7 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
       <div class="code-container">
         <SectionHeader
           badge="Quick Start"
-          badge-icon="ph:terminal-fill"
+          badge-icon="simple-icons:flutter"
           badge-color="blue"
           title="Simple & Intuitive API"
         />
@@ -559,7 +570,7 @@ const ctaBlinkCells = generateBlinkCells(15, 73);
     <section class="use-cases-section">
       <SectionHeader
         badge="Infinite Possibilities"
-        badge-icon="ph:infinity-fill"
+        badge-icon="ph:infinity"
         badge-color="teal"
         title="Build Anything"
         subtitle="From simple diagrams to complex visual programming environments, Vyuh Node Flow adapts to your needs."

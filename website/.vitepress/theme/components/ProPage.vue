@@ -46,7 +46,7 @@ const workflowFeatures = [
       'Visual canvas for designing workflow processes',
       'Pre-built activity, gateway, and event nodes',
       'Conditional branching and parallel execution paths',
-      'Reusable sub-workflows and templates',
+      'Simulation mode with step-through debugging',
     ],
     media: {
       type: 'video' as const,
@@ -56,8 +56,8 @@ const workflowFeatures = [
   },
   {
     tag: 'Dart Execution',
-    tagIcon: 'ph:terminal-fill',
-    tagColor: 'teal' as const,
+    tagIcon: 'simple-icons:dart',
+    tagColor: 'blue' as const,
     title: 'Native Dart Executors',
     subtitle: 'Run workflows on the server with type-safe Dart executors. Full control over execution logic with native performance.',
     bullets: [

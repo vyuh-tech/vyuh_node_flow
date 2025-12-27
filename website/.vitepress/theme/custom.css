@@ -11,6 +11,7 @@
   /* Accent Colors */
   --vn-blue: #2563eb;
   --vn-blue-light: #3b82f6;
+  --vn-blue-fill: #bfdbfe;
   --vn-blue-dim: rgba(37, 99, 235, 0.1);
   --vn-blue-glow: rgba(37, 99, 235, 0.4);
 
@@ -26,6 +27,7 @@
 
   --vn-amber: #f59e0b;
   --vn-amber-light: #fbbf24;
+  --vn-amber-fill: #fde68a;
   --vn-amber-dim: rgba(245, 158, 11, 0.1);
   --vn-amber-glow: rgba(245, 158, 11, 0.4);
 
@@ -1632,10 +1634,39 @@ body {
 .pro-title-sub {
   display: block;
   font-size: 0.6em;
-  background: linear-gradient(135deg, var(--vn-purple), var(--vn-blue));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--vn-blue-fill);
+  letter-spacing: 0.05em;
+  text-shadow:
+    /* Blue border */
+    -1px -1px 0 var(--vn-blue),
+    1px -1px 0 var(--vn-blue),
+    -1px 1px 0 var(--vn-blue),
+    1px 1px 0 var(--vn-blue),
+    /* Glow */
+    0 0 20px var(--vn-blue-glow),
+    0 0 40px rgba(37, 99, 235, 0.2);
+  animation: proGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes proGlow {
+  0% {
+    text-shadow:
+      -1px -1px 0 var(--vn-blue),
+      1px -1px 0 var(--vn-blue),
+      -1px 1px 0 var(--vn-blue),
+      1px 1px 0 var(--vn-blue),
+      0 0 15px rgba(37, 99, 235, 0.3),
+      0 0 30px rgba(37, 99, 235, 0.15);
+  }
+  100% {
+    text-shadow:
+      -1px -1px 0 var(--vn-blue),
+      1px -1px 0 var(--vn-blue),
+      -1px 1px 0 var(--vn-blue),
+      1px 1px 0 var(--vn-blue),
+      0 0 25px var(--vn-blue-glow),
+      0 0 50px rgba(37, 99, 235, 0.3);
+  }
 }
 
 .pro-subtitle {

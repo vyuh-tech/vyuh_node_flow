@@ -15,12 +15,14 @@ class ExampleDetailView extends StatelessWidget {
     }
 
     final isMobile = Responsive.isMobile(context);
+    final isTablet = Responsive.isTablet(context);
+    final useDrawerNavigation = isMobile || isTablet;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Skip header in mobile mode as title is shown in AppBar
-        if (!isMobile) _buildHeader(context, example!),
+        // Skip header in mobile/tablet mode as title is shown in AppBar
+        if (!useDrawerNavigation) _buildHeader(context, example!),
         Expanded(child: example!.builder(context)),
       ],
     );
