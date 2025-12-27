@@ -220,8 +220,8 @@ class NodeFlowViewer<T> extends StatelessWidget {
       config: config,
     );
 
-    // Set theme
-    controller.setTheme(theme);
+    // NOTE: Theme is not set here - it's handled by NodeFlowEditor.initState()
+    // which calls internalInitController with all required parameters.
 
     // Load nodes
     for (final node in nodes.values) {

@@ -346,8 +346,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   void initState() {
     super.initState();
 
-    // Note: Controller only needs config, theme is handled by editor
-
     // Set behavior mode on controller
     widget.controller.setBehavior(widget.behavior);
 
@@ -386,19 +384,48 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Set up reactions for efficient updates
     _setupReactions();
 
-    // Set up node shape builder BEFORE theme (so ConnectionPainter gets the shape builder)
-    _updateNodeShapeBuilder();
+    // =========================================================================
+    // CANONICAL CONTROLLER INITIALIZATION
+    // =========================================================================
+    // This is THE SINGLE PLACE where the controller is initialized for editor use.
+    // All initialization happens in _initController in a specific, documented order.
+    // See editor_init_api.dart for the full initialization sequence.
+    final themePortSize = widget.theme.portTheme.size;
+    final connectionStyle = widget.theme.connectionTheme.style;
 
-    // Set theme on the controller (this initializes the connection painter)
-    widget.controller.setTheme(widget.theme);
+    widget.controller.internalInitController(
+      theme: widget.theme,
+      portSizeResolver: (port) => port.size ?? themePortSize,
+      nodeShapeBuilder: widget.nodeShapeBuilder != null
+          ? (node) => widget.nodeShapeBuilder!(context, node)
+          : null,
+      connectionHitTesterBuilder: (painter) => (connection, point) {
+        final sourceNode = widget.controller.getNode(connection.sourceNodeId);
+        final targetNode = widget.controller.getNode(connection.targetNodeId);
+        if (sourceNode == null || targetNode == null) return false;
 
-    // Set up spatial index callbacks (requires connection painter to be initialized)
-    _setupSpatialIndex();
+        return painter.hitTestConnection(
+          connection: connection,
+          sourceNode: sourceNode,
+          targetNode: targetNode,
+          testPoint: point,
+        );
+      },
+      connectionSegmentCalculator: (connection) {
+        final sourceNode = widget.controller.getNode(connection.sourceNodeId);
+        final targetNode = widget.controller.getNode(connection.targetNodeId);
+        if (sourceNode == null || targetNode == null) return [];
 
-    // Set events on the controller
-    if (widget.events != null) {
-      widget.controller.setEvents(widget.events!);
-    }
+        return widget.controller.connectionPainter.pathCache
+            .getOrCreateSegmentBounds(
+              connection: connection,
+              sourceNode: sourceNode,
+              targetNode: targetNode,
+              connectionStyle: connectionStyle,
+            );
+      },
+      events: widget.events,
+    );
 
     // Register keyboard handler for shift key cursor changes
     HardwareKeyboard.instance.addHandler(_handleKeyEvent);
@@ -431,19 +458,23 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
       widget.controller.setBehavior(widget.behavior);
     }
 
-    // Update node shape builder if it changed
+    // Update node shape builder if it changed (uses internal method from editor_init_api)
     if (oldWidget.nodeShapeBuilder != widget.nodeShapeBuilder) {
-      _updateNodeShapeBuilder();
+      widget.controller.internalUpdateNodeShapeBuilder(
+        widget.nodeShapeBuilder != null
+            ? (node) => widget.nodeShapeBuilder!(context, node)
+            : null,
+      );
     }
 
-    // Update events if they changed
+    // Update events if they changed (uses internal method from editor_init_api)
     if (oldWidget.events != widget.events && widget.events != null) {
-      widget.controller.setEvents(widget.events!);
+      widget.controller.internalUpdateEvents(widget.events!);
     }
 
-    // Update theme if it changed
+    // Update theme if it changed (uses internal method from editor_init_api)
     if (oldWidget.theme != widget.theme) {
-      widget.controller.setTheme(widget.theme);
+      widget.controller.internalUpdateTheme(widget.theme);
     }
 
     // Update animation controller duration if it changed
@@ -540,16 +571,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                                     _transformationController,
                               ),
 
-                              // Debug visualization layers (when config.debugMode is enabled)
-                              // Placed above grid but below content for visibility
-                              // Uses Observer internally for reactivity
-                              DebugLayersStack<T>(
-                                controller: widget.controller,
-                                transformationController:
-                                    _transformationController,
-                                theme: theme,
-                              ),
-
                               // Background nodes (GroupNode) - drag handled via NodeWidget
                               if (widget.showAnnotations)
                                 NodesLayer.background(
@@ -626,6 +647,16 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                                       .portSnapDistance
                                       .value,
                                 ),
+
+                              // Debug visualization layers (when config.debugMode is enabled)
+                              // Placed on top of all content for full visibility
+                              // Uses IgnorePointer internally so interactions pass through
+                              DebugLayersStack<T>(
+                                controller: widget.controller,
+                                transformationController:
+                                    _transformationController,
+                                theme: theme,
+                              ),
                             ],
                           ),
                         ),
@@ -699,77 +730,11 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
     // Note: Snap-to-grid behavior is handled by controller config
   }
 
-  void _updateNodeShapeBuilder() {
-    // Create a closure that captures the current context
-    // The State's context is stable throughout its lifetime
-    if (widget.nodeShapeBuilder != null) {
-      widget.controller.setNodeShapeBuilder(
-        (node) => widget.nodeShapeBuilder!(context, node),
-      );
-    } else {
-      widget.controller.setNodeShapeBuilder(null);
-    }
-  }
-
-  void _setupSpatialIndex() {
-    final spatialIndex = widget.controller.spatialIndex;
-    final themePortSize = widget.theme.portTheme.size;
-
-    // Set up node shape builder callback
-    spatialIndex.nodeShapeBuilder = widget.controller.nodeShapeBuilder;
-
-    // Set up port size resolver using theme cascade
-    spatialIndex.portSizeResolver = (port) => port.size ?? themePortSize;
-
-    // Set up connection hit tester callback
-    spatialIndex.connectionHitTester = (connection, point) {
-      final sourceNode = widget.controller.getNode(connection.sourceNodeId);
-      final targetNode = widget.controller.getNode(connection.targetNodeId);
-      if (sourceNode == null || targetNode == null) return false;
-
-      return widget.controller.connectionPainter.hitTestConnection(
-        connection: connection,
-        sourceNode: sourceNode,
-        targetNode: targetNode,
-        testPoint: point,
-      );
-    };
-
-    // Initialize spatial indexes
-    spatialIndex.rebuildFromNodes(widget.controller.nodes.values);
-    _rebuildConnectionSpatialIndex();
-  }
-
-  void _rebuildConnectionSpatialIndex() {
-    // Guard: connection painter must be initialized first
-    if (!widget.controller.isConnectionPainterInitialized) {
-      return;
-    }
-
-    final spatialIndex = widget.controller.spatialIndex;
-    final pathCache = widget.controller.connectionPainter.pathCache;
-    final connectionStyle = widget.theme.connectionTheme.style;
-
-    // Use segment-based spatial indexing for accurate hit testing
-    spatialIndex.rebuildConnectionsWithSegments(widget.controller.connections, (
-      connection,
-    ) {
-      final sourceNode = widget.controller.getNode(connection.sourceNodeId);
-      final targetNode = widget.controller.getNode(connection.targetNodeId);
-      if (sourceNode == null || targetNode == null) {
-        return [];
-      }
-
-      // Get segment bounds from the path cache
-      // This uses the rectangle segments created by the connection style
-      return pathCache.getOrCreateSegmentBounds(
-        connection: connection,
-        sourceNode: sourceNode,
-        targetNode: targetNode,
-        connectionStyle: connectionStyle,
-      );
-    });
-  }
+  // NOTE: _updateNodeShapeBuilder(), _setupSpatialIndexCallbacks(),
+  // _completeSpatialIndexSetup(), and _rebuildConnectionSpatialIndex() have been
+  // removed. All initialization is now handled by _initController() in
+  // editor_init_api.dart. Post-initialization updates use the private methods
+  // _updateTheme(), _updateEvents(), and _updateNodeShapeBuilder() on the controller.
 
   /// Updates the animation controller based on theme and connection animation effects.
   ///

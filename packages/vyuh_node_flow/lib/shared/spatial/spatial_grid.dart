@@ -263,6 +263,42 @@ class SpatialGrid<T extends SpatialIndexable> {
     cacheSize: _cachedVisibleObjects.length,
   );
 
+  /// Diagnostic: Check consistency between _objects and _spatialGrid.
+  ///
+  /// Returns a record with:
+  /// - objectsCount: items in _objects
+  /// - spatialGridItemCount: unique IDs across all cells in _spatialGrid
+  /// - pendingCount: items waiting to be processed
+  /// - missingFromGrid: IDs in _objects but NOT in any _spatialGrid cell
+  ({
+    int objectsCount,
+    int spatialGridItemCount,
+    int pendingCount,
+    List<String> missingFromGrid,
+  })
+  diagnoseConsistency() {
+    // Collect all IDs from spatial grid cells
+    final idsInGrid = <String>{};
+    for (final cellObjects in _spatialGrid.values) {
+      idsInGrid.addAll(cellObjects);
+    }
+
+    // Find objects missing from grid
+    final missingFromGrid = <String>[];
+    for (final id in _objects.keys) {
+      if (!idsInGrid.contains(id)) {
+        missingFromGrid.add(id);
+      }
+    }
+
+    return (
+      objectsCount: _objects.length,
+      spatialGridItemCount: idsInGrid.length,
+      pendingCount: _pendingUpdates.length,
+      missingFromGrid: missingFromGrid,
+    );
+  }
+
   /// Gets all active grid cell keys for debug visualization.
   ///
   /// Returns an iterable of cell keys in the format "${x}_${y}".

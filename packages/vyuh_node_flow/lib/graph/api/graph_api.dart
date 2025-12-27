@@ -20,11 +20,14 @@ extension GraphApi<T> on NodeFlowController<T> {
   /// 1. Clears the existing graph state
   /// 2. Bulk loads all nodes and connections
   /// 3. Sets the viewport to match the saved state
-  /// 4. Sets up visual positioning and hit-testing infrastructure
-  /// 5. Sets up node monitoring for GroupNode and CommentNode
+  /// 4. Sets up visual positioning and hit-testing infrastructure (if editor initialized)
   ///
   /// This is the preferred method for loading saved graphs as it performs
   /// efficient bulk loading rather than individual additions.
+  ///
+  /// **Note**: If the editor is not yet initialized (i.e., [_initController] hasn't
+  /// been called), the infrastructure setup is deferred until initialization.
+  /// This is the correct behavior for graphs loaded before the editor widget mounts.
   ///
   /// Parameters:
   /// - `graph`: The graph to load containing nodes, connections, and viewport state
@@ -43,7 +46,7 @@ extension GraphApi<T> on NodeFlowController<T> {
       // Clear existing state
       clearGraph();
 
-      // Bulk load all data structures without infrastructure setup
+      // Bulk load all data structures
       for (final node in graph.nodes) {
         _nodes[node.id] = node;
       }
@@ -52,32 +55,13 @@ extension GraphApi<T> on NodeFlowController<T> {
       // Set viewport
       _viewport.value = graph.viewport;
 
-      // Single infrastructure setup call after bulk loading
-      _setupLoadedGraphInfrastructure();
-    });
-  }
-
-  /// Sets up all necessary infrastructure after bulk loading graph data.
-  ///
-  /// This includes visual positioning, hit-testing setup, node context attachment,
-  /// and other post-load configuration.
-  void _setupLoadedGraphInfrastructure() {
-    // Setup node visual positions with snapping and attach context for groupable nodes
-    for (final node in _nodes.values) {
-      node.setVisualPosition(_config.snapToGridIfEnabled(node.position.value));
-
-      // Attach context for nodes with GroupableMixin (e.g., GroupNode)
-      if (node is GroupableMixin<T>) {
-        node.attachContext(_createGroupableContext());
+      // Set up infrastructure if editor is already initialized.
+      // If not initialized yet, _initController will handle this when called.
+      if (_editorInitialized) {
+        _initializeLoadedNodes();
+        _rebuildSpatialIndexes();
       }
-    }
-
-    // Rebuild spatial indexes for hit testing
-    _spatialIndex.rebuildFromNodes(_nodes.values);
-    _spatialIndex.rebuildConnections(
-      _connections,
-      (connection) => _calculateConnectionBounds(connection) ?? Rect.zero,
-    );
+    });
   }
 
   /// Exports the current graph state including all nodes, connections, and viewport.
@@ -520,50 +504,21 @@ extension GraphApi<T> on NodeFlowController<T> {
   }
 
   // ============================================================================
-  // Theme & Events Configuration
+  // Editor Initialization
   // ============================================================================
-
-  /// Set the theme and update the connection painter.
-  ///
-  /// This is called internally by the editor widget only.
-  ///
-  /// Parameters:
-  /// - [theme]: The theme to apply to the graph editor
-  void setTheme(NodeFlowTheme theme) {
-    final isFirstTimeSetup = _connectionPainter == null;
-
-    // Create painter if it doesn't exist, otherwise update its theme
-    if (isFirstTimeSetup) {
-      _connectionPainter = ConnectionPainter(
-        theme: theme,
-        // Cast to Node<dynamic> since ConnectionPainter is not generic
-        nodeShape: _nodeShapeBuilder != null
-            ? (node) => _nodeShapeBuilder!(node as Node<T>)
-            : null,
-      );
-    } else {
-      _connectionPainter!.updateTheme(theme);
-    }
-
-    // Update observable theme - this triggers the reaction for spatial index rebuild
-    runInAction(() => _themeObservable.value = theme);
-
-    // If this is the first time setup and we have pre-loaded nodes from
-    // the constructor, set up the infrastructure now that we have a theme
-    if (isFirstTimeSetup && _nodes.isNotEmpty) {
-      _setupLoadedGraphInfrastructure();
-    }
-  }
-
-  /// Update the events that the controller will use.
-  ///
-  /// This is called internally by the editor widget only.
-  ///
-  /// Parameters:
-  /// - [events]: The event handlers for node, connection, and annotation events
-  void setEvents(NodeFlowEvents<T> events) {
-    _events = events;
-  }
+  //
+  // NOTE: The canonical initialization entry point is _initController() in
+  // editor_init_api.dart. That method is private and can only be called by
+  // NodeFlowEditor during its initState(). All initialization-related logic
+  // is centralized there.
+  //
+  // Post-initialization updates (theme, events, nodeShapeBuilder) are also
+  // handled via private methods in editor_init_api.dart:
+  // - _updateTheme()
+  // - _updateEvents()
+  // - _updateNodeShapeBuilder()
+  //
+  // ============================================================================
 
   // ============================================================================
   // Keyboard Shortcuts
