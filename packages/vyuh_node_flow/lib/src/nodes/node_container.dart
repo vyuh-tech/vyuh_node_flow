@@ -124,8 +124,12 @@ class NodeContainer<T> extends StatelessWidget {
           isLocked: node.locked,
         );
 
-        // Show resize handles when node is selected and resizable
-        final showResizer = isSelected && node.isResizable;
+        // Get LOD visibility state
+        final lodVisibility = controller.lodState.currentVisibility;
+
+        // Show resize handles when node is selected, resizable, AND LOD allows
+        final showResizer =
+            isSelected && node.isResizable && lodVisibility.showResizeHandles;
 
         return Positioned(
           left: position.dx,
@@ -173,14 +177,14 @@ class NodeContainer<T> extends StatelessWidget {
                   ),
                 ),
 
-                // Input ports (only for middle layer nodes)
-                if (node.inputPorts.isNotEmpty)
+                // Input ports (only when LOD allows and ports exist)
+                if (lodVisibility.showPorts && node.inputPorts.isNotEmpty)
                   ...node.inputPorts.map(
                     (port) => _buildPort(context, port, false),
                   ),
 
-                // Output ports (only for middle layer nodes)
-                if (node.outputPorts.isNotEmpty)
+                // Output ports (only when LOD allows and ports exist)
+                if (lodVisibility.showPorts && node.outputPorts.isNotEmpty)
                   ...node.outputPorts.map(
                     (port) => _buildPort(context, port, true),
                   ),

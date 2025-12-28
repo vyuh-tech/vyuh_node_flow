@@ -17,116 +17,133 @@ class ConnectionsLayer<T> extends StatelessWidget {
     // IgnorePointer ensures connections don't block hit tests on layers below
     return Positioned.fill(
       child: IgnorePointer(
-        child: Stack(
-          children: [
-            // Static connections layer (RepaintBoundary)
-            // Renders visible connections that are NOT active (not being dragged/resized)
-            RepaintBoundary(
-              child: Observer(
-                builder: (context) {
-                  final theme = controller.theme ?? NodeFlowTheme.light;
-                  final visibleConnections = controller.visibleConnections;
-                  final activeIds = controller.activeConnectionIds;
+        child: Observer(
+          builder: (context) {
+            // LOD check: hide connections when zoomed out
+            if (!controller.lodState.showConnectionLines) {
+              return const SizedBox.shrink();
+            }
 
-                  // Filter out active connections
-                  final staticConnections = visibleConnections
-                      .where((c) => !activeIds.contains(c.id))
-                      .toList();
+            return Stack(
+              children: [
+                // Static connections layer (RepaintBoundary)
+                // Renders visible connections that are NOT active (not being dragged/resized)
+                RepaintBoundary(
+                  child: Observer(
+                    builder: (context) {
+                      final theme = controller.theme ?? NodeFlowTheme.light;
+                      final visibleConnections = controller.visibleConnections;
+                      final activeIds = controller.activeConnectionIds;
 
-                  // Dependency tracking for static connections
-                  // This ensures we repaint if these nodes move (e.g. external update)
-                  // or visibility changes, but NOT when active nodes move
-                  controller.selectedConnectionIds.length;
-                  for (final connection in staticConnections) {
-                    final sourceNode = controller.getNode(
-                      connection.sourceNodeId,
-                    );
-                    final targetNode = controller.getNode(
-                      connection.targetNodeId,
-                    );
+                      // Filter out active connections
+                      final staticConnections = visibleConnections
+                          .where((c) => !activeIds.contains(c.id))
+                          .toList();
 
-                    if (sourceNode != null) {
-                      sourceNode.position.value;
-                      sourceNode.isVisible;
-                    }
-                    if (targetNode != null) {
-                      targetNode.position.value;
-                      targetNode.isVisible;
-                    }
+                      // Dependency tracking for static connections
+                      // This ensures we repaint if these nodes move (e.g. external update)
+                      // or visibility changes, but NOT when active nodes move
+                      controller.selectedConnectionIds.length;
+                      for (final connection in staticConnections) {
+                        final sourceNode = controller.getNode(
+                          connection.sourceNodeId,
+                        );
+                        final targetNode = controller.getNode(
+                          connection.targetNodeId,
+                        );
 
-                    connection.animationEffect;
-                    for (var i = 0; i < connection.controlPoints.length; i++) {
-                      connection.controlPoints[i];
-                    }
-                  }
+                        if (sourceNode != null) {
+                          sourceNode.position.value;
+                          sourceNode.isVisible;
+                        }
+                        if (targetNode != null) {
+                          targetNode.position.value;
+                          targetNode.isVisible;
+                        }
 
-                  return CustomPaint(
-                    painter: ConnectionsCanvas<T>(
-                      store: controller,
-                      theme: theme,
-                      connectionPainter: controller.connectionPainter,
-                      connections: staticConnections,
-                      animation: animation,
-                    ),
-                    size: Size.infinite,
-                  );
-                },
-              ),
-            ),
+                        connection.animationEffect;
+                        for (
+                          var i = 0;
+                          i < connection.controlPoints.length;
+                          i++
+                        ) {
+                          connection.controlPoints[i];
+                        }
+                      }
 
-            // Active connections layer (No RepaintBoundary)
-            // Renders ONLY active connections (attached to dragged/resized nodes)
-            // Updates frequently (60fps) during interaction
-            Observer(
-              builder: (context) {
-                final theme = controller.theme ?? NodeFlowTheme.light;
-                final activeIds = controller.activeConnectionIds;
-
-                if (activeIds.isEmpty) return const SizedBox.shrink();
-
-                // Get active connections
-                final activeConnections = controller.connections
-                    .where((c) => activeIds.contains(c.id))
-                    .toList();
-
-                // Dependency tracking for active connections
-                // This triggers repaint on every frame of drag
-                for (final connection in activeConnections) {
-                  final sourceNode = controller.getNode(
-                    connection.sourceNodeId,
-                  );
-                  final targetNode = controller.getNode(
-                    connection.targetNodeId,
-                  );
-
-                  if (sourceNode != null) {
-                    sourceNode.position.value;
-                    sourceNode.isVisible;
-                  }
-                  if (targetNode != null) {
-                    targetNode.position.value;
-                    targetNode.isVisible;
-                  }
-
-                  connection.animationEffect;
-                  for (var i = 0; i < connection.controlPoints.length; i++) {
-                    connection.controlPoints[i];
-                  }
-                }
-
-                return CustomPaint(
-                  painter: ConnectionsCanvas<T>(
-                    store: controller,
-                    theme: theme,
-                    connectionPainter: controller.connectionPainter,
-                    connections: activeConnections,
-                    animation: animation,
+                      return CustomPaint(
+                        painter: ConnectionsCanvas<T>(
+                          store: controller,
+                          theme: theme,
+                          connectionPainter: controller.connectionPainter,
+                          connections: staticConnections,
+                          animation: animation,
+                        ),
+                        size: Size.infinite,
+                      );
+                    },
                   ),
-                  size: Size.infinite,
-                );
-              },
-            ),
-          ],
+                ),
+
+                // Active connections layer (No RepaintBoundary)
+                // Renders ONLY active connections (attached to dragged/resized nodes)
+                // Updates frequently (60fps) during interaction
+                Observer(
+                  builder: (context) {
+                    final theme = controller.theme ?? NodeFlowTheme.light;
+                    final activeIds = controller.activeConnectionIds;
+
+                    if (activeIds.isEmpty) return const SizedBox.shrink();
+
+                    // Get active connections
+                    final activeConnections = controller.connections
+                        .where((c) => activeIds.contains(c.id))
+                        .toList();
+
+                    // Dependency tracking for active connections
+                    // This triggers repaint on every frame of drag
+                    for (final connection in activeConnections) {
+                      final sourceNode = controller.getNode(
+                        connection.sourceNodeId,
+                      );
+                      final targetNode = controller.getNode(
+                        connection.targetNodeId,
+                      );
+
+                      if (sourceNode != null) {
+                        sourceNode.position.value;
+                        sourceNode.isVisible;
+                      }
+                      if (targetNode != null) {
+                        targetNode.position.value;
+                        targetNode.isVisible;
+                      }
+
+                      connection.animationEffect;
+                      for (
+                        var i = 0;
+                        i < connection.controlPoints.length;
+                        i++
+                      ) {
+                        connection.controlPoints[i];
+                      }
+                    }
+
+                    return CustomPaint(
+                      painter: ConnectionsCanvas<T>(
+                        store: controller,
+                        theme: theme,
+                        connectionPainter: controller.connectionPainter,
+                        connections: activeConnections,
+                        animation: animation,
+                      ),
+                      size: Size.infinite,
+                    );
+                  },
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

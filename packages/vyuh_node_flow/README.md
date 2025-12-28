@@ -75,6 +75,7 @@ minimap, and more.
 - [Advanced Configuration](#️-advanced-configuration)
   - [Grid Snapping](#grid-snapping)
   - [Zoom Limits](#zoom-limits)
+  - [Level of Detail (LOD)](#level-of-detail-lod)
   - [AutoPan](#autopan)
   - [Viewport Animations](#viewport-animations)
 - [Complete Examples](#complete-examples)
@@ -85,6 +86,8 @@ minimap, and more.
 
 - **High Performance** - Reactive, optimized rendering for smooth interactions
   on an infinite canvas
+- **Level of Detail (LOD)** - Automatic visual simplification based on zoom
+  level for improved performance with large graphs
 - **Type-Safe Node Data** - Generic type support for strongly-typed node data
 - **Fully Customizable** - Comprehensive theming system for nodes, connections,
   ports and backgrounds
@@ -530,7 +533,7 @@ PortTheme(
   showLabel: false,
   labelTextStyle: TextStyle(fontSize: 10),
   labelOffset: 4.0,
-  labelVisibilityThreshold: 0.5,         // Hide below this zoom level
+  // Note: Label visibility at different zoom levels is controlled by LODConfig
 )
 ```
 
@@ -956,7 +959,6 @@ final customTheme = NodeFlowTheme(
     borderColor: Colors.white,
     borderWidth: 2.0,
     showLabel: true,
-    labelVisibilityThreshold: 0.7,
   ),
 
   // Label styling
@@ -2866,6 +2868,147 @@ final config = NodeFlowConfig(
   maxZoom: 3.0, // Maximum zoom level (300%)
 );
 ```
+
+### Level of Detail (LOD)
+
+The Level of Detail (LOD) system automatically simplifies visual elements based
+on zoom level, improving performance when viewing large graphs and reducing
+visual clutter at low zoom levels.
+
+```dart
+final config = NodeFlowConfig(
+  lodConfig: LODConfig(
+    minThreshold: 0.25, // Below 25% zoom range → minimal detail
+    midThreshold: 0.60, // 25-60% → standard detail, above 60% → full detail
+  ),
+);
+```
+
+<details>
+<summary><strong>How LOD Works</strong></summary>
+
+The zoom level is normalized to a 0.0-1.0 range based on your `minZoom` and
+`maxZoom` settings:
+
+```
+normalizedZoom:  0.0 ─────── minThreshold ─────── midThreshold ─────── 1.0
+                  │              │                    │               │
+                  ▼              ▼                    ▼               ▼
+               minZoom                                             maxZoom
+                  │              │                    │               │
+Visibility:    [  Minimal      ][     Standard      ][     Full      ]
+```
+
+**Example with default zoom (0.5x - 2.0x):**
+
+- Zoom 50%-69% → Minimal (simple colored shapes)
+- Zoom 69%-110% → Standard (nodes with connections)
+- Zoom 110%-200% → Full (all details visible)
+
+</details>
+
+<details>
+<summary><strong>Visibility Presets</strong></summary>
+
+Three built-in visibility presets control which elements are shown:
+
+| Element                | Minimal | Standard | Full |
+| ---------------------- | :-----: | :------: | :--: |
+| Node Content           |    ❌    |    ✅     |  ✅   |
+| Ports                  |    ❌    |    ❌     |  ✅   |
+| Port Labels            |    ❌    |    ❌     |  ✅   |
+| Connection Lines       |    ✅    |    ✅     |  ✅   |
+| Connection Labels      |    ❌    |    ❌     |  ✅   |
+| Connection Endpoints   |    ❌    |    ❌     |  ✅   |
+| Resize Handles         |    ❌    |    ❌     |  ✅   |
+
+- **Minimal**: Nodes render as simple colored rectangles. Connection lines
+  remain visible to preserve graph structure. Best for viewing large graphs from
+  a distance.
+- **Standard**: Node content is visible but fine details (ports, labels) are
+  hidden. Good for medium zoom levels.
+- **Full**: All visual elements are rendered. Use when zoomed in for detailed
+  work.
+
+</details>
+
+<details>
+<summary><strong>Custom Visibility Configuration</strong></summary>
+
+Create custom visibility presets for specific needs:
+
+```dart
+const customVisibility = DetailVisibility(
+  showNodeContent: true,
+  showPorts: true,
+  showPortLabels: false,  // Hide port labels even at full detail
+  showConnectionLines: true,
+  showConnectionLabels: true,
+  showConnectionEndpoints: false,  // Simplified connection endpoints
+  showResizeHandles: true,
+);
+
+final config = NodeFlowConfig(
+  lodConfig: LODConfig(
+    minThreshold: 0.2,
+    midThreshold: 0.5,
+    minVisibility: DetailVisibility.minimal,
+    midVisibility: customVisibility,
+    maxVisibility: DetailVisibility.full,
+  ),
+);
+```
+
+</details>
+
+<details>
+<summary><strong>Disabling LOD</strong></summary>
+
+To always show full detail regardless of zoom level:
+
+```dart
+// Option 1: Use disabled preset
+final config = NodeFlowConfig(
+  lodConfig: LODConfig.disabled,
+);
+
+// Option 2: Disable at runtime
+controller.config.disableLOD();
+
+// Option 3: Re-enable with custom config
+controller.config.setLODConfig(LODConfig(
+  minThreshold: 0.3,
+  midThreshold: 0.7,
+));
+```
+
+</details>
+
+<details>
+<summary><strong>Accessing LOD State</strong></summary>
+
+Query the current LOD state reactively in your widgets:
+
+```dart
+Observer(builder: (_) {
+  final lodState = controller.lodState;
+
+  // Current normalized zoom (0.0 to 1.0)
+  print('Normalized zoom: ${lodState.normalizedZoom}');
+
+  // Current visibility configuration
+  final visibility = lodState.currentVisibility;
+
+  // Convenience accessors
+  if (lodState.showPorts) {
+    // Render port-related UI
+  }
+
+  return MyWidget();
+});
+```
+
+</details>
 
 ### AutoPan
 

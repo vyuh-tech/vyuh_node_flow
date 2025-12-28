@@ -361,13 +361,14 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
                       ),
                     ),
                   ),
-                  // Port label (if enabled in both theme and port)
-                  if (widget.theme.showLabel && widget.port.showLabel)
+                  // Port label (if enabled in theme, port, AND LOD state)
+                  if (widget.theme.showLabel &&
+                      widget.port.showLabel &&
+                      widget.controller.lodState.showPortLabels)
                     _PortLabel(
                       port: widget.port,
                       theme: widget.theme,
                       size: effectiveSize,
-                      currentZoom: widget.controller.viewport.zoom,
                     ),
                 ],
               );
@@ -490,23 +491,16 @@ class _PortLabel extends StatelessWidget {
     required this.port,
     required this.theme,
     required this.size,
-    required this.currentZoom,
   });
 
   final Port port;
   final PortTheme theme;
   final Size size;
-  final double currentZoom;
 
   @override
   Widget build(BuildContext context) {
-    // Check zoom level for responsive visibility
-    final currentScale = currentZoom;
-
-    // Hide label if zoom is below threshold
-    if (currentScale < theme.labelVisibilityThreshold) {
-      return const SizedBox.shrink();
-    }
+    // Visibility is now controlled by the parent (PortWidget) via LOD system
+    // No need to check zoom threshold here anymore
 
     final textStyle =
         theme.labelTextStyle ??

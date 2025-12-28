@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
 import 'auto_pan/auto_pan_config.dart';
+import 'lod/lod.dart';
 
 /// Debug visualization mode for NodeFlow.
 ///
@@ -54,6 +55,7 @@ class NodeFlowConfig {
     this.showAttribution = true,
     AutoPanConfig? autoPan = AutoPanConfig.normal,
     DebugMode debugMode = DebugMode.none,
+    LODConfig lodConfig = LODConfig.disabled,
   }) {
     runInAction(() {
       this.snapToGrid.value = snapToGrid;
@@ -66,6 +68,7 @@ class NodeFlowConfig {
       this.isMinimapInteractive.value = isMinimapInteractive;
       this.autoPan.value = autoPan;
       this.debugMode.value = debugMode;
+      this.lodConfig.value = lodConfig;
     });
   }
 
@@ -133,6 +136,27 @@ class NodeFlowConfig {
   ///
   /// Useful for development and understanding behavior.
   final debugMode = Observable<DebugMode>(DebugMode.none);
+
+  /// Level of Detail (LOD) configuration.
+  ///
+  /// Controls which visual elements are rendered based on zoom level.
+  /// At low zoom levels, details like labels and connection endpoints
+  /// are hidden to improve performance and reduce visual clutter.
+  ///
+  /// See [LODConfig] for configuration options.
+  ///
+  /// Example:
+  /// ```dart
+  /// // Disable LOD (always show full detail)
+  /// config.lodConfig.value = LODConfig.disabled;
+  ///
+  /// // Custom thresholds
+  /// config.lodConfig.value = LODConfig(
+  ///   minThreshold: 0.3,
+  ///   midThreshold: 0.7,
+  /// );
+  /// ```
+  final lodConfig = Observable<LODConfig>(const LODConfig());
 
   /// Toggle grid snapping for both nodes and annotations
   void toggleSnapping() {
@@ -205,6 +229,7 @@ class NodeFlowConfig {
     bool? isMinimapInteractive,
     AutoPanConfig? autoPan,
     DebugMode? debugMode,
+    LODConfig? lodConfig,
   }) {
     runInAction(() {
       if (snapToGrid != null) this.snapToGrid.value = snapToGrid;
@@ -223,6 +248,7 @@ class NodeFlowConfig {
       }
       if (autoPan != null) this.autoPan.value = autoPan;
       if (debugMode != null) this.debugMode.value = debugMode;
+      if (lodConfig != null) this.lodConfig.value = lodConfig;
     });
   }
 
@@ -279,6 +305,7 @@ class NodeFlowConfig {
     bool? showAttribution,
     AutoPanConfig? autoPan,
     DebugMode? debugMode,
+    LODConfig? lodConfig,
   }) {
     return NodeFlowConfig(
       snapToGrid: snapToGrid ?? this.snapToGrid.value,
@@ -294,6 +321,21 @@ class NodeFlowConfig {
       showAttribution: showAttribution ?? this.showAttribution,
       autoPan: autoPan ?? this.autoPan.value,
       debugMode: debugMode ?? this.debugMode.value,
+      lodConfig: lodConfig ?? this.lodConfig.value,
     );
+  }
+
+  /// Set LOD configuration
+  void setLODConfig(LODConfig config) {
+    runInAction(() {
+      lodConfig.value = config;
+    });
+  }
+
+  /// Disable LOD (always show full detail)
+  void disableLOD() {
+    runInAction(() {
+      lodConfig.value = LODConfig.disabled;
+    });
   }
 }

@@ -243,6 +243,9 @@ class NodesLayer<T> extends StatelessWidget {
     final theme = controller.theme ?? NodeFlowTheme.light;
     final nodeTheme = theme.nodeTheme;
 
+    // Check LOD visibility for node content
+    final showNodeContent = controller.lodState.showNodeContent;
+
     // Wrap in NodeContainer which handles positioning, gestures, ports, etc.
     return NodeContainer<T>(
       key: ValueKey(node.id),
@@ -271,6 +274,7 @@ class NodesLayer<T> extends StatelessWidget {
         node: node,
         theme: nodeTheme,
         shape: shape,
+        showContent: showNodeContent,
         child: content,
       ),
     );

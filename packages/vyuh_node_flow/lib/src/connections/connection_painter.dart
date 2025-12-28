@@ -57,6 +57,7 @@ class ConnectionPainter {
     bool isSelected = false,
     double? animationValue,
     ConnectionStyleOverrides? styleOverrides,
+    bool skipEndpoints = false,
   }) {
     // Get effective style from connection instance or theme
     final effectiveStyle = connection.getEffectiveStyle(
@@ -85,6 +86,7 @@ class ConnectionPainter {
       isSelected: isSelected,
       animationValue: animationValue,
       styleOverrides: styleOverrides,
+      skipEndpoints: skipEndpoints,
     );
   }
 
@@ -98,6 +100,7 @@ class ConnectionPainter {
     bool isSelected = false,
     double? animationValue,
     ConnectionStyleOverrides? styleOverrides,
+    bool skipEndpoints = false,
   }) {
     final connectionTheme = theme.connectionTheme;
     final portTheme = theme.portTheme;
@@ -207,18 +210,20 @@ class ConnectionPainter {
       canvas.drawPath(pathToDraw, paint);
     }
 
-    // Draw endpoints
-    _drawEndpoints(
-      canvas,
-      source: source,
-      target: target,
-      sourcePort: sourcePort,
-      targetPort: targetPort,
-      connectionTheme: connectionTheme,
-      effectiveStartPoint: effectiveStartPoint,
-      effectiveEndPoint: effectiveEndPoint,
-      drawTargetEndpoint: true,
-    );
+    // Draw endpoints (if not skipped by LOD)
+    if (!skipEndpoints) {
+      _drawEndpoints(
+        canvas,
+        source: source,
+        target: target,
+        sourcePort: sourcePort,
+        targetPort: targetPort,
+        connectionTheme: connectionTheme,
+        effectiveStartPoint: effectiveStartPoint,
+        effectiveEndPoint: effectiveEndPoint,
+        drawTargetEndpoint: true,
+      );
+    }
   }
 
   // paintConnectionLabels method removed - labels are now rendered as positioned widgets

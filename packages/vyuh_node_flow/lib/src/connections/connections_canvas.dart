@@ -94,6 +94,9 @@ class ConnectionsCanvas<T> extends CustomPainter {
     // Get current animation value
     final animationValue = animation?.value;
 
+    // Check LOD state for endpoint visibility
+    final skipEndpoints = !store.lodState.showConnectionEndpoints;
+
     // Paint only connection lines and endpoints (no labels)
     // Labels are now rendered in a separate layer for better performance
     for (final connection in connectionsToRender) {
@@ -115,6 +118,7 @@ class ConnectionsCanvas<T> extends CustomPainter {
         targetNode,
         isSelected: isSelected,
         animationValue: animationValue,
+        skipEndpoints: skipEndpoints,
       );
     }
   }

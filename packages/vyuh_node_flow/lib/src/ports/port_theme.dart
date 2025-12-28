@@ -48,8 +48,11 @@ class PortTheme {
   /// - [showLabel]: Whether to show port labels globally (default: false)
   /// - [labelTextStyle]: Text style for port labels
   /// - [labelOffset]: Distance from port center to label (default: 8.0)
-  /// - [labelVisibilityThreshold]: Minimum zoom level to show labels (default: 0.5)
   /// - [shape]: Default marker shape for ports (default: capsuleHalf)
+  ///
+  /// Note: Port label visibility at different zoom levels is controlled by
+  /// the LOD (Level of Detail) system via `LODConfig.showPortLabels` in
+  /// `NodeFlowConfig`.
   const PortTheme({
     required this.size,
     required this.color,
@@ -62,7 +65,6 @@ class PortTheme {
     this.showLabel = false,
     this.labelTextStyle,
     this.labelOffset = 4.0,
-    this.labelVisibilityThreshold = 0.5,
   });
 
   /// The size of the port in logical pixels.
@@ -124,13 +126,6 @@ class PortTheme {
   /// Default is 8.0 pixels. Increase for more spacing, decrease for less.
   final double labelOffset;
 
-  /// The minimum zoom level at which port labels become visible.
-  ///
-  /// Labels are hidden when the canvas zoom level is below this threshold
-  /// to prevent visual clutter when zoomed out. Default is 0.5 (50% zoom).
-  /// Set to 0.0 to always show labels regardless of zoom level.
-  final double labelVisibilityThreshold;
-
   /// The default marker shape for ports.
   ///
   /// Individual ports can override this with their own [Port.shape] property.
@@ -171,7 +166,6 @@ class PortTheme {
     bool? showLabel,
     TextStyle? labelTextStyle,
     double? labelOffset,
-    double? labelVisibilityThreshold,
   }) {
     return PortTheme(
       size: size ?? this.size,
@@ -185,8 +179,6 @@ class PortTheme {
       showLabel: showLabel ?? this.showLabel,
       labelTextStyle: labelTextStyle ?? this.labelTextStyle,
       labelOffset: labelOffset ?? this.labelOffset,
-      labelVisibilityThreshold:
-          labelVisibilityThreshold ?? this.labelVisibilityThreshold,
     );
   }
 
@@ -216,7 +208,6 @@ class PortTheme {
       fontWeight: FontWeight.w500,
     ),
     labelOffset: 4.0,
-    labelVisibilityThreshold: 0.5,
   );
 
   /// A predefined dark theme for ports.
@@ -245,6 +236,5 @@ class PortTheme {
       fontWeight: FontWeight.w500,
     ),
     labelOffset: 4.0,
-    labelVisibilityThreshold: 0.5,
   );
 }

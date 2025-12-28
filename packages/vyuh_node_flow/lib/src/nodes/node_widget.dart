@@ -57,6 +57,7 @@ class NodeWidget<T> extends StatelessWidget {
   /// * [selectedBorderWidth] - Custom selected border width (overrides theme)
   /// * [borderRadius] - Custom border radius (overrides theme)
   /// * [padding] - Custom padding (overrides theme)
+  /// * [showContent] - Whether to show node content (LOD control, defaults to true)
   const NodeWidget({
     super.key,
     required this.node,
@@ -71,6 +72,7 @@ class NodeWidget<T> extends StatelessWidget {
     this.selectedBorderWidth,
     this.borderRadius,
     this.padding,
+    this.showContent = true,
   });
 
   /// Creates a node widget with default content layout.
@@ -90,6 +92,7 @@ class NodeWidget<T> extends StatelessWidget {
     this.selectedBorderWidth,
     this.borderRadius,
     this.padding,
+    this.showContent = true,
   }) : child = null;
 
   /// The node data model to render.
@@ -133,6 +136,13 @@ class NodeWidget<T> extends StatelessWidget {
   /// Custom padding inside the node.
   final EdgeInsets? padding;
 
+  /// Whether to show node content.
+  ///
+  /// When false, renders a simplified version with just the background
+  /// and border (no content). Used for LOD (Level of Detail) rendering
+  /// at low zoom levels.
+  final bool showContent;
+
   @override
   Widget build(BuildContext context) {
     // Self-rendering nodes handle everything themselves
@@ -144,6 +154,17 @@ class NodeWidget<T> extends StatelessWidget {
     return Observer(
       builder: (_) {
         final isSelected = node.isSelected;
+
+        // When showContent is false (LOD: low zoom level),
+        // render simplified version with just background and border
+        if (!showContent) {
+          if (shape != null) {
+            return _buildShapedNode(theme, isSelected, const SizedBox.shrink());
+          } else {
+            return _buildSimplifiedRectangularNode(theme, isSelected);
+          }
+        }
+
         final content = child ?? _buildDefaultContent(theme);
 
         if (shape != null) {
@@ -239,6 +260,23 @@ class NodeWidget<T> extends StatelessWidget {
         borderRadius: borderRadius ?? nodeTheme.borderRadius,
       ),
       child: content,
+    );
+  }
+
+  /// Builds a simplified rectangular node for LOD rendering.
+  ///
+  /// This creates a simple colored rectangle with border but no content,
+  /// used when zoomed out far enough that content would be too small to read.
+  Widget _buildSimplifiedRectangularNode(NodeTheme nodeTheme, bool isSelected) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _getBackgroundColor(nodeTheme, isSelected),
+        border: Border.all(
+          color: _getBorderColor(nodeTheme, isSelected),
+          width: _getBorderWidth(nodeTheme, isSelected),
+        ),
+        borderRadius: borderRadius ?? nodeTheme.borderRadius,
+      ),
     );
   }
 }

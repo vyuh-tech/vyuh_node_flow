@@ -84,6 +84,11 @@ class ConnectionLabelsLayer<T> extends StatelessWidget {
     return UnboundedPositioned.fill(
       child: Observer(
         builder: (context) {
+          // LOD check: hide connection labels when zoomed out
+          if (!controller.lodState.showConnectionLabels) {
+            return const SizedBox.shrink();
+          }
+
           // Observe connections list changes
           final connections = controller.connections;
 

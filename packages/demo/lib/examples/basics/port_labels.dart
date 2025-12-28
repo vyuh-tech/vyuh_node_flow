@@ -288,7 +288,6 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
               fontWeight: FontWeight.w600,
             ),
             labelOffset: _labelOffset,
-            labelVisibilityThreshold: _visibilityThreshold,
           ),
         ),
         nodeBuilder: _buildNode,

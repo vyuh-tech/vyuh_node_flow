@@ -24,6 +24,7 @@ import '../../ports/port.dart';
 import '../../shared/spatial/graph_spatial_index.dart';
 import '../drag_session.dart';
 import '../keyboard/node_flow_actions.dart';
+import '../lod/lod.dart';
 import '../node_flow_behavior.dart';
 import '../node_flow_config.dart';
 import '../node_flow_events.dart';
@@ -145,6 +146,27 @@ class NodeFlowController<T> {
   /// The configuration controls behavior like snap-to-grid, zoom limits,
   /// port snap distance, and other behavioral settings.
   NodeFlowConfig get config => _config;
+
+  // Level of Detail (LOD) state - lazily initialized
+  LODState? _lodState;
+
+  /// Gets the Level of Detail (LOD) state for this controller.
+  ///
+  /// LOD controls which visual elements are rendered based on the current
+  /// zoom level. Use this to check visibility at the current zoom:
+  ///
+  /// ```dart
+  /// if (controller.lodState.showConnectionLines) {
+  ///   // Render connections
+  /// }
+  /// ```
+  ///
+  /// The state is reactive via MobX, so widgets wrapped in [Observer]
+  /// will automatically rebuild when the LOD level changes.
+  LODState get lodState {
+    _lodState ??= LODState(config: _config, viewport: _viewport);
+    return _lodState!;
+  }
 
   // Theme configuration - observable to enable reactive spatial index updates
   final Observable<NodeFlowTheme?> _themeObservable =

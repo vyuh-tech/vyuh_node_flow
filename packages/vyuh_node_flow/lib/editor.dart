@@ -2,6 +2,7 @@
 library;
 
 export 'src/editor/keyboard/node_flow_actions.dart';
+export 'src/editor/lod/lod.dart';
 export 'src/editor/node_flow_behavior.dart';
 export 'src/editor/node_flow_config.dart';
 export 'src/editor/node_flow_editor.dart';

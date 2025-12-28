@@ -14,6 +14,7 @@ import 'examples/advanced/connection_labels.dart';
 // // Editable connections examples
 // import 'examples/advanced/editable_connections.dart';
 // Advanced examples
+import 'examples/advanced/lod.dart';
 import 'examples/advanced/serialization.dart';
 import 'examples/advanced/shortcuts.dart';
 import 'examples/advanced/theming.dart';
@@ -188,6 +189,14 @@ class ExampleRegistry {
               'Customize colors, styles, and appearance of the node flow editor',
           icon: Icons.palette,
           builder: (_) => const ThemingExample(),
+        ),
+        Example(
+          id: 'lod',
+          title: 'Level of Detail (LOD)',
+          description:
+              'Automatic visual simplification based on zoom level for performance optimization',
+          icon: Icons.layers,
+          builder: (_) => const LODExample(),
         ),
         Example(
           id: 'viewer',
