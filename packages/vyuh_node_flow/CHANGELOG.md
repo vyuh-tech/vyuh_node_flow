@@ -1,3 +1,7 @@
+## 0.19.1
+
+ - **FEAT**: updated readme.
+
 ## 0.19.0
 
  - **FEAT**: introduce Level of Detail (LOD) system for improved performance and reduced visual clutter at lower zoom levels.
