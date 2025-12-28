@@ -1,3 +1,7 @@
+## 0.19.0
+
+ - **FEAT**: introduce Level of Detail (LOD) system for improved performance and reduced visual clutter at lower zoom levels.
+
 ## 0.18.1
 
  - **FEAT**: remove snapping circle functionality to simplify port interaction visuals and theme configuration.
