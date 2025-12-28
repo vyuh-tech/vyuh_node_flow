@@ -41,7 +41,6 @@ minimap, and more.
 - [Building Nodes](#building-nodes)
   - [Basic Node Widget](#basic-node-widget)
   - [Custom Node Content](#custom-node-content)
-  - [Using Node Container Builder](#using-node-container-builder)
   - [Node Types and Data](#node-types-and-data)
 - [Working with Ports](#working-with-ports)
   - [Port Basics](#port-basics)
@@ -1064,34 +1063,6 @@ Widget _buildNode(BuildContext context, Node<Map<String, dynamic>> node) {
     ),
   );
 }
-```
-
-</details>
-
-### Using Node Container Builder
-
-For complete control over node appearance:
-
-<details>
-<summary><strong>Custom Node Container Example</strong></summary>
-
-```dart
-NodeFlowEditor<MyData>(
-  controller: controller,
-  theme: theme,
-  nodeBuilder: (context, node) => _buildNodeContent(node),
-  nodeContainerBuilder: (context, node, content) {
-    // Return NodeWidget with custom styling
-    return NodeWidget<MyData>(
-      node: node,
-      child: content,
-      backgroundColor: _getNodeColor(node),
-      borderColor: node.isSelected ? Colors.blue : Colors.grey,
-      borderWidth: node.isSelected ? 3.0 : 1.0,
-      borderRadius: BorderRadius.circular(12),
-    );
-  },
-)
 ```
 
 </details>

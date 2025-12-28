@@ -32,6 +32,7 @@ import 'layers/minimap_overlay.dart';
 import 'layers/nodes_layer.dart';
 import 'layers/autopan_zone_debug_layer.dart';
 import 'layers/debug_layers_stack.dart';
+import 'node_flow_scope.dart';
 
 part 'controller/node_flow_controller_extensions.dart';
 part 'node_flow_editor_hit_testing.dart';
@@ -68,7 +69,6 @@ class NodeFlowEditor<T> extends StatefulWidget {
     required this.nodeBuilder,
     required this.theme,
     this.nodeShapeBuilder,
-    this.nodeContainerBuilder,
     this.portBuilder,
     this.labelBuilder,
     this.connectionStyleResolver,
@@ -87,8 +87,10 @@ class NodeFlowEditor<T> extends StatefulWidget {
   /// Builder function for rendering node content.
   ///
   /// This function is called for each node in the graph to create its visual
-  /// representation. The returned widget is automatically wrapped in a NodeWidget
-  /// unless you provide a custom [nodeContainerBuilder].
+  /// representation. The returned widget is automatically wrapped in a NodeWidget.
+  ///
+  /// For full control over node rendering, implement [Node.buildWidget] to make
+  /// your node self-rendering.
   ///
   /// Example:
   /// ```dart
@@ -107,7 +109,7 @@ class NodeFlowEditor<T> extends StatefulWidget {
   /// for rendering a node. Return null for rectangular nodes.
   ///
   /// The shape is used by:
-  /// - The default nodeContainerBuilder to render shaped nodes
+  /// - NodeWidget to render shaped nodes
   /// - Connection drawing to calculate correct port positions
   ///
   /// Example:
@@ -125,30 +127,6 @@ class NodeFlowEditor<T> extends StatefulWidget {
   /// ```
   final NodeShape? Function(BuildContext context, Node<T> node)?
   nodeShapeBuilder;
-
-  /// Optional builder for customizing the node container.
-  ///
-  /// Receives the node content (from `nodeBuilder`) and the node itself.
-  /// By default, nodes are wrapped in a NodeWidget with standard functionality.
-  ///
-  /// You can use this to:
-  /// - Return NodeWidget with custom appearance parameters
-  /// - Wrap NodeWidget with additional decorations
-  /// - Create completely custom node containers
-  ///
-  /// Example:
-  /// ```dart
-  /// nodeContainerBuilder: (context, node, content) {
-  ///   return Container(
-  ///     decoration: BoxDecoration(
-  ///       border: Border.all(color: Colors.blue, width: 2),
-  ///     ),
-  ///     child: NodeWidget(node: node, child: content),
-  ///   );
-  /// }
-  /// ```
-  final Widget Function(BuildContext context, Node<T> node, Widget content)?
-  nodeContainerBuilder;
 
   /// Optional builder for customizing individual port widgets.
   ///
@@ -497,201 +475,200 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
     return Theme(
       data: Theme.of(context).copyWith(extensions: [theme]),
-      child: _SizeObserver(
-        onSizeChanged: widget.controller.setScreenSize,
-        builder: (context, constraints) {
-          return NodeFlowKeyboardHandler<T>(
-            controller: widget.controller,
-            focusNode: widget.controller.canvasFocusNode,
-            // Listener has the canvasKey so we can convert global→local coordinates
-            child: Listener(
-              key: widget.controller.canvasKey,
-              // IMPORTANT: Use translucent to ensure this Listener receives
-              // events BEFORE child Listeners. Default (deferToChild) can cause
-              // child Listeners to fire before the parent, breaking flag logic.
-              behavior: HitTestBehavior.translucent,
-              onPointerDown: _handlePointerDown,
-              onPointerMove: _handlePointerMove,
-              onPointerUp: _handlePointerUp,
-              onPointerHover: _handleMouseHover,
-              child: Observer.withBuiltChild(
-                builder: (context, child) {
-                  // Derive cursor from interaction state
-                  final cursor = widget.theme.cursorTheme.cursorFor(
-                    ElementType.canvas,
-                    widget.controller.interaction,
-                  );
-                  return MouseRegion(cursor: cursor, child: child);
-                },
-                child: Container(
-                  width: constraints.maxWidth,
-                  height: constraints.maxHeight,
-                  clipBehavior: Clip.hardEdge,
-                  decoration: BoxDecoration(color: theme.backgroundColor),
-                  child: Stack(
-                    children: [
-                      // Autopan zone debug overlay - screen coordinates, below all content
-                      // Positioned first in stack so it renders behind InteractiveViewer
-                      AutopanZoneDebugLayer<T>(controller: widget.controller),
+      child: NodeFlowScope<T>(
+        controller: widget.controller,
+        child: _SizeObserver(
+          onSizeChanged: widget.controller.setScreenSize,
+          builder: (context, constraints) {
+            return NodeFlowKeyboardHandler<T>(
+              controller: widget.controller,
+              focusNode: widget.controller.canvasFocusNode,
+              // Listener has the canvasKey so we can convert global→local coordinates
+              child: Listener(
+                key: widget.controller.canvasKey,
+                // IMPORTANT: Use translucent to ensure this Listener receives
+                // events BEFORE child Listeners. Default (deferToChild) can cause
+                // child Listeners to fire before the parent, breaking flag logic.
+                behavior: HitTestBehavior.translucent,
+                onPointerDown: _handlePointerDown,
+                onPointerMove: _handlePointerMove,
+                onPointerUp: _handlePointerUp,
+                onPointerHover: _handleMouseHover,
+                child: Observer.withBuiltChild(
+                  builder: (context, child) {
+                    // Derive cursor from interaction state
+                    final cursor = widget.theme.cursorTheme.cursorFor(
+                      ElementType.canvas,
+                      widget.controller.interaction,
+                    );
+                    return MouseRegion(cursor: cursor, child: child);
+                  },
+                  child: Container(
+                    width: constraints.maxWidth,
+                    height: constraints.maxHeight,
+                    clipBehavior: Clip.hardEdge,
+                    decoration: BoxDecoration(color: theme.backgroundColor),
+                    child: Stack(
+                      children: [
+                        // Autopan zone debug overlay - screen coordinates, below all content
+                        // Positioned first in stack so it renders behind InteractiveViewer
+                        AutopanZoneDebugLayer<T>(controller: widget.controller),
 
-                      // Canvas with InteractiveViewer for pan/zoom
-                      // Wrapped in Observer to react to canvasLocked changes
-                      Observer.withBuiltChild(
-                        builder: (context, child) {
-                          // When canvas is locked, disable both pan and zoom
-                          final isLocked = widget.controller.canvasLocked;
-                          return InteractiveViewer(
-                            transformationController: _transformationController,
-                            boundaryMargin: const EdgeInsets.all(
-                              double.infinity,
+                        // Canvas with InteractiveViewer for pan/zoom
+                        // Wrapped in Observer to react to canvasLocked changes
+                        Observer.withBuiltChild(
+                          builder: (context, child) {
+                            // When canvas is locked, disable both pan and zoom
+                            final isLocked = widget.controller.canvasLocked;
+                            return InteractiveViewer(
+                              transformationController:
+                                  _transformationController,
+                              boundaryMargin: const EdgeInsets.all(
+                                double.infinity,
+                              ),
+                              constrained: false,
+                              minScale: widget.controller.config.minZoom.value,
+                              maxScale: widget.controller.config.maxZoom.value,
+                              // Respect both behavior config and lock state
+                              panEnabled: widget.behavior.canPan && !isLocked,
+                              scaleEnabled:
+                                  widget.behavior.canZoom && !isLocked,
+                              trackpadScrollCausesScale: widget.scrollToZoom,
+                              onInteractionStart: _onInteractionStart,
+                              onInteractionUpdate: _onInteractionUpdate,
+                              onInteractionEnd: _onInteractionEnd,
+                              child: child,
+                            );
+                          },
+                          child: UnboundedSizedBox(
+                            width: constraints.maxWidth,
+                            height: constraints.maxHeight,
+                            child: UnboundedStack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                // Background grid
+                                GridLayer(
+                                  theme: theme,
+                                  transformationController:
+                                      _transformationController,
+                                ),
+
+                                // Background nodes (GroupNode) - drag handled via NodeWidget
+                                if (widget.showAnnotations)
+                                  NodesLayer.background(
+                                    widget.controller,
+                                    widget.nodeBuilder,
+                                    widget.controller.connections,
+                                    portBuilder: widget.portBuilder,
+                                    onNodeTap: _handleNodeTap,
+                                    onNodeDoubleTap: _handleNodeDoubleTap,
+                                    onNodeContextMenu: _handleNodeContextMenu,
+                                    onNodeMouseEnter: _handleNodeMouseEnter,
+                                    onNodeMouseLeave: _handleNodeMouseLeave,
+                                    onPortContextMenu: _handlePortContextMenu,
+                                    portSnapDistance: widget
+                                        .controller
+                                        .config
+                                        .portSnapDistance
+                                        .value,
+                                  ),
+
+                                // Connections
+                                ConnectionsLayer<T>(
+                                  controller: widget.controller,
+                                  animation: _connectionAnimationController,
+                                ),
+
+                                // Connection labels
+                                ConnectionLabelsLayer<T>(
+                                  controller: widget.controller,
+                                  labelBuilder: widget.labelBuilder,
+                                ),
+
+                                // Middle layer nodes (regular nodes)
+                                NodesLayer.middle(
+                                  widget.controller,
+                                  widget.nodeBuilder,
+                                  widget.controller.connections,
+                                  portBuilder: widget.portBuilder,
+                                  onNodeTap: _handleNodeTap,
+                                  onNodeDoubleTap: _handleNodeDoubleTap,
+                                  onNodeContextMenu: _handleNodeContextMenu,
+                                  onNodeMouseEnter: _handleNodeMouseEnter,
+                                  onNodeMouseLeave: _handleNodeMouseLeave,
+                                  onPortContextMenu: _handlePortContextMenu,
+                                  portSnapDistance: widget
+                                      .controller
+                                      .config
+                                      .portSnapDistance
+                                      .value,
+                                ),
+
+                                // Foreground nodes (CommentNode) - drag handled via NodeWidget
+                                if (widget.showAnnotations)
+                                  NodesLayer.foreground(
+                                    widget.controller,
+                                    widget.nodeBuilder,
+                                    widget.controller.connections,
+                                    portBuilder: widget.portBuilder,
+                                    onNodeTap: _handleNodeTap,
+                                    onNodeDoubleTap: _handleNodeDoubleTap,
+                                    onNodeContextMenu: _handleNodeContextMenu,
+                                    onNodeMouseEnter: _handleNodeMouseEnter,
+                                    onNodeMouseLeave: _handleNodeMouseLeave,
+                                    onPortContextMenu: _handlePortContextMenu,
+                                    portSnapDistance: widget
+                                        .controller
+                                        .config
+                                        .portSnapDistance
+                                        .value,
+                                  ),
+
+                                // Debug visualization layers (when config.debugMode is enabled)
+                                // Placed on top of all content for full visibility
+                                // Uses IgnorePointer internally so interactions pass through
+                                DebugLayersStack<T>(
+                                  controller: widget.controller,
+                                  transformationController:
+                                      _transformationController,
+                                  theme: theme,
+                                ),
+                              ],
                             ),
-                            constrained: false,
-                            minScale: widget.controller.config.minZoom.value,
-                            maxScale: widget.controller.config.maxZoom.value,
-                            // Respect both behavior config and lock state
-                            panEnabled: widget.behavior.canPan && !isLocked,
-                            scaleEnabled: widget.behavior.canZoom && !isLocked,
-                            trackpadScrollCausesScale: widget.scrollToZoom,
-                            onInteractionStart: _onInteractionStart,
-                            onInteractionUpdate: _onInteractionUpdate,
-                            onInteractionEnd: _onInteractionEnd,
-                            child: child,
-                          );
-                        },
-                        child: UnboundedSizedBox(
-                          width: constraints.maxWidth,
-                          height: constraints.maxHeight,
-                          child: UnboundedStack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              // Background grid
-                              GridLayer(
-                                theme: theme,
-                                transformationController:
-                                    _transformationController,
-                              ),
-
-                              // Background nodes (GroupNode) - drag handled via NodeWidget
-                              if (widget.showAnnotations)
-                                NodesLayer.background(
-                                  widget.controller,
-                                  widget.nodeBuilder,
-                                  widget.controller.connections,
-                                  nodeContainerBuilder:
-                                      widget.nodeContainerBuilder,
-                                  portBuilder: widget.portBuilder,
-                                  onNodeTap: _handleNodeTap,
-                                  onNodeDoubleTap: _handleNodeDoubleTap,
-                                  onNodeContextMenu: _handleNodeContextMenu,
-                                  onNodeMouseEnter: _handleNodeMouseEnter,
-                                  onNodeMouseLeave: _handleNodeMouseLeave,
-                                  onPortContextMenu: _handlePortContextMenu,
-                                  portSnapDistance: widget
-                                      .controller
-                                      .config
-                                      .portSnapDistance
-                                      .value,
-                                ),
-
-                              // Connections
-                              ConnectionsLayer<T>(
-                                controller: widget.controller,
-                                animation: _connectionAnimationController,
-                              ),
-
-                              // Connection labels
-                              ConnectionLabelsLayer<T>(
-                                controller: widget.controller,
-                                labelBuilder: widget.labelBuilder,
-                              ),
-
-                              // Middle layer nodes (regular nodes)
-                              NodesLayer.middle(
-                                widget.controller,
-                                widget.nodeBuilder,
-                                widget.controller.connections,
-                                nodeContainerBuilder:
-                                    widget.nodeContainerBuilder,
-                                portBuilder: widget.portBuilder,
-                                onNodeTap: _handleNodeTap,
-                                onNodeDoubleTap: _handleNodeDoubleTap,
-                                onNodeContextMenu: _handleNodeContextMenu,
-                                onNodeMouseEnter: _handleNodeMouseEnter,
-                                onNodeMouseLeave: _handleNodeMouseLeave,
-                                onPortContextMenu: _handlePortContextMenu,
-                                portSnapDistance: widget
-                                    .controller
-                                    .config
-                                    .portSnapDistance
-                                    .value,
-                              ),
-
-                              // Foreground nodes (CommentNode) - drag handled via NodeWidget
-                              if (widget.showAnnotations)
-                                NodesLayer.foreground(
-                                  widget.controller,
-                                  widget.nodeBuilder,
-                                  widget.controller.connections,
-                                  nodeContainerBuilder:
-                                      widget.nodeContainerBuilder,
-                                  portBuilder: widget.portBuilder,
-                                  onNodeTap: _handleNodeTap,
-                                  onNodeDoubleTap: _handleNodeDoubleTap,
-                                  onNodeContextMenu: _handleNodeContextMenu,
-                                  onNodeMouseEnter: _handleNodeMouseEnter,
-                                  onNodeMouseLeave: _handleNodeMouseLeave,
-                                  onPortContextMenu: _handlePortContextMenu,
-                                  portSnapDistance: widget
-                                      .controller
-                                      .config
-                                      .portSnapDistance
-                                      .value,
-                                ),
-
-                              // Debug visualization layers (when config.debugMode is enabled)
-                              // Placed on top of all content for full visibility
-                              // Uses IgnorePointer internally so interactions pass through
-                              DebugLayersStack<T>(
-                                controller: widget.controller,
-                                transformationController:
-                                    _transformationController,
-                                theme: theme,
-                              ),
-                            ],
                           ),
                         ),
-                      ),
 
-                      // Interaction layer - renders temporary connections and selection rectangles
-                      // Positioned outside the canvas to render anywhere on the infinite canvas
-                      // Uses IgnorePointer - all event handling is done by the Listener above
-                      Positioned.fill(
-                        child: InteractionLayer<T>(
-                          controller: widget.controller,
-                          transformationController: _transformationController,
-                          animation: _connectionAnimationController,
+                        // Interaction layer - renders temporary connections and selection rectangles
+                        // Positioned outside the canvas to render anywhere on the infinite canvas
+                        // Uses IgnorePointer - all event handling is done by the Listener above
+                        Positioned.fill(
+                          child: InteractionLayer<T>(
+                            controller: widget.controller,
+                            transformationController: _transformationController,
+                            animation: _connectionAnimationController,
+                          ),
                         ),
-                      ),
 
-                      // Minimap overlay - topmost layer, outside InteractiveViewer
-                      MinimapOverlay<T>(
-                        controller: widget.controller,
-                        theme: theme,
-                        transformationController: _transformationController,
-                        canvasSize: constraints.biggest,
-                      ),
+                        // Minimap overlay - topmost layer, outside InteractiveViewer
+                        MinimapOverlay<T>(
+                          controller: widget.controller,
+                          theme: theme,
+                          transformationController: _transformationController,
+                          canvasSize: constraints.biggest,
+                        ),
 
-                      // Attribution overlay - bottom center
-                      AttributionOverlay(
-                        show: widget.controller.config.showAttribution,
-                      ),
-                    ],
+                        // Attribution overlay - bottom center
+                        AttributionOverlay(
+                          show: widget.controller.config.showAttribution,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

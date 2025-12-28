@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../editor/controller/node_flow_controller.dart';
 import '../editor/themes/node_flow_theme.dart';
+import 'connection.dart';
 import 'connection_painter.dart';
 
 /// Custom painter for rendering all connections in the node flow canvas.
@@ -41,11 +42,13 @@ class ConnectionsCanvas<T> extends CustomPainter {
   /// - [store]: The node flow controller containing connection data
   /// - [theme]: The visual theme for rendering
   /// - [connectionPainter]: Shared painter instance for path caching
+  /// - [connections]: specific connections to render (defaults to all store.connections)
   /// - [animation]: Optional animation for animated connections
   const ConnectionsCanvas({
     required this.store,
     required this.theme,
     required this.connectionPainter,
+    this.connections,
     this.animation,
   }) : super(repaint: animation);
 
@@ -60,6 +63,10 @@ class ConnectionsCanvas<T> extends CustomPainter {
   /// Using a shared instance ensures paths are cached and reused for both
   /// painting and hit testing, improving performance.
   final ConnectionPainter connectionPainter;
+
+  /// Specific connections to render.
+  /// If null, renders all connections from the store.
+  final List<Connection>? connections;
 
   /// Optional animation for animated connections.
   ///
@@ -81,9 +88,8 @@ class ConnectionsCanvas<T> extends CustomPainter {
     // Use the shared cached connection painter
     // This ensures paths are cached and reused for both painting and hit testing
 
-    // Always use all connections - let InteractiveViewer handle visibility
-    // This avoids expensive visibility computation during panning
-    final connectionsToRender = store.connections;
+    // Use provided list or fallback to all connections
+    final connectionsToRender = connections ?? store.connections;
 
     // Get current animation value
     final animationValue = animation?.value;

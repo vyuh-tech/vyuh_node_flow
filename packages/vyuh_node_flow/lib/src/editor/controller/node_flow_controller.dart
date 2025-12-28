@@ -347,12 +347,185 @@ class NodeFlowController<T> {
   // Actions and shortcuts management
   late final NodeFlowShortcutManager<T> shortcuts;
 
-  // Computed values
-  Computed<bool> get _hasSelection => Computed(
+  // Caching state for smart culling (hysteresis)
+  // We query a larger chunk and only re-query when approaching the edge
+  Rect? _cachedNodeQueryRect;
+  List<Node<T>> _cachedVisibleNodesList = [];
+  int _lastNodeIndexVersion = -1;
+
+  Rect? _cachedConnectionQueryRect;
+  List<Connection> _cachedVisibleConnectionsList = [];
+  int _lastConnectionIndexVersion = -1;
+
+  // Computed values - stored as late final fields for proper caching
+  late final Computed<bool> _hasSelection = Computed(
     () => _selectedNodeIds.isNotEmpty || _selectedConnectionIds.isNotEmpty,
   );
 
-  Computed<List<Node<T>>> get _sortedNodes => Computed(_computeSortedNodes);
+  late final Computed<List<Node<T>>> _sortedNodes = Computed(
+    _computeSortedNodes,
+  );
+
+  /// Connections currently affected by an interaction (drag/resize).
+  /// These should be rendered in the active layer.
+  late final Computed<Set<String>> _activeConnectionIds = Computed(() {
+    final draggedId = interaction.currentDraggedNodeId;
+    final resizingId = interaction.currentResizingNodeId;
+
+    if (draggedId != null) {
+      return _connectionsByNodeId[draggedId] ?? const {};
+    }
+    if (resizingId != null) {
+      return _connectionsByNodeId[resizingId] ?? const {};
+    }
+    return const {};
+  });
+
+  /// Nodes currently affected by an interaction (drag/resize).
+  /// When dragging a selected node, ALL selected nodes are active since they move together.
+  /// These should be rendered in the active layer for 60fps during interaction.
+  late final Computed<Set<String>> _activeNodeIds = Computed(() {
+    final result = <String>{};
+    final draggedId = interaction.currentDraggedNodeId;
+    final resizingId = interaction.currentResizingNodeId;
+
+    // If dragging, check if the dragged node is in selection
+    // If so, all selected nodes are active (they move together)
+    if (draggedId != null) {
+      if (_selectedNodeIds.contains(draggedId)) {
+        result.addAll(_selectedNodeIds);
+      } else {
+        result.add(draggedId);
+      }
+    }
+
+    // Resizing always affects only one node
+    if (resizingId != null) result.add(resizingId);
+
+    return result;
+  });
+
+  /// Visible nodes based on current viewport with hysteresis.
+  late final Computed<List<Node<T>>> _visibleNodes = Computed(() {
+    // Depend on viewport and screen size
+    final v = _viewport.value;
+    final s = _screenSize.value;
+
+    if (s.isEmpty) return _nodes.values.toList();
+
+    // Calculate current viewport rect
+    final currentViewportRect = Rect.fromLTWH(
+      -v.x / v.zoom,
+      -v.y / v.zoom,
+      s.width / v.zoom,
+      s.height / v.zoom,
+    );
+
+    // Check if spatial index changed
+    final currentIndexVersion = _spatialIndex.version.value;
+    final indexChanged = currentIndexVersion != _lastNodeIndexVersion;
+
+    // Check if viewport is safely within cached query rect (Hysteresis)
+    // We use a margin of 200px. If we are within 200px of the edge of the
+    // cached area, we trigger a re-query.
+    final cacheValid =
+        !indexChanged &&
+        _cachedNodeQueryRect != null &&
+        _cachedNodeQueryRect!.contains(
+          currentViewportRect.topLeft - const Offset(200, 200),
+        ) &&
+        _cachedNodeQueryRect!.contains(
+          currentViewportRect.bottomRight + const Offset(200, 200),
+        );
+
+    if (cacheValid) {
+      return _cachedVisibleNodesList;
+    }
+
+    // Re-query: Expand viewport by 1000px (chunk size)
+    final queryRect = currentViewportRect.inflate(1000);
+    final nodes = _spatialIndex.nodesIn(queryRect);
+
+    // Ensure currently interacting nodes are always included
+    final draggedId = interaction.currentDraggedNodeId;
+    final resizingId = interaction.currentResizingNodeId;
+
+    void ensureIncluded(String? id) {
+      if (id == null) return;
+      final node = _nodes[id];
+      if (node != null && !nodes.contains(node)) {
+        nodes.add(node);
+      }
+    }
+
+    ensureIncluded(draggedId);
+    ensureIncluded(resizingId);
+
+    // Update cache
+    _cachedNodeQueryRect = queryRect;
+    _cachedVisibleNodesList = nodes;
+    _lastNodeIndexVersion = currentIndexVersion;
+
+    return nodes;
+  });
+
+  /// Visible connections based on current viewport with hysteresis.
+  late final Computed<List<Connection>> _visibleConnections = Computed(() {
+    // Depend on viewport and screen size
+    final v = _viewport.value;
+    final s = _screenSize.value;
+
+    if (s.isEmpty) return _connections;
+
+    final currentViewportRect = Rect.fromLTWH(
+      -v.x / v.zoom,
+      -v.y / v.zoom,
+      s.width / v.zoom,
+      s.height / v.zoom,
+    );
+
+    final currentIndexVersion = _spatialIndex.version.value;
+    final indexChanged = currentIndexVersion != _lastConnectionIndexVersion;
+
+    final cacheValid =
+        !indexChanged &&
+        _cachedConnectionQueryRect != null &&
+        _cachedConnectionQueryRect!.contains(
+          currentViewportRect.topLeft - const Offset(200, 200),
+        ) &&
+        _cachedConnectionQueryRect!.contains(
+          currentViewportRect.bottomRight + const Offset(200, 200),
+        );
+
+    if (cacheValid) {
+      return _cachedVisibleConnectionsList;
+    }
+
+    final queryRect = currentViewportRect.inflate(1000);
+    final connections = _spatialIndex.connectionsIn(queryRect);
+
+    _cachedConnectionQueryRect = queryRect;
+    _cachedVisibleConnectionsList = connections;
+    _lastConnectionIndexVersion = currentIndexVersion;
+
+    return connections;
+  });
+
+  /// Visible nodes sorted by z-index (cached Computed).
+  /// This caches the sorted result to avoid O(n log n) sort on every frame.
+  late final Computed<List<Node<T>>> _sortedVisibleNodes = Computed(() {
+    // Get the cached visible nodes
+    final nodes = List<Node<T>>.from(_visibleNodes.value);
+
+    // Observe zIndex values to ensure reactivity when zIndex changes
+    for (final node in nodes) {
+      node.zIndex.value;
+    }
+
+    // Sort by zIndex ascending (lower zIndex = rendered first = behind)
+    nodes.sort((a, b) => a.zIndex.value.compareTo(b.zIndex.value));
+    return nodes;
+  });
 
   // Public API - only what external consumers need
 
@@ -390,6 +563,22 @@ class NodeFlowController<T> {
   /// Lower z-index nodes render first (behind), higher z-index nodes render last (on top).
   /// This is primarily for internal use by the editor widget for proper rendering order.
   List<Node<T>> get sortedNodes => _sortedNodes.value;
+
+  /// Gets visible nodes sorted by z-index (package-private).
+  ///
+  /// Optimized for rendering only what's on screen.
+  /// Uses cached Computed to avoid sorting on every access.
+  List<Node<T>> get visibleNodes => _sortedVisibleNodes.value;
+
+  /// Gets visible connections (package-private).
+  List<Connection> get visibleConnections => _visibleConnections.value;
+
+  /// Gets IDs of connections involved in current interaction (package-private).
+  Set<String> get activeConnectionIds => _activeConnectionIds.value;
+
+  /// Gets IDs of nodes involved in current interaction (package-private).
+  /// When dragging a selected node, includes ALL selected nodes.
+  Set<String> get activeNodeIds => _activeNodeIds.value;
 
   /// Gets the current screen/canvas size (package-private).
   ///
@@ -568,33 +757,76 @@ class NodeFlowController<T> {
   ///
   /// Works for any node with `isResizable = true`, including [GroupNode]
   /// and [CommentNode]. The node must have [Node.isResizable] set to `true`.
-  void startResize(String nodeId, ResizeHandle handle) {
+  ///
+  /// Parameters:
+  /// * [nodeId] - The ID of the node to resize
+  /// * [handle] - The resize handle being dragged
+  /// * [globalPosition] - The global position of the pointer when resize started
+  void startResize(String nodeId, ResizeHandle handle, Offset globalPosition) {
     final node = _nodes[nodeId];
-    if (node != null && node.isResizable) {
-      interaction.startResize(nodeId, handle);
-    }
+    if (node == null || !node.isResizable) return;
+
+    // Convert global position to graph coordinates
+    final graphPos = viewport.toGraph(ScreenPosition(globalPosition));
+
+    // Capture original bounds
+    final originalBounds = Rect.fromLTWH(
+      node.position.value.dx,
+      node.position.value.dy,
+      node.size.value.width,
+      node.size.value.height,
+    );
+
+    interaction.startResize(nodeId, handle, graphPos.offset, originalBounds);
   }
 
   /// Updates the size of the currently resizing node during a resize operation.
   ///
-  /// Delegates to [Node.resize] which handles all resize handle calculations
-  /// and size constraints. After resize, updates visual position with snapping.
-  void updateResize(Offset delta) {
+  /// Uses absolute position-based resizing for predictable behavior:
+  /// - Calculates new bounds from original state + total movement
+  /// - Handles constraint boundaries (min/max size)
+  /// - Supports handle swapping when crossing opposite edges
+  /// - Tracks drift for proximity-based resume
+  ///
+  /// Parameters:
+  /// * [globalPosition] - The current global position of the pointer
+  void updateResize(Offset globalPosition) {
     final nodeId = interaction.currentResizingNodeId;
     final handle = interaction.currentResizeHandle;
-    if (nodeId == null || handle == null) return;
+    final startPos = interaction.currentResizeStartPosition;
+    final originalBounds = interaction.currentOriginalNodeBounds;
+
+    if (nodeId == null ||
+        handle == null ||
+        startPos == null ||
+        originalBounds == null) {
+      return;
+    }
 
     final node = _nodes[nodeId];
-    if (node != null && node.isResizable) {
-      // Safe cast: isResizable guarantees ResizableMixin
-      (node as ResizableMixin<T>).resize(handle, delta);
-      runInAction(() {
-        node.setVisualPosition(
-          _config.snapToGridIfEnabled(node.position.value),
-        );
-      });
-      markNodeDirty(nodeId);
-    }
+    if (node == null || !node.isResizable) return;
+
+    // Convert global position to graph coordinates
+    final graphPos = viewport.toGraph(ScreenPosition(globalPosition));
+
+    // Calculate new bounds using absolute positioning
+    final resizableNode = node as ResizableMixin<T>;
+    final result = resizableNode.calculateResize(
+      handle: handle,
+      originalBounds: originalBounds,
+      startPosition: startPos,
+      currentPosition: graphPos.offset,
+    );
+
+    // Apply the resize
+    runInAction(() {
+      resizableNode.applyBounds(result.newBounds);
+      node.setVisualPosition(_config.snapToGridIfEnabled(node.position.value));
+    });
+    markNodeDirty(nodeId);
+
+    // Track drift for debugging/analytics
+    interaction.setHandleDrift(result.drift);
   }
 
   /// Ends the current resize operation.
@@ -606,26 +838,22 @@ class NodeFlowController<T> {
 
   /// Cancels a resize operation and reverts to original position/size.
   ///
-  /// Call this to abort a resize and restore the node to its state before
-  /// the resize started. The caller provides the original values since
-  /// the widget that initiated the resize owns that state.
-  ///
-  /// Parameters:
-  /// - [originalPosition]: The node's position before resize
-  /// - [originalSize]: The node's size before resize
-  void cancelResize({
-    required Offset originalPosition,
-    required Size originalSize,
-  }) {
+  /// Restores the node to its state before the resize started using the
+  /// original bounds captured in [InteractionState].
+  void cancelResize() {
     final nodeId = interaction.currentResizingNodeId;
-    if (nodeId == null) return;
+    final originalBounds = interaction.currentOriginalNodeBounds;
+
+    if (nodeId == null || originalBounds == null) return;
 
     final node = _nodes[nodeId];
     if (node != null && node.isResizable) {
       runInAction(() {
-        node.position.value = originalPosition;
-        node.setVisualPosition(_config.snapToGridIfEnabled(originalPosition));
-        (node as ResizableMixin<T>).size.value = originalSize;
+        node.position.value = originalBounds.topLeft;
+        node.setVisualPosition(
+          _config.snapToGridIfEnabled(originalBounds.topLeft),
+        );
+        (node as ResizableMixin<T>).setSize(originalBounds.size);
       });
       markNodeDirty(nodeId);
     }

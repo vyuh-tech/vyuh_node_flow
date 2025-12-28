@@ -89,6 +89,9 @@ class CommentNode<T> extends Node<T> with ResizableMixin<T> {
   Size get minSize => const Size(minWidth, minHeight);
 
   @override
+  Size? get maxSize => const Size(maxWidth, maxHeight);
+
+  @override
   void setSize(Size newSize) {
     final constrainedSize = Size(
       newSize.width.clamp(minWidth, maxWidth),
@@ -220,6 +223,8 @@ class _CommentContentState<T> extends State<_CommentContent<T>> {
             );
           }
         });
+      } else {
+        _commitEdit();
       }
     }, fireImmediately: true);
 
@@ -309,13 +314,15 @@ class _CommentContentState<T> extends State<_CommentContent<T>> {
   @override
   Widget build(BuildContext context) {
     final flowTheme = Theme.of(context).extension<NodeFlowTheme>();
-    final textStyle =
-        flowTheme?.nodeTheme.titleStyle ??
-        Theme.of(context).textTheme.bodyMedium;
+    assert(flowTheme != null, 'NodeFlowTheme must be provided in the context');
+
+    final nodeTheme = flowTheme!.nodeTheme;
+    final textStyle = nodeTheme.titleStyle;
 
     return Observer(
       builder: (_) {
         final isEditing = widget.node.isEditing;
+        final isSelected = widget.node.isSelected;
         final node = widget.node;
 
         return Container(
@@ -323,14 +330,13 @@ class _CommentContentState<T> extends State<_CommentContent<T>> {
           height: node.height,
           decoration: BoxDecoration(
             color: node.color.withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            borderRadius: nodeTheme.borderRadius,
+            border: Border.all(
+              color: isSelected
+                  ? nodeTheme.selectedBorderColor
+                  : Colors.transparent,
+              width: nodeTheme.selectedBorderWidth,
+            ),
           ),
           padding: const EdgeInsets.all(_padding),
           child: isEditing

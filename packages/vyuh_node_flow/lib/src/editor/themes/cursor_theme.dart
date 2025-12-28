@@ -111,9 +111,6 @@ enum ElementType {
 
   /// Port element (connection point)
   port,
-
-  /// Annotation element
-  annotation,
 }
 
 /// Extension on [CursorTheme] for deriving cursors from interaction state.
@@ -175,7 +172,6 @@ extension CursorThemeExtension on CursorTheme {
         ElementType.canvas => canvasCursor,
         ElementType.node => nodeCursor,
         ElementType.port => portCursor,
-        ElementType.annotation => isLocked ? canvasCursor : nodeCursor,
       },
     };
   }

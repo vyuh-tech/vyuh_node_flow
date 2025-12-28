@@ -193,9 +193,58 @@ extension ResizeHandleExtension on ResizeHandle {
 }
 
 /// Callbacks for resize operations.
-typedef OnResizeStart = void Function(ResizeHandle handle);
-typedef OnResizeUpdate = void Function(Offset delta);
+///
+/// [OnResizeStart] is called when a resize operation begins, providing the
+/// handle being dragged and the global position of the pointer.
+///
+/// [OnResizeUpdate] is called during resize with the current global position
+/// of the pointer. The controller uses this with the start position to
+/// calculate bounds using absolute positioning.
+///
+/// [OnResizeEnd] is called when the resize operation completes.
+typedef OnResizeStart =
+    void Function(ResizeHandle handle, Offset globalPosition);
+typedef OnResizeUpdate = void Function(Offset globalPosition);
 typedef OnResizeEnd = void Function();
+
+/// Configuration for resize behavior including size constraints.
+///
+/// This class encapsulates all the behavioral configuration for resizing,
+/// separate from visual theming.
+class ResizerConfig {
+  /// Minimum size constraints for the resizable element.
+  final Size minSize;
+
+  /// Maximum size constraints for the resizable element.
+  /// If null, the element can grow without limit.
+  final Size? maxSize;
+
+  /// Threshold distance (in graph units) for proximity-based resize resume.
+  ///
+  /// When constraints prevent resizing and the pointer drifts away from the
+  /// expected handle position, resizing only resumes when the pointer moves
+  /// back within this distance of the handle.
+  final double driftThreshold;
+
+  const ResizerConfig({
+    this.minSize = const Size(100, 60),
+    this.maxSize,
+    this.driftThreshold = 50.0,
+  });
+
+  /// Creates a copy with the given fields replaced.
+  ResizerConfig copyWith({
+    Size? minSize,
+    Size? maxSize,
+    double? driftThreshold,
+  }) {
+    return ResizerConfig(
+      minSize: minSize ?? this.minSize,
+      maxSize: maxSize ?? this.maxSize,
+      driftThreshold: driftThreshold ?? this.driftThreshold,
+    );
+  }
+}
 
 /// A widget that wraps a child with resize handles and edge hit areas.
 ///
@@ -203,6 +252,13 @@ typedef OnResizeEnd = void Function();
 /// its child. Additionally, the entire edge is a valid resize target via
 /// invisible edge hit areas. All resize operations are delegated to callbacks,
 /// allowing the parent (typically a controller) to handle the actual resize logic.
+///
+/// ## Absolute Position-Based Resizing
+///
+/// This widget uses global positions for resize callbacks instead of incremental
+/// deltas. This enables proper handling of:
+/// - Constraint boundaries (min/max size)
+/// - Drift tracking between handle position and pointer
 ///
 /// ## Usage
 ///
@@ -213,8 +269,10 @@ typedef OnResizeEnd = void Function();
 ///   borderColor: Colors.blue,
 ///   borderWidth: 1.0,
 ///   snapDistance: 4.0,
-///   onResizeStart: (handle) => controller.startResize(itemId, handle),
-///   onResizeUpdate: (delta) => controller.updateResize(delta),
+///   minSize: Size(100, 60),
+///   maxSize: Size(600, 400),
+///   onResizeStart: (handle, pos) => controller.startResize(itemId, handle, pos),
+///   onResizeUpdate: (pos) => controller.updateResize(pos),
 ///   onResizeEnd: () => controller.endResize(),
 ///   child: MyContent(),
 /// )
@@ -248,15 +306,18 @@ class ResizerWidget extends StatelessWidget {
     this.borderColor = Colors.blue,
     this.borderWidth = 1.0,
     this.snapDistance = 4.0,
+    this.minSize = const Size(100, 60),
+    this.maxSize,
+    this.isResizing = false,
   });
 
   /// The content to wrap with resize handles.
   final Widget child;
 
-  /// Called when a resize operation starts.
+  /// Called when a resize operation starts with handle and global position.
   final OnResizeStart onResizeStart;
 
-  /// Called during resize with the delta movement.
+  /// Called during resize with the current global position.
   final OnResizeUpdate onResizeUpdate;
 
   /// Called when a resize operation ends.
@@ -280,6 +341,23 @@ class ResizerWidget extends StatelessWidget {
   /// and defines the thickness of edge hit areas, making it easier
   /// to grab resize targets.
   final double snapDistance;
+
+  /// Minimum size constraints for the resizable element.
+  ///
+  /// The element cannot be resized smaller than this.
+  final Size minSize;
+
+  /// Maximum size constraints for the resizable element.
+  ///
+  /// If null, the element can grow without limit.
+  final Size? maxSize;
+
+  /// Whether a resize operation is currently in progress.
+  ///
+  /// When true, cursor handling is deferred to allow the global cursor override
+  /// to take effect. This prevents cursor flickering when the pointer moves
+  /// over other resize handles during an active resize operation.
+  final bool isResizing;
 
   /// Total hit area size including snap distance padding
   double get _hitAreaSize => handleSize + (snapDistance * 2);
@@ -313,8 +391,12 @@ class ResizerWidget extends StatelessWidget {
   /// Builds edge gesture detector using custom pan recognizer that rejects
   /// trackpad gestures, allowing them to bubble to InteractiveViewer.
   Widget _buildEdgeGestureDetector(ResizeHandle handle) {
+    // When resizing, defer cursor to allow the global cursor override to work.
+    // Otherwise, show the appropriate resize cursor on hover.
+    final cursor = isResizing ? MouseCursor.defer : handle.cursor;
+
     return MouseRegion(
-      cursor: handle.cursor,
+      cursor: cursor,
       child: RawGestureDetector(
         behavior: HitTestBehavior.opaque,
         gestures: {
@@ -323,9 +405,10 @@ class ResizerWidget extends StatelessWidget {
                 NonTrackpadPanGestureRecognizer
               >(() => NonTrackpadPanGestureRecognizer(), (recognizer) {
                 recognizer.dragStartBehavior = DragStartBehavior.down;
-                recognizer.onStart = (_) => onResizeStart(handle);
+                recognizer.onStart = (details) =>
+                    onResizeStart(handle, details.globalPosition);
                 recognizer.onUpdate = (details) =>
-                    onResizeUpdate(details.delta);
+                    onResizeUpdate(details.globalPosition);
                 recognizer.onEnd = (_) => onResizeEnd();
                 recognizer.onCancel = onResizeEnd;
               }),
@@ -348,8 +431,12 @@ class ResizerWidget extends StatelessWidget {
   /// Builds handle content using custom pan recognizer that rejects
   /// trackpad gestures, allowing them to bubble to InteractiveViewer.
   Widget _buildHandleContent(ResizeHandle handle) {
+    // When resizing, defer cursor to allow the global cursor override to work.
+    // Otherwise, show the appropriate resize cursor on hover.
+    final cursor = isResizing ? MouseCursor.defer : handle.cursor;
+
     return MouseRegion(
-      cursor: handle.cursor,
+      cursor: cursor,
       child: RawGestureDetector(
         behavior: HitTestBehavior.opaque,
         gestures: {
@@ -358,9 +445,10 @@ class ResizerWidget extends StatelessWidget {
                 NonTrackpadPanGestureRecognizer
               >(() => NonTrackpadPanGestureRecognizer(), (recognizer) {
                 recognizer.dragStartBehavior = DragStartBehavior.down;
-                recognizer.onStart = (_) => onResizeStart(handle);
+                recognizer.onStart = (details) =>
+                    onResizeStart(handle, details.globalPosition);
                 recognizer.onUpdate = (details) =>
-                    onResizeUpdate(details.delta);
+                    onResizeUpdate(details.globalPosition);
                 recognizer.onEnd = (_) => onResizeEnd();
                 recognizer.onCancel = onResizeEnd;
               }),

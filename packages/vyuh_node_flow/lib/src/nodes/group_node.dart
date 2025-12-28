@@ -765,26 +765,36 @@ class _GroupContentState<T> extends State<_GroupContent<T>> {
   @override
   Widget build(BuildContext context) {
     // Get themes for consistent styling
-    final flowTheme = Theme.of(context).extension<NodeFlowTheme>()!;
-    final nodeTheme = flowTheme.nodeTheme;
+    final flowTheme = Theme.of(context).extension<NodeFlowTheme>();
+    assert(flowTheme != null, 'NodeFlowTheme must be provided in the context');
+
+    final nodeTheme = flowTheme!.nodeTheme;
     final borderRadius = nodeTheme.borderRadius;
-    final borderWidth = nodeTheme.borderWidth;
+    final innerRadius = Radius.circular(
+      borderRadius.topLeft.x - nodeTheme.borderWidth,
+    );
 
     return Observer(
       builder: (_) {
-        // Observe all reactive properties including size and editing state
+        // Observe all reactive properties including size, editing, and selection state
         final title = widget.node.currentTitle;
         final color = widget.node.currentColor;
         final currentSize = widget.node.observableSize.value;
         final isEditing = widget.node.isEditing;
-        final radius = Radius.circular(borderRadius.topLeft.x - borderWidth);
+        final isSelected = widget.node.isSelected;
 
         return Container(
           width: currentSize.width,
           height: currentSize.height,
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.all(radius),
+            borderRadius: borderRadius,
+            border: Border.all(
+              color: isSelected
+                  ? nodeTheme.selectedBorderColor
+                  : Colors.transparent,
+              width: nodeTheme.selectedBorderWidth,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -793,8 +803,8 @@ class _GroupContentState<T> extends State<_GroupContent<T>> {
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.8),
                   borderRadius: BorderRadius.only(
-                    topLeft: radius,
-                    topRight: radius,
+                    topLeft: innerRadius,
+                    topRight: innerRadius,
                   ),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

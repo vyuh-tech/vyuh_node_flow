@@ -128,7 +128,13 @@ extension ConnectionApi<T> on NodeFlowController<T> {
   void addConnection(Connection connection) {
     runInAction(() {
       _connections.add(connection);
-      // Note: Spatial index is auto-synced via MobX reaction
+      // Update connection index for O(1) lookup
+      _connectionsByNodeId
+          .putIfAbsent(connection.sourceNodeId, () => {})
+          .add(connection.id);
+      _connectionsByNodeId
+          .putIfAbsent(connection.targetNodeId, () => {})
+          .add(connection.id);
     });
     // Fire event after successful addition
     events.connection?.onCreated?.call(connection);
@@ -151,6 +157,15 @@ extension ConnectionApi<T> on NodeFlowController<T> {
     runInAction(() {
       _connections.removeWhere((c) => c.id == connectionId);
       _selectedConnectionIds.remove(connectionId);
+
+      // Update connection index for O(1) lookup
+      _connectionsByNodeId[connectionToDelete.sourceNodeId]?.remove(
+        connectionId,
+      );
+      _connectionsByNodeId[connectionToDelete.targetNodeId]?.remove(
+        connectionId,
+      );
+
       // Remove from spatial index
       _spatialIndex.removeConnection(connectionId);
     });
@@ -215,6 +230,11 @@ extension ConnectionApi<T> on NodeFlowController<T> {
         // Remove from spatial index and path cache
         _spatialIndex.removeConnection(conn.id);
         _connectionPainter?.removeConnectionFromCache(conn.id);
+
+        // Update connection index for O(1) lookup
+        _connectionsByNodeId[conn.sourceNodeId]?.remove(conn.id);
+        _connectionsByNodeId[conn.targetNodeId]?.remove(conn.id);
+
         // Remove from connections list
         _connections.remove(conn);
       }

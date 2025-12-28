@@ -126,11 +126,7 @@ class NodeTheme {
     borderWidth: 2.0,
     selectedBorderWidth: 2.0,
     borderRadius: BorderRadius.all(Radius.circular(8.0)),
-    titleStyle: TextStyle(
-      fontSize: 14.0,
-      fontWeight: FontWeight.bold,
-      color: Color(0xFF333333),
-    ),
+    titleStyle: TextStyle(fontSize: 14.0, color: Color(0xFF333333)),
     contentStyle: TextStyle(fontSize: 12.0, color: Color(0xFF666666)),
   );
 
@@ -148,11 +144,7 @@ class NodeTheme {
     borderWidth: 2.0,
     selectedBorderWidth: 2.0,
     borderRadius: BorderRadius.all(Radius.circular(8.0)),
-    titleStyle: TextStyle(
-      fontSize: 14.0,
-      fontWeight: FontWeight.bold,
-      color: Color(0xFFE0E0E0),
-    ),
+    titleStyle: TextStyle(fontSize: 14.0, color: Color(0xFFE0E0E0)),
     contentStyle: TextStyle(fontSize: 12.0, color: Color(0xFFB0B0B0)),
   );
 }

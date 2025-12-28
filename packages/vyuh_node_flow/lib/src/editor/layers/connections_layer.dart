@@ -15,47 +15,118 @@ class ConnectionsLayer<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // IgnorePointer ensures connections don't block hit tests on layers below
-    // (like background annotations). Connection hit testing is handled via
-    // the spatial index in NodeFlowEditor's Listener, not via this CustomPaint.
     return Positioned.fill(
       child: IgnorePointer(
-        child: RepaintBoundary(
-          child: Observer(
-            builder: (context) {
-              // Only observe actual connections, not temporary ones
-              controller.connections.length;
-              controller.selectedConnectionIds.length;
+        child: Stack(
+          children: [
+            // Static connections layer (RepaintBoundary)
+            // Renders visible connections that are NOT active (not being dragged/resized)
+            RepaintBoundary(
+              child: Observer(
+                builder: (context) {
+                  final theme = controller.theme ?? NodeFlowTheme.light;
+                  final visibleConnections = controller.visibleConnections;
+                  final activeIds = controller.activeConnectionIds;
 
-              // Force tracking of node positions and visibility for connection updates
-              for (final node in controller.nodes.values) {
-                node.position.value; // Trigger observation
-                node.isVisible; // Observe visibility changes
-              }
+                  // Filter out active connections
+                  final staticConnections = visibleConnections
+                      .where((c) => !activeIds.contains(c.id))
+                      .toList();
 
-              // Force tracking of animation effects and control points on connections
-              for (final connection in controller.connections) {
-                connection.animationEffect; // Trigger observation
-                // Observe control points by accessing each item to track changes
-                for (var i = 0; i < connection.controlPoints.length; i++) {
-                  connection
-                      .controlPoints[i]; // Force observation of each control point
+                  // Dependency tracking for static connections
+                  // This ensures we repaint if these nodes move (e.g. external update)
+                  // or visibility changes, but NOT when active nodes move
+                  controller.selectedConnectionIds.length;
+                  for (final connection in staticConnections) {
+                    final sourceNode = controller.getNode(
+                      connection.sourceNodeId,
+                    );
+                    final targetNode = controller.getNode(
+                      connection.targetNodeId,
+                    );
+
+                    if (sourceNode != null) {
+                      sourceNode.position.value;
+                      sourceNode.isVisible;
+                    }
+                    if (targetNode != null) {
+                      targetNode.position.value;
+                      targetNode.isVisible;
+                    }
+
+                    connection.animationEffect;
+                    for (var i = 0; i < connection.controlPoints.length; i++) {
+                      connection.controlPoints[i];
+                    }
+                  }
+
+                  return CustomPaint(
+                    painter: ConnectionsCanvas<T>(
+                      store: controller,
+                      theme: theme,
+                      connectionPainter: controller.connectionPainter,
+                      connections: staticConnections,
+                      animation: animation,
+                    ),
+                    size: Size.infinite,
+                  );
+                },
+              ),
+            ),
+
+            // Active connections layer (No RepaintBoundary)
+            // Renders ONLY active connections (attached to dragged/resized nodes)
+            // Updates frequently (60fps) during interaction
+            Observer(
+              builder: (context) {
+                final theme = controller.theme ?? NodeFlowTheme.light;
+                final activeIds = controller.activeConnectionIds;
+
+                if (activeIds.isEmpty) return const SizedBox.shrink();
+
+                // Get active connections
+                final activeConnections = controller.connections
+                    .where((c) => activeIds.contains(c.id))
+                    .toList();
+
+                // Dependency tracking for active connections
+                // This triggers repaint on every frame of drag
+                for (final connection in activeConnections) {
+                  final sourceNode = controller.getNode(
+                    connection.sourceNodeId,
+                  );
+                  final targetNode = controller.getNode(
+                    connection.targetNodeId,
+                  );
+
+                  if (sourceNode != null) {
+                    sourceNode.position.value;
+                    sourceNode.isVisible;
+                  }
+                  if (targetNode != null) {
+                    targetNode.position.value;
+                    targetNode.isVisible;
+                  }
+
+                  connection.animationEffect;
+                  for (var i = 0; i < connection.controlPoints.length; i++) {
+                    connection.controlPoints[i];
+                  }
                 }
-              }
 
-              // Use controller's theme as single source of truth
-              final theme = controller.theme ?? NodeFlowTheme.light;
-
-              return CustomPaint(
-                painter: ConnectionsCanvas<T>(
-                  store: controller,
-                  theme: theme,
-                  connectionPainter: controller.connectionPainter,
-                  animation: animation,
-                ),
-                size: Size.infinite,
-              );
-            },
-          ),
+                return CustomPaint(
+                  painter: ConnectionsCanvas<T>(
+                    store: controller,
+                    theme: theme,
+                    connectionPainter: controller.connectionPainter,
+                    connections: activeConnections,
+                    animation: animation,
+                  ),
+                  size: Size.infinite,
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

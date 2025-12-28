@@ -54,7 +54,6 @@ class NodeFlowViewer<T> extends StatelessWidget {
     required this.controller,
     required this.nodeBuilder,
     required this.theme,
-    this.nodeContainerBuilder,
     this.scrollToZoom = true,
     this.showAnnotations = false,
     this.onNodeTap,
@@ -75,6 +74,9 @@ class NodeFlowViewer<T> extends StatelessWidget {
   /// Called for each node to create its visual representation. The returned
   /// widget is automatically wrapped in a NodeWidget container.
   ///
+  /// For full control over node rendering, implement [Node.buildWidget] to make
+  /// your node self-rendering.
+  ///
   /// Example:
   /// ```dart
   /// nodeBuilder: (context, node) {
@@ -85,26 +87,6 @@ class NodeFlowViewer<T> extends StatelessWidget {
   /// }
   /// ```
   final Widget Function(BuildContext context, Node<T> node) nodeBuilder;
-
-  /// Optional builder for customizing the node container.
-  ///
-  /// Receives the node content (from [nodeBuilder]) and the node itself.
-  /// Use this to wrap nodes with custom decorations or modify the default
-  /// NodeWidget appearance.
-  ///
-  /// Example:
-  /// ```dart
-  /// nodeContainerBuilder: (context, node, content) {
-  ///   return Container(
-  ///     decoration: BoxDecoration(
-  ///       border: Border.all(color: Colors.blue),
-  ///     ),
-  ///     child: NodeWidget(node: node, child: content),
-  ///   );
-  /// }
-  /// ```
-  final Widget Function(BuildContext context, Node<T> node, Widget content)?
-  nodeContainerBuilder;
 
   /// The theme configuration for visual styling.
   ///
@@ -149,7 +131,6 @@ class NodeFlowViewer<T> extends StatelessWidget {
     return NodeFlowEditor<T>(
       controller: controller,
       nodeBuilder: nodeBuilder,
-      nodeContainerBuilder: nodeContainerBuilder,
       theme: theme,
       behavior: behavior,
       scrollToZoom: scrollToZoom,
@@ -205,8 +186,6 @@ class NodeFlowViewer<T> extends StatelessWidget {
     required Map<String, Node<T>> nodes,
     required List<Connection> connections,
     NodeFlowConfig? config,
-    Widget Function(BuildContext context, Node<T> node, Widget content)?
-    nodeContainerBuilder,
     bool scrollToZoom = true,
     bool showAnnotations = false,
     ValueChanged<Node<T>?>? onNodeTap,
@@ -237,7 +216,6 @@ class NodeFlowViewer<T> extends StatelessWidget {
       key: key,
       controller: controller,
       nodeBuilder: nodeBuilder,
-      nodeContainerBuilder: nodeContainerBuilder,
       theme: theme,
       scrollToZoom: scrollToZoom,
       showAnnotations: showAnnotations,

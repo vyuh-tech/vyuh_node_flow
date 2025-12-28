@@ -364,6 +364,31 @@ class GraphSpatialIndex<T> implements SpatialQueries<T> {
         .toList();
   }
 
+  /// Gets all visible connections within bounds.
+  ///
+  /// Returns connections whose segments overlap with the given bounds.
+  /// Only returns connections where both source and target nodes are visible.
+  List<Connection> connectionsIn(Rect bounds) {
+    final connectionIds = _grid
+        .query(bounds)
+        .whereType<ConnectionSegmentItem>()
+        .map((item) => item.connectionId)
+        .toSet();
+
+    return connectionIds
+        .map((id) => _connections[id])
+        .whereType<Connection>()
+        .where((connection) {
+          final sourceNode = _nodes[connection.sourceNodeId];
+          final targetNode = _nodes[connection.targetNodeId];
+          return sourceNode != null &&
+              targetNode != null &&
+              sourceNode.isVisible &&
+              targetNode.isVisible;
+        })
+        .toList();
+  }
+
   /// Gets all visible connections at a point.
   /// Only returns connections where both source and target nodes are visible.
   @override

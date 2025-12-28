@@ -132,6 +132,26 @@ class InteractionState {
     null,
   );
 
+  /// Starting mouse position when resize began (graph coordinates).
+  ///
+  /// Used with [originalNodeBounds] to calculate absolute resize positions
+  /// based on total pointer movement from the start.
+  final Observable<Offset?> resizeStartPosition = Observable<Offset?>(null);
+
+  /// Original node bounds when resize started.
+  ///
+  /// Captured at resize start to enable absolute position-based resizing.
+  /// Combined with [resizeStartPosition] and current pointer position,
+  /// we can calculate the desired bounds without accumulated delta drift.
+  final Observable<Rect?> originalNodeBounds = Observable<Rect?>(null);
+
+  /// Accumulated drift between handle position and pointer position.
+  ///
+  /// When constraints prevent resizing (min/max size), the pointer can
+  /// move away from the handle. This tracks that drift so we can implement
+  /// proximity-based resume behavior.
+  final Observable<Offset> handleDrift = Observable<Offset>(Offset.zero);
+
   /// Checks if a connection is currently being created.
   ///
   /// Returns true when the user is dragging from a port to create a connection.
@@ -222,6 +242,21 @@ class InteractionState {
   ///
   /// Returns true when a node or annotation is being resized.
   bool get isResizing => resizingNodeId.value != null;
+
+  /// Gets the starting mouse position when resize began (graph coordinates).
+  ///
+  /// Returns null if no resize operation is in progress.
+  Offset? get currentResizeStartPosition => resizeStartPosition.value;
+
+  /// Gets the original node bounds when resize started.
+  ///
+  /// Returns null if no resize operation is in progress.
+  Rect? get currentOriginalNodeBounds => originalNodeBounds.value;
+
+  /// Gets the current handle drift (distance between expected handle and pointer).
+  ///
+  /// Returns Offset.zero if no drift has been recorded.
+  Offset get currentHandleDrift => handleDrift.value;
 
   /// Sets the currently dragged node.
   ///
@@ -362,6 +397,9 @@ class InteractionState {
       selectionStarted.value = false;
       resizingNodeId.value = null;
       resizeHandle.value = null;
+      resizeStartPosition.value = null;
+      originalNodeBounds.value = null;
+      handleDrift.value = Offset.zero;
     });
   }
 
@@ -425,12 +463,35 @@ class InteractionState {
   /// Parameters:
   /// * [nodeId] - The ID of the node being resized
   /// * [handle] - The resize handle being dragged
-  void startResize(String nodeId, ResizeHandle handle) {
+  /// * [startPosition] - The starting mouse position in graph coordinates
+  /// * [nodeBounds] - The original node bounds when resize started
+  void startResize(
+    String nodeId,
+    ResizeHandle handle,
+    Offset startPosition,
+    Rect nodeBounds,
+  ) {
     runInAction(() {
       resizingNodeId.value = nodeId;
       resizeHandle.value = handle;
+      resizeStartPosition.value = startPosition;
+      originalNodeBounds.value = nodeBounds;
+      handleDrift.value = Offset.zero;
       canvasLocked.value = true;
       setCursorOverride(handle.cursor);
+    });
+  }
+
+  /// Updates the handle drift during a resize operation.
+  ///
+  /// Called when constraints prevent the node from resizing, causing the
+  /// pointer to move away from the expected handle position.
+  ///
+  /// Parameters:
+  /// * [drift] - The offset between expected handle position and pointer
+  void setHandleDrift(Offset drift) {
+    runInAction(() {
+      handleDrift.value = drift;
     });
   }
 
@@ -441,6 +502,9 @@ class InteractionState {
     runInAction(() {
       resizingNodeId.value = null;
       resizeHandle.value = null;
+      resizeStartPosition.value = null;
+      originalNodeBounds.value = null;
+      handleDrift.value = Offset.zero;
       canvasLocked.value = false;
       setCursorOverride(null);
     });

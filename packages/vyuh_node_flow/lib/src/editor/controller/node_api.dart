@@ -1045,6 +1045,16 @@ extension NodeApi<T> on NodeFlowController<T> {
   void rebuildAllConnectionSegments() {
     if (!isConnectionPainterInitialized || _theme == null) return;
 
+    // Use the custom segment calculator if provided during initialization
+    // This allows tests and custom implementations to override the default path cache logic
+    if (_connectionSegmentCalculator != null) {
+      _spatialIndex.rebuildConnectionsWithSegments(
+        _connections,
+        _connectionSegmentCalculator!,
+      );
+      return;
+    }
+
     final pathCache = _connectionPainter!.pathCache;
     final connectionStyle = _theme!.connectionTheme.style;
 

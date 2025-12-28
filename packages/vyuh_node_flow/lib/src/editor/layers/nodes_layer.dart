@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../connections/connection.dart';
+import '../../graph/coordinates.dart';
 import '../../nodes/node.dart';
+import '../../nodes/node_container.dart';
 import '../../nodes/node_widget.dart';
 import '../../ports/port_widget.dart';
-import '../unbounded_widgets.dart';
-import '../../graph/coordinates.dart';
 import '../controller/node_flow_controller.dart';
+import '../themes/node_flow_theme.dart';
+import '../unbounded_widgets.dart';
 
 /// Nodes layer widget that renders all nodes with optimized reactivity.
 ///
@@ -33,7 +35,6 @@ class NodesLayer<T> extends StatelessWidget {
     required this.controller,
     required this.nodeBuilder,
     required this.connections,
-    this.nodeContainerBuilder,
     this.portBuilder,
     this.layerFilter,
     this.onNodeTap,
@@ -53,8 +54,6 @@ class NodesLayer<T> extends StatelessWidget {
     NodeFlowController<T> controller,
     Widget Function(BuildContext context, Node<T> node) nodeBuilder,
     List<Connection> connections, {
-    Widget Function(BuildContext context, Node<T> node, Widget content)?
-    nodeContainerBuilder,
     PortBuilder<T>? portBuilder,
     void Function(Node<T> node)? onNodeTap,
     void Function(Node<T> node)? onNodeDoubleTap,
@@ -70,7 +69,6 @@ class NodesLayer<T> extends StatelessWidget {
       controller: controller,
       nodeBuilder: nodeBuilder,
       connections: connections,
-      nodeContainerBuilder: nodeContainerBuilder,
       portBuilder: portBuilder,
       layerFilter: NodeRenderLayer.background,
       onNodeTap: onNodeTap,
@@ -91,8 +89,6 @@ class NodesLayer<T> extends StatelessWidget {
     NodeFlowController<T> controller,
     Widget Function(BuildContext context, Node<T> node) nodeBuilder,
     List<Connection> connections, {
-    Widget Function(BuildContext context, Node<T> node, Widget content)?
-    nodeContainerBuilder,
     PortBuilder<T>? portBuilder,
     void Function(Node<T> node)? onNodeTap,
     void Function(Node<T> node)? onNodeDoubleTap,
@@ -108,7 +104,6 @@ class NodesLayer<T> extends StatelessWidget {
       controller: controller,
       nodeBuilder: nodeBuilder,
       connections: connections,
-      nodeContainerBuilder: nodeContainerBuilder,
       portBuilder: portBuilder,
       layerFilter: NodeRenderLayer.middle,
       onNodeTap: onNodeTap,
@@ -129,8 +124,6 @@ class NodesLayer<T> extends StatelessWidget {
     NodeFlowController<T> controller,
     Widget Function(BuildContext context, Node<T> node) nodeBuilder,
     List<Connection> connections, {
-    Widget Function(BuildContext context, Node<T> node, Widget content)?
-    nodeContainerBuilder,
     PortBuilder<T>? portBuilder,
     void Function(Node<T> node)? onNodeTap,
     void Function(Node<T> node)? onNodeDoubleTap,
@@ -146,7 +139,6 @@ class NodesLayer<T> extends StatelessWidget {
       controller: controller,
       nodeBuilder: nodeBuilder,
       connections: connections,
-      nodeContainerBuilder: nodeContainerBuilder,
       portBuilder: portBuilder,
       layerFilter: NodeRenderLayer.foreground,
       onNodeTap: onNodeTap,
@@ -161,11 +153,6 @@ class NodesLayer<T> extends StatelessWidget {
 
   final NodeFlowController<T> controller;
   final Widget Function(BuildContext context, Node<T> node) nodeBuilder;
-
-  /// Optional builder for customizing the node container.
-  /// When not provided, uses the default NodeWidget implementation.
-  final Widget Function(BuildContext context, Node<T> node, Widget content)?
-  nodeContainerBuilder;
 
   /// Optional builder for customizing individual port widgets.
   /// When not provided, uses the default PortWidget implementation.
@@ -217,8 +204,8 @@ class NodesLayer<T> extends StatelessWidget {
       child: UnboundedRepaintBoundary(
         child: Observer(
           builder: (_) {
-            // Use cached sorted nodes - sorting only happens when nodes change or zIndex changes
-            var nodesList = controller.sortedNodes;
+            // Use cached sorted visible nodes - huge performance optimization
+            var nodesList = controller.visibleNodes;
 
             // Apply layer filter if specified
             if (layerFilter != null) {
@@ -240,28 +227,31 @@ class NodesLayer<T> extends StatelessWidget {
     );
   }
 
-  /// Builds the node container, either using the custom builder or the default NodeWidget
+  /// Builds the node container with its visual content.
+  ///
+  /// This method:
+  /// 1. Builds the visual content using [nodeBuilder]
+  /// 2. Wraps it in [NodeContainer] which handles positioning, gestures, ports, etc.
   Widget _buildNodeContainer(BuildContext context, Node<T> node) {
     // Build the node content first
     final content = nodeBuilder(context, node);
 
-    // Use custom container builder if provided, otherwise use default NodeWidget
-    if (nodeContainerBuilder != null) {
-      return nodeContainerBuilder!(context, node, content);
-    }
-
     // Get the shape for this node (if any) from the controller
     final shape = controller.nodeShapeBuilder?.call(node);
 
-    // Default implementation: NodeWidget with controller for drag operations
-    return NodeWidget<T>(
+    // Get theme for NodeWidget
+    final theme = controller.theme ?? NodeFlowTheme.light;
+    final nodeTheme = theme.nodeTheme;
+
+    // Wrap in NodeContainer which handles positioning, gestures, ports, etc.
+    return NodeContainer<T>(
       key: ValueKey(node.id),
       node: node,
       controller: controller,
       shape: shape,
       connections: connections,
       portBuilder: portBuilder,
-      // Event callbacks for external handling
+      // Event callbacks
       onTap: onNodeTap != null ? () => onNodeTap!(node) : null,
       onDoubleTap: onNodeDoubleTap != null
           ? () => onNodeDoubleTap!(node)
@@ -277,7 +267,12 @@ class NodesLayer<T> extends StatelessWidget {
           : null,
       onPortContextMenu: onPortContextMenu,
       portSnapDistance: portSnapDistance,
-      child: content,
+      child: NodeWidget<T>(
+        node: node,
+        theme: nodeTheme,
+        shape: shape,
+        child: content,
+      ),
     );
   }
 }
