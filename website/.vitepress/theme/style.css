@@ -134,6 +134,14 @@ body {
    ═══════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
+  /* Reduce blur intensity on floating orbs for better mobile performance */
+  .hero-blur,
+  .cta-blur,
+  .pro-blur {
+    filter: blur(60px) !important;
+    opacity: 0.08 !important;
+  }
+
   /* Disable cell blink animations on mobile */
   .blink-cell,
   .grid-blink .blink-cell {
