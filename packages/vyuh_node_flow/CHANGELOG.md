@@ -1,3 +1,7 @@
+## 0.18.1
+
+ - **FEAT**: remove snapping circle functionality to simplify port interaction visuals and theme configuration.
+
 ## 0.18.0
 
  - **FEAT**: updated the Resizer behavior to become more predicatable, introduced `NodeFlowScope` for inherited `NodeFlowController` access.
