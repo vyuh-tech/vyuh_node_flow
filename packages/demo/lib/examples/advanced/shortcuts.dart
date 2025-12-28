@@ -91,12 +91,13 @@ class _ShortcutsExampleState extends State<ShortcutsExample> {
   }
 
   void _showShortcutsDialog() {
+    final shortcuts = _controller.shortcuts.keyMap;
+    final actions = _controller.shortcuts.actions;
+
     showDialog(
       context: context,
-      builder: (context) => ShortcutsViewerDialog(
-        shortcuts: _controller.shortcuts.shortcuts,
-        actions: _controller.shortcuts.actions,
-      ),
+      builder: (context) =>
+          _SimpleShortcutsDialog(shortcuts: shortcuts, actions: actions),
     );
   }
 
@@ -387,5 +388,179 @@ class _CustomExportAction extends NodeFlowAction<Map<String, dynamic>> {
       );
     }
     return true;
+  }
+}
+
+/// A simple shortcuts dialog built by the demo.
+///
+/// This demonstrates how external code can build its own shortcuts UI
+/// using the data from controller.shortcuts.keyMap and controller.shortcuts.actions.
+class _SimpleShortcutsDialog extends StatelessWidget {
+  const _SimpleShortcutsDialog({
+    required this.shortcuts,
+    required this.actions,
+  });
+
+  final Map<LogicalKeySet, String> shortcuts;
+  final Map<String, NodeFlowAction> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // Group shortcuts by category
+    final categorized = <String, List<MapEntry<LogicalKeySet, String>>>{};
+    for (final entry in shortcuts.entries) {
+      final action = actions[entry.value];
+      final category = action?.category ?? 'General';
+      categorized.putIfAbsent(category, () => []).add(entry);
+    }
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Container(
+        width: 500,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Keyboard Shortcuts',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  for (final category in categorized.keys) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer.withValues(
+                          alpha: 0.3,
+                        ),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        category.toUpperCase(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    for (final entry in categorized[category]!)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8, left: 8),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 150,
+                              child: Text(
+                                _formatKeySet(entry.key),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontFamily: 'monospace',
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                actions[entry.value]?.label ?? entry.value,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(height: 12),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatKeySet(LogicalKeySet keySet) {
+    final keys = keySet.keys.toList();
+    // Sort modifiers first
+    keys.sort((a, b) {
+      final aIsModifier = _isModifier(a);
+      final bIsModifier = _isModifier(b);
+      if (aIsModifier && !bIsModifier) return -1;
+      if (!aIsModifier && bIsModifier) return 1;
+      return 0;
+    });
+    return keys.map(_keyLabel).join(' + ');
+  }
+
+  bool _isModifier(LogicalKeyboardKey key) {
+    return key == LogicalKeyboardKey.meta ||
+        key == LogicalKeyboardKey.metaLeft ||
+        key == LogicalKeyboardKey.metaRight ||
+        key == LogicalKeyboardKey.control ||
+        key == LogicalKeyboardKey.controlLeft ||
+        key == LogicalKeyboardKey.controlRight ||
+        key == LogicalKeyboardKey.shift ||
+        key == LogicalKeyboardKey.shiftLeft ||
+        key == LogicalKeyboardKey.shiftRight ||
+        key == LogicalKeyboardKey.alt ||
+        key == LogicalKeyboardKey.altLeft ||
+        key == LogicalKeyboardKey.altRight;
+  }
+
+  String _keyLabel(LogicalKeyboardKey key) {
+    if (key == LogicalKeyboardKey.meta ||
+        key == LogicalKeyboardKey.metaLeft ||
+        key == LogicalKeyboardKey.metaRight) {
+      return '⌘';
+    }
+    if (key == LogicalKeyboardKey.control ||
+        key == LogicalKeyboardKey.controlLeft ||
+        key == LogicalKeyboardKey.controlRight) {
+      return 'Ctrl';
+    }
+    if (key == LogicalKeyboardKey.shift ||
+        key == LogicalKeyboardKey.shiftLeft ||
+        key == LogicalKeyboardKey.shiftRight) {
+      return '⇧';
+    }
+    if (key == LogicalKeyboardKey.alt ||
+        key == LogicalKeyboardKey.altLeft ||
+        key == LogicalKeyboardKey.altRight) {
+      return '⌥';
+    }
+    if (key == LogicalKeyboardKey.arrowUp) return '↑';
+    if (key == LogicalKeyboardKey.arrowDown) return '↓';
+    if (key == LogicalKeyboardKey.arrowLeft) return '←';
+    if (key == LogicalKeyboardKey.arrowRight) return '→';
+    if (key == LogicalKeyboardKey.escape) return 'Esc';
+    if (key == LogicalKeyboardKey.delete) return 'Del';
+    if (key == LogicalKeyboardKey.backspace) return '⌫';
+    if (key.keyLabel.length == 1) return key.keyLabel.toUpperCase();
+    return key.keyLabel;
   }
 }

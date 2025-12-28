@@ -395,13 +395,6 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
       ]),
       _buildGridSection('UI Tools', [
         GridButton(
-          label: 'Shortcuts',
-          icon: Icons.keyboard,
-          onPressed: () {
-            _controller.showShortcutsDialog(context);
-          },
-        ),
-        GridButton(
           label: 'Toggle Minimap',
           icon: Icons.map,
           onPressed: _toggleMinimap,

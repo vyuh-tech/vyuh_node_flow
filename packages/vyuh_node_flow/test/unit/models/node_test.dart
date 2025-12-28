@@ -12,9 +12,6 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart';
-// CapsuleFlatSide is an internal type - import directly from lib path
-// ignore: implementation_imports
-import 'package:vyuh_node_flow/ports/capsule_half.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../helpers/test_factories.dart';
@@ -474,39 +471,6 @@ void main() {
         () => node.getPortCenter('non-existent', portSize: defaultPortSize),
         throwsArgumentError,
       );
-    });
-
-    test('getPortCapsuleSide returns correct side for each position', () {
-      final leftPort = createTestPort(
-        id: 'left',
-        position: PortPosition.left,
-        type: PortType.input,
-      );
-      final rightPort = createTestPort(
-        id: 'right',
-        position: PortPosition.right,
-        type: PortType.output,
-      );
-      final topPort = createTestPort(
-        id: 'top',
-        position: PortPosition.top,
-        type: PortType.input,
-      );
-      final bottomPort = createTestPort(
-        id: 'bottom',
-        position: PortPosition.bottom,
-        type: PortType.output,
-      );
-
-      final node = createTestNode(
-        inputPorts: [leftPort, topPort],
-        outputPorts: [rightPort, bottomPort],
-      );
-
-      expect(node.getPortCapsuleSide('left'), equals(CapsuleFlatSide.left));
-      expect(node.getPortCapsuleSide('right'), equals(CapsuleFlatSide.right));
-      expect(node.getPortCapsuleSide('top'), equals(CapsuleFlatSide.top));
-      expect(node.getPortCapsuleSide('bottom'), equals(CapsuleFlatSide.bottom));
     });
   });
 

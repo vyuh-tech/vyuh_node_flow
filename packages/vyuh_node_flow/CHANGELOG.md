@@ -1,92 +1,131 @@
 ## 0.16.0
 
- - Added the GraphPosition to the connection end callback
+- Added the GraphPosition to the connection end callback
 
- - **FIX**: replace `setEvents` with `internalUpdateEvents` across tests for consistency.
+- **FIX**: replace `setEvents` with `updateEvents` across tests for consistency.
 
 ## 0.15.1
 
- - **REFACTOR**: replace static `fromJsonMap` methods with unified factory constructors and improve `CommentNode` color observability.
- - **REFACTOR**: remove unused imports and redundant test node creation in controller_init_test.
- - **FEAT**: add EditorInitApi for unified initialization, improve spatial index diagnostics, and update render layer prioritization.
+- **REFACTOR**: replace static `fromJsonMap` methods with unified factory
+  constructors and improve `CommentNode` color observability.
+- **REFACTOR**: remove unused imports and redundant test node creation in
+  controller_init_test.
+- **FEAT**: add EditorInitApi for unified initialization, improve spatial index
+  diagnostics, and update render layer prioritization.
 
 ## 0.15.0
 
- - **FEAT**: refactor test factory and add unit tests for constructor initialization.
+- **FEAT**: refactor test factory and add unit tests for constructor
+  initialization.
 
 ## 0.14.1
 
- - **FEAT**: simplify drag operations across nodes, connections and resizers.
- - **FEAT**: refactor context menu callbacks to use `ScreenPosition`, enhance port interaction APIs, and simplify node constructor parameters.
+- **FEAT**: simplify drag operations across nodes, connections and resizers.
+- **FEAT**: refactor context menu callbacks to use `ScreenPosition`, enhance
+  port interaction APIs, and simplify node constructor parameters.
 
 ## 0.14.0
 
- - **FEAT**: unify Nodes and Annotations.
+- **FEAT**: unify Nodes and Annotations.
 
 ## 0.13.3
 
- - **FEAT**: remove debug logs, simplify null checks in viewport animation, and add lifecycle unit tests for animation handlers.
+- **FEAT**: remove debug logs, simplify null checks in viewport animation, and
+  add lifecycle unit tests for animation handlers.
 
 ## 0.13.2
 
- - **FEAT**: streamline port retrieval across nodes and improve viewport animation handling with token-based race condition prevention.
+- **FEAT**: streamline port retrieval across nodes and improve viewport
+  animation handling with token-based race condition prevention.
 
 ## 0.13.1
 
- - **FEAT**: initial set of tests for API, nodes, ports, graph, annotations, connections, rendering and performance.
+- **FEAT**: initial set of tests for API, nodes, ports, graph, annotations,
+  connections, rendering and performance.
 
 ## 0.13.0
 
- - **FEAT**: enhance AutoPan and Viewport Animations, add debug mode with overlays for better visualization, and integrate configurable AutoPan presets. `debugMode` is now moved into `NodeFlowConfig`.
+- **FEAT**: enhance AutoPan and Viewport Animations, add debug mode with
+  overlays for better visualization, and integrate configurable AutoPan presets.
+  `debugMode` is now moved into `NodeFlowConfig`.
 
 ## 0.12.0
 
- - **FEAT**: introducing Auto-Pan behavior which allows the elements (nodes, annotations, connections) to move freely and go past the edges, while keeping the viewport panning in place. It also does some interesting calculations for avoiding drift, so that the element stays relative to the mouse pointer. This is all implemented on the `ElementScope` with an `AutoPanMixin`.
+- **FEAT**: introducing Auto-Pan behavior which allows the elements (nodes,
+  annotations, connections) to move freely and go past the edges, while keeping
+  the viewport panning in place. It also does some interesting calculations for
+  avoiding drift, so that the element stays relative to the mouse pointer. This
+  is all implemented on the `ElementScope` with an `AutoPanMixin`.
 
 ## 0.11.0
 
- - **FEAT**: add ViewportAnimationMixin for smooth viewport animations, integrate animation methods into NodeFlowController and NodeFlowEditor, and provide API for animating to nodes, positions, bounds, and zoom levels.
+- **FEAT**: add ViewportAnimationMixin for smooth viewport animations, integrate
+  animation methods into NodeFlowController and NodeFlowEditor, and provide API
+  for animating to nodes, positions, bounds, and zoom levels.
 
 ## 0.10.9
 
- - **FEAT**: replace custom gesture implementation with ElementScope for streamlined gesture handling, lifecycle management, and drag state cleanup; enhance interaction robustness and trackpad compatibility.
+- **FEAT**: replace custom gesture implementation with ElementScope for
+  streamlined gesture handling, lifecycle management, and drag state cleanup;
+  enhance interaction robustness and trackpad compatibility.
 
 ## 0.10.8
 
- - **FIX**: reset connection hit flag on pointer up to prevent interaction conflicts in subsequent actions, refine hit testing hierarchy and annotation handling for consistent z-order interaction, enhance drag/selection behaviors for annotations and nodes.
- - **FEAT**: centralize pan state management in NodeFlowEditor for consistent interaction handling during drag, resize, and connection operations, add escape key handling to cancel annotation edits and enhance focus behaviors, add annotation editing cancellation, keyboard shortcuts, and selection clearing enhancements.
- - **FEAT**: centralize pan state management in NodeFlowEditor for consistent interaction handling during drag, resize, and connection operations.
- - **FEAT**: add escape key handling to cancel annotation edits and enhance focus behaviors.
- - **FEAT**: add annotation editing cancellation, keyboard shortcuts, and selection clearing enhancements.
+- **FIX**: reset connection hit flag on pointer up to prevent interaction
+  conflicts in subsequent actions, refine hit testing hierarchy and annotation
+  handling for consistent z-order interaction, enhance drag/selection behaviors
+  for annotations and nodes.
+- **FEAT**: centralize pan state management in NodeFlowEditor for consistent
+  interaction handling during drag, resize, and connection operations, add
+  escape key handling to cancel annotation edits and enhance focus behaviors,
+  add annotation editing cancellation, keyboard shortcuts, and selection
+  clearing enhancements.
+- **FEAT**: centralize pan state management in NodeFlowEditor for consistent
+  interaction handling during drag, resize, and connection operations.
+- **FEAT**: add escape key handling to cancel annotation edits and enhance focus
+  behaviors.
+- **FEAT**: add annotation editing cancellation, keyboard shortcuts, and
+  selection clearing enhancements.
 
 ## 0.10.7
 
- - **FEAT**: centralize pan state management in NodeFlowEditor for consistent interaction handling during drag, resize, and connection operations.
- - **FEAT**: add escape key handling to cancel annotation edits and enhance focus behaviors.
- - **FEAT**: add annotation editing cancellation, keyboard shortcuts, and selection clearing enhancements.
+- **FEAT**: centralize pan state management in NodeFlowEditor for consistent
+  interaction handling during drag, resize, and connection operations.
+- **FEAT**: add escape key handling to cancel annotation edits and enhance focus
+  behaviors.
+- **FEAT**: add annotation editing cancellation, keyboard shortcuts, and
+  selection clearing enhancements.
 
 ## 0.10.6
 
- - **FEAT**: implement inline editing for annotation titles, add keyboard shortcut for editing, and improve canvas focus handling.
- - **FEAT**: add editing state support for annotations and implement auto-grow for sticky notes.
+- **FEAT**: implement inline editing for annotation titles, add keyboard
+  shortcut for editing, and improve canvas focus handling.
+- **FEAT**: add editing state support for annotations and implement auto-grow
+  for sticky notes.
 
 ## 0.10.5
 
- - **REFACTOR**: remove short-distance temporary line drawing logic for consistent connection styling.
- - **FEAT**: replace `ConnectionControlPointsLayer` with custom gesture recognition, improve touch and trackpad interaction handling across nodes, ports, and annotations.
+- **REFACTOR**: remove short-distance temporary line drawing logic for
+  consistent connection styling.
+- **FEAT**: replace `ConnectionControlPointsLayer` with custom gesture
+  recognition, improve touch and trackpad interaction handling across nodes,
+  ports, and annotations.
 
 ## 0.10.4
 
- - **FEAT**: add transformation listener for authoritative viewport syncing and improve interaction accuracy.
+- **FEAT**: add transformation listener for authoritative viewport syncing and
+  improve interaction accuracy.
 
 ## 0.10.3
 
- - **FEAT**: add selection mode tracking with cursor feedback and shift key interaction.
+- **FEAT**: add selection mode tracking with cursor feedback and shift key
+  interaction.
 
 ## 0.10.2
 
- - **FIX**: hit testing outside the bounds of resizer and group-annotation.
- - **FEAT**: introduce `coordinates.dart` to enforce type safety in coordinate transformations and refactor usage across the package.
+- **FIX**: hit testing outside the bounds of resizer and group-annotation.
+- **FEAT**: introduce `coordinates.dart` to enforce type safety in coordinate
+  transformations and refactor usage across the package.
 
 ## 0.10.1
 

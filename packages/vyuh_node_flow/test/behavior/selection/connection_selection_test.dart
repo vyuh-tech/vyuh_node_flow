@@ -474,7 +474,7 @@ void main() {
       controller.addNode(node2);
       controller.addConnection(conn);
 
-      controller.internalUpdateEvents(
+      controller.updateEvents(
         NodeFlowEvents<String>(
           connection: ConnectionEvents<String>(
             onSelected: (c) {
@@ -504,7 +504,7 @@ void main() {
       controller.addNode(node2);
       controller.addConnection(conn);
 
-      controller.internalUpdateEvents(
+      controller.updateEvents(
         NodeFlowEvents<String>(
           connection: ConnectionEvents<String>(
             onSelected: (c) {
