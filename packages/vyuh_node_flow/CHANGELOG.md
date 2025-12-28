@@ -1,3 +1,7 @@
+## 0.18.0
+
+ - **FEAT**: updated the Resizer behavior to become more predicatable, introduced `NodeFlowScope` for inherited `NodeFlowController` access.
+
 ## 0.17.0
 
  - **FEAT**: restructure library and improve maintainability, modularize and reorganize editor package structure, extract graph events and extensions.
