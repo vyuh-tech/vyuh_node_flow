@@ -43,7 +43,6 @@ class PortTheme {
   /// - [connectedColor]: Color when the port has active connections
   /// - [highlightColor]: Color when port is highlighted during connection drag
   /// - [highlightBorderColor]: Border color when port is highlighted
-  /// - [snappingColor]: Color for the snapping circle shown around port during hover
   /// - [borderColor]: Color of the port's border
   /// - [borderWidth]: Width of the port's border in logical pixels
   /// - [showLabel]: Whether to show port labels globally (default: false)
@@ -57,7 +56,6 @@ class PortTheme {
     required this.connectedColor,
     required this.highlightColor,
     required this.highlightBorderColor,
-    required this.snappingColor,
     required this.borderColor,
     required this.borderWidth,
     this.shape = MarkerShapes.capsuleHalf,
@@ -95,12 +93,6 @@ class PortTheme {
   /// This provides strong visual feedback during connection creation, indicating
   /// that the port is a valid target.
   final Color highlightBorderColor;
-
-  /// The color for the snapping circle shown around the port during hover.
-  ///
-  /// This semi-transparent circle provides visual feedback for the snap area
-  /// around the port where connections can be made.
-  final Color snappingColor;
 
   /// The color of the port's border.
   ///
@@ -173,7 +165,6 @@ class PortTheme {
     Color? connectedColor,
     Color? highlightColor,
     Color? highlightBorderColor,
-    Color? snappingColor,
     Color? borderColor,
     double? borderWidth,
     MarkerShape? shape,
@@ -188,7 +179,6 @@ class PortTheme {
       connectedColor: connectedColor ?? this.connectedColor,
       highlightColor: highlightColor ?? this.highlightColor,
       highlightBorderColor: highlightBorderColor ?? this.highlightBorderColor,
-      snappingColor: snappingColor ?? this.snappingColor,
       borderColor: borderColor ?? this.borderColor,
       borderWidth: borderWidth ?? this.borderWidth,
       shape: shape ?? this.shape,
@@ -217,7 +207,6 @@ class PortTheme {
     connectedColor: Color(0xFF2196F3),
     highlightColor: Color(0xFF42A5F5),
     highlightBorderColor: Color(0xFF000000),
-    snappingColor: Color(0x4042A5F5),
     borderColor: Colors.transparent,
     borderWidth: 0.0,
     showLabel: false,
@@ -247,7 +236,6 @@ class PortTheme {
     connectedColor: Color(0xFF64B5F6),
     highlightColor: Color(0xFF90CAF9),
     highlightBorderColor: Color(0xFFFFFFFF),
-    snappingColor: Color(0x4090CAF9),
     borderColor: Colors.transparent,
     borderWidth: 0.0,
     showLabel: false,

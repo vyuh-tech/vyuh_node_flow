@@ -337,45 +337,25 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
             builder: (_) {
               // Access observables directly inside Observer for MobX tracking
               final isHighlighted = widget.port.highlighted.value;
-              // Use getter which accesses .value internally for MobX reactivity
-              final isConnecting =
-                  widget.controller.interaction.isCreatingConnection;
 
-              // During connection drag: only show snapping circle for valid (highlighted) targets
-              // When idle: show snapping circle on hover for visual feedback
-              final showSnappingCircle = isConnecting
-                  ? isHighlighted
-                  : _isHovered;
+              // Port highlights when:
+              // 1. Hovered over (idle state) - provides interactive feedback
+              // 2. Valid target during connection drag - isHighlighted set by controller
+              final showHighlight = _isHovered || isHighlighted;
 
-              return UnboundedStack(
+              return Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  // Snapping circle - shows on hover OR when highlighted during connection drag
-                  if (showSnappingCircle)
-                    Positioned(
-                      left: -widget.snapDistance,
-                      top: -widget.snapDistance,
-                      right: -widget.snapDistance,
-                      bottom: -widget.snapDistance,
-                      child: IgnorePointer(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: widget.theme.snappingColor,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                    ),
-                  // Marker shape - visual appearance reacts to highlighted state
+                  // Marker shape - visual appearance reacts to hover and highlight state
                   Positioned.fill(
                     child: IgnorePointer(
                       child: PortShapeWidget(
                         shape: widget.port.shape ?? widget.theme.shape,
                         position: widget.port.position,
                         size: effectiveSize,
-                        color: _getPortColorFromHighlight(isHighlighted),
+                        color: _getPortColorFromHighlight(showHighlight),
                         borderColor: _getBorderColorFromHighlight(
-                          isHighlighted,
+                          showHighlight,
                         ),
                         borderWidth: _getBorderWidth(),
                       ),
