@@ -1,267 +1,264 @@
 ---
-title: Annotations
-description: Add sticky notes, groups, and markers to enrich your node flows
+title: Special Node Types
+description: Add comment nodes and group nodes to organize your flows
 ---
 
-# Annotations
+# Special Node Types
 
-::: details 🖼️ All Annotation Types
-Canvas showing all three annotation types: yellow Sticky Note with multi-line text, blue Group containing several nodes with 'Data Processing' label header, and circular Markers (timer, warning, milestone icons) attached near nodes. Each labeled with type name.
+::: details 🖼️ Special Node Types Overview
+Canvas showing both special node types: yellow CommentNode with multi-line text in the foreground, and a blue GroupNode containing several nodes with 'Data Processing' title header. Shows how they integrate with regular nodes.
 :::
 
-Annotations are visual overlays that add context to your node flows without affecting the underlying graph logic. Use them for documentation, organization, and semantic indicators.
+Vyuh Node Flow provides two special node types for organizing and annotating your flows. These are full-fledged nodes (not a separate annotation system) and are managed via the standard `controller.addNode()` API.
 
-  <Card title="Sticky Notes" href="#sticky-notes">
-Free-floating notes for comments and documentation
-  </Card>
-  <Card title="Groups" href="#groups">
-Visual containers that surround related nodes
-  </Card>
-  <Card title="Markers" href="#markers">
-Compact icons for status and semantic indicators
-  </Card>
+<Card title="Comment Nodes" href="#comment-nodes">
+Free-floating sticky notes for comments and documentation
+</Card>
+<Card title="Group Nodes" href="#group-nodes">
+Visual containers that organize related nodes
+</Card>
 
-## Three Annotation Types
+## Comment Nodes
 
-### Sticky Notes
+Comment nodes are free-floating sticky notes that can be placed anywhere on the canvas. They render in the **foreground layer** (above regular nodes) and support inline text editing.
 
-Free-floating notes that can be placed anywhere on the canvas. Perfect for comments, reminders, and documentation.
+### Creating Comment Nodes
 
 ```dart
-final sticky = controller.annotations.createStickyAnnotation(
-  id: 'sticky-1',
+final comment = CommentNode<String>(
+  id: 'note-1',
   position: const Offset(400, 50),
   text: 'This is a reminder!\n\nMulti-line text supported.',
+  data: 'optional-data',
   width: 200,
-  height: 120,
-  color: Colors.yellow.shade200,
+  height: 150,
+  color: Colors.yellow,
 );
-controller.annotations.addAnnotation(sticky);
+controller.addNode(comment);
 ```
 
-**Properties:**
+### Properties
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `text` | `String` | required | The note content |
-| `width` | `double` | `200.0` | Width in pixels |
-| `height` | `double` | `100.0` | Height in pixels |
-| `color` | `Color` | `Colors.yellow` | Background color |
+| Property   | Type     | Default          | Description                   |
+| ---------- | -------- | ---------------- | ----------------------------- |
+| `id`       | `String` | required         | Unique identifier             |
+| `position` | `Offset` | required         | Position on canvas            |
+| `text`     | `String` | required         | The note content (multi-line) |
+| `data`     | `T`      | required         | Custom data of generic type   |
+| `width`    | `double` | `200.0`          | Width in pixels (100-600)     |
+| `height`   | `double` | `100.0`          | Height in pixels (60-400)     |
+| `color`    | `Color`  | `Colors.yellow`  | Background color              |
+| `zIndex`   | `int`    | `0`              | Layer order                   |
+| `isVisible`| `bool`   | `true`           | Show/hide the node            |
+| `locked`   | `bool`   | `false`          | Prevent movement/editing      |
 
-### Groups
+### Features
 
-Visual containers that automatically surround a set of nodes. Groups resize and reposition as their contained nodes move.
+- **Inline editing**: Double-click to edit text directly
+- **Auto-grow height**: Text area expands automatically as you type
+- **Resizable**: Drag handles to resize within constraints
+- **Foreground layer**: Always renders above regular nodes
+- **Escape to cancel**: Press Escape during editing to cancel changes
 
-::: details 🖼️ Group Auto-Resize Behavior
-Animation showing a group containing three nodes. When one node is dragged, the group boundary automatically expands/contracts to maintain padding around all contained nodes.
-:::
+### Programmatic Updates
 
 ```dart
-final group = controller.annotations.createGroupAnnotationAroundNodes(
+// Get the comment node
+final comment = controller.getNode('note-1') as CommentNode<String>?;
+
+if (comment != null) {
+  // Update text
+  comment.text = 'Updated text content';
+
+  // Change color
+  comment.color = Colors.green.shade100;
+
+  // Update size
+  comment.setSize(const Size(300, 200));
+
+  // Toggle visibility
+  comment.isVisible = false;
+}
+```
+
+## Group Nodes
+
+Group nodes create visual regions for containing and organizing related nodes. They render in the **background layer** (behind regular nodes) and support three behavior modes.
+
+### Creating Group Nodes
+
+```dart
+// Create a basic group (bounds behavior - default)
+final group = GroupNode<String>(
   id: 'group-1',
-  title: 'Data Processing',
-  nodeIds: {'node1', 'node2', 'node3'},
-  color: Colors.blue.shade300,
-  padding: const EdgeInsets.all(30),
+  position: const Offset(50, 50),
+  size: const Size(400, 300),
+  title: 'Input Processing',
+  data: 'group-data',
+  color: Colors.blue,
 );
-controller.annotations.addAnnotation(group);
+controller.addNode(group);
+
+// Create a group with explicit member nodes
+final explicitGroup = GroupNode<String>(
+  id: 'group-2',
+  position: Offset.zero, // Will be computed
+  size: Size.zero,       // Will be computed
+  title: 'Data Pipeline',
+  data: 'pipeline-data',
+  behavior: GroupBehavior.explicit,
+  nodeIds: {'node-1', 'node-2', 'node-3'},
+);
+controller.addNode(explicitGroup);
+// Fit group bounds to contain member nodes
+explicitGroup.fitToNodes((id) => controller.nodes[id]);
 ```
 
-**Properties:**
+### Properties
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `title` | `String` | required | Header label |
-| `nodeIds` | `Set<String>` | required | Nodes to contain |
-| `color` | `Color` | `Colors.blue` | Header and tint color |
-| `padding` | `EdgeInsets` | `EdgeInsets.all(20)` | Space around nodes |
+| Property      | Type            | Default               | Description                        |
+| ------------- | --------------- | --------------------- | ---------------------------------- |
+| `id`          | `String`        | required              | Unique identifier                  |
+| `position`    | `Offset`        | required              | Position on canvas                 |
+| `size`        | `Size`          | required              | Dimensions (auto for explicit)     |
+| `title`       | `String`        | required              | Header label                       |
+| `data`        | `T`             | required              | Custom data of generic type        |
+| `color`       | `Color`         | `Colors.blue`         | Header and tint color              |
+| `behavior`    | `GroupBehavior` | `.bounds`             | Membership mode                    |
+| `nodeIds`     | `Set<String>?`  | `null`                | Explicit member nodes              |
+| `padding`     | `EdgeInsets`    | `(20, 40, 20, 20)`    | Space around members               |
+| `zIndex`      | `int`           | `-1`                  | Layer order (negative = background)|
+| `inputPorts`  | `List<Port>`    | `[]`                  | Optional input ports               |
+| `outputPorts` | `List<Port>`    | `[]`                  | Optional output ports              |
 
-::: info
-Groups have a default z-index of `-1`, placing them behind nodes. Use `sendAnnotationToBack()` to layer multiple groups.
+### Behavior Modes
 
-:::
+Groups support three behavior modes that control how nodes interact with the group:
 
-### Markers
-
-Compact circular badges with icons. Use them for BPMN-style workflow indicators, status badges, and semantic tags.
+| Mode       | Membership                    | Size                         | Node Movement                           |
+| ---------- | ----------------------------- | ---------------------------- | --------------------------------------- |
+| `bounds`   | Spatial (nodes inside bounds) | Manual (resizable)           | Nodes can escape by dragging out        |
+| `explicit` | Explicit (node ID set)        | Auto-computed (fits members) | Group resizes to contain nodes          |
+| `parent`   | Explicit (node ID set)        | Manual (resizable)           | Nodes move with group, can leave bounds |
 
 ```dart
-final marker = controller.annotations.createMarkerAnnotation(
-  id: 'marker-1',
-  position: const Offset(80, 80),
-  markerType: MarkerType.warning,
-  color: Colors.orange,
-  tooltip: 'Check prerequisites before proceeding',
+// Bounds mode (default) - spatial containment
+final boundsGroup = GroupNode<String>(
+  id: 'region-1',
+  position: const Offset(100, 100),
+  size: const Size(300, 200),
+  title: 'Processing Region',
+  data: 'region-data',
+  behavior: GroupBehavior.bounds,
 );
-controller.annotations.addAnnotation(marker);
-```
 
-**Marker Types:**
-
-  ### Status
-
-| Type | Icon | Use Case |
-|------|------|----------|
-| `MarkerType.error` | Error icon | Errors, failures |
-| `MarkerType.warning` | Warning icon | Warnings, cautions |
-| `MarkerType.info` | Info icon | Information, tips |
-| `MarkerType.risk` | Problem icon | Risk indicators |
-
-  ### Tasks
-
-| Type | Icon | Use Case |
-|------|------|----------|
-| `MarkerType.user` | Person icon | Human tasks |
-| `MarkerType.script` | Code icon | Automated scripts |
-| `MarkerType.service` | Settings icon | Service calls |
-| `MarkerType.manual` | Hand icon | Manual steps |
-
-  ### Workflow
-
-| Type | Icon | Use Case |
-|------|------|----------|
-| `MarkerType.timer` | Timer icon | Time-based events |
-| `MarkerType.message` | Message icon | Communications |
-| `MarkerType.decision` | Question icon | Decision points |
-| `MarkerType.milestone` | Flag icon | Checkpoints |
-| `MarkerType.subprocess` | Arrow icon | Sub-workflows |
-| `MarkerType.compliance` | Verified icon | Regulatory items |
-
-## Node-Following Annotations
-
-Annotations can follow nodes, moving automatically when the node moves. This is powerful for attaching persistent notes or markers to specific nodes.
-
-::: code-group
-
-```dart [Create the Annotation]
-final note = controller.annotations.createStickyAnnotation(
-  id: 'linked-note',
-  position: const Offset(0, 0), // Will be overridden
-  text: 'Always visible next to this node',
-  offset: const Offset(50, 100), // Offset from node center
-);
-controller.annotations.addAnnotation(note);
-```
-
-```dart [Link to a Node]
-controller.annotations.addNodeDependency(note.id, 'target-node-id');
-```
-
-:::
-
-When the node moves, the annotation moves with it, maintaining its offset.
-
-The `offset` property determines the annotation's position relative to the dependent node's center:
-
-```dart
-StickyAnnotation(
-  id: 'linked-note',
+// Explicit mode - auto-sizing group
+final explicitGroup = GroupNode<String>(
+  id: 'explicit-1',
   position: Offset.zero,
-  text: 'I follow the node!',
-  offset: const Offset(80, 50), // 80px right, 50px down from node center
+  size: Size.zero,
+  title: 'Auto-sized Group',
+  data: 'explicit-data',
+  behavior: GroupBehavior.explicit,
+  nodeIds: {'node-1', 'node-2'},
+);
+
+// Parent mode - linked but flexible
+final parentGroup = GroupNode<String>(
+  id: 'parent-1',
+  position: const Offset(100, 100),
+  size: const Size(300, 200),
+  title: 'Parent Group',
+  data: 'parent-data',
+  behavior: GroupBehavior.parent,
+  nodeIds: {'node-1', 'node-2'},
 );
 ```
 
-## Managing Annotations
+### Features
 
-### Access the Annotation Controller
+- **Inline title editing**: Double-click the title bar to edit
+- **Resizable**: Drag handles (except for `explicit` mode which auto-sizes)
+- **Background layer**: Renders behind regular nodes by default
+- **Color customization**: Header bar uses solid color, body uses translucent
+- **Subflow ports**: Optional input/output ports for connecting to other nodes
+- **Nested groups**: Groups can contain other groups with automatic z-index handling
 
-All annotation operations are done through `controller.annotations`:
+### Group with Subflow Ports
 
-```dart
-// Add and remove annotations
-controller.annotations.addAnnotation(myAnnotation);
-controller.annotations.removeAnnotation(id);
-
-// Get annotation by ID
-final annotation = controller.annotations.getAnnotation(id);
-
-// Factory methods for creating annotations
-final sticky = controller.annotations.createStickyAnnotation(...);
-final group = controller.annotations.createGroupAnnotation(...);
-final groupAroundNodes = controller.annotations.createGroupAnnotationAroundNodes(...);
-final marker = controller.annotations.createMarkerAnnotation(...);
-
-// Add created annotation to the graph
-controller.annotations.addAnnotation(sticky);
-```
-
-### Visibility Control
+Groups can have input/output ports, enabling them to act as subflow containers:
 
 ```dart
-// Individual annotation visibility
-controller.annotations.setAnnotationVisible(id, false);
-controller.annotations.setAnnotationVisible(id, true);
-```
-
-### Z-Index and Layering
-
-Annotations are rendered in z-index order. Lower values appear behind higher values.
-
-```dart
-// Groups typically use negative z-index to appear behind nodes
-controller.annotations.sendAnnotationToBack(groupId);
-
-// Bring a sticky note to front
-controller.annotations.bringAnnotationToFront(noteId);
-```
-
-### Selection
-
-Annotations can be selected like nodes:
-
-```dart
-// Programmatic selection
-controller.annotations.selectAnnotation(id);
-controller.annotations.selectAnnotation(id, toggle: true); // Toggle selection
-controller.clearSelection(); // Clears nodes, connections, AND annotations
-controller.annotations.clearAnnotationSelection(); // Clears only annotations
-
-// Check selection state
-final isSelected = annotation.currentSelected;
-```
-
-::: tip
-Set `isInteractive: false` on an annotation to make it purely decorative - it won't respond to clicks or selection.
-
-:::
-
-## Configuration
-
-### Grid Snapping
-
-Annotations can snap to grid independently of nodes:
-
-```dart
-NodeFlowController(
-  config: NodeFlowConfig(
-    snapToGrid: true,
-    snapAnnotationsToGrid: false, // Annotations move freely
-  ),
+final subflowGroup = GroupNode<String>(
+  id: 'subflow-1',
+  position: const Offset(50, 50),
+  size: const Size(500, 400),
+  title: 'Subflow',
+  data: 'subflow-data',
+  inputPorts: [
+    const Port(id: 'in-1', name: 'Input', position: PortPosition.left),
+  ],
+  outputPorts: [
+    const Port(id: 'out-1', name: 'Output', position: PortPosition.right),
+  ],
 );
+controller.addNode(subflowGroup);
 ```
 
-### Theme Integration
-
-Annotations respect the `AnnotationTheme` in your `NodeFlowTheme`:
+### Programmatic Updates
 
 ```dart
-NodeFlowTheme(
-  annotationTheme: AnnotationTheme(
-    selectionBorderColor: Colors.blue,
-    selectionBorderWidth: 2.0,
-    // Additional theming options...
-  ),
-);
+// Get the group node
+final group = controller.getNode('group-1') as GroupNode<String>?;
+
+if (group != null) {
+  // Update title
+  group.updateTitle('New Title');
+
+  // Change color
+  group.updateColor(Colors.green);
+
+  // For explicit/parent modes: manage members
+  group.addNode('node-5');
+  group.removeNode('node-2');
+  group.clearNodes();
+
+  // Change behavior at runtime
+  group.setBehavior(
+    GroupBehavior.explicit,
+    captureContainedNodes: {'node-1', 'node-2'},
+    nodeLookup: (id) => controller.nodes[id],
+  );
+
+  // For explicit mode: refit to member nodes
+  group.fitToNodes((id) => controller.nodes[id]);
+}
+```
+
+## Node Visibility
+
+Both special node types support visibility toggling:
+
+```dart
+// Hide a node
+controller.getNode('note-1')?.isVisible = false;
+
+// Show a node
+controller.getNode('group-1')?.isVisible = true;
+
+// Create a node that starts hidden
+controller.addNode(CommentNode<String>(
+  id: 'hidden-note',
+  position: const Offset(100, 100),
+  text: 'Hidden by default',
+  data: '',
+  isVisible: false,
+));
 ```
 
 ## Complete Example
 
-Here's a workflow with all three annotation types:
-
-::: details 🎬 Annotated Workflow Demo
-Complete workflow showing: indigo group surrounding Start→Process→End flow, yellow sticky note with documentation below, timer marker on Process node, milestone marker on End node. Interactive demo showing annotation selection and z-index layering.
-:::
+Here's a workflow demonstrating both special node types:
 
 ```dart
 class AnnotatedWorkflow extends StatefulWidget {
@@ -270,7 +267,7 @@ class AnnotatedWorkflow extends StatefulWidget {
 }
 
 class _AnnotatedWorkflowState extends State<AnnotatedWorkflow> {
-  late final NodeFlowController<Map<String, dynamic>> controller;
+  late final NodeFlowController<String> controller;
 
   @override
   void initState() {
@@ -280,22 +277,22 @@ class _AnnotatedWorkflowState extends State<AnnotatedWorkflow> {
   }
 
   void _setupWorkflow() {
-    // Add nodes
+    // Add regular nodes
     controller.addNode(Node(
       id: 'start',
       type: 'start',
-      position: const Offset(100, 100),
+      position: const Offset(150, 150),
       size: const Size(120, 60),
-      data: {'label': 'Start'},
+      data: 'Start',
       outputPorts: const [Port(id: 'out', position: PortPosition.right)],
     ));
 
     controller.addNode(Node(
       id: 'process',
       type: 'process',
-      position: const Offset(280, 100),
+      position: const Offset(330, 150),
       size: const Size(140, 80),
-      data: {'label': 'Process Data'},
+      data: 'Process Data',
       inputPorts: const [Port(id: 'in', position: PortPosition.left)],
       outputPorts: const [Port(id: 'out', position: PortPosition.right)],
     ));
@@ -303,9 +300,9 @@ class _AnnotatedWorkflowState extends State<AnnotatedWorkflow> {
     controller.addNode(Node(
       id: 'end',
       type: 'end',
-      position: const Offset(480, 100),
+      position: const Offset(530, 150),
       size: const Size(120, 60),
-      data: {'label': 'End'},
+      data: 'End',
       inputPorts: const [Port(id: 'in', position: PortPosition.left)],
     ));
 
@@ -326,53 +323,39 @@ class _AnnotatedWorkflowState extends State<AnnotatedWorkflow> {
       targetPortId: 'in',
     ));
 
-    // Add a group around the workflow
-    final group = controller.annotations.createGroupAnnotationAroundNodes(
+    // Add a group around the workflow (explicit mode)
+    final group = GroupNode<String>(
       id: 'main-group',
+      position: Offset.zero,
+      size: Size.zero,
       title: 'Main Workflow',
+      data: 'group-data',
+      behavior: GroupBehavior.explicit,
       nodeIds: {'start', 'process', 'end'},
-      color: Colors.indigo.shade200,
-      padding: const EdgeInsets.all(40),
+      color: Colors.indigo,
     );
-    controller.annotations.addAnnotation(group);
+    controller.addNode(group);
+    group.fitToNodes((id) => controller.nodes[id]);
 
-    // Add a documentation sticky note
-    final sticky = controller.annotations.createStickyAnnotation(
+    // Add a documentation comment
+    final comment = CommentNode<String>(
       id: 'doc-note',
-      position: const Offset(100, 220),
+      position: const Offset(150, 320),
       text: 'This workflow processes incoming data and outputs results.',
-      width: 220,
+      data: '',
+      width: 250,
       height: 80,
       color: Colors.amber.shade100,
     );
-    controller.annotations.addAnnotation(sticky);
-
-    // Add status markers
-    final timerMarker = controller.annotations.createMarkerAnnotation(
-      id: 'timer-marker',
-      position: const Offset(260, 80),
-      markerType: MarkerType.timer,
-      color: Colors.blue,
-      tooltip: 'Estimated time: 5 minutes',
-    );
-    controller.annotations.addAnnotation(timerMarker);
-
-    final milestoneMarker = controller.annotations.createMarkerAnnotation(
-      id: 'milestone-marker',
-      position: const Offset(460, 80),
-      markerType: MarkerType.milestone,
-      color: Colors.green,
-      tooltip: 'Completion checkpoint',
-    );
-    controller.annotations.addAnnotation(milestoneMarker);
+    controller.addNode(comment);
   }
 
   @override
   Widget build(BuildContext context) {
-    return NodeFlowEditor<Map<String, dynamic>>(
+    return NodeFlowEditor<String>(
       controller: controller,
       nodeBuilder: (context, node) => Center(
-        child: Text(node.data['label'] ?? ''),
+        child: Text(node.data),
       ),
     );
   }
@@ -385,122 +368,42 @@ class _AnnotatedWorkflowState extends State<AnnotatedWorkflow> {
 }
 ```
 
-## Creating Custom Annotations
-
-Extend the `Annotation` base class to create custom annotation types:
-
-```dart
-class BadgeAnnotation extends Annotation {
-  final String label;
-  final Color badgeColor;
-  final double radius;
-
-  BadgeAnnotation({
-    required super.id,
-    required Offset position,
-    required this.label,
-    this.badgeColor = Colors.purple,
-    this.radius = 30,
-  }) : super(
-         type: 'badge',
-         initialPosition: position,
-       );
-
-  @override
-  Size get size => Size(radius * 2, radius * 2);
-
-  @override
-  Widget buildWidget(BuildContext context) {
-    return Container(
-      width: size.width,
-      height: size.height,
-      decoration: BoxDecoration(
-        color: badgeColor,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: badgeColor.withOpacity(0.3),
-            blurRadius: 8,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'type': type,
-    'x': currentPosition.dx,
-    'y': currentPosition.dy,
-    'label': label,
-    'badgeColor': badgeColor.value,
-    'radius': radius,
-  };
-
-  @override
-  void fromJson(Map<String, dynamic> json) {
-    setPosition(Offset(
-      (json['x'] as num).toDouble(),
-      (json['y'] as num).toDouble(),
-    ));
-  }
-}
-```
-
-### Required Overrides
-
-| Method | Purpose |
-|--------|---------|
-| `Size get size` | Dimensions for hit testing |
-| `Widget buildWidget(BuildContext)` | Visual representation |
-| `Map<String, dynamic> toJson()` | Serialization |
-| `void fromJson(Map<String, dynamic>)` | Deserialization |
-
-::: info
-The framework automatically handles positioning, selection feedback, drag interactions, and reactivity. You just define the visual appearance and serialization.
-
-:::
-
 ## Serialization
 
-Annotations are automatically included when you serialize the graph:
+Both node types support JSON serialization:
 
 ```dart
-// Export includes annotations
-final graph = controller.exportGraph();
-final json = graph.toJson((data) => data);
+// Export includes all nodes (regular, group, and comment)
+final json = controller.toJson((data) => data);
 
-// Import restores annotations
-final loadedGraph = NodeGraph.fromJson(
+// Import restores all nodes
+controller.fromJson(
   json,
-  (json) => json as Map<String, dynamic>,
+  dataFromJson: (json) => json as String,
+  nodeFromJson: (json, dataFromJson) {
+    final type = json['type'] as String;
+    switch (type) {
+      case 'group':
+        return GroupNode.fromJson(json, dataFromJson: dataFromJson);
+      case 'comment':
+        return CommentNode.fromJson(json, dataFromJson: dataFromJson);
+      default:
+        return Node.fromJson(json, dataFromJson: dataFromJson);
+    }
+  },
 );
-controller.loadGraph(loadedGraph);
 ```
-
-For custom annotation types, register them in `Annotation.fromJsonByType()` or handle deserialization manually.
 
 ## Best Practices
 
 1. **Use groups sparingly** - Too many overlapping groups create visual clutter
-2. **Match markers to semantics** - Use consistent marker types for consistent meanings
-3. **Keep notes concise** - Sticky notes work best for short reminders, not documentation
-4. **Layer thoughtfully** - Put groups behind nodes, markers at the same level, notes on top
-5. **Consider interactivity** - Set `isInteractive: false` for purely decorative annotations
+2. **Choose the right behavior** - Use `bounds` for regions, `explicit` for auto-sizing, `parent` for linked movement
+3. **Keep notes concise** - Comment nodes work best for short reminders, not documentation
+4. **Layer thoughtfully** - Groups render behind nodes, comments render in front
+5. **Consider locking** - Set `locked: true` for decorative elements that shouldn't be moved
 
 ## See Also
 
-- [Serialization](/docs/advanced/serialization) - Save and load workflows with annotations
-- [Theming Overview](/docs/theming/overview) - Customize annotation appearance
-- [Controller](/docs/core-concepts/controller) - Full annotation controller API
+- [Level of Detail](/docs/advanced/lod) - Visibility control at different zoom levels
+- [Theming Overview](/docs/theming/overview) - Customize node appearance
+- [Controller](/docs/core-concepts/controller) - Full controller API

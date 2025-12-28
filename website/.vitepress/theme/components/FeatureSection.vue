@@ -52,6 +52,7 @@ defineProps<{
 
 .feature-section {
   @apply grid grid-cols-2 gap-16 items-center py-16;
+  @apply max-lg:grid-cols-1 max-lg:gap-10;
 }
 
 .feature-section-reverse {
@@ -62,12 +63,9 @@ defineProps<{
   direction: ltr;
 }
 
-@media (max-width: 900px) {
-  .feature-section,
-  .feature-section-reverse {
-    @apply grid-cols-1 gap-10;
-    direction: ltr;
-  }
+/* On mobile, reset RTL to LTR */
+.feature-section-reverse {
+  @apply max-lg:[direction:ltr];
 }
 
 .feature-section-content {

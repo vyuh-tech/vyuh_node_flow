@@ -25,7 +25,9 @@ defineProps<{
     <div class="cta-blur cta-blur-1" />
     <div class="cta-blur cta-blur-2" />
     <div class="cta-content">
-      <Badge :icon="badgeIcon" :color="badgeColor || 'amber'">{{ badge }}</Badge>
+      <Badge :icon="badgeIcon" :color="badgeColor || 'amber'">{{
+        badge
+      }}</Badge>
       <h2 class="cta-title">{{ title }}</h2>
       <p v-if="subtitle" class="cta-subtitle">
         {{ subtitle }}
@@ -87,10 +89,10 @@ defineProps<{
 }
 
 .cta-subtitle {
-  @apply text-lg text-slate-600 dark:text-zinc-400 leading-relaxed mb-10;
+  @apply text-lg text-slate-600 dark:text-zinc-400 leading-relaxed mb-14;
 }
 
 .cta-actions {
-  @apply flex flex-col sm:flex-row justify-center gap-4 flex-wrap;
+  @apply flex flex-col sm:flex-row justify-center gap-4 flex-wrap mt-16;
 }
 </style>

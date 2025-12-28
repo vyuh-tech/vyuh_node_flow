@@ -173,6 +173,7 @@ const marqueeLines = [
       'Collaboration',
     ],
     color: 'purple' as const,
+    duration: 40,
   },
   {
     items: [
@@ -187,6 +188,7 @@ const marqueeLines = [
     ],
     color: 'teal' as const,
     reverse: true,
+    duration: 50, // Slower
   },
   {
     items: [
@@ -200,6 +202,7 @@ const marqueeLines = [
       'SLA Guarantee',
     ],
     color: 'purple' as const,
+    duration: 35, // Faster
   },
 ];
 </script>

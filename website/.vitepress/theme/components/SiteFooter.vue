@@ -98,12 +98,7 @@ defineProps<{
 
 .footer-container {
   @apply max-w-6xl mx-auto grid grid-cols-[1fr_2fr] gap-16;
-}
-
-@media (max-width: 900px) {
-  .footer-container {
-    @apply grid-cols-1;
-  }
+  @apply max-lg:grid-cols-1;
 }
 
 .footer-brand {
@@ -128,13 +123,7 @@ defineProps<{
 }
 
 .footer-links {
-  @apply grid grid-cols-3 gap-10;
-}
-
-@media (max-width: 600px) {
-  .footer-links {
-    @apply grid-cols-1;
-  }
+  @apply grid grid-cols-2 md:grid-cols-3 gap-10;
 }
 
 .footer-column {

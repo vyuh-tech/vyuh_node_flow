@@ -106,17 +106,51 @@ const codeMarkers = [
 // Marquee content
 const marqueeLines = [
   {
-    items: ['Annotations & Sticky Notes', 'Keyboard Shortcuts', 'Read-Only Viewer', 'Multi-touch Gestures', 'Undo/Redo Support', 'Auto Pan', 'Bezier Curves', 'Straight Lines'],
+    items: [
+      'High Performance',
+      'Annotations & Sticky Notes',
+      'Keyboard Shortcuts',
+      'Read-Only Viewer',
+      'Multi-touch Gestures',
+      'Undo/Redo Support',
+      'Auto Pan',
+      'Bezier Curves',
+      'Straight Lines',
+      'Smooth Step Lines',
+    ],
     color: 'blue' as const,
+    duration: 40,
   },
   {
-    items: ['Dark & Light Themes', 'Snap to Grid', 'Zoom Controls', 'Drag Selection', 'Viewport Animations', 'Infinite Canvas', 'Custom Markers', 'Gradient Flow'],
+    items: [
+      'Dark & Light Themes',
+      'Snap to Grid',
+      'Zoom Controls',
+      'Drag Selection',
+      'Viewport Animations',
+      'Infinite Canvas',
+      'Custom Markers',
+      'Gradient Flow',
+    ],
     color: 'purple' as const,
     reverse: true,
+    duration: 50, // Slower
   },
   {
-    items: ['Port Validation', 'Event Callbacks', 'Viewport Controls', 'Grid Styles', 'Node Resizing', 'Connection Effects', 'JSON Serialization', 'Reactive State'],
+    items: [
+      'Port Validation',
+      'Event Callbacks',
+      'Viewport Controls',
+      'Grid Styles',
+      'Node Resizing',
+      'Connection Effects',
+      'JSON Serialization',
+      'Reactive State',
+      'Level of Detail',
+      'Viewport Culling',
+    ],
     color: 'teal' as const,
+    duration: 35, // Faster
   },
 ];
 
@@ -378,17 +412,25 @@ const heroBlinkCells = generateBlinkCells(20, 42);
     <!-- Hero Section -->
     <HeroSection>
       <template #text>
-        <Badge icon="simple-icons:flutter" color="blue">Built for Flutter</Badge>
+        <Badge icon="simple-icons:flutter" color="blue"
+          >Built for Flutter</Badge
+        >
         <h1 class="hero-title">
-          <span class="block text-5xl sm:text-6xl lg:text-7xl mb-2">Visualize any</span>
-          <WordFlipper :words="flipperWords" :interval="1500" />
+          <span class="block text-5xl sm:text-6xl lg:text-7xl mb-2"
+            >Visualize any</span
+          >
+          <WordFlipper :words="flipperWords" :interval="1250" />
         </h1>
-        <p class="text-xl font-medium text-slate-600 dark:text-zinc-300 leading-relaxed max-w-lg hero-animate-3 opacity-0 max-lg:mx-auto">
+        <p
+          class="text-xl font-medium text-slate-600 dark:text-zinc-300 leading-relaxed max-w-lg hero-animate-3 opacity-0 max-lg:mx-auto"
+        >
           A flexible, high-performance node-based flow editor for
           <FlutterBrand />. Build workflow editors, visual programming
           interfaces, and interactive diagrams.
         </p>
-        <div class="flex gap-4 flex-wrap hero-animate-4 opacity-0 max-lg:justify-center mt-12">
+        <div
+          class="flex gap-4 flex-wrap hero-animate-4 opacity-0 max-lg:justify-center mt-12"
+        >
           <CtaButton
             href="/docs/getting-started/installation"
             variant="primary"
@@ -409,10 +451,7 @@ const heroBlinkCells = generateBlinkCells(20, 42);
       </template>
 
       <template #visual>
-        <DemoFrame
-          url="flow.demo.vyuh.tech"
-          title="Vyuh Node Flow Demo"
-        />
+        <DemoFrame url="flow.demo.vyuh.tech" title="Vyuh Node Flow Demo" />
       </template>
     </HeroSection>
 

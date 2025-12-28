@@ -46,12 +46,7 @@ defineProps<{
 /* Split layout - two columns */
 .hero-content-split {
   @apply relative z-10 max-w-7xl w-full grid lg:grid-cols-[1fr_1.4fr] gap-16 items-center;
-}
-
-@media (max-width: 1100px) {
-  .hero-content-split {
-    @apply grid-cols-1 text-center justify-items-center;
-  }
+  @apply max-lg:grid-cols-1 max-lg:text-center max-lg:justify-items-center;
 }
 
 .hero-text {

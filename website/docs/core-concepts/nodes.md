@@ -9,18 +9,20 @@ Nodes are the fundamental building blocks of your flow graph. They represent ent
 
 ## Node Structure
 
-A `Node` consists of several key components:
+A `Node<T>` is a generic class where `T` can be any type you choose for your custom data:
 
 ```dart
-class Node<T extends NodeData> {
+class Node<T> {
   final String id;              // Unique identifier
   final String type;            // Node type for categorization
   final Observable<Offset> position;  // Position on canvas
-  final Size size;              // Dimensions
-  final T data;                 // Your custom data
+  final Observable<Size> size;  // Dimensions
+  final T data;                 // Your custom data (any type)
   final List<Port> inputPorts;  // Input connection points
   final List<Port> outputPorts; // Output connection points
   final Observable<int> zIndex; // Layer order
+  bool isVisible;               // Show/hide node
+  bool locked;                  // Prevent movement
 }
 ```
 
@@ -29,59 +31,59 @@ class Node<T extends NodeData> {
 ::: code-group
 
 ```dart [Basic Node]
-final node = Node<MyNodeData>(
+final node = Node<ProcessData>(
   id: 'node-1',
   type: 'process',
-  position: Offset(100, 100),
-  size: Size(200, 100),
-  data: MyNodeData(title: 'Process Step'),
-  inputPorts: [
+  position: const Offset(100, 100),
+  size: const Size(200, 100),
+  data: ProcessData(title: 'Process Step'),
+  inputPorts: const [
     Port(
       id: 'input-1',
       name: 'Input',
       position: PortPosition.left,
-      type: PortType.target,
+      type: PortType.input,
     ),
   ],
-  outputPorts: [
+  outputPorts: const [
     Port(
       id: 'output-1',
       name: 'Output',
       position: PortPosition.right,
-      type: PortType.source,
+      type: PortType.output,
     ),
   ],
 );
 ```
 
 ```dart [Node with Multiple Ports]
-final conditionalNode = Node<MyNodeData>(
+final conditionalNode = Node<ProcessData>(
   id: 'condition-1',
   type: 'condition',
-  position: Offset(300, 100),
-  size: Size(180, 120),
-  data: MyNodeData(title: 'If/Else'),
-  inputPorts: [
+  position: const Offset(300, 100),
+  size: const Size(180, 120),
+  data: ProcessData(title: 'If/Else'),
+  inputPorts: const [
     Port(
       id: 'cond-input',
       name: 'Input',
       position: PortPosition.left,
-      type: PortType.target,
+      type: PortType.input,
     ),
   ],
-  outputPorts: [
+  outputPorts: const [
     Port(
       id: 'true-output',
       name: 'True',
       position: PortPosition.right,
-      type: PortType.source,
+      type: PortType.output,
       offset: Offset(0, -20),
     ),
     Port(
       id: 'false-output',
       name: 'False',
       position: PortPosition.right,
-      type: PortType.source,
+      type: PortType.output,
       offset: Offset(0, 20),
     ),
   ],
@@ -92,32 +94,54 @@ final conditionalNode = Node<MyNodeData>(
 
 ## Custom Node Data
 
-Your node data must extend `NodeData`:
+The generic type `T` in `Node<T>` can be **any type** - a class, record, primitive, or even `void`:
 
 ```dart
-class ProcessNodeData extends NodeData {
+// Simple class for node data
+class ProcessData {
   final String title;
   final String description;
   final Map<String, dynamic> config;
 
-  ProcessNodeData({
+  const ProcessData({
     required this.title,
     this.description = '',
     this.config = const {},
   });
-
-  @override
-  Map<String, dynamic> toJson() => {
-    'title': title,
-    'description': description,
-    'config': config,
-  };
-
-  @override
-  void fromJson(Map<String, dynamic> json) {
-    // Reconstruct from JSON if needed
-  }
 }
+
+// Use with nodes
+final node = Node<ProcessData>(
+  id: 'node-1',
+  type: 'process',
+  position: const Offset(100, 100),
+  size: const Size(200, 100),
+  data: ProcessData(title: 'Process Step'),
+  // ...
+);
+```
+
+For serialization, provide conversion functions:
+
+```dart
+// Export
+final json = controller.toJson(
+  (data) => {
+    'title': data.title,
+    'description': data.description,
+    'config': data.config,
+  },
+);
+
+// Import
+controller.fromJson(
+  json,
+  dataFromJson: (json) => ProcessData(
+    title: json['title'] as String,
+    description: json['description'] as String? ?? '',
+    config: Map<String, dynamic>.from(json['config'] ?? {}),
+  ),
+);
 ```
 
 ## Node Types
@@ -394,7 +418,7 @@ class NodeFactory {
           id: 'start-out',
           name: 'Output',
           position: PortPosition.right,
-          type: PortType.source,
+          type: PortType.output,
         ),
       ],
     );

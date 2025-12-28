@@ -3,11 +3,16 @@ defineProps<{
   items: string[];
   color: 'blue' | 'purple' | 'teal';
   reverse?: boolean;
+  duration?: number; // Duration in seconds (default: 40)
 }>();
 </script>
 
 <template>
-  <div class="marquee-track" :class="['marquee-' + color, { reverse }]">
+  <div
+    class="marquee-track"
+    :class="['marquee-' + color, { reverse }]"
+    :style="duration ? { '--marquee-duration': `${duration}s` } : undefined"
+  >
     <div class="marquee-content">
       <span v-for="(item, i) in [...items, ...items]" :key="i" class="marquee-item">
         {{ item }}
@@ -20,6 +25,7 @@ defineProps<{
 @reference "../style.css";
 
 .marquee-track {
+  --marquee-duration: 40s; /* Default duration, can be overridden via style prop */
   @apply relative py-2 overflow-hidden whitespace-nowrap;
   mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
   -webkit-mask-image: linear-gradient(90deg, transparent, black 10%, black 90%, transparent);
@@ -27,7 +33,7 @@ defineProps<{
 
 .marquee-content {
   @apply inline-flex;
-  animation: marqueeScroll 40s linear infinite;
+  animation: marqueeScroll var(--marquee-duration) linear infinite;
 }
 
 .marquee-track.reverse .marquee-content {

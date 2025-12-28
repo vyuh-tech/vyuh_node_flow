@@ -134,22 +134,6 @@ body {
    ═══════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-  /* Disable blur effects on mobile - they're extremely expensive */
-  .hero-blur,
-  .cta-blur,
-  .pro-blur {
-    filter: none !important;
-    opacity: 0.08 !important;
-  }
-
-  /* Reduce backdrop-blur to a simple semi-transparent background */
-  .marquee-section,
-  .pro-marquee-section,
-  .custom-footer {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-
   /* Disable cell blink animations on mobile */
   .blink-cell,
   .grid-blink .blink-cell {

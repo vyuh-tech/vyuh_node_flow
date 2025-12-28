@@ -1,345 +1,86 @@
 ---
-title: Annotation Components
-description: Widgets and layers for rendering annotations in your node flow
+title: Special Node Types
+description: GroupNode and CommentNode for organizing your node flows
 ---
 
-# Annotation Components
+# Special Node Types
 
-::: details 🖼️ Annotation Components Overview
-Layered diagram showing the annotation rendering architecture: AnnotationLayer containing multiple AnnotationWidgets, each wrapping a custom annotation type (StickyAnnotation, GroupAnnotation, MarkerAnnotation). Shows selection borders, resize handles, and theming integration.
+::: warning Deprecation Notice
+This page has been moved. The annotation system has been replaced with special node types that integrate directly with the node system.
 :::
 
-Annotations are visual overlays rendered on top of your node flow. The annotation system consists of several components that work together to provide a seamless experience.
+Vyuh Node Flow uses **special node types** instead of a separate annotation system:
 
-## Component Architecture
+- **`CommentNode<T>`** - Free-floating sticky notes (replaces "sticky annotations")
+- **`GroupNode<T>`** - Visual containers for grouping nodes (replaces "group annotations")
 
-```
-AnnotationLayer
-├── AnnotationWidget (StickyAnnotation)
-│   ├── Selection border
-│   ├── Resize handles
-│   └── Custom content (buildWidget)
-├── AnnotationWidget (GroupAnnotation)
-│   ├── Selection border
-│   └── Custom content (buildWidget)
-└── AnnotationWidget (MarkerAnnotation)
-    ├── Selection border
-    └── Custom content (buildWidget)
-```
+Both are added via the standard `controller.addNode()` API and support all node features including selection, visibility, and serialization.
 
-## AnnotationWidget
+## Quick Reference
 
-The `AnnotationWidget` is the framework widget that wraps all annotation types with automatic functionality.
-
-### Features
-
-| Feature | Description |
-|---------|-------------|
-| **Reactive positioning** | Updates automatically based on annotation position |
-| **Visibility control** | Shows/hides based on `annotation.isVisible` |
-| **Selection feedback** | Theme-consistent borders when selected |
-| **Gesture handling** | Tap, double-tap, drag, and context menu events |
-| **Resize handles** | Shown for resizable annotations when selected |
-| **Theme integration** | Uses `NodeFlowTheme` for consistent styling |
-
-### Usage
-
-The `AnnotationWidget` is used internally by `AnnotationLayer`. You typically don't instantiate it directly:
+### CommentNode (Sticky Notes)
 
 ```dart
-// Used internally by the framework
-AnnotationWidget(
-  annotation: stickyNote,
-  controller: controller,
-  onTap: () => controller.annotations.selectAnnotation(stickyNote.id),
-  onDoubleTap: () => _editAnnotation(stickyNote),
-  onContextMenu: (position) => _showContextMenu(stickyNote, position),
-)
-```
-
-### Automatic Features
-
-When you create a custom annotation, the `AnnotationWidget` automatically provides:
-
-1. **Positioning**: Your annotation is positioned on the canvas based on `visualPosition`
-2. **Selection styling**: A border appears when the annotation is selected
-3. **Resize handles**: If `isResizable` returns true, resize handles appear when selected
-4. **Drag handling**: Users can drag annotations to move them
-5. **Cursor feedback**: Cursor changes based on interaction state
-
-## Built-in Annotation Types
-
-  ### StickyAnnotation
-
-Free-floating notes for comments and documentation.
-
-```dart
-final sticky = controller.annotations.createStickyAnnotation(
-  id: 'sticky-1',
+final comment = CommentNode<String>(
+  id: 'note-1',
   position: const Offset(100, 100),
-  text: 'Remember to validate inputs!',
+  text: 'This is a reminder',
+  data: 'optional-data',
   width: 200,
-  height: 120,
-  color: Colors.yellow.shade200,
+  height: 150,
+  color: Colors.yellow,
 );
-controller.annotations.addAnnotation(sticky);
+controller.addNode(comment);
 ```
 
-    **Properties:**
-    - `text`: The note content (supports multi-line)
-    - `width` / `height`: Dimensions
-    - `color`: Background color
-    - `isResizable`: Always `true` for sticky notes
+**Features:**
+- Renders in foreground layer (above nodes)
+- Inline text editing (double-click)
+- Auto-grow height as you type
+- Resizable with drag handles
 
-  ### GroupAnnotation
-
-Visual containers that surround related nodes.
+### GroupNode (Containers)
 
 ```dart
-// Create group around specific nodes
-final group = controller.annotations.createGroupAnnotationAroundNodes(
+final group = GroupNode<String>(
   id: 'group-1',
-  title: 'Data Processing',
-  nodeIds: {'node-1', 'node-2', 'node-3'},
-  color: Colors.blue.shade200,
-  padding: const EdgeInsets.all(30),
-);
-controller.annotations.addAnnotation(group);
-
-// Or create with explicit position/size
-final fixedGroup = controller.annotations.createGroupAnnotation(
-  id: 'group-2',
-  title: 'Fixed Group',
   position: const Offset(50, 50),
-  size: const Size(300, 200),
-  color: Colors.green.shade200,
+  size: const Size(400, 300),
+  title: 'Processing Region',
+  data: 'group-data',
+  color: Colors.blue,
+  behavior: GroupBehavior.bounds, // or .explicit, .parent
 );
-controller.annotations.addAnnotation(fixedGroup);
+controller.addNode(group);
 ```
 
-    **Properties:**
-    - `title`: Header label
-    - `nodeIds`: Set of contained node IDs (for auto-sizing)
-    - `padding`: Space around contained nodes
-    - `color`: Header and tint color
+**Behavior Modes:**
 
-  ### MarkerAnnotation
+| Mode       | Membership                    | Size                 | Node Movement               |
+| ---------- | ----------------------------- | -------------------- | --------------------------- |
+| `bounds`   | Spatial (nodes inside bounds) | Manual (resizable)   | Nodes can escape by dragging|
+| `explicit` | Explicit (node ID set)        | Auto-computed        | Group resizes to fit nodes  |
+| `parent`   | Explicit (node ID set)        | Manual (resizable)   | Nodes move with group       |
 
-Compact icons for status indicators and semantic tags.
+**Features:**
+- Renders in background layer (behind nodes)
+- Inline title editing (double-click)
+- Optional input/output ports for subflows
+- Nested group support
 
-```dart
-final marker = controller.annotations.createMarkerAnnotation(
-  id: 'marker-1',
-  position: const Offset(200, 80),
-  markerType: MarkerType.warning,
-  size: 24.0,
-  color: Colors.orange,
-  tooltip: 'Check prerequisites before proceeding',
-);
-controller.annotations.addAnnotation(marker);
-```
+## Full Documentation
 
-    **Marker Types:**
-    - Status: `error`, `warning`, `info`, `risk`
-    - Tasks: `user`, `script`, `service`, `manual`
-    - Workflow: `timer`, `message`, `decision`, `milestone`, `subprocess`, `compliance`
+For complete documentation including:
+- All properties and methods
+- Behavior mode details
+- Programmatic updates
+- Complete examples
+- Serialization
 
-## AnnotationLayer
-
-The `AnnotationLayer` is responsible for rendering all annotations. It's automatically included in `NodeFlowEditor`.
-
-```dart
-// The layer is created internally by NodeFlowEditor
-// You don't need to create it yourself
-
-NodeFlowEditor<MyData>(
-  controller: controller,
-  nodeBuilder: (context, node) => MyNodeWidget(node: node),
-  // Annotations are automatically rendered
-)
-```
-
-### Layer Ordering
-
-Annotations are rendered based on their z-index:
-
-```dart
-// Send group to back (behind nodes)
-controller.annotations.sendAnnotationToBack(groupId);
-
-// Bring sticky note to front
-controller.annotations.bringAnnotationToFront(stickyId);
-```
-
-::: info
-Groups typically use negative z-index values to render behind nodes, while sticky notes and markers render on top.
-
-:::
-
-## AnnotationTheme
-
-Customize annotation appearance through the theme:
-
-```dart
-NodeFlowTheme(
-  annotationTheme: AnnotationTheme(
-    selectionBorderColor: Colors.blue,
-    selectionBorderWidth: 2.0,
-    selectionBackgroundColor: Colors.blue.withOpacity(0.05),
-    borderRadius: BorderRadius.circular(4),
-  ),
-)
-```
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `selectionBorderColor` | `Color` | Border color when selected |
-| `selectionBorderWidth` | `double` | Border width when selected |
-| `selectionBackgroundColor` | `Color?` | Background tint when selected |
-| `borderRadius` | `BorderRadius` | Corner radius for selection border |
-
-## Creating Custom Annotations
-
-Extend the `Annotation` base class to create custom annotation types:
-
-```dart
-class BadgeAnnotation extends Annotation {
-  final String label;
-  final Color badgeColor;
-
-  BadgeAnnotation({
-    required super.id,
-    required Offset position,
-    required this.label,
-    this.badgeColor = Colors.purple,
-  }) : super(
-         type: 'badge',
-         initialPosition: position,
-       );
-
-  @override
-  Size get size => const Size(60, 60);
-
-  @override
-  bool get isResizable => false;
-
-  @override
-  Widget buildWidget(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: badgeColor,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: badgeColor.withOpacity(0.3),
-            blurRadius: 8,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'type': type,
-    'x': currentPosition.dx,
-    'y': currentPosition.dy,
-    'label': label,
-    'badgeColor': badgeColor.value,
-  };
-
-  @override
-  void fromJson(Map<String, dynamic> json) {
-    setPosition(Offset(
-      (json['x'] as num).toDouble(),
-      (json['y'] as num).toDouble(),
-    ));
-  }
-}
-```
-
-### Required Overrides
-
-| Method | Purpose |
-|--------|---------|
-| `Size get size` | Dimensions for hit testing and layout |
-| `Widget buildWidget(BuildContext)` | Visual representation |
-| `Map<String, dynamic> toJson()` | Serialization |
-| `void fromJson(Map<String, dynamic>)` | Deserialization |
-
-### Optional Overrides
-
-| Property | Default | Purpose |
-|----------|---------|---------|
-| `isResizable` | `false` | Enable resize handles |
-| `isInteractive` | `true` | Enable user interaction |
-| `isVisible` | `true` | Show/hide annotation |
-
-## Annotation Events
-
-Handle annotation interactions through the events API:
-
-```dart
-NodeFlowEditor<MyData>(
-  controller: controller,
-  events: NodeFlowEvents(
-    annotation: AnnotationEvents(
-      onTap: (annotation) => _selectAnnotation(annotation),
-      onDoubleTap: (annotation) => _editAnnotation(annotation),
-      onContextMenu: (annotation, position) {
-        _showContextMenu(annotation, position);
-      },
-      onCreated: (annotation) => _saveAnnotation(annotation),
-      onDeleted: (annotation) => _deleteAnnotation(annotation),
-      onMoved: (annotation, newPosition) {
-        print('Moved to $newPosition');
-      },
-    ),
-  ),
-)
-```
-
-## Node-Following Annotations
-
-Annotations can follow nodes, moving automatically when the node moves:
-
-```dart
-// Create annotation
-final note = controller.annotations.createStickyAnnotation(
-  id: 'linked-note',
-  position: Offset.zero, // Will be overridden
-  text: 'Always visible next to this node',
-  offset: const Offset(80, 50), // Offset from node center
-);
-controller.annotations.addAnnotation(note);
-
-// Link to a node
-controller.annotations.addNodeDependency(note.id, 'target-node-id');
-
-// Now when the node moves, the annotation follows
-```
-
-## Best Practices
-
-1. **Use groups sparingly** - Too many overlapping groups create visual clutter
-2. **Match markers to semantics** - Use consistent marker types for consistent meanings
-3. **Keep notes concise** - Sticky notes work best for short reminders
-4. **Layer thoughtfully** - Groups behind nodes, markers at same level, notes on top
-5. **Consider interactivity** - Set `isInteractive: false` for decorative annotations
+See **[Special Node Types (Advanced)](/docs/advanced/annotations)**.
 
 ## See Also
 
-- [Annotations (Advanced)](/docs/advanced/annotations) - Deep dive into annotation features
-- [Theming](/docs/theming/overview) - Customize annotation appearance
-- [Controller](/docs/core-concepts/controller) - Annotation controller API
+- [Level of Detail](/docs/advanced/lod) - Zoom-based visibility control
+- [Theming Overview](/docs/theming/overview) - Customize node appearance
+- [Controller](/docs/core-concepts/controller) - Node management API

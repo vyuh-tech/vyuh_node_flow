@@ -55,14 +55,11 @@ minimap, and more.
   - [Connection Animation Effects](#connection-animation-effects)
   - [Connection Endpoints](#connection-endpoints)
   - [Connection Labels](#connection-labels)
-- [Annotations](#annotations)
-  - [Built-in Annotation Types](#built-in-annotation-types)
-  - [Group Annotations](#group-annotations)
-  - [Custom Annotations](#custom-annotations)
-  - [Following Nodes](#following-nodes)
+- [Special Node Types](#special-node-types)
+  - [Comment Nodes (Sticky Notes)](#comment-nodes-sticky-notes)
+  - [Group Nodes](#group-nodes)
 - [Visibility](#visibility)
   - [Node Visibility](#node-visibility)
-  - [Annotation Visibility](#annotation-visibility)
 - [Interactive Features](#interactive-features)
   - [Event System](#event-system)
   - [Keyboard Shortcuts](#keyboard-shortcuts)
@@ -1232,27 +1229,30 @@ Widget _buildProcessNode(BuildContext context, Node<ProcessNodeData> node) {
 Ports are connection points on nodes:
 
 ```dart
-// Input port (left side)
+// Input port (left side) - can only receive connections
 const Port(
   id: 'input-1',
   name: 'Input',
   position: PortPosition.left,
-  type: PortType.target, // Can only receive connections
+  type: PortType.input,
 )
 
-// Output port (right side)
+// Output port (right side) - can only create connections
 const Port(
   id: 'output-1',
   name: 'Output',
   position: PortPosition.right,
-  type: PortType.source, // Can only create connections
+  type: PortType.output,
 )
 
-// Bidirectional port
+// Input port with multiple connections allowed
 const Port(
-  id: 'bidirectional',
+  id: 'multi-input',
   name: 'Data',
-  type: PortType.both, // Can both send and receive
+  position: PortPosition.left,
+  type: PortType.input,
+  multiConnections: true,
+  maxConnections: 5,
 )
 ```
 
@@ -2209,162 +2209,102 @@ controller.setTheme(theme);
 
 ---
 
-## Annotations
+## Special Node Types
 
-Annotations are floating elements that can be placed on the canvas for labels,
-notes, or custom visualizations.
+Vyuh Node Flow provides two special node types for organizing and annotating
+your flow: `GroupNode` for visual containment and `CommentNode` for sticky
+notes.
 
-### Built-in Annotation Types
+### Comment Nodes (Sticky Notes)
+
+Comment nodes are free-floating elements for adding notes and annotations to
+your canvas. They render in the foreground layer and support inline text
+editing.
 
 <details>
-<summary><strong>Sticky Note Annotation Example</strong></summary>
+<summary><strong>Creating Comment Nodes</strong></summary>
 
 ```dart
-// Add a sticky note annotation
-controller.addAnnotation(
-  StickyAnnotation(
-    id: 'note-1',
-    position: const Offset(100, 100),
-    text: 'This is a note',
-    width: 200,
-    height: 100,
-    color: Colors.yellow.shade100,
-  ),
-);
-
-// Or use the convenience method
-controller.createStickyNote(
+// Create a simple comment/sticky note
+final comment = CommentNode<String>(
+  id: 'note-1',
   position: const Offset(100, 100),
-  text: 'This is a note',
+  text: 'This is a reminder',
+  data: 'optional-data',
+  width: 200,
+  height: 150,
+  color: Colors.yellow,
 );
+controller.addNode(comment);
+
+// Comment with custom styling
+final styledComment = CommentNode<void>(
+  id: 'styled-note',
+  position: const Offset(300, 100),
+  text: 'Important: Review this section',
+  data: null,
+  width: 250,
+  height: 100,
+  color: Colors.red.shade100,
+);
+controller.addNode(styledComment);
 ```
 
 </details>
 
-### Custom Annotations
-
-Create your own annotation types:
-
 <details>
-<summary><strong>Custom Annotation Implementation</strong></summary>
+<summary><strong>Comment Node Features</strong></summary>
+
+- **Inline editing**: Double-click to edit text directly
+- **Auto-grow height**: Text area expands as you type
+- **Resizable**: Drag handles to resize (100-600px width, 60-400px height)
+- **Foreground layer**: Renders above regular nodes
+- **Custom colors**: Any Flutter `Color` value
 
 ```dart
-class ImageAnnotation extends Annotation {
-  final String imageUrl;
-  final double width;
-  final double height;
-
-  ImageAnnotation({
-    required super.id,
-    required Offset position,
-    required this.imageUrl,
-    this.width = 200,
-    this.height = 150,
-  }) : super(
-    type: 'image',
-    initialPosition: position,
-  );
-
-  @override
-  Size get size => Size(width, height);
-
-  @override
-  Widget buildWidget(BuildContext context) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.network(imageUrl, fit: BoxFit.cover),
-      ),
-    );
-  }
-
-  @override
-  Map<String, dynamic> toJson() =>
-      {
-        'imageUrl': imageUrl,
-        'width': width,
-        'height': height,
-      };
-
-  @override
-  void fromJson(Map<String, dynamic> json) {
-    // Update from JSON if needed
-  }
+// Programmatic text update
+final comment = controller.getNode('note-1') as CommentNode<String>?;
+if (comment != null) {
+  comment.text = 'Updated text content';
+  comment.color = Colors.green.shade100;
 }
-
-// Use the custom annotation
-controller.addAnnotation(
-  ImageAnnotation(
-    id: 'img-1',
-    position: const Offset(200, 200),
-    imageUrl: 'https://example.com/image.jpg',
-  ),
-);
 ```
 
 </details>
 
-### Following Nodes
+### Group Nodes
 
-Make annotations follow nodes automatically:
-
-<details>
-<summary><strong>Node-Following Annotation</strong></summary>
-
-```dart
-final annotation = StickyAnnotation(
-  id: 'label-1',
-  position: const Offset(100, 100),
-  text: 'Important Node',
-  // This annotation will follow 'node-1'
-  dependencies: {'node-1'},
-  // Offset relative to the node
-  offset: const Offset(0, -50), // 50px above the node
-);
-
-controller.addAnnotation(annotation);
-```
-
-</details>
-
-### Group Annotations
-
-Group annotations allow you to visually organize related nodes together. Groups
-can be resized, styled, and configured with different behavior modes that
-control how nodes interact with the group.
+Group nodes create visual regions for containing and organizing related nodes.
+They render in the background layer and support three behavior modes.
 
 <details>
-<summary><strong>Creating Group Annotations</strong></summary>
+<summary><strong>Creating Group Nodes</strong></summary>
 
 ```dart
-// Create a group at a specific position and size
-controller.createGroupAnnotation(
-  title: 'Input Processing',
+// Create a basic group (bounds behavior - default)
+final group = GroupNode<String>(
+  id: 'group-1',
   position: const Offset(50, 50),
   size: const Size(400, 300),
-  color: Colors.blue.withOpacity(0.2),
+  title: 'Input Processing',
+  data: 'group-data',
+  color: Colors.blue,
 );
+controller.addNode(group);
 
-// Create a group around existing nodes
-controller.createGroupAnnotationAroundNodes(
+// Create a group with explicit member nodes
+final explicitGroup = GroupNode<String>(
+  id: 'group-2',
+  position: Offset.zero, // Will be computed
+  size: Size.zero,       // Will be computed
   title: 'Data Pipeline',
+  data: 'pipeline-data',
+  behavior: GroupBehavior.explicit,
   nodeIds: {'node-1', 'node-2', 'node-3'},
-  padding: const EdgeInsets.all(30),
-  color: Colors.green.withOpacity(0.2),
 );
+controller.addNode(explicitGroup);
+// Fit group bounds to contain member nodes
+explicitGroup.fitToNodes((id) => controller.nodes[id]);
 ```
 
 </details>
@@ -2383,40 +2323,77 @@ group:
 
 ```dart
 // Bounds mode (default) - spatial containment
-final boundsGroup = GroupAnnotation(
-  id: 'group-1',
-  title: 'Bounds Group',
+final boundsGroup = GroupNode<String>(
+  id: 'region-1',
   position: const Offset(100, 100),
   size: const Size(300, 200),
-  behavior: GroupBehavior.bounds, // Nodes inside move with group
+  title: 'Processing Region',
+  data: 'region-data',
+  behavior: GroupBehavior.bounds,
 );
 
 // Explicit mode - auto-sizing group
-final explicitGroup = GroupAnnotation(
-  id: 'group-2',
-  title: 'Explicit Group',
-  position: const Offset(100, 100),
-  size: const Size(300, 200),
+final explicitGroup = GroupNode<String>(
+  id: 'explicit-1',
+  position: Offset.zero,
+  size: Size.zero,
+  title: 'Auto-sized Group',
+  data: 'explicit-data',
   behavior: GroupBehavior.explicit,
-  nodeIds: {'node-1', 'node-2'}, // Group auto-fits these nodes
+  nodeIds: {'node-1', 'node-2'},
 );
 
 // Parent mode - linked but flexible
-final parentGroup = GroupAnnotation(
-  id: 'group-3',
-  title: 'Parent Group',
+final parentGroup = GroupNode<String>(
+  id: 'parent-1',
   position: const Offset(100, 100),
   size: const Size(300, 200),
+  title: 'Parent Group',
+  data: 'parent-data',
   behavior: GroupBehavior.parent,
-  nodeIds: {'node-1', 'node-2'}, // Nodes move with group but can leave bounds
+  nodeIds: {'node-1', 'node-2'},
 );
 
-controller.addAnnotation(boundsGroup);
+controller.addNode(boundsGroup);
 ```
 
-**Command+Drag to Add/Remove Nodes**: Hold Command (Mac) or Ctrl (Windows/Linux)
-while dragging a node to add it to or remove it from a group when using `bounds`
-behavior. The group will highlight when a node can be added.
+</details>
+
+<details>
+<summary><strong>Group Node Features</strong></summary>
+
+- **Inline title editing**: Double-click the title bar to edit
+- **Resizable**: Drag handles (except for `explicit` mode which auto-sizes)
+- **Background layer**: Renders behind regular nodes
+- **Color customization**: Header bar uses solid color, body uses translucent
+- **Subflow ports**: Optional input/output ports for connecting to other nodes
+
+```dart
+// Group with ports for subflow patterns
+final subflowGroup = GroupNode<String>(
+  id: 'subflow-1',
+  position: const Offset(50, 50),
+  size: const Size(500, 400),
+  title: 'Subflow',
+  data: 'subflow-data',
+  inputPorts: [
+    const Port(id: 'in-1', name: 'Input', position: PortPosition.left),
+  ],
+  outputPorts: [
+    const Port(id: 'out-1', name: 'Output', position: PortPosition.right),
+  ],
+);
+controller.addNode(subflowGroup);
+
+// Programmatic updates
+final group = controller.getNode('group-1') as GroupNode<String>?;
+if (group != null) {
+  group.updateTitle('New Title');
+  group.updateColor(Colors.green);
+  group.addNode('node-5');     // For explicit/parent modes
+  group.removeNode('node-2');
+}
+```
 
 </details>
 
@@ -2424,9 +2401,9 @@ behavior. The group will highlight when a node can be added.
 
 ## Visibility
 
-Nodes and annotations support visibility toggling, allowing you to hide elements
-without removing them from the graph. Hidden elements remain in the data model
-and can be shown again at any time.
+Nodes support visibility toggling, allowing you to hide elements without
+removing them from the graph. Hidden elements remain in the data model and can
+be shown again at any time.
 
 ### Node Visibility
 
@@ -2455,22 +2432,6 @@ controller.addNode(Node<String>(
 > [!NOTE] Hidden nodes are not rendered on the canvas and their ports cannot
 > participate in new connections. Existing connections to hidden nodes remain in
 > the graph data but are visually hidden.
-
-### Annotation Visibility
-
-```dart
-// Hide all annotations
-controller.hideAllAnnotations();
-
-// Show all annotations
-controller.showAllAnnotations();
-
-// Toggle individual annotation visibility
-final annotation = controller.getAnnotation('group-1');
-if (annotation != null) {
-  annotation.isVisible = !annotation.isVisible;
-}
-```
 
 ---
 

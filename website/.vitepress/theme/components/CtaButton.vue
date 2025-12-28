@@ -30,6 +30,7 @@ defineProps<{
 
 .hero-btn {
   @apply inline-flex items-center gap-2 px-7 py-3.5 font-semibold text-sm rounded-xl cursor-pointer no-underline;
+  @apply max-md:justify-center max-md:w-full;
   font-family: var(--vn-font-display);
   transition: all 0.3s var(--vn-ease-out);
 }
@@ -63,12 +64,5 @@ defineProps<{
 
 .hero-btn-lg {
   @apply px-10 py-4 text-base;
-}
-
-/* Mobile responsiveness */
-@media (max-width: 767px) {
-  .hero-btn {
-    @apply justify-center w-full;
-  }
 }
 </style>

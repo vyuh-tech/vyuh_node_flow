@@ -5,6 +5,7 @@ export interface MarqueeLineConfig {
   items: string[];
   color: 'blue' | 'purple' | 'teal' | 'amber';
   reverse?: boolean;
+  duration?: number; // Duration in seconds (default: 40)
 }
 
 defineProps<{
@@ -20,6 +21,7 @@ defineProps<{
       :items="line.items"
       :color="line.color"
       :reverse="line.reverse"
+      :duration="line.duration"
     />
   </section>
 </template>

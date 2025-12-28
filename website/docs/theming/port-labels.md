@@ -149,43 +149,44 @@ portTheme: PortTheme.dark.copyWith(
 
 ## Zoom-Based Visibility
 
-Labels automatically hide when zoomed out to reduce visual clutter.
+Port label visibility at different zoom levels is controlled by the **Level of Detail (LOD)** system, not by the theme. This provides consistent zoom-based visibility across all elements.
 
-### Setting Visibility Threshold
+### How LOD Controls Port Labels
+
+The LOD system uses three visibility presets based on normalized zoom level:
+
+| Zoom Level       | LOD Preset                  | Port Labels |
+| ---------------- | --------------------------- | ----------- |
+| Below 25%        | `DetailVisibility.minimal`  | Hidden      |
+| 25% - 60%        | `DetailVisibility.standard` | Hidden      |
+| Above 60%        | `DetailVisibility.full`     | Visible     |
+
+### Configuring LOD Thresholds
 
 ```dart
-portTheme: PortTheme.dark.copyWith(
-  showLabel: true,
-  labelVisibilityThreshold: 0.5, // Hide labels below 50% zoom (default)
+NodeFlowEditor(
+  controller: NodeFlowController(
+    config: NodeFlowConfig(
+      lodConfig: const LODConfig(
+        minThreshold: 0.25,  // Below this: minimal visibility
+        midThreshold: 0.60,  // Above this: full visibility (labels shown)
+      ),
+    ),
+  ),
 )
 ```
 
-**Always Visible** (threshold = 0.0):
+### Always Show Labels (Disable LOD)
 
 ```dart
-portTheme: PortTheme.dark.copyWith(
-  showLabel: true,
-  labelVisibilityThreshold: 0.0, // Always show labels
+NodeFlowController(
+  config: NodeFlowConfig(
+    lodConfig: LODConfig.disabled, // Always show full detail
+  ),
 )
 ```
 
-**Hide When Zoomed Out** (threshold = 0.5):
-
-```dart
-portTheme: PortTheme.dark.copyWith(
-  showLabel: true,
-  labelVisibilityThreshold: 0.5, // Hide below 50% zoom
-)
-```
-
-**Custom Threshold** (threshold = 0.75):
-
-```dart
-portTheme: PortTheme.dark.copyWith(
-  showLabel: true,
-  labelVisibilityThreshold: 0.75, // Hide below 75% zoom
-)
-```
+See [Level of Detail](/docs/advanced/lod) for complete LOD configuration options.
 
 ## Complete Example
 
@@ -405,7 +406,6 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
               fontWeight: FontWeight.w600,
             ),
             labelOffset: 10.0,
-            labelVisibilityThreshold: 0.5,
           ),
         ),
         nodeBuilder: (context, node) {
@@ -551,12 +551,13 @@ controller.updateNode(
 
 ### PortTheme Properties
 
-| Property                   | Type         | Default | Description                                       |
-| -------------------------- | ------------ | ------- | ------------------------------------------------- |
-| `showLabel`                | `bool`       | `false` | Global enable/disable for all port labels         |
-| `labelTextStyle`           | `TextStyle?` | `null`  | Text style for labels (size, color, weight, etc.) |
-| `labelOffset`              | `double`     | `8.0`   | Distance from port center in logical pixels       |
-| `labelVisibilityThreshold` | `double`     | `0.5`   | Minimum zoom level to show labels (0.0-1.0+)      |
+| Property         | Type         | Default | Description                                       |
+| ---------------- | ------------ | ------- | ------------------------------------------------- |
+| `showLabel`      | `bool`       | `false` | Global enable/disable for all port labels         |
+| `labelTextStyle` | `TextStyle?` | `null`  | Text style for labels (size, color, weight, etc.) |
+| `labelOffset`    | `double`     | `8.0`   | Distance from port center in logical pixels       |
+
+> **Note**: Port label visibility at different zoom levels is controlled by the LOD system via `LODConfig` in `NodeFlowConfig`, not by the theme.
 
 ### Port Properties
 

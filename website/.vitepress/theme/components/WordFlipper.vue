@@ -65,8 +65,7 @@ onUnmounted(() => {
   @apply flex relative overflow-visible w-full;
 }
 
-/* Center on mobile/tablet when hero is centered */
-@media (max-width: 1100px) {
+@media (width < theme(--breakpoint-lg)) {
   .word-flipper {
     @apply justify-center;
   }
@@ -99,8 +98,7 @@ onUnmounted(() => {
   transform: translateY(0.3em);
 }
 
-/* Center next word on mobile */
-@media (max-width: 1100px) {
+@media (width < theme(--breakpoint-lg)) {
   .flipper-next {
     @apply left-1/2;
     transform: translateX(-50%) translateY(0.3em);
@@ -118,7 +116,7 @@ onUnmounted(() => {
   animation: slideInDesktop 0.4s ease-out forwards;
 }
 
-@media (max-width: 1100px) {
+@media (width < theme(--breakpoint-lg)) {
   .flipper-next.animating-in {
     animation: slideInMobile 0.4s ease-out forwards;
   }
