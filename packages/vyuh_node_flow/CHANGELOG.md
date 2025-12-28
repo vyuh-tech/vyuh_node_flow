@@ -1,3 +1,7 @@
+## 0.17.0
+
+ - **FEAT**: restructure library and improve maintainability, modularize and reorganize editor package structure, extract graph events and extensions.
+
 ## 0.16.0
 
 - Added the GraphPosition to the connection end callback
