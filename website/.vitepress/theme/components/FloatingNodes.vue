@@ -98,6 +98,10 @@ const sparseNodes: FloatingNode[] = [
   opacity: 0.5;
 }
 
+.dark .floating-node {
+  opacity: 0.7;
+}
+
 @keyframes floatNode {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }
@@ -114,6 +118,7 @@ const sparseNodes: FloatingNode[] = [
   @apply absolute rounded-full;
   background: white;
   border: 2px solid currentColor;
+  z-index: 2; /* Above connection lines */
 }
 
 .dark .node-port {
@@ -225,10 +230,10 @@ const sparseNodes: FloatingNode[] = [
 .node-md .node-line-left,
 .node-md .node-line-right { width: 20px; }
 
-/* Color variants */
-.node-blue { @apply text-blue-500/70 dark:text-blue-400/60; }
-.node-purple { @apply text-violet-500/70 dark:text-violet-400/60; }
-.node-teal { @apply text-teal-500/70 dark:text-teal-400/60; }
+/* Color variants - brighter in dark mode */
+.node-blue { @apply text-blue-500/70 dark:text-blue-400/90; }
+.node-purple { @apply text-violet-500/70 dark:text-violet-400/90; }
+.node-teal { @apply text-teal-500/70 dark:text-teal-400/90; }
 
 /* Responsive: smaller nodes on mobile */
 @media (max-width: 768px) {

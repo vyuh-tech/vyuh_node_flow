@@ -14,7 +14,7 @@ defineProps<{
 </script>
 
 <template>
-  <section class="py-10 overflow-hidden bg-white/70 dark:bg-zinc-800/50 backdrop-blur-md">
+  <section class="py-16 overflow-hidden bg-slate-100/80 dark:bg-zinc-700/70 backdrop-blur-md border-y border-slate-200/60 dark:border-zinc-600/50">
     <MarqueeLine
       v-for="(line, index) in lines"
       :key="index"

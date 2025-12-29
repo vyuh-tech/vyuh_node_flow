@@ -39,6 +39,7 @@ defineProps<{
 
 .connector-svg {
   @apply h-full w-48;
+  z-index: 1; /* Behind ports */
 }
 
 .connector-path {
@@ -64,7 +65,7 @@ defineProps<{
   left: 50%;
   transform: translateX(-50%);
   border-color: currentColor;
-  opacity: 0.6;
+  z-index: 2; /* Above SVG lines */
 }
 
 .connector-port-top {
