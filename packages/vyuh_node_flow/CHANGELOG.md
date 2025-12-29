@@ -1,3 +1,7 @@
+## 0.19.3
+
+ - **FEAT**: improve port highlighting logic to ensure accurate feedback during connection interactions.
+
 ## 0.19.2
 
  - **FEAT**: refactor dirty tracking and group APIs for better modularity and maintainability.
