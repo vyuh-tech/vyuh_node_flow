@@ -77,7 +77,7 @@ For complete documentation including:
 - Complete examples
 - Serialization
 
-See **[Special Node Types (Advanced)](/docs/advanced/annotations)**.
+See **[Special Node Types (Advanced)](/docs/advanced/special-node-types)**.
 
 ## See Also
 

@@ -121,7 +121,7 @@ export default defineConfig({
             { text: 'NodeWidget', link: '/docs/components/node-widget' },
             { text: 'PortWidget', link: '/docs/components/port-widget' },
             { text: 'ConnectionsLayer', link: '/docs/components/connections-layer' },
-            { text: 'Annotations', link: '/docs/components/annotations' },
+            { text: 'Special Node Types', link: '/docs/components/special-node-types' },
             { text: 'Minimap', link: '/docs/components/minimap' },
           ],
         },
@@ -144,7 +144,8 @@ export default defineConfig({
         {
           text: 'Advanced',
           items: [
-            { text: 'Annotations', link: '/docs/advanced/annotations' },
+            { text: 'Special Node Types', link: '/docs/advanced/special-node-types' },
+            { text: 'Level of Detail (LOD)', link: '/docs/advanced/lod' },
             { text: 'Events', link: '/docs/advanced/events' },
             { text: 'Serialization', link: '/docs/advanced/serialization' },
             { text: 'Keyboard Shortcuts', link: '/docs/advanced/keyboard-shortcuts' },

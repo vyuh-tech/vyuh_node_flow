@@ -28,10 +28,11 @@ The main widget that renders the interactive flow editor.
 The controller manages the graph state and provides APIs for manipulation:
 
 ```dart
-class NodeFlowController<T extends NodeData> {
+class NodeFlowController<T> {
   // Core graph data
-  final Graph<T> graph;
-  final Viewport viewport;
+  final Map<String, Node<T>> nodes;
+  final Map<String, Connection> connections;
+  final GraphViewport viewport;
 
   // APIs
   void addNode(Node<T> node);
@@ -41,12 +42,12 @@ class NodeFlowController<T extends NodeData> {
 
   // Selection
   Set<String> get selectedNodeIds;
-  void selectNode(String nodeId, {bool multiSelect = false});
+  void selectNode(String nodeId, {bool toggle = false});
 
   // Viewport management
   void panTo(Offset position);
   void zoomTo(double zoom);
-  void fitToScreen();
+  void fitToView();
 
   // And many more...
 }
@@ -67,12 +68,11 @@ management is handled by the NodeFlowController:
 
 ```dart
 class NodeGraph<T> {
+  /// All nodes including GroupNode and CommentNode
   final List<Node<T>> nodes;
   final List<Connection> connections;
-  final List<Annotation> annotations;
   final GraphViewport viewport;
   final Map<String, dynamic> metadata;
-
 }
 ```
 
@@ -118,7 +118,7 @@ class Port {
   final String id;
   final String name;
   final PortPosition position; // left, right, top, bottom
-  final PortType type; // source, target, both
+  final PortType type; // input or output
   final Offset offset;
   final bool multiConnections;
   final int? maxConnections;
@@ -126,16 +126,12 @@ class Port {
   final double size;
   final String? tooltip;
   final bool isConnectable;
-
-  // Computed properties
-  bool get isSource;
-  bool get isTarget;
 }
 ```
 
 **Key Features:**
 
-- Configurable as source (output), target (input), or bidirectional
+- Configurable as input or output port type
 - Custom shapes via `PortShape` (default: capsule half)
 - Multi-connection support with optional max limit
 - Tooltips and connectable state
@@ -233,10 +229,10 @@ The architecture provides several extension points:
 
 ### Core Customization
 
-1. **Custom Node Data**: Extend `NodeData` for your domain
+1. **Custom Node Data**: Use any type for your node's `data` field
 2. **Node Builders**: Provide custom node widgets for building the content as
    well as the container
-3. **Annotations**: Add custom overlays and markers
+3. **Special Nodes**: Use `GroupNode` for visual grouping and `CommentNode` for annotations
 4. **Validators**: Add connection validation logic
 
 ### Theming

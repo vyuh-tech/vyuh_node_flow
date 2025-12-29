@@ -6,10 +6,10 @@ description: Handle user interactions with nodes, connections, and the canvas
 # Event System
 
 ::: details 🖼️ Event System Overview
-Diagram showing event flow architecture: NodeFlowEvents container with five event groups (NodeEvents, PortEvents, ConnectionEvents, ViewportEvents, AnnotationEvents) plus top-level callbacks (onSelectionChange, onInit, onError). Arrows showing event propagation from user interactions.
+Diagram showing event flow architecture: NodeFlowEvents container with four event groups (NodeEvents, PortEvents, ConnectionEvents, ViewportEvents) plus top-level callbacks (onSelectionChange, onInit, onError). Arrows showing event propagation from user interactions.
 :::
 
-The event system provides comprehensive callbacks for all user interactions. Events are organized into logical groups for nodes, ports, connections, viewport, and annotations.
+The event system provides comprehensive callbacks for all user interactions. Events are organized into logical groups for nodes (including GroupNode and CommentNode), ports, connections, and viewport.
 
 ## Event Structure
 
@@ -19,11 +19,10 @@ Events are passed via the `events` parameter on `NodeFlowEditor`:
 NodeFlowEditor<MyData>(
   controller: controller,
   events: NodeFlowEvents(
-    node: NodeEvents(...),
+    node: NodeEvents(...),      // Includes GroupNode & CommentNode
     port: PortEvents(...),
     connection: ConnectionEvents(...),
     viewport: ViewportEvents(...),
-    annotation: AnnotationEvents(...),
     onSelectionChange: (state) => ...,
     onInit: () => ...,
     onError: (error) => ...,
@@ -267,23 +266,6 @@ Canvas positions are in **graph coordinates**, not screen coordinates. They acco
 
 :::
 
-## Annotation Events
-
-Handle interactions with sticky notes, groups, and markers.
-
-```dart
-AnnotationEvents(
-  onCreated: (annotation) => print('Created: ${annotation.id}'),
-  onDeleted: (annotation) => print('Deleted: ${annotation.id}'),
-  onSelected: (annotation) => _showAnnotationTools(annotation),
-  onTap: (annotation) => _selectAnnotation(annotation),
-  onDoubleTap: (annotation) => _editAnnotation(annotation),
-  onContextMenu: (annotation, position) => _showMenu(annotation, position),
-  onMouseEnter: (annotation) => _highlight(annotation),
-  onMouseLeave: (annotation) => _unhighlight(annotation),
-)
-```
-
 ## Selection State
 
 Track the complete selection state across all element types:
@@ -293,7 +275,6 @@ NodeFlowEvents<MyData>(
   onSelectionChange: (state) {
     print('Selected nodes: ${state.nodes.length}');
     print('Selected connections: ${state.connections.length}');
-    print('Selected annotations: ${state.annotations.length}');
 
     // Update toolbar based on selection
     if (state.hasSelection) {
@@ -309,13 +290,20 @@ The `SelectionState` object provides:
 
 ```dart
 class SelectionState<T> {
+  /// Currently selected nodes (includes GroupNode and CommentNode)
   final List<Node<T>> nodes;
-  final List<Connection> connections;
-  final List<Annotation> annotations;
 
-  bool get hasSelection; // True if anything is selected
+  /// Currently selected connections
+  final List<Connection> connections;
+
+  /// True if anything is selected
+  bool get hasSelection;
 }
 ```
+
+::: info
+GroupNode and CommentNode are included in the `nodes` list since they extend Node.
+:::
 
 ## Top-Level Events
 

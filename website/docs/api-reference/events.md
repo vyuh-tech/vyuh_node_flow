@@ -17,7 +17,6 @@ NodeFlowEvents<T>({
   PortEvents<T>? port,
   ConnectionEvents<T>? connection,
   ViewportEvents? viewport,
-  AnnotationEvents? annotation,
   ValueChanged<SelectionState<T>>? onSelectionChange,
   VoidCallback? onInit,
   ValueChanged<FlowError>? onError,
@@ -26,11 +25,10 @@ NodeFlowEvents<T>({
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `node` | `NodeEvents<T>?` | Node interaction events |
+| `node` | `NodeEvents<T>?` | Node interaction events (includes GroupNode & CommentNode) |
 | `port` | `PortEvents<T>?` | Port interaction events |
 | `connection` | `ConnectionEvents<T>?` | Connection lifecycle events |
 | `viewport` | `ViewportEvents?` | Canvas pan/zoom events |
-| `annotation` | `AnnotationEvents?` | Annotation events |
 | `onSelectionChange` | `ValueChanged<SelectionState<T>>?` | Selection state changes |
 | `onInit` | `VoidCallback?` | Editor initialization |
 | `onError` | `ValueChanged<FlowError>?` | Error handling |
@@ -295,47 +293,26 @@ ViewportEvents(
 )
 ```
 
-## AnnotationEvents
-
-Events for annotation interactions (sticky notes, groups).
-
-```dart
-AnnotationEvents({
-  ValueChanged<Annotation>? onCreated,
-  ValueChanged<Annotation>? onDeleted,
-  ValueChanged<Annotation?>? onSelected,
-  ValueChanged<Annotation>? onTap,
-  ValueChanged<Annotation>? onDoubleTap,
-  void Function(Annotation, Offset)? onContextMenu,
-  ValueChanged<Annotation>? onMouseEnter,
-  ValueChanged<Annotation>? onMouseLeave,
-})
-```
-
-| Event | Trigger | Signature |
-|-------|---------|-----------|
-| `onCreated` | Annotation created | `ValueChanged<Annotation>` |
-| `onDeleted` | Annotation deleted | `ValueChanged<Annotation>` |
-| `onSelected` | Selection changes | `ValueChanged<Annotation?>` |
-| `onTap` | Single tap | `ValueChanged<Annotation>` |
-| `onDoubleTap` | Double tap | `ValueChanged<Annotation>` |
-| `onContextMenu` | Right-click | `(Annotation, Offset)` |
-| `onMouseEnter` | Mouse enters bounds | `ValueChanged<Annotation>` |
-| `onMouseLeave` | Mouse leaves bounds | `ValueChanged<Annotation>` |
-
 ## SelectionState
 
 Provided to `onSelectionChange` when selection changes.
 
 ```dart
 class SelectionState<T> {
+  /// Currently selected nodes (includes GroupNode and CommentNode)
   final List<Node<T>> nodes;
-  final List<Connection> connections;
-  final List<Annotation> annotations;
 
+  /// Currently selected connections
+  final List<Connection> connections;
+
+  /// Whether anything is selected
   bool get hasSelection;
 }
 ```
+
+::: info
+GroupNode and CommentNode are included in the `nodes` list since they extend Node.
+:::
 
 **Example:**
 ```dart

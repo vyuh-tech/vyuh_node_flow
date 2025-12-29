@@ -19,12 +19,13 @@ NodeFlowTheme({
   Duration connectionAnimationDuration = const Duration(seconds: 2),
   required PortTheme portTheme,
   required LabelTheme labelTheme,
-  required AnnotationTheme annotationTheme,
   required GridTheme gridTheme,
   required SelectionTheme selectionTheme,
   required CursorTheme cursorTheme,
+  required MinimapTheme minimapTheme,
+  required ResizerTheme resizerTheme,
   Color backgroundColor = Colors.white,
-  bool debugMode = false,
+  DebugMode debugMode = DebugMode.none,
   DebugTheme debugTheme = DebugTheme.light,
 })
 ```
@@ -44,12 +45,13 @@ Most theme properties are **required**. Use `NodeFlowTheme.light` or `NodeFlowTh
 | `connectionAnimationDuration` | `Duration` | No | Animation cycle duration |
 | `portTheme` | `PortTheme` | Yes | Port appearance |
 | `labelTheme` | `LabelTheme` | Yes | Connection label styling |
-| `annotationTheme` | `AnnotationTheme` | Yes | Annotation appearance |
 | `gridTheme` | `GridTheme` | Yes | Grid background |
 | `selectionTheme` | `SelectionTheme` | Yes | Selection rectangle styling |
 | `cursorTheme` | `CursorTheme` | Yes | Mouse cursor styles |
+| `minimapTheme` | `MinimapTheme` | Yes | Minimap appearance |
+| `resizerTheme` | `ResizerTheme` | Yes | Resize handle styling |
 | `backgroundColor` | `Color` | No | Canvas background |
-| `debugMode` | `bool` | No | Enable debug overlays |
+| `debugMode` | `DebugMode` | No | Debug overlay mode |
 | `debugTheme` | `DebugTheme` | No | Debug visualization styling |
 
 ::: code-group
@@ -369,24 +371,6 @@ SelectionTheme({
 ```dart
 SelectionTheme.light
 SelectionTheme.dark
-```
-
-## AnnotationTheme
-
-Style configuration for annotations (sticky notes, groups).
-
-```dart
-AnnotationTheme({
-  required Color selectionColor,
-  required double selectionBorderWidth,
-  // Additional properties for sticky notes, groups, markers
-})
-```
-
-**Preset themes:**
-```dart
-AnnotationTheme.light
-AnnotationTheme.dark
 ```
 
 ## CursorTheme
