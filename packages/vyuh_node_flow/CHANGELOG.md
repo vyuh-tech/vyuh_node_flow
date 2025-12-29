@@ -1,3 +1,7 @@
+## 0.19.2
+
+ - **FEAT**: refactor dirty tracking and group APIs for better modularity and maintainability.
+
 ## 0.19.1
 
  - **FEAT**: updated readme.
