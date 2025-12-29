@@ -459,7 +459,7 @@ extension NodeApi<T> on NodeFlowController<T> {
         // Update visual position with snapping
         node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
       });
-      markNodeDirty(nodeId);
+      _markNodeDirty(nodeId);
       // Emit extension event
       _emitEvent(NodeMoved<T>(node, previousPosition));
     }
@@ -492,7 +492,7 @@ extension NodeApi<T> on NodeFlowController<T> {
         }
       }
     });
-    markNodesDirty(nodeIds);
+    _markNodesDirty(nodeIds);
 
     // Emit extension events for each moved node
     for (final nodeId in nodeIds) {
@@ -521,7 +521,7 @@ extension NodeApi<T> on NodeFlowController<T> {
         node.position.value = position;
         node.setVisualPosition(_config.snapToGridIfEnabled(position));
       });
-      markNodeDirty(nodeId);
+      _markNodeDirty(nodeId);
       // Emit extension event
       _emitEvent(NodeMoved<T>(node, previousPosition));
     }
@@ -548,7 +548,7 @@ extension NodeApi<T> on NodeFlowController<T> {
     runInAction(() {
       node.size.value = size;
     });
-    markNodeDirty(nodeId);
+    _markNodeDirty(nodeId);
     // Emit extension event
     _emitEvent(NodeResized<T>(node, previousSize));
   }
@@ -948,7 +948,7 @@ extension NodeApi<T> on NodeFlowController<T> {
       }
     });
 
-    markNodesDirty(nodeIds);
+    _markNodesDirty(nodeIds);
     rebuildConnectionSegmentsForNodes(nodeIds);
   }
 
@@ -977,7 +977,7 @@ extension NodeApi<T> on NodeFlowController<T> {
       }
     });
 
-    markNodesDirty(nodeIds);
+    _markNodesDirty(nodeIds);
     rebuildConnectionSegmentsForNodes(nodeIds);
   }
 
@@ -1006,7 +1006,7 @@ extension NodeApi<T> on NodeFlowController<T> {
       }
     });
 
-    markNodesDirty(nodeIds);
+    _markNodesDirty(nodeIds);
     rebuildConnectionSegmentsForNodes(nodeIds);
   }
 

@@ -362,7 +362,7 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
 
     // Mark moved nodes dirty for spatial index
-    markNodesDirty(movedNodes.map((n) => n.id));
+    _markNodesDirty(movedNodes.map((n) => n.id));
 
     // Fire drag event for all moved nodes
     for (final node in movedNodes) {
