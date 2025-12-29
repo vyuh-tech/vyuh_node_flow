@@ -336,12 +336,14 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
           Observer(
             builder: (_) {
               // Access observables directly inside Observer for MobX tracking
-              final isHighlighted = widget.port.highlighted.value;
+              final isValidTarget = widget.port.highlighted.value;
+              final isConnecting = widget.controller.isConnecting;
 
-              // Port highlights when:
-              // 1. Hovered over (idle state) - provides interactive feedback
-              // 2. Valid target during connection drag - isHighlighted set by controller
-              final showHighlight = _isHovered || isHighlighted;
+              // Port highlighting behavior depends on connection state:
+              // - When connecting: Only highlight if valid target (validated by controller)
+              //   This prevents misleading feedback on invalid ports
+              // - When idle: Use hover for interactive feedback
+              final showHighlight = isConnecting ? isValidTarget : _isHovered;
 
               return Stack(
                 clipBehavior: Clip.none,
