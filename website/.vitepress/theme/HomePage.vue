@@ -8,11 +8,13 @@ import CtaSection from './components/CtaSection.vue';
 import DemoFrame from './components/DemoFrame.vue';
 import FeatureCard from './components/FeatureCard.vue';
 import FeatureSection from './components/FeatureSection.vue';
+import FloatingNodes from './components/FloatingNodes.vue';
 import FlutterBrand from './components/FlutterBrand.vue';
 import GridBackground from './components/GridBackground.vue';
 import HeroSection from './components/HeroSection.vue';
 import MarqueeGroup from './components/MarqueeGroup.vue';
 import Section from './components/Section.vue';
+import SectionConnector from './components/SectionConnector.vue';
 import SectionHeader from './components/SectionHeader.vue';
 import SiteFooter from './components/SiteFooter.vue';
 import WordFlipper from './components/WordFlipper.vue';
@@ -409,6 +411,9 @@ const heroBlinkCells = generateBlinkCells(20, 42);
     <!-- Canvas-based Grid Background with blinking cells -->
     <GridBackground color="blue" :blinkCells="heroBlinkCells" />
 
+    <!-- Decorative floating nodes -->
+    <FloatingNodes />
+
     <!-- Hero Section -->
     <HeroSection>
       <template #text>
@@ -508,8 +513,14 @@ const heroBlinkCells = generateBlinkCells(20, 42);
       </BentoGrid>
     </Section>
 
+    <!-- Section connector -->
+    <SectionConnector color="purple" />
+
     <!-- Marquee -->
     <MarqueeGroup :lines="marqueeLines" />
+
+    <!-- Section connector -->
+    <SectionConnector color="teal" />
 
     <!-- Use Cases Section -->
     <Section background>

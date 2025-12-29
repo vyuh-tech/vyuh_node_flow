@@ -3,11 +3,13 @@ import Badge from './components/Badge.vue';
 import CtaSection from './components/CtaSection.vue';
 import FeatureCard from './components/FeatureCard.vue';
 import FeatureSection from './components/FeatureSection.vue';
+import FloatingNodes from './components/FloatingNodes.vue';
 import FlutterBrand from './components/FlutterBrand.vue';
 import GridBackground from './components/GridBackground.vue';
 import HeroSection from './components/HeroSection.vue';
 import MarqueeGroup from './components/MarqueeGroup.vue';
 import Section from './components/Section.vue';
+import SectionConnector from './components/SectionConnector.vue';
 import SectionHeader from './components/SectionHeader.vue';
 import SelectProgramCard from './components/SelectProgramCard.vue';
 import SiteFooter from './components/SiteFooter.vue';
@@ -212,6 +214,9 @@ const marqueeLines = [
     <!-- Grid Background -->
     <GridBackground color="purple" :blinkCells="proBlinkCells" />
 
+    <!-- Floating decorative nodes -->
+    <FloatingNodes />
+
     <!-- Hero Section with centered variant -->
     <HeroSection variant="centered">
       <Badge icon="ph:crown-fill" color="purple">Pro Edition</Badge>
@@ -227,6 +232,9 @@ const marqueeLines = [
         <SelectProgramCard />
       </div>
     </HeroSection>
+
+    <!-- Connector: Hero to Features -->
+    <SectionConnector color="purple" />
 
     <!-- Pro Features Grid -->
     <Section first background>
@@ -250,8 +258,14 @@ const marqueeLines = [
       </div>
     </Section>
 
+    <!-- Connector: Features to Marquee -->
+    <SectionConnector color="teal" />
+
     <!-- Marquee -->
     <MarqueeGroup :lines="marqueeLines" />
+
+    <!-- Connector: Marquee to Workflow -->
+    <SectionConnector color="purple" />
 
     <!-- Workflow Engine Section -->
     <Section background>
@@ -280,6 +294,9 @@ const marqueeLines = [
         />
       </div>
     </Section>
+
+    <!-- Connector: Workflow to CTA -->
+    <SectionConnector color="teal" />
 
     <!-- CTA Section -->
     <CtaSection

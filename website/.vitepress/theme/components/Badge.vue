@@ -34,7 +34,7 @@ defineProps<{
 }
 
 .badge-line {
-  @apply h-12;
+  @apply h-20;
   width: 2px;
   background: repeating-linear-gradient(
     to bottom,
@@ -44,6 +44,8 @@ defineProps<{
     transparent 6px
   );
   opacity: 0.4;
+  mask-image: linear-gradient(to bottom, transparent, black 40%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 40%);
 }
 
 .badge-port-wrapper {

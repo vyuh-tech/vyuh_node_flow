@@ -18,6 +18,10 @@ defineProps<{
       layout === 'horizontal' ? 'feature-card-horizontal' : ''
     ]"
   >
+    <!-- Node ports -->
+    <div class="card-port card-port-left" :class="'card-port-' + color" />
+    <div class="card-port card-port-right" :class="'card-port-' + color" />
+
     <div class="feature-icon" :class="'feature-icon-' + color">
       <Icon :icon="icon" />
     </div>
@@ -32,7 +36,7 @@ defineProps<{
 @reference "../style.css";
 
 .feature-card {
-  @apply relative p-10 bg-white dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-500/40 rounded-2xl overflow-hidden;
+  @apply relative p-10 bg-white dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-500/40 rounded-2xl;
   transition: all 0.4s var(--vn-ease-out);
 }
 
@@ -87,4 +91,30 @@ defineProps<{
 .feature-desc {
   @apply text-base text-slate-600 dark:text-zinc-400 leading-relaxed;
 }
+
+/* Node-style ports on cards */
+.card-port {
+  @apply absolute w-2.5 h-2.5 rounded-full border-2;
+  @apply bg-white dark:bg-zinc-900;
+  @apply opacity-0 transition-opacity duration-300;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.feature-card:hover .card-port {
+  @apply opacity-100;
+}
+
+.card-port-left {
+  left: -5px;
+}
+
+.card-port-right {
+  right: -5px;
+}
+
+.card-port-blue { @apply border-blue-600 dark:border-blue-400; }
+.card-port-purple { @apply border-violet-500 dark:border-violet-400; }
+.card-port-teal { @apply border-teal-500 dark:border-teal-400; }
+.card-port-amber { @apply border-amber-500 dark:border-amber-400; }
 </style>
