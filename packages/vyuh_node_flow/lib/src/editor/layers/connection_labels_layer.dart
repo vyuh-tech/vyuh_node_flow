@@ -8,9 +8,10 @@ import '../../connections/connection.dart';
 import '../../connections/connection_label.dart';
 import '../../connections/label_theme.dart';
 import '../../connections/styles/label_calculator.dart';
-import '../unbounded_widgets.dart';
 import '../controller/node_flow_controller.dart';
+import '../lod/lod_extension.dart';
 import '../themes/node_flow_theme.dart';
+import '../unbounded_widgets.dart';
 
 /// Builder function type for customizing connection label widgets.
 ///
@@ -85,7 +86,7 @@ class ConnectionLabelsLayer<T> extends StatelessWidget {
       child: Observer(
         builder: (context) {
           // LOD check: hide connection labels when zoomed out
-          if (!controller.lodState.showConnectionLabels) {
+          if (!controller.lod.showConnectionLabels) {
             return const SizedBox.shrink();
           }
 

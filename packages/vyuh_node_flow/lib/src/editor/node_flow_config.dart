@@ -1,47 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
-import 'auto_pan/auto_pan_config.dart';
+import '../extensions/auto_pan_extension.dart';
+import '../extensions/debug_extension.dart';
+import '../extensions/extension_registry.dart';
+import '../extensions/minimap_extension.dart';
+import '../extensions/node_flow_extension.dart';
+import '../extensions/stats_extension.dart';
 import 'lod/lod.dart';
 
-/// Debug visualization mode for NodeFlow.
-///
-/// Controls which debug overlays are displayed in the editor.
-enum DebugMode {
-  /// No debug visualizations shown.
-  none,
-
-  /// Show all debug visualizations (spatial index, autopan zones, etc.).
-  all,
-
-  /// Show only the spatial index grid visualization.
-  ///
-  /// Displays how the canvas is partitioned into cells for efficient
-  /// spatial querying, including cell coordinates and object counts.
-  spatialIndex,
-
-  /// Show only the autopan zone visualization.
-  ///
-  /// Displays the edge zones where automatic panning is triggered
-  /// during drag operations.
-  autoPanZone;
-
-  /// Whether any debug visualization is enabled.
-  bool get isEnabled => this != DebugMode.none;
-
-  /// Whether the spatial index debug layer should be shown.
-  bool get showSpatialIndex =>
-      this == DebugMode.all || this == DebugMode.spatialIndex;
-
-  /// Whether the autopan zone debug layer should be shown.
-  bool get showAutoPanZone =>
-      this == DebugMode.all || this == DebugMode.autoPanZone;
-}
+// Re-export DebugMode for convenience
+export '../extensions/debug_extension.dart' show DebugMode;
 
 /// Reactive configuration class for NodeFlow behavioral properties.
 ///
 /// Visual properties like minimap appearance, colors, and styling are
 /// configured through [NodeFlowTheme] and [MinimapTheme].
+///
+/// ## Extension Configuration
+///
+/// Extensions are passed pre-configured. Built-in extensions are included
+/// by default. Customize or add extensions via the [extensions] parameter:
+///
+/// ```dart
+/// NodeFlowConfig(
+///   extensions: [
+///     MinimapExtension(config: MinimapConfig(visible: true, interactive: true)),
+///     LodExtension(config: LODConfig.disabled),
+///     AutoPanExtension(config: AutoPanConfig.fast),
+///     DebugExtension(mode: DebugMode.spatialIndex),
+///     StatsExtension(),
+///   ],
+/// );
+/// ```
+///
+/// ## Default Extensions
+///
+/// If no extensions are provided, these defaults are used:
+/// - [MinimapExtension] - minimap overlay
+/// - [LodExtension] - level of detail (disabled by default)
+/// - [AutoPanExtension] - autopan near edges (normal mode)
+/// - [DebugExtension] - debug overlays (disabled by default)
+/// - [StatsExtension] - graph statistics
 class NodeFlowConfig {
   NodeFlowConfig({
     bool snapToGrid = false,
@@ -50,13 +50,11 @@ class NodeFlowConfig {
     double portSnapDistance = 8.0,
     double minZoom = 0.5,
     double maxZoom = 2.0,
-    bool showMinimap = false,
-    bool isMinimapInteractive = true,
     this.showAttribution = true,
-    AutoPanConfig? autoPan = AutoPanConfig.normal,
-    DebugMode debugMode = DebugMode.none,
-    LODConfig lodConfig = LODConfig.disabled,
-  }) {
+    List<NodeFlowExtension<dynamic>>? extensions,
+  }) : extensionRegistry = ExtensionRegistry(
+         extensions ?? defaultExtensions(),
+       ) {
     runInAction(() {
       this.snapToGrid.value = snapToGrid;
       this.snapAnnotationsToGrid.value = snapAnnotationsToGrid;
@@ -64,13 +62,24 @@ class NodeFlowConfig {
       this.portSnapDistance.value = portSnapDistance;
       this.minZoom.value = minZoom;
       this.maxZoom.value = maxZoom;
-      this.showMinimap.value = showMinimap;
-      this.isMinimapInteractive.value = isMinimapInteractive;
-      this.autoPan.value = autoPan;
-      this.debugMode.value = debugMode;
-      this.lodConfig.value = lodConfig;
     });
   }
+
+  /// Default extensions for a new config.
+  static List<NodeFlowExtension<dynamic>> defaultExtensions() {
+    return [
+      AutoPanExtension(),
+      DebugExtension(),
+      LodExtension(config: LODConfig.disabled),
+      MinimapExtension(),
+    ];
+  }
+
+  /// Registry of extensions.
+  ///
+  /// Extensions are attached when first accessed via the controller's
+  /// getters (e.g., `controller.minimap`, `controller.autoPan`).
+  final ExtensionRegistry extensionRegistry;
 
   /// Whether to snap node positions to grid
   final snapToGrid = Observable<bool>(false);
@@ -90,73 +99,8 @@ class NodeFlowConfig {
   /// Maximum allowed zoom level
   final maxZoom = Observable<double>(2.0);
 
-  /// Whether to show minimap overlay
-  final showMinimap = Observable<bool>(false);
-
-  /// Whether the minimap can be interacted with
-  final isMinimapInteractive = Observable<bool>(true);
-
   /// Whether to show attribution label
   final bool showAttribution;
-
-  /// Configuration for autopan behavior during drag operations.
-  ///
-  /// Defaults to [AutoPanConfig.normal], which enables autopan with
-  /// balanced settings. The viewport will automatically pan when
-  /// dragging elements near the edges.
-  ///
-  /// Set to `null` to disable autopan entirely.
-  ///
-  /// Example:
-  /// ```dart
-  /// // Use fast autopan for large canvases
-  /// NodeFlowConfig(
-  ///   autoPan: AutoPanConfig.fast,
-  /// )
-  ///
-  /// // Disable autopan
-  /// NodeFlowConfig(
-  ///   autoPan: null,
-  /// )
-  ///
-  /// // Change autopan at runtime
-  /// controller.config.autoPan.value = AutoPanConfig.precise;
-  /// ```
-  ///
-  /// See [AutoPanConfig] for configuration options.
-  final autoPan = Observable<AutoPanConfig?>(null);
-
-  /// Debug visualization mode.
-  ///
-  /// Controls which debug overlays are shown:
-  /// - [DebugMode.none] - No debug visualizations
-  /// - [DebugMode.all] - All debug visualizations
-  /// - [DebugMode.spatialIndex] - Only spatial index grid
-  /// - [DebugMode.autoPanZone] - Only autopan edge zones
-  ///
-  /// Useful for development and understanding behavior.
-  final debugMode = Observable<DebugMode>(DebugMode.none);
-
-  /// Level of Detail (LOD) configuration.
-  ///
-  /// Controls which visual elements are rendered based on zoom level.
-  /// At low zoom levels, details like labels and connection endpoints
-  /// are hidden to improve performance and reduce visual clutter.
-  ///
-  /// See [LODConfig] for configuration options.
-  ///
-  /// Example:
-  /// ```dart
-  /// // Disable LOD (always show full detail)
-  /// config.lodConfig.value = LODConfig.disabled;
-  ///
-  /// // Custom thresholds
-  /// config.lodConfig.value = LODConfig(
-  ///   minThreshold: 0.3,
-  ///   midThreshold: 0.7,
-  /// );
-  /// ```
-  final lodConfig = Observable<LODConfig>(const LODConfig());
 
   /// Toggle grid snapping for both nodes and annotations
   void toggleSnapping() {
@@ -181,42 +125,6 @@ class NodeFlowConfig {
     });
   }
 
-  /// Toggle minimap visibility
-  void toggleMinimap() {
-    runInAction(() {
-      showMinimap.value = !showMinimap.value;
-    });
-  }
-
-  /// Toggle debug mode between none and all.
-  ///
-  /// For more granular control, use [setDebugMode] instead.
-  void toggleDebugMode() {
-    runInAction(() {
-      debugMode.value = debugMode.value == DebugMode.none
-          ? DebugMode.all
-          : DebugMode.none;
-    });
-  }
-
-  /// Set a specific debug mode.
-  void setDebugMode(DebugMode mode) {
-    runInAction(() {
-      debugMode.value = mode;
-    });
-  }
-
-  /// Cycle through all debug modes in order:
-  /// none → all → spatialIndex → autoPanZone → none
-  void cycleDebugMode() {
-    runInAction(() {
-      final modes = DebugMode.values;
-      final currentIndex = modes.indexOf(debugMode.value);
-      final nextIndex = (currentIndex + 1) % modes.length;
-      debugMode.value = modes[nextIndex];
-    });
-  }
-
   /// Update multiple properties at once
   void update({
     bool? snapToGrid,
@@ -225,11 +133,6 @@ class NodeFlowConfig {
     double? portSnapDistance,
     double? minZoom,
     double? maxZoom,
-    bool? showMinimap,
-    bool? isMinimapInteractive,
-    AutoPanConfig? autoPan,
-    DebugMode? debugMode,
-    LODConfig? lodConfig,
   }) {
     runInAction(() {
       if (snapToGrid != null) this.snapToGrid.value = snapToGrid;
@@ -242,27 +145,6 @@ class NodeFlowConfig {
       }
       if (minZoom != null) this.minZoom.value = minZoom;
       if (maxZoom != null) this.maxZoom.value = maxZoom;
-      if (showMinimap != null) this.showMinimap.value = showMinimap;
-      if (isMinimapInteractive != null) {
-        this.isMinimapInteractive.value = isMinimapInteractive;
-      }
-      if (autoPan != null) this.autoPan.value = autoPan;
-      if (debugMode != null) this.debugMode.value = debugMode;
-      if (lodConfig != null) this.lodConfig.value = lodConfig;
-    });
-  }
-
-  /// Disable autopan
-  void disableAutoPan() {
-    runInAction(() {
-      autoPan.value = null;
-    });
-  }
-
-  /// Set autopan configuration
-  void setAutoPan(AutoPanConfig? config) {
-    runInAction(() {
-      autoPan.value = config;
     });
   }
 
@@ -291,8 +173,7 @@ class NodeFlowConfig {
   /// Default configuration factory
   static NodeFlowConfig get defaultConfig => NodeFlowConfig();
 
-  /// Create a copy with different initial values (for migration purposes)
-  /// This creates a new config instance with the specified values
+  /// Create a copy with different initial values
   NodeFlowConfig copyWith({
     bool? snapToGrid,
     bool? snapAnnotationsToGrid,
@@ -300,12 +181,7 @@ class NodeFlowConfig {
     double? portSnapDistance,
     double? minZoom,
     double? maxZoom,
-    bool? showMinimap,
-    bool? isMinimapInteractive,
     bool? showAttribution,
-    AutoPanConfig? autoPan,
-    DebugMode? debugMode,
-    LODConfig? lodConfig,
   }) {
     return NodeFlowConfig(
       snapToGrid: snapToGrid ?? this.snapToGrid.value,
@@ -315,27 +191,7 @@ class NodeFlowConfig {
       portSnapDistance: portSnapDistance ?? this.portSnapDistance.value,
       minZoom: minZoom ?? this.minZoom.value,
       maxZoom: maxZoom ?? this.maxZoom.value,
-      showMinimap: showMinimap ?? this.showMinimap.value,
-      isMinimapInteractive:
-          isMinimapInteractive ?? this.isMinimapInteractive.value,
       showAttribution: showAttribution ?? this.showAttribution,
-      autoPan: autoPan ?? this.autoPan.value,
-      debugMode: debugMode ?? this.debugMode.value,
-      lodConfig: lodConfig ?? this.lodConfig.value,
     );
-  }
-
-  /// Set LOD configuration
-  void setLODConfig(LODConfig config) {
-    runInAction(() {
-      lodConfig.value = config;
-    });
-  }
-
-  /// Disable LOD (always show full detail)
-  void disableLOD() {
-    runInAction(() {
-      lodConfig.value = LODConfig.disabled;
-    });
   }
 }

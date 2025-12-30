@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
+import '../../extensions/auto_pan_extension.dart';
+import '../../extensions/debug_extension.dart';
 import '../controller/node_flow_controller.dart';
 
 /// Debug layer that visualizes the autopan edge zones.
@@ -30,8 +32,8 @@ import '../controller/node_flow_controller.dart';
 ///
 /// ## Usage
 ///
-/// This layer is automatically shown when `config.debugMode` is true
-/// and autopan is configured. Place it outside the InteractiveViewer:
+/// This layer is automatically shown when `controller.debug.showAutoPanZone`
+/// is true and autopan is configured. Place it outside the InteractiveViewer:
 ///
 /// ```dart
 /// Stack(
@@ -51,19 +53,21 @@ class AutopanZoneDebugLayer<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Observer(
       builder: (context) {
-        final autoPan = controller.config.autoPan.value;
-        final debugMode = controller.config.debugMode.value;
+        final autoPanConfig = controller.autoPan.currentConfig;
+        final debug = controller.debug;
 
         // Only show if autopan zone debug is enabled and autopan is configured
-        if (!debugMode.showAutoPanZone ||
-            autoPan == null ||
-            !autoPan.isEnabled) {
+        if (!debug.showAutoPanZone ||
+            autoPanConfig == null ||
+            !autoPanConfig.isEnabled) {
           return const SizedBox.shrink();
         }
 
         return IgnorePointer(
           child: CustomPaint(
-            painter: _AutopanZonePainter(edgePadding: autoPan.edgePadding),
+            painter: _AutopanZonePainter(
+              edgePadding: autoPanConfig.edgePadding,
+            ),
             size: Size.infinite,
           ),
         );

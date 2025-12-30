@@ -3,6 +3,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../connections/connections_canvas.dart';
 import '../controller/node_flow_controller.dart';
+import '../lod/lod_extension.dart';
 import '../themes/node_flow_theme.dart';
 
 /// Connections layer widget that renders all connections between nodes
@@ -20,7 +21,7 @@ class ConnectionsLayer<T> extends StatelessWidget {
         child: Observer(
           builder: (context) {
             // LOD check: hide connections when zoomed out
-            if (!controller.lodState.showConnectionLines) {
+            if (!controller.lod.showConnectionLines) {
               return const SizedBox.shrink();
             }
 

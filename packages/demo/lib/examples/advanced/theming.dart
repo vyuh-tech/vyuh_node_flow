@@ -1364,7 +1364,7 @@ class _ThemingExampleState extends State<ThemingExample> {
               onChanged: (value) {
                 setState(() {
                   _debugMode = value ? DebugMode.all : DebugMode.none;
-                  _controller.config.setDebugMode(_debugMode);
+                  _controller.debug.setMode(_debugMode);
                 });
               },
             ),

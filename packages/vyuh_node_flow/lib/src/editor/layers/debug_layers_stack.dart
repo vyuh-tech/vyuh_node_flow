@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
-import '../node_flow_config.dart';
+import '../../extensions/debug_extension.dart';
 import '../controller/node_flow_controller.dart';
 import '../themes/node_flow_theme.dart';
 import 'spatial_index_debug_layer.dart';
@@ -28,7 +28,7 @@ import 'spatial_index_debug_layer.dart';
 ///
 /// ## Included Layers
 ///
-/// When `config.debugMode` is true:
+/// When `controller.debug.isEnabled` is true:
 /// - **SpatialIndexDebugLayer**: Shows the spatial index grid partitioning
 ///
 /// ## Usage
@@ -65,27 +65,27 @@ class DebugLayersStack<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Observer(
       builder: (context) {
-        final debugMode = controller.config.debugMode.value;
+        final debug = controller.debug;
 
-        if (!debugMode.isEnabled) {
+        if (!debug.isEnabled) {
           return const SizedBox.shrink();
         }
 
-        return Stack(children: _buildDebugLayers(debugMode));
+        return Stack(children: _buildDebugLayers(debug));
       },
     );
   }
 
   /// Builds the list of debug layers based on the current debug mode.
   ///
-  /// Only layers relevant to the current [debugMode] are included.
+  /// Only layers relevant to the current debug settings are included.
   /// Note: These layers are in graph coordinates (inside InteractiveViewer).
   /// Screen-coordinate overlays like AutopanZoneDebugLayer should be added
   /// separately outside the InteractiveViewer.
-  List<Widget> _buildDebugLayers(DebugMode debugMode) {
+  List<Widget> _buildDebugLayers(DebugExtension debug) {
     return [
       // Spatial index grid visualization (graph coordinates)
-      if (debugMode.showSpatialIndex)
+      if (debug.showSpatialIndex)
         SpatialIndexDebugLayer<T>(
           controller: controller,
           transformationController: transformationController,

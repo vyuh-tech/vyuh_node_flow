@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../editor/controller/node_flow_controller.dart';
+import '../editor/lod/lod_extension.dart';
 import '../editor/themes/node_flow_theme.dart';
 import 'connection.dart';
 import 'connection_painter.dart';
@@ -95,7 +96,7 @@ class ConnectionsCanvas<T> extends CustomPainter {
     final animationValue = animation?.value;
 
     // Check LOD state for endpoint visibility
-    final skipEndpoints = !store.lodState.showConnectionEndpoints;
+    final skipEndpoints = !store.lod.showConnectionEndpoints;
 
     // Paint only connection lines and endpoints (no labels)
     // Labels are now rendered in a separate layer for better performance

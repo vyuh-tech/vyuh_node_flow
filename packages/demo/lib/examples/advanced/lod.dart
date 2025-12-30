@@ -22,10 +22,18 @@ class _LODExampleState extends State<LODExample> {
     super.initState();
     _controller = NodeFlowController<Map<String, dynamic>>(
       config: NodeFlowConfig(
-        lodConfig: LODConfig(
-          minThreshold: _minThreshold,
-          midThreshold: _midThreshold,
-        ),
+        extensions: [
+          LodExtension(
+            config: LODConfig(
+              minThreshold: _minThreshold,
+              midThreshold: _midThreshold,
+            ),
+          ),
+          AutoPanExtension(),
+          DebugExtension(),
+          MinimapExtension(),
+          StatsExtension(),
+        ],
       ),
       nodes: _createNodes(),
       connections: _createConnections(),
@@ -285,11 +293,11 @@ class _LODExampleState extends State<LODExample> {
 
   void _updateLODConfig() {
     if (_lodEnabled) {
-      _controller.config.setLODConfig(
+      _controller.lod.updateConfig(
         LODConfig(minThreshold: _minThreshold, midThreshold: _midThreshold),
       );
     } else {
-      _controller.config.disableLOD();
+      _controller.lod.disable();
     }
   }
 
@@ -375,8 +383,8 @@ class _LODExampleState extends State<LODExample> {
         const SizedBox(height: 12),
         Observer(
           builder: (_) {
-            final lodState = _controller.lodState;
-            final normalizedZoom = lodState.normalizedZoom;
+            final lod = _controller.lod;
+            final normalizedZoom = lod.normalizedZoom;
 
             // Determine LOD level
             String level;
@@ -651,7 +659,7 @@ class _LODExampleState extends State<LODExample> {
   Widget _buildVisibilityInfo() {
     return Observer(
       builder: (_) {
-        final visibility = _controller.lodState.currentVisibility;
+        final visibility = _controller.lod.currentVisibility;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

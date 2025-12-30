@@ -234,13 +234,16 @@ GraphViewport createTestViewport({
 // =============================================================================
 
 /// Creates a test config with sensible defaults.
+///
+/// Extensions can be customized by passing them explicitly.
+/// By default, uses [NodeFlowConfig.defaultExtensions].
 NodeFlowConfig createTestConfig({
   bool snapToGrid = false,
   double gridSize = 16.0,
   double portSnapDistance = 8.0,
   double minZoom = 0.1,
   double maxZoom = 4.0,
-  DebugMode debugMode = DebugMode.none,
+  List<NodeFlowExtension<dynamic>>? extensions,
 }) {
   return NodeFlowConfig(
     snapToGrid: snapToGrid,
@@ -248,7 +251,7 @@ NodeFlowConfig createTestConfig({
     portSnapDistance: portSnapDistance,
     minZoom: minZoom,
     maxZoom: maxZoom,
-    debugMode: debugMode,
+    extensions: extensions,
   );
 }
 

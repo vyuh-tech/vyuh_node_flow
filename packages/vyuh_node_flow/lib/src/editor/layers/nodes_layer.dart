@@ -8,6 +8,7 @@ import '../../nodes/node_container.dart';
 import '../../nodes/node_widget.dart';
 import '../../ports/port_widget.dart';
 import '../controller/node_flow_controller.dart';
+import '../lod/lod_extension.dart';
 import '../themes/node_flow_theme.dart';
 import '../unbounded_widgets.dart';
 
@@ -244,7 +245,7 @@ class NodesLayer<T> extends StatelessWidget {
     final nodeTheme = theme.nodeTheme;
 
     // Check LOD visibility for node content
-    final showNodeContent = controller.lodState.showNodeContent;
+    final showNodeContent = controller.lod.showNodeContent;
 
     // Wrap in NodeContainer which handles positioning, gestures, ports, etc.
     return NodeContainer<T>(

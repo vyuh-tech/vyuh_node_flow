@@ -1,9 +1,9 @@
-/// Unit tests for the DebugMode enum and NodeFlowConfig debug functionality.
+/// Unit tests for the DebugMode enum and DebugExtension functionality.
 ///
 /// Tests cover:
 /// - DebugMode enum values and helper properties
 /// - DebugMode helper methods (isEnabled, showSpatialIndex, showAutoPanZone)
-/// - NodeFlowConfig debug mode operations (toggle, set, cycle)
+/// - DebugExtension operations (toggle, set, cycle)
 /// - Observable debug mode behavior
 @Tags(['unit'])
 library;
@@ -123,141 +123,153 @@ void main() {
   });
 
   // ===========================================================================
-  // NodeFlowConfig Debug Mode - Constructor
+  // DebugExtension - Constructor
   // ===========================================================================
 
-  group('NodeFlowConfig - DebugMode Constructor', () {
+  group('DebugExtension - Constructor', () {
     test('defaults to DebugMode.none', () {
-      final config = NodeFlowConfig();
+      final ext = DebugExtension();
 
-      expect(config.debugMode.value, equals(DebugMode.none));
+      expect(ext.mode, equals(DebugMode.none));
     });
 
-    test('accepts debugMode parameter', () {
-      final config = NodeFlowConfig(debugMode: DebugMode.all);
+    test('accepts mode parameter', () {
+      final ext = DebugExtension(mode: DebugMode.all);
 
-      expect(config.debugMode.value, equals(DebugMode.all));
+      expect(ext.mode, equals(DebugMode.all));
     });
 
     test('accepts spatialIndex debug mode', () {
-      final config = NodeFlowConfig(debugMode: DebugMode.spatialIndex);
+      final ext = DebugExtension(mode: DebugMode.spatialIndex);
 
-      expect(config.debugMode.value, equals(DebugMode.spatialIndex));
+      expect(ext.mode, equals(DebugMode.spatialIndex));
     });
 
     test('accepts autoPanZone debug mode', () {
-      final config = NodeFlowConfig(debugMode: DebugMode.autoPanZone);
+      final ext = DebugExtension(mode: DebugMode.autoPanZone);
 
-      expect(config.debugMode.value, equals(DebugMode.autoPanZone));
+      expect(ext.mode, equals(DebugMode.autoPanZone));
+    });
+
+    test('has correct id', () {
+      final ext = DebugExtension();
+
+      expect(ext.id, equals('debug'));
+    });
+
+    test('config returns current mode', () {
+      final ext = DebugExtension(mode: DebugMode.all);
+
+      expect(ext.config, equals(DebugMode.all));
     });
   });
 
   // ===========================================================================
-  // NodeFlowConfig Debug Mode - toggleDebugMode
+  // DebugExtension - toggle
   // ===========================================================================
 
-  group('NodeFlowConfig - toggleDebugMode', () {
+  group('DebugExtension - toggle', () {
     test('toggles from none to all', () {
-      final config = NodeFlowConfig(debugMode: DebugMode.none);
+      final ext = DebugExtension(mode: DebugMode.none);
 
-      config.toggleDebugMode();
+      ext.toggle();
 
-      expect(config.debugMode.value, equals(DebugMode.all));
+      expect(ext.mode, equals(DebugMode.all));
     });
 
     test('toggles from all to none', () {
-      final config = NodeFlowConfig(debugMode: DebugMode.all);
+      final ext = DebugExtension(mode: DebugMode.all);
 
-      config.toggleDebugMode();
+      ext.toggle();
 
-      expect(config.debugMode.value, equals(DebugMode.none));
+      expect(ext.mode, equals(DebugMode.none));
     });
 
     test('toggles from spatialIndex to none', () {
-      final config = NodeFlowConfig(debugMode: DebugMode.spatialIndex);
+      final ext = DebugExtension(mode: DebugMode.spatialIndex);
 
-      config.toggleDebugMode();
+      ext.toggle();
 
-      expect(config.debugMode.value, equals(DebugMode.none));
+      expect(ext.mode, equals(DebugMode.none));
     });
 
     test('toggles from autoPanZone to none', () {
-      final config = NodeFlowConfig(debugMode: DebugMode.autoPanZone);
+      final ext = DebugExtension(mode: DebugMode.autoPanZone);
 
-      config.toggleDebugMode();
+      ext.toggle();
 
-      expect(config.debugMode.value, equals(DebugMode.none));
+      expect(ext.mode, equals(DebugMode.none));
     });
   });
 
   // ===========================================================================
-  // NodeFlowConfig Debug Mode - setDebugMode
+  // DebugExtension - setMode
   // ===========================================================================
 
-  group('NodeFlowConfig - setDebugMode', () {
+  group('DebugExtension - setMode', () {
     test('sets specific debug mode', () {
-      final config = NodeFlowConfig(debugMode: DebugMode.none);
+      final ext = DebugExtension(mode: DebugMode.none);
 
-      config.setDebugMode(DebugMode.spatialIndex);
+      ext.setMode(DebugMode.spatialIndex);
 
-      expect(config.debugMode.value, equals(DebugMode.spatialIndex));
+      expect(ext.mode, equals(DebugMode.spatialIndex));
     });
 
     test('can set to same mode', () {
-      final config = NodeFlowConfig(debugMode: DebugMode.all);
+      final ext = DebugExtension(mode: DebugMode.all);
 
-      config.setDebugMode(DebugMode.all);
+      ext.setMode(DebugMode.all);
 
-      expect(config.debugMode.value, equals(DebugMode.all));
+      expect(ext.mode, equals(DebugMode.all));
     });
 
     test('can set each debug mode value', () {
-      final config = NodeFlowConfig();
+      final ext = DebugExtension();
 
       for (final mode in DebugMode.values) {
-        config.setDebugMode(mode);
-        expect(config.debugMode.value, equals(mode));
+        ext.setMode(mode);
+        expect(ext.mode, equals(mode));
       }
     });
   });
 
   // ===========================================================================
-  // NodeFlowConfig Debug Mode - cycleDebugMode
+  // DebugExtension - cycle
   // ===========================================================================
 
-  group('NodeFlowConfig - cycleDebugMode', () {
+  group('DebugExtension - cycle', () {
     test('cycles through all modes in order', () {
-      final config = NodeFlowConfig(debugMode: DebugMode.none);
+      final ext = DebugExtension(mode: DebugMode.none);
 
       // none -> all
-      config.cycleDebugMode();
-      expect(config.debugMode.value, equals(DebugMode.all));
+      ext.cycle();
+      expect(ext.mode, equals(DebugMode.all));
 
       // all -> spatialIndex
-      config.cycleDebugMode();
-      expect(config.debugMode.value, equals(DebugMode.spatialIndex));
+      ext.cycle();
+      expect(ext.mode, equals(DebugMode.spatialIndex));
 
       // spatialIndex -> autoPanZone
-      config.cycleDebugMode();
-      expect(config.debugMode.value, equals(DebugMode.autoPanZone));
+      ext.cycle();
+      expect(ext.mode, equals(DebugMode.autoPanZone));
 
       // autoPanZone -> none (wraps around)
-      config.cycleDebugMode();
-      expect(config.debugMode.value, equals(DebugMode.none));
+      ext.cycle();
+      expect(ext.mode, equals(DebugMode.none));
     });
 
     test('completes full cycle starting from any mode', () {
       for (final startMode in DebugMode.values) {
-        final config = NodeFlowConfig(debugMode: startMode);
+        final ext = DebugExtension(mode: startMode);
 
         // Cycle through all 4 modes to get back to start
-        config.cycleDebugMode();
-        config.cycleDebugMode();
-        config.cycleDebugMode();
-        config.cycleDebugMode();
+        ext.cycle();
+        ext.cycle();
+        ext.cycle();
+        ext.cycle();
 
         expect(
-          config.debugMode.value,
+          ext.mode,
           equals(startMode),
           reason: 'Should return to $startMode after full cycle',
         );
@@ -266,84 +278,109 @@ void main() {
   });
 
   // ===========================================================================
-  // NodeFlowConfig Debug Mode - update method
+  // DebugExtension - Convenience Methods
   // ===========================================================================
 
-  group('NodeFlowConfig - update with debugMode', () {
-    test('update can set debug mode', () {
-      final config = NodeFlowConfig(debugMode: DebugMode.none);
+  group('DebugExtension - Convenience Methods', () {
+    test('showAll sets mode to all', () {
+      final ext = DebugExtension(mode: DebugMode.none);
 
-      config.update(debugMode: DebugMode.all);
+      ext.showAll();
 
-      expect(config.debugMode.value, equals(DebugMode.all));
+      expect(ext.mode, equals(DebugMode.all));
     });
 
-    test('update preserves debug mode when not specified', () {
-      final config = NodeFlowConfig(debugMode: DebugMode.spatialIndex);
+    test('hide sets mode to none', () {
+      final ext = DebugExtension(mode: DebugMode.all);
 
-      config.update(snapToGrid: true);
+      ext.hide();
 
-      expect(config.debugMode.value, equals(DebugMode.spatialIndex));
-    });
-  });
-
-  // ===========================================================================
-  // NodeFlowConfig Debug Mode - copyWith
-  // ===========================================================================
-
-  group('NodeFlowConfig - copyWith debugMode', () {
-    test('copyWith can change debug mode', () {
-      final config = NodeFlowConfig(debugMode: DebugMode.none);
-
-      final newConfig = config.copyWith(debugMode: DebugMode.autoPanZone);
-
-      expect(newConfig.debugMode.value, equals(DebugMode.autoPanZone));
-      expect(
-        config.debugMode.value,
-        equals(DebugMode.none),
-      ); // Original unchanged
-    });
-
-    test('copyWith preserves debug mode when not specified', () {
-      final config = NodeFlowConfig(debugMode: DebugMode.all);
-
-      final newConfig = config.copyWith(snapToGrid: true);
-
-      expect(newConfig.debugMode.value, equals(DebugMode.all));
+      expect(ext.mode, equals(DebugMode.none));
     });
   });
 
   // ===========================================================================
-  // Integration - Debug Mode with Config Helpers
+  // DebugExtension - Reactive Getters
   // ===========================================================================
 
-  group('DebugMode - Integration with Config', () {
-    test('helper properties work correctly after setDebugMode', () {
-      final config = NodeFlowConfig(debugMode: DebugMode.none);
+  group('DebugExtension - Reactive Getters', () {
+    test('isEnabled reflects current mode', () {
+      final ext = DebugExtension(mode: DebugMode.none);
+      expect(ext.isEnabled, isFalse);
 
-      expect(config.debugMode.value.isEnabled, isFalse);
-      expect(config.debugMode.value.showSpatialIndex, isFalse);
-      expect(config.debugMode.value.showAutoPanZone, isFalse);
+      ext.setMode(DebugMode.all);
+      expect(ext.isEnabled, isTrue);
 
-      config.setDebugMode(DebugMode.spatialIndex);
+      ext.setMode(DebugMode.spatialIndex);
+      expect(ext.isEnabled, isTrue);
 
-      expect(config.debugMode.value.isEnabled, isTrue);
-      expect(config.debugMode.value.showSpatialIndex, isTrue);
-      expect(config.debugMode.value.showAutoPanZone, isFalse);
+      ext.hide();
+      expect(ext.isEnabled, isFalse);
     });
 
-    test('helper properties work correctly after cycleDebugMode', () {
-      final config = NodeFlowConfig(debugMode: DebugMode.none);
+    test('showSpatialIndex reflects current mode', () {
+      final ext = DebugExtension(mode: DebugMode.none);
+      expect(ext.showSpatialIndex, isFalse);
 
-      config.cycleDebugMode(); // -> all
-      expect(config.debugMode.value.isEnabled, isTrue);
-      expect(config.debugMode.value.showSpatialIndex, isTrue);
-      expect(config.debugMode.value.showAutoPanZone, isTrue);
+      ext.setMode(DebugMode.all);
+      expect(ext.showSpatialIndex, isTrue);
 
-      config.cycleDebugMode(); // -> spatialIndex
-      expect(config.debugMode.value.isEnabled, isTrue);
-      expect(config.debugMode.value.showSpatialIndex, isTrue);
-      expect(config.debugMode.value.showAutoPanZone, isFalse);
+      ext.setMode(DebugMode.spatialIndex);
+      expect(ext.showSpatialIndex, isTrue);
+
+      ext.setMode(DebugMode.autoPanZone);
+      expect(ext.showSpatialIndex, isFalse);
+    });
+
+    test('showAutoPanZone reflects current mode', () {
+      final ext = DebugExtension(mode: DebugMode.none);
+      expect(ext.showAutoPanZone, isFalse);
+
+      ext.setMode(DebugMode.all);
+      expect(ext.showAutoPanZone, isTrue);
+
+      ext.setMode(DebugMode.autoPanZone);
+      expect(ext.showAutoPanZone, isTrue);
+
+      ext.setMode(DebugMode.spatialIndex);
+      expect(ext.showAutoPanZone, isFalse);
+    });
+  });
+
+  // ===========================================================================
+  // Integration - DebugExtension with Config
+  // ===========================================================================
+
+  group('DebugExtension - Integration with NodeFlowConfig', () {
+    test('can be added to extensions list', () {
+      final debugExt = DebugExtension(mode: DebugMode.all);
+      final config = NodeFlowConfig(extensions: [debugExt]);
+
+      final retrieved = config.extensionRegistry.get<DebugExtension>();
+      expect(retrieved, isNotNull);
+      expect(retrieved!.mode, equals(DebugMode.all));
+    });
+
+    test('is included in default extensions', () {
+      final config = NodeFlowConfig();
+
+      final debugExt = config.extensionRegistry.get<DebugExtension>();
+      expect(debugExt, isNotNull);
+      expect(debugExt!.mode, equals(DebugMode.none));
+    });
+
+    test('can override default extension', () {
+      final customDebug = DebugExtension(mode: DebugMode.spatialIndex);
+      final config = NodeFlowConfig(
+        extensions: [
+          customDebug,
+          // Other default extensions would go here...
+        ],
+      );
+
+      final retrieved = config.extensionRegistry.get<DebugExtension>();
+      expect(retrieved, isNotNull);
+      expect(retrieved!.mode, equals(DebugMode.spatialIndex));
     });
   });
 }

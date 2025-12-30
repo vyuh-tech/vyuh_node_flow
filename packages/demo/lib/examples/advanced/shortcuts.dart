@@ -32,7 +32,15 @@ class _ShortcutsExampleState extends State<ShortcutsExample> {
   }
 
   void _initializeController() {
-    final config = NodeFlowConfig(showMinimap: true, snapToGrid: false);
+    final config = NodeFlowConfig(
+      snapToGrid: false,
+      extensions: [
+        MinimapExtension(config: const MinimapConfig(visible: true)),
+        ...NodeFlowConfig.defaultExtensions().where(
+          (e) => e is! MinimapExtension,
+        ),
+      ],
+    );
 
     _controller = NodeFlowController<Map<String, dynamic>>(config: config);
 

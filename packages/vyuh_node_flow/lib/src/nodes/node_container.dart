@@ -5,6 +5,8 @@ import '../connections/connection.dart';
 import '../editor/controller/node_flow_controller.dart';
 import '../editor/drag_session.dart';
 import '../editor/element_scope.dart';
+import '../editor/lod/lod_extension.dart';
+import '../extensions/auto_pan_extension.dart';
 import '../editor/resizer_widget.dart';
 import '../editor/themes/cursor_theme.dart';
 import '../editor/themes/node_flow_theme.dart';
@@ -125,7 +127,7 @@ class NodeContainer<T> extends StatelessWidget {
         );
 
         // Get LOD visibility state
-        final lodVisibility = controller.lodState.currentVisibility;
+        final lodVisibility = controller.lod.currentVisibility;
 
         // Show resize handles when node is selected, resizable, AND LOD allows
         final showResizer =
@@ -162,7 +164,7 @@ class NodeContainer<T> extends StatelessWidget {
                     // Background/foreground layers use translucent for hit testing
                     hitTestBehavior: HitTestBehavior.opaque,
                     // Autopan configuration
-                    autoPan: controller.config.autoPan.value,
+                    autoPan: controller.autoPan.currentConfig,
                     getViewportBounds: () =>
                         controller.viewportScreenBounds.rect,
                     onAutoPan: (delta) {

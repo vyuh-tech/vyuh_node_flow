@@ -344,7 +344,12 @@ void main() {
       final config = NodeFlowConfig(
         snapToGrid: true,
         gridSize: 50,
-        debugMode: DebugMode.all,
+        extensions: [
+          DebugExtension(mode: DebugMode.all),
+          ...NodeFlowConfig.defaultExtensions().where(
+            (e) => e is! DebugExtension,
+          ),
+        ],
       );
 
       final controller = NodeFlowController<String>(
@@ -355,7 +360,7 @@ void main() {
       expect(controller.nodeCount, equals(1));
       expect(controller.config.snapToGrid.value, isTrue);
       expect(controller.config.gridSize.value, equals(50));
-      expect(controller.config.debugMode.value, equals(DebugMode.all));
+      expect(controller.debug.mode, equals(DebugMode.all));
     });
 
     test('works with initial viewport', () {
@@ -381,7 +386,14 @@ void main() {
       final connections = [
         createTestConnection(sourceNodeId: 'node-a', targetNodeId: 'node-b'),
       ];
-      final config = NodeFlowConfig(debugMode: DebugMode.spatialIndex);
+      final config = NodeFlowConfig(
+        extensions: [
+          DebugExtension(mode: DebugMode.spatialIndex),
+          ...NodeFlowConfig.defaultExtensions().where(
+            (e) => e is! DebugExtension,
+          ),
+        ],
+      );
       final viewport = GraphViewport(x: 50, y: 50, zoom: 0.8);
 
       final controller = NodeFlowController<String>(
@@ -393,7 +405,7 @@ void main() {
 
       expect(controller.nodeCount, equals(2));
       expect(controller.connectionCount, equals(1));
-      expect(controller.config.debugMode.value, equals(DebugMode.spatialIndex));
+      expect(controller.debug.mode, equals(DebugMode.spatialIndex));
       expect(controller.currentZoom, equals(0.8));
     });
   });

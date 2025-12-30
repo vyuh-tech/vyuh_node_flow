@@ -29,7 +29,14 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
   // Create controller with initial nodes
   late final NodeFlowController _controller = NodeFlowController(
     initialViewport: const GraphViewport(x: 0, y: 200, zoom: 1.0),
-    config: NodeFlowConfig(debugMode: _themeControl.debugMode),
+    config: NodeFlowConfig(
+      extensions: [
+        DebugExtension(mode: _themeControl.debugMode),
+        ...NodeFlowConfig.defaultExtensions().where(
+          (e) => e is! DebugExtension,
+        ),
+      ],
+    ),
     nodes: _createNodes(),
   );
 
@@ -293,7 +300,7 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo> {
   }
 
   void _updateThemeWithDebugMode() {
-    _controller.config.setDebugMode(_themeControl._debugMode.value);
+    _controller.debug.setMode(_themeControl._debugMode.value);
   }
 
   void _handleAnimationToggle(bool isRotating) {

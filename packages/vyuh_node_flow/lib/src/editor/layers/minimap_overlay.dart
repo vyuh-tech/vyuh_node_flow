@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
-import '../themes/minimap_theme.dart';
+import '../../extensions/minimap_extension.dart';
 import '../controller/node_flow_controller.dart';
 import '../minimap/node_flow_minimap.dart';
+import '../themes/minimap_theme.dart';
 import '../themes/node_flow_theme.dart';
 
 /// Minimap overlay widget that renders the minimap in the specified corner.
@@ -27,7 +28,8 @@ class MinimapOverlay<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Observer(
       builder: (_) {
-        if (!controller.config.showMinimap.value) {
+        final minimap = controller.minimap;
+        if (!minimap.isVisible) {
           return const SizedBox.shrink();
         }
 
@@ -59,7 +61,7 @@ class MinimapOverlay<T> extends StatelessWidget {
           child: NodeFlowMinimap<T>(
             controller: controller,
             theme: minimapTheme,
-            interactive: controller.config.isMinimapInteractive.value,
+            interactive: minimap.isInteractive,
           ),
         );
       },

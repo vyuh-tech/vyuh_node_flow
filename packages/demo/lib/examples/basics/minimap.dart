@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:mobx/mobx.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../shared/ui_widgets.dart';
@@ -25,7 +24,16 @@ class _MinimapExampleState extends State<MinimapExample> {
   void initState() {
     super.initState();
     _controller = NodeFlowController<Map<String, dynamic>>(
-      config: NodeFlowConfig(showMinimap: true, isMinimapInteractive: true),
+      config: NodeFlowConfig(
+        extensions: [
+          MinimapExtension(
+            config: const MinimapConfig(visible: true, interactive: true),
+          ),
+          ...NodeFlowConfig.defaultExtensions().where(
+            (e) => e is! MinimapExtension,
+          ),
+        ],
+      ),
     );
 
     _theme = _buildTheme();
@@ -225,11 +233,9 @@ class _MinimapExampleState extends State<MinimapExample> {
               const Text('Show Minimap', style: TextStyle(fontSize: 12)),
               const Spacer(),
               Switch(
-                value: _controller.config.showMinimap.value,
+                value: _controller.minimap.isVisible,
                 onChanged: (value) {
-                  runInAction(() {
-                    _controller.config.showMinimap.value = value;
-                  });
+                  _controller.minimap.setVisible(value);
                 },
               ),
             ],
@@ -255,12 +261,10 @@ class _MinimapExampleState extends State<MinimapExample> {
                 ),
               ),
               Switch(
-                value: _controller.config.isMinimapInteractive.value,
-                onChanged: _controller.config.showMinimap.value
+                value: _controller.minimap.isInteractive,
+                onChanged: _controller.minimap.isVisible
                     ? (value) {
-                        runInAction(() {
-                          _controller.config.isMinimapInteractive.value = value;
-                        });
+                        _controller.minimap.setInteractive(value);
                       }
                     : null,
               ),
@@ -280,7 +284,7 @@ class _MinimapExampleState extends State<MinimapExample> {
         Observer(
           builder: (_) {
             // Observe showMinimap for enabling/disabling
-            final showMinimap = _controller.config.showMinimap.value;
+            final showMinimap = _controller.minimap.isVisible;
 
             return Wrap(
               spacing: 8,
@@ -320,7 +324,7 @@ class _MinimapExampleState extends State<MinimapExample> {
         const SizedBox(height: 12),
         Observer(
           builder: (_) {
-            final showMinimap = _controller.config.showMinimap.value;
+            final showMinimap = _controller.minimap.isVisible;
 
             return Column(
               children: [

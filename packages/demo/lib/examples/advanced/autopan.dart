@@ -35,8 +35,15 @@ class _AutoPanExampleState extends State<AutoPanExample> {
     super.initState();
     _controller = NodeFlowController<String>(
       config: NodeFlowConfig(
-        autoPan: AutoPanConfig.normal,
-        debugMode: DebugMode.autoPanZone, // Show edge zones overlay by default
+        extensions: [
+          AutoPanExtension(config: AutoPanConfig.normal),
+          DebugExtension(
+            mode: DebugMode.autoPanZone,
+          ), // Show edge zones overlay by default
+          LodExtension(),
+          MinimapExtension(),
+          StatsExtension(),
+        ],
       ),
     );
     _createExampleGraph();
@@ -181,7 +188,7 @@ class _AutoPanExampleState extends State<AutoPanExample> {
     }
 
     // Use the reactive API to update autopan config
-    _controller.config.setAutoPan(config);
+    _controller.autoPan.setConfig(config);
   }
 
   Widget _buildNode(BuildContext context, Node<String> node) {
@@ -320,9 +327,9 @@ class _AutoPanExampleState extends State<AutoPanExample> {
                 ),
               ),
               Switch(
-                value: _controller.config.debugMode.value.showAutoPanZone,
+                value: _controller.debug.showAutoPanZone,
                 onChanged: (value) {
-                  _controller.config.setDebugMode(
+                  _controller.debug.setMode(
                     value ? DebugMode.autoPanZone : DebugMode.none,
                   );
                   setState(() {});
@@ -336,7 +343,7 @@ class _AutoPanExampleState extends State<AutoPanExample> {
   }
 
   Widget _buildCurrentSettingsInfo() {
-    final config = _controller.config.autoPan.value;
+    final config = _controller.autoPan.currentConfig;
     final isDisabled = config == null;
 
     return Column(

@@ -2,16 +2,18 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
-import '../graph/coordinates.dart';
-import '../editor/themes/cursor_theme.dart';
 import '../editor/controller/node_flow_controller.dart';
+import '../editor/drag_session.dart';
+import '../editor/element_scope.dart';
+import '../editor/lod/lod_extension.dart';
+import '../extensions/auto_pan_extension.dart';
+import '../editor/themes/cursor_theme.dart';
 import '../editor/themes/node_flow_theme.dart';
+import '../editor/unbounded_widgets.dart';
+import '../graph/coordinates.dart';
 import '../nodes/node.dart';
 import '../ports/port.dart';
 import '../ports/port_theme.dart';
-import '../editor/drag_session.dart';
-import '../editor/element_scope.dart';
-import '../editor/unbounded_widgets.dart';
 import 'port_shape_widget.dart';
 
 /// Builder function type for customizing individual port widgets.
@@ -366,7 +368,7 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
                   // Port label (if enabled in theme, port, AND LOD state)
                   if (widget.theme.showLabel &&
                       widget.port.showLabel &&
-                      widget.controller.lodState.showPortLabels)
+                      widget.controller.lod.showPortLabels)
                     _PortLabel(
                       port: widget.port,
                       theme: widget.theme,
@@ -431,7 +433,7 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
                   onMouseLeave: () => _handleHoverChange(false),
                   cursor: cursor,
                   // Autopan configuration for connection dragging
-                  autoPan: widget.controller.config.autoPan.value,
+                  autoPan: widget.controller.autoPan.currentConfig,
                   getViewportBounds: () =>
                       widget.controller.viewportScreenBounds.rect,
                   onAutoPan: _handleAutoPan,

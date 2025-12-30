@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../extensions/minimap_extension.dart';
 import '../controller/node_flow_controller.dart';
 
 /// Base class for actions that can be triggered in the node flow editor.
@@ -1132,7 +1133,7 @@ class _ToggleMinimapAction<T> extends NodeFlowAction<T> {
 
   @override
   bool execute(NodeFlowController<T> controller, BuildContext? context) {
-    controller.config.toggleMinimap();
+    controller.minimap.toggle();
     return true;
   }
 }

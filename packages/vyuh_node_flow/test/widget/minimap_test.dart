@@ -415,8 +415,22 @@ void main() {
   });
 
   group('Minimap - Integration with Editor', () {
-    testWidgets('minimap shows via showMinimap config', (tester) async {
-      controller.addNode(createTestNode(id: 'node-1'));
+    testWidgets('minimap shows via MinimapExtension visibility', (
+      tester,
+    ) async {
+      // Create controller with minimap visible via extension
+      final visibleController = createTestController(
+        config: NodeFlowConfig(
+          extensions: [
+            MinimapExtension(config: const MinimapConfig(visible: true)),
+            ...NodeFlowConfig.defaultExtensions().where(
+              (e) => e is! MinimapExtension,
+            ),
+          ],
+        ),
+      );
+      visibleController.setScreenSize(const Size(800, 600));
+      visibleController.addNode(createTestNode(id: 'node-1'));
 
       await tester.pumpWidget(
         MaterialApp(
@@ -424,23 +438,11 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: Stack(
-                children: [
-                  NodeFlowEditor<String>(
-                    controller: controller,
-                    nodeBuilder: (context, node) =>
-                        SizedBox(width: 100, height: 60),
-                    theme: NodeFlowTheme.light,
-                  ),
-                  Positioned(
-                    right: 10,
-                    bottom: 10,
-                    child: NodeFlowMinimap<String>(
-                      controller: controller,
-                      theme: MinimapTheme.light,
-                    ),
-                  ),
-                ],
+              child: NodeFlowEditor<String>(
+                controller: visibleController,
+                nodeBuilder: (context, node) =>
+                    SizedBox(width: 100, height: 60),
+                theme: NodeFlowTheme.light,
               ),
             ),
           ),
@@ -450,7 +452,53 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      // The built-in minimap overlay renders NodeFlowMinimap when visible
       expect(find.byType(NodeFlowMinimap<String>), findsOneWidget);
+
+      visibleController.dispose();
+    });
+
+    testWidgets('minimap hidden via MinimapExtension visibility', (
+      tester,
+    ) async {
+      // Create controller with minimap hidden via extension
+      final hiddenController = createTestController(
+        config: NodeFlowConfig(
+          extensions: [
+            MinimapExtension(config: const MinimapConfig(visible: false)),
+            ...NodeFlowConfig.defaultExtensions().where(
+              (e) => e is! MinimapExtension,
+            ),
+          ],
+        ),
+      );
+      hiddenController.setScreenSize(const Size(800, 600));
+      hiddenController.addNode(createTestNode(id: 'node-1'));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: NodeFlowEditor<String>(
+                controller: hiddenController,
+                nodeBuilder: (context, node) =>
+                    SizedBox(width: 100, height: 60),
+                theme: NodeFlowTheme.light,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      // Minimap should not render when visibility is false
+      expect(find.byType(NodeFlowMinimap<String>), findsNothing);
+
+      hiddenController.dispose();
     });
   });
 

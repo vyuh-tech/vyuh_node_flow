@@ -1,13 +1,28 @@
-import 'graph_events.dart';
+import '../editor/controller/node_flow_controller.dart';
+import 'events/events.dart';
 
-/// Interface for extensions that can observe and react to graph events.
+/// Interface for extensions that add behavior and state to the node flow editor.
 ///
 /// Extensions are purely additive - they observe events and provide
-/// additional capabilities without modifying core behavior.
+/// additional capabilities without modifying core behavior. Each extension
+/// manages its own state and reacts to graph events.
+///
+/// ## Type Parameter
+///
+/// The [TConfig] type parameter represents the configuration type for this
+/// extension. Use `void` for extensions that don't require configuration:
+///
+/// ```dart
+/// // Extension with configuration
+/// class MinimapExtension extends NodeFlowExtension<MinimapConfig> { ... }
+///
+/// // Extension without configuration
+/// class StatsExtension extends NodeFlowExtension<void> { ... }
+/// ```
 ///
 /// ## Lifecycle
 ///
-/// 1. Extension is created
+/// 1. Extension is created (optionally with config)
 /// 2. [attach] is called with the controller reference
 /// 3. [onEvent] is called for each graph event
 /// 4. [detach] is called when the extension is removed
@@ -15,14 +30,17 @@ import 'graph_events.dart';
 /// ## Example Implementation
 ///
 /// ```dart
-/// class LoggingExtension<T> implements NodeFlowExtension<T> {
-///   NodeFlowController<T>? _controller;
+/// class LoggingExtension extends NodeFlowExtension<void> {
+///   NodeFlowController? _controller;
 ///
 ///   @override
 ///   String get id => 'logging';
 ///
 ///   @override
-///   void attach(NodeFlowController<T> controller) {
+///   void get config => null;
+///
+///   @override
+///   void attach(NodeFlowController controller) {
 ///     _controller = controller;
 ///     print('Logging extension attached');
 ///   }
@@ -44,20 +62,27 @@ import 'graph_events.dart';
 ///
 /// ```dart
 /// final controller = NodeFlowController<MyData>();
-/// controller.addExtension(LoggingExtension<MyData>());
+/// controller.addExtension(LoggingExtension());
 /// ```
-abstract interface class NodeFlowExtension<T> {
+abstract class NodeFlowExtension<TConfig> {
   /// Unique identifier for this extension.
   ///
   /// Used to prevent duplicate registrations and for removal.
   /// Should be a descriptive, kebab-case string like 'undo-redo' or 'export'.
   String get id;
 
+  /// The configuration for this extension.
+  ///
+  /// For extensions with configuration, this returns the current config.
+  /// For extensions without configuration (TConfig = void), return `null`.
+  TConfig? get config;
+
   /// Called when the extension is attached to a controller.
   ///
   /// Store the controller reference for later use. This is the only
-  /// way extensions can access the controller.
-  void attach(covariant dynamic controller);
+  /// way extensions can access the controller. The controller provides
+  /// access to nodes, connections, viewport, and configuration.
+  void attach(NodeFlowController controller);
 
   /// Called when the extension is detached from the controller.
   ///

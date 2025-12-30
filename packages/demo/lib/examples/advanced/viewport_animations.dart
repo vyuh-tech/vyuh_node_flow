@@ -47,7 +47,14 @@ class _ViewportAnimationsExampleState extends State<ViewportAnimationsExample> {
   void initState() {
     super.initState();
     _controller = NodeFlowController<String>(
-      config: NodeFlowConfig(autoPan: AutoPanConfig.normal),
+      config: NodeFlowConfig(
+        extensions: [
+          AutoPanExtension(config: AutoPanConfig.normal),
+          ...NodeFlowConfig.defaultExtensions().where(
+            (e) => e is! AutoPanExtension,
+          ),
+        ],
+      ),
     );
     _createExampleGraph();
   }

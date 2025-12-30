@@ -7,19 +7,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 /// A simple test extension that tracks events
-class TestExtension<T> implements NodeFlowExtension<T> {
+class TestExtension extends NodeFlowExtension<void> {
   @override
   final String id;
 
   TestExtension({this.id = 'test-extension'});
 
-  dynamic controller;
+  @override
+  Null get config => null;
+
+  NodeFlowController? controller;
   final List<GraphEvent> events = [];
   bool attached = false;
   bool detached = false;
 
   @override
-  void attach(dynamic controller) {
+  void attach(NodeFlowController controller) {
     this.controller = controller;
     attached = true;
   }
@@ -52,7 +55,7 @@ void main() {
 
     group('Extension Lifecycle', () {
       test('addExtension attaches extension', () {
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         expect(extension.attached, isFalse);
 
         controller.addExtension(extension);
@@ -62,7 +65,7 @@ void main() {
       });
 
       test('removeExtension detaches extension', () {
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         controller.addExtension(extension);
         expect(extension.detached, isFalse);
 
@@ -75,8 +78,8 @@ void main() {
       test('dispose detaches all extensions', () {
         // Use a separate controller for this test to avoid double-dispose
         final testController = NodeFlowController<String>();
-        final extension1 = TestExtension<String>(id: 'ext-1');
-        final extension2 = TestExtension<String>(id: 'ext-2');
+        final extension1 = TestExtension(id: 'ext-1');
+        final extension2 = TestExtension(id: 'ext-2');
 
         testController.addExtension(extension1);
         testController.addExtension(extension2);
@@ -88,7 +91,7 @@ void main() {
       });
 
       test('hasExtension returns true for registered extensions', () {
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         expect(controller.hasExtension('test-extension'), isFalse);
 
         controller.addExtension(extension);
@@ -97,22 +100,22 @@ void main() {
       });
 
       test('getExtension returns typed extension', () {
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         controller.addExtension(extension);
 
-        final retrieved = controller.getExtension<TestExtension<String>>();
+        final retrieved = controller.getExtension<TestExtension>();
 
         expect(retrieved, isNotNull);
         expect(retrieved, same(extension));
       });
 
       test('getExtension returns null for non-existent extension', () {
-        final retrieved = controller.getExtension<TestExtension<String>>();
+        final retrieved = controller.getExtension<TestExtension>();
         expect(retrieved, isNull);
       });
 
       test('extensions getter returns unmodifiable list', () {
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         controller.addExtension(extension);
 
         final extensions = controller.extensions;
@@ -123,7 +126,7 @@ void main() {
 
     group('Node Events', () {
       test('NodeAdded event is emitted when node is added', () {
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         controller.addExtension(extension);
         extension.clearEvents();
 
@@ -150,7 +153,7 @@ void main() {
         );
         controller.addNode(node);
 
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         controller.addExtension(extension);
         extension.clearEvents();
 
@@ -171,7 +174,7 @@ void main() {
         );
         controller.addNode(node);
 
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         controller.addExtension(extension);
         extension.clearEvents();
 
@@ -193,7 +196,7 @@ void main() {
         );
         controller.addNode(node);
 
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         controller.addExtension(extension);
         extension.clearEvents();
 
@@ -216,7 +219,7 @@ void main() {
           );
           controller.addNode(node);
 
-          final extension = TestExtension<String>();
+          final extension = TestExtension();
           controller.addExtension(extension);
           extension.clearEvents();
 
@@ -248,7 +251,7 @@ void main() {
         controller.addNode(node1);
         controller.addNode(node2);
 
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         controller.addExtension(extension);
         extension.clearEvents();
 
@@ -292,7 +295,7 @@ void main() {
         );
         controller.addConnection(connection);
 
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         controller.addExtension(extension);
         extension.clearEvents();
 
@@ -331,7 +334,7 @@ void main() {
           );
           controller.addConnection(connection);
 
-          final extension = TestExtension<String>();
+          final extension = TestExtension();
           controller.addExtension(extension);
           extension.clearEvents();
 
@@ -347,7 +350,7 @@ void main() {
 
     group('Viewport Events', () {
       test('ViewportChanged event is emitted when viewport changes', () {
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         controller.addExtension(extension);
         extension.clearEvents();
 
@@ -364,7 +367,7 @@ void main() {
 
     group('Batch Operations', () {
       test('batch emits BatchStarted and BatchEnded events', () {
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         controller.addExtension(extension);
         extension.clearEvents();
 
@@ -388,7 +391,7 @@ void main() {
         );
         controller.addNode(node);
 
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         controller.addExtension(extension);
         extension.clearEvents();
 
@@ -413,7 +416,7 @@ void main() {
         );
         controller.addNode(node);
 
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         controller.addExtension(extension);
         extension.clearEvents();
 
@@ -443,7 +446,7 @@ void main() {
         controller.addNode(node);
         controller.setNodePosition('node-1', const Offset(50, 50));
 
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         controller.addExtension(extension);
         extension.clearEvents();
 
@@ -464,7 +467,7 @@ void main() {
         controller.addNode(node);
         controller.setNodeSize('node-1', const Size(100, 100));
 
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         controller.addExtension(extension);
         extension.clearEvents();
 
@@ -478,7 +481,7 @@ void main() {
       test('ViewportChanged contains previous viewport', () {
         controller.setViewport(const GraphViewport(x: 10, y: 20, zoom: 1.0));
 
-        final extension = TestExtension<String>();
+        final extension = TestExtension();
         controller.addExtension(extension);
         extension.clearEvents();
 
@@ -493,8 +496,8 @@ void main() {
 
     group('Multiple Extensions', () {
       test('events are broadcast to all extensions', () {
-        final extension1 = TestExtension<String>(id: 'ext-1');
-        final extension2 = TestExtension<String>(id: 'ext-2');
+        final extension1 = TestExtension(id: 'ext-1');
+        final extension2 = TestExtension(id: 'ext-2');
 
         controller.addExtension(extension1);
         controller.addExtension(extension2);

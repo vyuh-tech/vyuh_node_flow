@@ -7,7 +7,7 @@ import '../../connections/connection.dart';
 import '../../connections/connection_painter.dart';
 import '../../connections/connection_validation.dart';
 import '../../connections/temporary_connection.dart';
-import '../../extensions/graph_events.dart';
+import '../../extensions/events/events.dart';
 import '../../extensions/node_flow_extension.dart';
 import '../../graph/coordinates.dart';
 import '../../graph/graph.dart';
@@ -24,7 +24,6 @@ import '../../ports/port.dart';
 import '../../shared/spatial/graph_spatial_index.dart';
 import '../drag_session.dart';
 import '../keyboard/node_flow_actions.dart';
-import '../lod/lod.dart';
 import '../node_flow_behavior.dart';
 import '../node_flow_config.dart';
 import '../node_flow_events.dart';
@@ -149,27 +148,6 @@ class NodeFlowController<T> {
   /// The configuration controls behavior like snap-to-grid, zoom limits,
   /// port snap distance, and other behavioral settings.
   NodeFlowConfig get config => _config;
-
-  // Level of Detail (LOD) state - lazily initialized
-  LODState? _lodState;
-
-  /// Gets the Level of Detail (LOD) state for this controller.
-  ///
-  /// LOD controls which visual elements are rendered based on the current
-  /// zoom level. Use this to check visibility at the current zoom:
-  ///
-  /// ```dart
-  /// if (controller.lodState.showConnectionLines) {
-  ///   // Render connections
-  /// }
-  /// ```
-  ///
-  /// The state is reactive via MobX, so widgets wrapped in [Observer]
-  /// will automatically rebuild when the LOD level changes.
-  LODState get lodState {
-    _lodState ??= LODState(config: _config, viewport: _viewport);
-    return _lodState!;
-  }
 
   // Theme configuration - observable to enable reactive spatial index updates
   final Observable<NodeFlowTheme?> _themeObservable =
@@ -755,7 +733,10 @@ class NodeFlowController<T> {
   // ============================================================
 
   /// Registered extensions for this controller.
-  final List<NodeFlowExtension<T>> _extensions = [];
+  ///
+  /// Extensions are stored as `NodeFlowExtension<dynamic>` to allow
+  /// different config types in the same collection.
+  final List<NodeFlowExtension<dynamic>> _extensions = [];
 
   /// Current batch nesting depth.
   /// When > 0, we're inside a batch operation.
@@ -770,7 +751,7 @@ class NodeFlowController<T> {
   /// ```dart
   /// controller.addExtension(UndoRedoExtension<MyData>());
   /// ```
-  void addExtension(NodeFlowExtension<T> extension) {
+  void addExtension(NodeFlowExtension<dynamic> extension) {
     if (_extensions.any((e) => e.id == extension.id)) {
       throw StateError(
         'Extension "${extension.id}" is already registered. '
@@ -801,16 +782,16 @@ class NodeFlowController<T> {
   /// Gets an extension by its type.
   ///
   /// Returns `null` if no extension of the given type is registered.
-  /// Useful for Pro extensions that expose additional capabilities.
+  /// Useful for extensions that expose additional capabilities.
   ///
   /// Example:
   /// ```dart
-  /// final history = controller.getExtension<HistoryExtension<MyData>>();
+  /// final history = controller.getExtension<HistoryExtension>();
   /// if (history?.canUndo ?? false) {
   ///   history!.undo();
   /// }
   /// ```
-  E? getExtension<E extends NodeFlowExtension<T>>() {
+  E? getExtension<E extends NodeFlowExtension<dynamic>>() {
     for (final ext in _extensions) {
       if (ext is E) return ext;
     }
@@ -830,7 +811,8 @@ class NodeFlowController<T> {
   /// Gets all registered extensions.
   ///
   /// Returns an unmodifiable view of the extensions list.
-  List<NodeFlowExtension<T>> get extensions => List.unmodifiable(_extensions);
+  List<NodeFlowExtension<dynamic>> get extensions =>
+      List.unmodifiable(_extensions);
 
   /// Emits an event to all registered extensions.
   ///

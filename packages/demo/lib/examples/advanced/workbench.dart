@@ -833,18 +833,16 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
   }
 
   void _toggleMinimap() {
-    _controller.config.toggleMinimap();
+    _controller.minimap.toggle();
     _showSnackBar(
-      _controller.config.showMinimap.value
-          ? 'Minimap enabled'
-          : 'Minimap disabled',
+      _controller.minimap.isVisible ? 'Minimap enabled' : 'Minimap disabled',
     );
   }
 
   void _toggleDebugMode() {
     setState(() {
       _debugMode = _debugMode.isEnabled ? DebugMode.none : DebugMode.all;
-      _controller.config.setDebugMode(_debugMode);
+      _controller.debug.setMode(_debugMode);
     });
   }
 
