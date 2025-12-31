@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
 import '../editor/controller/node_flow_controller.dart';
-import '../editor/themes/minimap_theme.dart' show MinimapPosition;
+import '../editor/themes/minimap_theme.dart';
 import '../graph/coordinates.dart';
 import 'events/events.dart';
 import 'node_flow_extension.dart';
@@ -17,6 +17,7 @@ export '../editor/themes/minimap_theme.dart' show MinimapPosition;
 /// MinimapExtension(config: MinimapConfig(
 ///   visible: false,
 ///   position: MinimapPosition.topLeft,
+///   margin: 16.0,
 /// ));
 /// ```
 class MinimapConfig {
@@ -25,6 +26,8 @@ class MinimapConfig {
     this.visible = false,
     this.interactive = true,
     this.position = MinimapPosition.bottomRight,
+    this.size = const Size(200, 150),
+    this.margin = 20.0,
     this.autoHighlightSelection = true,
   });
 
@@ -36,6 +39,16 @@ class MinimapConfig {
 
   /// Initial position/corner of the minimap.
   final MinimapPosition position;
+
+  /// Initial size of the minimap in pixels.
+  ///
+  /// Can be updated at runtime via [MinimapExtension.setSize].
+  final Size size;
+
+  /// Margin from the edge of the editor to the minimap.
+  ///
+  /// Applied to both axes based on [position].
+  final double margin;
 
   /// Whether to automatically highlight selected nodes in the minimap.
   final bool autoHighlightSelection;
@@ -66,25 +79,45 @@ class MinimapConfig {
 /// // Change position
 /// controller.minimap.setPosition(MinimapPosition.topRight);
 ///
+/// // Configure with custom theme
+/// MinimapExtension(
+///   config: MinimapConfig(position: MinimapPosition.topLeft),
+///   theme: MinimapTheme.dark.copyWith(nodeColor: Colors.red),
+/// );
+///
 /// // In widget - reactive to extension state
 /// Observer(builder: (_) {
 ///   if (!controller.minimap.isVisible) return const SizedBox.shrink();
-///   return NodeFlowMinimap(controller: controller);
+///   return NodeFlowMinimap(controller: controller, theme: controller.minimap.theme);
 /// });
 /// ```
 class MinimapExtension extends NodeFlowExtension<MinimapConfig> {
-  /// Creates a minimap extension with optional configuration.
-  MinimapExtension({MinimapConfig config = const MinimapConfig()})
-    : _config = config,
-      _isVisible = Observable(config.visible),
-      _isInteractive = Observable(config.interactive),
-      _position = Observable(config.position),
-      _autoHighlightSelection = Observable(config.autoHighlightSelection);
+  /// Creates a minimap extension with optional configuration and theme.
+  MinimapExtension({
+    MinimapConfig config = const MinimapConfig(),
+    MinimapTheme theme = MinimapTheme.light,
+  }) : _config = config,
+       _theme = theme,
+       _size = Observable(config.size),
+       _isVisible = Observable(config.visible),
+       _isInteractive = Observable(config.interactive),
+       _position = Observable(config.position),
+       _autoHighlightSelection = Observable(config.autoHighlightSelection);
 
   final MinimapConfig _config;
+  final MinimapTheme _theme;
 
   @override
   MinimapConfig get config => _config;
+
+  /// The visual theme for the minimap.
+  ///
+  /// This theme controls colors, sizes, and visual appearance of the minimap.
+  /// Position and margin are configured via [config], not the theme.
+  MinimapTheme get theme => _theme;
+
+  /// Margin from the edge of the editor to the minimap.
+  double get margin => _config.margin;
 
   NodeFlowController? _controller;
 
@@ -92,6 +125,7 @@ class MinimapExtension extends NodeFlowExtension<MinimapConfig> {
   // Observable State
   // ═══════════════════════════════════════════════════════════════════════════
 
+  final Observable<Size> _size;
   final Observable<bool> _isVisible;
   final Observable<bool> _isInteractive;
   final Observable<MinimapPosition> _position;
@@ -118,6 +152,24 @@ class MinimapExtension extends NodeFlowExtension<MinimapConfig> {
   /// Sets minimap visibility.
   void setVisible(bool visible) =>
       runInAction(() => _isVisible.value = visible);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Size
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Current size of the minimap in pixels.
+  Size get size => _size.value;
+
+  /// Sets the minimap size.
+  void setSize(Size size) => runInAction(() => _size.value = size);
+
+  /// Sets the minimap width, keeping height unchanged.
+  void setWidth(double width) =>
+      runInAction(() => _size.value = Size(width, _size.value.height));
+
+  /// Sets the minimap height, keeping width unchanged.
+  void setHeight(double height) =>
+      runInAction(() => _size.value = Size(_size.value.width, height));
 
   // ═══════════════════════════════════════════════════════════════════════════
   // Interactivity

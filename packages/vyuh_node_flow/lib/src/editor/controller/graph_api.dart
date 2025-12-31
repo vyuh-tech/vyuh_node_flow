@@ -448,6 +448,38 @@ extension GraphApi<T> on NodeFlowController<T> {
     });
   }
 
+  /// Deletes all selected nodes and connections with lock check and confirmation.
+  ///
+  /// This async method processes all selected items, respecting:
+  /// - Behavior mode (must allow deletion)
+  /// - Lock status (locked items are skipped)
+  /// - Before-delete callbacks (if provided, allows confirmation dialogs)
+  ///
+  /// Items are processed sequentially to allow for individual confirmation dialogs.
+  /// If a callback returns false for an item, that item is skipped but processing
+  /// continues for remaining items.
+  ///
+  /// Example:
+  /// ```dart
+  /// await controller.deleteSelectedWithConfirmation();
+  /// ```
+  Future<void> deleteSelectedWithConfirmation() async {
+    // Check behavior first
+    if (!behavior.canDelete) return;
+
+    // Process nodes
+    final nodeIds = selectedNodeIds.toList();
+    for (final nodeId in nodeIds) {
+      await requestDeleteNode(nodeId);
+    }
+
+    // Process connections
+    final connectionIds = selectedConnectionIds.toList();
+    for (final connectionId in connectionIds) {
+      await requestDeleteConnection(connectionId);
+    }
+  }
+
   /// Inverts the current node selection.
   ///
   /// All currently selected nodes become deselected, and all deselected nodes

@@ -36,6 +36,7 @@ class NodeFlowMinimap<T> extends StatefulWidget {
   const NodeFlowMinimap({
     super.key,
     required this.controller,
+    required this.size,
     this.theme = MinimapTheme.light,
     this.interactive = true,
   });
@@ -46,9 +47,16 @@ class NodeFlowMinimap<T> extends StatefulWidget {
   /// connections, or viewport change.
   final NodeFlowController<T> controller;
 
+  /// Size of the minimap in pixels.
+  ///
+  /// This is required and can be updated reactively via the extension.
+  /// Use [controller.minimap.size] when using [MinimapExtension].
+  final Size size;
+
   /// Theme configuration for the minimap appearance.
   ///
-  /// Controls size, colors, border radius, padding, and viewport indicator.
+  /// Controls colors, border radius, padding, and viewport indicator.
+  /// Note: Size is configured via [MinimapConfig], not theme.
   final MinimapTheme theme;
 
   /// Whether the minimap responds to user interaction.
@@ -69,8 +77,8 @@ class _NodeFlowMinimapState<T> extends State<NodeFlowMinimap<T>> {
     final minimapTheme = widget.theme;
 
     return Container(
-      width: minimapTheme.size.width,
-      height: minimapTheme.size.height,
+      width: widget.size.width,
+      height: widget.size.height,
       decoration: BoxDecoration(
         color: minimapTheme.backgroundColor,
         borderRadius: BorderRadius.circular(minimapTheme.borderRadius),
@@ -164,8 +172,8 @@ class _NodeFlowMinimapState<T> extends State<NodeFlowMinimap<T>> {
 
     final theme = widget.theme;
     final availableSize = Size(
-      theme.size.width - theme.padding.horizontal,
-      theme.size.height - theme.padding.vertical,
+      widget.size.width - theme.padding.horizontal,
+      widget.size.height - theme.padding.vertical,
     );
 
     // Calculate scale to fit bounds in minimap
@@ -222,8 +230,8 @@ class _NodeFlowMinimapState<T> extends State<NodeFlowMinimap<T>> {
     );
 
     final availableSize = Size(
-      theme.size.width - theme.padding.horizontal,
-      theme.size.height - theme.padding.vertical,
+      widget.size.width - theme.padding.horizontal,
+      widget.size.height - theme.padding.vertical,
     );
 
     // Calculate scale to fit bounds in minimap

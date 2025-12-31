@@ -4,23 +4,20 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import '../../extensions/minimap_extension.dart';
 import '../controller/node_flow_controller.dart';
 import '../minimap/node_flow_minimap.dart';
-import '../themes/minimap_theme.dart';
-import '../themes/node_flow_theme.dart';
 
 /// Minimap overlay widget that renders the minimap in the specified corner.
 ///
-/// Uses [MinimapTheme] from [NodeFlowTheme] for positioning and styling.
+/// Uses [MinimapExtension] for positioning, styling, and state.
+/// Theme, position, and margin are all configured via the extension.
 class MinimapOverlay<T> extends StatelessWidget {
   const MinimapOverlay({
     super.key,
     required this.controller,
-    required this.theme,
     required this.transformationController,
     required this.canvasSize,
   });
 
   final NodeFlowController<T> controller;
-  final NodeFlowTheme theme;
   final TransformationController transformationController;
   final Size canvasSize;
 
@@ -33,9 +30,10 @@ class MinimapOverlay<T> extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final minimapTheme = theme.minimapTheme;
-        final position = minimapTheme.position;
-        final margin = minimapTheme.margin;
+        // Get theme, position, and margin from extension (not NodeFlowTheme)
+        final minimapTheme = minimap.theme;
+        final position = minimap.position;
+        final margin = minimap.margin;
 
         return Positioned(
           top:
@@ -61,6 +59,7 @@ class MinimapOverlay<T> extends StatelessWidget {
           child: NodeFlowMinimap<T>(
             controller: controller,
             theme: minimapTheme,
+            size: minimap.size,
             interactive: minimap.isInteractive,
           ),
         );

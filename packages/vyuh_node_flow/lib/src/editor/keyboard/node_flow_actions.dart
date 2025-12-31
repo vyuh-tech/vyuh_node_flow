@@ -661,15 +661,10 @@ class _DeleteSelectedAction<T> extends NodeFlowAction<T> {
       return false;
     }
 
-    // Delete selected nodes (includes GroupNode and CommentNode)
-    for (final nodeId in controller.selectedNodeIds.toList()) {
-      controller.removeNode(nodeId);
-    }
-
-    // Delete selected connections
-    for (final connectionId in controller.selectedConnectionIds.toList()) {
-      controller.removeConnection(connectionId);
-    }
+    // Use the async deletion method that respects locks and before-delete callbacks.
+    // Fire-and-forget since keyboard actions are synchronous but the confirmation
+    // dialogs may need to be shown.
+    controller.deleteSelectedWithConfirmation();
 
     return true;
   }

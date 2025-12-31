@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 
-/// Position options for minimap placement
+/// Position options for minimap placement.
+///
+/// Note: Position is configured via [MinimapConfig], not [MinimapTheme].
 enum MinimapPosition { topLeft, topRight, bottomLeft, bottomRight }
 
-/// Theme configuration for the minimap overlay.
+/// Theme configuration for the minimap visual appearance.
 ///
-/// Defines the visual appearance of the minimap including colors, dimensions,
-/// positioning, and styling options.
+/// Defines the visual styling of the minimap including colors and styling
+/// options. Layout properties (size, position, margin) are configured
+/// separately via [MinimapConfig] in the extension.
 ///
 /// Two built-in themes are provided:
 /// - [MinimapTheme.light]: Light color scheme with subtle styling
 /// - [MinimapTheme.dark]: Dark color scheme with visible contrast
 class MinimapTheme {
   const MinimapTheme({
-    this.position = MinimapPosition.bottomRight,
-    this.margin = 20.0,
-    this.size = const Size(200, 150),
     this.backgroundColor = const Color(0xFFF5F5F5),
     this.nodeColor = const Color(0xFF1976D2),
     this.viewportColor = const Color(0xFF1976D2),
@@ -28,22 +28,6 @@ class MinimapTheme {
     this.showViewport = true,
     this.nodeBorderRadius = 2.0,
   });
-
-  /// Position of the minimap in the editor.
-  ///
-  /// Determines which corner the minimap is placed in.
-  final MinimapPosition position;
-
-  /// Margin from the edge of the editor to the minimap.
-  ///
-  /// Applied to both axes based on [position].
-  final double margin;
-
-  /// Size of the minimap widget in pixels.
-  ///
-  /// Defaults to 200x150. Larger sizes provide more detail but take more
-  /// screen space.
-  final Size size;
 
   /// Background color of the minimap container.
   final Color backgroundColor;
@@ -93,9 +77,6 @@ class MinimapTheme {
 
   /// Create a copy with different values.
   MinimapTheme copyWith({
-    MinimapPosition? position,
-    double? margin,
-    Size? size,
     Color? backgroundColor,
     Color? nodeColor,
     Color? viewportColor,
@@ -109,9 +90,6 @@ class MinimapTheme {
     double? nodeBorderRadius,
   }) {
     return MinimapTheme(
-      position: position ?? this.position,
-      margin: margin ?? this.margin,
-      size: size ?? this.size,
       backgroundColor: backgroundColor ?? this.backgroundColor,
       nodeColor: nodeColor ?? this.nodeColor,
       viewportColor: viewportColor ?? this.viewportColor,

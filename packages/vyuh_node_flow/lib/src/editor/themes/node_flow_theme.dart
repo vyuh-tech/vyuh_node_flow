@@ -4,19 +4,20 @@ import '../../connections/connection_endpoint.dart';
 import '../../connections/connection_theme.dart';
 import '../../connections/label_theme.dart';
 import '../../grid/grid_theme.dart';
-import '../../grid/spatial_index_debug_painter.dart';
 import '../../nodes/node_theme.dart';
 import '../../ports/port_theme.dart';
-import '../node_flow_config.dart';
 import 'cursor_theme.dart';
-import 'minimap_theme.dart';
 import 'resizer_theme.dart';
 import 'selection_theme.dart';
 
 /// Theme configuration for the node flow editor.
 ///
-/// Defines the visual appearance and styling for all elements in the node flow
+/// Defines the visual appearance and styling for core elements in the node flow
 /// editor including nodes, connections, ports, grid, and interaction feedback.
+///
+/// Note: Feature-specific themes like minimap and debug visualization are
+/// configured via their respective extensions (e.g., [MinimapExtension],
+/// [DebugExtension]) rather than this central theme.
 ///
 /// The theme uses Flutter's [ThemeExtension] pattern, allowing it to be
 /// integrated with Flutter's theming system and accessed via `Theme.of(context)`.
@@ -71,11 +72,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     required this.gridTheme,
     required this.selectionTheme,
     required this.cursorTheme,
-    required this.minimapTheme,
     required this.resizerTheme,
     this.backgroundColor = Colors.white,
-    this.debugMode = DebugMode.none,
-    this.debugTheme = DebugTheme.light,
   });
 
   /// Theme for node appearance (colors, borders, shadows, etc.).
@@ -109,27 +107,11 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   /// Theme for mouse cursor styles.
   final CursorTheme cursorTheme;
 
-  /// Theme for minimap appearance (size, colors, position).
-  final MinimapTheme minimapTheme;
-
   /// Theme for resize handles used by nodes and annotations.
   final ResizerTheme resizerTheme;
 
   /// Background color of the canvas.
   final Color backgroundColor;
-
-  /// Debug visualization mode.
-  ///
-  /// Controls which debug overlays are shown. Used by connection painters
-  /// and other visual debugging features.
-  ///
-  /// See [DebugMode] for available options.
-  final DebugMode debugMode;
-
-  /// Theme for debug visualization (spatial index grid, hit areas, etc.).
-  ///
-  /// Used by [SpatialIndexDebugPainter] and connection segment debug rendering.
-  final DebugTheme debugTheme;
 
   @override
   NodeFlowTheme copyWith({
@@ -142,11 +124,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     GridTheme? gridTheme,
     SelectionTheme? selectionTheme,
     CursorTheme? cursorTheme,
-    MinimapTheme? minimapTheme,
     ResizerTheme? resizerTheme,
     Color? backgroundColor,
-    DebugMode? debugMode,
-    DebugTheme? debugTheme,
   }) {
     return NodeFlowTheme(
       nodeTheme: nodeTheme ?? this.nodeTheme,
@@ -160,11 +139,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
       gridTheme: gridTheme ?? this.gridTheme,
       selectionTheme: selectionTheme ?? this.selectionTheme,
       cursorTheme: cursorTheme ?? this.cursorTheme,
-      minimapTheme: minimapTheme ?? this.minimapTheme,
       resizerTheme: resizerTheme ?? this.resizerTheme,
       backgroundColor: backgroundColor ?? this.backgroundColor,
-      debugMode: debugMode ?? this.debugMode,
-      debugTheme: debugTheme ?? this.debugTheme,
     );
   }
 
@@ -191,16 +167,11 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
       // SelectionTheme doesn't support lerp
       cursorTheme: t < 0.5 ? cursorTheme : other.cursorTheme,
       // CursorTheme doesn't support lerp
-      minimapTheme: t < 0.5 ? minimapTheme : other.minimapTheme,
-      // MinimapTheme doesn't support lerp
       resizerTheme: t < 0.5 ? resizerTheme : other.resizerTheme,
       // ResizerTheme doesn't support lerp
       backgroundColor:
           Color.lerp(backgroundColor, other.backgroundColor, t) ??
           backgroundColor,
-      debugMode: t < 0.5 ? debugMode : other.debugMode,
-      debugTheme: t < 0.5 ? debugTheme : other.debugTheme,
-      // DebugTheme doesn't support lerp
     );
   }
 
@@ -211,6 +182,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   /// - Light grey dot grid
   /// - Cyan selection and highlights
   /// - Black text and borders
+  ///
+  /// Note: Minimap and debug themes are configured via their extensions.
   static final light = NodeFlowTheme(
     nodeTheme: NodeTheme.light,
     connectionTheme: ConnectionTheme.light,
@@ -225,10 +198,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     gridTheme: GridTheme.light,
     selectionTheme: SelectionTheme.light,
     cursorTheme: CursorTheme.light,
-    minimapTheme: MinimapTheme.light,
     resizerTheme: ResizerTheme.light,
     backgroundColor: Colors.white,
-    debugTheme: DebugTheme.light,
   );
 
   /// Built-in dark theme with muted colors and visible grid.
@@ -238,6 +209,8 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   /// - Medium grey dot grid
   /// - Light blue selection and highlights
   /// - Light text and borders
+  ///
+  /// Note: Minimap and debug themes are configured via their extensions.
   static final dark = NodeFlowTheme(
     nodeTheme: NodeTheme.dark,
     connectionTheme: ConnectionTheme.dark,
@@ -252,9 +225,7 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
     gridTheme: GridTheme.dark,
     selectionTheme: SelectionTheme.dark,
     cursorTheme: CursorTheme.dark,
-    minimapTheme: MinimapTheme.dark,
     resizerTheme: ResizerTheme.dark,
     backgroundColor: const Color(0xFF1A1A1A),
-    debugTheme: DebugTheme.dark,
   );
 }

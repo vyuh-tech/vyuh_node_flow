@@ -3,7 +3,6 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../extensions/debug_extension.dart';
 import '../controller/node_flow_controller.dart';
-import '../themes/node_flow_theme.dart';
 import 'spatial_index_debug_layer.dart';
 
 /// Stack of graph-coordinate debug visualization layers.
@@ -38,7 +37,6 @@ import 'spatial_index_debug_layer.dart';
 /// DebugLayersStack<MyData>(
 ///   controller: controller,
 ///   transformationController: transformationController,
-///   theme: theme,
 /// )
 ///
 /// // Outside InteractiveViewer (screen coordinates)
@@ -49,7 +47,6 @@ class DebugLayersStack<T> extends StatelessWidget {
     super.key,
     required this.controller,
     required this.transformationController,
-    required this.theme,
   });
 
   /// The node flow controller containing the config.
@@ -57,9 +54,6 @@ class DebugLayersStack<T> extends StatelessWidget {
 
   /// The transformation controller for viewport tracking.
   final TransformationController transformationController;
-
-  /// The node flow theme containing debug theme configuration.
-  final NodeFlowTheme theme;
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +83,6 @@ class DebugLayersStack<T> extends StatelessWidget {
         SpatialIndexDebugLayer<T>(
           controller: controller,
           transformationController: transformationController,
-          theme: theme,
         ),
 
       // Future debug layers in graph coordinates can be added here:

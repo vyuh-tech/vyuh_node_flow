@@ -19,7 +19,6 @@ class ConnectionPathParameters {
     this.controlPoints = const [],
     this.sourceNodeBounds,
     this.targetNodeBounds,
-    this.debugMode = false,
   });
 
   /// Start point of the connection
@@ -72,9 +71,6 @@ class ConnectionPathParameters {
   /// When provided, the waypoint calculator uses this to ensure connections
   /// route around the node bounds rather than through them.
   final Rect? targetNodeBounds;
-
-  /// Whether debug mode is enabled for detailed logging.
-  final bool debugMode;
 
   /// Get source port position.
   ///

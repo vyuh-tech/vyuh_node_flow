@@ -16,10 +16,6 @@ class _MinimapExampleState extends State<MinimapExample> {
   late final NodeFlowController<Map<String, dynamic>> _controller;
   late NodeFlowTheme _theme;
 
-  // Track minimap settings for dynamic updates
-  MinimapPosition _minimapPosition = MinimapPosition.bottomRight;
-  Size _minimapSize = const Size(200, 150);
-
   @override
   void initState() {
     super.initState();
@@ -27,7 +23,14 @@ class _MinimapExampleState extends State<MinimapExample> {
       config: NodeFlowConfig(
         extensions: [
           MinimapExtension(
-            config: const MinimapConfig(visible: true, interactive: true),
+            config: const MinimapConfig(
+              visible: true,
+              interactive: true,
+              position: MinimapPosition.bottomRight,
+            ),
+            // Size is set in the theme but can be updated reactively via
+            // controller.minimap.setSize()
+            theme: MinimapTheme.light,
           ),
           ...NodeFlowConfig.defaultExtensions().where(
             (e) => e is! MinimapExtension,
@@ -45,25 +48,17 @@ class _MinimapExampleState extends State<MinimapExample> {
       connectionTheme: ConnectionTheme.light.copyWith(
         style: ConnectionStyles.smoothstep,
       ),
-      minimapTheme: MinimapTheme.light.copyWith(
-        position: _minimapPosition,
-        size: _minimapSize,
-      ),
     );
   }
 
   void _updateMinimapPosition(MinimapPosition position) {
-    setState(() {
-      _minimapPosition = position;
-      _theme = _buildTheme();
-    });
+    // Position is updated directly on the extension (reactive)
+    _controller.minimap.setPosition(position);
   }
 
   void _updateMinimapSize(Size size) {
-    setState(() {
-      _minimapSize = size;
-      _theme = _buildTheme();
-    });
+    // Size is updated directly on the extension (reactive)
+    _controller.minimap.setSize(size);
   }
 
   @override
@@ -283,8 +278,9 @@ class _MinimapExampleState extends State<MinimapExample> {
         const SizedBox(height: 12),
         Observer(
           builder: (_) {
-            // Observe showMinimap for enabling/disabling
+            // Observe showMinimap for enabling/disabling and current position
             final showMinimap = _controller.minimap.isVisible;
+            final currentPosition = _controller.minimap.position;
 
             return Wrap(
               spacing: 8,
@@ -299,7 +295,7 @@ class _MinimapExampleState extends State<MinimapExample> {
                     final (name, position) = entry;
                     return ChoiceChip(
                       label: Text(name, style: const TextStyle(fontSize: 11)),
-                      selected: _minimapPosition == position,
+                      selected: currentPosition == position,
                       onSelected: showMinimap
                           ? (selected) {
                               if (selected) {
@@ -325,6 +321,7 @@ class _MinimapExampleState extends State<MinimapExample> {
         Observer(
           builder: (_) {
             final showMinimap = _controller.minimap.isVisible;
+            final currentSize = _controller.minimap.size;
 
             return Column(
               children: [
@@ -336,15 +333,15 @@ class _MinimapExampleState extends State<MinimapExample> {
                     ),
                     Expanded(
                       child: Slider(
-                        value: _minimapSize.width,
+                        value: currentSize.width,
                         min: 100,
                         max: 400,
                         divisions: 30,
-                        label: _minimapSize.width.toStringAsFixed(0),
+                        label: currentSize.width.toStringAsFixed(0),
                         onChanged: showMinimap
                             ? (value) {
                                 _updateMinimapSize(
-                                  Size(value, _minimapSize.height),
+                                  Size(value, currentSize.height),
                                 );
                               }
                             : null,
@@ -353,7 +350,7 @@ class _MinimapExampleState extends State<MinimapExample> {
                     SizedBox(
                       width: 40,
                       child: Text(
-                        _minimapSize.width.toStringAsFixed(0),
+                        currentSize.width.toStringAsFixed(0),
                         style: const TextStyle(fontSize: 11),
                         textAlign: TextAlign.right,
                       ),
@@ -368,15 +365,15 @@ class _MinimapExampleState extends State<MinimapExample> {
                     ),
                     Expanded(
                       child: Slider(
-                        value: _minimapSize.height,
+                        value: currentSize.height,
                         min: 75,
                         max: 300,
                         divisions: 30,
-                        label: _minimapSize.height.toStringAsFixed(0),
+                        label: currentSize.height.toStringAsFixed(0),
                         onChanged: showMinimap
                             ? (value) {
                                 _updateMinimapSize(
-                                  Size(_minimapSize.width, value),
+                                  Size(currentSize.width, value),
                                 );
                               }
                             : null,
@@ -385,7 +382,7 @@ class _MinimapExampleState extends State<MinimapExample> {
                     SizedBox(
                       width: 40,
                       child: Text(
-                        _minimapSize.height.toStringAsFixed(0),
+                        currentSize.height.toStringAsFixed(0),
                         style: const TextStyle(fontSize: 11),
                         textAlign: TextAlign.right,
                       ),

@@ -85,6 +85,7 @@ class Connection {
   /// - [endGap]: Optional gap between target port and end endpoint (defaults to theme if null)
   /// - [animationEffect]: Optional animation effect to apply (overrides animated flag)
   /// - [controlPoints]: Optional list of control points for editable path connections
+  /// - [locked]: Whether this connection is locked from deletion (default: false)
   Connection({
     required this.id,
     required this.sourceNodeId,
@@ -104,6 +105,7 @@ class Connection {
     this.endGap,
     ConnectionEffect? animationEffect,
     List<Offset>? controlPoints,
+    this.locked = false,
   }) : _animated = Observable(animated),
        _selected = Observable(selected),
        _startLabel = Observable(startLabel),
@@ -167,6 +169,15 @@ class Connection {
   ///
   /// If null, the connection will use the endGap from [ConnectionTheme].
   final double? endGap;
+
+  /// Whether this connection is locked from deletion.
+  ///
+  /// When true, the connection cannot be deleted through user interactions.
+  /// Useful for required connections or template elements that should not
+  /// be removed.
+  ///
+  /// Note: This only prevents deletion, not selection or visual changes.
+  final bool locked;
 
   // Getters and setters for accessing observable values
 

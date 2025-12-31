@@ -55,7 +55,6 @@ class StepConnectionStyle extends ConnectionStyle {
       backEdgeGap: params.backEdgeGap,
       sourceNodeBounds: params.sourceNodeBounds,
       targetNodeBounds: params.targetNodeBounds,
-      debugMode: params.debugMode,
     );
 
     // Optimize waypoints (remove redundant collinear points)

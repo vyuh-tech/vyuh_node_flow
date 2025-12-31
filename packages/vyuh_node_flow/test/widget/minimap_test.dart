@@ -31,6 +31,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowMinimap<String>(
               controller: controller,
+              size: const Size(200, 150),
               theme: MinimapTheme.light,
             ),
           ),
@@ -58,6 +59,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowMinimap<String>(
               controller: controller,
+              size: const Size(200, 150),
               theme: MinimapTheme.light,
             ),
           ),
@@ -77,6 +79,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowMinimap<String>(
               controller: controller,
+              size: const Size(200, 150),
               theme: MinimapTheme.dark,
             ),
           ),
@@ -96,6 +99,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowMinimap<String>(
               controller: controller,
+              size: const Size(200, 150),
               theme: MinimapTheme.light,
             ),
           ),
@@ -121,6 +125,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowMinimap<String>(
               controller: controller,
+              size: const Size(200, 150),
               theme: MinimapTheme.light,
             ),
           ),
@@ -145,6 +150,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowMinimap<String>(
               controller: controller,
+              size: const Size(200, 150),
               theme: MinimapTheme.light,
             ),
           ),
@@ -173,6 +179,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowMinimap<String>(
               controller: controller,
+              size: const Size(200, 150),
               theme: MinimapTheme.light,
               interactive: true,
             ),
@@ -196,6 +203,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowMinimap<String>(
               controller: controller,
+              size: const Size(200, 150),
               theme: MinimapTheme.light,
               interactive: false,
             ),
@@ -225,7 +233,8 @@ void main() {
               height: 150,
               child: NodeFlowMinimap<String>(
                 controller: controller,
-                theme: MinimapTheme.light.copyWith(size: const Size(200, 150)),
+                size: const Size(200, 150),
+                theme: MinimapTheme.light,
                 interactive: true,
               ),
             ),
@@ -249,19 +258,16 @@ void main() {
   });
 
   group('Minimap - Theme Configuration', () {
-    testWidgets('custom theme size is respected', (tester) async {
+    testWidgets('custom size is respected', (tester) async {
       controller.addNode(createTestNode(id: 'node-1'));
-
-      final customTheme = MinimapTheme.light.copyWith(
-        size: const Size(300, 200),
-      );
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: NodeFlowMinimap<String>(
               controller: controller,
-              theme: customTheme,
+              size: const Size(300, 200),
+              theme: MinimapTheme.light,
             ),
           ),
         ),
@@ -289,6 +295,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowMinimap<String>(
               controller: controller,
+              size: const Size(200, 150),
               theme: customTheme,
             ),
           ),
@@ -310,6 +317,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowMinimap<String>(
               controller: controller,
+              size: const Size(200, 150),
               theme: MinimapTheme.light,
             ),
           ),
@@ -328,6 +336,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowMinimap<String>(
               controller: controller,
+              size: const Size(200, 150),
               theme: MinimapTheme.light,
               interactive: true,
             ),
@@ -362,6 +371,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowMinimap<String>(
               controller: controller,
+              size: const Size(200, 150),
               theme: MinimapTheme.light,
             ),
           ),
@@ -383,6 +393,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowMinimap<String>(
               controller: controller,
+              size: const Size(200, 150),
               theme: MinimapTheme.light.copyWith(showViewport: true),
             ),
           ),
@@ -402,6 +413,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowMinimap<String>(
               controller: controller,
+              size: const Size(200, 150),
               theme: MinimapTheme.light.copyWith(showViewport: false),
             ),
           ),
@@ -511,6 +523,7 @@ void main() {
           home: Scaffold(
             body: NodeFlowMinimap<String>(
               controller: controller,
+              size: const Size(200, 150),
               theme: MinimapTheme.light,
               interactive: true,
             ),

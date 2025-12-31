@@ -70,10 +70,40 @@ class NodeFlowEvents<T> {
   }
 }
 
+/// Async callback that can veto a deletion operation.
+///
+/// Return `true` to allow the deletion, `false` to prevent it.
+/// This is useful for showing confirmation dialogs before destructive operations.
+///
+/// Example:
+/// ```dart
+/// onBeforeDelete: (node) async {
+///   return await showDialog<bool>(
+///     context: context,
+///     builder: (context) => AlertDialog(
+///       title: Text('Delete Node?'),
+///       content: Text('Are you sure you want to delete "${node.id}"?'),
+///       actions: [
+///         TextButton(
+///           onPressed: () => Navigator.of(context).pop(false),
+///           child: Text('Cancel'),
+///         ),
+///         TextButton(
+///           onPressed: () => Navigator.of(context).pop(true),
+///           child: Text('Delete'),
+///         ),
+///       ],
+///     ),
+///   ) ?? false;
+/// }
+/// ```
+typedef BeforeDeleteCallback<T> = Future<bool> Function(T item);
+
 /// Events related to node interactions
 class NodeEvents<T> {
   const NodeEvents({
     this.onCreated,
+    this.onBeforeDelete,
     this.onDeleted,
     this.onSelected,
     this.onTap,
@@ -90,6 +120,15 @@ class NodeEvents<T> {
 
   /// Called when a node is created and added to the graph
   final ValueChanged<Node<T>>? onCreated;
+
+  /// Called before a node is deleted to allow cancellation.
+  ///
+  /// Return `true` to proceed with deletion, `false` to cancel.
+  /// This callback is async to allow showing confirmation dialogs.
+  ///
+  /// Note: This is NOT called for locked nodes - they are automatically
+  /// prevented from deletion without invoking the callback.
+  final BeforeDeleteCallback<Node<T>>? onBeforeDelete;
 
   /// Called when a node is deleted from the graph
   final ValueChanged<Node<T>>? onDeleted;
@@ -135,6 +174,7 @@ class NodeEvents<T> {
 
   NodeEvents<T> copyWith({
     ValueChanged<Node<T>>? onCreated,
+    BeforeDeleteCallback<Node<T>>? onBeforeDelete,
     ValueChanged<Node<T>>? onDeleted,
     ValueChanged<Node<T>?>? onSelected,
     ValueChanged<Node<T>>? onTap,
@@ -150,6 +190,7 @@ class NodeEvents<T> {
   }) {
     return NodeEvents<T>(
       onCreated: onCreated ?? this.onCreated,
+      onBeforeDelete: onBeforeDelete ?? this.onBeforeDelete,
       onDeleted: onDeleted ?? this.onDeleted,
       onSelected: onSelected ?? this.onSelected,
       onTap: onTap ?? this.onTap,
@@ -230,6 +271,7 @@ class PortEvents<T> {
 class ConnectionEvents<T> {
   const ConnectionEvents({
     this.onCreated,
+    this.onBeforeDelete,
     this.onDeleted,
     this.onSelected,
     this.onTap,
@@ -245,6 +287,15 @@ class ConnectionEvents<T> {
 
   /// Called when a connection is created
   final ValueChanged<Connection>? onCreated;
+
+  /// Called before a connection is deleted to allow cancellation.
+  ///
+  /// Return `true` to proceed with deletion, `false` to cancel.
+  /// This callback is async to allow showing confirmation dialogs.
+  ///
+  /// Note: This is NOT called for locked connections - they are automatically
+  /// prevented from deletion without invoking the callback.
+  final BeforeDeleteCallback<Connection>? onBeforeDelete;
 
   /// Called when a connection is deleted
   final ValueChanged<Connection>? onDeleted;
@@ -304,6 +355,7 @@ class ConnectionEvents<T> {
 
   ConnectionEvents<T> copyWith({
     ValueChanged<Connection>? onCreated,
+    BeforeDeleteCallback<Connection>? onBeforeDelete,
     ValueChanged<Connection>? onDeleted,
     ValueChanged<Connection?>? onSelected,
     ValueChanged<Connection>? onTap,
@@ -326,6 +378,7 @@ class ConnectionEvents<T> {
   }) {
     return ConnectionEvents<T>(
       onCreated: onCreated ?? this.onCreated,
+      onBeforeDelete: onBeforeDelete ?? this.onBeforeDelete,
       onDeleted: onDeleted ?? this.onDeleted,
       onSelected: onSelected ?? this.onSelected,
       onTap: onTap ?? this.onTap,

@@ -631,7 +631,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                                   controller: widget.controller,
                                   transformationController:
                                       _transformationController,
-                                  theme: theme,
                                 ),
                               ],
                             ),
@@ -652,7 +651,6 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                         // Minimap overlay - topmost layer, outside InteractiveViewer
                         MinimapOverlay<T>(
                           controller: widget.controller,
-                          theme: theme,
                           transformationController: _transformationController,
                           canvasSize: constraints.biggest,
                         ),

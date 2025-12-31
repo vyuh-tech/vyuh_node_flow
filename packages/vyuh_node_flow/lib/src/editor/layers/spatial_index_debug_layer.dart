@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
+import '../../extensions/debug_extension.dart';
+import '../../graph/viewport.dart';
 import '../../grid/spatial_index_debug_painter.dart';
 import '../controller/node_flow_controller.dart';
-import '../themes/node_flow_theme.dart';
-import '../../graph/viewport.dart';
 
 /// Debug layer that visualizes the spatial index grid.
 ///
@@ -23,11 +23,10 @@ import '../../graph/viewport.dart';
 /// Add this layer to your node flow editor when debug mode is enabled:
 ///
 /// ```dart
-/// if (theme.debugMode) ...[
+/// if (controller.debug.isEnabled) ...[
 ///   SpatialIndexDebugLayer<MyData>(
 ///     controller: controller,
 ///     transformationController: transformationController,
-///     theme: theme,
 ///   ),
 /// ],
 /// ```
@@ -36,7 +35,6 @@ class SpatialIndexDebugLayer<T> extends StatelessWidget {
     super.key,
     required this.controller,
     required this.transformationController,
-    required this.theme,
   });
 
   /// The node flow controller containing the spatial index.
@@ -44,9 +42,6 @@ class SpatialIndexDebugLayer<T> extends StatelessWidget {
 
   /// The transformation controller for viewport tracking.
   final TransformationController transformationController;
-
-  /// The node flow theme containing the debug theme configuration.
-  final NodeFlowTheme theme;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +74,7 @@ class SpatialIndexDebugLayer<T> extends StatelessWidget {
                       spatialIndex: controller.spatialIndex,
                       viewport: viewport,
                       version: version,
-                      theme: theme.debugTheme,
+                      theme: controller.debug.theme,
                       mousePositionWorld: mousePosition?.offset,
                     ),
                     size: Size.infinite,

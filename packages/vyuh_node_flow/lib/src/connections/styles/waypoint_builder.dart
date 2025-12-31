@@ -160,7 +160,6 @@ class WaypointBuilder {
     double? backEdgeGap,
     Rect? sourceNodeBounds,
     Rect? targetNodeBounds,
-    bool debugMode = false,
   }) {
     // Use specific offsets if provided, otherwise use default offset
     final effectiveSourceOffset = sourceOffset ?? offset;
@@ -179,10 +178,6 @@ class WaypointBuilder {
       targetPosition,
       effectiveTargetOffset,
     );
-
-    if (debugMode) {
-      // Debug output removed
-    }
 
     // 1. Check for self-connection (same node)
     if (isSelfConnection(sourceNodeBounds, targetNodeBounds)) {
@@ -241,7 +236,6 @@ class WaypointBuilder {
         backEdgeGap: loopbackGap,
         sourceNodeBounds: sourceNodeBounds,
         targetNodeBounds: targetNodeBounds,
-        debugMode: debugMode,
       );
     }
 
@@ -646,7 +640,6 @@ class WaypointBuilder {
     required double backEdgeGap,
     Rect? sourceNodeBounds,
     Rect? targetNodeBounds,
-    bool debugMode = false,
   }) {
     final unionBounds = _getUnionBounds(sourceNodeBounds, targetNodeBounds);
 
@@ -664,7 +657,6 @@ class WaypointBuilder {
         sourcePosition: sourcePosition,
         backEdgeGap: backEdgeGap,
         unionBounds: unionBounds,
-        debugMode: debugMode,
       );
     } else {
       return _calculateVerticalOppositeWaypoints(
@@ -675,7 +667,6 @@ class WaypointBuilder {
         sourcePosition: sourcePosition,
         backEdgeGap: backEdgeGap,
         unionBounds: unionBounds,
-        debugMode: debugMode,
       );
     }
   }
@@ -694,7 +685,6 @@ class WaypointBuilder {
     required PortPosition sourcePosition,
     required double backEdgeGap,
     Rect? unionBounds,
-    bool debugMode = false,
   }) {
     // Determine if there's enough horizontal space for an S-bend
     final hasHorizontalClearance = sourcePosition == PortPosition.right
@@ -705,14 +695,10 @@ class WaypointBuilder {
     final portDistance = (end - start).distance;
     final isCloseConnection = portDistance < _minLoopAroundDistance;
 
-    if (debugMode) {
-      // Debug output removed
-    }
-
     if (hasHorizontalClearance) {
       // S-bend: go through the horizontal middle
       final midX = (startExtended.dx + endExtended.dx) / 2;
-      final waypoints = [
+      return [
         start,
         startExtended,
         Offset(midX, startExtended.dy),
@@ -720,10 +706,6 @@ class WaypointBuilder {
         endExtended,
         end,
       ];
-      if (debugMode) {
-        // Debug output removed
-      }
-      return waypoints;
     } else {
       // No horizontal clearance - prefer Z-curve (S-bend) through vertical midpoint
       // For close connections, ALWAYS use Z-curve to avoid visual loops
@@ -739,16 +721,9 @@ class WaypointBuilder {
         end,
       ];
 
-      if (debugMode) {
-        // Debug output removed
-      }
-
       // For close connections, always use Z-curve regardless of intersection
       // This prevents visual loops when ports are nearby
       if (isCloseConnection) {
-        if (debugMode) {
-          // Debug output removed
-        }
         return zCurveWaypoints;
       }
 
@@ -760,10 +735,6 @@ class WaypointBuilder {
           unionBounds,
         );
 
-        if (debugMode) {
-          // Debug output removed
-        }
-
         if (zCurveIntersects) {
           // Z-curve would intersect - route around (above or below)
           // Use union bounds center to determine direction - takes shorter path
@@ -771,7 +742,7 @@ class WaypointBuilder {
           final routeY = routeAbove
               ? unionBounds.top - backEdgeGap
               : unionBounds.bottom + backEdgeGap;
-          final loopWaypoints = [
+          return [
             start,
             startExtended,
             Offset(startExtended.dx, routeY),
@@ -779,17 +750,10 @@ class WaypointBuilder {
             endExtended,
             end,
           ];
-          if (debugMode) {
-            // Debug output removed
-          }
-          return loopWaypoints;
         }
       }
 
       // Z-curve is clear or no bounds to check - use it
-      if (debugMode) {
-        // Debug output removed
-      }
       return zCurveWaypoints;
     }
   }
@@ -803,7 +767,6 @@ class WaypointBuilder {
     required PortPosition sourcePosition,
     required double backEdgeGap,
     Rect? unionBounds,
-    bool debugMode = false,
   }) {
     // Determine if there's enough vertical space for an S-bend
     final hasVerticalClearance = sourcePosition == PortPosition.bottom
@@ -813,10 +776,6 @@ class WaypointBuilder {
     // Calculate the distance between ports to determine routing strategy
     final portDistance = (end - start).distance;
     final isCloseConnection = portDistance < _minLoopAroundDistance;
-
-    if (debugMode) {
-      // Debug output removed
-    }
 
     if (hasVerticalClearance) {
       // S-bend: go through the vertical middle
@@ -847,9 +806,6 @@ class WaypointBuilder {
       // For close connections, always use Z-curve regardless of intersection
       // This prevents visual loops when ports are nearby
       if (isCloseConnection) {
-        if (debugMode) {
-          // Debug output removed
-        }
         return zCurveWaypoints;
       }
 

@@ -78,7 +78,6 @@ class EditableSmoothStepConnectionStyle extends EditablePathConnectionStyle {
       backEdgeGap: params.backEdgeGap,
       sourceNodeBounds: params.sourceNodeBounds,
       targetNodeBounds: params.targetNodeBounds,
-      debugMode: params.debugMode,
     );
 
     final optimized = WaypointBuilder.optimizeWaypoints(waypoints);

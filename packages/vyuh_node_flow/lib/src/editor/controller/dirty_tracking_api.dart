@@ -29,7 +29,8 @@ extension DirtyTrackingExtension<T> on NodeFlowController<T> {
   /// Checks if spatial index updates should be deferred.
   /// Updates are deferred during drag UNLESS debug mode is on (for live visualization).
   bool get _shouldDeferSpatialUpdates =>
-      _isAnyDragInProgress && !(_theme?.debugMode.isEnabled ?? false);
+      _isAnyDragInProgress &&
+      !(getExtension<DebugExtension>()?.isEnabled ?? false);
 
   // ============================================================================
   // Internal API (library-private)

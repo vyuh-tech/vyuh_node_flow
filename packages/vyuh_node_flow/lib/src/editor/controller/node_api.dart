@@ -109,7 +109,55 @@ extension NodeApi<T> on NodeFlowController<T> {
     _emitEvent(NodeAdded<T>(node));
   }
 
+  /// Requests deletion of a node with lock check and confirmation callback.
+  ///
+  /// This async method:
+  /// 1. Checks if deletion is allowed by current behavior
+  /// 2. Checks if the node is locked (returns false if locked)
+  /// 3. Calls [onBeforeNodeDelete] callback if provided (returns false if vetoed)
+  /// 4. Removes the node if all checks pass
+  ///
+  /// Use this method when you want to respect locks and confirmation dialogs.
+  /// For direct removal without checks, use [removeNode] instead.
+  ///
+  /// Returns `true` if the node was deleted, `false` if deletion was prevented.
+  ///
+  /// Example:
+  /// ```dart
+  /// final deleted = await controller.requestDeleteNode('node1');
+  /// if (!deleted) {
+  ///   print('Node deletion was prevented');
+  /// }
+  /// ```
+  Future<bool> requestDeleteNode(String nodeId) async {
+    // Check behavior first
+    if (!behavior.canDelete) return false;
+
+    final node = _nodes[nodeId];
+    if (node == null) return false;
+
+    // Check if node is locked
+    if (node.locked) return false;
+
+    // Call before-delete callback if provided
+    final callback = events.node?.onBeforeDelete;
+    if (callback != null) {
+      final allowed = await callback(node);
+      if (!allowed) return false;
+    }
+
+    // Proceed with deletion
+    removeNode(nodeId);
+    return true;
+  }
+
   /// Removes a node from the graph along with all its connections.
+  ///
+  /// This is a direct removal method that does NOT check:
+  /// - Lock status
+  /// - Before-delete callbacks
+  ///
+  /// For deletion with lock and callback checks, use [requestDeleteNode].
   ///
   /// This method will:
   /// 1. Remove the node from the graph

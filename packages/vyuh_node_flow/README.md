@@ -349,7 +349,6 @@ NodeFlowTheme
 ├── temporaryConnectionTheme → Connection during drag creation
 ├── portTheme          → Port appearance (size, colors, shapes)
 ├── labelTheme         → Connection label styling
-├── annotationTheme    → Annotation appearance
 ├── gridTheme          → Grid background appearance
 ├── selectionTheme     → Selection rectangle styling
 ├── cursorTheme        → Mouse cursor styles
@@ -607,20 +606,6 @@ SelectionTheme(
   color: Colors.blue.withOpacity(0.1),
   borderColor: Colors.blue,
   borderWidth: 1.0,
-)
-```
-
-</details>
-
-<details>
-<summary><strong>AnnotationTheme - Annotation Styling</strong></summary>
-
-Controls annotation visual feedback.
-
-```dart
-AnnotationTheme(
-  selectionColor: Colors.blue,
-  highlightColor: Colors.blue.withOpacity(0.2),
 )
 ```
 
@@ -980,12 +965,6 @@ final customTheme = NodeFlowTheme(
     color: Colors.blue.withOpacity(0.1),
     borderColor: Colors.blue,
     borderWidth: 1.0,
-  ),
-
-  // Annotation styling
-  annotationTheme: AnnotationTheme(
-    selectionColor: Colors.blue,
-    highlightColor: Colors.blue.withOpacity(0.2),
   ),
 
   // Cursor styling
@@ -2727,21 +2706,108 @@ controller.config.setMinimapPosition(CornerPosition.topLeft);
 
 ## Read-Only Viewer
 
-Display flows without editing capabilities:
+Display flows without editing capabilities using `NodeFlowViewer`. This widget
+is a wrapper around `NodeFlowEditor` configured with `NodeFlowBehavior.preview`,
+which allows navigation (pan, zoom, select, drag) but prevents structural
+changes (create, update, delete).
+
+### Constructor Parameters
 
 ```dart
 NodeFlowViewer<T>(
-  controller: controller,
-  theme: theme,
-  nodeBuilder: _buildNode,
-  scrollToZoom: true,
+  // Required parameters
+  controller: controller,          // NodeFlowController managing graph state
+  nodeBuilder: _buildNode,         // Widget Function(BuildContext, Node<T>)
+  theme: NodeFlowTheme.light,      // Visual styling configuration
+
+  // Optional parameters
+  scrollToZoom: true,              // Trackpad scroll zooms (default: true)
+  showAnnotations: false,          // Show annotation layers (default: false)
+
+  // Event callbacks
+  onNodeTap: (node) {},            // Called when a node is tapped
+  onNodeSelected: (node) {},       // Called when node selection changes
+  onConnectionTap: (conn) {},      // Called when a connection is tapped
+  onConnectionSelected: (conn) {}, // Called when connection selection changes
 );
 ```
 
-The viewer uses `preview` behavior internally, allowing navigation (pan, zoom,
-select, drag) but preventing structural changes (create, update, delete).
+**Parameter Details:**
 
-For a fully non-interactive display, use `NodeFlowEditor` with `present` mode:
+- **controller**: The `NodeFlowController<T>` that holds all nodes, connections,
+  annotations, and viewport state. Create it externally and pass it in.
+- **nodeBuilder**: A function that creates the visual representation for each
+  node. The returned widget is automatically wrapped in a `NodeWidget` container.
+- **theme**: A `NodeFlowTheme` instance controlling colors, sizes, and
+  appearance of all UI elements.
+- **scrollToZoom**: When `true`, trackpad scroll gestures zoom in/out. When
+  `false`, trackpad scroll is treated as pan gestures.
+- **showAnnotations**: When `false`, annotations (sticky notes, markers, groups)
+  are not rendered but remain in the graph data.
+- **Event callbacks**: All callbacks receive the affected element or `null` if
+  selection was cleared.
+
+### Factory Method: withData
+
+For quickly displaying a graph without manually managing the controller, use
+the `withData` factory:
+
+```dart
+final viewer = NodeFlowViewer.withData<String>(
+  theme: NodeFlowTheme.light,
+  nodeBuilder: (context, node) => Text(node.data),
+  nodes: {
+    'node1': Node(
+      id: 'node1',
+      data: 'First Node',
+      position: const Offset(100, 100),
+    ),
+    'node2': Node(
+      id: 'node2',
+      data: 'Second Node',
+      position: const Offset(300, 100),
+    ),
+  },
+  connections: [
+    Connection(
+      id: 'conn1',
+      sourceNodeId: 'node1',
+      targetNodeId: 'node2',
+      sourcePortId: 'out',
+      targetPortId: 'in',
+    ),
+  ],
+  // Optional parameters
+  config: NodeFlowConfig(),        // Viewport and interaction configuration
+  initialViewport: GraphViewport(), // Starting position and zoom
+  scrollToZoom: true,
+  showAnnotations: false,
+  onNodeTap: (node) => print('Tapped: ${node?.id}'),
+);
+```
+
+This factory creates a `NodeFlowController` internally and populates it with the
+provided data.
+
+> [!NOTE] **Extension-Based Architecture**: Features like the minimap are
+> controlled via extensions rather than the viewer itself. To show a minimap,
+> configure the `MinimapExtension` in your `NodeFlowConfig`:
+>
+> ```dart
+> final config = NodeFlowConfig(
+>   extensions: [
+>     MinimapExtension(config: MinimapConfig(visible: true)),
+>   ],
+> );
+> ```
+>
+> Then access it via `controller.minimap.toggle()` or
+> `controller.minimap.setPosition(MinimapPosition.topLeft)`.
+
+### Non-Interactive Display
+
+For a fully non-interactive display (no pan, zoom, or selection), use
+`NodeFlowEditor` with `present` mode:
 
 ```dart
 NodeFlowEditor<T>(

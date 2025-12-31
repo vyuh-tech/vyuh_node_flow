@@ -7,6 +7,7 @@ import '../../connections/connection.dart';
 import '../../connections/connection_painter.dart';
 import '../../connections/connection_validation.dart';
 import '../../connections/temporary_connection.dart';
+import '../../extensions/debug_extension.dart';
 import '../../extensions/events/events.dart';
 import '../../extensions/node_flow_extension.dart';
 import '../../graph/coordinates.dart';

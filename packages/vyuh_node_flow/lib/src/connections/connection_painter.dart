@@ -363,7 +363,6 @@ class ConnectionPainter {
       backEdgeGap: connectionTheme.backEdgeGap,
       sourceNodeBounds: sourceNodeBounds,
       targetNodeBounds: targetNodeBounds,
-      debugMode: theme.debugMode.isEnabled,
     );
     final segmentResult = connectionStyle.createSegments(pathParams);
     final connectionPath = connectionStyle.buildPath(

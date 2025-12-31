@@ -142,7 +142,55 @@ extension ConnectionApi<T> on NodeFlowController<T> {
     _emitEvent(ConnectionAdded(connection));
   }
 
+  /// Requests deletion of a connection with lock check and confirmation callback.
+  ///
+  /// This async method:
+  /// 1. Checks if deletion is allowed by current behavior
+  /// 2. Checks if the connection is locked (returns false if locked)
+  /// 3. Calls [onBeforeConnectionDelete] callback if provided (returns false if vetoed)
+  /// 4. Removes the connection if all checks pass
+  ///
+  /// Use this method when you want to respect locks and confirmation dialogs.
+  /// For direct removal without checks, use [removeConnection] instead.
+  ///
+  /// Returns `true` if the connection was deleted, `false` if deletion was prevented.
+  ///
+  /// Example:
+  /// ```dart
+  /// final deleted = await controller.requestDeleteConnection('conn1');
+  /// if (!deleted) {
+  ///   print('Connection deletion was prevented');
+  /// }
+  /// ```
+  Future<bool> requestDeleteConnection(String connectionId) async {
+    // Check behavior first
+    if (!behavior.canDelete) return false;
+
+    final connection = getConnection(connectionId);
+    if (connection == null) return false;
+
+    // Check if connection is locked
+    if (connection.locked) return false;
+
+    // Call before-delete callback if provided
+    final callback = events.connection?.onBeforeDelete;
+    if (callback != null) {
+      final allowed = await callback(connection);
+      if (!allowed) return false;
+    }
+
+    // Proceed with deletion
+    removeConnection(connectionId);
+    return true;
+  }
+
   /// Removes a connection from the graph.
+  ///
+  /// This is a direct removal method that does NOT check:
+  /// - Lock status
+  /// - Before-delete callbacks
+  ///
+  /// For deletion with lock and callback checks, use [requestDeleteConnection].
   ///
   /// Also removes the connection from the selection set if it was selected.
   ///
