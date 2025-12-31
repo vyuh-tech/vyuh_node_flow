@@ -1,3 +1,8 @@
+## 0.20.0
+
+ - **FEAT**: enable reactive Minimap updates for position and size, simplify state management, and improve theme configurability.
+ - **FEAT**: migrating to an extension based mechanism for Minimap, Debug, Autopan, Statistics, Level of Detail.
+
 ## 0.19.3
 
  - **FEAT**: improve port highlighting logic to ensure accurate feedback during connection interactions.
