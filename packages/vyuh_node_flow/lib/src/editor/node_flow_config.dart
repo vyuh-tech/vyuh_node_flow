@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
-import '../extensions/auto_pan_extension.dart';
-import '../extensions/debug_extension.dart';
+import '../extensions/autopan/auto_pan_extension.dart';
+import '../extensions/debug/debug_extension.dart';
 import '../extensions/extension_registry.dart';
-import '../extensions/minimap_extension.dart';
+import '../extensions/minimap/minimap_extension.dart';
 import '../extensions/node_flow_extension.dart';
-import '../extensions/stats_extension.dart';
-import 'lod/lod.dart';
+import '../extensions/stats/stats_extension.dart';
+import '../extensions/lod/lod.dart';
 
 // Re-export DebugMode for convenience
-export '../extensions/debug_extension.dart' show DebugMode;
+export '../extensions/debug/debug_extension.dart' show DebugMode;
 
 /// Reactive configuration class for NodeFlow behavioral properties.
 ///
@@ -37,19 +37,19 @@ export '../extensions/debug_extension.dart' show DebugMode;
 /// ## Default Extensions
 ///
 /// If no extensions are provided, these defaults are used:
-/// - [MinimapExtension] - minimap overlay
-/// - [LodExtension] - level of detail (disabled by default)
 /// - [AutoPanExtension] - autopan near edges (normal mode)
 /// - [DebugExtension] - debug overlays (disabled by default)
-/// - [StatsExtension] - graph statistics
+/// - [LodExtension] - level of detail (disabled by default)
+/// - [MinimapExtension] - minimap overlay
+/// - [StatsExtension] - graph statistics (nodeCount, connectionCount, etc.)
 class NodeFlowConfig {
   NodeFlowConfig({
     bool snapToGrid = false,
-    bool snapAnnotationsToGrid = false,
     double gridSize = 20.0,
     double portSnapDistance = 8.0,
     double minZoom = 0.5,
     double maxZoom = 2.0,
+    bool scrollToZoom = true,
     this.showAttribution = true,
     List<NodeFlowExtension<dynamic>>? extensions,
   }) : extensionRegistry = ExtensionRegistry(
@@ -57,11 +57,11 @@ class NodeFlowConfig {
        ) {
     runInAction(() {
       this.snapToGrid.value = snapToGrid;
-      this.snapAnnotationsToGrid.value = snapAnnotationsToGrid;
       this.gridSize.value = gridSize;
       this.portSnapDistance.value = portSnapDistance;
       this.minZoom.value = minZoom;
       this.maxZoom.value = maxZoom;
+      this.scrollToZoom.value = scrollToZoom;
     });
   }
 
@@ -72,6 +72,7 @@ class NodeFlowConfig {
       DebugExtension(),
       LodExtension(config: LODConfig.disabled),
       MinimapExtension(),
+      StatsExtension(),
     ];
   }
 
@@ -83,9 +84,6 @@ class NodeFlowConfig {
 
   /// Whether to snap node positions to grid
   final snapToGrid = Observable<bool>(false);
-
-  /// Whether to snap annotation positions to grid
-  final snapAnnotationsToGrid = Observable<bool>(false);
 
   /// Grid size for snapping calculations
   final gridSize = Observable<double>(20.0);
@@ -99,52 +97,40 @@ class NodeFlowConfig {
   /// Maximum allowed zoom level
   final maxZoom = Observable<double>(2.0);
 
+  /// Whether trackpad scroll gestures should cause zooming.
+  ///
+  /// When `true`, scrolling on a trackpad zooms in/out.
+  /// When `false`, trackpad scroll is treated as pan gestures.
+  final scrollToZoom = Observable<bool>(true);
+
   /// Whether to show attribution label
   final bool showAttribution;
 
-  /// Toggle grid snapping for both nodes and annotations
+  /// Toggle grid snapping for nodes
   void toggleSnapping() {
     runInAction(() {
-      final newValue = !snapToGrid.value;
-      snapToGrid.value = newValue;
-      snapAnnotationsToGrid.value = newValue;
-    });
-  }
-
-  /// Toggle only node snapping
-  void toggleNodeSnapping() {
-    runInAction(() {
       snapToGrid.value = !snapToGrid.value;
-    });
-  }
-
-  /// Toggle only annotation snapping
-  void toggleAnnotationSnapping() {
-    runInAction(() {
-      snapAnnotationsToGrid.value = !snapAnnotationsToGrid.value;
     });
   }
 
   /// Update multiple properties at once
   void update({
     bool? snapToGrid,
-    bool? snapAnnotationsToGrid,
     double? gridSize,
     double? portSnapDistance,
     double? minZoom,
     double? maxZoom,
+    bool? scrollToZoom,
   }) {
     runInAction(() {
       if (snapToGrid != null) this.snapToGrid.value = snapToGrid;
-      if (snapAnnotationsToGrid != null) {
-        this.snapAnnotationsToGrid.value = snapAnnotationsToGrid;
-      }
       if (gridSize != null) this.gridSize.value = gridSize;
       if (portSnapDistance != null) {
         this.portSnapDistance.value = portSnapDistance;
       }
       if (minZoom != null) this.minZoom.value = minZoom;
       if (maxZoom != null) this.maxZoom.value = maxZoom;
+      if (scrollToZoom != null) this.scrollToZoom.value = scrollToZoom;
     });
   }
 
@@ -159,38 +145,26 @@ class NodeFlowConfig {
     return Offset(snappedX, snappedY);
   }
 
-  /// Helper method to snap annotation coordinates to grid if enabled
-  Offset snapAnnotationsToGridIfEnabled(Offset position) {
-    if (!snapAnnotationsToGrid.value) return position;
-
-    final grid = gridSize.value;
-    final snappedX = (position.dx / grid).round() * grid;
-    final snappedY = (position.dy / grid).round() * grid;
-
-    return Offset(snappedX, snappedY);
-  }
-
   /// Default configuration factory
   static NodeFlowConfig get defaultConfig => NodeFlowConfig();
 
   /// Create a copy with different initial values
   NodeFlowConfig copyWith({
     bool? snapToGrid,
-    bool? snapAnnotationsToGrid,
     double? gridSize,
     double? portSnapDistance,
     double? minZoom,
     double? maxZoom,
+    bool? scrollToZoom,
     bool? showAttribution,
   }) {
     return NodeFlowConfig(
       snapToGrid: snapToGrid ?? this.snapToGrid.value,
-      snapAnnotationsToGrid:
-          snapAnnotationsToGrid ?? this.snapAnnotationsToGrid.value,
       gridSize: gridSize ?? this.gridSize.value,
       portSnapDistance: portSnapDistance ?? this.portSnapDistance.value,
       minZoom: minZoom ?? this.minZoom.value,
       maxZoom: maxZoom ?? this.maxZoom.value,
+      scrollToZoom: scrollToZoom ?? this.scrollToZoom.value,
       showAttribution: showAttribution ?? this.showAttribution,
     );
   }

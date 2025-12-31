@@ -10,7 +10,7 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 import '../helpers/test_factories.dart';
 
 void main() {
-  late NodeFlowController<String> controller;
+  late NodeFlowController<String, dynamic> controller;
 
   setUp(() {
     resetTestCounters();
@@ -95,7 +95,7 @@ void main() {
         ),
       ];
 
-      final initialGraph = NodeGraph<String>(
+      final initialGraph = NodeGraph<String, dynamic>(
         nodes: nodes,
         connections: connections,
       );
@@ -644,7 +644,7 @@ void main() {
 
       // Export to JSON
       final graph = controller.exportGraph();
-      final json = graph.toJson((data) => data);
+      final json = graph.toJson((data) => data, (data) => data);
       final jsonString = jsonEncode(json);
 
       // Verify JSON is valid
@@ -655,9 +655,10 @@ void main() {
 
       // Reimport
       final parsedJson = jsonDecode(jsonString) as Map<String, dynamic>;
-      final loadedGraph = NodeGraph<String>.fromJson(
+      final loadedGraph = NodeGraph<String, dynamic>.fromJson(
         parsedJson,
         (json) => json as String,
+        (json) => json,
       );
 
       expect(loadedGraph.nodes.length, equals(4)); // 3 regular + 1 comment

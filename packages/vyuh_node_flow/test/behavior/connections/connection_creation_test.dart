@@ -9,7 +9,7 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 import '../../helpers/test_factories.dart';
 
 void main() {
-  late NodeFlowController<String> controller;
+  late NodeFlowController<String, dynamic> controller;
 
   setUp(() {
     controller = createTestController();
@@ -57,7 +57,7 @@ void main() {
 
       Connection? createdConnection;
       controller.updateEvents(
-        NodeFlowEvents<String>(
+        NodeFlowEvents<String, dynamic>(
           connection: ConnectionEvents(onCreated: (c) => createdConnection = c),
         ),
       );
@@ -474,7 +474,7 @@ void main() {
       Port? startPort;
 
       controller.updateEvents(
-        NodeFlowEvents<String>(
+        NodeFlowEvents<String, dynamic>(
           connection: ConnectionEvents(
             onConnectStart: (node, port) {
               startNode = node;
@@ -590,7 +590,7 @@ void main() {
       Node<String>? endTargetNode;
       Port? endTargetPort;
       controller.updateEvents(
-        NodeFlowEvents<String>(
+        NodeFlowEvents<String, dynamic>(
           connection: ConnectionEvents(
             onConnectEnd: (node, port, _) {
               endTargetNode = node;
@@ -683,7 +683,7 @@ void main() {
       Node<String>? endTargetNode;
       Port? endTargetPort;
       controller.updateEvents(
-        NodeFlowEvents<String>(
+        NodeFlowEvents<String, dynamic>(
           connection: ConnectionEvents(
             onConnectEnd: (node, port, _) {
               callbackFired = true;
@@ -849,8 +849,8 @@ void main() {
       controller.addNode(node);
 
       controller.updateEvents(
-        NodeFlowEvents<String>(
-          connection: ConnectionEvents<String>(
+        NodeFlowEvents<String, dynamic>(
+          connection: ConnectionEvents<String, dynamic>(
             onBeforeStart: (context) {
               return const ConnectionValidationResult.deny(
                 reason: 'Custom rejection',
@@ -883,8 +883,8 @@ void main() {
       controller.addNode(target);
 
       controller.updateEvents(
-        NodeFlowEvents<String>(
-          connection: ConnectionEvents<String>(
+        NodeFlowEvents<String, dynamic>(
+          connection: ConnectionEvents<String, dynamic>(
             onBeforeComplete: (context) {
               return const ConnectionValidationResult.deny(
                 reason: 'Not allowed by policy',
@@ -927,8 +927,8 @@ void main() {
 
       ConnectionCompleteContext<String>? capturedContext;
       controller.updateEvents(
-        NodeFlowEvents<String>(
-          connection: ConnectionEvents<String>(
+        NodeFlowEvents<String, dynamic>(
+          connection: ConnectionEvents<String, dynamic>(
             onBeforeComplete: (context) {
               capturedContext = context;
               return const ConnectionValidationResult.allow();

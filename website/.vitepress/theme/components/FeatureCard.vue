@@ -6,115 +6,104 @@ defineProps<{
   title: string;
   description: string;
   color: 'blue' | 'purple' | 'teal' | 'amber';
-  layout?: 'vertical' | 'horizontal';
 }>();
 </script>
 
 <template>
-  <div
-    class="feature-card"
-    :class="[
-      'feature-card-' + color,
-      layout === 'horizontal' ? 'feature-card-horizontal' : ''
-    ]"
-  >
-    <!-- Node ports -->
-    <div class="card-port card-port-left" :class="'card-port-' + color" />
-    <div class="card-port card-port-right" :class="'card-port-' + color" />
+  <div class="card" :class="'card-' + color">
+    <div class="port port-left" :class="'port-' + color" />
+    <div class="port port-right" :class="'port-' + color" />
 
-    <div class="feature-icon" :class="'feature-icon-' + color">
-      <Icon :icon="icon" />
+    <div class="header">
+      <div class="icon" :class="'icon-' + color">
+        <Icon :icon="icon" />
+      </div>
+      <span class="title">{{ title }}</span>
     </div>
-    <div class="feature-content">
-      <h3 class="feature-title">{{ title }}</h3>
-      <p class="feature-desc">{{ description }}</p>
-    </div>
+    <p class="description">{{ description }}</p>
   </div>
 </template>
 
-<style>
+<style scoped>
 @reference "../style.css";
 
-.feature-card {
-  @apply relative p-10 bg-white dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-500/40 rounded-2xl;
+.card {
+  @apply relative p-6 bg-white dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-500/40 rounded-2xl;
   transition: all 0.4s var(--vn-ease-out);
 }
 
-.feature-card:hover {
-  @apply -translate-y-1 shadow-xl;
+.card:hover {
+  @apply -translate-y-1;
 }
 
-.dark .feature-card:hover {
-  box-shadow: 0 0 30px rgba(139, 92, 246, 0.3), 0 0 60px rgba(139, 92, 246, 0.15);
+.card-blue:hover { @apply border-blue-600/30 dark:border-blue-400/30; }
+.card-purple:hover { @apply border-violet-500/30 dark:border-violet-400/30; }
+.card-teal:hover { @apply border-teal-500/30 dark:border-teal-400/30; }
+.card-amber:hover { @apply border-amber-500/30 dark:border-amber-400/30; }
+
+/* Light mode: color-tinted shadows */
+.card-blue:hover {
+  box-shadow: 0 20px 40px -10px rgba(37, 99, 235, 0.25), 0 8px 16px -8px rgba(37, 99, 235, 0.15);
+}
+.card-purple:hover {
+  box-shadow: 0 20px 40px -10px rgba(139, 92, 246, 0.25), 0 8px 16px -8px rgba(139, 92, 246, 0.15);
+}
+.card-teal:hover {
+  box-shadow: 0 20px 40px -10px rgba(20, 184, 166, 0.25), 0 8px 16px -8px rgba(20, 184, 166, 0.15);
+}
+.card-amber:hover {
+  box-shadow: 0 20px 40px -10px rgba(245, 158, 11, 0.25), 0 8px 16px -8px rgba(245, 158, 11, 0.15);
 }
 
-.feature-card-blue:hover { @apply border-blue-600/30 dark:border-blue-400/30; }
-.feature-card-purple:hover { @apply border-violet-500/30 dark:border-violet-400/30; }
-.feature-card-teal:hover { @apply border-teal-500/30 dark:border-teal-400/30; }
-.feature-card-amber:hover { @apply border-amber-500/30 dark:border-amber-400/30; }
-
-/* Horizontal layout variant */
-.feature-card-horizontal {
-  @apply flex items-start gap-6;
+/* Dark mode: color-specific glow effects */
+.dark .card-blue:hover {
+  box-shadow: 0 0 30px rgba(96, 165, 250, 0.3), 0 0 60px rgba(96, 165, 250, 0.15);
+}
+.dark .card-purple:hover {
+  box-shadow: 0 0 30px rgba(167, 139, 250, 0.3), 0 0 60px rgba(167, 139, 250, 0.15);
+}
+.dark .card-teal:hover {
+  box-shadow: 0 0 30px rgba(45, 212, 191, 0.3), 0 0 60px rgba(45, 212, 191, 0.15);
+}
+.dark .card-amber:hover {
+  box-shadow: 0 0 30px rgba(251, 191, 36, 0.3), 0 0 60px rgba(251, 191, 36, 0.15);
 }
 
-.feature-card-horizontal .feature-icon {
-  @apply shrink-0 mb-0;
+.header {
+  @apply flex items-center gap-3 mb-3;
 }
 
-.feature-card-horizontal .feature-content {
-  @apply flex-1;
+.icon {
+  @apply w-10 h-10 flex items-center justify-center rounded-xl shrink-0 text-xl;
 }
 
-.feature-card-horizontal .feature-desc {
-  @apply text-sm leading-normal;
-}
+.icon-blue { @apply bg-blue-600/10 text-blue-600 dark:bg-blue-400/15 dark:text-blue-400; }
+.icon-purple { @apply bg-violet-500/10 text-violet-500 dark:bg-violet-400/15 dark:text-violet-400; }
+.icon-teal { @apply bg-teal-500/10 text-teal-500 dark:bg-teal-400/15 dark:text-teal-400; }
+.icon-amber { @apply bg-amber-500/10 text-amber-500 dark:bg-amber-400/15 dark:text-amber-400; }
 
-.feature-icon {
-  @apply w-12 h-12 flex items-center justify-center rounded-xl mb-6 text-2xl;
-}
-
-.feature-icon-blue { @apply bg-blue-600/10 text-blue-600 dark:bg-blue-400/15 dark:text-blue-400; }
-.feature-icon-purple { @apply bg-violet-500/10 text-violet-500 dark:bg-violet-400/15 dark:text-violet-400; }
-.feature-icon-teal { @apply bg-teal-500/10 text-teal-500 dark:bg-teal-400/15 dark:text-teal-400; }
-.feature-icon-amber { @apply bg-amber-500/10 text-amber-500 dark:bg-amber-400/15 dark:text-amber-400; }
-
-.feature-content {
-  /* Default: no special styling needed for vertical layout */
-}
-
-.feature-title {
-  @apply text-lg font-bold text-slate-900 dark:text-zinc-100 mb-2;
+.title {
+  @apply text-base font-bold text-slate-900 dark:text-zinc-100;
   font-family: var(--vn-font-display);
 }
 
-.feature-desc {
-  @apply text-base text-slate-600 dark:text-zinc-400 leading-relaxed;
+.description {
+  @apply text-sm text-slate-600 dark:text-zinc-400 leading-relaxed m-0;
 }
 
-/* Node-style ports on cards */
-.card-port {
-  @apply absolute w-2.5 h-2.5 rounded-full border-2;
-  @apply bg-white dark:bg-zinc-900;
-  @apply opacity-0 transition-opacity duration-300;
+.port {
+  @apply absolute w-2.5 h-2.5 rounded-full border-2 bg-white dark:bg-zinc-900 opacity-0 transition-opacity duration-300;
   top: 50%;
   transform: translateY(-50%);
 }
 
-.feature-card:hover .card-port {
-  @apply opacity-100;
-}
+.card:hover .port { @apply opacity-100; }
 
-.card-port-left {
-  left: -5px;
-}
+.port-left { left: -5px; }
+.port-right { right: -5px; }
 
-.card-port-right {
-  right: -5px;
-}
-
-.card-port-blue { @apply border-blue-600 dark:border-blue-400; }
-.card-port-purple { @apply border-violet-500 dark:border-violet-400; }
-.card-port-teal { @apply border-teal-500 dark:border-teal-400; }
-.card-port-amber { @apply border-amber-500 dark:border-amber-400; }
+.port-blue { @apply border-blue-600 dark:border-blue-400; }
+.port-purple { @apply border-violet-500 dark:border-violet-400; }
+.port-teal { @apply border-teal-500 dark:border-teal-400; }
+.port-amber { @apply border-amber-500 dark:border-amber-400; }
 </style>

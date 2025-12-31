@@ -33,7 +33,7 @@ part of 'node_flow_controller.dart';
 /// 9. Event handlers setup
 /// 10. Initial spatial index rebuild (handles pre-loaded nodes)
 ///
-extension EditorInitApi<T> on NodeFlowController<T> {
+extension EditorInitApi<T, C> on NodeFlowController<T, C> {
   // ============================================================================
   // Initialization State
   // ============================================================================
@@ -98,7 +98,7 @@ extension EditorInitApi<T> on NodeFlowController<T> {
     )?
     connectionHitTesterBuilder,
     List<Rect> Function(Connection connection)? connectionSegmentCalculator,
-    NodeFlowEvents<T>? events,
+    NodeFlowEvents<T, C>? events,
   }) {
     // Idempotent - only initialize once
     if (_editorInitialized) return;
@@ -214,7 +214,7 @@ extension EditorInitApi<T> on NodeFlowController<T> {
   ///
   /// **@internal** - This method is for internal use by [NodeFlowEditor] only.
   /// Do not call directly from application code.
-  void updateEvents(NodeFlowEvents<T> events) {
+  void updateEvents(NodeFlowEvents<T, C> events) {
     _events = events;
   }
 

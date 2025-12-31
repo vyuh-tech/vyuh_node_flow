@@ -13,7 +13,7 @@ import '../helpers/test_factories.dart';
 /// Target: 500 nodes at 60 FPS (conservative, guaranteed smooth).
 /// These tests verify that the library handles large graphs efficiently.
 void main() {
-  late NodeFlowController<String> controller;
+  late NodeFlowController<String, dynamic> controller;
 
   setUp(() {
     resetTestCounters();

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../extensions/minimap_extension.dart';
+import '../../extensions/minimap/minimap_extension.dart';
 import '../controller/node_flow_controller.dart';
 
 /// Base class for actions that can be triggered in the node flow editor.
@@ -30,14 +30,14 @@ import '../controller/node_flow_controller.dart';
 ///       );
 ///
 ///   @override
-///   bool execute(NodeFlowController<T> controller, BuildContext? context) {
+///   bool execute(NodeFlowController<T, dynamic> controller, BuildContext? context) {
 ///     // Perform the action
 ///     controller.selectAllNodes();
 ///     return true; // Return true if action succeeded
 ///   }
 ///
 ///   @override
-///   bool canExecute(NodeFlowController<T> controller) {
+///   bool canExecute(NodeFlowController<T, dynamic> controller) {
 ///     return controller.nodes.isNotEmpty;
 ///   }
 /// }
@@ -83,7 +83,10 @@ abstract class NodeFlowAction<T> {
   /// - [context]: Optional build context for showing dialogs/snackbars
   ///
   /// Returns: `true` if the action was successfully executed, `false` otherwise
-  bool execute(NodeFlowController<T> controller, BuildContext? context);
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  );
 
   /// Checks if this action can be executed in the current state.
   ///
@@ -98,12 +101,12 @@ abstract class NodeFlowAction<T> {
   /// Example:
   /// ```dart
   /// @override
-  /// bool canExecute(NodeFlowController<T> controller) {
+  /// bool canExecute(NodeFlowController<T, dynamic> controller) {
   ///   // Only allow if at least 2 nodes are selected
   ///   return controller.selectedNodeIds.length >= 2;
   /// }
   /// ```
-  bool canExecute(NodeFlowController<T> controller) => true;
+  bool canExecute(NodeFlowController<T, dynamic> controller) => true;
 }
 
 /// Manages keyboard shortcuts and action execution.
@@ -285,9 +288,6 @@ class NodeFlowShortcutManager<T> {
     LogicalKeySet(LogicalKeyboardKey.escape): 'cancel_operation',
     LogicalKeySet(LogicalKeyboardKey.keyM): 'toggle_minimap',
     LogicalKeySet(LogicalKeyboardKey.keyN): 'toggle_snapping',
-
-    // Annotation editing
-    LogicalKeySet(LogicalKeyboardKey.enter): 'edit_annotation',
   };
 
   /// Registers a single action.
@@ -416,7 +416,7 @@ class NodeFlowShortcutManager<T> {
   /// ```
   bool handleKeyEvent(
     KeyEvent event,
-    NodeFlowController<T> controller,
+    NodeFlowController<T, dynamic> controller,
     BuildContext? context,
   ) {
     if (event is! KeyDownEvent) return false;
@@ -574,9 +574,6 @@ class DefaultNodeFlowActions<T> {
       _CancelOperationAction<T>(),
       _ToggleMinimapAction<T>(),
       _ToggleSnappingAction<T>(),
-
-      // Annotation actions
-      _EditAnnotationAction<T>(),
     ];
   }
 }
@@ -592,13 +589,16 @@ class _SelectAllNodesAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     controller.selectAllNodes();
     return true;
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.nodes.isNotEmpty;
   }
 }
@@ -613,13 +613,16 @@ class _InvertSelectionAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     controller.invertSelection();
     return true;
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.nodes.isNotEmpty;
   }
 }
@@ -634,13 +637,16 @@ class _ClearSelectionAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     controller.clearSelection();
     return true;
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.hasSelection;
   }
 }
@@ -655,7 +661,10 @@ class _DeleteSelectedAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     // Check if deletion is allowed by current behavior
     if (!controller.behavior.canDelete) {
       return false;
@@ -670,7 +679,7 @@ class _DeleteSelectedAction<T> extends NodeFlowAction<T> {
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.behavior.canDelete && controller.hasSelection;
   }
 }
@@ -685,7 +694,10 @@ class _DuplicateSelectedAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     for (final nodeId in controller.selectedNodeIds.toList()) {
       controller.duplicateNode(nodeId);
     }
@@ -693,7 +705,7 @@ class _DuplicateSelectedAction<T> extends NodeFlowAction<T> {
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.selectedNodeIds.isNotEmpty;
   }
 }
@@ -708,13 +720,16 @@ class _CutSelectedAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     // TODO: Implement clipboard functionality
     return false;
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.selectedNodeIds.isNotEmpty;
   }
 }
@@ -729,13 +744,16 @@ class _CopySelectedAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     // TODO: Implement clipboard functionality
     return false;
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.selectedNodeIds.isNotEmpty;
   }
 }
@@ -750,7 +768,10 @@ class _PasteAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     // TODO: Implement clipboard functionality
     return false;
   }
@@ -766,13 +787,16 @@ class _FitToViewAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     controller.fitToView();
     return true;
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.nodes.isNotEmpty;
   }
 }
@@ -787,13 +811,16 @@ class _FitSelectedAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     controller.fitSelectedNodes();
     return true;
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.selectedNodeIds.isNotEmpty;
   }
 }
@@ -808,7 +835,10 @@ class _ResetZoomAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     // Calculate delta to reach 1.0 zoom while maintaining focal point
     final currentZoom = controller.viewport.zoom;
     final targetZoom = 1.0;
@@ -828,7 +858,10 @@ class _ZoomInAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     controller.zoomBy(0.1);
     return true;
   }
@@ -844,7 +877,10 @@ class _ZoomOutAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     controller.zoomBy(-0.1);
     return true;
   }
@@ -860,7 +896,10 @@ class _BringToFrontAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     // Handle all selected nodes (includes GroupNode and CommentNode)
     for (final nodeId in controller.selectedNodeIds) {
       controller.bringNodeToFront(nodeId);
@@ -869,7 +908,7 @@ class _BringToFrontAction<T> extends NodeFlowAction<T> {
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.selectedNodeIds.isNotEmpty;
   }
 }
@@ -884,7 +923,10 @@ class _SendToBackAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     // Handle all selected nodes (includes GroupNode and CommentNode)
     for (final nodeId in controller.selectedNodeIds) {
       controller.sendNodeToBack(nodeId);
@@ -893,7 +935,7 @@ class _SendToBackAction<T> extends NodeFlowAction<T> {
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.selectedNodeIds.isNotEmpty;
   }
 }
@@ -908,7 +950,10 @@ class _BringForwardAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     // Handle all selected nodes (includes GroupNode and CommentNode)
     for (final nodeId in controller.selectedNodeIds) {
       controller.bringNodeForward(nodeId);
@@ -917,7 +962,7 @@ class _BringForwardAction<T> extends NodeFlowAction<T> {
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.selectedNodeIds.isNotEmpty;
   }
 }
@@ -932,7 +977,10 @@ class _SendBackwardAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     // Handle all selected nodes (includes GroupNode and CommentNode)
     for (final nodeId in controller.selectedNodeIds) {
       controller.sendNodeBackward(nodeId);
@@ -941,7 +989,7 @@ class _SendBackwardAction<T> extends NodeFlowAction<T> {
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.selectedNodeIds.isNotEmpty;
   }
 }
@@ -956,7 +1004,10 @@ class _AlignTopAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     controller.alignNodes(
       controller.selectedNodeIds.toList(),
       NodeAlignment.top,
@@ -965,7 +1016,7 @@ class _AlignTopAction<T> extends NodeFlowAction<T> {
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.selectedNodeIds.length >= 2;
   }
 }
@@ -980,7 +1031,10 @@ class _AlignBottomAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     controller.alignNodes(
       controller.selectedNodeIds.toList(),
       NodeAlignment.bottom,
@@ -989,7 +1043,7 @@ class _AlignBottomAction<T> extends NodeFlowAction<T> {
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.selectedNodeIds.length >= 2;
   }
 }
@@ -1004,7 +1058,10 @@ class _AlignLeftAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     controller.alignNodes(
       controller.selectedNodeIds.toList(),
       NodeAlignment.left,
@@ -1013,7 +1070,7 @@ class _AlignLeftAction<T> extends NodeFlowAction<T> {
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.selectedNodeIds.length >= 2;
   }
 }
@@ -1028,7 +1085,10 @@ class _AlignRightAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     controller.alignNodes(
       controller.selectedNodeIds.toList(),
       NodeAlignment.right,
@@ -1037,7 +1097,7 @@ class _AlignRightAction<T> extends NodeFlowAction<T> {
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.selectedNodeIds.length >= 2;
   }
 }
@@ -1052,7 +1112,10 @@ class _AlignHorizontalCenterAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     controller.alignNodes(
       controller.selectedNodeIds.toList(),
       NodeAlignment.horizontalCenter,
@@ -1061,7 +1124,7 @@ class _AlignHorizontalCenterAction<T> extends NodeFlowAction<T> {
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.selectedNodeIds.length >= 2;
   }
 }
@@ -1076,7 +1139,10 @@ class _AlignVerticalCenterAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     controller.alignNodes(
       controller.selectedNodeIds.toList(),
       NodeAlignment.verticalCenter,
@@ -1085,7 +1151,7 @@ class _AlignVerticalCenterAction<T> extends NodeFlowAction<T> {
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.selectedNodeIds.length >= 2;
   }
 }
@@ -1100,7 +1166,10 @@ class _CancelOperationAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     // Cancel connection creation
     controller.interaction.cancelConnection();
 
@@ -1127,8 +1196,13 @@ class _ToggleMinimapAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
-    controller.minimap.toggle();
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
+    final minimap = controller.minimap;
+    if (minimap == null) return false;
+    minimap.toggle();
     return true;
   }
 }
@@ -1138,42 +1212,16 @@ class _ToggleSnappingAction<T> extends NodeFlowAction<T> {
     : super(
         id: 'toggle_snapping',
         label: 'Toggle Snapping',
-        description: 'Toggle grid snapping for nodes and annotations',
+        description: 'Toggle grid snapping for nodes',
         category: 'Editing',
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(
+    NodeFlowController<T, dynamic> controller,
+    BuildContext? context,
+  ) {
     controller.config.toggleSnapping();
     return true;
-  }
-}
-
-class _EditAnnotationAction<T> extends NodeFlowAction<T> {
-  const _EditAnnotationAction()
-    : super(
-        id: 'edit_annotation',
-        label: 'Edit Node',
-        description: 'Edit the selected node (comment text or group title)',
-        category: 'Editing',
-      );
-
-  @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
-    final selectedIds = controller.selectedNodeIds;
-    if (selectedIds.length != 1) return false;
-
-    final node = controller.getNode(selectedIds.first);
-    if (node == null) return false;
-
-    // Start editing mode on the node (works for GroupNode and CommentNode)
-    node.isEditing = true;
-    return true;
-  }
-
-  @override
-  bool canExecute(NodeFlowController<T> controller) {
-    // Only enable when exactly one node is selected
-    return controller.selectedNodeIds.length == 1;
   }
 }

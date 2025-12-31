@@ -1,7 +1,7 @@
 /// Ultra-fast spatial indexing system for 2D objects
 ///
 /// This module provides unified spatial indexing for all graph elements:
-/// nodes, ports, connection segments, and annotations.
+/// nodes, ports, and connection segments.
 ///
 /// Key features:
 /// - Single unified index for all element types

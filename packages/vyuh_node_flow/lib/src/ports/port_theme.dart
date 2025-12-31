@@ -45,14 +45,13 @@ class PortTheme {
   /// - [highlightBorderColor]: Border color when port is highlighted
   /// - [borderColor]: Color of the port's border
   /// - [borderWidth]: Width of the port's border in logical pixels
-  /// - [showLabel]: Whether to show port labels globally (default: false)
   /// - [labelTextStyle]: Text style for port labels
   /// - [labelOffset]: Distance from port center to label (default: 8.0)
   /// - [shape]: Default marker shape for ports (default: capsuleHalf)
   ///
-  /// Note: Port label visibility at different zoom levels is controlled by
-  /// the LOD (Level of Detail) system via `LODConfig.showPortLabels` in
-  /// `NodeFlowConfig`.
+  /// Note: Port label visibility is controlled by:
+  /// - [Port.showLabel] on each port instance
+  /// - The LOD (Level of Detail) system via `DetailVisibility.showPortLabels`
   const PortTheme({
     required this.size,
     required this.color,
@@ -62,7 +61,6 @@ class PortTheme {
     required this.borderColor,
     required this.borderWidth,
     this.shape = MarkerShapes.capsuleHalf,
-    this.showLabel = false,
     this.labelTextStyle,
     this.labelOffset = 4.0,
   });
@@ -106,13 +104,6 @@ class PortTheme {
   ///
   /// Set to 0.0 for no border. Typical values range from 1.0 to 3.0.
   final double borderWidth;
-
-  /// Whether to show port labels globally for all ports.
-  ///
-  /// When false, labels are hidden for all ports regardless of individual
-  /// port settings. When true, labels are shown based on individual port
-  /// [Port.showLabel] settings. Default is false.
-  final bool showLabel;
 
   /// The text style for port labels.
   ///
@@ -163,7 +154,6 @@ class PortTheme {
     Color? borderColor,
     double? borderWidth,
     MarkerShape? shape,
-    bool? showLabel,
     TextStyle? labelTextStyle,
     double? labelOffset,
   }) {
@@ -176,7 +166,6 @@ class PortTheme {
       borderColor: borderColor ?? this.borderColor,
       borderWidth: borderWidth ?? this.borderWidth,
       shape: shape ?? this.shape,
-      showLabel: showLabel ?? this.showLabel,
       labelTextStyle: labelTextStyle ?? this.labelTextStyle,
       labelOffset: labelOffset ?? this.labelOffset,
     );
@@ -200,8 +189,7 @@ class PortTheme {
     highlightColor: Color(0xFF42A5F5),
     highlightBorderColor: Color(0xFF000000),
     borderColor: Colors.transparent,
-    borderWidth: 0.0,
-    showLabel: false,
+    borderWidth: 1.0,
     labelTextStyle: TextStyle(
       fontSize: 10.0,
       color: Color(0xFF333333),
@@ -228,8 +216,7 @@ class PortTheme {
     highlightColor: Color(0xFF90CAF9),
     highlightBorderColor: Color(0xFFFFFFFF),
     borderColor: Colors.transparent,
-    borderWidth: 0.0,
-    showLabel: false,
+    borderWidth: 1.0,
     labelTextStyle: TextStyle(
       fontSize: 10.0,
       color: Color(0xFFE0E0E0),

@@ -177,13 +177,13 @@ int _connectionCounter = 1;
 ///
 /// Uses constructor initialization pattern for efficient graph setup.
 /// The controller uses String as its data type for simplicity.
-NodeFlowController<String> createTestController({
+NodeFlowController<String, dynamic> createTestController({
   List<Node<String>>? nodes,
   List<Connection>? connections,
   NodeFlowConfig? config,
   GraphViewport? initialViewport,
 }) {
-  return NodeFlowController<String>(
+  return NodeFlowController<String, dynamic>(
     nodes: nodes,
     connections: connections,
     config: config,
@@ -195,7 +195,7 @@ NodeFlowController<String> createTestController({
 ///
 /// Creates node-a with an output port and node-b with an input port,
 /// connected together.
-NodeFlowController<String> createConnectedNodesController() {
+NodeFlowController<String, dynamic> createConnectedNodesController() {
   final nodeA = createTestNodeWithOutputPort(
     id: 'node-a',
     portId: 'output-1',

@@ -18,7 +18,7 @@ part of 'node_flow_controller.dart';
 /// During drag operations, spatial index updates are expensive and can cause
 /// jank. This extension defers updates until the drag ends, then batches all
 /// updates together for better performance.
-extension DirtyTrackingExtension<T> on NodeFlowController<T> {
+extension DirtyTrackingExtension<T, C> on NodeFlowController<T, C> {
   // ============================================================================
   // State Queries
   // ============================================================================

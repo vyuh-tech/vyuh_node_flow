@@ -17,7 +17,7 @@ control.
 
 :::
 
-::: details 🖼️ Connection Effects Showcase
+::: details Connection Effects Showcase
 Animated GIF showing all four effects simultaneously on different connections: FlowingDash (marching ants pattern), ParticleEffect (dots traveling along path), GradientFlow (smooth color wave), PulseEffect (breathing opacity/width). Each connection labeled.
 :::
 
@@ -32,9 +32,9 @@ Creates a flowing dash pattern along the connection, similar to the classic
 
 ```dart
 FlowingDashEffect(
-  speed: 2,          // Complete cycles per animation period
-  dashLength: 10,    // Length of each dash (pixels)
-  gapLength: 5,      // Length of gap between dashes (pixels)
+  speed: 2,          // Complete cycles per animation period (int)
+  dashLength: 10,    // Length of each dash in pixels (int)
+  gapLength: 5,      // Length of gap between dashes in pixels (int)
 )
 ```
 
@@ -43,7 +43,7 @@ FlowingDashEffect(
 ::: code-group
 
 ```dart [Basic Usage]
-connectionTheme: ConnectionTheme(
+connectionTheme: ConnectionTheme.light.copyWith(
   animationEffect: FlowingDashEffect(
     speed: 2,
     dashLength: 10,
@@ -54,7 +54,7 @@ connectionTheme: ConnectionTheme(
 
 ```dart [Fast Flow]
 // Faster animation for urgent/priority connections
-connectionTheme: ConnectionTheme(
+connectionTheme: ConnectionTheme.light.copyWith(
   animationEffect: FlowingDashEffect(
     speed: 4,          // 4x faster
     dashLength: 8,
@@ -64,20 +64,19 @@ connectionTheme: ConnectionTheme(
 ```
 
 ```dart [Slow Flow]
-// Slower, calmer animation
-connectionTheme: ConnectionTheme(
+// Slower, calmer animation (speed must be at least 1)
+connectionTheme: ConnectionTheme.light.copyWith(
   animationEffect: FlowingDashEffect(
-    speed: 0.5,        // Half speed
+    speed: 1,
     dashLength: 15,
     gapLength: 8,
   ),
-
 )
 ```
 
 ```dart [Long Dashes]
 // Longer dashes for dramatic effect
-connectionTheme: ConnectionTheme(
+connectionTheme: ConnectionTheme.light.copyWith(
   animationEffect: FlowingDashEffect(
     speed: 1,
     dashLength: 20,    // Longer dashes
@@ -88,19 +87,21 @@ connectionTheme: ConnectionTheme(
 
 :::
 
+### ParticleEffect
+
 Shows particles traveling along the connection path, perfect for visualizing
 data flow or direction.
 
 ```dart
 ParticleEffect(
-  particleCount: 5,         // Number of particles
-  speed: 1,                 // Complete cycles per animation period
+  particleCount: 5,         // Number of particles (int)
+  speed: 1,                 // Complete cycles per animation period (int)
   connectionOpacity: 0.3,   // Opacity of base connection (0.0-1.0)
   particlePainter: CircleParticle(radius: 4.0), // Particle appearance
 )
 ```
 
-::: details 🖼️ Particle Effect Variations
+::: details Particle Effect Variations
 Animation showing different particle types: (1) circles flowing along path, (2) arrows indicating direction, (3) custom characters/emojis. Each with different particle counts and speeds.
 :::
 
@@ -109,7 +110,7 @@ Animation showing different particle types: (1) circles flowing along path, (2) 
 ::: code-group
 
 ```dart [Circles]
-connectionTheme: ConnectionTheme(
+connectionTheme: ConnectionTheme.light.copyWith(
   animationEffect: ParticleEffect(
     particleCount: 3,
     speed: 1,
@@ -121,10 +122,10 @@ connectionTheme: ConnectionTheme(
 
 ```dart [Arrows]
 // Arrow-shaped particles
-connectionTheme: ConnectionTheme(
+connectionTheme: ConnectionTheme.light.copyWith(
   animationEffect: ParticleEffect(
     particleCount: 5,
-    speed: 1.5,
+    speed: 2,
     connectionOpacity: 0.2,
     particlePainter: ArrowParticle(
       length: 12.0,
@@ -136,13 +137,13 @@ connectionTheme: ConnectionTheme(
 
 ```dart [Characters]
 // Text/emoji particles
-connectionTheme: ConnectionTheme(
+connectionTheme: ConnectionTheme.light.copyWith(
   animationEffect: ParticleEffect(
     particleCount: 4,
     speed: 1,
     connectionOpacity: 0.3,
     particlePainter: CharacterParticle(
-      character: '→',
+      character: '->',
       fontSize: 16.0,
     ),
   ),
@@ -151,7 +152,7 @@ connectionTheme: ConnectionTheme(
 
 ```dart [Many Particles]
 // Dense particle stream
-connectionTheme: ConnectionTheme(
+connectionTheme: ConnectionTheme.light.copyWith(
   animationEffect: ParticleEffect(
     particleCount: 10,  // Many particles
     speed: 2,           // Fast movement
@@ -165,27 +166,36 @@ connectionTheme: ConnectionTheme(
 
 ## Custom Particle Painters
 
-Create your own particle appearance:
+Create your own particle appearance by implementing the `ParticlePainter` interface:
 
 ```dart
-class StarParticle implements ParticlePainter {
-  final double size;
-  final Color color;
+import 'dart:math';
+import 'dart:ui';
 
-  StarParticle({this.size = 8.0, this.color = Colors.yellow});
+class StarParticle implements ParticlePainter {
+  final double starSize;
+  final Color? color;
+
+  const StarParticle({this.starSize = 8.0, this.color});
 
   @override
-  void paint(Canvas canvas, Size size, Color color, double progress) {
+  Size get size => Size(starSize * 2, starSize * 2);
+
+  @override
+  void paint(Canvas canvas, Offset position, Tangent tangent, Paint basePaint) {
     final paint = Paint()
-      ..color = this.color
+      ..color = color ?? basePaint.color
       ..style = PaintingStyle.fill;
+
+    canvas.save();
+    canvas.translate(position.dx, position.dy);
 
     final path = Path();
     // Draw a 5-pointed star
     for (var i = 0; i < 5; i++) {
       final angle = (i * 2 * pi / 5) - pi / 2;
-      final outerX = cos(angle) * this.size;
-      final outerY = sin(angle) * this.size;
+      final outerX = cos(angle) * starSize;
+      final outerY = sin(angle) * starSize;
 
       if (i == 0) {
         path.moveTo(outerX, outerY);
@@ -194,13 +204,14 @@ class StarParticle implements ParticlePainter {
       }
 
       final innerAngle = angle + pi / 5;
-      final innerX = cos(innerAngle) * (this.size / 2);
-      final innerY = sin(innerAngle) * (this.size / 2);
+      final innerX = cos(innerAngle) * (starSize / 2);
+      final innerY = sin(innerAngle) * (starSize / 2);
       path.lineTo(innerX, innerY);
     }
     path.close();
 
     canvas.drawPath(path, paint);
+    canvas.restore();
   }
 }
 
@@ -208,7 +219,7 @@ class StarParticle implements ParticlePainter {
 ParticleEffect(
   particleCount: 3,
   speed: 1,
-  particlePainter: StarParticle(size: 10, color: Colors.yellow),
+  particlePainter: StarParticle(starSize: 10, color: Colors.yellow),
 )
 ```
 
@@ -223,7 +234,7 @@ GradientFlowEffect(
     Colors.blue,
     Colors.blue.withOpacity(0.0),
   ],
-  speed: 1,                  // Complete cycles per animation period
+  speed: 1,                  // Complete cycles per animation period (int)
   gradientLength: 0.25,      // Length as fraction of path (< 1) or pixels (>= 1)
   connectionOpacity: 1.0,    // Opacity of base connection (0.0-1.0)
 )
@@ -234,7 +245,7 @@ GradientFlowEffect(
 ::: code-group
 
 ```dart [Blue Wave]
-connectionTheme: ConnectionTheme(
+connectionTheme: ConnectionTheme.light.copyWith(
   animationEffect: GradientFlowEffect(
     colors: [
       Colors.blue.withOpacity(0.0),
@@ -250,7 +261,7 @@ connectionTheme: ConnectionTheme(
 ```
 
 ```dart [Rainbow]
-connectionTheme: ConnectionTheme(
+connectionTheme: ConnectionTheme.light.copyWith(
   animationEffect: GradientFlowEffect(
     colors: [
       Colors.red,
@@ -260,7 +271,7 @@ connectionTheme: ConnectionTheme(
       Colors.blue,
       Colors.purple,
     ],
-    speed: 0.5,
+    speed: 1,
     gradientLength: 0.5,
   ),
 )
@@ -268,7 +279,7 @@ connectionTheme: ConnectionTheme(
 
 ```dart [Alert]
 // Red alert flow
-connectionTheme: ConnectionTheme(
+connectionTheme: ConnectionTheme.light.copyWith(
   animationEffect: GradientFlowEffect(
     colors: [
       Colors.red.withOpacity(0.0),
@@ -285,14 +296,14 @@ connectionTheme: ConnectionTheme(
 
 ```dart [Subtle]
 // Very subtle gradient
-connectionTheme: ConnectionTheme(
+connectionTheme: ConnectionTheme.light.copyWith(
   animationEffect: GradientFlowEffect(
     colors: [
       Colors.grey.withOpacity(0.0),
       Colors.grey.withOpacity(0.5),
       Colors.grey.withOpacity(0.0),
     ],
-    speed: 0.3,  // Very slow
+    speed: 1,
     gradientLength: 0.15,
     connectionOpacity: 0.5,
   ),
@@ -301,19 +312,21 @@ connectionTheme: ConnectionTheme(
 
 :::
 
+### PulseEffect
+
 Creates a pulsing or breathing effect by animating the connection's opacity and
 optionally its width.
 
 ```dart
 PulseEffect(
-  speed: 1,              // Complete pulse cycles per animation period
+  speed: 1,              // Complete pulse cycles per animation period (int)
   minOpacity: 0.4,       // Minimum opacity during pulse
   maxOpacity: 1.0,       // Maximum opacity during pulse
-  widthVariation: 1.5,   // Width multiplier at peak (1.0 = no variation)
+  widthVariation: 1.5,   // Width multiplier at peak (>= 1.0)
 )
 ```
 
-::: details 🖼️ Pulse Effect
+::: details Pulse Effect
 Animation showing connections pulsing/breathing with opacity and width variation: subtle pulse (minimal change), heartbeat (dramatic), width emphasis, and fast blink. Shows minOpacity to maxOpacity transitions.
 :::
 
@@ -323,7 +336,7 @@ attention
 ::: code-group
 
 ```dart [Subtle Pulse]
-connectionTheme: ConnectionTheme(
+connectionTheme: ConnectionTheme.light.copyWith(
   animationEffect: PulseEffect(
     speed: 1,
     minOpacity: 0.7,
@@ -335,7 +348,7 @@ connectionTheme: ConnectionTheme(
 
 ```dart [Heartbeat]
 // Heartbeat-like pulse
-connectionTheme: ConnectionTheme(
+connectionTheme: ConnectionTheme.light.copyWith(
   animationEffect: PulseEffect(
     speed: 2,  // Faster pulse
     minOpacity: 0.3,
@@ -347,7 +360,7 @@ connectionTheme: ConnectionTheme(
 
 ```dart [Width Pulse]
 // Emphasize width changes
-connectionTheme: ConnectionTheme(
+connectionTheme: ConnectionTheme.light.copyWith(
   animationEffect: PulseEffect(
     speed: 1,
     minOpacity: 0.8,
@@ -359,7 +372,7 @@ connectionTheme: ConnectionTheme(
 
 ```dart [Fast Blink]
 // Rapid blinking for alerts
-connectionTheme: ConnectionTheme(
+connectionTheme: ConnectionTheme.light.copyWith(
   animationEffect: PulseEffect(
     speed: 4,  // Very fast
     minOpacity: 0.2,
@@ -378,8 +391,8 @@ connectionTheme: ConnectionTheme(
 Apply an effect to all connections via the theme:
 
 ```dart
-final theme = NodeFlowTheme(
-  connectionTheme: ConnectionTheme(
+final theme = NodeFlowTheme.light.copyWith(
+  connectionTheme: ConnectionTheme.light.copyWith(
     style: ConnectionStyles.smoothstep,
     color: Colors.grey,
     strokeWidth: 2.0,
@@ -393,13 +406,12 @@ final theme = NodeFlowTheme(
   // Control animation cycle duration
   connectionAnimationDuration: const Duration(seconds: 2),
 );
-
-controller.setTheme(theme);
 ```
 
 ::: info
-**Animation Duration**: The `connectionAnimationDuration` controls how long
-  one complete cycle takes. Effects with `speed: 1` will complete one cycle in
+**Animation Duration**: The `connectionAnimationDuration` is a property of
+  `NodeFlowTheme` (not `ConnectionTheme`) and controls how long one complete
+  animation cycle takes. Effects with `speed: 1` will complete one cycle in
   this duration.
 
 :::
@@ -416,46 +428,47 @@ controller.addConnection(Connection(
   sourcePortId: 'out',
   targetNodeId: 'node-2',
   targetPortId: 'in',
-  // Uses theme's default effect
+  // Uses theme's default effect (animationEffect not specified)
 ));
 
 // Critical connection with custom pulse
-controller.addConnection(Connection(
+final criticalConnection = Connection(
   id: 'conn-critical',
   sourceNodeId: 'node-2',
   sourcePortId: 'out',
   targetNodeId: 'node-3',
   targetPortId: 'in',
-  // Override with pulse effect
-  animationEffect: PulseEffect(
-    speed: 2,
-    minOpacity: 0.5,
-    maxOpacity: 1.0,
-    widthVariation: 1.5,
-  ),
-));
+);
+// Set animation effect after creation
+criticalConnection.animationEffect = PulseEffect(
+  speed: 2,
+  minOpacity: 0.5,
+  maxOpacity: 1.0,
+  widthVariation: 1.5,
+);
+controller.addConnection(criticalConnection);
 
-// Static connection (no animation)
+// Connection with effect set in constructor
 controller.addConnection(Connection(
-  id: 'conn-static',
+  id: 'conn-flowing',
   sourceNodeId: 'node-3',
   sourcePortId: 'out',
   targetNodeId: 'node-4',
   targetPortId: 'in',
-  animationEffect: null, // Explicitly disable
+  animationEffect: FlowingDashEffect(speed: 2, dashLength: 8, gapLength: 4),
 ));
 ```
 
 ## Controlling Animation Speed
 
-The animation duration is set at the theme level and affects all effects:
+The animation duration is set at the `NodeFlowTheme` level and affects all effects:
 
 ::: code-group
 
 ```dart [Normal Speed]
-final theme = NodeFlowTheme(
+final theme = NodeFlowTheme.light.copyWith(
   connectionAnimationDuration: const Duration(seconds: 2),
-  connectionTheme: ConnectionTheme(
+  connectionTheme: ConnectionTheme.light.copyWith(
     animationEffect: ParticleEffect(
       speed: 1, // 1 cycle per 2 seconds
     ),
@@ -464,9 +477,9 @@ final theme = NodeFlowTheme(
 ```
 
 ```dart [Slow]
-final theme = NodeFlowTheme(
+final theme = NodeFlowTheme.light.copyWith(
   connectionAnimationDuration: const Duration(seconds: 4),
-  connectionTheme: ConnectionTheme(
+  connectionTheme: ConnectionTheme.light.copyWith(
     animationEffect: FlowingDashEffect(
       speed: 1,  // 1 cycle per 4 seconds = slow
     ),
@@ -475,9 +488,9 @@ final theme = NodeFlowTheme(
 ```
 
 ```dart [Fast]
-final theme = NodeFlowTheme(
+final theme = NodeFlowTheme.light.copyWith(
   connectionAnimationDuration: const Duration(milliseconds: 1000),
-  connectionTheme: ConnectionTheme(
+  connectionTheme: ConnectionTheme.light.copyWith(
     animationEffect: GradientFlowEffect(
       speed: 1,  // 1 cycle per 1 second = fast
     ),
@@ -487,9 +500,9 @@ final theme = NodeFlowTheme(
 
 ```dart [Variable Speed]
 // Duration set at 2 seconds
-final theme = NodeFlowTheme(
+final theme = NodeFlowTheme.light.copyWith(
   connectionAnimationDuration: const Duration(seconds: 2),
-  connectionTheme: ConnectionTheme(
+  connectionTheme: ConnectionTheme.light.copyWith(
     animationEffect: ParticleEffect(
       speed: 2, // 2 cycles per 2 seconds = 1 cycle/second
     ),
@@ -497,12 +510,16 @@ final theme = NodeFlowTheme(
 );
 
 // Override on specific connection
-Connection(
+final fastConnection = Connection(
   id: 'fast-conn',
-  animationEffect: ParticleEffect(
-    speed: 4, // 4 cycles per 2 seconds = 2 cycles/second
-  ),
-)
+  sourceNodeId: 'node-1',
+  sourcePortId: 'out',
+  targetNodeId: 'node-2',
+  targetPortId: 'in',
+);
+fastConnection.animationEffect = ParticleEffect(
+  speed: 4, // 4 cycles per 2 seconds = 2 cycles/second
+);
 ```
 
 :::

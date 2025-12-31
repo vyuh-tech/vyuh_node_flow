@@ -26,7 +26,7 @@ Add `vyuh_node_flow` to your `pubspec.yaml`. The current version is <PubVersion 
 
 ```yaml title="pubspec.yaml" [pub.dev]
 dependencies:
-  vyuh_node_flow: ^0.15.0  # See pub.dev for latest version
+  vyuh_node_flow: ^0.19.0  # See pub.dev for latest version
 ```
 
 ```yaml title="pubspec.yaml" [Git]
@@ -65,21 +65,30 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late final controller = NodeFlowController<String, dynamic>();
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: Builder(
-          builder: (context) {
-            // If this compiles, the package is installed correctly
-            final controller = NodeFlowController<String>();
-            return Center(
-              child: Text('Vyuh Node Flow installed!'),
-            );
-          },
+        body: NodeFlowEditor<String, dynamic>(
+          controller: controller,
+          theme: NodeFlowTheme.light,
+          nodeBuilder: (context, node) => Center(child: Text(node.data)),
         ),
       ),
     );
@@ -104,17 +113,19 @@ The `vyuh_node_flow` package exports everything you need:
 |--------|---------|
 | `NodeFlowEditor` | The main interactive editor widget with full editing capabilities |
 | `NodeFlowViewer` | Read-only display widget for presenting flows |
-| `NodeFlowMinimap` | Bird's-eye navigation view of the canvas |
 
 ### State & Configuration
 
 | Export | Purpose |
 |--------|---------|
 | `NodeFlowController` | Central controller for state management, graph operations, and viewport control |
-| `NodeFlowConfig` | Behavioral configuration (grid snapping, zoom limits, auto-panning, debug mode) |
-| `AutoPanConfig` | Auto-panning behavior when dragging near canvas edges |
+| `NodeFlowConfig` | Behavioral configuration (grid snapping, zoom limits) |
 | `NodeFlowBehavior` | Presets for editor modes: `design`, `preview`, `present` |
 | `NodeFlowEvents` | Event callbacks for nodes, ports, connections, viewport, and annotations |
+
+::: tip Extensions
+Additional features like **minimap**, **autopan**, **debug overlays**, **level-of-detail (LOD)**, and **statistics** are managed via **Extensions**. Each extension has its own configuration class (e.g., `AutoPanConfig`, `MinimapConfig`, `DebugConfig`). See the [Minimap](/docs/components/minimap) component for an example.
+:::
 
 ### Core Data Models
 
@@ -123,7 +134,7 @@ The `vyuh_node_flow` package exports everything you need:
 | `Node<T>` | Node with generic data type, position, size, and ports |
 | `Port` | Connection point with position, shape, and constraints |
 | `Connection` | Link between output and input ports with optional styling |
-| `ConnectionEndpoint` | Defines connection start and end points with node/port IDs |
+| `ConnectionEndPoint` | Defines connection endpoint markers (arrows, circles, etc.) |
 | `GroupNode` | Special node for visually grouping other nodes |
 | `CommentNode` | Special node for floating text annotations |
 | `Graph` | Container for nodes and connections (used for serialization) |
@@ -132,20 +143,28 @@ The `vyuh_node_flow` package exports everything you need:
 
 | Export | Purpose |
 |--------|---------|
-| `NodeFlowTheme` | Complete theme configuration for the editor |
-| `NodeTheme` | Node appearance (borders, selection, hover states) |
-| `ConnectionTheme` | Connection styling (color, width, endpoints) |
-| `PortTheme` | Port appearance (size, color, labels) |
-| `GridStyle` | Background grid patterns (`lines`, `dots`, `cross`, `hierarchical`, `none`) |
+| `NodeFlowTheme` | Root theme container |
+| `NodeTheme` | Node appearance (borders, colors, shadows) |
+| `ConnectionTheme` | Connection styling |
+| `PortTheme` | Port appearance |
+| `LabelTheme` | Connection labels |
+| `GridTheme` | Grid background |
+| `SelectionTheme` | Selection rectangle |
+| `CursorTheme` | Mouse cursors |
+| `ResizerTheme` | Resize handles |
+
+::: tip Extension Themes
+Themes for extensions like `MinimapTheme` and `DebugTheme` are configured via their respective extensions (e.g., `MinimapExtension`), not directly on `NodeFlowTheme`.
+:::
 
 ### Visual Customization
 
 | Export | Purpose |
 |--------|---------|
-| `ConnectionStyle` | Path algorithms (`bezier`, `smoothstep`, `step`, `straight`) |
+| `ConnectionStyles` | Path algorithms (`bezier`, `smoothstep`, `step`, `straight`, `customBezier`) |
 | `ConnectionEffect` | Animations (`FlowingDashEffect`, `ParticleEffect`, `GradientFlowEffect`, `PulseEffect`) |
 | `NodeShape` | Node shapes (`CircleShape`, `DiamondShape`, `HexagonShape`) |
-| `PortShape` | Port shapes (`circle`, `square`, `diamond`, `triangle`, `capsuleHalf`, `none`) |
+| `MarkerShape` | Port shapes (circle, square, diamond, triangle, capsuleHalf, etc.) |
 
 ## Next Steps
 

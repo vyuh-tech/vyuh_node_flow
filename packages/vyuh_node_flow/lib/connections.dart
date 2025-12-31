@@ -4,7 +4,6 @@ library;
 export 'src/connections/connection.dart';
 export 'src/connections/connection_endpoint.dart';
 export 'src/connections/connection_label.dart';
-export 'src/connections/connection_style_overrides.dart';
 export 'src/connections/connection_theme.dart';
 export 'src/connections/connection_validation.dart';
 export 'src/connections/effects/effects.dart';

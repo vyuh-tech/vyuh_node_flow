@@ -358,7 +358,10 @@ void main() {
 
       // Load new graph
       final newNodes = List.generate(50, (i) => createTestNode(id: 'new-$i'));
-      final newGraph = NodeGraph<String>(nodes: newNodes, connections: []);
+      final newGraph = NodeGraph<String, dynamic>(
+        nodes: newNodes,
+        connections: [],
+      );
 
       controller.loadGraph(newGraph);
 
@@ -382,7 +385,7 @@ void main() {
           50,
           (i) => createTestNode(id: 'cycle-$cycle-node-$i'),
         );
-        final graph = NodeGraph<String>(nodes: nodes, connections: []);
+        final graph = NodeGraph<String, dynamic>(nodes: nodes, connections: []);
 
         controller.loadGraph(graph);
         expect(controller.nodeCount, equals(50));

@@ -67,18 +67,18 @@ class MyEditor extends StatefulWidget {
 }
 
 class _MyEditorState extends State<MyEditor> {
-  late final NodeFlowController<String> controller;
+  late final NodeFlowController<String, dynamic> controller;
 
   @override
   void initState() {
     super.initState();
-    controller = NodeFlowController<String>();
+    controller = NodeFlowController<String, dynamic>();
     // Add initial nodes...
   }
 
   @override
   Widget build(BuildContext context) {
-    return NodeFlowEditor<String>(
+    return NodeFlowEditor<String, dynamic>(
       controller: controller,
       theme: NodeFlowTheme.light,
       nodeBuilder: (context, node) => Center(
@@ -96,7 +96,7 @@ class _MyEditorState extends State<MyEditor> {
 ```
 
 ```dart [With Events]
-NodeFlowEditor<String>(
+NodeFlowEditor<String, dynamic>(
   controller: controller,
   events: NodeFlowEvents(
     node: NodeEvents(
@@ -117,7 +117,7 @@ NodeFlowEditor<String>(
 ```
 
 ```dart [Custom Theme]
-NodeFlowEditor<String>(
+NodeFlowEditor<String, dynamic>(
   controller: controller,
   theme: NodeFlowTheme(
     backgroundColor: const Color(0xFF1a1a2e),

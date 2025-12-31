@@ -48,14 +48,12 @@ import '../graph/viewport.dart';
 ///   connections: myConnectionsList,
 /// )
 /// ```
-class NodeFlowViewer<T> extends StatelessWidget {
+class NodeFlowViewer<T, C> extends StatelessWidget {
   const NodeFlowViewer({
     super.key,
     required this.controller,
     required this.nodeBuilder,
     required this.theme,
-    this.scrollToZoom = true,
-    this.showAnnotations = false,
     this.onNodeTap,
     this.onNodeSelected,
     this.onConnectionTap,
@@ -64,10 +62,10 @@ class NodeFlowViewer<T> extends StatelessWidget {
 
   /// The controller managing the node flow state.
   ///
-  /// This controller holds all nodes, connections, annotations, and viewport state.
+  /// This controller holds all nodes, connections, and viewport state.
   /// Create it externally and pass it in, or use [NodeFlowViewer.withData] to
   /// have one created automatically.
-  final NodeFlowController<T> controller;
+  final NodeFlowController<T, C> controller;
 
   /// Builder function for rendering node content.
   ///
@@ -94,19 +92,6 @@ class NodeFlowViewer<T> extends StatelessWidget {
   /// and other UI elements.
   final NodeFlowTheme theme;
 
-  /// Whether trackpad scroll gestures should cause zooming.
-  ///
-  /// When `true`, scrolling on a trackpad zooms in/out.
-  /// When `false`, trackpad scroll is treated as pan gestures.
-  /// Defaults to `true`.
-  final bool scrollToZoom;
-
-  /// Whether to show annotation layers (sticky notes, markers, groups).
-  ///
-  /// When `false`, annotations are not rendered but remain in the graph data.
-  /// Defaults to `false` for viewers.
-  final bool showAnnotations;
-
   /// Called when a node is tapped.
   final ValueChanged<Node<T>?>? onNodeTap;
 
@@ -116,28 +101,26 @@ class NodeFlowViewer<T> extends StatelessWidget {
   final ValueChanged<Node<T>?>? onNodeSelected;
 
   /// Called when a connection is tapped.
-  final ValueChanged<Connection?>? onConnectionTap;
+  final ValueChanged<Connection<C>?>? onConnectionTap;
 
   /// Called when a connection's selection state changes.
   ///
   /// Receives the selected connection, or `null` if selection was cleared.
-  final ValueChanged<Connection?>? onConnectionSelected;
+  final ValueChanged<Connection<C>?>? onConnectionSelected;
 
   @override
   Widget build(BuildContext context) {
     // Viewer always uses preview behavior - allows navigation but no editing
     const behavior = NodeFlowBehavior.preview;
 
-    return NodeFlowEditor<T>(
+    return NodeFlowEditor<T, C>(
       controller: controller,
       nodeBuilder: nodeBuilder,
       theme: theme,
       behavior: behavior,
-      scrollToZoom: scrollToZoom,
-      showAnnotations: showAnnotations,
-      events: NodeFlowEvents<T>(
+      events: NodeFlowEvents<T, C>(
         node: NodeEvents<T>(onTap: onNodeTap, onSelected: onNodeSelected),
-        connection: ConnectionEvents<T>(
+        connection: ConnectionEvents<T, C>(
           onTap: onConnectionTap,
           onSelected: onConnectionSelected,
         ),
@@ -179,22 +162,20 @@ class NodeFlowViewer<T> extends StatelessWidget {
   ///   ],
   /// );
   /// ```
-  static NodeFlowViewer<T> withData<T>({
+  static NodeFlowViewer<T, C> withData<T, C>({
     Key? key,
     required NodeFlowTheme theme,
     required Widget Function(BuildContext context, Node<T> node) nodeBuilder,
     required Map<String, Node<T>> nodes,
-    required List<Connection> connections,
+    required List<Connection<C>> connections,
     NodeFlowConfig? config,
-    bool scrollToZoom = true,
-    bool showAnnotations = false,
     ValueChanged<Node<T>?>? onNodeTap,
     ValueChanged<Node<T>?>? onNodeSelected,
-    ValueChanged<Connection?>? onConnectionTap,
-    ValueChanged<Connection?>? onConnectionSelected,
+    ValueChanged<Connection<C>?>? onConnectionTap,
+    ValueChanged<Connection<C>?>? onConnectionSelected,
     GraphViewport? initialViewport,
   }) {
-    final controller = NodeFlowController<T>(
+    final controller = NodeFlowController<T, C>(
       initialViewport: initialViewport,
       config: config,
     );
@@ -212,13 +193,11 @@ class NodeFlowViewer<T> extends StatelessWidget {
       controller.addConnection(connection);
     }
 
-    return NodeFlowViewer<T>(
+    return NodeFlowViewer<T, C>(
       key: key,
       controller: controller,
       nodeBuilder: nodeBuilder,
       theme: theme,
-      scrollToZoom: scrollToZoom,
-      showAnnotations: showAnnotations,
       onNodeTap: onNodeTap,
       onNodeSelected: onNodeSelected,
       onConnectionTap: onConnectionTap,

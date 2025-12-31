@@ -2,7 +2,7 @@ part of '../node_flow_editor.dart';
 
 /// Internal controller extension methods for widget implementation
 /// These methods are not part of the public API
-extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
+extension _NodeFlowControllerWidgetInternal<T, C> on NodeFlowController<T, C> {
   // Internal widget support methods - not part of public API
   // Note: Connection drag methods have been moved to the public API
   // (startConnectionDrag, updateConnectionDrag, completeConnectionDrag, cancelConnectionDrag)
@@ -25,8 +25,7 @@ extension _NodeFlowControllerWidgetInternal<T> on NodeFlowController<T> {
   ///
   /// Checks and cleans up ALL states that can block interactions:
   /// - Node drag state (draggedNodeId, node.dragging)
-  /// - Annotation drag state (draggedAnnotationId)
-  /// - Annotation resize state (resizingAnnotationId)
+  /// - Node resize state
   /// - Connection creation state (temporaryConnection)
   /// - Selection rectangle state (selectionRect)
   void _cleanupStaleDragState() {

@@ -5,8 +5,8 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import '../editor/controller/node_flow_controller.dart';
 import '../editor/drag_session.dart';
 import '../editor/element_scope.dart';
-import '../editor/lod/lod_extension.dart';
-import '../extensions/auto_pan_extension.dart';
+import '../extensions/lod/lod_extension.dart';
+import '../extensions/autopan/auto_pan_extension.dart';
 import '../editor/themes/cursor_theme.dart';
 import '../editor/themes/node_flow_theme.dart';
 import '../editor/unbounded_widgets.dart';
@@ -16,49 +16,48 @@ import '../ports/port.dart';
 import '../ports/port_theme.dart';
 import 'port_shape_widget.dart';
 
-/// Builder function type for customizing individual port widgets.
+/// Builds a custom port widget for a node.
 ///
-/// This typedef defines the signature for custom port builders that can be
-/// provided to [NodeFlowEditor] or [NodeWidget] to customize port rendering.
+/// This builder is called for each port when rendering nodes, allowing
+/// complete customization of port appearance and behavior.
 ///
-/// Parameters:
+/// ## Type Parameters
+/// - `T`: The type of data stored in nodes
+///
+/// ## Minimal Signature
+/// The builder receives only essential parameters. Use helper methods
+/// to derive additional information:
+/// - `node.isOutputPort(port)` - check if port is an output
+/// - `node.getBounds()` - get node bounds as Rect
+/// - Port highlighting is observable via `port.highlighted`
+///
+/// Port data can be derived from node data. For example, store port
+/// configuration in your node data type: `node.data.portConfig[port.id]`
+///
+/// ## Parameters
 /// - [context]: The build context
-/// - [controller]: The node flow controller for drag operations
-/// - [node]: The node containing this port
+/// - [node]: The node containing this port (provides typed data via node.data)
 /// - [port]: The port being rendered
-/// - [isOutput]: Whether this is an output port (true) or input port (false)
-/// - [isConnected]: Whether the port currently has any connections
-/// - [nodeBounds]: The bounds of the parent node in graph coordinates
 ///
-/// Note: Highlighting is automatically handled via the [Port.highlighted]
-/// observable, which is set by the controller during connection drag operations.
-///
-/// Example:
+/// ## Example
 /// ```dart
-/// PortBuilder myPortBuilder = (context, controller, node, port, isOutput, isConnected, nodeBounds) {
-///   final color = isOutput ? Colors.green : Colors.blue;
-///   return PortWidget(
-///     port: port,
-///     theme: Theme.of(context).extension<NodeFlowTheme>()!.portTheme,
-///     controller: controller,
-///     nodeId: node.id,
-///     isOutput: isOutput,
-///     nodeBounds: nodeBounds,
-///     isConnected: isConnected,
-///     color: color,
+/// PortBuilder<MyNodeData> builder = (context, node, port) {
+///   final isOutput = node.isOutputPort(port);
+///   // Derive port-specific data from node.data
+///   final portConfig = node.data.ports[port.id];
+///
+///   return Container(
+///     width: 12,
+///     height: 12,
+///     decoration: BoxDecoration(
+///       color: portConfig?.color ?? (isOutput ? Colors.green : Colors.blue),
+///       shape: BoxShape.circle,
+///     ),
 ///   );
 /// };
 /// ```
 typedef PortBuilder<T> =
-    Widget Function(
-      BuildContext context,
-      NodeFlowController<T> controller,
-      Node<T> node,
-      Port port,
-      bool isOutput,
-      bool isConnected,
-      Rect nodeBounds,
-    );
+    Widget Function(BuildContext context, Node<T> node, Port port);
 
 /// Widget for rendering a port on a node.
 ///
@@ -114,7 +113,7 @@ class PortWidget<T> extends StatefulWidget {
   final bool isConnected;
 
   /// Controller for connection drag handling.
-  final NodeFlowController<T> controller;
+  final NodeFlowController<T, dynamic> controller;
 
   /// The ID of the node containing this port.
   final String nodeId;
@@ -365,10 +364,10 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
                       ),
                     ),
                   ),
-                  // Port label (if enabled in theme, port, AND LOD state)
-                  if (widget.theme.showLabel &&
-                      widget.port.showLabel &&
-                      widget.controller.lod.showPortLabels)
+                  // Port label (if enabled on port AND LOD state allows it)
+                  // If LOD extension is not configured, default to showing labels
+                  if (widget.port.showLabel &&
+                      (widget.controller.lod?.showPortLabels ?? true))
                     _PortLabel(
                       port: widget.port,
                       theme: widget.theme,
@@ -433,7 +432,7 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
                   onMouseLeave: () => _handleHoverChange(false),
                   cursor: cursor,
                   // Autopan configuration for connection dragging
-                  autoPan: widget.controller.autoPan.currentConfig,
+                  autoPan: widget.controller.autoPan?.currentConfig,
                   getViewportBounds: () =>
                       widget.controller.viewportScreenBounds.rect,
                   onAutoPan: _handleAutoPan,

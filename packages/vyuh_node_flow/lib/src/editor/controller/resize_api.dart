@@ -29,7 +29,7 @@ part of 'node_flow_controller.dart';
 ///   controller.endResize();
 /// }
 /// ```
-extension ResizeApi<T> on NodeFlowController<T> {
+extension ResizeApi<T, C> on NodeFlowController<T, C> {
   /// Starts a resize operation for any resizable node.
   ///
   /// Works for any node with `isResizable = true`, including [GroupNode]

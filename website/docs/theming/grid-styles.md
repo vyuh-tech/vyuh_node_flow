@@ -24,9 +24,12 @@ The most common grid style with evenly spaced vertical and horizontal lines, pro
 
 ```dart
 final theme = NodeFlowTheme.light.copyWith(
-  gridStyle: GridStyles.lines,
-  gridSize: 20.0,              // Distance between lines
-  gridColor: Colors.grey[300], // Line color
+  gridTheme: GridTheme(
+    style: GridStyles.lines,
+    size: 20.0,                  // Distance between lines
+    color: Colors.grey[300]!,    // Line color
+    thickness: 1.0,              // Line thickness
+  ),
 );
 ```
 
@@ -36,37 +39,47 @@ final theme = NodeFlowTheme.light.copyWith(
 
 ```dart [Fine Grid]
 NodeFlowTheme.light.copyWith(
-  gridStyle: GridStyles.lines,
-  gridSize: 10.0,  // Fine grid
-  gridColor: Colors.grey[200],
+  gridTheme: GridTheme.light.copyWith(
+    style: GridStyles.lines,
+    size: 10.0,  // Fine grid
+    color: Colors.grey[200]!,
+  ),
 )
 ```
 
 ```dart [Medium Grid]
 NodeFlowTheme.light.copyWith(
-  gridStyle: GridStyles.lines,
-  gridSize: 20.0,  // Medium grid (default)
-  gridColor: Colors.grey[300],
+  gridTheme: GridTheme.light.copyWith(
+    style: GridStyles.lines,
+    size: 20.0,  // Medium grid (default)
+    color: Colors.grey[300]!,
+  ),
 )
 ```
 
 ```dart [Coarse Grid]
 NodeFlowTheme.light.copyWith(
-  gridStyle: GridStyles.lines,
-  gridSize: 40.0,  // Coarse grid
-  gridColor: Colors.grey[400],
+  gridTheme: GridTheme.light.copyWith(
+    style: GridStyles.lines,
+    size: 40.0,  // Coarse grid
+    color: Colors.grey[400]!,
+  ),
 )
 ```
 
 :::
 
+### Dots Grid
+
 A more subtle alternative with dots at grid intersections, reducing visual clutter while maintaining reference points.
 
 ```dart
 final theme = NodeFlowTheme.light.copyWith(
-  gridStyle: GridStyles.dots,
-  gridSize: 20.0,
-  gridColor: Colors.grey[300],
+  gridTheme: GridTheme.light.copyWith(
+    style: GridStyles.dots,
+    size: 20.0,
+    color: Colors.grey[300]!,
+  ),
 );
 ```
 
@@ -76,34 +89,44 @@ final theme = NodeFlowTheme.light.copyWith(
 
 ```dart [Small Dots]
 NodeFlowTheme.light.copyWith(
-  gridStyle: DotsGridStyle(dotSize: 1.5),
-  gridSize: 20.0,
+  gridTheme: GridTheme.light.copyWith(
+    style: DotsGridStyle(dotSize: 1.5),
+    size: 20.0,
+  ),
 )
 ```
 
 ```dart [Medium Dots]
 NodeFlowTheme.light.copyWith(
-  gridStyle: DotsGridStyle(dotSize: 2.0), // Default
-  gridSize: 20.0,
+  gridTheme: GridTheme.light.copyWith(
+    style: DotsGridStyle(dotSize: 2.0), // Default uses theme thickness
+    size: 20.0,
+  ),
 )
 ```
 
 ```dart [Large Dots]
 NodeFlowTheme.light.copyWith(
-  gridStyle: DotsGridStyle(dotSize: 3.0),
-  gridSize: 20.0,
+  gridTheme: GridTheme.light.copyWith(
+    style: DotsGridStyle(dotSize: 3.0),
+    size: 20.0,
+  ),
 )
 ```
 
 :::
 
+### Cross Grid
+
 Features small crosses at grid intersections, offering a balance between visibility and subtlety.
 
 ```dart
 final theme = NodeFlowTheme.light.copyWith(
-  gridStyle: GridStyles.cross,
-  gridSize: 20.0,
-  gridColor: Colors.grey[300],
+  gridTheme: GridTheme.light.copyWith(
+    style: GridStyles.cross,
+    size: 20.0,
+    color: Colors.grey[300]!,
+  ),
 );
 ```
 
@@ -113,40 +136,52 @@ final theme = NodeFlowTheme.light.copyWith(
 
 ```dart [Small Crosses]
 NodeFlowTheme.light.copyWith(
-  gridStyle: CrossGridStyle(crossSize: 3.0),
-  gridSize: 20.0,
+  gridTheme: GridTheme.light.copyWith(
+    style: CrossGridStyle(crossSize: 3.0),
+    size: 20.0,
+  ),
 )
 ```
 
 ```dart [Medium Crosses]
 NodeFlowTheme.light.copyWith(
-  gridStyle: CrossGridStyle(crossSize: 4.0), // Default
-  gridSize: 20.0,
+  gridTheme: GridTheme.light.copyWith(
+    style: CrossGridStyle(crossSize: 4.0), // Default uses theme thickness * 3
+    size: 20.0,
+  ),
 )
 ```
 
 ```dart [Large Crosses]
 NodeFlowTheme.light.copyWith(
-  gridStyle: CrossGridStyle(crossSize: 6.0),
-  gridSize: 20.0,
+  gridTheme: GridTheme.light.copyWith(
+    style: CrossGridStyle(crossSize: 6.0),
+    size: 20.0,
+  ),
 )
 ```
 
 :::
 
-Renders both minor and major grid lines at different intervals, with major lines appearing every 5 minor grid cells by default. Useful for complex diagrams requiring multiple levels of visual organization.
+### Hierarchical Grid
+
+Renders both minor and major grid lines at different intervals, with major lines appearing every 5 minor grid cells by default. Minor lines use 30% opacity and major lines use double thickness. Useful for complex diagrams requiring multiple levels of visual organization.
 
 ```dart
 // Use default hierarchical (5x multiplier)
 final theme = NodeFlowTheme.light.copyWith(
-  gridStyle: GridStyles.hierarchical,
-  gridSize: 20.0,  // Minor grid size
+  gridTheme: GridTheme.light.copyWith(
+    style: GridStyles.hierarchical,
+    size: 20.0,  // Minor grid size
+  ),
 );
 
 // Custom multiplier for major grid lines
 final customTheme = NodeFlowTheme.light.copyWith(
-  gridStyle: HierarchicalGridStyle(majorGridMultiplier: 10),
-  gridSize: 20.0,
+  gridTheme: GridTheme.light.copyWith(
+    style: HierarchicalGridStyle(majorGridMultiplier: 10),
+    size: 20.0,
+  ),
 );
 ```
 
@@ -156,49 +191,48 @@ final customTheme = NodeFlowTheme.light.copyWith(
 
 ```dart [Standard]
 NodeFlowTheme.light.copyWith(
-  gridStyle: HierarchicalGridStyle(
-    majorGridMultiplier: 5,  // Major line every 5 cells
+  gridTheme: GridTheme.light.copyWith(
+    style: HierarchicalGridStyle(
+      majorGridMultiplier: 5,  // Major line every 5 cells (default)
+    ),
+    size: 20.0,
   ),
-  gridSize: 20.0,
 )
 ```
 
 ```dart [Wide Spacing]
 NodeFlowTheme.light.copyWith(
-  gridStyle: HierarchicalGridStyle(
-    majorGridMultiplier: 10,  // Major line every 10 cells
+  gridTheme: GridTheme.light.copyWith(
+    style: HierarchicalGridStyle(
+      majorGridMultiplier: 10,  // Major line every 10 cells
+    ),
+    size: 20.0,
   ),
-  gridSize: 20.0,
 )
 ```
 
 ```dart [Narrow Spacing]
 NodeFlowTheme.light.copyWith(
-  gridStyle: HierarchicalGridStyle(
-    majorGridMultiplier: 3,  // Major line every 3 cells
+  gridTheme: GridTheme.light.copyWith(
+    style: HierarchicalGridStyle(
+      majorGridMultiplier: 3,  // Major line every 3 cells
+    ),
+    size: 20.0,
   ),
-  gridSize: 20.0,
-)
-```
-
-```dart [Custom Colors]
-NodeFlowTheme.light.copyWith(
-  gridStyle: HierarchicalGridStyle(
-    majorGridMultiplier: 5,
-    majorGridColor: Colors.blue[200],
-    minorGridColor: Colors.grey[200],
-  ),
-  gridSize: 20.0,
 )
 ```
 
 :::
 
+### No Grid
+
 Provides a clean canvas with no background pattern.
 
 ```dart
 final theme = NodeFlowTheme.light.copyWith(
-  gridStyle: GridStyles.none,
+  gridTheme: GridTheme.light.copyWith(
+    style: GridStyles.none,
+  ),
 );
 ```
 
@@ -206,17 +240,18 @@ final theme = NodeFlowTheme.light.copyWith(
 
 ## Customizing Grid Appearance
 
-Control the grid size and color through the theme:
+Control the grid size and color through the GridTheme:
 
 ```dart
 final theme = NodeFlowTheme.light.copyWith(
-  gridStyle: GridStyles.lines,
-  gridSize: 20.0,              // Size of each grid cell in pixels
-  gridColor: Colors.grey[300], // Grid line/dot color
+  gridTheme: GridTheme(
+    style: GridStyles.lines,
+    size: 20.0,                  // Size of each grid cell in pixels
+    color: Colors.grey[300]!,    // Grid line/dot color
+    thickness: 1.0,              // Line/dot thickness
+  ),
   backgroundColor: Colors.white, // Canvas background
 );
-
-controller.setTheme(theme);
 ```
 
 ## Dark Theme Grids
@@ -227,31 +262,34 @@ Adjust grid colors for dark themes:
 
 ```dart [Dark Lines]
 NodeFlowTheme.dark.copyWith(
-  gridStyle: GridStyles.lines,
-  gridSize: 20.0,
-  gridColor: Colors.grey[800],      // Darker lines
-  backgroundColor: Colors.grey[900], // Dark background
+  gridTheme: GridTheme.dark.copyWith(
+    style: GridStyles.lines,
+    size: 20.0,
+    color: Colors.grey[800]!,      // Darker lines
+  ),
+  backgroundColor: Colors.grey[900]!, // Dark background
 )
 ```
 
 ```dart [Dark Dots]
 NodeFlowTheme.dark.copyWith(
-  gridStyle: GridStyles.dots,
-  gridSize: 20.0,
-  gridColor: Colors.grey[700],      // Subtle dots
+  gridTheme: GridTheme.dark.copyWith(
+    style: GridStyles.dots,
+    size: 20.0,
+    color: Colors.grey[700]!,      // Subtle dots
+  ),
   backgroundColor: Colors.black,
 )
 ```
 
 ```dart [Dark Hierarchical]
 NodeFlowTheme.dark.copyWith(
-  gridStyle: HierarchicalGridStyle(
-    majorGridMultiplier: 5,
-    majorGridColor: Colors.grey[700],
-    minorGridColor: Colors.grey[850],
+  gridTheme: GridTheme.dark.copyWith(
+    style: HierarchicalGridStyle(majorGridMultiplier: 5),
+    size: 20.0,
+    color: Colors.grey[700]!,
   ),
-  gridSize: 20.0,
-  backgroundColor: Colors.grey[900],
+  backgroundColor: Colors.grey[900]!,
 )
 ```
 
@@ -264,7 +302,7 @@ Enable grid snapping to help users align nodes:
 ```dart
 final controller = NodeFlowController(
   config: NodeFlowConfig(
-    snapToGrid: true,           // Enable snapping
+    snapToGrid: true,            // Enable node snapping
     gridSize: 20.0,              // Snap to 20px grid
     snapAnnotationsToGrid: true, // Also snap annotations
   ),
@@ -276,28 +314,32 @@ final controller = NodeFlowController(
 
 :::
 
-Users can toggle snapping on/off:
-- **Keyboard**: Press `N` to toggle
-- **Programmatically**: `controller.config.toggleSnapping()`
+Users can toggle snapping programmatically:
+- `controller.config.toggleSnapping()` - Toggle both node and annotation snapping
+- `controller.config.toggleNodeSnapping()` - Toggle only node snapping
+- `controller.config.toggleAnnotationSnapping()` - Toggle only annotation snapping
 
 ## Dynamic Grid Style Changes
 
-Change grid style at runtime:
+Change grid style at runtime by providing a new theme to the NodeFlowEditor widget:
 
 ```dart
+// Example: dynamically changing grid style
+NodeFlowTheme currentTheme = NodeFlowTheme.light;
+
 // Switch to dots
-controller.theme = controller.theme.copyWith(
-  gridStyle: GridStyles.dots,
+currentTheme = currentTheme.copyWith(
+  gridTheme: currentTheme.gridTheme.copyWith(style: GridStyles.dots),
 );
 
 // Switch to lines
-controller.theme = controller.theme.copyWith(
-  gridStyle: GridStyles.lines,
+currentTheme = currentTheme.copyWith(
+  gridTheme: currentTheme.gridTheme.copyWith(style: GridStyles.lines),
 );
 
 // Turn off grid
-controller.theme = controller.theme.copyWith(
-  gridStyle: GridStyles.none,
+currentTheme = currentTheme.copyWith(
+  gridTheme: currentTheme.gridTheme.copyWith(style: GridStyles.none),
 );
 ```
 
@@ -306,19 +348,43 @@ controller.theme = controller.theme.copyWith(
 Create a UI to let users choose grid styles:
 
 ```dart
-class GridStyleSelector extends StatelessWidget {
-  final NodeFlowController controller;
+class GridStyleSelector extends StatefulWidget {
+  final NodeFlowTheme initialTheme;
+  final ValueChanged<NodeFlowTheme> onThemeChanged;
 
-  const GridStyleSelector({required this.controller});
+  const GridStyleSelector({
+    required this.initialTheme,
+    required this.onThemeChanged,
+  });
+
+  @override
+  State<GridStyleSelector> createState() => _GridStyleSelectorState();
+}
+
+class _GridStyleSelectorState extends State<GridStyleSelector> {
+  late NodeFlowTheme _currentTheme;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentTheme = widget.initialTheme;
+  }
+
+  void _changeGridStyle(GridStyle style) {
+    setState(() {
+      _currentTheme = _currentTheme.copyWith(
+        gridTheme: _currentTheme.gridTheme.copyWith(style: style),
+      );
+    });
+    widget.onThemeChanged(_currentTheme);
+  }
 
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<GridStyle>(
       icon: Icon(Icons.grid_on),
       tooltip: 'Grid Style',
-      onSelected: (style) {
-        controller.theme = controller.theme.copyWith(gridStyle: style);
-      },
+      onSelected: _changeGridStyle,
       itemBuilder: (context) => [
         PopupMenuItem(
           value: GridStyles.lines,
@@ -378,41 +444,34 @@ class GridStyleSelector extends StatelessWidget {
 
 ## Custom Grid Styles
 
-Create your own grid style by extending `GridStyle`:
+Create your own grid style by extending `GridStyle` and implementing `paintGrid`:
 
 ```dart
 class DiagonalGridStyle extends GridStyle {
-  const DiagonalGridStyle();
+  const DiagonalGridStyle({this.lineLength = 5.0});
+
+  final double lineLength;
 
   @override
-  void paint(
+  void paintGrid(
     Canvas canvas,
-    Size size,
-    double gridSize,
-    Color color,
-    GraphViewport viewport,
+    NodeFlowTheme theme,
+    ({double left, double top, double right, double bottom}) gridArea,
   ) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1.0;
+    final paint = createGridPaint(theme);
+    final gridSize = theme.gridTheme.size;
 
-    // Calculate visible area
-    final startX = (-viewport.x / viewport.zoom).floorToDouble();
-    final startY = (-viewport.y / viewport.zoom).floorToDouble();
-    final endX = startX + (size.width / viewport.zoom);
-    final endY = startY + (size.height / viewport.zoom);
+    // Calculate grid-aligned start positions
+    final startX = (gridArea.left / gridSize).floor() * gridSize;
+    final startY = (gridArea.top / gridSize).floor() * gridSize;
 
-    // Draw diagonal lines
-    for (var x = (startX / gridSize).floor() * gridSize;
-         x <= endX;
-         x += gridSize) {
-      for (var y = (startY / gridSize).floor() * gridSize;
-           y <= endY;
-           y += gridSize) {
+    // Draw diagonal lines at each grid intersection
+    for (double x = startX; x <= gridArea.right; x += gridSize) {
+      for (double y = startY; y <= gridArea.bottom; y += gridSize) {
         // Draw small diagonal line
         canvas.drawLine(
           Offset(x, y),
-          Offset(x + 5, y + 5),
+          Offset(x + lineLength, y + lineLength),
           paint,
         );
       }
@@ -422,8 +481,10 @@ class DiagonalGridStyle extends GridStyle {
 
 // Usage
 final theme = NodeFlowTheme.light.copyWith(
-  gridStyle: DiagonalGridStyle(),
-  gridSize: 30.0,
+  gridTheme: GridTheme.light.copyWith(
+    style: DiagonalGridStyle(lineLength: 5.0),
+    size: 30.0,
+  ),
 );
 ```
 
@@ -451,23 +512,19 @@ final theme = NodeFlowTheme.light.copyWith(
 ```dart
 // For large canvases with many nodes, use:
 // 1. Larger grid size
-NodeFlowConfig(gridSize: 40.0) // vs 20.0
+NodeFlowTheme.light.copyWith(
+  gridTheme: GridTheme.light.copyWith(size: 40.0), // vs 20.0
+)
 
 // 2. Simpler grid style
-gridStyle: GridStyles.dots // vs hierarchical
+NodeFlowTheme.light.copyWith(
+  gridTheme: GridTheme.light.copyWith(style: GridStyles.dots), // vs hierarchical
+)
 
-// 3. Or disable grid during interactions
-void onPanStart() {
-  controller.theme = controller.theme.copyWith(
-    gridStyle: GridStyles.none,
-  );
-}
-
-void onPanEnd() {
-  controller.theme = controller.theme.copyWith(
-    gridStyle: GridStyles.lines,
-  );
-}
+// 3. Or disable grid for best performance
+NodeFlowTheme.light.copyWith(
+  gridTheme: GridTheme.light.copyWith(style: GridStyles.none),
+)
 ```
 
 ## Complete Example
@@ -483,7 +540,7 @@ class GridStyleDemo extends StatefulWidget {
 
 class _GridStyleDemoState extends State<GridStyleDemo> {
   late final NodeFlowController controller;
-  GridStyle currentStyle = GridStyles.lines;
+  NodeFlowTheme currentTheme = NodeFlowTheme.light;
 
   @override
   void initState() {
@@ -494,22 +551,13 @@ class _GridStyleDemoState extends State<GridStyleDemo> {
         gridSize: 20.0,
       ),
     );
-
-    _updateTheme();
-  }
-
-  void _updateTheme() {
-    controller.setTheme(NodeFlowTheme.light.copyWith(
-      gridStyle: currentStyle,
-      gridSize: 20.0,
-      gridColor: Colors.grey[300],
-    ));
   }
 
   void _changeGridStyle(GridStyle style) {
     setState(() {
-      currentStyle = style;
-      _updateTheme();
+      currentTheme = currentTheme.copyWith(
+        gridTheme: currentTheme.gridTheme.copyWith(style: style),
+      );
     });
   }
 
@@ -543,6 +591,7 @@ class _GridStyleDemoState extends State<GridStyleDemo> {
       ),
       body: NodeFlowEditor(
         controller: controller,
+        theme: currentTheme,
         nodeBuilder: (context, node) => Container(
           padding: EdgeInsets.all(16),
           child: Text(node.data),

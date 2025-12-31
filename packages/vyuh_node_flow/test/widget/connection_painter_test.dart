@@ -12,7 +12,7 @@ import '../helpers/test_factories.dart';
 /// These tests verify that connections render correctly between nodes,
 /// including path calculation, labels, and visual styles.
 void main() {
-  late NodeFlowController<String> controller;
+  late NodeFlowController<String, dynamic> controller;
 
   setUp(() {
     resetTestCounters();
@@ -36,7 +36,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
                     SizedBox(width: 100, height: 60, child: Text(node.id)),
@@ -52,7 +52,7 @@ void main() {
       // Connection should exist
       expect(controller.connectionCount, equals(1));
       // Editor should render without error
-      expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
     });
 
     testWidgets('multiple connections render correctly', (tester) async {
@@ -71,7 +71,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
                     SizedBox(width: 100, height: 60),
@@ -98,7 +98,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
                     SizedBox(width: 100, height: 60),
@@ -133,7 +133,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
                     SizedBox(width: 100, height: 60),
@@ -185,7 +185,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
                     SizedBox(width: 100, height: 60),
@@ -224,7 +224,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
                     SizedBox(width: 100, height: 60),
@@ -284,7 +284,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
                     SizedBox(width: 100, height: 60),
@@ -301,7 +301,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       // Editor should render without error
-      expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
       // Connection with animation effect should exist
       expect(connection.animationEffect, isNotNull);
       expect(controller.connectionCount, equals(1));
@@ -325,7 +325,18 @@ void main() {
           position: const Offset(400, 200),
         ),
       );
-      controller.createConnection('a', 'out', 'b', 'in');
+      // Create connection with custom styling directly on the Connection
+      controller.addConnection(
+        Connection(
+          id: 'styled-conn',
+          sourceNodeId: 'a',
+          sourcePortId: 'out',
+          targetNodeId: 'b',
+          targetPortId: 'in',
+          color: Colors.red,
+          strokeWidth: 3.0,
+        ),
+      );
 
       await tester.pumpWidget(
         MaterialApp(
@@ -333,17 +344,10 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
                     SizedBox(width: 100, height: 60),
-                connectionStyleResolver: (connection) {
-                  // Return custom style overrides
-                  return ConnectionStyleOverrides(
-                    color: Colors.red,
-                    strokeWidth: 3.0,
-                  );
-                },
                 theme: NodeFlowTheme.light,
               ),
             ),
@@ -353,8 +357,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Editor should render without error with style resolver
-      expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      // Editor should render without error with styled connection
+      expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
       expect(controller.connectionCount, equals(1));
     });
   });
@@ -383,7 +387,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
                     SizedBox(width: 100, height: 60),
@@ -402,7 +406,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Editor should still render without error
-      expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
     });
 
     testWidgets('connection updates when target node moves', (tester) async {
@@ -428,7 +432,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
                     SizedBox(width: 100, height: 60),
@@ -447,7 +451,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Editor should still render without error
-      expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
     });
   });
 
@@ -463,7 +467,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
                     SizedBox(width: 100, height: 60),
@@ -495,7 +499,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
                     SizedBox(width: 100, height: 60),

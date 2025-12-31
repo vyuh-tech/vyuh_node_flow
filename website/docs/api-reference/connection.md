@@ -5,7 +5,9 @@ description: API reference for the Connection class
 
 # Connection
 
-The `Connection` class represents a visual link between two ports on different nodes. Connections support styling, labels, animation, and use MobX observables for reactive state management.
+The `Connection` class represents a visual link between two ports on different
+nodes. Connections support styling, labels, animation, and use MobX observables
+for reactive state management.
 
 ## Constructor
 
@@ -29,6 +31,7 @@ Connection({
   double? endGap,
   ConnectionEffect? animationEffect,
   List<Offset>? controlPoints,
+  bool locked = false,
 })
 ```
 
@@ -36,34 +39,35 @@ Connection({
 
 ### Required Properties
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `id` | `String` | Unique identifier |
-| `sourceNodeId` | `String` | Source node ID |
-| `sourcePortId` | `String` | Source port ID |
-| `targetNodeId` | `String` | Target node ID |
-| `targetPortId` | `String` | Target port ID |
+| Property       | Type     | Description       |
+| -------------- | -------- | ----------------- |
+| `id`           | `String` | Unique identifier |
+| `sourceNodeId` | `String` | Source node ID    |
+| `sourcePortId` | `String` | Source port ID    |
+| `targetNodeId` | `String` | Target node ID    |
+| `targetPortId` | `String` | Target port ID    |
 
 ### Optional Properties
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `animated` | `bool` | `false` | Show flowing animation |
-| `selected` | `bool` | `false` | Selection state |
-| `data` | `Map<String, dynamic>?` | `null` | Custom metadata |
-| `style` | `ConnectionStyle?` | `null` | Line style override |
-| `startLabel` | `ConnectionLabel?` | `null` | Label at source (anchor 0.0) |
-| `label` | `ConnectionLabel?` | `null` | Label at center (anchor 0.5) |
-| `endLabel` | `ConnectionLabel?` | `null` | Label at target (anchor 1.0) |
-| `startPoint` | `ConnectionEndPoint?` | `null` | Start marker override |
-| `endPoint` | `ConnectionEndPoint?` | `null` | End marker override |
-| `startGap` | `double?` | `null` | Gap from source port |
-| `endGap` | `double?` | `null` | Gap from target port |
-| `animationEffect` | `ConnectionEffect?` | `null` | Animation effect |
-| `controlPoints` | `List<Offset>?` | `[]` | User-defined waypoints |
+| Property          | Type                    | Default | Description                  |
+| ----------------- | ----------------------- | ------- | ---------------------------- |
+| `animated`        | `bool`                  | `false` | Show flowing animation       |
+| `selected`        | `bool`                  | `false` | Selection state              |
+| `data`            | `Map<String, dynamic>?` | `null`  | Custom metadata              |
+| `style`           | `ConnectionStyle?`      | `null`  | Line style override          |
+| `startLabel`      | `ConnectionLabel?`      | `null`  | Label at source (anchor 0.0) |
+| `label`           | `ConnectionLabel?`      | `null`  | Label at center (anchor 0.5) |
+| `endLabel`        | `ConnectionLabel?`      | `null`  | Label at target (anchor 1.0) |
+| `startPoint`      | `ConnectionEndPoint?`   | `null`  | Start marker override        |
+| `endPoint`        | `ConnectionEndPoint?`   | `null`  | End marker override          |
+| `startGap`        | `double?`               | `null`  | Gap from source port         |
+| `endGap`          | `double?`               | `null`  | Gap from target port         |
+| `animationEffect` | `ConnectionEffect?`     | `null`  | Animation effect             |
+| `controlPoints`   | `List<Offset>?`         | `[]`    | User-defined waypoints       |
+| `locked`          | `bool`                  | `false` | Prevents deletion when true  |
 
-::: info
-Properties like `animated`, `selected`, and labels are MobX observables. Changes trigger automatic UI updates.
+::: info Properties like `animated`, `selected`, and labels are MobX
+observables. Changes trigger automatic UI updates.
 
 :::
 
@@ -92,7 +96,8 @@ connection.controlPoints = [Offset(300, 200), Offset(400, 200)];
 
 ## ConnectionLabel
 
-Labels are `ConnectionLabel` objects, not plain strings. Use the factory constructors:
+Labels are `ConnectionLabel` objects, not plain strings. Use the factory
+constructors:
 
 ```dart
 // Label at start (anchor 0.0)
@@ -174,6 +179,7 @@ bool involvesNode(String nodeId)
 ```
 
 **Example:**
+
 ```dart
 if (connection.involvesNode('node-a')) {
   print('Connection involves node-a');
@@ -207,6 +213,7 @@ ConnectionEffect? getEffectiveAnimationEffect(ConnectionEffect? themeEffect)
 ```
 
 **Example:**
+
 ```dart
 final style = connection.getEffectiveStyle(theme.connectionTheme.style);
 final endPoint = connection.getEffectiveEndPoint(theme.connectionTheme.endPoint);
@@ -234,14 +241,15 @@ factory Connection.fromJson(Map<String, dynamic> json)
 
 Built-in connection line styles via `ConnectionStyles`:
 
-| Style | Description |
-|-------|-------------|
-| `ConnectionStyles.straight` | Direct line |
-| `ConnectionStyles.bezier` | Curved Bezier |
-| `ConnectionStyles.step` | Right-angle segments |
+| Style                         | Description                 |
+| ----------------------------- | --------------------------- |
+| `ConnectionStyles.straight`   | Direct line                 |
+| `ConnectionStyles.bezier`     | Curved Bezier               |
+| `ConnectionStyles.step`       | Right-angle segments        |
 | `ConnectionStyles.smoothstep` | Smooth orthogonal (default) |
 
 **Example:**
+
 ```dart
 Connection(
   id: 'conn',
@@ -315,8 +323,8 @@ connection.controlPoints = [
 connection.controlPoints = [];
 ```
 
-::: tip
-Control points are used by editable connection styles to let users customize connection paths.
+::: tip Control points are used by editable connection styles to let users
+customize connection paths.
 
 :::
 
@@ -379,7 +387,8 @@ NodeFlowTheme(
 )
 ```
 
-See [Connection Styles](/docs/theming/connection-styles) and [Connection Effects](/docs/theming/connection-effects) for more.
+See [Connection Styles](/docs/theming/connection-styles) and
+[Connection Effects](/docs/theming/connection-effects) for more.
 
 ## Validation
 

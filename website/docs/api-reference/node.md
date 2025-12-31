@@ -19,6 +19,10 @@ Node<T>({
   List<Port> inputPorts = const [],
   List<Port> outputPorts = const [],
   int initialZIndex = 0,
+  bool visible = true,
+  NodeRenderLayer layer = NodeRenderLayer.middle,
+  bool locked = false,
+  bool selectable = true,
 })
 ```
 
@@ -37,6 +41,9 @@ Node<T>({
 | `selected` | `Observable<bool>` | `false` | Selection state (not serialized) |
 | `dragging` | `Observable<bool>` | `false` | Dragging state (not serialized) |
 | `visualPosition` | `Observable<Offset>` | same as `position` | Position for rendering (may differ with snap-to-grid) |
+| `layer` | `NodeRenderLayer` | `middle` | Rendering layer (background/middle/foreground) |
+| `locked` | `bool` | `false` | Prevents dragging when true |
+| `selectable` | `bool` | `true` | Whether node participates in marquee selection |
 
 ::: info
 Properties like `position`, `size`, and `selected` are MobX observables. Access their values using `.value` (e.g., `node.position.value`).
@@ -50,7 +57,20 @@ Properties like `position`, `size`, and `selected` are MobX observables. Access 
 | `currentZIndex` | `int` | Get/set z-index value |
 | `isSelected` | `bool` | Get/set selection state |
 | `isDragging` | `bool` | Get/set dragging state |
+| `isVisible` | `bool` | Get/set visibility state |
+| `isEditing` | `bool` | Get/set editing state |
+| `isResizable` | `bool` | Whether this node can be resized (read-only) |
 | `allPorts` | `List<Port>` | Combined list of input and output ports |
+
+## NodeRenderLayer
+
+Nodes are rendered in three layers:
+
+| Layer | Description |
+|-------|-------------|
+| `NodeRenderLayer.background` | Behind regular nodes (e.g., group annotations) |
+| `NodeRenderLayer.middle` | Default layer for regular nodes |
+| `NodeRenderLayer.foreground` | Above nodes and connections (e.g., sticky notes) |
 
 ## Examples
 
@@ -319,7 +339,7 @@ Shapes affect how nodes are rendered and where ports are positioned. The default
 The `nodeBuilder` function receives the node and returns the visual representation:
 
 ```dart
-NodeFlowEditor<TaskData>(
+NodeFlowEditor<TaskData, dynamic>(
   controller: controller,
   nodeBuilder: (context, node) {
     return Container(

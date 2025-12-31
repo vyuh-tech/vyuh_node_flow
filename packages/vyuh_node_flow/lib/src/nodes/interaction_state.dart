@@ -116,13 +116,13 @@ class InteractionState {
   final Observable<bool> selectionStarted = Observable(false);
 
   // ===========================================================================
-  // Resize State (works for any resizable Node, including Annotations)
+  // Resize State (works for any resizable Node)
   // ===========================================================================
 
   /// Observable ID of the node currently being resized.
   ///
-  /// This works for both regular nodes and annotations since Annotation
-  /// extends Node. Null when no resize operation is in progress.
+  /// This works for all node types including [GroupNode] and [CommentNode].
+  /// Null when no resize operation is in progress.
   final Observable<String?> resizingNodeId = Observable<String?>(null);
 
   /// Observable handle being used for the current resize operation.
@@ -230,7 +230,7 @@ class InteractionState {
   /// Gets the ID of the node currently being resized.
   ///
   /// Returns null if no resize operation is in progress.
-  /// Works for both regular nodes and annotations.
+  /// Works for all node types including [GroupNode] and [CommentNode].
   String? get currentResizingNodeId => resizingNodeId.value;
 
   /// Gets the current resize handle.
@@ -240,7 +240,7 @@ class InteractionState {
 
   /// Checks if any resize operation is in progress.
   ///
-  /// Returns true when a node or annotation is being resized.
+  /// Returns true when any node is being resized.
   bool get isResizing => resizingNodeId.value != null;
 
   /// Gets the starting mouse position when resize began (graph coordinates).
@@ -452,13 +452,13 @@ class InteractionState {
   }
 
   // ===========================================================================
-  // Resize Methods (unified for Node and Annotation)
+  // Resize Methods
   // ===========================================================================
 
   /// Starts a resize operation for a node.
   ///
-  /// Works for any resizable Node, including annotations. The node must have
-  /// [Node.isResizable] set to `true`.
+  /// Works for any resizable [Node], including [GroupNode] and [CommentNode].
+  /// The node must have [Node.isResizable] set to `true`.
   ///
   /// Parameters:
   /// * [nodeId] - The ID of the node being resized

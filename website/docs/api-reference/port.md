@@ -35,7 +35,7 @@ const Port({
 | `multiConnections` | `bool` | `false` | Whether multiple connections are allowed |
 | `position` | `PortPosition` | `left` | Side of the node |
 | `offset` | `Offset` | `Offset.zero` | Position offset for precise placement |
-| `type` | `PortType` | `both` | Direction: source, target, or both |
+| `type` | `PortType` | inferred | Direction: input or output (inferred from position if not set) |
 | `shape` | `MarkerShape?` | `null` | Visual shape (falls back to theme) |
 | `size` | `Size?` | `null` | Port dimensions (falls back to theme) |
 | `tooltip` | `String?` | `null` | Tooltip text on hover |
@@ -65,16 +65,21 @@ Direction of data flow for the port:
 
 | Type | Description |
 |------|-------------|
-| `PortType.source` | Output only - can emit connections |
-| `PortType.target` | Input only - can receive connections |
-| `PortType.both` | Bidirectional - can both emit and receive (default) |
+| `PortType.input` | Input only - can receive connections |
+| `PortType.output` | Output only - can emit connections |
+
+::: info
+Port type is automatically inferred from position if not specified:
+- Left/Top positions default to `input`
+- Right/Bottom positions default to `output`
+:::
 
 ## Computed Properties
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `isSource` | `bool` | Whether this port can act as a source (output) |
-| `isTarget` | `bool` | Whether this port can act as a target (input) |
+| `isOutput` | `bool` | Whether this port can act as an output (source) |
+| `isInput` | `bool` | Whether this port can act as an input (target) |
 
 ## Port Offset
 
@@ -299,16 +304,14 @@ NodeFlowTheme(
     size: Size(9, 9),
     color: Colors.grey,
     connectedColor: Colors.blue,
-    snappingColor: Colors.lightBlue,
+    highlightColor: Colors.lightBlue,
+    highlightBorderColor: Colors.black,
     borderColor: Colors.white,
     borderWidth: 0,
     shape: MarkerShapes.capsuleHalf,
     showLabel: false,
     labelTextStyle: TextStyle(fontSize: 10),
     labelOffset: 4.0,
-    labelVisibilityThreshold: 0.5,
-    highlightBorderColor: Colors.black,
-    highlightBorderWidthDelta: 1.5,
   ),
 )
 ```
@@ -318,16 +321,14 @@ NodeFlowTheme(
 | `size` | Port dimensions (Size, not double) |
 | `color` | Default fill color |
 | `connectedColor` | Color when port has connections |
-| `snappingColor` | Color when connection is being dragged nearby |
+| `highlightColor` | Fill color when port is highlighted during connection drag |
+| `highlightBorderColor` | Border color when port is highlighted |
 | `borderColor` | Border outline color |
 | `borderWidth` | Border thickness |
 | `shape` | Default marker shape |
 | `showLabel` | Global label visibility |
 | `labelTextStyle` | Text style for labels |
 | `labelOffset` | Distance from port to label |
-| `labelVisibilityThreshold` | Minimum zoom to show labels |
-| `highlightBorderColor` | Border color when highlighted |
-| `highlightBorderWidthDelta` | Extra border width when highlighted |
 
 See [Port Shapes](/docs/theming/port-shapes) and [Port Labels](/docs/theming/port-labels) for more styling details.
 

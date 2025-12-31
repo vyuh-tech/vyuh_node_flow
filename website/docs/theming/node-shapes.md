@@ -163,7 +163,7 @@ HexagonShape(
 Assign shapes based on node type using `nodeShapeBuilder`:
 
 ```dart
-NodeFlowEditor<MyData>(
+NodeFlowEditor<MyData, dynamic>(
   controller: controller,
   nodeBuilder: (context, node) => Text(node.data.label),
   nodeShapeBuilder: (context, node) {
@@ -387,6 +387,8 @@ NodeFlowEditor(
 Extend `NodeShape` to create your own shapes:
 
 ```dart
+import 'dart:math';
+
 class StarShape extends NodeShape {
   const StarShape({
     this.points = 5,

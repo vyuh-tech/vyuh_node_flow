@@ -2,16 +2,22 @@
 import { Icon } from '@iconify/vue';
 
 defineProps<{
-  href: string;
+  href?: string;
   icon?: string;
   variant?: 'primary' | 'secondary';
   size?: 'default' | 'large';
   external?: boolean;
 }>();
+
+defineEmits<{
+  click: [event: MouseEvent];
+}>();
 </script>
 
 <template>
+  <!-- Render as anchor when href is provided -->
   <a
+    v-if="href"
     :href="href"
     class="hero-btn"
     :class="[
@@ -23,6 +29,20 @@ defineProps<{
     <Icon v-if="icon" :icon="icon" />
     <slot />
   </a>
+  <!-- Render as button when no href (click handler mode) -->
+  <button
+    v-else
+    type="button"
+    class="hero-btn"
+    :class="[
+      variant === 'secondary' ? 'hero-btn-secondary' : 'hero-btn-primary',
+      size === 'large' ? 'hero-btn-lg' : '',
+    ]"
+    @click="$emit('click', $event)"
+  >
+    <Icon v-if="icon" :icon="icon" />
+    <slot />
+  </button>
 </template>
 
 <style>

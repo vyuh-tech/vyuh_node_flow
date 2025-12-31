@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Theme configuration for resize handles used by nodes and annotations.
+/// Theme configuration for resize handles used by resizable nodes.
 ///
 /// Defines the visual appearance and interaction behavior for resize handles:
 /// - Handle size (width/height of the visible handle)

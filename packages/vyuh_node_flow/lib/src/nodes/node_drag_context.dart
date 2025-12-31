@@ -4,7 +4,7 @@ import 'node.dart';
 
 /// Context provided to nodes during drag and lifecycle operations.
 ///
-/// This context allows nodes (including annotations that extend Node) to
+/// This context allows nodes (including [GroupNode] and [CommentNode]) to
 /// interact with other nodes during drag, enabling behaviors like moving
 /// contained nodes when a group is dragged, or refitting bounds when
 /// member nodes are deleted.

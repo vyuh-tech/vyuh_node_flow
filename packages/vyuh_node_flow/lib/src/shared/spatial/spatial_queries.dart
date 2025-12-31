@@ -32,7 +32,7 @@ export '../../editor/hit_test_result.dart';
 ///   },
 /// )
 /// ```
-abstract interface class SpatialQueries<T> {
+abstract interface class SpatialQueries<T, C> {
   /// Performs hit testing at the given point in graph coordinates.
   ///
   /// Returns the topmost hit element (node, port, or connection) at the point,
@@ -58,7 +58,7 @@ abstract interface class SpatialQueries<T> {
   /// Returns all connections that pass through or near the given point.
   ///
   /// The optional [radius] expands the hit area for easier connection selection.
-  List<Connection> connectionsAt(Offset point, {double radius = 0});
+  List<Connection<C>> connectionsAt(Offset point, {double radius = 0});
 
   /// Retrieves a node by its ID.
   ///
@@ -68,7 +68,7 @@ abstract interface class SpatialQueries<T> {
   /// Retrieves a connection by its ID.
   ///
   /// Returns null if no connection with the given ID exists in the index.
-  Connection? getConnection(String id);
+  Connection<C>? getConnection(String id);
 
   /// The number of nodes currently indexed.
   int get nodeCount;

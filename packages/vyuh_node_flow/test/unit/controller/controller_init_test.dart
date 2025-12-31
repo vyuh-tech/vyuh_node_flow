@@ -25,7 +25,7 @@ void main() {
 
   group('Constructor Initialization - Nodes', () {
     test('initializes with empty nodes list', () {
-      final controller = NodeFlowController<String>(nodes: []);
+      final controller = NodeFlowController<String, dynamic>(nodes: []);
 
       expect(controller.nodeCount, equals(0));
       expect(controller.nodes, isEmpty);
@@ -34,7 +34,7 @@ void main() {
     test('initializes with single node', () {
       final node = createTestNode(id: 'node-1');
 
-      final controller = NodeFlowController<String>(nodes: [node]);
+      final controller = NodeFlowController<String, dynamic>(nodes: [node]);
 
       expect(controller.nodeCount, equals(1));
       expect(controller.getNode('node-1'), isNotNull);
@@ -48,7 +48,7 @@ void main() {
         createTestNode(id: 'node-3'),
       ];
 
-      final controller = NodeFlowController<String>(nodes: nodes);
+      final controller = NodeFlowController<String, dynamic>(nodes: nodes);
 
       expect(controller.nodeCount, equals(3));
       expect(controller.getNode('node-1'), isNotNull);
@@ -62,7 +62,7 @@ void main() {
         createTestNode(id: 'node-2', position: const Offset(300, 400)),
       ];
 
-      final controller = NodeFlowController<String>(nodes: nodes);
+      final controller = NodeFlowController<String, dynamic>(nodes: nodes);
 
       expect(
         controller.getNode('node-1')!.position.value,
@@ -80,7 +80,7 @@ void main() {
         createTestNode(id: 'node-2', data: 'second-data'),
       ];
 
-      final controller = NodeFlowController<String>(nodes: nodes);
+      final controller = NodeFlowController<String, dynamic>(nodes: nodes);
 
       expect(controller.getNode('node-1')!.data, equals('first-data'));
       expect(controller.getNode('node-2')!.data, equals('second-data'));
@@ -95,7 +95,7 @@ void main() {
         outputPorts: [outputPort],
       );
 
-      final controller = NodeFlowController<String>(nodes: [node]);
+      final controller = NodeFlowController<String, dynamic>(nodes: [node]);
 
       expect(controller.getInputPorts('node-1'), hasLength(1));
       expect(controller.getOutputPorts('node-1'), hasLength(1));
@@ -109,7 +109,7 @@ void main() {
         createTestNode(id: 'hidden', visible: false),
       ];
 
-      final controller = NodeFlowController<String>(nodes: nodes);
+      final controller = NodeFlowController<String, dynamic>(nodes: nodes);
 
       expect(controller.getNode('visible')!.isVisible, isTrue);
       expect(controller.getNode('hidden')!.isVisible, isFalse);
@@ -121,7 +121,7 @@ void main() {
         createTestNode(id: 'node-2', zIndex: 10),
       ];
 
-      final controller = NodeFlowController<String>(nodes: nodes);
+      final controller = NodeFlowController<String, dynamic>(nodes: nodes);
 
       expect(controller.getNode('node-1')!.currentZIndex, equals(5));
       expect(controller.getNode('node-2')!.currentZIndex, equals(10));
@@ -134,7 +134,7 @@ void main() {
         createTestNode(id: 'c'),
       ];
 
-      final controller = NodeFlowController<String>(nodes: nodes);
+      final controller = NodeFlowController<String, dynamic>(nodes: nodes);
 
       expect(controller.nodeIds, containsAll(['a', 'b', 'c']));
     });
@@ -146,7 +146,7 @@ void main() {
 
   group('Constructor Initialization - Connections', () {
     test('initializes with empty connections list', () {
-      final controller = NodeFlowController<String>(connections: []);
+      final controller = NodeFlowController<String, dynamic>(connections: []);
 
       expect(controller.connectionCount, equals(0));
       expect(controller.connections, isEmpty);
@@ -167,7 +167,9 @@ void main() {
           ),
         ];
 
-        final controller = NodeFlowController<String>(connections: connections);
+        final controller = NodeFlowController<String, dynamic>(
+          connections: connections,
+        );
 
         // Connections are loaded but may be filtered - verify the list is accessible
         expect(controller.connections, isNotNull);
@@ -189,7 +191,7 @@ void main() {
         targetNodeId: 'node-b',
       );
 
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         nodes: [nodeA, nodeB],
         connections: [connection],
       );
@@ -236,7 +238,7 @@ void main() {
         ),
       ];
 
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         nodes: nodes,
         connections: connections,
       );
@@ -260,7 +262,7 @@ void main() {
         data: {'key': 'value'},
       );
 
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         nodes: [nodeA, nodeB],
         connections: [connection],
       );
@@ -287,14 +289,16 @@ void main() {
       );
 
       // Constructor initialization
-      final constructorController = NodeFlowController<String>(nodes: [node1]);
+      final constructorController = NodeFlowController<String, dynamic>(
+        nodes: [node1],
+      );
 
       // Imperative initialization (need to recreate node since it's mutable)
       final node1Copy = createTestNode(
         id: 'node-1',
         position: const Offset(10, 20),
       );
-      final imperativeController = NodeFlowController<String>();
+      final imperativeController = NodeFlowController<String, dynamic>();
       imperativeController.addNode(node1Copy);
 
       expect(
@@ -315,7 +319,7 @@ void main() {
         targetNodeId: 'node-b',
       );
 
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         nodes: [nodeA, nodeB],
         connections: [connection],
       );
@@ -352,7 +356,7 @@ void main() {
         ],
       );
 
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         nodes: [node],
         config: config,
       );
@@ -360,14 +364,14 @@ void main() {
       expect(controller.nodeCount, equals(1));
       expect(controller.config.snapToGrid.value, isTrue);
       expect(controller.config.gridSize.value, equals(50));
-      expect(controller.debug.mode, equals(DebugMode.all));
+      expect(controller.debug!.mode, equals(DebugMode.all));
     });
 
     test('works with initial viewport', () {
       final node = createTestNode(id: 'node-1');
       final viewport = GraphViewport(x: 100, y: 200, zoom: 1.5);
 
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         nodes: [node],
         initialViewport: viewport,
       );
@@ -396,7 +400,7 @@ void main() {
       );
       final viewport = GraphViewport(x: 50, y: 50, zoom: 0.8);
 
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         nodes: nodes,
         connections: connections,
         config: config,
@@ -405,7 +409,7 @@ void main() {
 
       expect(controller.nodeCount, equals(2));
       expect(controller.connectionCount, equals(1));
-      expect(controller.debug.mode, equals(DebugMode.spatialIndex));
+      expect(controller.debug!.mode, equals(DebugMode.spatialIndex));
       expect(controller.currentZoom, equals(0.8));
     });
   });
@@ -416,7 +420,7 @@ void main() {
 
   group('Constructor Initialization - Optional Parameters', () {
     test('null nodes parameter creates empty graph', () {
-      final controller = NodeFlowController<String>(nodes: null);
+      final controller = NodeFlowController<String, dynamic>(nodes: null);
 
       expect(controller.nodeCount, equals(0));
     });
@@ -424,7 +428,7 @@ void main() {
     test('null connections parameter creates no connections', () {
       final node = createTestNode(id: 'node-1');
 
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         nodes: [node],
         connections: null,
       );
@@ -434,7 +438,7 @@ void main() {
     });
 
     test('default constructor creates empty controller', () {
-      final controller = NodeFlowController<String>();
+      final controller = NodeFlowController<String, dynamic>();
 
       expect(controller.nodeCount, equals(0));
       expect(controller.connectionCount, equals(0));
@@ -448,7 +452,7 @@ void main() {
   group('Post-Constructor Operations', () {
     test('can add more nodes after constructor init', () {
       final initial = createTestNode(id: 'initial');
-      final controller = NodeFlowController<String>(nodes: [initial]);
+      final controller = NodeFlowController<String, dynamic>(nodes: [initial]);
 
       final additional = createTestNode(id: 'additional');
       controller.addNode(additional);
@@ -468,7 +472,7 @@ void main() {
         targetNodeId: 'node-b',
       );
 
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         nodes: [nodeA, nodeB, nodeC],
         connections: [initialConnection],
       );
@@ -483,7 +487,7 @@ void main() {
         createTestNode(id: 'node-1'),
         createTestNode(id: 'node-2'),
       ];
-      final controller = NodeFlowController<String>(nodes: nodes);
+      final controller = NodeFlowController<String, dynamic>(nodes: nodes);
 
       controller.removeNode('node-1');
 
@@ -501,7 +505,7 @@ void main() {
         targetNodeId: 'node-b',
       );
 
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         nodes: [nodeA, nodeB],
         connections: [connection],
       );
@@ -516,7 +520,7 @@ void main() {
         createTestNode(id: 'node-1'),
         createTestNode(id: 'node-2'),
       ];
-      final controller = NodeFlowController<String>(nodes: nodes);
+      final controller = NodeFlowController<String, dynamic>(nodes: nodes);
 
       controller.selectNode('node-1');
 
@@ -533,7 +537,7 @@ void main() {
         createTestConnection(sourceNodeId: 'node-a', targetNodeId: 'node-b'),
       ];
 
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         nodes: nodes,
         connections: connections,
       );
@@ -554,7 +558,9 @@ void main() {
       final node1 = createTestNode(id: 'same-id', data: 'first');
       final node2 = createTestNode(id: 'same-id', data: 'second');
 
-      final controller = NodeFlowController<String>(nodes: [node1, node2]);
+      final controller = NodeFlowController<String, dynamic>(
+        nodes: [node1, node2],
+      );
 
       expect(controller.nodeCount, equals(1));
       expect(controller.getNode('same-id')!.data, equals('second'));
@@ -569,7 +575,7 @@ void main() {
         ),
       );
 
-      final controller = NodeFlowController<String>(nodes: nodes);
+      final controller = NodeFlowController<String, dynamic>(nodes: nodes);
 
       expect(controller.nodeCount, equals(100));
       expect(controller.getNode('node-0'), isNotNull);
@@ -584,7 +590,7 @@ void main() {
         createTestNode(id: 'node:with:colons'),
       ];
 
-      final controller = NodeFlowController<String>(nodes: nodes);
+      final controller = NodeFlowController<String, dynamic>(nodes: nodes);
 
       expect(controller.nodeCount, equals(4));
       expect(controller.getNode('node-with-dashes'), isNotNull);
@@ -606,7 +612,7 @@ void main() {
         data: 'comment-data',
       );
 
-      final controller = NodeFlowController<String>(nodes: [comment]);
+      final controller = NodeFlowController<String, dynamic>(nodes: [comment]);
 
       expect(controller.nodeCount, equals(1));
       final loaded = controller.getNode('comment-1');
@@ -621,7 +627,7 @@ void main() {
         data: 'group-data',
       );
 
-      final controller = NodeFlowController<String>(nodes: [group]);
+      final controller = NodeFlowController<String, dynamic>(nodes: [group]);
 
       expect(controller.nodeCount, equals(1));
       final loaded = controller.getNode('group-1');
@@ -640,7 +646,7 @@ void main() {
         data: 'group-data',
       );
 
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         nodes: [regularNode, commentNode, groupNode],
       );
 

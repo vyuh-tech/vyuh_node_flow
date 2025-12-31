@@ -151,7 +151,7 @@ class SimpleFlowEditor extends StatefulWidget {
 
 class _SimpleFlowEditorState extends State<SimpleFlowEditor> {
   // Create the controller with initial nodes
-  late final controller = NodeFlowController<String>(
+  late final controller = NodeFlowController<String, dynamic>(
     nodes: [
       Node<String>(
         id: 'node-1',
@@ -177,7 +177,7 @@ class _SimpleFlowEditorState extends State<SimpleFlowEditor> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: NodeFlowEditor<String>(
+      body: NodeFlowEditor<String, dynamic>(
         controller: controller,
         theme: NodeFlowTheme.light,
         nodeBuilder: (context, node) => _buildNode(node),
@@ -201,10 +201,11 @@ class _SimpleFlowEditorState extends State<SimpleFlowEditor> {
 ### The Controller
 
 The `NodeFlowController` is the central piece that manages all state. You can
-create a controller with initial nodes, connections, viewport, and configuration:
+create a controller with initial nodes, connections, viewport, and
+configuration:
 
 ```dart
-final controller = NodeFlowController<String>(
+final controller = NodeFlowController<String, dynamic>(
   // Optional: Pre-populate with initial nodes
   nodes: [
     Node<String>(
@@ -255,8 +256,8 @@ place, making your code cleaner and more readable than calling `addNode()` and
 `addConnection()` imperatively.
 
 > [!TIP] The type parameter `<T>` represents the data type stored in each node.
-> We recommend using a **sealed class hierarchy** with multiple subclasses
-> to create a strongly-typed collection of node types that work together. This
+> We recommend using a **sealed class hierarchy** with multiple subclasses to
+> create a strongly-typed collection of node types that work together. This
 > provides excellent type safety and pattern matching capabilities.
 
 <details>
@@ -362,14 +363,14 @@ NodeFlowTheme
 
 ```dart
 // Light theme (default)
-NodeFlowEditor<T>(
+NodeFlowEditor<T, dynamic>(
   controller: controller,
   theme: NodeFlowTheme.light,
   nodeBuilder: _buildNode,
 );
 
 // Dark theme
-NodeFlowEditor<T>(
+NodeFlowEditor<T, dynamic>(
   controller: controller,
   theme: NodeFlowTheme.dark,
   nodeBuilder: _buildNode,
@@ -754,7 +755,7 @@ For complete per-item customization, use builder functions:
 Customize port rendering based on port data or node context:
 
 ```dart
-NodeFlowEditor<MyData>(
+NodeFlowEditor<MyData, dynamic>(
   controller: controller,
   theme: theme,
   nodeBuilder: _buildNode,
@@ -790,7 +791,7 @@ NodeFlowEditor<MyData>(
 Customize connection label rendering:
 
 ```dart
-NodeFlowEditor<MyData>(
+NodeFlowEditor<MyData, dynamic>(
   controller: controller,
   theme: theme,
   nodeBuilder: _buildNode,
@@ -832,7 +833,7 @@ NodeFlowEditor<MyData>(
 Override connection styles per-connection:
 
 ```dart
-NodeFlowEditor<MyData>(
+NodeFlowEditor<MyData, dynamic>(
   controller: controller,
   theme: theme,
   nodeBuilder: _buildNode,
@@ -988,7 +989,7 @@ final customTheme = NodeFlowTheme(
 The simplest way to display nodes is using the default `NodeWidget`:
 
 ```dart
-NodeFlowEditor<String>(
+NodeFlowEditor<String, dynamic>(
   controller: controller,
   theme: theme,
   nodeBuilder: (context, node) {
@@ -1487,13 +1488,13 @@ Validate connections before they're created using the event system:
 <summary><strong>Connection Validation Example</strong></summary>
 
 ```dart
-NodeFlowEditor<MyData>(
+NodeFlowEditor<MyData, dynamic>(
   controller: controller,
   theme: theme,
   nodeBuilder: _buildNode,
 
-  events: NodeFlowEvents<MyData>(
-    connection: ConnectionEvents<MyData>(
+  events: NodeFlowEvents<MyData, dynamic>(
+    connection: ConnectionEvents<MyData, dynamic>(
       // Validate when starting a connection
       onBeforeStart: (context) {
         // Don't allow connections from disabled nodes
@@ -2425,12 +2426,12 @@ better discoverability and maintainability.
 <summary><strong>Complete Event System Example</strong></summary>
 
 ```dart
-NodeFlowEditor<MyData>(
+NodeFlowEditor<MyData, dynamic>(
   controller: controller,
   theme: theme,
   nodeBuilder: _buildNode,
 
-  events: NodeFlowEvents<MyData>(
+  events: NodeFlowEvents<MyData, dynamic>(
     // Node-related events
     node: NodeEvents<MyData>(
       onCreated: (node) => print('Node created: ${node.id}'),
@@ -2447,7 +2448,7 @@ NodeFlowEditor<MyData>(
     ),
 
     // Connection-related events
-    connection: ConnectionEvents<MyData>(
+    connection: ConnectionEvents<MyData, dynamic>(
       onCreated: (connection) {
         print('Connection created: ${connection.id}');
         _notifyConnectionChange();
@@ -2621,7 +2622,7 @@ controller.showShortcutsDialog(context);
 Control interaction capabilities using behavior modes:
 
 ```dart
-NodeFlowEditor<T>(
+NodeFlowEditor<T, dynamic>(
   controller: controller,
   theme: theme,
   nodeBuilder: _buildNode,
@@ -2671,7 +2672,7 @@ Enable the built-in minimap for easier navigation in large graphs:
 
 ```dart
 // Configure minimap in the controller
-final controller = NodeFlowController<T>(
+final controller = NodeFlowController<T, dynamic>(
   config: NodeFlowConfig(
     showMinimap: true, // Enable minimap
     isMinimapInteractive: true, // Allow click-to-navigate
@@ -2681,7 +2682,7 @@ final controller = NodeFlowController<T>(
 );
 
 // Use with editor - minimap appears automatically
-NodeFlowEditor<T>(
+NodeFlowEditor<T, dynamic>(
   controller: controller,
   theme: theme,
   nodeBuilder: _buildNode,
@@ -2714,7 +2715,7 @@ changes (create, update, delete).
 ### Constructor Parameters
 
 ```dart
-NodeFlowViewer<T>(
+NodeFlowViewer<T, dynamic>(
   // Required parameters
   controller: controller,          // NodeFlowController managing graph state
   nodeBuilder: _buildNode,         // Widget Function(BuildContext, Node<T>)
@@ -2734,10 +2735,11 @@ NodeFlowViewer<T>(
 
 **Parameter Details:**
 
-- **controller**: The `NodeFlowController<T>` that holds all nodes, connections,
+- **controller**: The `NodeFlowController<T, dynamic>` that holds all nodes, connections,
   annotations, and viewport state. Create it externally and pass it in.
 - **nodeBuilder**: A function that creates the visual representation for each
-  node. The returned widget is automatically wrapped in a `NodeWidget` container.
+  node. The returned widget is automatically wrapped in a `NodeWidget`
+  container.
 - **theme**: A `NodeFlowTheme` instance controlling colors, sizes, and
   appearance of all UI elements.
 - **scrollToZoom**: When `true`, trackpad scroll gestures zoom in/out. When
@@ -2749,8 +2751,8 @@ NodeFlowViewer<T>(
 
 ### Factory Method: withData
 
-For quickly displaying a graph without manually managing the controller, use
-the `withData` factory:
+For quickly displaying a graph without manually managing the controller, use the
+`withData` factory:
 
 ```dart
 final viewer = NodeFlowViewer.withData<String>(
@@ -2810,7 +2812,7 @@ For a fully non-interactive display (no pan, zoom, or selection), use
 `NodeFlowEditor` with `present` mode:
 
 ```dart
-NodeFlowEditor<T>(
+NodeFlowEditor<T, dynamic>(
   controller: controller,
   theme: theme,
   nodeBuilder: _buildNode,
@@ -2939,15 +2941,15 @@ Visibility:    [  Minimal      ][     Standard      ][     Full      ]
 
 Three built-in visibility presets control which elements are shown:
 
-| Element                | Minimal | Standard | Full |
-| ---------------------- | :-----: | :------: | :--: |
-| Node Content           |    ❌    |    ✅     |  ✅   |
-| Ports                  |    ❌    |    ❌     |  ✅   |
-| Port Labels            |    ❌    |    ❌     |  ✅   |
-| Connection Lines       |    ✅    |    ✅     |  ✅   |
-| Connection Labels      |    ❌    |    ❌     |  ✅   |
-| Connection Endpoints   |    ❌    |    ❌     |  ✅   |
-| Resize Handles         |    ❌    |    ❌     |  ✅   |
+| Element              | Minimal | Standard | Full |
+| -------------------- | :-----: | :------: | :--: |
+| Node Content         |   ❌    |    ✅    |  ✅  |
+| Ports                |   ❌    |    ❌    |  ✅  |
+| Port Labels          |   ❌    |    ❌    |  ✅  |
+| Connection Lines     |   ✅    |    ✅    |  ✅  |
+| Connection Labels    |   ❌    |    ❌    |  ✅  |
+| Connection Endpoints |   ❌    |    ❌    |  ✅  |
+| Resize Handles       |   ❌    |    ❌    |  ✅  |
 
 - **Minimal**: Nodes render as simple colored rectangles. Connection lines
   remain visible to preserve graph structure. Best for viewing large graphs from
@@ -3249,12 +3251,12 @@ class DataPipelineEditor extends StatefulWidget {
 }
 
 class _DataPipelineEditorState extends State<DataPipelineEditor> {
-  late final NodeFlowController<String> controller;
+  late final NodeFlowController<String, dynamic> controller;
 
   @override
   void initState() {
     super.initState();
-    controller = NodeFlowController<String>();
+    controller = NodeFlowController<String, dynamic>();
     controller.setTheme(NodeFlowTheme.light);
     _createPipeline();
   }
@@ -3318,7 +3320,7 @@ class _DataPipelineEditorState extends State<DataPipelineEditor> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Data Pipeline')),
-      body: NodeFlowEditor<String>(
+      body: NodeFlowEditor<String, dynamic>(
         controller: controller,
         theme: NodeFlowTheme.light,
         nodeBuilder: _buildNode,
@@ -3369,12 +3371,12 @@ class WorkflowBuilder extends StatefulWidget {
 }
 
 class _WorkflowBuilderState extends State<WorkflowBuilder> {
-  late final NodeFlowController<WorkflowNodeData> controller;
+  late final NodeFlowController<WorkflowNodeData, dynamic> controller;
 
   @override
   void initState() {
     super.initState();
-    controller = NodeFlowController<WorkflowNodeData>();
+    controller = NodeFlowController<WorkflowNodeData, dynamic>();
     controller.setTheme(_createWorkflowTheme());
   }
 
@@ -3396,13 +3398,13 @@ class _WorkflowBuilderState extends State<WorkflowBuilder> {
           ),
         ],
       ),
-      body: NodeFlowEditor<WorkflowNodeData>(
+      body: NodeFlowEditor<WorkflowNodeData, dynamic>(
         controller: controller,
         theme: _createWorkflowTheme(),
         nodeBuilder: _buildWorkflowNode,
 
-        events: NodeFlowEvents<WorkflowNodeData>(
-          connection: ConnectionEvents<WorkflowNodeData>(
+        events: NodeFlowEvents<WorkflowNodeData, dynamic>(
+          connection: ConnectionEvents<WorkflowNodeData, dynamic>(
             // Prevent invalid connections
             onBeforeComplete: (context) {
               // Don't allow loops
@@ -3529,14 +3531,14 @@ class ProcessViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<NodeGraph<String>>(
+    return FutureBuilder<NodeGraph<String, dynamic>>(
       future: NodeGraph.fromUrl(processJsonPath),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final controller = NodeFlowController<String>();
+        final controller = NodeFlowController<String, dynamic>();
         controller.setTheme(NodeFlowTheme.light);
         controller.loadGraph(snapshot.data!);
 
@@ -3560,7 +3562,7 @@ class ProcessViewer extends StatelessWidget {
           ),
           body: Stack(
             children: [
-              NodeFlowViewer<String>(
+              NodeFlowViewer<String, dynamic>(
                 controller: controller,
                 theme: NodeFlowTheme.light,
                 nodeBuilder: _buildNode,

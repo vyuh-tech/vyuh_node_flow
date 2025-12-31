@@ -12,10 +12,10 @@ Complete reference for all event classes in Vyuh Node Flow.
 The top-level container for all event handlers.
 
 ```dart
-NodeFlowEvents<T>({
+NodeFlowEvents<T, dynamic>({
   NodeEvents<T>? node,
   PortEvents<T>? port,
-  ConnectionEvents<T>? connection,
+  ConnectionEvents<T, dynamic>? connection,
   ViewportEvents? viewport,
   ValueChanged<SelectionState<T>>? onSelectionChange,
   VoidCallback? onInit,
@@ -27,7 +27,7 @@ NodeFlowEvents<T>({
 |----------|------|-------------|
 | `node` | `NodeEvents<T>?` | Node interaction events (includes GroupNode & CommentNode) |
 | `port` | `PortEvents<T>?` | Port interaction events |
-| `connection` | `ConnectionEvents<T>?` | Connection lifecycle events |
+| `connection` | `ConnectionEvents<T, dynamic>?` | Connection lifecycle events |
 | `viewport` | `ViewportEvents?` | Canvas pan/zoom events |
 | `onSelectionChange` | `ValueChanged<SelectionState<T>>?` | Selection state changes |
 | `onInit` | `VoidCallback?` | Editor initialization |
@@ -40,14 +40,17 @@ Events for node interactions.
 ```dart
 NodeEvents<T>({
   ValueChanged<Node<T>>? onCreated,
+  BeforeDeleteCallback<Node<T>>? onBeforeDelete,
   ValueChanged<Node<T>>? onDeleted,
   ValueChanged<Node<T>?>? onSelected,
   ValueChanged<Node<T>>? onTap,
   ValueChanged<Node<T>>? onDoubleTap,
-  void Function(Node<T>, Offset)? onContextMenu,
+  void Function(Node<T> node, ScreenPosition screenPosition)? onContextMenu,
   ValueChanged<Node<T>>? onDragStart,
   ValueChanged<Node<T>>? onDrag,
   ValueChanged<Node<T>>? onDragStop,
+  ValueChanged<Node<T>>? onDragCancel,
+  ValueChanged<Node<T>>? onResizeCancel,
   ValueChanged<Node<T>>? onMouseEnter,
   ValueChanged<Node<T>>? onMouseLeave,
 })
@@ -56,16 +59,23 @@ NodeEvents<T>({
 | Event | Trigger | Signature |
 |-------|---------|-----------|
 | `onCreated` | Node added to graph | `ValueChanged<Node<T>>` |
+| `onBeforeDelete` | Before node deleted (async, can cancel) | `Future<bool> Function(Node<T>)` |
 | `onDeleted` | Node removed from graph | `ValueChanged<Node<T>>` |
 | `onSelected` | Selection changes | `ValueChanged<Node<T>?>` |
 | `onTap` | Single tap | `ValueChanged<Node<T>>` |
 | `onDoubleTap` | Double tap | `ValueChanged<Node<T>>` |
-| `onContextMenu` | Right-click/long-press | `(Node<T>, Offset)` |
+| `onContextMenu` | Right-click/long-press | `(Node<T>, ScreenPosition)` |
 | `onDragStart` | Drag begins | `ValueChanged<Node<T>>` |
 | `onDrag` | During drag | `ValueChanged<Node<T>>` |
-| `onDragStop` | Drag ends | `ValueChanged<Node<T>>` |
+| `onDragStop` | Drag ends successfully | `ValueChanged<Node<T>>` |
+| `onDragCancel` | Drag cancelled (reverted) | `ValueChanged<Node<T>>` |
+| `onResizeCancel` | Resize cancelled (reverted) | `ValueChanged<Node<T>>` |
 | `onMouseEnter` | Mouse enters node bounds | `ValueChanged<Node<T>>` |
 | `onMouseLeave` | Mouse leaves node bounds | `ValueChanged<Node<T>>` |
+
+::: info
+The `onBeforeDelete` callback is async and can be used to show confirmation dialogs before deletion. Locked nodes are automatically prevented from deletion without invoking this callback.
+:::
 
 **Example:**
 ```dart
@@ -74,6 +84,18 @@ NodeEvents<MyData>(
   onDoubleTap: (node) => _editNode(node),
   onDragStop: (node) => _savePosition(node),
   onContextMenu: (node, pos) => _showMenu(node, pos),
+  onBeforeDelete: (node) async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Delete Node?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('Delete')),
+        ],
+      ),
+    ) ?? false;
+  },
 )
 ```
 
@@ -83,32 +105,32 @@ Events for port interactions. All callbacks include the parent node for context.
 
 ```dart
 PortEvents<T>({
-  void Function(Node<T>, Port, bool)? onTap,
-  void Function(Node<T>, Port, bool)? onDoubleTap,
-  void Function(Node<T>, Port, bool)? onMouseEnter,
-  void Function(Node<T>, Port, bool)? onMouseLeave,
-  void Function(Node<T>, Port, bool, Offset)? onContextMenu,
+  void Function(Node<T> node, Port port)? onTap,
+  void Function(Node<T> node, Port port)? onDoubleTap,
+  void Function(Node<T> node, Port port)? onMouseEnter,
+  void Function(Node<T> node, Port port)? onMouseLeave,
+  void Function(Node<T> node, Port port, ScreenPosition screenPosition)? onContextMenu,
 })
 ```
 
-The `bool` parameter indicates whether it's an output port (`true`) or input port (`false`).
+Use `port.isOutput` or `port.isInput` to determine the port direction.
 
 | Event | Trigger | Signature |
 |-------|---------|-----------|
-| `onTap` | Port tapped | `(Node<T>, Port, bool isOutput)` |
-| `onDoubleTap` | Port double-tapped | `(Node<T>, Port, bool isOutput)` |
-| `onMouseEnter` | Mouse enters port | `(Node<T>, Port, bool isOutput)` |
-| `onMouseLeave` | Mouse leaves port | `(Node<T>, Port, bool isOutput)` |
-| `onContextMenu` | Right-click on port | `(Node<T>, Port, bool isOutput, Offset)` |
+| `onTap` | Port tapped | `(Node<T>, Port)` |
+| `onDoubleTap` | Port double-tapped | `(Node<T>, Port)` |
+| `onMouseEnter` | Mouse enters port | `(Node<T>, Port)` |
+| `onMouseLeave` | Mouse leaves port | `(Node<T>, Port)` |
+| `onContextMenu` | Right-click on port | `(Node<T>, Port, ScreenPosition)` |
 
 **Example:**
 ```dart
 PortEvents<MyData>(
-  onTap: (node, port, isOutput) {
-    print('Tapped ${isOutput ? 'output' : 'input'} port: ${port.id}');
+  onTap: (node, port) {
+    print('Tapped ${port.isOutput ? 'output' : 'input'} port: ${port.id}');
   },
-  onMouseEnter: (node, port, isOutput) => _showTooltip(port),
-  onMouseLeave: (node, port, isOutput) => _hideTooltip(),
+  onMouseEnter: (node, port) => _showTooltip(port),
+  onMouseLeave: (node, port) => _hideTooltip(),
 )
 ```
 
@@ -117,17 +139,18 @@ PortEvents<MyData>(
 Events for connection lifecycle and validation.
 
 ```dart
-ConnectionEvents<T>({
+ConnectionEvents<T, dynamic>({
   ValueChanged<Connection>? onCreated,
+  BeforeDeleteCallback<Connection>? onBeforeDelete,
   ValueChanged<Connection>? onDeleted,
   ValueChanged<Connection?>? onSelected,
   ValueChanged<Connection>? onTap,
   ValueChanged<Connection>? onDoubleTap,
   ValueChanged<Connection>? onMouseEnter,
   ValueChanged<Connection>? onMouseLeave,
-  void Function(Connection, Offset)? onContextMenu,
-  void Function(String nodeId, String portId, bool isOutput)? onConnectStart,
-  void Function(bool success)? onConnectEnd,
+  void Function(Connection, ScreenPosition)? onContextMenu,
+  void Function(Node<T> sourceNode, Port sourcePort)? onConnectStart,
+  void Function(Node<T>? targetNode, Port? targetPort, GraphPosition position)? onConnectEnd,
   ConnectionValidationResult Function(ConnectionStartContext<T>)? onBeforeStart,
   ConnectionValidationResult Function(ConnectionCompleteContext<T>)? onBeforeComplete,
 })
@@ -136,15 +159,16 @@ ConnectionEvents<T>({
 | Event | Trigger | Signature |
 |-------|---------|-----------|
 | `onCreated` | Connection added | `ValueChanged<Connection>` |
+| `onBeforeDelete` | Before connection deleted | `Future<bool> Function(Connection)` |
 | `onDeleted` | Connection removed | `ValueChanged<Connection>` |
 | `onSelected` | Selection changes | `ValueChanged<Connection?>` |
 | `onTap` | Single tap | `ValueChanged<Connection>` |
 | `onDoubleTap` | Double tap | `ValueChanged<Connection>` |
 | `onMouseEnter` | Mouse enters path | `ValueChanged<Connection>` |
 | `onMouseLeave` | Mouse leaves path | `ValueChanged<Connection>` |
-| `onContextMenu` | Right-click | `(Connection, Offset)` |
-| `onConnectStart` | Drag begins from port | `(nodeId, portId, isOutput)` |
-| `onConnectEnd` | Drag ends | `(bool success)` |
+| `onContextMenu` | Right-click | `(Connection, ScreenPosition)` |
+| `onConnectStart` | Drag begins from port | `(Node<T>, Port)` |
+| `onConnectEnd` | Drag ends | `(Node<T>?, Port?, GraphPosition)` |
 | `onBeforeStart` | Before connection starts | Returns validation result |
 | `onBeforeComplete` | Before connection completes | Returns validation result |
 
@@ -224,7 +248,7 @@ class ConnectionValidationResult {
 
 **Example:**
 ```dart
-ConnectionEvents<MyData>(
+ConnectionEvents<MyData, dynamic>(
   onBeforeStart: (context) {
     // Validate port can start connections
     if (!context.sourcePort.isConnectable) {
@@ -260,27 +284,26 @@ Events for canvas interactions.
 
 ```dart
 ViewportEvents({
-  ValueChanged<GraphViewport>? onMoveStart,
   ValueChanged<GraphViewport>? onMove,
+  ValueChanged<GraphViewport>? onMoveStart,
   ValueChanged<GraphViewport>? onMoveEnd,
-  ValueChanged<Offset>? onCanvasTap,
-  ValueChanged<Offset>? onCanvasDoubleTap,
-  ValueChanged<Offset>? onCanvasContextMenu,
+  ValueChanged<GraphPosition>? onCanvasTap,
+  ValueChanged<GraphPosition>? onCanvasDoubleTap,
+  ValueChanged<GraphPosition>? onCanvasContextMenu,
 })
 ```
 
 | Event | Trigger | Signature |
 |-------|---------|-----------|
-| `onMoveStart` | Pan/zoom begins | `ValueChanged<GraphViewport>` |
 | `onMove` | During pan/zoom | `ValueChanged<GraphViewport>` |
+| `onMoveStart` | Pan/zoom begins | `ValueChanged<GraphViewport>` |
 | `onMoveEnd` | Pan/zoom ends | `ValueChanged<GraphViewport>` |
-| `onCanvasTap` | Tap on empty canvas | `ValueChanged<Offset>` |
-| `onCanvasDoubleTap` | Double-tap on canvas | `ValueChanged<Offset>` |
-| `onCanvasContextMenu` | Right-click on canvas | `ValueChanged<Offset>` |
+| `onCanvasTap` | Tap on empty canvas | `ValueChanged<GraphPosition>` |
+| `onCanvasDoubleTap` | Double-tap on canvas | `ValueChanged<GraphPosition>` |
+| `onCanvasContextMenu` | Right-click on canvas | `ValueChanged<GraphPosition>` |
 
 ::: info
-Canvas positions are in **graph coordinates**, automatically adjusted for pan and zoom.
-
+Canvas positions are in **graph coordinates** (`GraphPosition`), automatically adjusted for pan and zoom.
 :::
 
 **Example:**
@@ -351,7 +374,7 @@ onError: (error) {
 ## Complete Example
 
 ```dart
-NodeFlowEditor<WorkflowData>(
+NodeFlowEditor<WorkflowData, dynamic>(
   controller: controller,
   events: NodeFlowEvents(
     node: NodeEvents(
@@ -389,7 +412,7 @@ NodeFlowEditor<WorkflowData>(
 All event classes support `copyWith` for creating modified copies:
 
 ```dart
-final baseEvents = NodeFlowEvents<MyData>(
+final baseEvents = NodeFlowEvents<MyData, dynamic>(
   node: NodeEvents(onTap: (n) => print('tap')),
 );
 

@@ -14,7 +14,7 @@
 /// - **Rich Theming**: Comprehensive theming system for nodes, ports, and connections
 /// - **Viewport Controls**: Pan, zoom, and minimap support for navigating large graphs
 /// - **State Management**: Built on MobX for reactive, observable state management
-/// - **Grouping & Comments**: GroupNode for visual grouping, CommentNode for annotations
+/// - **Grouping & Comments**: GroupNode for visual grouping, CommentNode for floating text comments
 /// - **Validation**: Built-in connection validation and custom validation support
 /// - **Keyboard Shortcuts**: Extensive keyboard shortcuts for productivity
 /// - **Serialization**: JSON serialization support for saving and loading graphs
@@ -32,7 +32,7 @@
 /// ### Nodes
 /// - [Node]: The core node model representing graph nodes
 /// - [GroupNode]: Special node for visually grouping other nodes
-/// - [CommentNode]: Special node for floating text annotations
+/// - [CommentNode]: Special node for floating text comments
 /// - [NodeWidget]: Base widget for rendering nodes
 /// - [NodeData]: Custom data interface for node content
 /// - [InteractionState]: Tracks node interaction states (hover, selected, etc.)

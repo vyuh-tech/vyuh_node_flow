@@ -56,12 +56,12 @@ class FlowEditorWithSaveLoad extends StatefulWidget {
 
 class _FlowEditorWithSaveLoadState
     extends State<FlowEditorWithSaveLoad> {
-  late final NodeFlowController<MyNodeData> controller;
+  late final NodeFlowController<MyNodeData, dynamic> controller;
 
   @override
   void initState() {
     super.initState();
-    controller = NodeFlowController<MyNodeData>();
+    controller = NodeFlowController<MyNodeData, dynamic>();
   }
 
   Future<void> _saveGraph() async {
@@ -134,7 +134,7 @@ class _FlowEditorWithSaveLoadState
           ),
         ],
       ),
-      body: NodeFlowEditor<MyNodeData>(
+      body: NodeFlowEditor<MyNodeData, dynamic>(
         controller: controller,
         nodeBuilder: (context, node) => MyNodeWidget(node: node),
         enablePanning: true,
@@ -145,12 +145,12 @@ class _FlowEditorWithSaveLoadState
 }
 ```
 
-## Custom NodeData Serialization
+## Custom Data Serialization
 
-Your `NodeData` class must implement `toJson()` and `fromJson()`:
+Your custom data class needs a `toJson()` method and a factory for deserialization:
 
 ```dart
-class WorkflowNodeData extends NodeData {
+class WorkflowNodeData {
   final String title;
   final String description;
   final Map<String, dynamic> config;
@@ -161,20 +161,12 @@ class WorkflowNodeData extends NodeData {
     this.config = const {},
   });
 
-  @override
   Map<String, dynamic> toJson() {
     return {
       'title': title,
       'description': description,
       'config': config,
     };
-  }
-
-  @override
-  void fromJson(Map<String, dynamic> json) {
-    // Note: This method is called on an already-constructed instance
-    // to update its values. For immutable data, you may need to
-    // use a factory constructor instead.
   }
 
   // Factory constructor for creating from JSON

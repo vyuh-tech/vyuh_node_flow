@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import Badge from './components/Badge.vue';
+import ComparisonTable, {
+  type ComparisonRow,
+} from './components/ComparisonTable.vue';
 import CtaSection from './components/CtaSection.vue';
-import FeatureCard from './components/FeatureCard.vue';
 import FeatureSection from './components/FeatureSection.vue';
 import FloatingNodes from './components/FloatingNodes.vue';
 import FlutterBrand from './components/FlutterBrand.vue';
+import FormDialog from './components/FormDialog.vue';
 import GridBackground from './components/GridBackground.vue';
 import HeroSection from './components/HeroSection.vue';
 import MarqueeGroup from './components/MarqueeGroup.vue';
@@ -14,6 +18,10 @@ import SectionHeader from './components/SectionHeader.vue';
 import SelectProgramCard from './components/SelectProgramCard.vue';
 import SiteFooter from './components/SiteFooter.vue';
 import TitleBadge from './components/TitleBadge.vue';
+import { SELECT_PROGRAM_FORM_URL } from './constants';
+
+// Form dialog state
+const ctaDialogOpen = ref(false);
 
 // Blinking grid cells generator
 const generateBlinkCells = (count: number, seed: number) => {
@@ -31,57 +39,6 @@ const generateBlinkCells = (count: number, seed: number) => {
 };
 
 const proBlinkCells = generateBlinkCells(18, 91);
-
-const proFeatures = [
-  {
-    icon: 'ph:clock-counter-clockwise-fill',
-    title: 'History & Undo/Redo',
-    desc: 'Full history management with unlimited undo/redo stack and time-travel debugging.',
-    color: 'purple' as const,
-  },
-  {
-    icon: 'ph:arrows-split-fill',
-    title: 'Advanced Grouping',
-    desc: 'Nested groups, collapsible subflows, and hierarchical node organization.',
-    color: 'blue' as const,
-  },
-  {
-    icon: 'ph:puzzle-piece-fill',
-    title: 'Extension System',
-    desc: 'Plugin architecture for custom tools, panels, and editor extensions.',
-    color: 'teal' as const,
-  },
-  {
-    icon: 'ph:cloud-arrow-down-fill',
-    title: 'Cloud Sync',
-    desc: 'Real-time collaboration with cloud-based flow storage and versioning.',
-    color: 'amber' as const,
-  },
-  {
-    icon: 'ph:magic-wand-fill',
-    title: 'AI-Powered Layouts',
-    desc: 'Intelligent auto-layout algorithms for optimal graph organization.',
-    color: 'purple' as const,
-  },
-  {
-    icon: 'ph:export-fill',
-    title: 'Export & Import',
-    desc: 'Export to multiple formats including PNG, SVG, PDF, and custom schemas.',
-    color: 'blue' as const,
-  },
-  {
-    icon: 'ph:lock-key-fill',
-    title: 'Access Control',
-    desc: 'Role-based permissions for collaborative editing and view-only modes.',
-    color: 'teal' as const,
-  },
-  {
-    icon: 'ph:headset-fill',
-    title: 'Priority Support',
-    desc: 'Direct access to the development team with priority issue resolution.',
-    color: 'amber' as const,
-  },
-];
 
 const workflowFeatures = [
   {
@@ -207,6 +164,76 @@ const marqueeLines = [
     duration: 35, // Faster
   },
 ];
+
+// Comparison table data - merged Pro Features + Plan Comparison
+const comparisonRows: ComparisonRow[] = [
+  // Core features (both editions)
+  { category: 'Core Editor Features', openSource: true, pro: true },
+  { category: 'Theming & Customization', openSource: true, pro: true },
+  { category: 'Connection Effects', openSource: true, pro: true },
+  { category: 'Serialization', openSource: true, pro: true },
+  // Pro-exclusive editor features
+  { category: 'History & Undo/Redo', openSource: false, pro: true },
+  { category: 'Advanced Grouping', openSource: false, pro: true },
+  {
+    category: 'Extension System',
+    openSource: true,
+    pro: 'Many more custom extensions',
+  },
+  { category: 'Custom Node & Graph Layouts', openSource: false, pro: true },
+  { category: 'Export & Import', openSource: false, pro: true },
+  { category: 'Copy & Paste', openSource: false, pro: true },
+  { category: 'Access Control', openSource: false, pro: true },
+  // Workflow Engine section
+  {
+    category: 'Workflow Engine',
+    isSection: true,
+    icon: 'ph:git-branch-fill',
+  },
+  {
+    category: 'Visual Workflow Editor',
+    openSource: false,
+    pro: 'See details below',
+  },
+  {
+    category: 'Server-Side Workflow Engine',
+    openSource: false,
+    pro: 'See details below',
+  },
+  {
+    category: 'Real-Time Monitoring',
+    openSource: false,
+    pro: 'See details below',
+  },
+  // Support section
+  {
+    category: 'Support',
+    isSection: true,
+    icon: 'ph:headset-fill',
+  },
+  {
+    category: 'Documentation',
+    openSource: 'Community',
+    pro: 'Advanced Samples & Use Cases',
+  },
+  { category: 'Priority Support', openSource: false, pro: true },
+  {
+    category: 'Expert Consultation',
+    openSource: false,
+    pro: 'Face time with core team',
+  },
+  { category: 'Architecture Guidance', openSource: false, pro: true },
+  {
+    category: 'Custom Development',
+    openSource: false,
+    pro: 'Nodes, plugins & extensions',
+  },
+  {
+    category: 'Bespoke Features',
+    openSource: false,
+    pro: 'Tailored to your needs',
+  },
+];
 </script>
 
 <template>
@@ -218,7 +245,7 @@ const marqueeLines = [
     <FloatingNodes />
 
     <!-- Hero Section with centered variant -->
-    <HeroSection variant="centered">
+    <HeroSection variant="centered" border-bottom>
       <Badge icon="ph:crown-fill" color="purple">Pro Edition</Badge>
       <h1 class="pro-title">
         <span class="pro-title-gradient">Vyuh Node Flow</span>
@@ -233,51 +260,45 @@ const marqueeLines = [
       </div>
     </HeroSection>
 
-    <!-- Connector: Hero to Features -->
+    <!-- Connector: Hero to Comparison -->
     <SectionConnector color="purple" />
 
-    <!-- Pro Features Grid -->
-    <Section first background>
+    <!-- Unified Comparison Table Section -->
+    <Section border-top border-bottom background>
       <SectionHeader
-        badge="Pro Features"
-        badge-icon="ph:star-fill"
+        badge="Compare Plans"
+        badge-icon="ph:scales-fill"
         badge-color="purple"
-        title="Everything in Free, Plus..."
-        subtitle="Powerful capabilities designed for professional development teams and enterprise applications."
+        subtitle="See what's included in each edition and choose the right fit for your project."
         centered
-      />
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <FeatureCard
-          v-for="(feature, index) in proFeatures"
-          :key="index"
-          :icon="feature.icon"
-          :title="feature.title"
-          :description="feature.desc"
-          :color="feature.color"
-        />
-      </div>
+      >
+        <template #title>
+          Open Source vs
+          <span class="text-amber-500 dark:text-amber-400">Pro</span>
+        </template>
+      </SectionHeader>
+      <ComparisonTable :rows="comparisonRows" />
     </Section>
 
-    <!-- Connector: Features to Marquee -->
-    <SectionConnector color="teal" />
-
-    <!-- Marquee -->
-    <MarqueeGroup :lines="marqueeLines" />
-
-    <!-- Connector: Marquee to Workflow -->
+    <!-- Connector: Comparison to Workflow -->
     <SectionConnector color="purple" />
 
     <!-- Workflow Engine Section -->
-    <Section background>
+    <Section border-top border-bottom background variant="teal">
       <SectionHeader
         badge="Workflow Engine"
         badge-icon="ph:git-branch-fill"
         badge-color="teal"
-        title="Server-Side Workflow Automation"
         subtitle="Design, execute, and monitor BPMN-style workflows with native Dart executors and real-time observability."
         centered
         large-title
-      />
+      >
+        <template #title>
+          <span class="workflow-title-gradient"
+            >Server-Side Workflow Automation</span
+          >
+        </template>
+      </SectionHeader>
 
       <div class="mt-16">
         <FeatureSection
@@ -295,20 +316,26 @@ const marqueeLines = [
       </div>
     </Section>
 
-    <!-- Connector: Workflow to CTA -->
+    <!-- Connector: Workflow to Marquee -->
     <SectionConnector color="teal" />
+
+    <!-- Marquee -->
+    <MarqueeGroup :lines="marqueeLines" />
+
+    <!-- Connector: Marquee to CTA -->
+    <SectionConnector color="purple" />
 
     <!-- CTA Section -->
     <CtaSection
+      border-top
       badge="Partner With Us"
       badge-icon="ph:handshake-fill"
       badge-color="purple"
       title="Join Our Select Program"
       :primary-action="{
-        href: 'https://vyuh.tech',
         icon: 'ph:rocket-launch-fill',
         label: 'Apply for Select Access',
-        external: true,
+        onClick: () => (ctaDialogOpen = true),
       }"
       :secondary-actions="[
         {
@@ -329,6 +356,13 @@ const marqueeLines = [
         </p>
       </template>
     </CtaSection>
+
+    <!-- Form Dialog for CTA -->
+    <FormDialog
+      :open="ctaDialogOpen"
+      :form-url="SELECT_PROGRAM_FORM_URL"
+      @close="ctaDialogOpen = false"
+    />
 
     <!-- Footer -->
     <SiteFooter :is-pro-page="true" />
@@ -366,6 +400,29 @@ const marqueeLines = [
     135deg,
     theme('colors.blue.400'),
     theme('colors.violet.400')
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Workflow section title - teal to amber gradient */
+.workflow-title-gradient {
+  background: linear-gradient(
+    135deg,
+    theme('colors.teal.600'),
+    theme('colors.amber.500')
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .workflow-title-gradient {
+  background: linear-gradient(
+    135deg,
+    theme('colors.teal.400'),
+    theme('colors.amber.400')
   );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

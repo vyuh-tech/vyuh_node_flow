@@ -7,14 +7,18 @@ import '../ports/port.dart';
 import '../graph/coordinates.dart';
 import '../graph/viewport.dart';
 
-/// Comprehensive event system for the NodeFlowEditor
+/// Comprehensive event system for the NodeFlowEditor.
+///
+/// Type parameters:
+/// - [T]: The type of node data
+/// - [C]: The type of connection data
 ///
 /// Organizes all callbacks into logical groups for better discoverability and maintainability.
 ///
 /// Note: GroupNode and CommentNode events are handled through [NodeEvents] since
 /// they are now regular nodes. Use `node is GroupNode` or `node is CommentNode`
 /// in callbacks to handle these specifically.
-class NodeFlowEvents<T> {
+class NodeFlowEvents<T, C> {
   const NodeFlowEvents({
     this.node,
     this.port,
@@ -32,14 +36,14 @@ class NodeFlowEvents<T> {
   final PortEvents<T>? port;
 
   /// Connection-related events
-  final ConnectionEvents<T>? connection;
+  final ConnectionEvents<T, C>? connection;
 
   /// Viewport/canvas events (pan, zoom, taps on empty canvas)
   final ViewportEvents? viewport;
 
   /// Called when the selection changes (nodes or connections)
   /// Provides the complete current selection state
-  final ValueChanged<SelectionState<T>>? onSelectionChange;
+  final ValueChanged<SelectionState<T, C>>? onSelectionChange;
 
   /// Called when the editor is initialized and ready
   final VoidCallback? onInit;
@@ -49,16 +53,16 @@ class NodeFlowEvents<T> {
   final ValueChanged<FlowError>? onError;
 
   /// Create a new events object with updated values
-  NodeFlowEvents<T> copyWith({
+  NodeFlowEvents<T, C> copyWith({
     NodeEvents<T>? node,
     PortEvents<T>? port,
-    ConnectionEvents<T>? connection,
+    ConnectionEvents<T, C>? connection,
     ViewportEvents? viewport,
-    ValueChanged<SelectionState<T>>? onSelectionChange,
+    ValueChanged<SelectionState<T, C>>? onSelectionChange,
     VoidCallback? onInit,
     ValueChanged<FlowError>? onError,
   }) {
-    return NodeFlowEvents<T>(
+    return NodeFlowEvents<T, C>(
       node: node ?? this.node,
       port: port ?? this.port,
       connection: connection ?? this.connection,
@@ -267,8 +271,12 @@ class PortEvents<T> {
   }
 }
 
-/// Events related to connection interactions
-class ConnectionEvents<T> {
+/// Events related to connection interactions.
+///
+/// Type parameters:
+/// - [T]: The type of node data (for node context in callbacks)
+/// - [C]: The type of connection data
+class ConnectionEvents<T, C> {
   const ConnectionEvents({
     this.onCreated,
     this.onBeforeDelete,
@@ -286,7 +294,7 @@ class ConnectionEvents<T> {
   });
 
   /// Called when a connection is created
-  final ValueChanged<Connection>? onCreated;
+  final ValueChanged<Connection<C>>? onCreated;
 
   /// Called before a connection is deleted to allow cancellation.
   ///
@@ -295,32 +303,32 @@ class ConnectionEvents<T> {
   ///
   /// Note: This is NOT called for locked connections - they are automatically
   /// prevented from deletion without invoking the callback.
-  final BeforeDeleteCallback<Connection>? onBeforeDelete;
+  final BeforeDeleteCallback<Connection<C>>? onBeforeDelete;
 
   /// Called when a connection is deleted
-  final ValueChanged<Connection>? onDeleted;
+  final ValueChanged<Connection<C>>? onDeleted;
 
   /// Called when a connection's selection state changes
   /// Receives the selected connection, or null if selection was cleared
-  final ValueChanged<Connection?>? onSelected;
+  final ValueChanged<Connection<C>?>? onSelected;
 
   /// Called when a connection is tapped
-  final ValueChanged<Connection>? onTap;
+  final ValueChanged<Connection<C>>? onTap;
 
   /// Called when a connection is double-tapped
-  final ValueChanged<Connection>? onDoubleTap;
+  final ValueChanged<Connection<C>>? onDoubleTap;
 
   /// Called when mouse enters a connection's path
-  final ValueChanged<Connection>? onMouseEnter;
+  final ValueChanged<Connection<C>>? onMouseEnter;
 
   /// Called when mouse leaves a connection's path
-  final ValueChanged<Connection>? onMouseLeave;
+  final ValueChanged<Connection<C>>? onMouseLeave;
 
   /// Called on secondary tap on a connection (right-click/long-press for context menu).
   ///
   /// The [screenPosition] is in screen/global coordinates, suitable for
   /// positioning popup menus via [showMenu] or similar APIs.
-  final void Function(Connection connection, ScreenPosition screenPosition)?
+  final void Function(Connection<C> connection, ScreenPosition screenPosition)?
   onContextMenu;
 
   /// Called when starting to create a connection from a port.
@@ -353,16 +361,16 @@ class ConnectionEvents<T> {
   )?
   onBeforeComplete;
 
-  ConnectionEvents<T> copyWith({
-    ValueChanged<Connection>? onCreated,
-    BeforeDeleteCallback<Connection>? onBeforeDelete,
-    ValueChanged<Connection>? onDeleted,
-    ValueChanged<Connection?>? onSelected,
-    ValueChanged<Connection>? onTap,
-    ValueChanged<Connection>? onDoubleTap,
-    ValueChanged<Connection>? onMouseEnter,
-    ValueChanged<Connection>? onMouseLeave,
-    void Function(Connection connection, ScreenPosition screenPosition)?
+  ConnectionEvents<T, C> copyWith({
+    ValueChanged<Connection<C>>? onCreated,
+    BeforeDeleteCallback<Connection<C>>? onBeforeDelete,
+    ValueChanged<Connection<C>>? onDeleted,
+    ValueChanged<Connection<C>?>? onSelected,
+    ValueChanged<Connection<C>>? onTap,
+    ValueChanged<Connection<C>>? onDoubleTap,
+    ValueChanged<Connection<C>>? onMouseEnter,
+    ValueChanged<Connection<C>>? onMouseLeave,
+    void Function(Connection<C> connection, ScreenPosition screenPosition)?
     onContextMenu,
     void Function(Node<T> sourceNode, Port sourcePort)? onConnectStart,
     void Function(
@@ -376,7 +384,7 @@ class ConnectionEvents<T> {
     ConnectionValidationResult Function(ConnectionCompleteContext<T> context)?
     onBeforeComplete,
   }) {
-    return ConnectionEvents<T>(
+    return ConnectionEvents<T, C>(
       onCreated: onCreated ?? this.onCreated,
       onBeforeDelete: onBeforeDelete ?? this.onBeforeDelete,
       onDeleted: onDeleted ?? this.onDeleted,
@@ -448,18 +456,22 @@ class ViewportEvents {
   }
 }
 
-/// Represents the current selection state
+/// Represents the current selection state.
+///
+/// Type parameters:
+/// - [T]: The type of node data
+/// - [C]: The type of connection data
 ///
 /// This includes both regular nodes and special node types (GroupNode, CommentNode).
 /// Use type checks like `node is GroupNode` to filter by node type.
-class SelectionState<T> {
+class SelectionState<T, C> {
   const SelectionState({required this.nodes, required this.connections});
 
   /// Currently selected nodes (includes GroupNode and CommentNode)
   final List<Node<T>> nodes;
 
   /// Currently selected connections
-  final List<Connection> connections;
+  final List<Connection<C>> connections;
 
   /// Whether anything is selected
   bool get hasSelection => nodes.isNotEmpty || connections.isNotEmpty;

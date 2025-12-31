@@ -397,7 +397,7 @@ void main() {
         data: {'key': 'value'},
       );
 
-      final json = connection.toJson();
+      final json = connection.toJson((data) => data);
 
       expect(json['id'], equals('json-conn'));
       expect(json['sourceNodeId'], equals('node-a'));
@@ -417,7 +417,7 @@ void main() {
         'data': {'restored': true},
       };
 
-      final connection = Connection.fromJson(json);
+      final connection = Connection<dynamic>.fromJson(json, (json) => json);
 
       expect(connection.id, equals('reconstructed'));
       expect(connection.sourceNodeId, equals('source'));
@@ -458,7 +458,7 @@ void main() {
         endLabel: ConnectionLabel.end(text: 'End'),
       );
 
-      final json = connection.toJson();
+      final json = connection.toJson((data) => data);
 
       expect(json['startLabel'], isNotNull);
       expect(json['label'], isNotNull);
@@ -475,7 +475,7 @@ void main() {
         controlPoints: [const Offset(100, 100), const Offset(200, 200)],
       );
 
-      final json = connection.toJson();
+      final json = connection.toJson((data) => data);
 
       expect(json['controlPoints'], isNotNull);
       expect((json['controlPoints'] as List).length, equals(2));
@@ -494,7 +494,7 @@ void main() {
         ],
       };
 
-      final connection = Connection.fromJson(json);
+      final connection = Connection<dynamic>.fromJson(json, (json) => json);
 
       expect(connection.controlPoints.length, equals(2));
       expect(connection.controlPoints[0], equals(const Offset(50, 60)));
@@ -513,7 +513,7 @@ void main() {
         'endLabel': {'text': 'End', 'anchor': 1.0},
       };
 
-      final connection = Connection.fromJson(json);
+      final connection = Connection<dynamic>.fromJson(json, (json) => json);
 
       expect(connection.startLabel, isNotNull);
       expect(connection.startLabel!.text, equals('Start'));

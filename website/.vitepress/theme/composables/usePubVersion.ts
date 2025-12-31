@@ -17,7 +17,7 @@ export function usePubVersion(packageName: string) {
       version.value = data.value?.replace(/^v/, '') || null;
     } catch (e) {
       error.value = 'Failed to fetch version';
-      version.value = '0.15.0'; // Fallback to current version
+      version.value = '0.20.0'; // Fallback to current version
     } finally {
       loading.value = false;
     }

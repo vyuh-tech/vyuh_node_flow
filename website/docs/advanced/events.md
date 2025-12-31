@@ -16,7 +16,7 @@ The event system provides comprehensive callbacks for all user interactions. Eve
 Events are passed via the `events` parameter on `NodeFlowEditor`:
 
 ```dart
-NodeFlowEditor<MyData>(
+NodeFlowEditor<MyData, dynamic>(
   controller: controller,
   events: NodeFlowEvents(
     node: NodeEvents(...),      // Includes GroupNode & CommentNode
@@ -42,18 +42,24 @@ Animated demonstration of node events: clicking (onTap), double-clicking (onDoub
 NodeEvents<MyData>(
   // Lifecycle
   onCreated: (node) => print('Created: ${node.id}'),
+  onBeforeDelete: (node) async {
+    // Return true to allow deletion, false to prevent it
+    return await showConfirmationDialog(context, node);
+  },
   onDeleted: (node) => print('Deleted: ${node.id}'),
   onSelected: (node) => print('Selected: ${node?.id}'),
 
   // Interactions
   onTap: (node) => _showDetails(node),
   onDoubleTap: (node) => _editNode(node),
-  onContextMenu: (node, position) => _showMenu(node, position),
+  onContextMenu: (node, screenPosition) => _showMenu(node, screenPosition),
 
   // Drag operations
   onDragStart: (node) => _startDrag(node),
   onDrag: (node) => _updatePosition(node),
   onDragStop: (node) => _savePosition(node),
+  onDragCancel: (node) => _restorePosition(node),
+  onResizeCancel: (node) => _restoreSize(node),
 
   // Hover
   onMouseEnter: (node) => _highlightNode(node),
@@ -64,16 +70,19 @@ NodeEvents<MyData>(
 | Event | Trigger | Signature |
 |-------|---------|-----------|
 | `onCreated` | Node added to graph | `ValueChanged<Node<T>>` |
+| `onBeforeDelete` | Before node deletion | `Future<bool> Function(Node<T>)` |
 | `onDeleted` | Node removed from graph | `ValueChanged<Node<T>>` |
 | `onSelected` | Selection state changes | `ValueChanged<Node<T>?>` |
 | `onTap` | Single tap on node | `ValueChanged<Node<T>>` |
 | `onDoubleTap` | Double tap on node | `ValueChanged<Node<T>>` |
 | `onDragStart` | Drag begins | `ValueChanged<Node<T>>` |
 | `onDrag` | During drag | `ValueChanged<Node<T>>` |
-| `onDragStop` | Drag ends | `ValueChanged<Node<T>>` |
+| `onDragStop` | Drag ends successfully | `ValueChanged<Node<T>>` |
+| `onDragCancel` | Drag cancelled (reverted) | `ValueChanged<Node<T>>` |
+| `onResizeCancel` | Resize cancelled (reverted) | `ValueChanged<Node<T>>` |
 | `onMouseEnter` | Mouse enters node | `ValueChanged<Node<T>>` |
 | `onMouseLeave` | Mouse leaves node | `ValueChanged<Node<T>>` |
-| `onContextMenu` | Right-click / long-press | `(Node<T>, Offset)` |
+| `onContextMenu` | Right-click / long-press | `(Node<T>, ScreenPosition)` |
 
 ## Port Events
 
@@ -81,20 +90,20 @@ Handle interactions with connection ports.
 
 ```dart
 PortEvents<MyData>(
-  onTap: (node, port, isOutput) {
-    print('Tapped ${isOutput ? 'output' : 'input'} port: ${port.id}');
+  onTap: (node, port) {
+    print('Tapped ${port.isOutput ? 'output' : 'input'} port: ${port.id}');
   },
-  onDoubleTap: (node, port, isOutput) => _configurePort(port),
-  onMouseEnter: (node, port, isOutput) => _showPortTooltip(port),
-  onMouseLeave: (node, port, isOutput) => _hideTooltip(),
-  onContextMenu: (node, port, isOutput, position) {
-    _showPortMenu(node, port, position);
+  onDoubleTap: (node, port) => _configurePort(port),
+  onMouseEnter: (node, port) => _showPortTooltip(port),
+  onMouseLeave: (node, port) => _hideTooltip(),
+  onContextMenu: (node, port, screenPosition) {
+    _showPortMenu(node, port, screenPosition);
   },
 )
 ```
 
 ::: info
-Port events include the parent `node` and `isOutput` flag for context, since ports are always attached to nodes.
+Port events include the parent `node` for context, since ports are always attached to nodes. Use `port.isOutput` or `port.isInput` to determine the port direction.
 
 :::
 
@@ -107,23 +116,33 @@ Animated demonstration of connection creation with validation: drag from port (o
 :::
 
 ```dart
-ConnectionEvents<MyData>(
+ConnectionEvents<MyData, dynamic>(
   // Lifecycle
   onCreated: (conn) => print('Connected: ${conn.id}'),
+  onBeforeDelete: (conn) async {
+    // Return true to allow deletion, false to prevent it
+    return await showConfirmationDialog(context, conn);
+  },
   onDeleted: (conn) => print('Disconnected: ${conn.id}'),
   onSelected: (conn) => _highlightConnection(conn),
 
   // Interactions
   onTap: (conn) => _selectConnection(conn),
   onDoubleTap: (conn) => _editConnection(conn),
-  onContextMenu: (conn, position) => _showConnectionMenu(conn, position),
+  onMouseEnter: (conn) => _highlightConnection(conn),
+  onMouseLeave: (conn) => _unhighlightConnection(conn),
+  onContextMenu: (conn, screenPosition) => _showConnectionMenu(conn, screenPosition),
 
   // Connection creation process
-  onConnectStart: (nodeId, portId, isOutput) {
-    print('Starting connection from $nodeId:$portId');
+  onConnectStart: (sourceNode, sourcePort) {
+    print('Starting connection from ${sourceNode.id}:${sourcePort.id}');
   },
-  onConnectEnd: (success) {
-    print(success ? 'Connection created' : 'Connection cancelled');
+  onConnectEnd: (targetNode, targetPort, position) {
+    if (targetNode != null && targetPort != null) {
+      print('Connected to ${targetNode.id}:${targetPort.id}');
+    } else {
+      print('Connection cancelled at $position');
+    }
   },
 
   // Validation hooks
@@ -141,31 +160,28 @@ Use validation callbacks to control which connections are allowed:
 Prevent connection creation from certain ports:
 
 ```dart
-ConnectionEvents<MyData>(
+ConnectionEvents<MyData, dynamic>(
   onBeforeStart: (context) {
     final node = context.sourceNode;
     final port = context.sourcePort;
 
     // Prevent connections from disabled nodes
     if (node.data.isDisabled) {
-      return ConnectionValidationResult(
-        allowed: false,
+      return ConnectionValidationResult.deny(
         reason: 'Cannot connect from disabled node',
+        showMessage: true,
       );
     }
 
-    // Check port connection limit
-    if (port.maxConnections != null) {
-      final existing = controller.getConnectionsForPort(node.id, port.id);
-      if (existing.length >= port.maxConnections!) {
-        return ConnectionValidationResult(
-          allowed: false,
-          reason: 'Port has reached maximum connections',
-        );
-      }
+    // Check existing connections from this port
+    if (!port.allowMultiple && context.existingConnections.isNotEmpty) {
+      return ConnectionValidationResult.deny(
+        reason: 'Port already has a connection',
+        showMessage: true,
+      );
     }
 
-    return ConnectionValidationResult(allowed: true);
+    return ConnectionValidationResult.allow();
   },
 )
 ```
@@ -175,41 +191,35 @@ ConnectionEvents<MyData>(
 Validate before completing a connection:
 
 ```dart
-ConnectionEvents<MyData>(
+ConnectionEvents<MyData, dynamic>(
   onBeforeComplete: (context) {
+    // Prevent self-connections (convenience getter available)
+    if (context.isSelfConnection) {
+      return ConnectionValidationResult.deny(
+        reason: 'Cannot connect to same node',
+        showMessage: true,
+      );
+    }
+
+    // Ensure output-to-input direction (convenience getter available)
+    if (!context.isOutputToInput) {
+      return ConnectionValidationResult.deny(
+        reason: 'Must connect output to input',
+        showMessage: true,
+      );
+    }
+
+    // Type checking using node data
     final source = context.sourceNode;
     final target = context.targetNode;
-
-    // Prevent self-connections
-    if (source.id == target.id) {
-      return ConnectionValidationResult(
-        allowed: false,
-        reason: 'Cannot connect to same node',
-      );
-    }
-
-    // Type checking
     if (source.data.outputType != target.data.inputType) {
-      return ConnectionValidationResult(
-        allowed: false,
+      return ConnectionValidationResult.deny(
         reason: 'Incompatible types',
+        showMessage: true,
       );
     }
 
-    // Prevent duplicate connections
-    final existing = context.existingConnections;
-    final isDuplicate = existing.any((c) =>
-      c.sourceNodeId == source.id &&
-      c.targetNodeId == target.id
-    );
-    if (isDuplicate) {
-      return ConnectionValidationResult(
-        allowed: false,
-        reason: 'Connection already exists',
-      );
-    }
-
-    return ConnectionValidationResult(allowed: true);
+    return ConnectionValidationResult.allow();
   },
 )
 ```
@@ -221,7 +231,11 @@ ConnectionEvents<MyData>(
 class ConnectionStartContext<T> {
   final Node<T> sourceNode;
   final Port sourcePort;
-  final bool isOutput;
+  final List<String> existingConnections; // IDs of existing connections from this port
+
+  // Convenience getters
+  bool get isOutputPort;
+  bool get isInputPort;
 }
 
 // Available in onBeforeComplete
@@ -230,7 +244,14 @@ class ConnectionCompleteContext<T> {
   final Port sourcePort;
   final Node<T> targetNode;
   final Port targetPort;
-  final List<Connection> existingConnections;
+  final List<String> existingSourceConnections; // IDs of existing connections from source port
+  final List<String> existingTargetConnections; // IDs of existing connections to target port
+
+  // Convenience getters
+  bool get isOutputToInput;
+  bool get isInputToOutput;
+  bool get isSelfConnection;
+  bool get isSamePort;
 }
 ```
 
@@ -245,10 +266,10 @@ ViewportEvents(
   onMove: (viewport) => _updateMinimap(viewport),
   onMoveEnd: (viewport) => _saveViewportState(viewport),
 
-  // Canvas interactions
-  onCanvasTap: (position) => _addNodeAt(position),
-  onCanvasDoubleTap: (position) => _openQuickMenu(position),
-  onCanvasContextMenu: (position) => _showCanvasMenu(position),
+  // Canvas interactions (positions are GraphPosition, in graph coordinates)
+  onCanvasTap: (graphPosition) => _addNodeAt(graphPosition),
+  onCanvasDoubleTap: (graphPosition) => _openQuickMenu(graphPosition),
+  onCanvasContextMenu: (graphPosition) => _showCanvasMenu(graphPosition),
 )
 ```
 
@@ -257,12 +278,12 @@ ViewportEvents(
 | `onMoveStart` | Pan/zoom begins | `ValueChanged<GraphViewport>` |
 | `onMove` | During pan/zoom | `ValueChanged<GraphViewport>` |
 | `onMoveEnd` | Pan/zoom ends | `ValueChanged<GraphViewport>` |
-| `onCanvasTap` | Tap on empty canvas | `ValueChanged<Offset>` |
-| `onCanvasDoubleTap` | Double-tap on canvas | `ValueChanged<Offset>` |
-| `onCanvasContextMenu` | Right-click on canvas | `ValueChanged<Offset>` |
+| `onCanvasTap` | Tap on empty canvas | `ValueChanged<GraphPosition>` |
+| `onCanvasDoubleTap` | Double-tap on canvas | `ValueChanged<GraphPosition>` |
+| `onCanvasContextMenu` | Right-click on canvas | `ValueChanged<GraphPosition>` |
 
 ::: tip
-Canvas positions are in **graph coordinates**, not screen coordinates. They account for pan and zoom automatically.
+Canvas positions are `GraphPosition` type, representing **graph coordinates** (not screen coordinates). They account for pan and zoom automatically.
 
 :::
 
@@ -271,7 +292,7 @@ Canvas positions are in **graph coordinates**, not screen coordinates. They acco
 Track the complete selection state across all element types:
 
 ```dart
-NodeFlowEvents<MyData>(
+NodeFlowEvents<MyData, dynamic>(
   onSelectionChange: (state) {
     print('Selected nodes: ${state.nodes.length}');
     print('Selected connections: ${state.connections.length}');
@@ -308,7 +329,7 @@ GroupNode and CommentNode are included in the `nodes` list since they extend Nod
 ## Top-Level Events
 
 ```dart
-NodeFlowEvents<MyData>(
+NodeFlowEvents<MyData, dynamic>(
   // Called when editor is ready
   onInit: () {
     print('Editor initialized');
@@ -340,14 +361,14 @@ class WorkflowEditor extends StatefulWidget {
 }
 
 class _WorkflowEditorState extends State<WorkflowEditor> {
-  late final NodeFlowController<WorkflowData> controller;
+  late final NodeFlowController<WorkflowData, dynamic> controller;
   SelectionState<WorkflowData>? _selection;
   final List<String> _eventLog = [];
 
   @override
   void initState() {
     super.initState();
-    controller = NodeFlowController<WorkflowData>();
+    controller = NodeFlowController<WorkflowData, dynamic>();
   }
 
   void _log(String message) {
@@ -363,7 +384,7 @@ class _WorkflowEditorState extends State<WorkflowEditor> {
       children: [
         // Editor
         Expanded(
-          child: NodeFlowEditor<WorkflowData>(
+          child: NodeFlowEditor<WorkflowData, dynamic>(
             controller: controller,
             theme: NodeFlowTheme.light,
             nodeBuilder: (context, node) => WorkflowNodeWidget(node: node),
@@ -410,19 +431,19 @@ class _WorkflowEditorState extends State<WorkflowEditor> {
     ConnectionCompleteContext<WorkflowData> context,
   ) {
     // Implement your validation logic
-    return ConnectionValidationResult(allowed: true);
+    return ConnectionValidationResult.allow();
   }
 
   void _editNode(Node<WorkflowData> node) {
     // Show edit dialog
   }
 
-  void _showNodeMenu(Node<WorkflowData> node, Offset position) {
-    // Show context menu
+  void _showNodeMenu(Node<WorkflowData> node, ScreenPosition position) {
+    // Show context menu using position.offset for showMenu()
   }
 
-  void _showAddNodeMenu(Offset position) {
-    // Show menu to add new node at position
+  void _showAddNodeMenu(GraphPosition position) {
+    // Show menu to add new node at graph position
   }
 
   void _clearSelection() {
@@ -443,7 +464,7 @@ class _WorkflowEditorState extends State<WorkflowEditor> {
 2. **Use `onBeforeComplete` for validation** - Prevent invalid connections before they're created
 3. **Track selection state** - Use `onSelectionChange` for toolbar/panel updates
 4. **Handle errors** - Use `onError` for logging and user notifications
-5. **Context menus need position** - All `onContextMenu` callbacks include `Offset` for menu placement
+5. **Context menus need position** - Node/port/connection `onContextMenu` callbacks receive `ScreenPosition` for menu placement; canvas context menu receives `GraphPosition`
 
 ## See Also
 

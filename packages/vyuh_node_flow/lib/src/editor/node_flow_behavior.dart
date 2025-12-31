@@ -2,14 +2,14 @@
 ///
 /// Each behavior mode has specific capabilities that determine what
 /// interactions are allowed. Uses consolidated CRUD properties that
-/// apply to all elements (nodes, ports, connections, annotations):
+/// apply to all elements (nodes, ports, connections):
 /// - Create: Add new items
 /// - Read: Always allowed (viewing)
 /// - Update: Modify existing items (edit labels, etc.)
 /// - Delete: Remove items
 ///
 /// Plus viewport/interaction controls:
-/// - Drag: Move nodes and annotations
+/// - Drag: Move nodes
 /// - Select: Select elements
 /// - Pan: Pan the viewport
 /// - Zoom: Zoom the viewport
@@ -18,7 +18,7 @@
 /// ```dart
 /// final behavior = NodeFlowBehavior.preview;
 /// if (behavior.canDrag) {
-///   // Allow dragging nodes and annotations
+///   // Allow dragging nodes
 /// }
 /// ```
 enum NodeFlowBehavior {
@@ -45,7 +45,6 @@ enum NodeFlowBehavior {
     canUpdate: false,
     canDelete: false,
     canDrag: true,
-    // Can drag nodes and annotations
     canSelect: true,
     canPan: true,
     canZoom: true,
@@ -79,7 +78,7 @@ enum NodeFlowBehavior {
   // CRUD Operations (apply to all elements)
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Whether new elements can be created (nodes, connections, annotations).
+  /// Whether new elements can be created (nodes, connections).
   final bool canCreate;
 
   /// Whether elements can be updated (edit labels, waypoints, etc.).
@@ -92,7 +91,7 @@ enum NodeFlowBehavior {
   // Interaction
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Whether elements can be dragged to new positions (nodes, annotations).
+  /// Whether elements can be dragged to new positions.
   final bool canDrag;
 
   /// Whether elements can be selected.

@@ -33,24 +33,27 @@ Visibility:    [  minimal  ][  standard  ][   full   ]
 
 ### Default Behavior
 
-LOD is enabled by default with sensible thresholds:
+LOD is included as a default extension with LOD disabled (always full detail):
 
 ```dart
 NodeFlowController(
   config: NodeFlowConfig(
-    // LOD uses default config automatically
+    // Default extensions include LodExtension(config: LODConfig.disabled)
   ),
 )
 ```
 
-### Disable LOD
+### Enable LOD with Default Thresholds
 
-Always show full detail regardless of zoom:
+Enable LOD with standard thresholds:
 
 ```dart
 NodeFlowController(
   config: NodeFlowConfig(
-    lodConfig: LODConfig.disabled,
+    extensions: [
+      LodExtension(config: LODConfig.defaultConfig),
+      // ... other extensions
+    ],
   ),
 )
 ```
@@ -62,10 +65,15 @@ Adjust when elements appear/disappear:
 ```dart
 NodeFlowController(
   config: NodeFlowConfig(
-    lodConfig: const LODConfig(
-      minThreshold: 0.2,   // Minimal below 20%
-      midThreshold: 0.5,   // Standard 20-50%, Full above 50%
-    ),
+    extensions: [
+      LodExtension(
+        config: const LODConfig(
+          minThreshold: 0.2,   // Minimal below 20%
+          midThreshold: 0.5,   // Standard 20-50%, Full above 50%
+        ),
+      ),
+      // ... other extensions
+    ],
   ),
 )
 ```
@@ -128,7 +136,7 @@ Create your own visibility presets for specific needs:
 
 ```dart
 // Custom preset: show connections but hide node content
-final connectionsOnly = DetailVisibility(
+const connectionsOnly = DetailVisibility(
   showNodeContent: false,
   showPorts: true,
   showPortLabels: false,
@@ -138,16 +146,21 @@ final connectionsOnly = DetailVisibility(
   showResizeHandles: false,
 );
 
-// Use in LOD config
+// Use in LOD config via extension
 NodeFlowController(
   config: NodeFlowConfig(
-    lodConfig: LODConfig(
-      minThreshold: 0.25,
-      midThreshold: 0.60,
-      minVisibility: DetailVisibility.minimal,
-      midVisibility: connectionsOnly, // Custom preset
-      maxVisibility: DetailVisibility.full,
-    ),
+    extensions: [
+      LodExtension(
+        config: LODConfig(
+          minThreshold: 0.25,
+          midThreshold: 0.60,
+          minVisibility: DetailVisibility.minimal,
+          midVisibility: connectionsOnly, // Custom preset
+          maxVisibility: DetailVisibility.full,
+        ),
+      ),
+      // ... other extensions
+    ],
   ),
 )
 ```
@@ -166,21 +179,21 @@ NodeFlowController(
 
 ## Accessing LOD State
 
-The LOD state is reactive and can be accessed through the controller:
+The LOD state is reactive and can be accessed through the controller's `lod` extension:
 
 ```dart
 // Get current normalized zoom (0.0 to 1.0)
-final zoom = controller.lodState.normalizedZoom;
+final zoom = controller.lod.normalizedZoom;
 
 // Get current visibility settings
-final visibility = controller.lodState.currentVisibility;
+final visibility = controller.lod.currentVisibility;
 
 // Check individual visibility flags
-if (controller.lodState.showPorts) {
+if (controller.lod.showPorts) {
   // Ports are visible at current zoom
 }
 
-if (controller.lodState.showConnectionLabels) {
+if (controller.lod.showConnectionLabels) {
   // Connection labels are visible
 }
 ```
@@ -199,11 +212,11 @@ class ZoomAwareWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Observer(
       builder: (_) {
-        final visibility = controller.lodState.currentVisibility;
+        final visibility = controller.lod.currentVisibility;
 
         return Column(
           children: [
-            Text('Zoom: ${(controller.lodState.normalizedZoom * 100).toStringAsFixed(0)}%'),
+            Text('Zoom: ${(controller.lod.normalizedZoom * 100).toStringAsFixed(0)}%'),
             Text('Showing ports: ${visibility.showPorts}'),
             Text('Showing labels: ${visibility.showPortLabels}'),
           ],
@@ -216,11 +229,11 @@ class ZoomAwareWidget extends StatelessWidget {
 
 ## Runtime Configuration
 
-Change LOD settings at runtime:
+Change LOD settings at runtime via the `lod` extension:
 
 ```dart
-// Update LOD config through the controller
-controller.config.setLODConfig(
+// Update LOD config through the controller's lod extension
+controller.lod.updateConfig(
   LODConfig(
     minThreshold: 0.3,
     midThreshold: 0.7,
@@ -228,10 +241,10 @@ controller.config.setLODConfig(
 );
 
 // Disable LOD at runtime
-controller.config.disableLOD();
+controller.lod.disable();
 
-// Or through lodState
-controller.lodState.updateConfig(LODConfig.disabled);
+// Restore default LOD behavior
+controller.lod.useDefault();
 ```
 
 ## Performance Benefits
@@ -267,11 +280,11 @@ Disable LOD when presenting to always show full detail:
 
 ```dart
 void enterPresentationMode() {
-  controller.config.disableLOD();
+  controller.lod.disable();
 }
 
 void exitPresentationMode() {
-  controller.config.setLODConfig(LODConfig.defaultConfig);
+  controller.lod.useDefault();
 }
 ```
 
@@ -287,16 +300,16 @@ class FlowEditorSettings extends StatelessWidget {
   Widget build(BuildContext context) {
     return Observer(
       builder: (_) {
-        final isLODEnabled = controller.config.lodConfig.value != LODConfig.disabled;
+        final isLODEnabled = controller.lod.lodConfig != LODConfig.disabled;
 
         return SwitchListTile(
           title: const Text('Auto-hide details when zoomed out'),
           value: isLODEnabled,
           onChanged: (enabled) {
             if (enabled) {
-              controller.config.setLODConfig(LODConfig.defaultConfig);
+              controller.lod.useDefault();
             } else {
-              controller.config.disableLOD();
+              controller.lod.disable();
             }
           },
         );
@@ -314,7 +327,7 @@ Show current LOD state for debugging:
 Widget buildDebugOverlay(NodeFlowController controller) {
   return Observer(
     builder: (_) {
-      final lod = controller.lodState;
+      final lod = controller.lod;
       return Container(
         padding: const EdgeInsets.all(8),
         color: Colors.black54,
@@ -360,10 +373,11 @@ Widget buildDebugOverlay(NodeFlowController controller) {
 | `defaultConfig` | Default LOD configuration                |
 | `disabled`      | LOD disabled (always full visibility)    |
 
-### LODState (accessed via controller.lodState)
+### LodExtension (accessed via controller.lod)
 
 | Property            | Type               | Description                           |
 | ------------------- | ------------------ | ------------------------------------- |
+| `lodConfig`         | `LODConfig`        | The current LOD configuration         |
 | `normalizedZoom`    | `double`           | Current zoom normalized to 0.0-1.0    |
 | `currentVisibility` | `DetailVisibility` | Current visibility settings           |
 | `showNodeContent`   | `bool`             | Whether node content is visible       |
@@ -374,11 +388,13 @@ Widget buildDebugOverlay(NodeFlowController controller) {
 | `showConnectionEndpoints` | `bool`       | Whether endpoints are visible         |
 | `showResizeHandles` | `bool`             | Whether resize handles are visible    |
 
-### LODState Methods
+### LodExtension Methods
 
-| Method                      | Description                              |
-| --------------------------- | ---------------------------------------- |
-| `updateConfig(LODConfig)`   | Updates the LOD configuration at runtime |
+| Method                      | Description                                      |
+| --------------------------- | ------------------------------------------------ |
+| `updateConfig(LODConfig)`   | Updates the LOD configuration at runtime         |
+| `disable()`                 | Disables LOD (always shows full detail)          |
+| `useDefault()`              | Enables standard LOD with default configuration  |
 
 ## See Also
 

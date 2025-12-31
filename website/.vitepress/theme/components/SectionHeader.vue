@@ -5,7 +5,7 @@ defineProps<{
   badge: string;
   badgeIcon: string;
   badgeColor: 'blue' | 'purple' | 'teal' | 'amber';
-  title: string;
+  title?: string;
   subtitle?: string;
   centered?: boolean;
   largeTitle?: boolean;
@@ -15,7 +15,9 @@ defineProps<{
 <template>
   <div class="section-header" :class="{ centered }">
     <Badge :icon="badgeIcon" :color="badgeColor">{{ badge }}</Badge>
-    <h2 class="section-title" :class="{ 'section-title-large': largeTitle }">{{ title }}</h2>
+    <h2 class="section-title" :class="{ 'section-title-large': largeTitle }">
+      <slot name="title">{{ title }}</slot>
+    </h2>
     <p v-if="subtitle" class="section-subtitle">{{ subtitle }}</p>
   </div>
 </template>
@@ -24,7 +26,7 @@ defineProps<{
 @reference "../style.css";
 
 .section-header.centered {
-  @apply text-center;
+  @apply flex flex-col items-center text-center;
 }
 
 .section-header.centered .section-subtitle {

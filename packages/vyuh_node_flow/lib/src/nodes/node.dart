@@ -7,17 +7,44 @@ import 'node_drag_context.dart';
 export 'node_drag_context.dart';
 export 'node_port_geometry.dart';
 
+/// Builder function for creating a node widget.
+///
+/// This is used for per-instance node customization. The builder receives
+/// the node, allowing access to typed node data.
+///
+/// ## Parameters
+/// - [context]: The build context for widget creation
+/// - [node]: The node being rendered (use `node.data` for typed access)
+///
+/// ## Example
+/// ```dart
+/// final node = Node<MyData>(
+///   id: 'custom',
+///   type: 'custom',
+///   position: Offset.zero,
+///   data: MyData(),
+///   widgetBuilder: (context, node) {
+///     return Container(
+///       padding: EdgeInsets.all(8),
+///       child: Text(node.data.title),
+///     );
+///   },
+/// );
+/// ```
+typedef NodeWidgetBuilder<T> =
+    Widget Function(BuildContext context, Node<T> node);
+
 /// The rendering layer for a node.
 ///
 /// Nodes are rendered in three layers:
-/// - [background]: Behind regular nodes (e.g., group annotations)
+/// - [background]: Behind regular nodes (e.g., [GroupNode])
 /// - [middle]: Default layer for regular nodes
-/// - [foreground]: Above nodes and connections (e.g., sticky notes, markers)
+/// - [foreground]: Above nodes and connections (e.g., [CommentNode])
 enum NodeRenderLayer {
   /// Rendered behind regular nodes.
   ///
   /// Use this for elements that should appear as backgrounds or containers,
-  /// such as group annotations.
+  /// such as [GroupNode].
   background,
 
   /// Default rendering layer for regular nodes.
@@ -72,7 +99,7 @@ enum NodeRenderLayer {
 /// * [Port], which defines connection points on nodes
 /// * [NodeWidget], which renders nodes in the UI
 /// * [GroupNode], a specialized node for grouping other nodes
-/// * [CommentNode], a specialized node for annotations
+/// * [CommentNode], a specialized node for floating text comments
 class Node<T> {
   /// Creates a new node with the specified properties.
   ///
@@ -102,6 +129,7 @@ class Node<T> {
     this.layer = NodeRenderLayer.middle,
     this.locked = false,
     this.selectable = true,
+    this.widgetBuilder,
   }) : size = Observable(size ?? const Size(150, 100)),
        position = Observable(position),
        visualPosition = Observable(position),
@@ -168,6 +196,19 @@ class Node<T> {
 
   /// Whether this node participates in marquee selection.
   final bool selectable;
+
+  /// Per-instance widget builder for custom node rendering.
+  ///
+  /// When provided, this builder takes precedence over both:
+  /// 1. Subclass `buildWidget()` overrides (like GroupNode, CommentNode)
+  /// 2. The global `nodeBuilder` passed to `NodeFlowEditor`
+  ///
+  /// The cascade order is:
+  /// 1. `node.widgetBuilder` (this field) - instance-level customization
+  /// 2. Subclass `buildWidget()` - type-level customization
+  /// 3. `nodeBuilder` (global) - editor-level customization
+  /// 4. Default content - framework default
+  final NodeWidgetBuilder<T>? widgetBuilder;
 
   // ===========================================================================
   // Capability Indicators
@@ -328,6 +369,17 @@ class Node<T> {
     return null;
   }
 
+  /// Checks if a port is an output port of this node.
+  ///
+  /// Returns `true` if the port exists in [outputPorts], `false` otherwise.
+  /// This is useful in builders to determine port direction.
+  bool isOutputPort(Port port) => outputPorts.contains(port);
+
+  /// Checks if a port is an input port of this node.
+  ///
+  /// Returns `true` if the port exists in [inputPorts], `false` otherwise.
+  bool isInputPort(Port port) => inputPorts.contains(port);
+
   // ===========================================================================
   // Bounds and Containment
   // ===========================================================================
@@ -356,12 +408,40 @@ class Node<T> {
   // Widget Building
   // ===========================================================================
 
-  /// Builds the widget for this node.
+  /// Builds the widget for this node (self-rendering nodes only).
   ///
-  /// Override this method to provide a custom widget for self-rendering nodes
-  /// like annotations. When this returns `null`, the external `nodeBuilder`
-  /// callback is used instead.
-  Widget? buildWidget(BuildContext context) => null;
+  /// This method handles the cascade for self-rendering nodes:
+  /// 1. [widgetBuilder] - per-instance customization (constructor parameter)
+  /// 2. Subclass override - type-level customization (GroupNode, CommentNode)
+  ///
+  /// Returns `null` for base nodes, signaling that the global `nodeBuilder`
+  /// and NodeWidget styling should be used instead.
+  ///
+  /// Override this method in subclasses to provide complete custom rendering
+  /// that includes styling (GroupNode, CommentNode). Always check
+  /// [widgetBuilder] first:
+  ///
+  /// ```dart
+  /// @override
+  /// Widget? buildWidget(BuildContext context) {
+  ///   // Respect instance-level builder first
+  ///   if (widgetBuilder != null) {
+  ///     return widgetBuilder!(context, this);
+  ///   }
+  ///   // Provide subclass-specific self-rendering
+  ///   return MyCustomStyledContent(node: this);
+  /// }
+  /// ```
+  Widget? buildWidget(BuildContext context) {
+    // Check instance-level builder first
+    // If set, this node becomes self-rendering
+    if (widgetBuilder != null) {
+      return widgetBuilder!(context, this);
+    }
+
+    // Base nodes return null to use global nodeBuilder + NodeWidget styling
+    return null;
+  }
 
   // ===========================================================================
   // Drag Lifecycle Hooks

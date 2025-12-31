@@ -77,6 +77,7 @@ export default defineConfig({
     nav: [
       { text: 'Docs', link: '/docs/getting-started/installation' },
       { text: 'Examples', link: '/docs/examples/' },
+      { component: 'NavProBadge' },
       {
         text: 'Links',
         items: [

@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:mobx/mobx.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'design_kit/theme.dart';
 import 'example_model.dart';
 
 class ExampleNavigationState {
@@ -39,15 +40,10 @@ class _ExampleNavigationState extends State<ExampleNavigation> {
     return Container(
       width: isInDrawer ? null : 320,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
+        color: context.surfaceColor,
         border: isInDrawer
             ? null
-            : Border(
-                right: BorderSide(
-                  color: theme.colorScheme.outlineVariant,
-                  width: 1,
-                ),
-              ),
+            : Border(right: BorderSide(color: context.borderColor, width: 1)),
       ),
       child: Column(
         children: [
@@ -74,17 +70,13 @@ class _ExampleNavigationState extends State<ExampleNavigation> {
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest.withValues(
-              alpha: 0.5,
-            ),
-          ),
+          decoration: BoxDecoration(color: context.surfaceSubtleColor),
           child: Text(
-            category.title,
-            style: theme.textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.38),
-              letterSpacing: 0.5,
+            category.title.toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: context.textTertiaryColor,
+              letterSpacing: 0.8,
             ),
           ),
         ),
@@ -100,9 +92,17 @@ class _ExampleNavigationState extends State<ExampleNavigation> {
     ExampleCategory category,
     Example example,
   ) {
+    final isDark = context.isDark;
+
     return Observer(
       builder: (_) {
         final isSelected = widget.state.selectedExampleId.value == example.id;
+        final selectedBgColor = DemoTheme.accent.withValues(
+          alpha: isDark ? 0.2 : 0.12,
+        );
+        final selectedFgColor = isDark
+            ? DemoTheme.accentLight
+            : DemoTheme.accent;
 
         return InkWell(
           onTap: () {
@@ -112,9 +112,7 @@ class _ExampleNavigationState extends State<ExampleNavigation> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? theme.colorScheme.primaryContainer
-                  : Colors.transparent,
+              color: isSelected ? selectedBgColor : Colors.transparent,
             ),
             child: Row(
               children: [
@@ -123,8 +121,8 @@ class _ExampleNavigationState extends State<ExampleNavigation> {
                     example.icon,
                     size: 16,
                     color: isSelected
-                        ? theme.colorScheme.onPrimaryContainer
-                        : theme.colorScheme.onSurfaceVariant,
+                        ? selectedFgColor
+                        : context.textSecondaryColor,
                   ),
                   const SizedBox(width: 12),
                 ],
@@ -136,8 +134,8 @@ class _ExampleNavigationState extends State<ExampleNavigation> {
                           ? FontWeight.w600
                           : FontWeight.normal,
                       color: isSelected
-                          ? theme.colorScheme.onPrimaryContainer
-                          : theme.colorScheme.onSurface,
+                          ? selectedFgColor
+                          : context.textPrimaryColor,
                     ),
                   ),
                 ),
@@ -154,9 +152,9 @@ class _ExampleNavigationState extends State<ExampleNavigation> {
       padding: const EdgeInsets.all(16),
       height: 75,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHigh,
+        color: context.surfaceElevatedColor,
         border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
+          bottom: BorderSide(color: context.borderColor, width: 1),
         ),
       ),
       child: Row(
@@ -166,7 +164,7 @@ class _ExampleNavigationState extends State<ExampleNavigation> {
               'Vyuh Node Flow',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface,
+                color: context.textPrimaryColor,
               ),
             ),
           ),
@@ -194,9 +192,11 @@ class _ExampleNavigationState extends State<ExampleNavigation> {
     required String tooltip,
     required String url,
   }) {
+    final isDark = context.isDark;
+
     return IconButton(
       icon: FaIcon(icon, size: 16),
-      color: theme.colorScheme.primary,
+      color: isDark ? DemoTheme.accentLight : DemoTheme.accent,
       tooltip: tooltip,
       onPressed: () async {
         final uri = Uri.parse(url);

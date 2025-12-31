@@ -7,7 +7,7 @@ import 'drag_session.dart';
 import 'non_trackpad_pan_gesture_recognizer.dart';
 import '../graph/coordinates.dart';
 
-/// A unified interaction scope for draggable elements (nodes, annotations, ports).
+/// A unified interaction scope for draggable elements (nodes, ports).
 ///
 /// This widget provides consistent gesture handling and drag lifecycle management
 /// across all interactive elements in the node flow editor. It solves the problem
@@ -50,7 +50,7 @@ import '../graph/coordinates.dart';
 ///
 /// ## Example Usage
 ///
-/// For element movement (nodes, annotations):
+/// For element movement (nodes):
 /// ```dart
 /// ElementScope(
 ///   onDragStart: (_) => controller.startNodeDrag(nodeId),
@@ -98,7 +98,6 @@ import '../graph/coordinates.dart';
 ///
 /// See also:
 /// - [NodeWidget] which uses this for node interactions
-/// - [AnnotationWidget] which uses this for annotation interactions
 /// - [PortWidget] which uses this for connection creation
 class ElementScope extends StatefulWidget {
   /// Creates an element scope with the specified interaction callbacks.
@@ -131,7 +130,7 @@ class ElementScope extends StatefulWidget {
 
   /// The child widget to wrap with interaction handling.
   ///
-  /// This is typically the visual representation of the element (node or annotation).
+  /// This is typically the visual representation of the element.
   final Widget child;
 
   /// Whether this element can be dragged.

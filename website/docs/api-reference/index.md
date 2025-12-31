@@ -52,13 +52,14 @@ Complete reference documentation for all classes, methods, and properties in Vyu
 | Property | Type | Description |
 |----------|------|-------------|
 | `id` | `String` | Unique identifier |
-| `type` | `String?` | Node type for categorization |
+| `type` | `String` | Node type for categorization |
 | `position` | `Offset` | Position on canvas |
 | `size` | `Size` | Node dimensions |
 | `data` | `T` | Custom data payload |
 | `inputPorts` | `List<Port>` | Input connection ports |
 | `outputPorts` | `List<Port>` | Output connection ports |
-| `shape` | `NodeShape` | Visual shape (rectangle, circle, etc.) |
+| `locked` | `bool` | Prevents dragging/deletion when true |
+| `layer` | `NodeRenderLayer` | Rendering layer (background/middle/foreground) |
 
 ### Port Properties
 
@@ -67,7 +68,8 @@ Complete reference documentation for all classes, methods, and properties in Vyu
 | `id` | `String` | Unique identifier |
 | `name` | `String?` | Display name |
 | `position` | `PortPosition` | Side of node (top, right, bottom, left) |
-| `shape` | `PortShape` | Visual shape (circle, square, diamond, triangle) |
+| `type` | `PortType` | Direction (input, output) |
+| `shape` | `MarkerShape` | Visual shape |
 | `color` | `Color?` | Port color override |
 
 ### Connection Properties
@@ -79,6 +81,7 @@ Complete reference documentation for all classes, methods, and properties in Vyu
 | `sourcePortId` | `String` | Source port ID |
 | `targetNodeId` | `String` | Target node ID |
 | `targetPortId` | `String` | Target port ID |
-| `label` | `String?` | Center label |
-| `startLabel` | `String?` | Label at source |
-| `endLabel` | `String?` | Label at target |
+| `label` | `ConnectionLabel?` | Center label |
+| `startLabel` | `ConnectionLabel?` | Label at source |
+| `endLabel` | `ConnectionLabel?` | Label at target |
+| `locked` | `bool` | Prevents deletion when true |

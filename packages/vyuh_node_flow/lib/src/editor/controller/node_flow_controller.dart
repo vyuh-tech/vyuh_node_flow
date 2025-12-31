@@ -7,7 +7,7 @@ import '../../connections/connection.dart';
 import '../../connections/connection_painter.dart';
 import '../../connections/connection_validation.dart';
 import '../../connections/temporary_connection.dart';
-import '../../extensions/debug_extension.dart';
+import '../../extensions/debug/debug_extension.dart';
 import '../../extensions/events/events.dart';
 import '../../extensions/node_flow_extension.dart';
 import '../../graph/coordinates.dart';
@@ -55,20 +55,37 @@ enum NodeAlignment {
 
 /// High-performance controller for node flow state management.
 ///
-/// This is the main controller for managing nodes, connections, annotations, viewport,
+/// This is the main controller for managing nodes, connections, viewport,
 /// and interactions in a node flow editor. It uses MobX for reactive state management.
 ///
-/// Type parameter [T] is the data type stored in each node.
+/// ## Type Parameters
+/// - `T`: The data type stored in each node
+/// - `C`: The data type stored in each connection (defaults to `void` for untyped connections)
 ///
-/// Example:
+/// ## Example
 /// ```dart
-/// // Create a controller with custom configuration
-/// final controller = NodeFlowController<MyData>(
-///   initialViewport: GraphViewport(x: 0, y: 0, zoom: 1.0),
-///   config: NodeFlowConfig.defaultConfig,
+/// // Untyped connections (default)
+/// final controller = NodeFlowController<MyNodeData>();
+///
+/// // Typed connections with a sealed class
+/// sealed class EdgeData {}
+/// class HighPriority extends EdgeData {}
+/// class Normal extends EdgeData {}
+///
+/// final controller = NodeFlowController<MyNodeData, EdgeData>(
+///   connections: [
+///     Connection<EdgeData>(
+///       id: 'conn-1',
+///       sourceNodeId: 'a',
+///       sourcePortId: 'out',
+///       targetNodeId: 'b',
+///       targetPortId: 'in',
+///       data: HighPriority(),
+///     ),
+///   ],
 /// );
 /// ```
-class NodeFlowController<T> {
+class NodeFlowController<T, C> {
   /// Creates a new node flow controller.
   ///
   /// Parameters:
@@ -93,7 +110,7 @@ class NodeFlowController<T> {
     GraphViewport? initialViewport,
     NodeFlowConfig? config,
     List<Node<T>>? nodes,
-    List<Connection>? connections,
+    List<Connection<C>>? connections,
   }) : _viewport = Observable(
          initialViewport ?? const GraphViewport(x: 0, y: 0, zoom: 1.0),
        ),
@@ -128,7 +145,7 @@ class NodeFlowController<T> {
   ///
   /// This is similar to [loadGraph] but designed for constructor use.
   /// Infrastructure setup is deferred until the theme is set by the editor.
-  void _loadInitialGraph(List<Node<T>> nodes, List<Connection> connections) {
+  void _loadInitialGraph(List<Node<T>> nodes, List<Connection<C>> connections) {
     runInAction(() {
       for (final node in nodes) {
         _nodes[node.id] = node;
@@ -200,13 +217,13 @@ class NodeFlowController<T> {
   }
 
   // Structured events system
-  NodeFlowEvents<T> _events = const NodeFlowEvents();
+  NodeFlowEvents<T, C> _events = const NodeFlowEvents();
 
   /// Gets the current events configuration.
   ///
   /// Events are organized into logical groups (node, connection, viewport, etc.)
   /// for better discoverability and maintainability.
-  NodeFlowEvents<T> get events => _events;
+  NodeFlowEvents<T, C> get events => _events;
 
   // Canvas focus management
   final FocusNode _canvasFocusNode = FocusNode(debugLabel: 'NodeFlowCanvas');
@@ -239,7 +256,7 @@ class NodeFlowController<T> {
   /// Sets the behavior mode for the canvas.
   ///
   /// This controls what CRUD operations are allowed on nodes, ports,
-  /// connections, and annotations.
+  /// and connections.
   void setBehavior(NodeFlowBehavior value) {
     runInAction(() => _behavior.value = value);
   }
@@ -247,7 +264,8 @@ class NodeFlowController<T> {
   // Core data structures
   final ObservableMap<String, Node<T>> _nodes =
       ObservableMap<String, Node<T>>();
-  final ObservableList<Connection> _connections = ObservableList<Connection>();
+  final ObservableList<Connection<C>> _connections =
+      ObservableList<Connection<C>>();
   final ObservableSet<String> _selectedNodeIds = ObservableSet<String>();
   final ObservableSet<String> _selectedConnectionIds = ObservableSet<String>();
   final Observable<GraphViewport> _viewport;
@@ -334,7 +352,7 @@ class NodeFlowController<T> {
   List<Rect> Function(Connection connection)? _connectionSegmentCalculator;
 
   // Spatial hit testing
-  late final GraphSpatialIndex<T> _spatialIndex = GraphSpatialIndex<T>(
+  late final GraphSpatialIndex<T, C> _spatialIndex = GraphSpatialIndex<T, C>(
     portSnapDistance: _config.portSnapDistance.value,
   );
 
@@ -358,7 +376,7 @@ class NodeFlowController<T> {
   int _lastNodeIndexVersion = -1;
 
   Rect? _cachedConnectionQueryRect;
-  List<Connection> _cachedVisibleConnectionsList = [];
+  List<Connection<C>> _cachedVisibleConnectionsList = [];
   int _lastConnectionIndexVersion = -1;
 
   // Computed values - stored as late final fields for proper caching
@@ -474,7 +492,7 @@ class NodeFlowController<T> {
   });
 
   /// Visible connections based on current viewport with hysteresis.
-  late final Computed<List<Connection>> _visibleConnections = Computed(() {
+  late final Computed<List<Connection<C>>> _visibleConnections = Computed(() {
     // Depend on viewport and screen size
     final v = _viewport.value;
     final s = _screenSize.value;
@@ -537,7 +555,7 @@ class NodeFlowController<T> {
   ///
   /// Returns a live list that will automatically update when connections
   /// are added or removed.
-  List<Connection> get connections => _connections;
+  List<Connection<C>> get connections => _connections;
 
   /// Gets the IDs of all currently selected nodes.
   ///
@@ -550,7 +568,39 @@ class NodeFlowController<T> {
   /// what zoom level.
   GraphViewport get viewport => _viewport.value;
 
-  /// Checks if there is any active selection (nodes, connections, or annotations).
+  /// Gets the viewport observable for reactive UI updates.
+  ///
+  /// Use this when you need to observe viewport changes in MobX Observer widgets.
+  /// Access `.value` to get the current [GraphViewport].
+  ///
+  /// Example:
+  /// ```dart
+  /// Observer(builder: (_) => Text('Zoom: ${controller.viewportObservable.value.zoom}'));
+  /// ```
+  Observable<GraphViewport> get viewportObservable => _viewport;
+
+  /// Gets the nodes observable map for reactive UI updates.
+  ///
+  /// Use this when you need to observe node collection changes in MobX Observer widgets.
+  ObservableMap<String, Node<T>> get nodesObservable => _nodes;
+
+  /// Gets the connections observable list for reactive UI updates.
+  ///
+  /// Use this when you need to observe connection collection changes in MobX Observer widgets.
+  ObservableList<Connection<C>> get connectionsObservable => _connections;
+
+  /// Gets the selected node IDs observable set for reactive UI updates.
+  ///
+  /// Use this when you need to observe selection changes in MobX Observer widgets.
+  ObservableSet<String> get selectedNodeIdsObservable => _selectedNodeIds;
+
+  /// Gets the selected connection IDs observable set for reactive UI updates.
+  ///
+  /// Use this when you need to observe connection selection changes in MobX Observer widgets.
+  ObservableSet<String> get selectedConnectionIdsObservable =>
+      _selectedConnectionIds;
+
+  /// Checks if there is any active selection (nodes or connections).
   ///
   /// Returns `true` if anything is selected, `false` otherwise.
   bool get hasSelection => _hasSelection.value;
@@ -575,7 +625,7 @@ class NodeFlowController<T> {
   List<Node<T>> get visibleNodes => _sortedVisibleNodes.value;
 
   /// Gets visible connections (package-private).
-  List<Connection> get visibleConnections => _visibleConnections.value;
+  List<Connection<C>> get visibleConnections => _visibleConnections.value;
 
   /// Gets IDs of connections involved in current interaction (package-private).
   Set<String> get activeConnectionIds => _activeConnectionIds.value;
@@ -634,18 +684,18 @@ class NodeFlowController<T> {
   bool get canvasLocked => interaction.isCanvasLocked;
 
   // ===========================================================================
-  // Resize State (unified for Node and Annotation)
+  // Resize State
   // ===========================================================================
 
   /// Gets the ID of the node currently being resized (package-private).
   ///
-  /// Works for both regular nodes and annotations since Annotation extends Node.
+  /// Works for all node types including [GroupNode] and [CommentNode].
   /// Returns null if no resize operation is in progress.
   String? get resizingNodeId => interaction.currentResizingNodeId;
 
   /// Checks if any resize operation is in progress (package-private).
   ///
-  /// Returns true when a node or annotation is being resized.
+  /// Returns true when any node is being resized.
   bool get isResizing => interaction.isResizing;
 
   /// Gets the IDs of all currently selected connections (package-private).
@@ -656,7 +706,7 @@ class NodeFlowController<T> {
   /// Gets the hit tester for spatial queries (package-private).
   ///
   /// Used by the editor for efficient hit testing with spatial indexing.
-  GraphSpatialIndex<T> get spatialIndex => _spatialIndex;
+  GraphSpatialIndex<T, C> get spatialIndex => _spatialIndex;
 
   List<Node<T>> _computeSortedNodes() {
     // Create a list from nodes and sort by zIndex
@@ -797,6 +847,31 @@ class NodeFlowController<T> {
       if (ext is E) return ext;
     }
     return null;
+  }
+
+  /// Resolves an extension by type.
+  ///
+  /// Checks the controller's attached extensions first, then falls back to
+  /// the config's extension registry.
+  ///
+  /// Returns `null` if the extension is not found.
+  ///
+  /// Example:
+  /// ```dart
+  /// final minimap = controller.resolveExtension<MinimapExtension>();
+  /// minimap?.toggle();
+  /// ```
+  E? resolveExtension<E extends NodeFlowExtension<dynamic>>() {
+    // First check if already attached
+    var ext = getExtension<E>();
+    if (ext != null) return ext;
+
+    // Try to get from registry and attach
+    ext = config.extensionRegistry.get<E>();
+    if (ext != null) {
+      addExtension(ext);
+    }
+    return ext;
   }
 
   /// Checks if an extension with the given ID is registered.

@@ -343,8 +343,12 @@ class SpatialGrid<T extends SpatialIndexable> {
       final (cellX, cellY) = parseCellKey(entry.key);
       final objects = entry.value;
 
-      // Count objects by type based on ID prefix
-      int nodes = 0, ports = 0, connections = 0, annotations = 0;
+      // Count objects by type based on ID prefix.
+      // We use ID prefixes instead of type checking because SpatialGrid is
+      // generic and importing SpatialItem would create a circular dependency.
+      // The prefixes (node_, port_, conn_) are deterministic constants defined
+      // in the SpatialItem subclasses.
+      int nodes = 0, ports = 0, connections = 0;
       for (final id in objects) {
         if (id.startsWith('node_')) {
           nodes++;
@@ -352,8 +356,6 @@ class SpatialGrid<T extends SpatialIndexable> {
           ports++;
         } else if (id.startsWith('conn_')) {
           connections++;
-        } else if (id.startsWith('annot_')) {
-          annotations++;
         }
       }
 
@@ -364,7 +366,6 @@ class SpatialGrid<T extends SpatialIndexable> {
         nodeCount: nodes,
         portCount: ports,
         connectionCount: connections,
-        annotationCount: annotations,
       );
     }).toList();
   }
@@ -590,7 +591,7 @@ class SpatialIndexStats {
 /// Debug information for a spatial grid cell.
 ///
 /// Contains the cell coordinates, bounds, and a breakdown of object counts
-/// by type (nodes, ports, connections, annotations).
+/// by type (nodes, ports, connections).
 class CellDebugInfo {
   const CellDebugInfo({
     required this.bounds,
@@ -599,7 +600,6 @@ class CellDebugInfo {
     required this.nodeCount,
     required this.portCount,
     required this.connectionCount,
-    required this.annotationCount,
   });
 
   final Rect bounds;
@@ -608,10 +608,8 @@ class CellDebugInfo {
   final int nodeCount;
   final int portCount;
   final int connectionCount;
-  final int annotationCount;
 
-  int get totalCount =>
-      nodeCount + portCount + connectionCount + annotationCount;
+  int get totalCount => nodeCount + portCount + connectionCount;
 
   bool get isEmpty => totalCount == 0;
 
@@ -621,7 +619,6 @@ class CellDebugInfo {
     if (nodeCount > 0) parts.add('n:$nodeCount');
     if (portCount > 0) parts.add('p:$portCount');
     if (connectionCount > 0) parts.add('c:$connectionCount');
-    if (annotationCount > 0) parts.add('a:$annotationCount');
     return parts.join(' ');
   }
 }

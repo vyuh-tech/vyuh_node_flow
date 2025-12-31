@@ -138,8 +138,8 @@ extension CursorThemeExtension on CursorTheme {
   /// 5. Hovering over connection → [nodeCursor]
   /// 6. Element-specific cursor based on [elementType]
   ///
-  /// For annotations, an additional [isLocked] parameter determines
-  /// whether to show [canvasCursor] (locked) or [nodeCursor] (not locked).
+  /// For special nodes like [GroupNode], an additional [isLocked] parameter
+  /// determines whether to show [canvasCursor] (locked) or [nodeCursor] (not locked).
   MouseCursor cursorFor(
     ElementType elementType,
     InteractionState interaction, {

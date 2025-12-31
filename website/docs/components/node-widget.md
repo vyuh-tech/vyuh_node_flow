@@ -16,7 +16,7 @@ The Node Widget is what users see and interact with in your flow editor. You hav
 The simplest node widget is just a container with some text:
 
 ```dart
-NodeFlowEditor<String>(
+NodeFlowEditor<String, dynamic>(
   controller: controller,
   nodeBuilder: (context, node) {
     return Container(
@@ -45,9 +45,12 @@ A typical node widget has these parts:
 
 ```dart
 Widget buildNodeWidget(BuildContext context, Node<MyData> node) {
+  final size = node.size.value; // Access Observable<Size> value
+  final isSelected = node.isSelected;
+
   return Container(
-    width: node.size.width,
-    height: node.size.height,
+    width: size.width,
+    height: size.height,
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(8),
@@ -114,9 +117,11 @@ class StartNodeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = node.size.value;
+
     return Container(
-      width: node.size.width,
-      height: node.size.height,
+      width: size.width,
+      height: size.height,
       decoration: BoxDecoration(
         color: Colors.green[50],
         borderRadius: BorderRadius.circular(24),
@@ -153,15 +158,15 @@ class ProcessNodeWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: node.size.width,
-      height: node.size.height,
+      width: node.size.value.width,
+      height: node.size.value.height,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.blue, width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.1),
+            color: Colors.blue.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: Offset(0, 4),
           ),
@@ -216,9 +221,11 @@ class ConditionNodeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = node.size.value;
+
     return Container(
-      width: node.size.width,
-      height: node.size.height,
+      width: size.width,
+      height: size.height,
       decoration: BoxDecoration(
         color: Colors.amber[50],
         border: Border.all(color: Colors.amber, width: 2),
@@ -317,12 +324,12 @@ class InteractiveNodeWidget extends StatelessWidget {
 
 ## Selection States
 
-Show visual feedback for selected nodes:
+Show visual feedback for selected nodes. The `Node` class has an `isSelected` getter that returns the reactive selection state:
 
 ```dart
 Widget buildNodeWidget(BuildContext context, Node<MyData> node) {
-  final controller = NodeFlowController.of(context);
-  final isSelected = controller.selectedNodeIds.contains(node.id);
+  // Use node.isSelected directly - it's a reactive property
+  final isSelected = node.isSelected;
 
   return Container(
     decoration: BoxDecoration(
@@ -335,7 +342,7 @@ Widget buildNodeWidget(BuildContext context, Node<MyData> node) {
       boxShadow: isSelected
           ? [
               BoxShadow(
-                color: Colors.blue.withOpacity(0.3),
+                color: Colors.blue.withValues(alpha: 0.3),
                 blurRadius: 12,
                 spreadRadius: 2,
               ),
@@ -352,6 +359,14 @@ Widget buildNodeWidget(BuildContext context, Node<MyData> node) {
   );
 }
 ```
+
+::: tip Accessing the Controller
+If you need access to the controller from within a node widget, use `NodeFlowScope`:
+
+```dart
+final controller = NodeFlowScope.of<MyData>(context);
+```
+:::
 
 ## Reactive Nodes with MobX
 
@@ -397,11 +412,15 @@ Create nodes with custom shapes:
 class CircularNodeWidget extends StatelessWidget {
   final Node<MyData> node;
 
+  const CircularNodeWidget({required this.node});
+
   @override
   Widget build(BuildContext context) {
+    final size = node.size.value;
+
     return Container(
-      width: node.size.width,
-      height: node.size.height,
+      width: size.width,
+      height: size.height,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.purple[50],
@@ -415,13 +434,17 @@ class CircularNodeWidget extends StatelessWidget {
 class HexagonNodeWidget extends StatelessWidget {
   final Node<MyData> node;
 
+  const HexagonNodeWidget({required this.node});
+
   @override
   Widget build(BuildContext context) {
+    final size = node.size.value;
+
     return ClipPath(
       clipper: HexagonClipper(),
       child: Container(
-        width: node.size.width,
-        height: node.size.height,
+        width: size.width,
+        height: size.height,
         color: Colors.teal[50],
         child: Center(child: Text(node.data.label)),
       ),

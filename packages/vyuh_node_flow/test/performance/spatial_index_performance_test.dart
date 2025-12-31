@@ -13,7 +13,7 @@ import '../helpers/test_factories.dart';
 /// The spatial index is critical for viewport culling, hit testing,
 /// and efficient node queries. These tests ensure it scales well.
 void main() {
-  late NodeFlowController<String> controller;
+  late NodeFlowController<String, dynamic> controller;
 
   setUp(() {
     resetTestCounters();

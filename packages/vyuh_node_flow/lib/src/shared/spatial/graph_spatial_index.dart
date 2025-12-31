@@ -46,7 +46,7 @@ export 'spatial_queries.dart' show HitTestResult, HitTarget;
 ///   }
 /// });
 /// ```
-class GraphSpatialIndex<T> implements SpatialQueries<T> {
+class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
   GraphSpatialIndex({double gridSize = 500.0, this.portSnapDistance = 8.0})
     : _grid = SpatialGrid<SpatialItem>(gridSize: gridSize);
 
@@ -57,7 +57,7 @@ class GraphSpatialIndex<T> implements SpatialQueries<T> {
 
   // Domain object storage for type-safe retrieval
   final Map<String, Node<T>> _nodes = {};
-  final Map<String, Connection> _connections = {};
+  final Map<String, Connection<C>> _connections = {};
 
   // Track connection segment IDs for cleanup
   final Map<String, List<String>> _connectionSegmentIds = {};
@@ -94,7 +94,7 @@ class GraphSpatialIndex<T> implements SpatialQueries<T> {
 
   // Configurable callbacks
   NodeShape? Function(Node<T> node)? nodeShapeBuilder;
-  bool Function(Connection connection, Offset point)? connectionHitTester;
+  bool Function(Connection<C> connection, Offset point)? connectionHitTester;
   Size Function(Port port)? portSizeResolver;
 
   /// Provider for the canonical render order of nodes.
@@ -199,7 +199,7 @@ class GraphSpatialIndex<T> implements SpatialQueries<T> {
   /// Updates a connection in the spatial index with segment bounds.
   ///
   /// Connections use multiple segments for accurate curved path hit testing.
-  void updateConnection(Connection connection, List<Rect> segmentBounds) {
+  void updateConnection(Connection<C> connection, List<Rect> segmentBounds) {
     _connections[connection.id] = connection;
     _removeConnectionSegments(connectionId: connection.id, notify: false);
 
@@ -368,7 +368,7 @@ class GraphSpatialIndex<T> implements SpatialQueries<T> {
   ///
   /// Returns connections whose segments overlap with the given bounds.
   /// Only returns connections where both source and target nodes are visible.
-  List<Connection> connectionsIn(Rect bounds) {
+  List<Connection<C>> connectionsIn(Rect bounds) {
     final connectionIds = _grid
         .query(bounds)
         .whereType<ConnectionSegmentItem>()
@@ -377,7 +377,7 @@ class GraphSpatialIndex<T> implements SpatialQueries<T> {
 
     return connectionIds
         .map((id) => _connections[id])
-        .whereType<Connection>()
+        .whereType<Connection<C>>()
         .where((connection) {
           final sourceNode = _nodes[connection.sourceNodeId];
           final targetNode = _nodes[connection.targetNodeId];
@@ -392,7 +392,7 @@ class GraphSpatialIndex<T> implements SpatialQueries<T> {
   /// Gets all visible connections at a point.
   /// Only returns connections where both source and target nodes are visible.
   @override
-  List<Connection> connectionsAt(Offset point, {double radius = 0}) {
+  List<Connection<C>> connectionsAt(Offset point, {double radius = 0}) {
     final connectionIds = _grid
         .queryPoint(point, radius: radius)
         .whereType<ConnectionSegmentItem>()
@@ -400,7 +400,7 @@ class GraphSpatialIndex<T> implements SpatialQueries<T> {
         .toSet();
     return connectionIds
         .map((id) => _connections[id])
-        .whereType<Connection>()
+        .whereType<Connection<C>>()
         .where((connection) {
           final sourceNode = _nodes[connection.sourceNodeId];
           final targetNode = _nodes[connection.targetNodeId];
@@ -427,7 +427,7 @@ class GraphSpatialIndex<T> implements SpatialQueries<T> {
 
   /// Gets a connection by ID.
   @override
-  Connection? getConnection(String id) => _connections[id];
+  Connection<C>? getConnection(String id) => _connections[id];
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BULK REBUILD
@@ -439,7 +439,7 @@ class GraphSpatialIndex<T> implements SpatialQueries<T> {
   /// Nodes include all node types: regular nodes, GroupNode, CommentNode.
   void rebuild({
     required Iterable<Node<T>> nodes,
-    required Iterable<Connection> connections,
+    required Iterable<Connection<C>> connections,
     required List<Rect> Function(Connection) connectionSegmentCalculator,
   }) {
     clear();
@@ -474,7 +474,7 @@ class GraphSpatialIndex<T> implements SpatialQueries<T> {
 
   /// Rebuilds connections using segment bounds calculator.
   void rebuildConnectionsWithSegments(
-    Iterable<Connection> connections,
+    Iterable<Connection<C>> connections,
     List<Rect> Function(Connection) segmentBoundsCalculator,
   ) {
     // Clear existing connections
@@ -495,7 +495,7 @@ class GraphSpatialIndex<T> implements SpatialQueries<T> {
   /// Rebuilds connections using single bounds calculator.
   /// Convenience wrapper that converts single-bound results to segment lists.
   void rebuildConnections(
-    Iterable<Connection> connections,
+    Iterable<Connection<C>> connections,
     Rect Function(Connection) boundsCalculator,
   ) {
     rebuildConnectionsWithSegments(
@@ -718,7 +718,7 @@ class GraphSpatialIndex<T> implements SpatialQueries<T> {
 
   /// Hit tests nodes filtered by their render layer.
   ///
-  /// This unified method replaces separate node and annotation hit testing.
+  /// Tests nodes in the specified layer for hit detection.
   /// Nodes include all types: regular nodes, GroupNode (background), CommentNode (foreground).
   HitTestResult? _hitTestNodesByLayer(
     Offset point, {

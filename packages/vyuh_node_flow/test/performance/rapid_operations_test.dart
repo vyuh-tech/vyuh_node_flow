@@ -13,7 +13,7 @@ import '../helpers/test_factories.dart';
 /// These tests verify that the library handles rapid, repeated operations
 /// without performance degradation or state corruption.
 void main() {
-  late NodeFlowController<String> controller;
+  late NodeFlowController<String, dynamic> controller;
 
   setUp(() {
     resetTestCounters();

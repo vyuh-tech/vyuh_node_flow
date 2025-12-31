@@ -26,8 +26,8 @@ final comment = CommentNode<String>(
   position: const Offset(100, 100),
   text: 'This is a reminder',
   data: 'optional-data',
-  width: 200,
-  height: 150,
+  width: 200,   // Default: 200.0, range: 100-600
+  height: 150,  // Default: 100.0, range: 60-400
   color: Colors.yellow,
 );
 controller.addNode(comment);
@@ -38,6 +38,7 @@ controller.addNode(comment);
 - Inline text editing (double-click)
 - Auto-grow height as you type
 - Resizable with drag handles
+- Size constraints: min 100x60, max 600x400
 
 ### GroupNode (Containers)
 
@@ -50,6 +51,7 @@ final group = GroupNode<String>(
   data: 'group-data',
   color: Colors.blue,
   behavior: GroupBehavior.bounds, // or .explicit, .parent
+  nodeIds: {'node-1', 'node-2'},  // For explicit/parent behaviors
 );
 controller.addNode(group);
 ```

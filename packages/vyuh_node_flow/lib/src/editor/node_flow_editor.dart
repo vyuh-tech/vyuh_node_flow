@@ -6,7 +6,7 @@ import 'package:mobx/mobx.dart' hide Listener;
 import 'package:vector_math/vector_math_64.dart' hide Colors;
 
 import '../connections/connection.dart';
-import '../connections/connection_style_overrides.dart';
+import '../connections/styles/connection_style_base.dart';
 import '../graph/coordinates.dart';
 import '../graph/viewport.dart';
 import '../nodes/node.dart';
@@ -28,10 +28,10 @@ import 'themes/cursor_theme.dart';
 import 'themes/node_flow_theme.dart';
 import 'unbounded_widgets.dart';
 import 'viewport_animation_mixin.dart';
-import 'layers/minimap_overlay.dart';
+import '../extensions/minimap/minimap_overlay.dart';
 import 'layers/nodes_layer.dart';
-import 'layers/autopan_zone_debug_layer.dart';
-import 'layers/debug_layers_stack.dart';
+import '../extensions/autopan/autopan_zone_debug_layer.dart';
+import '../extensions/debug/debug_layers_stack.dart';
 import 'node_flow_scope.dart';
 
 part 'controller/node_flow_controller_extensions.dart';
@@ -62,27 +62,25 @@ part 'node_flow_editor_widget_handlers.dart';
 ///   },
 /// )
 /// ```
-class NodeFlowEditor<T> extends StatefulWidget {
+class NodeFlowEditor<T, C> extends StatefulWidget {
   const NodeFlowEditor({
     super.key,
     required this.controller,
-    required this.nodeBuilder,
     required this.theme,
+    required this.nodeBuilder,
     this.nodeShapeBuilder,
     this.portBuilder,
+    this.connectionStyleBuilder,
     this.labelBuilder,
-    this.connectionStyleResolver,
     this.events,
     this.behavior = NodeFlowBehavior.design,
-    this.scrollToZoom = true,
-    this.showAnnotations = true,
   });
 
   /// The controller that manages the graph state.
   ///
   /// This controller holds all nodes (including GroupNode and CommentNode),
   /// connections, viewport state, and provides methods for manipulating the graph.
-  final NodeFlowController<T> controller;
+  final NodeFlowController<T, C> controller;
 
   /// Builder function for rendering node content.
   ///
@@ -198,29 +196,47 @@ class NodeFlowEditor<T> extends StatefulWidget {
   /// ```
   final LabelBuilder? labelBuilder;
 
-  /// Optional resolver for customizing connection styles per-connection.
+  /// Optional builder for dynamic connection styling.
   ///
-  /// This function is called for each connection during painting, allowing
-  /// you to override colors and stroke widths based on connection data.
+  /// This callback is invoked for each connection during rendering, receiving
+  /// the connection and its source/target nodes. This enables dynamic styling
+  /// based on node state, connection data, or any runtime conditions.
   ///
-  /// Return null to use the theme defaults, or return a [ConnectionStyleOverrides]
-  /// to customize specific properties.
+  /// ## Style Cascade
+  /// Styles are resolved in this order:
+  /// 1. `connectionStyleBuilder` result (if provided and non-null)
+  /// 2. Connection instance properties ([Connection.color], etc.)
+  /// 3. Theme colors (from [ConnectionTheme])
   ///
-  /// Example:
+  /// ## Example
   /// ```dart
-  /// connectionStyleResolver: (connection) {
-  ///   if (connection.data?['type'] == 'error') {
-  ///     return ConnectionStyleOverrides(
-  ///       color: Colors.red,
-  ///       selectedColor: Colors.red.shade700,
-  ///       strokeWidth: 3.0,
-  ///     );
+  /// connectionStyleBuilder: (connection, sourceNode, targetNode) {
+  ///   // Style based on source node state
+  ///   if (sourceNode.data?.hasError == true) {
+  ///     return ConnectionStyle(color: Colors.red, strokeWidth: 3.0);
   ///   }
-  ///   return null; // Use theme defaults
+  ///   // Style based on connection data
+  ///   if (connection.data?['priority'] == 'high') {
+  ///     return ConnectionStyle(color: Colors.orange);
+  ///   }
+  ///   return null; // Use connection's static style or theme
   /// }
   /// ```
-  final ConnectionStyleOverrides? Function(Connection connection)?
-  connectionStyleResolver;
+  /// The connection style builder for dynamic styling.
+  ///
+  /// Receives typed `Connection<C>` for type-safe pattern matching on connection data.
+  ///
+  /// ```dart
+  /// // With typed connections
+  /// connectionStyleBuilder: (connection, source, target) {
+  ///   return switch (connection.data) {
+  ///     HighPriority() => ConnectionStyle(color: Colors.red),
+  ///     Normal() => null,
+  ///     null => null,
+  ///   };
+  /// }
+  /// ```
+  final ConnectionStyleBuilder<T, C>? connectionStyleBuilder;
 
   /// The theme configuration for styling the editor.
   ///
@@ -257,7 +273,7 @@ class NodeFlowEditor<T> extends StatefulWidget {
   ///   ),
   /// )
   /// ```
-  final NodeFlowEvents<T>? events;
+  final NodeFlowEvents<T, C>? events;
 
   /// The behavior mode for the canvas.
   ///
@@ -267,25 +283,11 @@ class NodeFlowEditor<T> extends StatefulWidget {
   /// - [NodeFlowBehavior.present]: Display only, no interaction
   final NodeFlowBehavior behavior;
 
-  /// Whether trackpad scroll gestures should cause zooming.
-  ///
-  /// When `true`, scrolling on a trackpad will zoom in/out.
-  /// When `false`, trackpad scroll will be treated as pan gestures.
-  /// Defaults to `true`.
-  final bool scrollToZoom;
-
-  /// Whether to show the annotation node layers (GroupNode, CommentNode).
-  ///
-  /// When `false`, background (groups) and foreground (comments) layers are
-  /// not rendered, but the nodes remain in the graph data.
-  /// Defaults to `true`.
-  final bool showAnnotations;
-
   @override
-  State<NodeFlowEditor<T>> createState() => _NodeFlowEditorState<T>();
+  State<NodeFlowEditor<T, C>> createState() => _NodeFlowEditorState<T, C>();
 }
 
-class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
+class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     with TickerProviderStateMixin, ViewportAnimationMixin {
   late final TransformationController _transformationController;
   final List<ReactionDisposer> _disposers = [];
@@ -309,7 +311,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
 
   // Hover tracking for mouse enter/leave events
   HitTarget? _lastHoverHitType;
-  String? _lastHoveredEntityId; // nodeId, connectionId, portId, or annotationId
+  String? _lastHoveredEntityId; // nodeId, connectionId, or portId
 
   // Shift key tracking for selection mode cursor
   bool _isShiftPressed = false;
@@ -415,7 +417,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   }
 
   @override
-  void didUpdateWidget(NodeFlowEditor<T> oldWidget) {
+  void didUpdateWidget(NodeFlowEditor<T, C> oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Theme is handled by editor, config is immutable in controller
 
@@ -533,7 +535,8 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                               panEnabled: widget.behavior.canPan && !isLocked,
                               scaleEnabled:
                                   widget.behavior.canZoom && !isLocked,
-                              trackpadScrollCausesScale: widget.scrollToZoom,
+                              trackpadScrollCausesScale:
+                                  widget.controller.config.scrollToZoom.value,
                               onInteractionStart: _onInteractionStart,
                               onInteractionUpdate: _onInteractionUpdate,
                               onInteractionEnd: _onInteractionEnd,
@@ -554,29 +557,30 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                                 ),
 
                                 // Background nodes (GroupNode) - drag handled via NodeWidget
-                                if (widget.showAnnotations)
-                                  NodesLayer.background(
-                                    widget.controller,
-                                    widget.nodeBuilder,
-                                    widget.controller.connections,
-                                    portBuilder: widget.portBuilder,
-                                    onNodeTap: _handleNodeTap,
-                                    onNodeDoubleTap: _handleNodeDoubleTap,
-                                    onNodeContextMenu: _handleNodeContextMenu,
-                                    onNodeMouseEnter: _handleNodeMouseEnter,
-                                    onNodeMouseLeave: _handleNodeMouseLeave,
-                                    onPortContextMenu: _handlePortContextMenu,
-                                    portSnapDistance: widget
-                                        .controller
-                                        .config
-                                        .portSnapDistance
-                                        .value,
-                                  ),
+                                NodesLayer.background(
+                                  widget.controller,
+                                  widget.nodeBuilder,
+                                  widget.controller.connections,
+                                  portBuilder: widget.portBuilder,
+                                  onNodeTap: _handleNodeTap,
+                                  onNodeDoubleTap: _handleNodeDoubleTap,
+                                  onNodeContextMenu: _handleNodeContextMenu,
+                                  onNodeMouseEnter: _handleNodeMouseEnter,
+                                  onNodeMouseLeave: _handleNodeMouseLeave,
+                                  onPortContextMenu: _handlePortContextMenu,
+                                  portSnapDistance: widget
+                                      .controller
+                                      .config
+                                      .portSnapDistance
+                                      .value,
+                                ),
 
                                 // Connections
-                                ConnectionsLayer<T>(
+                                ConnectionsLayer<T, C>(
                                   controller: widget.controller,
                                   animation: _connectionAnimationController,
+                                  connectionStyleBuilder:
+                                      widget.connectionStyleBuilder,
                                 ),
 
                                 // Connection labels
@@ -605,24 +609,23 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
                                 ),
 
                                 // Foreground nodes (CommentNode) - drag handled via NodeWidget
-                                if (widget.showAnnotations)
-                                  NodesLayer.foreground(
-                                    widget.controller,
-                                    widget.nodeBuilder,
-                                    widget.controller.connections,
-                                    portBuilder: widget.portBuilder,
-                                    onNodeTap: _handleNodeTap,
-                                    onNodeDoubleTap: _handleNodeDoubleTap,
-                                    onNodeContextMenu: _handleNodeContextMenu,
-                                    onNodeMouseEnter: _handleNodeMouseEnter,
-                                    onNodeMouseLeave: _handleNodeMouseLeave,
-                                    onPortContextMenu: _handlePortContextMenu,
-                                    portSnapDistance: widget
-                                        .controller
-                                        .config
-                                        .portSnapDistance
-                                        .value,
-                                  ),
+                                NodesLayer.foreground(
+                                  widget.controller,
+                                  widget.nodeBuilder,
+                                  widget.controller.connections,
+                                  portBuilder: widget.portBuilder,
+                                  onNodeTap: _handleNodeTap,
+                                  onNodeDoubleTap: _handleNodeDoubleTap,
+                                  onNodeContextMenu: _handleNodeContextMenu,
+                                  onNodeMouseEnter: _handleNodeMouseEnter,
+                                  onNodeMouseLeave: _handleNodeMouseLeave,
+                                  onPortContextMenu: _handlePortContextMenu,
+                                  portSnapDistance: widget
+                                      .controller
+                                      .config
+                                      .portSnapDistance
+                                      .value,
+                                ),
 
                                 // Debug visualization layers (when config.debugMode is enabled)
                                 // Placed on top of all content for full visibility
@@ -771,7 +774,7 @@ class _NodeFlowEditorState<T> extends State<NodeFlowEditor<T>>
   /// This is the AUTHORITATIVE viewport sync mechanism, called by the
   /// transformation controller's listener. It ensures the viewport stays
   /// in sync with ALL transform changes, which is critical for:
-  /// - Accurate hit testing (nodes, ports, connections, annotations)
+  /// - Accurate hit testing (nodes, ports, connections)
   /// - Correct coordinate conversion (screen ↔ graph coordinates)
   /// - Proper spatial index queries
   ///

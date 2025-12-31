@@ -12,7 +12,7 @@ import '../helpers/test_factories.dart';
 /// These tests verify that individual node widgets build correctly,
 /// handle state changes, and integrate with the controller.
 void main() {
-  late NodeFlowController<String> controller;
+  late NodeFlowController<String, dynamic> controller;
 
   setUp(() {
     resetTestCounters();
@@ -32,7 +32,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) => Container(
                 key: const ValueKey('custom-content'),
@@ -56,7 +56,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) => Text(node.id),
               theme: NodeFlowTheme.light,
@@ -87,7 +87,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) =>
                   SizedBox(width: 100, height: 60, child: Text(node.id)),
@@ -112,27 +112,20 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) => SizedBox(width: 100, height: 60),
-              portBuilder:
-                  (
-                    context,
-                    controller,
-                    node,
-                    port,
-                    isOutput,
-                    isConnected,
-                    nodeBounds,
-                  ) {
-                    customPortBuilderCalled = true;
-                    return Container(
-                      key: ValueKey('port-${port.id}'),
-                      width: 12,
-                      height: 12,
-                      color: Colors.red,
-                    );
-                  },
+              portBuilder: (context, node, port) {
+                customPortBuilderCalled = true;
+                // Use helper methods to derive isOutput if needed:
+                // final isOutput = node.isOutputPort(port);
+                return Container(
+                  key: ValueKey('port-${port.id}'),
+                  width: 12,
+                  height: 12,
+                  color: Colors.red,
+                );
+              },
               theme: NodeFlowTheme.light,
             ),
           ),
@@ -155,7 +148,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) => SizedBox(
                 key: const ValueKey('node-content'),
@@ -195,7 +188,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) => SizedBox(
                   width: 100,
@@ -234,7 +227,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) => Text(
                   'Size: ${node.size.value.width.toInt()}x${node.size.value.height.toInt()}',
@@ -268,7 +261,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) => Container(
                 key: ValueKey(node.id),
@@ -305,7 +298,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) => SizedBox(
                 width: 100,
@@ -351,7 +344,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) => Text('Data: ${node.data}'),
               theme: NodeFlowTheme.light,
@@ -383,7 +376,7 @@ void main() {
             body: SizedBox(
               width: 1920,
               height: 1080,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) => SizedBox(
                   key: ValueKey(node.id),
@@ -415,7 +408,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) => Text(node.id),
               nodeShapeBuilder: (context, node) {

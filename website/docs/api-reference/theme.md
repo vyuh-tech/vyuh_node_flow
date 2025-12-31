@@ -9,7 +9,8 @@ Complete reference for all theming classes in Vyuh Node Flow.
 
 ## NodeFlowTheme
 
-The top-level theme configuration. Extends Flutter's `ThemeExtension` for integration with the theming system.
+The top-level theme configuration. Extends Flutter's `ThemeExtension` for
+integration with the theming system.
 
 ```dart
 NodeFlowTheme({
@@ -22,37 +23,33 @@ NodeFlowTheme({
   required GridTheme gridTheme,
   required SelectionTheme selectionTheme,
   required CursorTheme cursorTheme,
-  required MinimapTheme minimapTheme,
   required ResizerTheme resizerTheme,
   Color backgroundColor = Colors.white,
-  DebugMode debugMode = DebugMode.none,
-  DebugTheme debugTheme = DebugTheme.light,
 })
 ```
 
-::: info
-Most theme properties are **required**. Use `NodeFlowTheme.light` or `NodeFlowTheme.dark` as starting points.
+::: info Most theme properties are **required**. Use `NodeFlowTheme.light` or
+`NodeFlowTheme.dark` as starting points.
 
-:::
+Feature-specific themes like minimap and debug visualization are configured via
+their respective extensions (e.g., `MinimapExtension`, `DebugExtension`) rather
+than this central theme. :::
 
 ### Properties
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| `nodeTheme` | `NodeTheme` | Yes | Node appearance |
-| `connectionTheme` | `ConnectionTheme` | Yes | Established connection appearance |
-| `temporaryConnectionTheme` | `ConnectionTheme` | Yes | Connection during creation |
-| `connectionAnimationDuration` | `Duration` | No | Animation cycle duration |
-| `portTheme` | `PortTheme` | Yes | Port appearance |
-| `labelTheme` | `LabelTheme` | Yes | Connection label styling |
-| `gridTheme` | `GridTheme` | Yes | Grid background |
-| `selectionTheme` | `SelectionTheme` | Yes | Selection rectangle styling |
-| `cursorTheme` | `CursorTheme` | Yes | Mouse cursor styles |
-| `minimapTheme` | `MinimapTheme` | Yes | Minimap appearance |
-| `resizerTheme` | `ResizerTheme` | Yes | Resize handle styling |
-| `backgroundColor` | `Color` | No | Canvas background |
-| `debugMode` | `DebugMode` | No | Debug overlay mode |
-| `debugTheme` | `DebugTheme` | No | Debug visualization styling |
+| Property                      | Type              | Required | Description                                   |
+| ----------------------------- | ----------------- | -------- | --------------------------------------------- |
+| `nodeTheme`                   | `NodeTheme`       | Yes      | Node appearance                               |
+| `connectionTheme`             | `ConnectionTheme` | Yes      | Established connection appearance             |
+| `temporaryConnectionTheme`    | `ConnectionTheme` | Yes      | Connection during creation                    |
+| `connectionAnimationDuration` | `Duration`        | No       | Animation cycle duration (default: 2 seconds) |
+| `portTheme`                   | `PortTheme`       | Yes      | Port appearance                               |
+| `labelTheme`                  | `LabelTheme`      | Yes      | Connection label styling                      |
+| `gridTheme`                   | `GridTheme`       | Yes      | Grid background                               |
+| `selectionTheme`              | `SelectionTheme`  | Yes      | Selection rectangle styling                   |
+| `cursorTheme`                 | `CursorTheme`     | Yes      | Mouse cursor styles                           |
+| `resizerTheme`                | `ResizerTheme`    | Yes      | Resize handle styling                         |
+| `backgroundColor`             | `Color`           | No       | Canvas background                             |
 
 ::: code-group
 
@@ -93,25 +90,27 @@ NodeTheme({
 })
 ```
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `backgroundColor` | `Color` | Default background |
-| `selectedBackgroundColor` | `Color` | Background when selected |
-| `borderColor` | `Color` | Default border color |
-| `selectedBorderColor` | `Color` | Border when selected |
-| `borderWidth` | `double` | Default border width |
-| `selectedBorderWidth` | `double` | Border width when selected |
-| `borderRadius` | `BorderRadius` | Corner rounding |
-| `shadow` | `List<BoxShadow>` | Default shadow |
-| `selectedShadow` | `List<BoxShadow>` | Shadow when selected |
+| Property                  | Type              | Description                |
+| ------------------------- | ----------------- | -------------------------- |
+| `backgroundColor`         | `Color`           | Default background         |
+| `selectedBackgroundColor` | `Color`           | Background when selected   |
+| `borderColor`             | `Color`           | Default border color       |
+| `selectedBorderColor`     | `Color`           | Border when selected       |
+| `borderWidth`             | `double`          | Default border width       |
+| `selectedBorderWidth`     | `double`          | Border width when selected |
+| `borderRadius`            | `BorderRadius`    | Corner rounding            |
+| `shadow`                  | `List<BoxShadow>` | Default shadow             |
+| `selectedShadow`          | `List<BoxShadow>` | Shadow when selected       |
 
 **Preset themes:**
+
 ```dart
 NodeTheme.light
 NodeTheme.dark
 ```
 
 **Example:**
+
 ```dart
 NodeTheme(
   backgroundColor: Colors.white,
@@ -147,6 +146,8 @@ ConnectionTheme({
   required ConnectionStyle style,
   required Color color,
   required Color selectedColor,
+  required Color highlightColor,
+  required Color highlightBorderColor,
   required double strokeWidth,
   required double selectedStrokeWidth,
   List<double>? dashPattern,
@@ -166,29 +167,32 @@ ConnectionTheme({
 })
 ```
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `style` | `ConnectionStyle` | Line style (bezier, smoothstep, etc.) |
-| `color` | `Color` | Default line color |
-| `selectedColor` | `Color` | Color when selected |
-| `strokeWidth` | `double` | Default line width |
-| `selectedStrokeWidth` | `double` | Width when selected |
-| `dashPattern` | `List<double>?` | Dash pattern `[dash, gap]` |
-| `startPoint` | `ConnectionEndPoint` | Start marker |
-| `endPoint` | `ConnectionEndPoint` | End marker |
-| `endpointColor` | `Color` | Marker fill color |
-| `endpointBorderColor` | `Color` | Marker border color |
-| `endpointBorderWidth` | `double` | Marker border width |
-| `animationEffect` | `ConnectionEffect?` | Default animation effect |
-| `bezierCurvature` | `double` | Bezier curve factor (0-1) |
-| `cornerRadius` | `double` | Step connection corner radius |
-| `portExtension` | `double` | Straight distance from port |
-| `backEdgeGap` | `double` | Gap for loopback routing |
-| `hitTolerance` | `double` | Click/tap hit area tolerance |
-| `startGap` | `double` | Gap from source port |
-| `endGap` | `double` | Gap from target port |
+| Property               | Type                 | Description                            |
+| ---------------------- | -------------------- | -------------------------------------- |
+| `style`                | `ConnectionStyle`    | Line style (bezier, smoothstep, etc.)  |
+| `color`                | `Color`              | Default line color                     |
+| `selectedColor`        | `Color`              | Color when selected                    |
+| `highlightColor`       | `Color`              | Color when hovered                     |
+| `highlightBorderColor` | `Color`              | Border color for highlighted endpoints |
+| `strokeWidth`          | `double`             | Default line width                     |
+| `selectedStrokeWidth`  | `double`             | Width when selected                    |
+| `dashPattern`          | `List<double>?`      | Dash pattern `[dash, gap]`             |
+| `startPoint`           | `ConnectionEndPoint` | Start marker                           |
+| `endPoint`             | `ConnectionEndPoint` | End marker                             |
+| `endpointColor`        | `Color`              | Marker fill color                      |
+| `endpointBorderColor`  | `Color`              | Marker border color                    |
+| `endpointBorderWidth`  | `double`             | Marker border width                    |
+| `animationEffect`      | `ConnectionEffect?`  | Default animation effect               |
+| `bezierCurvature`      | `double`             | Bezier curve factor (0-1)              |
+| `cornerRadius`         | `double`             | Step connection corner radius          |
+| `portExtension`        | `double`             | Straight distance from port            |
+| `backEdgeGap`          | `double`             | Gap for loopback routing               |
+| `hitTolerance`         | `double`             | Click/tap hit area tolerance           |
+| `startGap`             | `double`             | Gap from source port                   |
+| `endGap`               | `double`             | Gap from target port                   |
 
 **Preset themes:**
+
 ```dart
 ConnectionTheme.light
 ConnectionTheme.dark
@@ -213,8 +217,7 @@ ConnectionEndPoint.capsuleHalf // Capsule half shape (default for end)
 ConnectionEndPoint.triangle   // Arrow/triangle
 ```
 
-::: info
-Endpoint shapes use `MarkerShape`, not a separate `EndpointShape` enum.
+::: info Endpoint shapes use `MarkerShape`, not a separate `EndpointShape` enum.
 
 :::
 
@@ -222,11 +225,11 @@ Endpoint shapes use `MarkerShape`, not a separate `EndpointShape` enum.
 
 Path rendering styles via `ConnectionStyles`:
 
-| Style | Description |
-|-------|-------------|
-| `ConnectionStyles.straight` | Direct line |
-| `ConnectionStyles.bezier` | Curved Bezier |
-| `ConnectionStyles.step` | Right-angle segments |
+| Style                         | Description                 |
+| ----------------------------- | --------------------------- |
+| `ConnectionStyles.straight`   | Direct line                 |
+| `ConnectionStyles.bezier`     | Curved Bezier               |
+| `ConnectionStyles.step`       | Right-angle segments        |
 | `ConnectionStyles.smoothstep` | Smooth orthogonal (default) |
 
 ## PortTheme
@@ -238,43 +241,40 @@ PortTheme({
   required Size size,
   required Color color,
   required Color connectedColor,
-  required Color snappingColor,
+  required Color highlightColor,
+  required Color highlightBorderColor,
   required Color borderColor,
   required double borderWidth,
   MarkerShape shape = MarkerShapes.capsuleHalf,
   bool showLabel = false,
   TextStyle? labelTextStyle,
   double labelOffset = 4.0,
-  double labelVisibilityThreshold = 0.5,
-  Color highlightBorderColor = const Color(0xFF000000),
-  double highlightBorderWidthDelta = 1.5,
 })
 ```
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `size` | `Size` | Port dimensions (width, height) |
-| `color` | `Color` | Default fill color |
-| `connectedColor` | `Color` | Color when connected |
-| `snappingColor` | `Color` | Color during connection drag |
-| `borderColor` | `Color` | Border color |
-| `borderWidth` | `double` | Border thickness |
-| `shape` | `MarkerShape` | Default marker shape |
-| `showLabel` | `bool` | Global label visibility |
-| `labelTextStyle` | `TextStyle?` | Label text style |
-| `labelOffset` | `double` | Port to label distance |
-| `labelVisibilityThreshold` | `double` | Min zoom to show labels |
-| `highlightBorderColor` | `Color` | Border color when highlighted |
-| `highlightBorderWidthDelta` | `double` | Extra border width when highlighted |
+| Property               | Type          | Description                                        |
+| ---------------------- | ------------- | -------------------------------------------------- |
+| `size`                 | `Size`        | Port dimensions (width, height)                    |
+| `color`                | `Color`       | Default fill color                                 |
+| `connectedColor`       | `Color`       | Color when connected                               |
+| `highlightColor`       | `Color`       | Fill color when highlighted during connection drag |
+| `highlightBorderColor` | `Color`       | Border color when highlighted                      |
+| `borderColor`          | `Color`       | Default border color                               |
+| `borderWidth`          | `double`      | Border thickness                                   |
+| `shape`                | `MarkerShape` | Default marker shape                               |
+| `showLabel`            | `bool`        | Global label visibility                            |
+| `labelTextStyle`       | `TextStyle?`  | Label text style                                   |
+| `labelOffset`          | `double`      | Port to label distance                             |
 
 **Preset themes:**
+
 ```dart
 PortTheme.light
 PortTheme.dark
 ```
 
-::: info
-Port `size` is a `Size` object (width x height), not a single `double` value.
+::: info Port `size` is a `Size` object (width x height), not a single `double`
+value.
 
 :::
 
@@ -291,30 +291,32 @@ GridTheme({
 })
 ```
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `style` | `GridStyle` | Grid pattern style |
-| `color` | `Color` | Grid line/dot color |
-| `size` | `double` | Grid cell size |
-| `thickness` | `double` | Line thickness |
+| Property    | Type        | Description         |
+| ----------- | ----------- | ------------------- |
+| `style`     | `GridStyle` | Grid pattern style  |
+| `color`     | `Color`     | Grid line/dot color |
+| `size`      | `double`    | Grid cell size      |
+| `thickness` | `double`    | Line thickness      |
 
 ### GridStyle
 
-| Style | Description |
-|-------|-------------|
-| `GridStyles.none` | No grid |
-| `GridStyles.dots` | Dot pattern |
-| `GridStyles.lines` | Line grid |
-| `GridStyles.cross` | Cross pattern |
+| Style                     | Description                              |
+| ------------------------- | ---------------------------------------- |
+| `GridStyles.none`         | No grid                                  |
+| `GridStyles.dots`         | Dot pattern                              |
+| `GridStyles.lines`        | Line grid                                |
+| `GridStyles.cross`        | Cross pattern                            |
 | `GridStyles.hierarchical` | Hierarchical grid with major/minor lines |
 
 **Preset themes:**
+
 ```dart
 GridTheme.light
 GridTheme.dark
 ```
 
 **Example:**
+
 ```dart
 GridTheme(
   style: GridStyles.dots,
@@ -339,12 +341,14 @@ LabelTheme({
 ```
 
 **Preset themes:**
+
 ```dart
 LabelTheme.light
 LabelTheme.dark
 ```
 
 **Example:**
+
 ```dart
 LabelTheme(
   textStyle: TextStyle(fontSize: 12, color: Colors.black87),
@@ -368,6 +372,7 @@ SelectionTheme({
 ```
 
 **Preset themes:**
+
 ```dart
 SelectionTheme.light
 SelectionTheme.dark
@@ -388,6 +393,7 @@ CursorTheme({
 ```
 
 **Preset themes:**
+
 ```dart
 CursorTheme.light
 CursorTheme.dark
@@ -407,6 +413,7 @@ DebugTheme({
 ```
 
 **Preset themes:**
+
 ```dart
 DebugTheme.light
 DebugTheme.dark

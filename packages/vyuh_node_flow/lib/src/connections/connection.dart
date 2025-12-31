@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:mobx/mobx.dart';
 
+import '../shared/json_converters.dart';
 import 'connection_endpoint.dart';
 import 'connection_label.dart';
 import 'effects/connection_effect.dart';
@@ -17,36 +18,45 @@ part 'connection.g.dart';
 /// creating a visual edge that can be styled, animated, and labeled. Connections are
 /// reactive and use MobX observables for state management.
 ///
+/// ## Type Parameters
+/// - `C`: The type of data stored in the connection. Use `void` or omit for untyped.
+///
 /// ## Key Features
 /// - **Port-to-port linking**: Connects specific ports between nodes
 /// - **Reactive state**: Uses MobX observables for animated, selected, and label properties
 /// - **Customizable styling**: Supports custom [ConnectionStyle] and [ConnectionEndPoint]s
 /// - **Three label positions**: Supports startLabel (anchor 0.0), label (anchor 0.5), and endLabel (anchor 1.0)
-/// - **Data attachment**: Can carry arbitrary data via the [data] property
+/// - **Typed data attachment**: Can carry typed data via the [data] property
 ///
 /// ## Usage Example
 /// ```dart
-/// final connection = Connection(
+/// // With typed data
+/// final connection = Connection<PriorityData>(
 ///   id: 'conn-1',
 ///   sourceNodeId: 'node-a',
 ///   sourcePortId: 'output-1',
 ///   targetNodeId: 'node-b',
 ///   targetPortId: 'input-1',
+///   data: PriorityData(priority: Priority.high),
 ///   startLabel: ConnectionLabel.start(text: 'Start'),
 ///   label: ConnectionLabel.center(text: 'Data Flow'),
-///   endLabel: ConnectionLabel.end(text: 'End', offset: 10.0),
 ///   animated: true,
 ///   style: ConnectionStyles.smoothstep,
 /// );
 ///
-/// // Update labels directly
-/// connection.label = ConnectionLabel.center(text: 'Updated Flow');
-/// connection.startLabel = null; // Remove start label
-///
-/// // Check node/port involvement
-/// if (connection.involvesNode('node-a')) {
-///   print('Connection involves node-a');
+/// // Access typed data
+/// if (connection.data?.priority == Priority.high) {
+///   print('High priority connection');
 /// }
+///
+/// // Without typed data (use void or omit type parameter)
+/// final simpleConnection = Connection(
+///   id: 'conn-2',
+///   sourceNodeId: 'node-a',
+///   sourcePortId: 'output-1',
+///   targetNodeId: 'node-c',
+///   targetPortId: 'input-1',
+/// );
 /// ```
 ///
 /// ## Observable Properties
@@ -62,8 +72,8 @@ part 'connection.g.dart';
 /// - [ConnectionStyle] for styling options
 /// - [ConnectionEndPoint] for endpoint marker configuration
 /// - [NodeFlowController] for managing connections in the flow
-@JsonSerializable()
-class Connection {
+@JsonSerializable(genericArgumentFactories: true)
+class Connection<C> {
   /// Creates a connection between two ports.
   ///
   /// Parameters:
@@ -86,6 +96,10 @@ class Connection {
   /// - [animationEffect]: Optional animation effect to apply (overrides animated flag)
   /// - [controlPoints]: Optional list of control points for editable path connections
   /// - [locked]: Whether this connection is locked from deletion (default: false)
+  /// - [color]: Optional custom color for the connection line (overrides theme)
+  /// - [selectedColor]: Optional custom color when the connection is selected (overrides theme)
+  /// - [strokeWidth]: Optional custom stroke width for the connection line (overrides theme)
+  /// - [selectedStrokeWidth]: Optional custom stroke width when selected (overrides theme)
   Connection({
     required this.id,
     required this.sourceNodeId,
@@ -106,6 +120,10 @@ class Connection {
     ConnectionEffect? animationEffect,
     List<Offset>? controlPoints,
     this.locked = false,
+    this.color,
+    this.selectedColor,
+    this.strokeWidth,
+    this.selectedStrokeWidth,
   }) : _animated = Observable(animated),
        _selected = Observable(selected),
        _startLabel = Observable(startLabel),
@@ -137,11 +155,30 @@ class Connection {
   final Observable<ConnectionEffect?> _animationEffect;
   final ObservableList<Offset> _controlPoints;
 
-  /// Optional arbitrary data to attach to the connection.
+  /// Optional typed data to attach to the connection.
   ///
   /// This can be used to store custom metadata, validation state, or any other
-  /// application-specific information about the connection.
-  final Map<String, dynamic>? data;
+  /// application-specific information about the connection. The type `C` allows
+  /// for strongly-typed access to connection data.
+  ///
+  /// ## Example
+  /// ```dart
+  /// class EdgeMetadata {
+  ///   final String label;
+  ///   final double weight;
+  ///   EdgeMetadata({required this.label, required this.weight});
+  /// }
+  ///
+  /// final connection = Connection<EdgeMetadata>(
+  ///   id: 'conn-1',
+  ///   // ... other params
+  ///   data: EdgeMetadata(label: 'data-flow', weight: 1.5),
+  /// );
+  ///
+  /// // Access typed data
+  /// print(connection.data?.weight); // 1.5
+  /// ```
+  final C? data;
 
   /// Optional custom style override for this connection.
   ///
@@ -178,6 +215,30 @@ class Connection {
   ///
   /// Note: This only prevents deletion, not selection or visual changes.
   final bool locked;
+
+  /// Optional custom color for the connection line.
+  ///
+  /// If null, the connection will use the color from [ConnectionTheme].
+  /// This color is used when the connection is not selected.
+  @ColorConverter()
+  final Color? color;
+
+  /// Optional custom color when the connection is selected.
+  ///
+  /// If null, the connection will use the selectedColor from [ConnectionTheme].
+  @ColorConverter()
+  final Color? selectedColor;
+
+  /// Optional custom stroke width for the connection line.
+  ///
+  /// If null, the connection will use the strokeWidth from [ConnectionTheme].
+  /// This width is used when the connection is not selected.
+  final double? strokeWidth;
+
+  /// Optional custom stroke width when selected.
+  ///
+  /// If null, the connection will use the selectedStrokeWidth from [ConnectionTheme].
+  final double? selectedStrokeWidth;
 
   // Getters and setters for accessing observable values
 
@@ -373,6 +434,45 @@ class Connection {
     return animationEffect ?? themeAnimationEffect;
   }
 
+  /// Gets the effective color for rendering based on selection state.
+  ///
+  /// Returns the appropriate color considering:
+  /// 1. Instance-specific [color]/[selectedColor] if set
+  /// 2. Theme colors as fallback
+  ///
+  /// Parameters:
+  /// - [themeColor]: The default color from the theme (non-selected)
+  /// - [themeSelectedColor]: The default selected color from the theme
+  ///
+  /// Returns: The color to use for rendering this connection
+  Color getEffectiveColor(Color themeColor, Color themeSelectedColor) {
+    if (selected) {
+      return selectedColor ?? themeSelectedColor;
+    }
+    return color ?? themeColor;
+  }
+
+  /// Gets the effective stroke width for rendering based on selection state.
+  ///
+  /// Returns the appropriate stroke width considering:
+  /// 1. Instance-specific [strokeWidth]/[selectedStrokeWidth] if set
+  /// 2. Theme stroke widths as fallback
+  ///
+  /// Parameters:
+  /// - [themeStrokeWidth]: The default stroke width from the theme (non-selected)
+  /// - [themeSelectedStrokeWidth]: The default selected stroke width from the theme
+  ///
+  /// Returns: The stroke width to use for rendering this connection
+  double getEffectiveStrokeWidth(
+    double themeStrokeWidth,
+    double themeSelectedStrokeWidth,
+  ) {
+    if (selected) {
+      return selectedStrokeWidth ?? themeSelectedStrokeWidth;
+    }
+    return strokeWidth ?? themeStrokeWidth;
+  }
+
   /// Disposes resources used by this connection.
   ///
   /// Note: MobX observables don't require manual disposal, so this method
@@ -385,8 +485,29 @@ class Connection {
   ///
   /// This factory constructor deserializes a connection from JSON, properly
   /// initializing all observable properties.
-  factory Connection.fromJson(Map<String, dynamic> json) {
-    final connection = _$ConnectionFromJson(json);
+  ///
+  /// ## Parameters
+  /// - [json]: The JSON map to deserialize from
+  /// - [fromJsonC]: A function to deserialize the typed data field. Pass
+  ///   `(json) => json as C` for simple types, or your type's fromJson for
+  ///   complex types. Pass `(json) => null` if not using typed data.
+  ///
+  /// ## Example
+  /// ```dart
+  /// // With typed data
+  /// final connection = Connection<EdgeMetadata>.fromJson(
+  ///   jsonMap,
+  ///   (json) => EdgeMetadata.fromJson(json as Map<String, dynamic>),
+  /// );
+  ///
+  /// // Without typed data
+  /// final simpleConn = Connection.fromJson(jsonMap, (json) => null);
+  /// ```
+  factory Connection.fromJson(
+    Map<String, dynamic> json,
+    C Function(Object? json) fromJsonC,
+  ) {
+    final connection = _$ConnectionFromJson(json, fromJsonC);
     // Initialize observable labels from JSON
     if (json['startLabel'] != null) {
       connection._startLabel.value = ConnectionLabel.fromJson(
@@ -421,8 +542,22 @@ class Connection {
   ///
   /// This method serializes all connection properties, including observable
   /// values, to a JSON-compatible map.
-  Map<String, dynamic> toJson() {
-    final json = _$ConnectionToJson(this);
+  ///
+  /// ## Parameters
+  /// - [toJsonC]: A function to serialize the typed data field. Pass
+  ///   `(value) => value` for simple types, or your type's toJson for
+  ///   complex types.
+  ///
+  /// ## Example
+  /// ```dart
+  /// // With typed data
+  /// final json = connection.toJson((data) => data?.toJson());
+  ///
+  /// // Without typed data
+  /// final json = simpleConn.toJson((data) => null);
+  /// ```
+  Map<String, dynamic> toJson(Object? Function(C value) toJsonC) {
+    final json = _$ConnectionToJson(this, toJsonC);
     // Include observable labels in JSON
     if (_startLabel.value != null) {
       json['startLabel'] = _startLabel.value!.toJson();

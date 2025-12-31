@@ -9,7 +9,7 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 import '../helpers/test_factories.dart';
 
 void main() {
-  late NodeFlowController<String> controller;
+  late NodeFlowController<String, dynamic> controller;
 
   setUp(() {
     resetTestCounters();
@@ -372,7 +372,10 @@ void main() {
         createTestNode(id: 'new-a'),
         createTestNode(id: 'new-b'),
       ];
-      final newGraph = NodeGraph<String>(nodes: newNodes, connections: []);
+      final newGraph = NodeGraph<String, dynamic>(
+        nodes: newNodes,
+        connections: [],
+      );
 
       controller.loadGraph(newGraph);
 

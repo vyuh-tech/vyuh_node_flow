@@ -12,7 +12,7 @@ import '../helpers/test_factories.dart';
 /// These tests verify that the editor widget builds correctly, handles
 /// configuration changes, and properly integrates with the controller.
 void main() {
-  late NodeFlowController<String> controller;
+  late NodeFlowController<String, dynamic> controller;
 
   setUp(() {
     resetTestCounters();
@@ -28,7 +28,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) => Container(),
               theme: NodeFlowTheme.light,
@@ -37,7 +37,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
     });
 
     testWidgets('editor with initial nodes renders nodes', (tester) async {
@@ -48,7 +48,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) =>
                   Container(key: ValueKey(node.id), child: Text(node.id)),
@@ -73,7 +73,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) =>
                   Container(key: ValueKey(node.id), child: Text(node.id)),
@@ -86,7 +86,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Editor should build successfully with both nodes
-      expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
       expect(controller.nodeCount, equals(2));
     });
   });
@@ -98,7 +98,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) => Container(),
               theme: NodeFlowTheme.light,
@@ -122,7 +122,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) => Container(),
               theme: NodeFlowTheme.light,
@@ -135,7 +135,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Preview mode should still allow viewing
-      expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
     });
 
     testWidgets('present mode is display only', (tester) async {
@@ -144,7 +144,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) => Container(),
               theme: NodeFlowTheme.light,
@@ -157,7 +157,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Present mode should still render
-      expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
     });
   });
 
@@ -166,7 +166,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) =>
                   Container(key: ValueKey(node.id), child: Text(node.id)),
@@ -196,7 +196,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) =>
                   Container(key: ValueKey(node.id), child: Text(node.id)),
@@ -228,7 +228,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) => Container(),
                 theme: NodeFlowTheme.light,
@@ -246,7 +246,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Editor should still be visible
-      expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
     });
   });
 
@@ -257,7 +257,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) => Container(),
               theme: NodeFlowTheme.light,
@@ -272,7 +272,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) => Container(),
               theme: NodeFlowTheme.dark,
@@ -284,20 +284,22 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should still render correctly
-      expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
     });
   });
 
   group('NodeFlowEditor - Scroll Behavior', () {
-    testWidgets('scrollToZoom can be configured', (tester) async {
+    testWidgets('scrollToZoom can be configured via config', (tester) async {
+      // Configure scrollToZoom via the controller's config
+      controller.config.update(scrollToZoom: false);
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) => Container(),
               theme: NodeFlowTheme.light,
-              scrollToZoom: false,
             ),
           ),
         ),
@@ -306,7 +308,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Editor should build successfully
-      expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
+      // Verify config was applied
+      expect(controller.config.scrollToZoom.value, isFalse);
     });
   });
 
@@ -317,11 +321,11 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: NodeFlowEditor<String>(
+            body: NodeFlowEditor<String, dynamic>(
               controller: controller,
               nodeBuilder: (context, node) => Container(),
               theme: NodeFlowTheme.light,
-              events: NodeFlowEvents<String>(
+              events: NodeFlowEvents<String, dynamic>(
                 onInit: () {
                   initCalled = true;
                 },
@@ -345,7 +349,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) => Container(),
                 theme: NodeFlowTheme.light,
@@ -358,8 +362,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Find the editor widget
-      final editorWidget = tester.widget<NodeFlowEditor<String>>(
-        find.byType(NodeFlowEditor<String>),
+      final editorWidget = tester.widget<NodeFlowEditor<String, dynamic>>(
+        find.byType(NodeFlowEditor<String, dynamic>),
       );
 
       expect(editorWidget, isNotNull);
@@ -372,7 +376,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) => Container(),
                 theme: NodeFlowTheme.light,
@@ -407,7 +411,7 @@ void main() {
             body: SizedBox(
               width: 1920,
               height: 1080,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) => Container(
                   key: ValueKey(node.id),
@@ -425,7 +429,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Editor should render without error
-      expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
       expect(controller.nodeCount, equals(50));
     });
   });

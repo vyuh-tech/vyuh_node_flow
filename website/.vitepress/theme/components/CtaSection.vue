@@ -3,10 +3,11 @@ import Badge from './Badge.vue';
 import CtaButton from './CtaButton.vue';
 
 export interface CtaAction {
-  href: string;
+  href?: string;
   icon?: string;
   label: string;
   external?: boolean;
+  onClick?: () => void;
 }
 
 defineProps<{
@@ -17,11 +18,21 @@ defineProps<{
   subtitle?: string;
   primaryAction: CtaAction;
   secondaryActions?: CtaAction[];
+  /** Add a top border */
+  borderTop?: boolean;
+  /** Add a bottom border */
+  borderBottom?: boolean;
 }>();
 </script>
 
 <template>
-  <section class="cta-section">
+  <section
+    class="cta-section"
+    :class="[
+      borderTop && 'border-t border-slate-200/50 dark:border-zinc-700/50',
+      borderBottom && 'border-b border-slate-200/50 dark:border-zinc-700/50',
+    ]"
+  >
     <div class="cta-blur cta-blur-1" />
     <div class="cta-blur cta-blur-2" />
     <div class="cta-content">
@@ -40,6 +51,7 @@ defineProps<{
           variant="primary"
           size="large"
           :external="primaryAction.external"
+          @click="primaryAction.onClick?.()"
         >
           {{ primaryAction.label }}
         </CtaButton>

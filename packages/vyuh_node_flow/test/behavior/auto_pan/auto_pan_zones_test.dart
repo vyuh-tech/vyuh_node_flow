@@ -8,7 +8,7 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 import '../../helpers/test_factories.dart';
 
 void main() {
-  late NodeFlowController<String> controller;
+  late NodeFlowController<String, dynamic> controller;
 
   setUp(() {
     controller = createTestController();

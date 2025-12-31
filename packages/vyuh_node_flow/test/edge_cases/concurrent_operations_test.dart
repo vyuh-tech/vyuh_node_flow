@@ -9,7 +9,7 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 import '../helpers/test_factories.dart';
 
 void main() {
-  late NodeFlowController<String> controller;
+  late NodeFlowController<String, dynamic> controller;
 
   setUp(() {
     controller = createTestController();
@@ -460,7 +460,7 @@ void main() {
       controller = createTestController();
       // Create events directly to avoid type inference issues with copyWith
       controller.updateEvents(
-        NodeFlowEvents<String>(
+        NodeFlowEvents<String, dynamic>(
           node: NodeEvents<String>(
             onCreated: (node) => nodeCreatedCount++,
             onDeleted: (node) => nodeDeletedCount++,
@@ -508,7 +508,10 @@ void main() {
 
       // Create new graph and load
       final newNodes = List.generate(5, (i) => createTestNode(id: 'new-$i'));
-      final graph = NodeGraph<String>(nodes: newNodes, connections: []);
+      final graph = NodeGraph<String, dynamic>(
+        nodes: newNodes,
+        connections: [],
+      );
       controller.loadGraph(graph);
 
       // Add more nodes after load

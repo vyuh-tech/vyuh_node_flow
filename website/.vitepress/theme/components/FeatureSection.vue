@@ -70,6 +70,7 @@ defineProps<{
 
 .feature-section-content {
   @apply py-6;
+  @apply max-lg:flex max-lg:flex-col max-lg:items-center max-lg:text-center;
 }
 
 /* Section title is inherited from SectionHeader, but we need it here too */
@@ -84,6 +85,7 @@ defineProps<{
 
 .feature-section-bullets {
   @apply list-none p-0 m-0 flex flex-col gap-3;
+  @apply max-lg:text-left;
 }
 
 .feature-section-bullets li {

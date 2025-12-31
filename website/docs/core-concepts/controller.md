@@ -11,12 +11,12 @@ The `NodeFlowController` is the central API for managing and manipulating your n
 
 ```dart
 class _MyEditorState extends State<MyEditor> {
-  late final NodeFlowController<MyNodeData> controller;
+  late final NodeFlowController<MyNodeData, dynamic> controller;
 
   @override
   void initState() {
     super.initState();
-    controller = NodeFlowController<MyNodeData>();
+    controller = NodeFlowController<MyNodeData, dynamic>();
   }
 
   @override
@@ -34,7 +34,7 @@ class _MyEditorState extends State<MyEditor> {
 Access nodes directly from the controller:
 
 ```dart
-// Get all nodes as a map
+// Get all nodes as a map (package-private, primarily for internal use)
 final allNodes = controller.nodes;
 
 // Get specific node by ID
@@ -43,7 +43,7 @@ final node = controller.getNode('node-1');
 // Get node count
 final count = controller.nodeCount;
 
-// Get all node IDs
+// Get all node IDs (returns Iterable<String>)
 final ids = controller.nodeIds;
 
 // Get nodes by type
@@ -73,8 +73,10 @@ Control the visible area of the canvas:
 ```dart
 final viewport = controller.viewport;
 
-// Get current zoom and pan
+// Get current zoom level (double)
 final zoom = controller.currentZoom;
+
+// Get current pan position (ScreenOffset)
 final pan = controller.currentPan;
 ```
 
@@ -115,7 +117,8 @@ controller.setNodePosition('node-1', Offset(300, 200));
 ```
 
 ```dart [Duplicate Node]
-final newNodeId = controller.duplicateNode('node-1');
+// Duplicates a node and adds it to the graph (returns void)
+controller.duplicateNode('node-1');
 ```
 
 ```dart [Get Node]
@@ -145,11 +148,12 @@ controller.addConnection(connection);
 ```
 
 ```dart [Create Connection (Convenience Method)]
-final connection = controller.createConnection(
-  sourceNodeId: 'node-1',
-  sourcePortId: 'out-1',
-  targetNodeId: 'node-2',
-  targetPortId: 'in-1',
+// Uses positional parameters and auto-generates connection ID
+controller.createConnection(
+  'node-1',    // sourceNodeId
+  'out-1',     // sourcePortId
+  'node-2',    // targetNodeId
+  'in-1',      // targetPortId
 );
 ```
 
@@ -227,8 +231,8 @@ final isSelected = controller.isNodeSelected('node-1');
 ::: code-group
 
 ```dart [Pan Viewport]
-// Pan by a delta
-controller.panBy(ScreenOffset(Offset(100, 50)));
+// Pan by a delta (in screen pixels)
+controller.panBy(ScreenOffset.fromXY(100, 50));
 ```
 
 ```dart [Zoom]
@@ -248,25 +252,27 @@ controller.fitSelectedNodes();
 ```
 
 ```dart [Center on Node]
-// Center without changing zoom
+// Center without changing zoom (immediate)
 controller.centerOnNode('node-1');
 
-// Center with specific zoom
+// Center with specific zoom (immediate)
 controller.centerOnNodeWithZoom('node-1', zoom: 1.5);
 
-// Animate to node
+// Animate to node (smooth animation)
 controller.animateToNode('node-1', zoom: 1.0);
+// Keep current zoom with animation
+controller.animateToNode('node-1', zoom: null);
 ```
 
 ```dart [Center Viewport]
-// Center on all nodes
+// Center on all nodes (keeps current zoom)
 controller.centerViewport();
 
-// Center on selection
+// Center on selection (keeps current zoom)
 controller.centerOnSelection();
 
-// Center on specific point
-controller.centerOn(GraphOffset(Offset(500, 300)));
+// Center on specific point in graph coordinates
+controller.centerOn(GraphOffset.fromXY(500, 300));
 ```
 
 ```dart [Reset Viewport]
@@ -277,18 +283,20 @@ controller.resetViewport();
 
 ## Coordinate Transformations
 
-Convert between screen and graph coordinate systems:
+Convert between screen and graph coordinate systems using typed coordinates:
 
 ```dart
-// Screen to graph coordinates
+// Screen to graph coordinates (for local/canvas coordinates)
 final graphPos = controller.screenToGraph(ScreenPosition(screenPoint));
 
 // Graph to screen coordinates
 final screenPos = controller.graphToScreen(GraphPosition(graphPoint));
 
-// Global (widget) to graph coordinates
+// Global (widget) to graph coordinates (for gesture globalPosition)
 final graphPos = controller.globalToGraph(ScreenPosition(globalPoint));
 ```
+
+The library uses typed extension types (`ScreenPosition`, `GraphPosition`, `ScreenOffset`, `GraphOffset`, etc.) to prevent accidentally mixing coordinate spaces.
 
 ## Alignment Operations
 
@@ -386,14 +394,6 @@ controller.clearGraph();
 
 :::
 
-## Keyboard Shortcuts
-
-Show the built-in shortcuts dialog:
-
-```dart
-controller.showShortcutsDialog(context);
-```
-
 ## Reactive Updates
 
 The controller uses MobX for reactive state management. Wrap your UI in `Observer` to automatically rebuild:
@@ -401,8 +401,8 @@ The controller uses MobX for reactive state management. Wrap your UI in `Observe
 ```dart
 Observer(
   builder: (_) {
-    final nodeCount = controller.nodes.length;
-    final connectionCount = controller.connections.length;
+    final nodeCount = controller.nodeCount;
+    final connectionCount = controller.connectionCount;
 
     return Text('Nodes: $nodeCount, Connections: $connectionCount');
   },
@@ -414,7 +414,7 @@ Observer(
 Extend the controller with your own methods:
 
 ```dart
-extension MyControllerExtensions on NodeFlowController<MyData> {
+extension MyControllerExtensions on NodeFlowController<MyData, dynamic> {
   void addProcessNode(Offset position, String label) {
     final node = Node<MyData>(
       id: 'proc-${DateTime.now().millisecondsSinceEpoch}',
@@ -463,12 +463,12 @@ class FlowEditorWithController extends StatefulWidget {
 
 class _FlowEditorWithControllerState
     extends State<FlowEditorWithController> {
-  late final NodeFlowController<MyData> controller;
+  late final NodeFlowController<MyData, dynamic> controller;
 
   @override
   void initState() {
     super.initState();
-    controller = NodeFlowController<MyData>();
+    controller = NodeFlowController<MyData, dynamic>();
     _initializeGraph();
   }
 
@@ -514,7 +514,7 @@ class _FlowEditorWithControllerState
       appBar: AppBar(
         title: Observer(
           builder: (_) => Text(
-            'Nodes: ${controller.nodes.length}',
+            'Nodes: ${controller.nodeCount}',
           ),
         ),
         actions: [
@@ -532,7 +532,7 @@ class _FlowEditorWithControllerState
           ),
         ],
       ),
-      body: NodeFlowEditor<MyData>(
+      body: NodeFlowEditor<MyData, dynamic>(
         controller: controller,
         nodeBuilder: (context, node) => MyNodeWidget(node: node),
       ),

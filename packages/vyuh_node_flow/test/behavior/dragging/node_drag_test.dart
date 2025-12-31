@@ -7,7 +7,7 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 import '../../helpers/test_factories.dart';
 
 void main() {
-  late NodeFlowController<String> controller;
+  late NodeFlowController<String, dynamic> controller;
 
   setUp(() {
     controller = createTestController();
@@ -80,7 +80,7 @@ void main() {
 
       Node<String>? draggedNode;
       controller.updateEvents(
-        NodeFlowEvents<String>(
+        NodeFlowEvents<String, dynamic>(
           node: NodeEvents<String>(
             onDragStart: (n) {
               draggedNode = n;
@@ -149,7 +149,7 @@ void main() {
 
       Node<String>? movedNode;
       controller.updateEvents(
-        NodeFlowEvents<String>(
+        NodeFlowEvents<String, dynamic>(
           node: NodeEvents<String>(
             onDrag: (n) {
               movedNode = n;
@@ -216,7 +216,7 @@ void main() {
 
       final movedNodeIds = <String>[];
       controller.updateEvents(
-        NodeFlowEvents<String>(
+        NodeFlowEvents<String, dynamic>(
           node: NodeEvents<String>(
             onDrag: (n) {
               movedNodeIds.add(n.id);
@@ -306,7 +306,7 @@ void main() {
 
       Node<String>? stoppedNode;
       controller.updateEvents(
-        NodeFlowEvents<String>(
+        NodeFlowEvents<String, dynamic>(
           node: NodeEvents<String>(
             onDragStop: (n) {
               stoppedNode = n;
@@ -329,7 +329,7 @@ void main() {
 
       final stoppedNodeIds = <String>[];
       controller.updateEvents(
-        NodeFlowEvents<String>(
+        NodeFlowEvents<String, dynamic>(
           node: NodeEvents<String>(
             onDragStop: (n) {
               stoppedNodeIds.add(n.id);
@@ -403,7 +403,7 @@ void main() {
 
       final events = <String>[];
       controller.updateEvents(
-        NodeFlowEvents<String>(
+        NodeFlowEvents<String, dynamic>(
           node: NodeEvents<String>(
             onDragStart: (n) => events.add('start'),
             onDrag: (n) => events.add('drag'),

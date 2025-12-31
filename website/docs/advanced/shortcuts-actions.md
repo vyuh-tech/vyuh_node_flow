@@ -18,7 +18,7 @@ The shortcuts system consists of three main components:
 All shortcuts are managed through the controller:
 
 ```dart
-final controller = NodeFlowController<MyData>();
+final controller = NodeFlowController<MyData, dynamic>();
 controller.shortcuts // Access the shortcuts manager
 ```
 
@@ -29,7 +29,7 @@ controller.shortcuts // Access the shortcuts manager
 Reassign keyboard shortcuts to different actions:
 
 ```dart
-final controller = NodeFlowController<MyData>();
+final controller = NodeFlowController<MyData, dynamic>();
 
 // Change the fit-to-view shortcut from F to Q
 controller.shortcuts.setShortcut(
@@ -88,7 +88,7 @@ class SaveGraphAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(NodeFlowController<T, dynamic> controller, BuildContext? context) {
     // Your save logic here
     final graph = controller.exportGraph();
     final json = graph.toJson((data) => data.toJson());
@@ -108,7 +108,7 @@ class SaveGraphAction<T> extends NodeFlowAction<T> {
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     // Only allow saving if there are nodes
     return controller.nodes.isNotEmpty;
   }
@@ -120,7 +120,7 @@ class SaveGraphAction<T> extends NodeFlowAction<T> {
 Add your action to the shortcuts manager:
 
 ```dart
-final controller = NodeFlowController<MyData>();
+final controller = NodeFlowController<MyData, dynamic>();
 
 // Register the action
 controller.shortcuts.registerAction(SaveGraphAction<MyData>());
@@ -163,10 +163,10 @@ abstract class NodeFlowAction<T> {
   });
 
   /// Execute the action's operation
-  bool execute(NodeFlowController<T> controller, BuildContext? context);
+  bool execute(NodeFlowController<T, dynamic> controller, BuildContext? context);
 
   /// Check if action can currently be executed
-  bool canExecute(NodeFlowController<T> controller) => true;
+  bool canExecute(NodeFlowController<T, dynamic> controller) => true;
 }
 ```
 
@@ -195,7 +195,7 @@ The `canExecute` method determines when an action is available:
 
 ```dart
 @override
-bool canExecute(NodeFlowController<T> controller) {
+bool canExecute(NodeFlowController<T, dynamic> controller) {
   // Example: Only enable when multiple nodes selected
   return controller.selectedNodeIds.length >= 2;
 }
@@ -320,7 +320,7 @@ class AddNodeAction<T> extends NodeFlowAction<T> {
        );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(NodeFlowController<T, dynamic> controller, BuildContext? context) {
     final viewport = controller.viewport;
     final centerX = viewport.x + (viewport.width / 2);
     final centerY = viewport.y + (viewport.height / 2);
@@ -368,7 +368,7 @@ class AlignNodesAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(NodeFlowController<T, dynamic> controller, BuildContext? context) {
     controller.alignNodes(
       controller.selectedNodeIds.toList(),
       alignment,
@@ -377,7 +377,7 @@ class AlignNodesAction<T> extends NodeFlowAction<T> {
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     // Only enable when 2+ nodes are selected
     return controller.selectedNodeIds.length >= 2;
   }
@@ -398,7 +398,7 @@ class RenameNodeAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(NodeFlowController<T, dynamic> controller, BuildContext? context) {
     if (context == null) return false;
 
     final selectedIds = controller.selectedNodeIds;
@@ -422,7 +422,7 @@ class RenameNodeAction<T> extends NodeFlowAction<T> {
   }
 
   @override
-  bool canExecute(NodeFlowController<T> controller) {
+  bool canExecute(NodeFlowController<T, dynamic> controller) {
     return controller.selectedNodeIds.length == 1;
   }
 }
@@ -442,14 +442,14 @@ class ExportImageAction<T> extends NodeFlowAction<T> {
       );
 
   @override
-  bool execute(NodeFlowController<T> controller, BuildContext? context) {
+  bool execute(NodeFlowController<T, dynamic> controller, BuildContext? context) {
     // Trigger async operation
     _exportToImage(controller, context);
     return true;
   }
 
   Future<void> _exportToImage(
-    NodeFlowController<T> controller,
+    NodeFlowController<T, dynamic> controller,
     BuildContext? context,
   ) async {
     try {
@@ -547,6 +547,8 @@ Reference for built-in actions you can customize or extend:
 - `cut_selected` - Cut selected nodes (not implemented)
 - `copy_selected` - Copy selected nodes (not implemented)
 - `paste` - Paste nodes (not implemented)
+- `edit_annotation` - Edit selected node (comment text or group title)
+- `toggle_snapping` - Toggle grid snapping
 
 ### Navigation
 - `fit_to_view` - Fit all nodes in viewport
@@ -569,10 +571,15 @@ Reference for built-in actions you can customize or extend:
 - `align_horizontal_center` - Align to horizontal center
 - `align_vertical_center` - Align to vertical center
 
+### Grouping (shortcuts registered, actions pending)
+- `create_group` - Create a group from selected nodes (not implemented)
+- `ungroup_node` - Ungroup selected group node (not implemented)
+
+### View
+- `toggle_minimap` - Toggle minimap visibility
+
 ### General
 - `cancel_operation` - Cancel current operation
-- `toggle_minimap` - Toggle minimap visibility
-- `toggle_snapping` - Toggle grid snapping
 
 ## Best Practices
 

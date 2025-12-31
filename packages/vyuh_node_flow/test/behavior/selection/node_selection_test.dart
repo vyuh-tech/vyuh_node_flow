@@ -18,7 +18,7 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 import '../../helpers/test_factories.dart';
 
 void main() {
-  late NodeFlowController<String> controller;
+  late NodeFlowController<String, dynamic> controller;
 
   setUp(() {
     resetTestCounters();
@@ -415,7 +415,7 @@ void main() {
       final node = createTestNode(id: 'node1');
       controller.addNode(node);
       controller.updateEvents(
-        NodeFlowEvents<String>(
+        NodeFlowEvents<String, dynamic>(
           node: NodeEvents<String>(
             onSelected: (n) {
               selectedNodeId = n?.id;
@@ -434,7 +434,7 @@ void main() {
       final node = createTestNode(id: 'node1');
       controller.addNode(node);
       controller.updateEvents(
-        NodeFlowEvents<String>(
+        NodeFlowEvents<String, dynamic>(
           node: NodeEvents<String>(
             onSelected: (n) {
               lastSelectedNodeId = n?.id;

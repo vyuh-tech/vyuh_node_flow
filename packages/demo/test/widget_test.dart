@@ -11,7 +11,7 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 void main() {
   testWidgets('Node Flow basic test', (WidgetTester tester) async {
     // Create a basic controller
-    final controller = NodeFlowController<String>();
+    final controller = NodeFlowController<String, dynamic>();
 
     // Add a simple node
     controller.addNode(

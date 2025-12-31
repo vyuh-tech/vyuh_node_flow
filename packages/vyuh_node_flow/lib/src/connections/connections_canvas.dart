@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../editor/controller/node_flow_controller.dart';
-import '../editor/lod/lod_extension.dart';
+import '../extensions/lod/lod_extension.dart';
 import '../editor/themes/node_flow_theme.dart';
 import 'connection.dart';
 import 'connection_painter.dart';
+import 'styles/connection_style_base.dart';
 
 /// Custom painter for rendering all connections in the node flow canvas.
 ///
@@ -24,7 +25,7 @@ import 'connection_painter.dart';
 ///
 /// ```dart
 /// CustomPaint(
-///   painter: ConnectionsCanvas<MyDataType>(
+///   painter: ConnectionsCanvas<MyDataType, MyConnectionData>(
 ///     store: controller,
 ///     theme: theme,
 ///     connectionPainter: sharedPainter,
@@ -36,7 +37,7 @@ import 'connection_painter.dart';
 /// See also:
 /// - [ConnectionPainter] for the actual connection rendering logic
 /// - [NodeFlowController] for managing connections
-class ConnectionsCanvas<T> extends CustomPainter {
+class ConnectionsCanvas<T, C> extends CustomPainter {
   /// Creates a connections canvas painter.
   ///
   /// Parameters:
@@ -45,16 +46,18 @@ class ConnectionsCanvas<T> extends CustomPainter {
   /// - [connectionPainter]: Shared painter instance for path caching
   /// - [connections]: specific connections to render (defaults to all store.connections)
   /// - [animation]: Optional animation for animated connections
+  /// - [connectionStyleBuilder]: Optional builder for dynamic path style selection
   const ConnectionsCanvas({
     required this.store,
     required this.theme,
     required this.connectionPainter,
     this.connections,
     this.animation,
+    this.connectionStyleBuilder,
   }) : super(repaint: animation);
 
   /// The node flow controller containing all connection data.
-  final NodeFlowController<T> store;
+  final NodeFlowController<T, C> store;
 
   /// The visual theme for rendering connections.
   final NodeFlowTheme theme;
@@ -67,13 +70,19 @@ class ConnectionsCanvas<T> extends CustomPainter {
 
   /// Specific connections to render.
   /// If null, renders all connections from the store.
-  final List<Connection>? connections;
+  final List<Connection<C>>? connections;
 
   /// Optional animation for animated connections.
   ///
   /// When provided, the animation value will be passed to animated connections
   /// for rendering effects.
   final Animation<double>? animation;
+
+  /// Optional builder for dynamic connection style selection.
+  ///
+  /// When provided, this builder is called for each connection to determine
+  /// which [ConnectionStyle] (path renderer) to use.
+  final ConnectionStyleBuilder<T, C>? connectionStyleBuilder;
 
   /// Paints all connections in the node flow.
   ///
@@ -96,7 +105,8 @@ class ConnectionsCanvas<T> extends CustomPainter {
     final animationValue = animation?.value;
 
     // Check LOD state for endpoint visibility
-    final skipEndpoints = !store.lod.showConnectionEndpoints;
+    // If LOD extension is not configured, default to showing endpoints
+    final skipEndpoints = !(store.lod?.showConnectionEndpoints ?? true);
 
     // Paint only connection lines and endpoints (no labels)
     // Labels are now rendered in a separate layer for better performance
@@ -111,6 +121,13 @@ class ConnectionsCanvas<T> extends CustomPainter {
 
       final isSelected = store.selectedConnectionIds.contains(connection.id);
 
+      // Call builder to get dynamic style override (if provided)
+      final overrideStyle = connectionStyleBuilder?.call(
+        connection,
+        sourceNode,
+        targetNode,
+      );
+
       // Paint connection without labels using cached painter
       connectionPainter.paintConnection(
         canvas,
@@ -120,17 +137,18 @@ class ConnectionsCanvas<T> extends CustomPainter {
         isSelected: isSelected,
         animationValue: animationValue,
         skipEndpoints: skipEndpoints,
+        overrideStyle: overrideStyle,
       );
     }
   }
 
   @override
-  bool shouldRepaint(ConnectionsCanvas<T> oldDelegate) {
+  bool shouldRepaint(ConnectionsCanvas<T, C> oldDelegate) {
     // Always repaint when Observer rebuilds this painter
     // This is necessary because MobX observables may have changed
     return true;
   }
 
   @override
-  bool shouldRebuildSemantics(ConnectionsCanvas<T> oldDelegate) => false;
+  bool shouldRebuildSemantics(ConnectionsCanvas<T, C> oldDelegate) => false;
 }

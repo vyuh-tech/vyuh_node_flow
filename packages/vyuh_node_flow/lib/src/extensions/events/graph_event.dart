@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import '../../connections/connection.dart';
-import '../../editor/lod/detail_visibility.dart';
+import '../lod/detail_visibility.dart';
 import '../../graph/viewport.dart';
 import '../../nodes/node.dart';
 
@@ -11,10 +11,10 @@ part 'connection_events.dart';
 part 'drag_events.dart';
 part 'hover_events.dart';
 part 'lifecycle_events.dart';
-part 'lod_events.dart';
 part 'node_events.dart';
 part 'selection_events.dart';
 part 'viewport_events.dart';
+part 'lod_events.dart';
 
 /// Base class for all graph events emitted by [NodeFlowController].
 ///

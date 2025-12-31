@@ -8,7 +8,6 @@ import '../shared/shapes/none_marker_shape.dart';
 import 'connection.dart';
 import 'connection_endpoint.dart';
 import 'connection_path_cache.dart';
-import 'connection_style_overrides.dart';
 import 'connection_theme.dart';
 import 'endpoint_painter.dart';
 import 'styles/connection_style_base.dart';
@@ -56,20 +55,22 @@ class ConnectionPainter {
     Node targetNode, { // Can be either Node or ObservableNode
     bool isSelected = false,
     double? animationValue,
-    ConnectionStyleOverrides? styleOverrides,
     bool skipEndpoints = false,
+    ConnectionStyle? overrideStyle,
   }) {
-    // Get effective style from connection instance or theme
-    final effectiveStyle = connection.getEffectiveStyle(
-      theme.connectionTheme.style,
-    );
+    // Get effective path style:
+    // 1. Use overrideStyle from builder (if provided)
+    // 2. Otherwise use connection.style or theme default
+    final effectiveStyle =
+        overrideStyle ??
+        connection.getEffectiveStyle(theme.connectionTheme.style);
 
     // Get or create path using the cache with connection style
     final path = _pathCache.getOrCreatePath(
       connection: connection,
       sourceNode: sourceNode,
       targetNode: targetNode,
-      connectionStyle: effectiveStyle, // Use effective style
+      connectionStyle: effectiveStyle,
     );
 
     if (path == null) {
@@ -85,7 +86,6 @@ class ConnectionPainter {
       targetNode,
       isSelected: isSelected,
       animationValue: animationValue,
-      styleOverrides: styleOverrides,
       skipEndpoints: skipEndpoints,
     );
   }
@@ -99,7 +99,6 @@ class ConnectionPainter {
     Node targetNode, {
     bool isSelected = false,
     double? animationValue,
-    ConnectionStyleOverrides? styleOverrides,
     bool skipEndpoints = false,
   }) {
     final connectionTheme = theme.connectionTheme;
@@ -166,14 +165,17 @@ class ConnectionPainter {
     );
 
     // Configure paint for the connection line using cached path
-    // Apply style overrides if provided, otherwise use theme values
-    final effectiveColor = isSelected
-        ? (styleOverrides?.selectedColor ?? connectionTheme.selectedColor)
-        : (styleOverrides?.color ?? connectionTheme.color);
-    final effectiveStrokeWidth = isSelected
-        ? (styleOverrides?.selectedStrokeWidth ??
-              connectionTheme.selectedStrokeWidth)
-        : (styleOverrides?.strokeWidth ?? connectionTheme.strokeWidth);
+    // Use connection's effective color/strokeWidth which cascade:
+    // 1. connection instance properties (if set)
+    // 2. theme defaults
+    final effectiveColor = connection.getEffectiveColor(
+      connectionTheme.color,
+      connectionTheme.selectedColor,
+    );
+    final effectiveStrokeWidth = connection.getEffectiveStrokeWidth(
+      connectionTheme.strokeWidth,
+      connectionTheme.selectedStrokeWidth,
+    );
 
     final paint = Paint()
       ..color = effectiveColor

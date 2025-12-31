@@ -38,6 +38,7 @@ Vyuh Node Flow includes built-in keyboard shortcuts for power users. Navigate, s
 | `Delete` / `Backspace` | Delete | Delete selected nodes, connections, and annotations |
 | `Cmd/Ctrl + D` | Duplicate | Duplicate selected nodes |
 | `N` | Toggle snapping | Toggle grid snapping on/off |
+| `Enter` | Edit node | Edit selected node (comment text or group title) |
 
 ### Navigation
 
@@ -75,12 +76,12 @@ Vyuh Node Flow includes built-in keyboard shortcuts for power users. Navigate, s
 
 ## Not Yet Implemented
 
-The following features are planned but not yet fully implemented:
+The following features have shortcuts registered but the actions are not yet fully implemented:
 
 - **Copy/Cut/Paste** (`Cmd/Ctrl + C/X/V`) - Clipboard functionality pending
 - **Undo/Redo** - Not currently available
-- **Grouping** (`Cmd/Ctrl + G`) - Not currently available
-- **Ungrouping** (`Cmd/Ctrl + Shift + G`) - Not currently available
+- **Grouping** (`Cmd/Ctrl + G`) - Create group action pending
+- **Ungrouping** (`Cmd/Ctrl + Shift + G`) - Ungroup action pending
 
 ## How Shortcuts Work
 
@@ -88,7 +89,7 @@ Keyboard shortcuts are automatically enabled and integrated into the `NodeFlowEd
 
 ```dart
 // Shortcuts work automatically
-final controller = NodeFlowController<MyData>();
+final controller = NodeFlowController<MyData, dynamic>();
 
 NodeFlowEditor(
   controller: controller,
@@ -99,25 +100,26 @@ NodeFlowEditor(
 The editor internally wraps your content with `NodeFlowKeyboardHandler`, which manages all keyboard interactions using Flutter's Actions and Shortcuts system.
 
 ::: info
-**For Developers**: To customize shortcuts or create custom actions, see the [Shortcuts & Actions API](/docs/api/shortcuts-actions) reference.
+**For Developers**: To customize shortcuts or create custom actions, see the [Shortcuts & Actions API](/docs/advanced/shortcuts-actions) reference.
 
 :::
 
 ## Viewing Available Shortcuts
 
-Show users what shortcuts are available:
+You can query available shortcuts programmatically to build your own shortcuts help UI:
 
 ```dart
-IconButton(
-  icon: Icon(Icons.keyboard),
-  onPressed: () {
-    showShortcutsDialog(context, controller);
-  },
-  tooltip: 'Keyboard Shortcuts',
-)
+// Get all actions grouped by category
+final actionsByCategory = controller.shortcuts.getActionsByCategory();
+
+// Get the shortcut for a specific action
+final shortcut = controller.shortcuts.getShortcutForAction('fit_to_view');
+
+// Search for actions
+final results = controller.shortcuts.searchActions('align');
 ```
 
-The built-in dialog shows all registered actions grouped by category, along with their keyboard shortcuts.
+See the [Shortcuts & Actions API](/docs/advanced/shortcuts-actions) for more details on querying and customizing shortcuts.
 
 ## Best Practices
 
@@ -128,6 +130,6 @@ The built-in dialog shows all registered actions grouped by category, along with
 
 ## See Also
 
-- [Shortcuts & Actions API](/docs/api/shortcuts-actions) - Customize and extend shortcuts
+- [Shortcuts & Actions API](/docs/advanced/shortcuts-actions) - Customize and extend shortcuts
 - [NodeFlowEditor](/docs/components/node-flow-editor) - Main editor component
 - [Examples](/docs/examples/) - See shortcuts in action

@@ -16,18 +16,18 @@ Vyuh Node Flow provides a comprehensive theming system that allows you to custom
 The `NodeFlowTheme` is the main configuration object:
 
 ```dart
-class NodeFlowTheme {
+class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   final NodeTheme nodeTheme;
-  final ConnectionStyle connectionStyle;
-  final ConnectionStyle temporaryConnectionStyle;
   final ConnectionTheme connectionTheme;
   final ConnectionTheme temporaryConnectionTheme;
+  final Duration connectionAnimationDuration;
   final PortTheme portTheme;
   final LabelTheme labelTheme;
+  final GridTheme gridTheme;
+  final SelectionTheme selectionTheme;
+  final CursorTheme cursorTheme;
+  final ResizerTheme resizerTheme;
   final Color backgroundColor;
-  final GridStyle gridStyle;
-  final Color gridColor;
-  final double gridSize;
 }
 ```
 
@@ -36,28 +36,29 @@ class NodeFlowTheme {
 ::: code-group
 
 ```dart [Light Theme (Default)]
-NodeFlowEditor<MyData>(
+NodeFlowEditor<MyData, dynamic>(
   controller: controller,
-  theme: NodeFlowTheme(
-    nodeTheme: NodeTheme.light,
-    connectionStyle: ConnectionStyles.smoothstep,
-    backgroundColor: Colors.white,
-    gridStyle: GridStyle.dots,
-  ),
+  theme: NodeFlowTheme.light,
   // ...
 )
 ```
 
 ```dart [Dark Theme]
-NodeFlowEditor<MyData>(
+NodeFlowEditor<MyData, dynamic>(
   controller: controller,
-  theme: NodeFlowTheme(
-    nodeTheme: NodeTheme.dark,
-    connectionStyle: ConnectionStyles.smoothstep,
-    connectionTheme: ConnectionTheme.dark,
-    backgroundColor: Colors.grey[900]!,
-    gridColor: Colors.grey[800]!,
-    portTheme: PortTheme.dark,
+  theme: NodeFlowTheme.dark,
+  // ...
+)
+```
+
+```dart [Custom Theme]
+NodeFlowEditor<MyData, dynamic>(
+  controller: controller,
+  theme: NodeFlowTheme.light.copyWith(
+    backgroundColor: Colors.grey[50],
+    gridTheme: GridTheme.light.copyWith(
+      style: GridStyles.lines,
+    ),
   ),
   // ...
 )
@@ -73,11 +74,17 @@ Controls the appearance of nodes:
 
 ```dart
 nodeTheme: NodeTheme(
+  backgroundColor: Colors.white,
+  selectedBackgroundColor: Color(0xFFF5F5F5),
+  highlightBackgroundColor: Color(0xFFE3F2FD),
+  borderColor: Color(0xFFE0E0E0),
   selectedBorderColor: Colors.blue,
-  selectedBorderWidth: 3,
-  defaultBorderColor: Colors.grey,
-  defaultBorderWidth: 1,
-  hoverBorderColor: Colors.blue.shade200,
+  highlightBorderColor: Color(0xFF42A5F5),
+  borderWidth: 2.0,
+  selectedBorderWidth: 2.0,
+  borderRadius: BorderRadius.all(Radius.circular(8.0)),
+  titleStyle: TextStyle(fontSize: 14.0, color: Color(0xFF333333)),
+  contentStyle: TextStyle(fontSize: 12.0, color: Color(0xFF666666)),
 )
 ```
 
@@ -85,20 +92,20 @@ nodeTheme: NodeTheme(
 
 ### 2. Connection Style
 
-Choose how connections are drawn:
+Connection styles are configured via `ConnectionTheme`. Choose how connections are drawn:
 
 ```dart
-// Smooth curved connections
-connectionStyle: ConnectionStyles.smoothstep
+// Use the style property within ConnectionTheme
+connectionTheme: ConnectionTheme.light.copyWith(
+  style: ConnectionStyles.smoothstep, // Smooth curved step connections (default)
+)
 
-// Bezier curves
-connectionStyle: ConnectionStyles.bezier
-
-// Step connections
-connectionStyle: ConnectionStyles.step
-
-// Straight lines
-connectionStyle: ConnectionStyles.straight
+// Available styles:
+// ConnectionStyles.smoothstep - 90-degree step with rounded corners
+// ConnectionStyles.bezier - Smooth bezier curves
+// ConnectionStyles.step - 90-degree step without rounded corners
+// ConnectionStyles.straight - Straight lines
+// ConnectionStyles.customBezier - Configurable bezier curves
 ```
 
 ### 3. Connection Theme
@@ -107,15 +114,23 @@ Customize connection appearance:
 
 ```dart
 connectionTheme: ConnectionTheme(
-  color: Colors.blue,
-  strokeWidth: 2,
-  selectedColor: Colors.blue[700]!,
-  selectedStrokeWidth: 3,
+  style: ConnectionStyles.smoothstep,
+  color: Color(0xFF666666),
+  selectedColor: Colors.blue,
+  highlightColor: Color(0xFF42A5F5),
+  highlightBorderColor: Color(0xFF1565C0),
+  strokeWidth: 2.0,
+  selectedStrokeWidth: 3.0,
   startPoint: ConnectionEndPoint.none,
-  endPoint: ConnectionEndPoint(
-    shape: EndpointShape.triangle,
-    size: 9,
-  ),
+  endPoint: ConnectionEndPoint.capsuleHalf,
+  endpointColor: Color(0xFF666666),
+  endpointBorderColor: Color(0xFF444444),
+  endpointBorderWidth: 0.0,
+  bezierCurvature: 0.5,
+  cornerRadius: 4.0,
+  portExtension: 20.0,
+  backEdgeGap: 20.0,
+  hitTolerance: 8.0,
 )
 ```
 
@@ -125,11 +140,15 @@ Customize port appearance:
 
 ```dart
 portTheme: PortTheme(
-  size: 12,
-  color: Colors.blue,
-  hoverColor: Colors.blue[700]!,
-  borderColor: Colors.white,
-  borderWidth: 2,
+  size: Size(12, 12),
+  color: Color(0xFFBABABA),
+  connectedColor: Color(0xFF2196F3),
+  highlightColor: Color(0xFF42A5F5),
+  highlightBorderColor: Color(0xFF000000),
+  borderColor: Colors.transparent,
+  borderWidth: 0.0,
+  showLabel: false,
+  labelOffset: 4.0,
 )
 ```
 
@@ -137,75 +156,75 @@ portTheme: PortTheme(
 
 ```dart
 backgroundColor: Colors.grey[50]!,
-gridStyle: GridStyle.dots, // or GridStyle.lines
-gridColor: Colors.grey[300]!,
-gridSize: 20, // pixels
+gridTheme: GridTheme(
+  color: Colors.grey[300]!,
+  size: 20.0,              // pixels between grid lines
+  thickness: 1.0,          // line/dot thickness
+  style: GridStyles.dots,  // or GridStyles.lines, GridStyles.cross, etc.
+),
 ```
 
 ## Complete Custom Theme
 
 ```dart
-final customTheme = NodeFlowTheme(
+final customTheme = NodeFlowTheme.light.copyWith(
   // Nodes
-  nodeTheme: NodeTheme(
+  nodeTheme: NodeTheme.light.copyWith(
     selectedBorderColor: Color(0xFF6366F1),
-    selectedBorderWidth: 3,
-    defaultBorderColor: Color(0xFFE5E7EB),
-    defaultBorderWidth: 1,
-    hoverBorderColor: Color(0xFFA5B4FC),
+    selectedBorderWidth: 3.0,
+    borderColor: Color(0xFFE5E7EB),
+    borderWidth: 1.0,
+    highlightBorderColor: Color(0xFFA5B4FC),
   ),
 
   // Connections
-  connectionStyle: ConnectionStyles.smoothstep,
-  connectionTheme: ConnectionTheme(
+  connectionTheme: ConnectionTheme.light.copyWith(
+    style: ConnectionStyles.smoothstep,
     color: Color(0xFF6366F1),
-    strokeWidth: 2,
+    strokeWidth: 2.0,
     selectedColor: Color(0xFF4F46E5),
-    selectedStrokeWidth: 3,
+    selectedStrokeWidth: 3.0,
     startPoint: ConnectionEndPoint.none,
-    endPoint: ConnectionEndPoint(
-      shape: EndpointShape.triangle,
-      size: 10,
-      color: Color(0xFF6366F1),
-    ),
+    endPoint: ConnectionEndPoint.capsuleHalf,
+    endpointColor: Color(0xFF6366F1),
   ),
 
   // Temporary connections (while dragging)
-  temporaryConnectionStyle: ConnectionStyles.smoothstep,
-  temporaryConnectionTheme: ConnectionTheme(
+  temporaryConnectionTheme: ConnectionTheme.light.copyWith(
     color: Color(0xFF6366F1).withOpacity(0.5),
-    strokeWidth: 2,
+    strokeWidth: 2.0,
     dashPattern: [8, 4],
     startPoint: ConnectionEndPoint.none,
-    endPoint: ConnectionEndPoint(
-      shape: EndpointShape.triangle,
-      size: 10,
-    ),
+    endPoint: ConnectionEndPoint.capsuleHalf,
   ),
 
   // Ports
-  portTheme: PortTheme(
-    size: 12,
+  portTheme: PortTheme.light.copyWith(
+    size: Size(12, 12),
     color: Color(0xFF6366F1),
-    hoverColor: Color(0xFF4F46E5),
+    highlightColor: Color(0xFF4F46E5),
     borderColor: Colors.white,
-    borderWidth: 2,
+    borderWidth: 2.0,
   ),
 
   // Labels
-  labelTheme: LabelTheme(
-    fontSize: 12,
-    color: Color(0xFF1F2937),
+  labelTheme: LabelTheme.light.copyWith(
+    textStyle: TextStyle(
+      fontSize: 12.0,
+      color: Color(0xFF1F2937),
+    ),
     backgroundColor: Colors.white,
     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    borderRadius: 4,
+    borderRadius: BorderRadius.circular(4),
   ),
 
-  // Background
+  // Background & Grid
   backgroundColor: Color(0xFFFAFAFA),
-  gridStyle: GridStyle.dots,
-  gridColor: Color(0xFFE5E7EB),
-  gridSize: 20,
+  gridTheme: GridTheme.light.copyWith(
+    style: GridStyles.dots,
+    color: Color(0xFFE5E7EB),
+    size: 20.0,
+  ),
 );
 ```
 
@@ -217,19 +236,11 @@ Adapt theme based on context:
 NodeFlowTheme getTheme(BuildContext context) {
   final isDark = Theme.of(context).brightness == Brightness.dark;
 
-  return NodeFlowTheme(
-    nodeTheme: isDark ? NodeTheme.dark : NodeTheme.light,
-    connectionTheme: isDark
-        ? ConnectionTheme.dark
-        : ConnectionTheme.light,
-    backgroundColor: isDark ? Colors.grey[900]! : Colors.white,
-    gridColor: isDark ? Colors.grey[800]! : Colors.grey[200]!,
-    portTheme: isDark ? PortTheme.dark : PortTheme.light,
-  );
+  return isDark ? NodeFlowTheme.dark : NodeFlowTheme.light;
 }
 
 // Usage
-NodeFlowEditor<MyData>(
+NodeFlowEditor<MyData, dynamic>(
   controller: controller,
   theme: getTheme(context),
   // ...
@@ -242,32 +253,35 @@ Create reusable theme presets:
 
 ```dart
 class FlowThemes {
-  static NodeFlowTheme get blueprint => NodeFlowTheme(
-    nodeTheme: NodeTheme.light,
-    connectionStyle: ConnectionStyles.step,
-    connectionTheme: ConnectionTheme(
+  static NodeFlowTheme get blueprint => NodeFlowTheme.light.copyWith(
+    connectionTheme: ConnectionTheme.light.copyWith(
+      style: ConnectionStyles.step,
       color: Colors.white,
-      strokeWidth: 2,
+      strokeWidth: 2.0,
     ),
     backgroundColor: Color(0xFF1E3A8A),
-    gridStyle: GridStyle.lines,
-    gridColor: Colors.white.withOpacity(0.1),
+    gridTheme: GridTheme.light.copyWith(
+      style: GridStyles.lines,
+      color: Colors.white.withOpacity(0.1),
+    ),
   );
 
-  static NodeFlowTheme get minimal => NodeFlowTheme(
-    nodeTheme: NodeTheme(
+  static NodeFlowTheme get minimal => NodeFlowTheme.light.copyWith(
+    nodeTheme: NodeTheme.light.copyWith(
       selectedBorderColor: Colors.black,
-      selectedBorderWidth: 2,
-      defaultBorderColor: Colors.grey[300]!,
-      defaultBorderWidth: 1,
+      selectedBorderWidth: 2.0,
+      borderColor: Colors.grey[300]!,
+      borderWidth: 1.0,
     ),
-    connectionStyle: ConnectionStyles.straight,
-    connectionTheme: ConnectionTheme(
+    connectionTheme: ConnectionTheme.light.copyWith(
+      style: ConnectionStyles.straight,
       color: Colors.black,
-      strokeWidth: 1,
+      strokeWidth: 1.0,
     ),
     backgroundColor: Colors.white,
-    gridStyle: GridStyle.none,
+    gridTheme: GridTheme.light.copyWith(
+      style: GridStyles.none,
+    ),
   );
 }
 ```
@@ -278,13 +292,15 @@ Change theme at runtime:
 
 ```dart
 class _MyEditorState extends State<MyEditor> {
-  NodeFlowTheme _currentTheme = NodeFlowTheme.light;
+  bool _isDark = false;
+
+  NodeFlowTheme get _currentTheme => _isDark
+      ? NodeFlowTheme.dark
+      : NodeFlowTheme.light;
 
   void _toggleTheme() {
     setState(() {
-      _currentTheme = _currentTheme == NodeFlowTheme.light
-          ? NodeFlowTheme.dark
-          : NodeFlowTheme.light;
+      _isDark = !_isDark;
     });
   }
 
@@ -297,7 +313,7 @@ class _MyEditorState extends State<MyEditor> {
           child: Text('Toggle Theme'),
         ),
         Expanded(
-          child: NodeFlowEditor<MyData>(
+          child: NodeFlowEditor<MyData, dynamic>(
             controller: controller,
             theme: _currentTheme,
             // ...

@@ -29,7 +29,7 @@ The `NodeFlowController` manages all state - nodes, connections, selection, and 
 You can provide initial nodes and connections directly in the constructor.
 
 ```dart
-late final controller = NodeFlowController<String>(
+late final controller = NodeFlowController<String, dynamic>(
   nodes: [
     Node<String>(
       id: 'start',
@@ -112,7 +112,7 @@ Widget build(BuildContext context) {
         ),
       ],
     ),
-    body: NodeFlowEditor<String>(
+    body: NodeFlowEditor<String, dynamic>(
       controller: controller,
       theme: NodeFlowTheme.light,
       nodeBuilder: (context, node) => Center(
@@ -147,7 +147,7 @@ class MyFlowEditor extends StatefulWidget {
 
 class _MyFlowEditorState extends State<MyFlowEditor> {
   // Create controller with initial nodes and connections
-  late final controller = NodeFlowController<String>(
+  late final controller = NodeFlowController<String, dynamic>(
     nodes: [
       Node<String>(
         id: 'start',
@@ -232,7 +232,7 @@ class _MyFlowEditorState extends State<MyFlowEditor> {
           ),
         ],
       ),
-      body: NodeFlowEditor<String>(
+      body: NodeFlowEditor<String, dynamic>(
         controller: controller,
         theme: NodeFlowTheme.light,
         nodeBuilder: (context, node) => Center(
@@ -287,30 +287,30 @@ Your editor now supports:
 ::: code-group
 
 ```dart [Theme]
-NodeFlowEditor<String>(
+NodeFlowEditor<String, dynamic>(
   controller: controller,
   theme: NodeFlowTheme.dark, // or NodeFlowTheme.light
-  // Or create a custom theme:
-  theme: NodeFlowTheme(
-    backgroundColor: Colors.grey.shade900,
-    nodeTheme: NodeTheme(
-      backgroundColor: Colors.blue.shade800,
-      borderColor: Colors.blue.shade400,
-    ),
-    connectionTheme: ConnectionTheme(
-      style: ConnectionStyles.bezier,
-      color: Colors.blue,
-    ),
-    gridTheme: GridTheme(
-      style: GridStyles.dots,
-      color: Colors.grey.shade700,
-    ),
-  ),
+  // Or customize an existing theme:
+  // theme: NodeFlowTheme.dark.copyWith(
+  //   backgroundColor: Colors.grey.shade900,
+  //   nodeTheme: NodeTheme.dark.copyWith(
+  //     backgroundColor: Colors.blue.shade800,
+  //     borderColor: Colors.blue.shade400,
+  //   ),
+  //   connectionTheme: ConnectionTheme.dark.copyWith(
+  //     style: ConnectionStyles.bezier,
+  //     color: Colors.blue,
+  //   ),
+  //   gridTheme: GridTheme.dark.copyWith(
+  //     style: GridStyles.dots,
+  //     color: Colors.grey.shade700,
+  //   ),
+  // ),
 )
 ```
 
 ```dart [Events]
-NodeFlowEditor<String>(
+NodeFlowEditor<String, dynamic>(
   controller: controller,
   events: NodeFlowEvents(
     node: NodeEvents(
@@ -331,7 +331,7 @@ NodeFlowEditor<String>(
 ```
 
 ```dart [Behavior]
-NodeFlowEditor<String>(
+NodeFlowEditor<String, dynamic>(
   controller: controller,
   // Use behavior presets to control interaction modes
   behavior: NodeFlowBehavior.design,   // Full editing (default)

@@ -8,7 +8,7 @@ import '../../nodes/node_container.dart';
 import '../../nodes/node_widget.dart';
 import '../../ports/port_widget.dart';
 import '../controller/node_flow_controller.dart';
-import '../lod/lod_extension.dart';
+import '../../extensions/lod/lod_extension.dart';
 import '../themes/node_flow_theme.dart';
 import '../unbounded_widgets.dart';
 
@@ -52,7 +52,7 @@ class NodesLayer<T> extends StatelessWidget {
   /// Renders nodes with [NodeRenderLayer.background] behind all other nodes,
   /// typically used for group containers.
   static NodesLayer<T> background<T>(
-    NodeFlowController<T> controller,
+    NodeFlowController<T, dynamic> controller,
     Widget Function(BuildContext context, Node<T> node) nodeBuilder,
     List<Connection> connections, {
     PortBuilder<T>? portBuilder,
@@ -87,7 +87,7 @@ class NodesLayer<T> extends StatelessWidget {
   /// Renders nodes with [NodeRenderLayer.middle] at the standard layer,
   /// used for regular nodes.
   static NodesLayer<T> middle<T>(
-    NodeFlowController<T> controller,
+    NodeFlowController<T, dynamic> controller,
     Widget Function(BuildContext context, Node<T> node) nodeBuilder,
     List<Connection> connections, {
     PortBuilder<T>? portBuilder,
@@ -122,7 +122,7 @@ class NodesLayer<T> extends StatelessWidget {
   /// Renders nodes with [NodeRenderLayer.foreground] above all other content,
   /// typically used for sticky notes and markers.
   static NodesLayer<T> foreground<T>(
-    NodeFlowController<T> controller,
+    NodeFlowController<T, dynamic> controller,
     Widget Function(BuildContext context, Node<T> node) nodeBuilder,
     List<Connection> connections, {
     PortBuilder<T>? portBuilder,
@@ -152,7 +152,7 @@ class NodesLayer<T> extends StatelessWidget {
     );
   }
 
-  final NodeFlowController<T> controller;
+  final NodeFlowController<T, dynamic> controller;
   final Widget Function(BuildContext context, Node<T> node) nodeBuilder;
 
   /// Optional builder for customizing individual port widgets.
@@ -245,7 +245,8 @@ class NodesLayer<T> extends StatelessWidget {
     final nodeTheme = theme.nodeTheme;
 
     // Check LOD visibility for node content
-    final showNodeContent = controller.lod.showNodeContent;
+    // If LOD extension is not configured, default to showing node content
+    final showNodeContent = controller.lod?.showNodeContent ?? true;
 
     // Wrap in NodeContainer which handles positioning, gestures, ports, etc.
     return NodeContainer<T>(

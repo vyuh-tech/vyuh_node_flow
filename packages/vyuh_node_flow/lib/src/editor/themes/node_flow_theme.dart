@@ -107,7 +107,7 @@ class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
   /// Theme for mouse cursor styles.
   final CursorTheme cursorTheme;
 
-  /// Theme for resize handles used by nodes and annotations.
+  /// Theme for resize handles used by resizable nodes.
   final ResizerTheme resizerTheme;
 
   /// Background color of the canvas.

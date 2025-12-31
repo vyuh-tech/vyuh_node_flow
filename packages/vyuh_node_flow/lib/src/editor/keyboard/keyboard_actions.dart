@@ -36,7 +36,7 @@ class NodeFlowActionDispatcher<T> extends Action<NodeFlowActionIntent<T>> {
   NodeFlowActionDispatcher(this.controller);
 
   /// The controller that actions operate on.
-  final NodeFlowController<T> controller;
+  final NodeFlowController<T, dynamic> controller;
 
   /// Checks if the action specified in the intent can currently be executed.
   ///
@@ -165,7 +165,7 @@ class NodeFlowKeyboardHandler<T> extends StatefulWidget {
   });
 
   /// The NodeFlow controller containing the shortcuts and actions.
-  final NodeFlowController<T> controller;
+  final NodeFlowController<T, dynamic> controller;
 
   /// The child widget that will have keyboard handling.
   final Widget child;

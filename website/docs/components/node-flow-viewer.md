@@ -21,12 +21,11 @@ Short animation showing the viewer in action: panning around a workflow graph, z
 ## Constructor
 
 ```dart
-NodeFlowViewer<T>({
+NodeFlowViewer<T, dynamic>({
   Key? key,
-  required NodeFlowController<T> controller,
+  required NodeFlowController<T, dynamic> controller,
   required Widget Function(BuildContext, Node<T>) nodeBuilder,
   required NodeFlowTheme theme,
-  Widget Function(BuildContext, Node<T>, Widget)? nodeContainerBuilder,
   bool scrollToZoom = true,
   bool showAnnotations = false,
   ValueChanged<Node<T>?>? onNodeTap,
@@ -41,13 +40,13 @@ NodeFlowViewer<T>({
 ### controller
 
 ```dart
-required NodeFlowController<T> controller
+required NodeFlowController<T, dynamic> controller
 ```
 
 The controller managing the node flow state. Create it externally:
 
 ```dart
-final controller = NodeFlowController<MyData>();
+final controller = NodeFlowController<MyData, dynamic>();
 // Load data into controller...
 ```
 
@@ -91,29 +90,6 @@ theme: NodeFlowTheme.dark
 
 ## Optional Parameters
 
-### nodeContainerBuilder
-
-```dart
-Widget Function(BuildContext, Node<T>, Widget)? nodeContainerBuilder
-```
-
-Customize the node container:
-
-```dart
-nodeContainerBuilder: (context, node, content) {
-  return Container(
-    decoration: BoxDecoration(
-      border: Border.all(
-        color: node.isSelected ? Colors.blue : Colors.grey,
-        width: 2,
-      ),
-      borderRadius: BorderRadius.circular(8),
-    ),
-    child: content,
-  );
-}
-```
-
 ### scrollToZoom
 
 ```dart
@@ -142,7 +118,7 @@ ValueChanged<Connection?>? onConnectionSelected
 Handle node and connection interactions:
 
 ```dart
-NodeFlowViewer<MyData>(
+NodeFlowViewer<MyData, dynamic>(
   controller: controller,
   theme: NodeFlowTheme.light,
   nodeBuilder: nodeBuilder,
@@ -167,7 +143,7 @@ NodeFlowViewer<MyData>(
 For convenience, use the `withData` factory to create a viewer with pre-loaded data:
 
 ```dart
-static NodeFlowViewer<T> withData<T>({
+static NodeFlowViewer<T, dynamic> withData<T>({
   required NodeFlowTheme theme,
   required Widget Function(BuildContext, Node<T>) nodeBuilder,
   required Map<String, Node<T>> nodes,
@@ -252,15 +228,13 @@ class WorkflowPreview extends StatefulWidget {
 }
 
 class _WorkflowPreviewState extends State<WorkflowPreview> {
-  late final NodeFlowController<WorkflowStep> _controller;
+  late final NodeFlowController<WorkflowStep, dynamic> _controller;
   Node<WorkflowStep>? _selectedNode;
 
   @override
   void initState() {
     super.initState();
-    _controller = NodeFlowController<WorkflowStep>(
-      config: NodeFlowConfig(showMinimap: true),
-    );
+    _controller = NodeFlowController<WorkflowStep, dynamic>();
 
     // Load data
     for (final node in widget.nodes.values) {
@@ -299,7 +273,7 @@ class _WorkflowPreviewState extends State<WorkflowPreview> {
 
         // Viewer
         Expanded(
-          child: NodeFlowViewer<WorkflowStep>(
+          child: NodeFlowViewer<WorkflowStep, dynamic>(
             controller: _controller,
             theme: NodeFlowTheme.light,
             nodeBuilder: (context, node) => _buildNode(node),

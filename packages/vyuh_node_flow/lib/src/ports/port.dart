@@ -3,10 +3,45 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:mobx/mobx.dart';
 
+import '../nodes/node.dart';
 import '../shared/json_converters.dart';
 import '../shared/shapes/marker_shape.dart';
 
 part 'port.g.dart';
+
+/// Builder function for creating a port widget.
+///
+/// This is used for per-instance port customization. The builder receives
+/// the node containing this port, allowing access to typed node data.
+///
+/// ## Type Parameters
+/// - `T`: The type of data stored in the containing node
+///
+/// ## Parameters
+/// - [context]: The build context for widget creation
+/// - [node]: The node containing this port (use `node.data` for typed access)
+/// - [port]: The port being rendered
+///
+/// ## Example
+/// ```dart
+/// final port = Port(
+///   id: 'input-1',
+///   name: 'Data',
+///   widgetBuilder: (context, node, port) {
+///     final myNode = node as Node<MyData>;
+///     return Container(
+///       width: 12,
+///       height: 12,
+///       decoration: BoxDecoration(
+///         color: myNode.data?.isActive == true ? Colors.green : Colors.blue,
+///         shape: BoxShape.circle,
+///       ),
+///     );
+///   },
+/// );
+/// ```
+typedef PortWidgetBuilder<T> =
+    Widget Function(BuildContext context, Node<T> node, Port port);
 
 /// Default port size used when no size is specified.
 const Size defaultPortSize = Size(9, 9);
@@ -120,6 +155,7 @@ class Port extends Equatable {
     this.isConnectable = true,
     this.maxConnections,
     this.showLabel = false,
+    this.widgetBuilder,
   }) : type = type ?? _inferTypeFromPosition(position);
 
   /// Infers the port type from its position.
@@ -231,6 +267,34 @@ class Port extends Equatable {
   /// Label visibility may also be affected by zoom level based on theme settings.
   final bool showLabel;
 
+  /// Per-instance widget builder for custom port rendering.
+  ///
+  /// When provided, this builder takes precedence over the global `portBuilder`
+  /// passed to `NodeFlowEditor`. The cascade order is:
+  ///
+  /// 1. `port.widgetBuilder` (this field) - instance-level customization
+  /// 2. `portBuilder` (global) - editor-level customization
+  /// 3. `PortWidget` (default) - framework default
+  ///
+  /// Since [Port] is not generic, this uses `dynamic` for the node type.
+  /// Cast to your specific node type within the builder if needed.
+  ///
+  /// Not serialized to JSON.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final PortWidgetBuilder<dynamic>? widgetBuilder;
+
+  /// Builds the widget for this port using the instance-level builder.
+  ///
+  /// Returns null if no [widgetBuilder] is set, allowing fallback to
+  /// the global `portBuilder` or default `PortWidget`.
+  ///
+  /// ## Parameters
+  /// - [context]: The build context for widget creation
+  /// - [node]: The node containing this port
+  Widget? buildWidget(BuildContext context, Node<dynamic> node) {
+    return widgetBuilder?.call(context, node, this);
+  }
+
   /// Observable for the port's highlighted state.
   ///
   /// This is set externally during connection drag operations to indicate
@@ -284,6 +348,7 @@ class Port extends Equatable {
     bool? isConnectable,
     int? maxConnections,
     bool? showLabel,
+    PortWidgetBuilder<dynamic>? widgetBuilder,
   }) {
     return Port(
       id: id ?? this.id,
@@ -298,6 +363,7 @@ class Port extends Equatable {
       isConnectable: isConnectable ?? this.isConnectable,
       maxConnections: maxConnections ?? this.maxConnections,
       showLabel: showLabel ?? this.showLabel,
+      widgetBuilder: widgetBuilder ?? this.widgetBuilder,
     );
   }
 

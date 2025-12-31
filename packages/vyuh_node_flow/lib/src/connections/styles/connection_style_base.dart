@@ -2,7 +2,9 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../../nodes/node.dart';
 import '../../ports/port.dart';
+import '../connection.dart';
 import 'waypoint_builder.dart';
 
 /// Parameters for connection path creation
@@ -332,3 +334,36 @@ abstract class ConnectionStyle {
   @override
   int get hashCode => Object.hash(runtimeType, id);
 }
+
+/// Builder function for dynamic connection style selection.
+///
+/// This callback is invoked for each connection during rendering to determine
+/// which [ConnectionStyle] (path renderer) to use. It receives both the
+/// connection and its source/target nodes, enabling dynamic style selection
+/// based on node state or connection data.
+///
+/// ## Type Parameters
+/// - `T`: The type of data stored in nodes
+/// - `C`: The type of data stored in connections
+///
+/// ## Return Value
+/// Return `null` to use the connection's default style or theme style.
+/// Return a [ConnectionStyle] instance (e.g., `ConnectionStyles.bezier`)
+/// to override the path rendering for this connection.
+///
+/// ## Example
+/// ```dart
+/// connectionStyleBuilder: (connection, sourceNode, targetNode) {
+///   // Use bezier for error connections, smoothstep otherwise
+///   if (sourceNode.data?.hasError == true) {
+///     return ConnectionStyles.bezier;
+///   }
+///   return null; // Use default
+/// }
+/// ```
+typedef ConnectionStyleBuilder<T, C> =
+    ConnectionStyle? Function(
+      Connection<C> connection,
+      Node<T> sourceNode,
+      Node<T> targetNode,
+    );

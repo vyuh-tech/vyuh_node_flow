@@ -2,7 +2,6 @@
 import { Icon } from '@iconify/vue';
 import Badge from './components/Badge.vue';
 import BentoGrid from './components/BentoGrid.vue';
-import CodePreview from './components/CodePreview.vue';
 import CtaButton from './components/CtaButton.vue';
 import CtaSection from './components/CtaSection.vue';
 import DemoFrame from './components/DemoFrame.vue';
@@ -13,6 +12,7 @@ import FlutterBrand from './components/FlutterBrand.vue';
 import GridBackground from './components/GridBackground.vue';
 import HeroSection from './components/HeroSection.vue';
 import MarqueeGroup from './components/MarqueeGroup.vue';
+import QuickStartSection from './components/QuickStartSection.vue';
 import Section from './components/Section.vue';
 import SectionConnector from './components/SectionConnector.vue';
 import SectionHeader from './components/SectionHeader.vue';
@@ -29,80 +29,6 @@ const flipperWords = [
   'CONTENT FLOW',
   'STATE FLOW',
   'CODE FLOW',
-];
-
-// Code example for the Quick Start section
-const codeExample = `import 'package:flutter/material.dart';
-import 'package:vyuh_node_flow/vyuh_node_flow.dart';
-
-class SimpleFlowEditor extends StatefulWidget {
-  @override
-  State<SimpleFlowEditor> createState() => _SimpleFlowEditorState();
-}
-
-class _SimpleFlowEditorState extends State<SimpleFlowEditor> {
-  // Create controller with initial nodes
-  late final controller = NodeFlowController<String>( // [!code focus]
-    nodes: [
-      Node<String>(
-        id: 'node-1',
-        position: const Offset(100, 100),
-        size: const Size(150, 60),
-        data: 'Input Node',
-        outputPorts: const [Port(id: 'out')],
-      ),
-      Node<String>(
-        id: 'node-2',
-        position: const Offset(400, 100),
-        size: const Size(150, 60),
-        data: 'Output Node',
-        inputPorts: const [Port(id: 'in')],
-      ),
-    ],
-    connections: [
-      Connection(
-        id: 'conn-1',
-        sourceNodeId: 'node-1', sourcePortId: 'out',
-        targetNodeId: 'node-2', targetPortId: 'in',
-      ),
-    ],
-  );
-
-  @override
-  Widget build(BuildContext context) => NodeFlowEditor<String>( // [!code focus]
-    controller: controller, // [!code focus]
-    theme: NodeFlowTheme.light,
-    nodeBuilder: (context, node) => Container( // [!code focus]
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Center(child: Text(node.data)),
-    ),
-  );
-}`;
-
-// Code markers for tooltips
-const codeMarkers = [
-  {
-    line: 11,
-    title: 'NodeFlowController',
-    description:
-      'The main controller that manages nodes and connections. Provides programmatic control over the editor, including adding/removing nodes, creating connections, and handling selection.',
-  },
-  {
-    line: 38,
-    title: 'NodeFlowEditor Widget',
-    description:
-      'The Flutter widget that renders the visual editor. Features include pan & zoom, node dragging, connection creation, selection, and customizable theming.',
-  },
-  {
-    line: 41,
-    title: 'Custom Node Builder',
-    description:
-      'Create custom nodes and appearances using any Flutter widget. Full control over node styling, content, and interactions.',
-  },
 ];
 
 // Marquee content
@@ -190,8 +116,8 @@ const capabilities = [
   },
   {
     icon: 'ph:shield-check-fill',
-    title: 'Type-Safe Data',
-    desc: 'Generic type support for strongly-typed node data with Dart pattern matching.',
+    title: 'Type-Safe API',
+    desc: 'Strongly-typed nodes, connections, and graph data with full Dart generics support.',
     color: 'purple' as const,
   },
   {
@@ -228,6 +154,30 @@ const capabilities = [
     icon: 'ph:hand-pointing-fill',
     title: 'Touch Optimized',
     desc: 'Full multi-touch support with pinch zoom, pan gestures, and haptic feedback ready.',
+    color: 'amber' as const,
+  },
+  {
+    icon: 'ph:puzzle-piece-fill',
+    title: 'Extension System',
+    desc: 'Modular architecture with plug-and-play extensions for adding features without modifying core.',
+    color: 'blue' as const,
+  },
+  {
+    icon: 'ph:arrows-out-fill',
+    title: 'Auto-Pan',
+    desc: 'Automatically pan the viewport when dragging nodes or connections near canvas edges.',
+    color: 'purple' as const,
+  },
+  {
+    icon: 'ph:eye-fill',
+    title: 'Level of Detail',
+    desc: 'Progressive rendering that adapts node complexity based on zoom level for smooth scaling.',
+    color: 'teal' as const,
+  },
+  {
+    icon: 'ph:bug-fill',
+    title: 'Debug Layers',
+    desc: 'Visual debugging overlays showing hit areas, spatial indices, and performance metrics.',
     color: 'amber' as const,
   },
 ];
@@ -427,14 +377,14 @@ const heroBlinkCells = generateBlinkCells(20, 42);
           <WordFlipper :words="flipperWords" :interval="1250" />
         </h1>
         <p
-          class="text-xl font-medium text-slate-600 dark:text-zinc-300 leading-relaxed max-w-lg hero-animate-3 opacity-0 max-lg:mx-auto"
+          class="text-xl font-medium text-slate-600 dark:text-zinc-300 leading-relaxed max-w-lg hero-animate-3 opacity-0 max-xl:mx-auto"
         >
           A flexible, high-performance node-based flow editor for
           <FlutterBrand />. Build workflow editors, visual programming
           interfaces, and interactive diagrams.
         </p>
         <div
-          class="flex gap-4 flex-wrap hero-animate-4 opacity-0 max-lg:justify-center mt-12"
+          class="flex gap-4 flex-wrap hero-animate-4 opacity-0 max-xl:justify-center mt-12"
         >
           <CtaButton
             href="/docs/getting-started/installation"
@@ -460,20 +410,8 @@ const heroBlinkCells = generateBlinkCells(20, 42);
       </template>
     </HeroSection>
 
-    <!-- Code Preview Section -->
-    <Section first background size="sm">
-      <SectionHeader
-        badge="Quick Start"
-        badge-icon="simple-icons:flutter"
-        badge-color="blue"
-        title="Simple & Intuitive API"
-      />
-      <CodePreview
-        :code="codeExample"
-        filename="simple_flow_editor.dart"
-        :markers="codeMarkers"
-      />
-    </Section>
+    <!-- Quick Start Code Preview Section -->
+    <QuickStartSection />
 
     <!-- Detailed Feature Sections -->
     <Section background>
@@ -492,7 +430,7 @@ const heroBlinkCells = generateBlinkCells(20, 42);
     </Section>
 
     <!-- Capabilities Grid -->
-    <Section background>
+    <Section border-bottom background>
       <SectionHeader
         badge="Capabilities"
         badge-icon="ph:squares-four-fill"
@@ -523,7 +461,7 @@ const heroBlinkCells = generateBlinkCells(20, 42);
     <SectionConnector color="teal" />
 
     <!-- Use Cases Section -->
-    <Section background>
+    <Section border-top border-bottom background>
       <SectionHeader
         badge="Infinite Possibilities"
         badge-icon="ph:infinity"
@@ -540,7 +478,6 @@ const heroBlinkCells = generateBlinkCells(20, 42);
           :title="useCase.title"
           :description="useCase.desc"
           :color="useCase.color"
-          layout="horizontal"
         />
       </div>
     </Section>

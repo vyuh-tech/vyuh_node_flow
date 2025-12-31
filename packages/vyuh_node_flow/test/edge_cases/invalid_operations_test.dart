@@ -9,7 +9,7 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 import '../helpers/test_factories.dart';
 
 void main() {
-  late NodeFlowController<String> controller;
+  late NodeFlowController<String, dynamic> controller;
 
   setUp(() {
     controller = createTestController();
@@ -533,7 +533,7 @@ void main() {
       final node = createTestNode(id: 'existing');
       controller.addNode(node);
 
-      final emptyGraph = NodeGraph<String>(nodes: [], connections: []);
+      final emptyGraph = NodeGraph<String, dynamic>(nodes: [], connections: []);
       controller.loadGraph(emptyGraph);
 
       expect(controller.nodeCount, equals(0));
@@ -546,7 +546,7 @@ void main() {
         targetNodeId: 'non-existent-target',
       );
 
-      final graph = NodeGraph<String>(
+      final graph = NodeGraph<String, dynamic>(
         nodes: [],
         connections: [invalidConnection],
       );

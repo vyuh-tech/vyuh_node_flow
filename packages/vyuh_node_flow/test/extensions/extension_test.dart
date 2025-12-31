@@ -43,10 +43,10 @@ class TestExtension extends NodeFlowExtension<void> {
 
 void main() {
   group('NodeFlowExtension', () {
-    late NodeFlowController<String> controller;
+    late NodeFlowController<String, dynamic> controller;
 
     setUp(() {
-      controller = NodeFlowController<String>();
+      controller = NodeFlowController<String, dynamic>();
     });
 
     tearDown(() {
@@ -77,7 +77,7 @@ void main() {
 
       test('dispose detaches all extensions', () {
         // Use a separate controller for this test to avoid double-dispose
-        final testController = NodeFlowController<String>();
+        final testController = NodeFlowController<String, dynamic>();
         final extension1 = TestExtension(id: 'ext-1');
         final extension2 = TestExtension(id: 'ext-2');
 

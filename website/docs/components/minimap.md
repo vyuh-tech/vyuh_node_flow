@@ -7,174 +7,152 @@ description: Navigate large flow diagrams with an overview minimap
 
 The minimap provides a bird's-eye view of your entire flow diagram, making it easy to navigate large graphs and understand the overall structure at a glance.
 
-::: details 🖼️ Minimap Component
+::: details Minimap Component
 NodeFlowEditor with minimap in bottom-right corner. Minimap shows scaled-down view of entire graph with nodes as small rectangles, viewport indicator as highlighted rectangle showing current visible area. Main editor shows zoomed-in portion of the graph.
 :::
 
 ## Basic Usage
 
-Add a minimap to your editor:
+The minimap is enabled via the `MinimapExtension` registered in your controller's config. The `NodeFlowEditor` automatically renders the minimap overlay when the extension is configured:
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
-class FlowEditorWithMinimap extends StatelessWidget {
-  final NodeFlowController controller;
-
-  const FlowEditorWithMinimap({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Main editor
-        NodeFlowEditor(
-          controller: controller,
-          nodeBuilder: (context, node) => MyNodeWidget(node),
+// Configure the controller with minimap extension
+final controller = NodeFlowController<MyData, dynamic>(
+  config: NodeFlowConfig(
+    extensions: [
+      MinimapExtension(
+        config: MinimapConfig(
+          visible: true,
+          position: MinimapPosition.bottomRight,
+          margin: 20.0,
         ),
+        theme: MinimapTheme.light,
+      ),
+    ],
+  ),
+);
 
-        // Minimap in bottom-right corner
-        Positioned(
-          bottom: 16,
-          right: 16,
-          child: NodeFlowMinimap(
-            controller: controller,
-            width: 200,
-            height: 150,
-          ),
-        ),
-      ],
-    );
-  }
-}
-```
-
-## Configuration
-
-### Size
-
-Control the minimap dimensions:
-
-```dart
-NodeFlowMinimap(
+// The minimap is automatically rendered by NodeFlowEditor
+NodeFlowEditor<MyData, dynamic>(
   controller: controller,
-  width: 250,    // Width in pixels
-  height: 180,   // Height in pixels
+  theme: NodeFlowTheme.light,
+  nodeBuilder: (context, node) => MyNodeWidget(node: node),
 )
 ```
 
-::: info
-**Recommended Sizes**: Keep the minimap between 150-300px wide for optimal usability. Too small makes it hard to see, too large defeats its purpose.
+## MinimapConfig
 
-:::
-
-### Positioning
-
-Position the minimap anywhere on screen:
+Configure minimap behavior via `MinimapConfig`:
 
 ```dart
-// Bottom-right (most common)
-Positioned(
-  bottom: 16,
-  right: 16,
-  child: NodeFlowMinimap(controller: controller),
-)
-
-// Bottom-left
-Positioned(
-  bottom: 16,
-  left: 16,
-  child: NodeFlowMinimap(controller: controller),
-)
-
-// Top-right
-Positioned(
-  top: 16,
-  right: 16,
-  child: NodeFlowMinimap(controller: controller),
-)
-
-// Top-left
-Positioned(
-  top: 16,
-  left: 16,
-  child: NodeFlowMinimap(controller: controller),
+MinimapExtension(
+  config: MinimapConfig(
+    visible: true,                           // Initial visibility
+    interactive: true,                       // Allow click/drag navigation
+    position: MinimapPosition.bottomRight,   // Corner position
+    margin: 20.0,                            // Margin from edge
+    autoHighlightSelection: true,            // Highlight selected nodes
+  ),
 )
 ```
 
-### Styling
+### Position Options
 
-Customize the minimap appearance:
+| Position | Description |
+|----------|-------------|
+| `MinimapPosition.topLeft` | Top-left corner |
+| `MinimapPosition.topRight` | Top-right corner |
+| `MinimapPosition.bottomLeft` | Bottom-left corner |
+| `MinimapPosition.bottomRight` | Bottom-right corner (default) |
+
+## MinimapTheme
+
+Customize the minimap appearance via `MinimapTheme`:
 
 ```dart
-NodeFlowMinimap(
-  controller: controller,
-  width: 200,
-  height: 150,
-  backgroundColor: Colors.grey[100]!,
-  borderColor: Colors.grey[400]!,
-  borderWidth: 1,
-  borderRadius: 8,
-  nodeColor: Colors.blue[200]!,
-  viewportColor: Colors.blue.withOpacity(0.3),
-  viewportBorderColor: Colors.blue,
-  viewportBorderWidth: 2,
+MinimapExtension(
+  config: MinimapConfig(visible: true),
+  theme: MinimapTheme(
+    size: Size(200, 150),              // Minimap dimensions
+    backgroundColor: Color(0xFFF5F5F5),
+    nodeColor: Color(0xFF1976D2),
+    viewportColor: Color(0xFF1976D2),
+    viewportFillOpacity: 0.1,
+    viewportBorderOpacity: 0.4,
+    borderColor: Color(0xFFBDBDBD),
+    borderWidth: 1.0,
+    borderRadius: 4.0,
+    padding: EdgeInsets.all(4.0),
+    showViewport: true,
+    nodeBorderRadius: 2.0,
+  ),
 )
 ```
 
-## Theming
+### Built-in Themes
 
-Apply consistent styling through theme:
+Two built-in themes are provided:
 
 ```dart
-class MinimapTheme {
-  static NodeFlowMinimap styled({
-    required NodeFlowController controller,
-    required bool isDark,
-  }) {
-    return NodeFlowMinimap(
-      controller: controller,
-      width: 220,
-      height: 160,
-      backgroundColor: isDark ? Colors.grey[900]! : Colors.white,
-      borderColor: isDark ? Colors.grey[700]! : Colors.grey[300]!,
-      borderWidth: 1,
-      borderRadius: 12,
-      nodeColor: isDark ? Colors.blue[700]! : Colors.blue[300]!,
-      viewportColor: Colors.blue.withOpacity(0.2),
-      viewportBorderColor: Colors.blue,
-      viewportBorderWidth: 2,
-    );
-  }
+// Light theme (default)
+MinimapTheme.light
+
+// Dark theme
+MinimapTheme.dark
+
+// Customize a theme
+MinimapTheme.light.copyWith(
+  nodeColor: Colors.blue,
+  size: Size(250, 180),
+)
+```
+
+## Controlling the Minimap
+
+Access the minimap extension via the controller to control visibility and behavior:
+
+```dart
+// Toggle visibility
+controller.minimap.toggle();
+controller.minimap.show();
+controller.minimap.hide();
+
+// Check visibility
+if (controller.minimap.isVisible) {
+  print('Minimap is visible');
 }
 
-// Usage
-MinimapTheme.styled(
-  controller: controller,
-  isDark: Theme.of(context).brightness == Brightness.dark,
-)
+// Change position
+controller.minimap.setPosition(MinimapPosition.topRight);
+controller.minimap.cyclePosition(); // Cycle through positions
+
+// Control interactivity
+controller.minimap.enableInteraction();
+controller.minimap.disableInteraction();
+controller.minimap.toggleInteraction();
+
+// Highlight specific nodes (e.g., search results)
+controller.minimap.highlightNodes({'node-1', 'node-3'});
+controller.minimap.clearHighlights();
+
+// Navigate to a position
+controller.minimap.centerOn(Offset(500, 300));
+controller.minimap.focusNodes({'node-1', 'node-2'});
 ```
 
 ## Interactive Features
 
 ### Viewport Navigation
 
-Click or drag on the minimap to navigate:
-
-```dart
-NodeFlowMinimap(
-  controller: controller,
-  onViewportChanged: (Rect viewport) {
-    print('Viewport moved to: $viewport');
-  },
-)
-```
+The minimap supports click and drag navigation when `interactive` is true:
 
 **Interactions**:
 - **Click**: Jump to that area of the canvas
-- **Drag viewport**: Pan the main editor view
-- **Drag outside viewport**: Jump to and start dragging from new location
+- **Drag**: Pan the main editor view by dragging on the minimap
+- **Viewport indicator**: Shows the currently visible portion of the graph
 
 ### Reactive Updates
 
@@ -184,121 +162,28 @@ The minimap automatically updates when:
 - Node sizes change
 - The graph structure changes
 
-## Advanced Layout
+## Using NodeFlowMinimap Directly
 
-### Collapsible Minimap
-
-Create a minimap that can be collapsed:
+While the extension-based approach is recommended, you can also use `NodeFlowMinimap` directly for custom layouts:
 
 ```dart
-class CollapsibleMinimap extends StatefulWidget {
-  final NodeFlowController controller;
-
-  const CollapsibleMinimap({required this.controller});
-
-  @override
-  State<CollapsibleMinimap> createState() => _CollapsibleMinimapState();
-}
-
-class _CollapsibleMinimapState extends State<CollapsibleMinimap> {
-  bool _isExpanded = true;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      bottom: 16,
-      right: 16,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (_isExpanded)
-            NodeFlowMinimap(
-              controller: widget.controller,
-              width: 220,
-              height: 160,
-            ),
-          SizedBox(height: 8),
-          IconButton(
-            icon: Icon(
-              _isExpanded ? Icons.expand_more : Icons.expand_less,
-            ),
-            onPressed: () {
-              setState(() => _isExpanded = !_isExpanded);
-            },
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.white,
-              elevation: 2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-```
-
-### Resizable Minimap
-
-Allow users to resize the minimap:
-
-```dart
-class ResizableMinimap extends StatefulWidget {
-  final NodeFlowController controller;
-
-  const ResizableMinimap({required this.controller});
-
-  @override
-  State<ResizableMinimap> createState() => _ResizableMinimapState();
-}
-
-class _ResizableMinimapState extends State<ResizableMinimap> {
-  double _width = 220;
-  double _height = 160;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      bottom: 16,
-      right: 16,
-      child: GestureDetector(
-        onPanUpdate: (details) {
-          setState(() {
-            _width = (_width + details.delta.dx).clamp(150.0, 400.0);
-            _height = (_height + details.delta.dy).clamp(100.0, 300.0);
-          });
-        },
-        child: Stack(
-          children: [
-            NodeFlowMinimap(
-              controller: widget.controller,
-              width: _width,
-              height: _height,
-            ),
-            // Resize handle
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Icon(
-                Icons.drag_handle,
-                size: 16,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// Direct widget usage with custom positioning
+NodeFlowMinimap<MyData>(
+  controller: controller,
+  theme: MinimapTheme.light.copyWith(
+    size: Size(220, 160),
+  ),
+  interactive: true,
+)
 ```
 
 ### Side Panel Minimap
 
-Integrate minimap into a side panel:
+Integrate minimap into a side panel by using the widget directly:
 
 ```dart
 class EditorWithSidePanel extends StatelessWidget {
-  final NodeFlowController controller;
+  final NodeFlowController<MyData, dynamic> controller;
 
   const EditorWithSidePanel({required this.controller});
 
@@ -306,16 +191,17 @@ class EditorWithSidePanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // Main editor
+        // Main editor (without extension-based minimap)
         Expanded(
           flex: 3,
-          child: NodeFlowEditor(
+          child: NodeFlowEditor<MyData, dynamic>(
             controller: controller,
-            nodeBuilder: (context, node) => MyNodeWidget(node),
+            theme: NodeFlowTheme.light,
+            nodeBuilder: (context, node) => MyNodeWidget(node: node),
           ),
         ),
 
-        // Side panel with minimap
+        // Side panel with minimap widget
         Container(
           width: 280,
           color: Colors.grey[100],
@@ -331,15 +217,15 @@ class EditorWithSidePanel extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 12),
-              NodeFlowMinimap(
+              NodeFlowMinimap<MyData>(
                 controller: controller,
-                width: 248,
-                height: 180,
+                theme: MinimapTheme.light.copyWith(
+                  size: Size(248, 180),
+                ),
               ),
               SizedBox(height: 24),
               // Additional panel content
               Text('Properties'),
-              // ... more widgets
             ],
           ),
         ),
@@ -351,35 +237,51 @@ class EditorWithSidePanel extends StatelessWidget {
 
 ## Performance Optimization
 
-The minimap is optimized for performance, but for very large graphs (1000+ nodes), consider these optimizations:
+The minimap is optimized for performance:
 
-### Conditional Rendering
+- Uses `CustomPainter` for efficient rendering
+- Reactively updates via MobX when graph state changes
+- Renders nodes as simple rectangles (no detailed shapes)
+- Does not render connections (for performance)
 
-Only show minimap when needed:
+For very large graphs, consider hiding the minimap:
 
 ```dart
-class OptimizedMinimap extends StatelessWidget {
-  final NodeFlowController controller;
+// Toggle minimap visibility based on node count
+if (controller.nodes.length > 1000) {
+  controller.minimap.hide();
+}
+```
+
+## Best Practices
+
+1. **Position**: Bottom-right is most familiar to users
+2. **Size**: Keep between 150-300px wide for optimal usability
+3. **Visibility**: Ensure good contrast between viewport and background
+4. **Persistence**: Use `autoHighlightSelection` to highlight selected nodes
+5. **Performance**: Consider hiding for graphs with 1000+ nodes
+
+## Common Patterns
+
+### Toggle Button
+
+Add a button to show/hide the minimap using the extension API:
+
+```dart
+class MinimapToggle extends StatelessWidget {
+  final NodeFlowController<MyData, dynamic> controller;
+
+  const MinimapToggle({required this.controller});
 
   @override
   Widget build(BuildContext context) {
     return Observer(
       builder: (_) {
-        final nodeCount = controller.nodes.length;
-
-        // Only show minimap for graphs with 10+ nodes
-        if (nodeCount < 10) {
-          return SizedBox.shrink();
-        }
-
-        return Positioned(
-          bottom: 16,
-          right: 16,
-          child: NodeFlowMinimap(
-            controller: controller,
-            width: 220,
-            height: 160,
-          ),
+        final isVisible = controller.minimap.isVisible;
+        return IconButton(
+          icon: Icon(isVisible ? Icons.map : Icons.map_outlined),
+          onPressed: () => controller.minimap.toggle(),
+          tooltip: isVisible ? 'Hide minimap' : 'Show minimap',
         );
       },
     );
@@ -387,116 +289,52 @@ class OptimizedMinimap extends StatelessWidget {
 }
 ```
 
-### Simplified Rendering
+### Node Count Badge
 
-For extremely large graphs, the minimap automatically simplifies rendering by:
-- Using solid rectangles for nodes instead of detailed shapes
-- Skipping connection rendering for 500+ connections
-- Reducing update frequency during rapid viewport changes
-
-## Best Practices
-
-1. **Position**: Bottom-right is most familiar to users
-2. **Size**: Keep between 15-25% of main editor size
-3. **Visibility**: Ensure good contrast between viewport and background
-4. **Persistence**: Save user's show/hide preference
-5. **Touch Targets**: Make interactive areas at least 44x44 pixels on mobile
-6. **Performance**: Consider hiding for graphs with 1000+ nodes
-
-## Common Patterns
-
-### Toggle Button
-
-Add a button to show/hide the minimap:
+Show node count overlaid on the minimap:
 
 ```dart
-class MinimapToggle extends StatefulWidget {
-  final NodeFlowController controller;
+class MinimapWithBadge extends StatelessWidget {
+  final NodeFlowController<MyData, dynamic> controller;
 
-  @override
-  State<MinimapToggle> createState() => _MinimapToggleState();
-}
-
-class _MinimapToggleState extends State<MinimapToggle> {
-  bool _showMinimap = true;
+  const MinimapWithBadge({required this.controller});
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        NodeFlowEditor(
-          controller: widget.controller,
-          nodeBuilder: (context, node) => MyNodeWidget(node),
+        NodeFlowMinimap<MyData>(
+          controller: controller,
+          theme: MinimapTheme.light,
         ),
-
-        // Toggle button
         Positioned(
-          top: 16,
-          right: 16,
-          child: IconButton(
-            icon: Icon(Icons.map),
-            onPressed: () => setState(() => _showMinimap = !_showMinimap),
-            tooltip: _showMinimap ? 'Hide minimap' : 'Show minimap',
+          top: 8,
+          right: 8,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.blue,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Observer(
+              builder: (_) => Text(
+                '${controller.nodes.length}',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ),
         ),
-
-        // Minimap
-        if (_showMinimap)
-          Positioned(
-            bottom: 16,
-            right: 16,
-            child: NodeFlowMinimap(controller: widget.controller),
-          ),
       ],
     );
   }
 }
 ```
 
-### Node Count Badge
-
-Show node count on minimap:
-
-```dart
-Stack(
-  children: [
-    NodeFlowMinimap(controller: controller),
-    Positioned(
-      top: 8,
-      right: 8,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.blue,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Observer(
-          builder: (_) => Text(
-            '${controller.nodes.length}',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-    ),
-  ],
-)
-```
-
-## Accessibility
-
-The minimap supports accessibility features:
-
-- **Keyboard Navigation**: Navigate using arrow keys when focused
-- **Screen Readers**: Announces viewport position changes
-- **High Contrast**: Respects system high contrast settings
-- **Focus Indicators**: Clear focus outline when navigating with keyboard
-
 ## See Also
 
 - [NodeFlowEditor](/docs/components/node-flow-editor) - Main editor component
 - [Controller](/docs/core-concepts/controller) - Managing viewport and navigation
-- [Examples](/docs/examples/) - See minimap in action

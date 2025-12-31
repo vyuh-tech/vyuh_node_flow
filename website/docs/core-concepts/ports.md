@@ -11,14 +11,46 @@ Ports are connection points on nodes where edges can be attached. They define ho
 
 ```dart
 class Port {
-  final String id;              // Unique identifier
-  final String name;            // Display name
-  final PortPosition position;  // left, right, top, bottom
-  final PortType type;          // source, target, both
-  final Offset offset;          // Offset from default position
-  final bool multiConnections;  // Allow multiple connections
+  final String id;               // Unique identifier
+  final String name;             // Display name
+  final PortPosition position;   // left, right, top, bottom
+  final PortType type;           // input or output
+  final Offset offset;           // Position where the CENTER of the port should be
+  final bool multiConnections;   // Allow multiple connections
+  final int? maxConnections;     // Maximum connections allowed (null = unlimited)
+  final MarkerShape? shape;      // Custom shape (null = use theme default)
+  final Size? size;              // Custom size (null = use theme default)
+  final String? tooltip;         // Optional tooltip text
+  final bool isConnectable;      // Whether connections can be made (default: true)
+  final bool showLabel;          // Whether to display the port's label
 }
 ```
+
+## Port Anatomy
+
+::: details Port Anatomy Diagram
+<!-- TODO: Add visual diagram showing port anatomy -->
+A port consists of the following visual elements:
+
+**Shape Elements:**
+- **Marker Shape** - The port indicator using `MarkerShapes` (circle, capsuleHalf, triangle, diamond, rectangle)
+- **Port Fill** - Interior color using `PortTheme.color` or `PortTheme.connectedColor`
+- **Port Border** - Outline (implicit in shape rendering)
+
+**Label Elements:**
+- **Port Label** - Text label when `showLabel: true`, styled with `PortTheme.labelTextStyle`
+- **Label Offset** - Position adjustment via `PortTheme.labelOffset`
+
+**State Colors:**
+- **Default State** - Normal color using `PortTheme.color`
+- **Connected State** - When port has connections using `PortTheme.connectedColor`
+- **Highlighted State** - During connection drag using `PortTheme.highlightColor`
+- **Highlight Border** - Border emphasis using `PortTheme.highlightBorderColor`
+
+**Sizing:**
+- **Port Size** - Dimensions using `PortTheme.size` or port-specific `Port.size`
+- **Default Size** - `Size(9, 9)` if not specified
+:::
 
 ## Port Positions
 
@@ -36,131 +68,134 @@ enum PortPosition {
 ### Positioning Examples
 
 ```dart
-// Port on the left side
+// Port on the left side (input by convention)
 Port(
   id: 'input-port',
   name: 'Input',
   position: PortPosition.left,
-  type: PortType.target,
+  type: PortType.input,
 )
 
-// Port on the right side
+// Port on the right side (output by convention)
 Port(
   id: 'output-port',
   name: 'Output',
   position: PortPosition.right,
-  type: PortType.source,
+  type: PortType.output,
 )
 
-// Port on top
+// Port on top (input by convention)
 Port(
   id: 'trigger-port',
   name: 'Trigger',
   position: PortPosition.top,
-  type: PortType.target,
+  type: PortType.input,
 )
 
-// Port on bottom
+// Port on bottom (output by convention)
 Port(
   id: 'result-port',
   name: 'Result',
   position: PortPosition.bottom,
-  type: PortType.source,
+  type: PortType.output,
 )
 ```
 
+Note: Port type is automatically inferred from position if not specified:
+- Left/Top ports default to `PortType.input`
+- Right/Bottom ports default to `PortType.output`
+
 ## Port Types
 
-Ports have three types that control connection direction:
+Ports have two types that control connection direction:
 
 ```dart
 enum PortType {
-  source,  // Can only output connections
-  target,  // Can only receive connections
-  both,    // Can both send and receive
+  input,   // Can only receive connections
+  output,  // Can only emit connections
 }
 ```
 
-### Source Ports
+### Output Ports
 
-Output ports that create connections to other nodes:
+Output ports emit connections to other nodes:
 
 ```dart
 Port(
   id: 'out-1',
   name: 'Output',
   position: PortPosition.right,
-  type: PortType.source,
+  type: PortType.output,
 )
 ```
 
-### Target Ports
+### Input Ports
 
-Input ports that receive connections from other nodes:
+Input ports receive connections from other nodes:
 
 ```dart
 Port(
   id: 'in-1',
   name: 'Input',
   position: PortPosition.left,
-  type: PortType.target,
-)
-```
-
-### Bidirectional Ports
-
-Ports that can both send and receive:
-
-```dart
-Port(
-  id: 'data-1',
-  name: 'Data',
-  position: PortPosition.left,
-  type: PortType.both,
+  type: PortType.input,
 )
 ```
 
 ## Port Offsets
 
-Fine-tune port positioning with offsets:
+The offset specifies where the CENTER of the port should be positioned:
+
+- **Left/Right ports**: `offset.dy` is the vertical center position (distance from top of node). `offset.dx` adjusts the horizontal position from the edge.
+- **Top/Bottom ports**: `offset.dx` is the horizontal center position (distance from left of node). `offset.dy` adjusts the vertical position from the edge.
 
 ```dart
-// Default position (centered)
+// For a 150x100 node:
+
+// Right port centered vertically at 50 (middle of node height)
 Port(
   id: 'port-1',
   name: 'Port 1',
   position: PortPosition.right,
-  type: PortType.source,
-  offset: Offset.zero, // Default
+  type: PortType.output,
+  offset: Offset(0, 50),
 )
 
-// Offset from center
+// Top port centered horizontally at 75 (middle of node width)
 Port(
   id: 'port-2',
   name: 'Port 2',
-  position: PortPosition.right,
-  type: PortType.source,
-  offset: Offset(0, 20), // 20 pixels down from center
+  position: PortPosition.top,
+  type: PortType.input,
+  offset: Offset(75, 0),
 )
 
+// Two right ports at 1/3 and 2/3 height of a 100px tall node
 Port(
   id: 'port-3',
   name: 'Port 3',
   position: PortPosition.right,
-  type: PortType.source,
-  offset: Offset(0, -20), // 20 pixels up from center
+  type: PortType.output,
+  offset: Offset(0, 33),
+)
+
+Port(
+  id: 'port-4',
+  name: 'Port 4',
+  position: PortPosition.right,
+  type: PortType.output,
+  offset: Offset(0, 67),
 )
 ```
 
 ### Multiple Ports with Offsets
 
-Create evenly spaced ports:
+Create evenly spaced ports based on node height:
 
 ```dart
-List<Port> createMultipleOutputPorts(int count, String nodeId) {
+List<Port> createMultipleOutputPorts(int count, String nodeId, double nodeHeight) {
   final ports = <Port>[];
-  final spacing = 60.0;
-  final startOffset = -(spacing * (count - 1)) / 2;
+  final spacing = nodeHeight / (count + 1);
 
   for (int i = 0; i < count; i++) {
     ports.add(
@@ -168,8 +203,8 @@ List<Port> createMultipleOutputPorts(int count, String nodeId) {
         id: '$nodeId-out-$i',
         name: 'Output $i',
         position: PortPosition.right,
-        type: PortType.source,
-        offset: Offset(0, startOffset + (i * spacing)),
+        type: PortType.output,
+        offset: Offset(0, spacing * (i + 1)),
       ),
     );
   }
@@ -177,11 +212,11 @@ List<Port> createMultipleOutputPorts(int count, String nodeId) {
   return ports;
 }
 
-// Usage
+// Usage for a node with 120px height
 final node = Node(
   id: 'multi-output',
   // ...
-  outputPorts: createMultipleOutputPorts(4, 'multi-output'),
+  outputPorts: createMultipleOutputPorts(4, 'multi-output', 120.0),
 );
 ```
 
@@ -190,22 +225,32 @@ final node = Node(
 Control whether a port can have multiple connections:
 
 ```dart
-// Single connection only (default for source ports)
+// Single connection only (default behavior)
 Port(
   id: 'single-out',
   name: 'Output',
   position: PortPosition.right,
-  type: PortType.source,
+  type: PortType.output,
   multiConnections: false,
 )
 
-// Allow multiple connections (common for target ports)
+// Allow multiple connections
 Port(
   id: 'multi-in',
   name: 'Input',
   position: PortPosition.left,
-  type: PortType.target,
+  type: PortType.input,
   multiConnections: true,
+)
+
+// Allow multiple connections with a limit
+Port(
+  id: 'limited-in',
+  name: 'Limited Input',
+  position: PortPosition.left,
+  type: PortType.input,
+  multiConnections: true,
+  maxConnections: 5, // Maximum 5 connections allowed
 )
 ```
 
@@ -230,7 +275,7 @@ final flowNode = Node<MyData>(
       id: 'flow-in',
       name: 'Input',
       position: PortPosition.left,
-      type: PortType.target,
+      type: PortType.input,
     ),
   ],
   outputPorts: [
@@ -238,7 +283,7 @@ final flowNode = Node<MyData>(
       id: 'flow-out',
       name: 'Output',
       position: PortPosition.right,
-      type: PortType.source,
+      type: PortType.output,
     ),
   ],
 );
@@ -257,7 +302,8 @@ final conditionNode = Node<MyData>(
       id: 'cond-in',
       name: 'Input',
       position: PortPosition.left,
-      type: PortType.target,
+      type: PortType.input,
+      offset: Offset(0, 50), // Centered vertically
     ),
   ],
   outputPorts: [
@@ -265,15 +311,15 @@ final conditionNode = Node<MyData>(
       id: 'cond-true',
       name: 'True',
       position: PortPosition.right,
-      type: PortType.source,
-      offset: Offset(0, -25),
+      type: PortType.output,
+      offset: Offset(0, 33), // Upper third
     ),
     Port(
       id: 'cond-false',
       name: 'False',
       position: PortPosition.right,
-      type: PortType.source,
-      offset: Offset(0, 25),
+      type: PortType.output,
+      offset: Offset(0, 67), // Lower third
     ),
   ],
 );
@@ -292,25 +338,25 @@ final mergeNode = Node<MyData>(
       id: 'merge-in-1',
       name: 'Input 1',
       position: PortPosition.left,
-      type: PortType.target,
+      type: PortType.input,
       multiConnections: true,
-      offset: Offset(0, -30),
+      offset: Offset(0, 30),
     ),
     Port(
       id: 'merge-in-2',
       name: 'Input 2',
       position: PortPosition.left,
-      type: PortType.target,
+      type: PortType.input,
       multiConnections: true,
-      offset: Offset(0, 0),
+      offset: Offset(0, 60),
     ),
     Port(
       id: 'merge-in-3',
       name: 'Input 3',
       position: PortPosition.left,
-      type: PortType.target,
+      type: PortType.input,
       multiConnections: true,
-      offset: Offset(0, 30),
+      offset: Offset(0, 90),
     ),
   ],
   outputPorts: [
@@ -318,7 +364,8 @@ final mergeNode = Node<MyData>(
       id: 'merge-out',
       name: 'Output',
       position: PortPosition.right,
-      type: PortType.source,
+      type: PortType.output,
+      offset: Offset(0, 60), // Centered
     ),
   ],
 );
@@ -337,7 +384,8 @@ final splitNode = Node<MyData>(
       id: 'split-in',
       name: 'Input',
       position: PortPosition.left,
-      type: PortType.target,
+      type: PortType.input,
+      offset: Offset(0, 60), // Centered
     ),
   ],
   outputPorts: [
@@ -345,22 +393,22 @@ final splitNode = Node<MyData>(
       id: 'split-out-1',
       name: 'Output 1',
       position: PortPosition.right,
-      type: PortType.source,
-      offset: Offset(0, -30),
+      type: PortType.output,
+      offset: Offset(0, 30),
     ),
     Port(
       id: 'split-out-2',
       name: 'Output 2',
       position: PortPosition.right,
-      type: PortType.source,
-      offset: Offset(0, 0),
+      type: PortType.output,
+      offset: Offset(0, 60),
     ),
     Port(
       id: 'split-out-3',
       name: 'Output 3',
       position: PortPosition.right,
-      type: PortType.source,
-      offset: Offset(0, 30),
+      type: PortType.output,
+      offset: Offset(0, 90),
     ),
   ],
 );
@@ -375,44 +423,62 @@ Customize port appearance with `PortTheme`:
 ```dart
 theme: NodeFlowTheme(
   portTheme: PortTheme(
-    size: 12,                    // Port circle size
-    color: Colors.blue,          // Default color
-    hoverColor: Colors.blue[700]!, // Hover color
-    borderColor: Colors.white,   // Border color
-    borderWidth: 2,              // Border width
+    size: Size(12, 12),                    // Port size (width, height)
+    color: Color(0xFFBABABA),              // Default idle color
+    connectedColor: Color(0xFF2196F3),     // Color when connected
+    highlightColor: Color(0xFF42A5F5),     // Color when highlighted during drag
+    highlightBorderColor: Color(0xFF000000), // Border color when highlighted
+    borderColor: Colors.white,             // Default border color
+    borderWidth: 2.0,                      // Border width
+    shape: MarkerShapes.capsuleHalf,       // Default port shape
+    showLabel: false,                      // Whether to show labels
+    labelTextStyle: TextStyle(             // Label text styling
+      fontSize: 10.0,
+      color: Color(0xFF333333),
+      fontWeight: FontWeight.w500,
+    ),
+    labelOffset: 4.0,                      // Distance from port to label
   ),
 )
+```
+
+### Predefined Themes
+
+```dart
+// Light theme for light-colored backgrounds
+final lightPortTheme = PortTheme.light;
+
+// Dark theme for dark-colored backgrounds
+final darkPortTheme = PortTheme.dark;
+
+// Customize from a predefined theme
+final customTheme = PortTheme.light.copyWith(
+  size: Size(14, 14),
+  highlightColor: Colors.green,
+);
 ```
 
 ### Custom Port Colors by Type
 
 ```dart
-Widget buildPortWithTypeColor(Port port) {
-  Color portColor;
-  switch (port.type) {
-    case PortType.source:
-      portColor = Colors.green;
-      break;
-    case PortType.target:
-      portColor = Colors.blue;
-      break;
-    case PortType.both:
-      portColor = Colors.purple;
-      break;
-  }
+// Use a custom PortBuilder to differentiate port types visually
+PortBuilder myPortBuilder = (context, controller, node, port, isOutput, isConnected, nodeBounds) {
+  final theme = Theme.of(context).extension<NodeFlowTheme>()!.portTheme;
 
-  // Port is automatically rendered by the editor
-  // This is just for visualization
-  return Container(
-    width: 12,
-    height: 12,
-    decoration: BoxDecoration(
-      color: portColor,
-      shape: BoxShape.circle,
-      border: Border.all(color: Colors.white, width: 2),
-    ),
+  // Different colors based on port type
+  final color = port.type == PortType.output ? Colors.green : Colors.blue;
+
+  return PortWidget(
+    port: port,
+    theme: theme,
+    controller: controller,
+    nodeId: node.id,
+    isOutput: isOutput,
+    nodeBounds: nodeBounds,
+    isConnected: isConnected,
+    color: color,  // Override idle color
   );
-}
+};
 ```
 
 ## Querying Ports
@@ -468,7 +534,7 @@ controller.addInputPort('node-1', Port(
   id: 'new-input',
   name: 'New Input',
   position: PortPosition.left,
-  type: PortType.target,
+  type: PortType.input,
 ));
 
 // Add an output port to an existing node
@@ -476,7 +542,7 @@ controller.addOutputPort('node-1', Port(
   id: 'new-output',
   name: 'New Output',
   position: PortPosition.right,
-  type: PortType.source,
+  type: PortType.output,
 ));
 
 // Remove a port (also removes its connections)
@@ -488,35 +554,47 @@ controller.setNodePorts(
   inputPorts: [/* new input ports */],
   outputPorts: [/* new output ports */],
 );
+
+// Get all input ports for a node
+final inputs = controller.getInputPorts('node-1');
+
+// Get all output ports for a node
+final outputs = controller.getOutputPorts('node-1');
 ```
 
 ## Port Labels
 
-Ports can have labels displayed near them:
+Ports can have labels displayed near them. Labels require both the theme and the individual port to have `showLabel` enabled:
 
 ```dart
-// Port names are used as labels automatically
+// Enable label on the port
 Port(
   id: 'data-in',
-  name: 'Data Input',  // This becomes the label
+  name: 'Data Input',  // This becomes the label text
   position: PortPosition.left,
-  type: PortType.target,
+  type: PortType.input,
+  showLabel: true,     // Enable label display for this port
 )
 ```
 
-Customize label appearance in theme:
+Configure label appearance in the port theme:
 
 ```dart
 theme: NodeFlowTheme(
-  labelTheme: LabelTheme(
-    fontSize: 10,
-    color: Colors.black87,
-    backgroundColor: Colors.white,
-    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-    borderRadius: 3,
+  portTheme: PortTheme(
+    // ... other properties
+    showLabel: true,  // Enable labels globally (required)
+    labelTextStyle: TextStyle(
+      fontSize: 10.0,
+      color: Color(0xFF333333),
+      fontWeight: FontWeight.w500,
+    ),
+    labelOffset: 4.0,  // Distance from port to label
   ),
 )
 ```
+
+Note: Port label visibility at different zoom levels is controlled by the LOD (Level of Detail) system via `LODConfig.showPortLabels`.
 
 ## Best Practices
 
@@ -542,7 +620,7 @@ final port = Port(
   id: generatePortId('node-1', 'Data Input'),  // 'node-1-data-input'
   name: 'Data Input',
   position: PortPosition.left,
-  type: PortType.target,
+  type: PortType.input,
 );
 ```
 
@@ -553,7 +631,7 @@ class PortFactory {
       id: '$nodeId-in-${name.toLowerCase().replaceAll(' ', '-')}',
       name: name,
       position: PortPosition.left,
-      type: PortType.target,
+      type: PortType.input,
       offset: offset,
       multiConnections: true,
     );
@@ -564,7 +642,7 @@ class PortFactory {
       id: '$nodeId-out-${name.toLowerCase().replaceAll(' ', '-')}',
       name: name,
       position: PortPosition.right,
-      type: PortType.source,
+      type: PortType.output,
       offset: offset,
       multiConnections: false,
     );

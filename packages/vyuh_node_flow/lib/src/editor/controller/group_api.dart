@@ -11,7 +11,7 @@ part of 'node_flow_controller.dart';
 ///
 /// These are primarily internal operations used by [GroupNode] and
 /// [GroupableMixin] implementations.
-extension GroupApi<T> on NodeFlowController<T> {
+extension GroupApi<T, C> on NodeFlowController<T, C> {
   // ============================================================================
   // Reaction Setup
   // ============================================================================
@@ -64,7 +64,7 @@ extension GroupApi<T> on NodeFlowController<T> {
             .map((id) => _connections.firstWhere((c) => c.id == id))
             .toList();
 
-        final selectionState = SelectionState<T>(
+        final selectionState = SelectionState<T, C>(
           nodes: selectedNodes,
           connections: selectedConnections,
         );

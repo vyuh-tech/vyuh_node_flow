@@ -101,7 +101,12 @@ class CommentNode<T> extends Node<T> with ResizableMixin<T> {
   }
 
   @override
-  Widget buildWidget(BuildContext context) {
+  Widget? buildWidget(BuildContext context) {
+    // Respect instance-level widgetBuilder first
+    if (widgetBuilder != null) {
+      return widgetBuilder!(context, this);
+    }
+    // CommentNode is self-rendering with its own styled content
     return _CommentContent<T>(node: this);
   }
 

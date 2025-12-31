@@ -2,11 +2,21 @@
 defineProps<{
   /** Layout variant: 'split' for two-column, 'centered' for single centered column */
   variant?: 'split' | 'centered';
+  /** Add a top border */
+  borderTop?: boolean;
+  /** Add a bottom border */
+  borderBottom?: boolean;
 }>();
 </script>
 
 <template>
-  <section class="hero-section">
+  <section
+    class="hero-section"
+    :class="[
+      borderTop && 'border-t border-slate-200/50 dark:border-zinc-700/50',
+      borderBottom && 'border-b border-slate-200/50 dark:border-zinc-700/50',
+    ]"
+  >
     <!-- Blur effects background -->
     <div class="absolute inset-0 z-0">
       <div class="hero-blur bg-blue-500 -top-48 -left-24 w-[600px] h-[600px] opacity-15 dark:opacity-25" />
@@ -43,10 +53,10 @@ defineProps<{
   filter: blur(120px);
 }
 
-/* Split layout - two columns */
+/* Split layout - two columns on xl+, single column below */
 .hero-content-split {
-  @apply relative z-10 max-w-7xl w-full grid lg:grid-cols-[1fr_1.4fr] gap-16 items-center;
-  @apply max-lg:grid-cols-1 max-lg:text-center max-lg:justify-items-center;
+  @apply relative z-10 max-w-7xl w-full grid xl:grid-cols-[1fr_1.4fr] gap-16 items-center;
+  @apply max-xl:grid-cols-1 max-xl:text-center max-xl:justify-items-center;
 }
 
 .hero-text {
@@ -62,7 +72,7 @@ defineProps<{
 
 /* Centered layout - single column */
 .hero-content-centered {
-  @apply relative z-10 max-w-4xl w-full text-center;
+  @apply relative z-10 max-w-4xl w-full flex flex-col items-center text-center;
 }
 
 @keyframes fadeSlideUp {

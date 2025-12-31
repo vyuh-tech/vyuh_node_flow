@@ -6,7 +6,7 @@ part of 'node_flow_controller.dart';
 /// - Factory methods for creating GroupNode and CommentNode
 /// - Widget-level drag operations for nodes and connections
 /// - Utility methods for group operations
-extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
+extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
   // ============================================================================
   // GroupNode and CommentNode Factory Methods
   // ============================================================================
@@ -222,10 +222,10 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     return _findNodesInBounds(group.bounds);
   }
 
-  /// Hides all group and comment nodes.
+  /// Hides all [GroupNode] and [CommentNode] instances.
   ///
   /// Hidden nodes are not rendered but remain in the graph data.
-  void hideAllAnnotationNodes() {
+  void hideAllGroupAndCommentNodes() {
     runInAction(() {
       for (final node in _nodes.values) {
         if (node is GroupNode || node is CommentNode) {
@@ -235,10 +235,10 @@ extension NodeFlowControllerAPI<T> on NodeFlowController<T> {
     });
   }
 
-  /// Shows all group and comment nodes.
+  /// Shows all [GroupNode] and [CommentNode] instances.
   ///
-  /// This makes all previously hidden annotation nodes visible again.
-  void showAllAnnotationNodes() {
+  /// This makes all previously hidden group and comment nodes visible again.
+  void showAllGroupAndCommentNodes() {
     runInAction(() {
       for (final node in _nodes.values) {
         if (node is GroupNode || node is CommentNode) {

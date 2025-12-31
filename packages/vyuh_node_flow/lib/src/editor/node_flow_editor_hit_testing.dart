@@ -7,7 +7,7 @@ part of 'node_flow_editor.dart';
 /// - Tap and double-tap detection
 /// - Mouse enter/leave event firing
 /// - Shift key tracking for selection mode
-extension _HitTestingExtension<T> on _NodeFlowEditorState<T> {
+extension _HitTestingExtension<T, C> on _NodeFlowEditorState<T, C> {
   // ============================================================
   // Hit Testing State (stored in main class, accessed via extension)
   // ============================================================

@@ -5,8 +5,9 @@ import '../connections/connection.dart';
 import '../editor/controller/node_flow_controller.dart';
 import '../editor/drag_session.dart';
 import '../editor/element_scope.dart';
-import '../editor/lod/lod_extension.dart';
-import '../extensions/auto_pan_extension.dart';
+import '../extensions/lod/detail_visibility.dart';
+import '../extensions/lod/lod_extension.dart';
+import '../extensions/autopan/auto_pan_extension.dart';
 import '../editor/resizer_widget.dart';
 import '../editor/themes/cursor_theme.dart';
 import '../editor/themes/node_flow_theme.dart';
@@ -57,7 +58,7 @@ class NodeContainer<T> extends StatelessWidget {
   final Node<T> node;
 
   /// The controller for node operations.
-  final NodeFlowController<T> controller;
+  final NodeFlowController<T, dynamic> controller;
 
   /// The visual content of the node (built by NodeWidget or custom builder).
   final Widget child;
@@ -126,8 +127,9 @@ class NodeContainer<T> extends StatelessWidget {
           isLocked: node.locked,
         );
 
-        // Get LOD visibility state
-        final lodVisibility = controller.lod.currentVisibility;
+        // Get LOD visibility state - default to full visibility if not configured
+        final lodVisibility =
+            controller.lod?.currentVisibility ?? DetailVisibility.full;
 
         // Show resize handles when node is selected, resizable, AND LOD allows
         final showResizer =
@@ -164,7 +166,7 @@ class NodeContainer<T> extends StatelessWidget {
                     // Background/foreground layers use translucent for hit testing
                     hitTestBehavior: HitTestBehavior.opaque,
                     // Autopan configuration
-                    autoPan: controller.autoPan.currentConfig,
+                    autoPan: controller.autoPan?.currentConfig,
                     getViewportBounds: () =>
                         controller.viewportScreenBounds.rect,
                     onAutoPan: (delta) {
@@ -238,36 +240,33 @@ class NodeContainer<T> extends StatelessWidget {
       node.size.value.height,
     );
 
-    // Use custom port builder if provided
-    final portWidget = portBuilder != null
-        ? portBuilder!(
-            context,
-            controller,
-            node,
-            port,
-            isOutput,
-            isConnected,
-            nodeBounds,
-          )
-        : PortWidget<T>(
-            port: port,
-            theme: portTheme,
-            isConnected: isConnected,
-            snapDistance: portSnapDistance,
-            controller: controller,
-            nodeId: node.id,
-            isOutput: isOutput,
-            nodeBounds: nodeBounds,
-            onTap: onPortTap != null
-                ? (p) => onPortTap!(node.id, p.id, isOutput)
-                : null,
-            onHover: onPortHover != null
-                ? (data) => onPortHover!(node.id, data.$1.id, data.$2)
-                : null,
-            onContextMenu: onPortContextMenu != null
-                ? (pos) => onPortContextMenu!(node.id, port.id, pos)
-                : null,
-          );
+    // Port widget cascade:
+    // 1. port.buildWidget (per-instance builder)
+    // 2. portBuilder (global editor builder)
+    // 3. PortWidget (framework default)
+    final portWidget =
+        port.buildWidget(context, node) ??
+        (portBuilder != null
+            ? portBuilder!(context, node, port)
+            : PortWidget<T>(
+                port: port,
+                theme: portTheme,
+                isConnected: isConnected,
+                snapDistance: portSnapDistance,
+                controller: controller,
+                nodeId: node.id,
+                isOutput: isOutput,
+                nodeBounds: nodeBounds,
+                onTap: onPortTap != null
+                    ? (p) => onPortTap!(node.id, p.id, isOutput)
+                    : null,
+                onHover: onPortHover != null
+                    ? (data) => onPortHover!(node.id, data.$1.id, data.$2)
+                    : null,
+                onContextMenu: onPortContextMenu != null
+                    ? (pos) => onPortContextMenu!(node.id, port.id, pos)
+                    : null,
+              ));
 
     return Positioned(
       left: visualPosition.dx,

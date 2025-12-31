@@ -31,9 +31,9 @@ export 'src/extensions/extension_registry.dart';
 // Events (organized by category)
 export 'src/extensions/events/events.dart';
 
-// Built-in extensions
-export 'src/extensions/auto_pan_extension.dart';
-export 'src/extensions/debug_extension.dart';
-export 'src/editor/lod/lod_extension.dart';
-export 'src/extensions/minimap_extension.dart';
-export 'src/extensions/stats_extension.dart';
+// Built-in extensions (each in its own subdirectory)
+export 'src/extensions/autopan/auto_pan_extension.dart';
+export 'src/extensions/debug/debug_extension.dart';
+export 'src/extensions/lod/lod_extension.dart';
+export 'src/extensions/minimap/minimap_extension.dart';
+export 'src/extensions/stats/stats_extension.dart';

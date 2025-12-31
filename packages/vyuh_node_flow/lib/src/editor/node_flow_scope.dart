@@ -39,12 +39,12 @@ class NodeFlowScope<T> extends InheritedWidget {
   });
 
   /// The [NodeFlowController] provided by this scope.
-  final NodeFlowController<T> controller;
+  final NodeFlowController<T, dynamic> controller;
 
   /// Returns the [NodeFlowController] from the nearest [NodeFlowScope] ancestor.
   ///
   /// Throws if no [NodeFlowScope] is found in the widget tree.
-  static NodeFlowController<T> of<T>(BuildContext context) {
+  static NodeFlowController<T, dynamic> of<T>(BuildContext context) {
     final scope = context
         .dependOnInheritedWidgetOfExactType<NodeFlowScope<T>>();
     assert(scope != null, 'No NodeFlowScope<$T> found in context');
@@ -55,7 +55,7 @@ class NodeFlowScope<T> extends InheritedWidget {
   /// or null if not found.
   ///
   /// Use this when the widget might exist outside a [NodeFlowScope].
-  static NodeFlowController<T>? maybeOf<T>(BuildContext context) {
+  static NodeFlowController<T, dynamic>? maybeOf<T>(BuildContext context) {
     final scope = context
         .dependOnInheritedWidgetOfExactType<NodeFlowScope<T>>();
     return scope?.controller;

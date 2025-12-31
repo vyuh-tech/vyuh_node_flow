@@ -16,14 +16,15 @@ The `PortWidget` renders connection points on nodes. Ports are where connections
 By default, ports are rendered automatically based on the `PortTheme` in your `NodeFlowTheme`:
 
 ```dart
-NodeFlowEditor<MyData>(
+NodeFlowEditor<MyData, dynamic>(
   controller: controller,
-  theme: NodeFlowTheme(
+  theme: NodeFlowTheme.light.copyWith(
     portTheme: PortTheme(
       size: Size(12, 12),
       color: Colors.blue,
       connectedColor: Colors.green,
       highlightColor: Colors.yellow,
+      highlightBorderColor: Colors.orange,
       borderColor: Colors.white,
       borderWidth: 2.0,
     ),
@@ -38,17 +39,18 @@ NodeFlowEditor<MyData>(
 For complete control over port appearance, provide a `portBuilder`:
 
 ```dart
-NodeFlowEditor<MyData>(
+NodeFlowEditor<MyData, dynamic>(
   controller: controller,
   theme: NodeFlowTheme.light,
   nodeBuilder: (context, node) => MyNodeWidget(node: node),
   portBuilder: (context, controller, node, port, isOutput, isConnected, nodeBounds) {
     // Custom port appearance based on port data
     final color = _getColorForPortType(port.name);
+    final theme = Theme.of(context).extension<NodeFlowTheme>()!;
 
     return PortWidget(
       port: port,
-      theme: controller.theme?.portTheme ?? PortTheme.light,
+      theme: theme.portTheme,
       controller: controller,
       nodeId: node.id,
       isOutput: isOutput,
@@ -75,7 +77,7 @@ Color _getColorForPortType(String portName) {
 |----------|------|-------------|
 | `port` | `Port` | The port model to render |
 | `theme` | `PortTheme` | Theme for styling |
-| `controller` | `NodeFlowController<T>` | Controller for connection handling |
+| `controller` | `NodeFlowController<T, dynamic>` | Controller for connection handling |
 | `nodeId` | `String` | ID of the parent node |
 | `isOutput` | `bool` | Whether this is an output port |
 | `nodeBounds` | `Rect` | Parent node bounds in graph coordinates |
@@ -99,7 +101,7 @@ Color _getColorForPortType(String portName) {
 |----------|------|-------------|
 | `onTap` | `ValueChanged<Port>?` | Called when port is tapped |
 | `onDoubleTap` | `VoidCallback?` | Called when port is double-tapped |
-| `onContextMenu` | `void Function(Offset)?` | Called for right-click |
+| `onContextMenu` | `void Function(ScreenPosition)?` | Called for right-click with screen coordinates |
 | `onHover` | `ValueChanged<(Port, bool)>?` | Called on hover state change |
 
 ## Property Resolution
@@ -116,12 +118,12 @@ final port = Port(
   id: 'special-port',
   name: 'Output',
   position: PortPosition.right,
-  type: PortType.source,
+  type: PortType.output,
   size: Size(16, 16),  // Overrides theme size
-  color: Colors.purple, // Overrides theme color
 );
 
-// Theme size is 12x12, but this port will be 16x16 purple
+// Theme size is 9x9, but this port will be 16x16
+// Note: Port model doesn't support color override - use PortWidget's color parameter
 ```
 
 ## Port States
@@ -165,24 +167,36 @@ The `Port.highlighted` observable is automatically managed by the controller dur
 
 ## Port Shapes
 
-Ports can have different shapes based on the theme:
+Ports can have different shapes based on the theme or individual port configuration:
 
 ```dart
+import 'package:vyuh_node_flow/vyuh_node_flow.dart';
+
 PortTheme(
-  shape: PortShape.circle,  // Default circular port
+  shape: MarkerShapes.capsuleHalf,  // Default shape
 )
 
-// Or custom shapes via PortShapeWidget
+// Or specify per-port
+Port(
+  id: 'my-port',
+  name: 'Input',
+  shape: MarkerShapes.circle,
+)
 ```
 
 ### Built-in Shapes
 
+Shapes are defined in `MarkerShapes`:
+
 | Shape | Description |
 |-------|-------------|
-| `PortShape.circle` | Circular port (default) |
-| `PortShape.square` | Square port |
-| `PortShape.diamond` | Diamond/rotated square |
-| `PortShape.capsule` | Rounded rectangle |
+| `MarkerShapes.circle` | Circular port |
+| `MarkerShapes.square` | Square port |
+| `MarkerShapes.diamond` | Diamond/rotated square |
+| `MarkerShapes.capsule` | Rounded rectangle (both ends rounded) |
+| `MarkerShapes.capsuleHalf` | Half-capsule (default, rounded on one side) |
+| `MarkerShapes.triangle` | Triangular port |
+| `MarkerShapes.arrow` | Arrow-shaped port |
 
 ### Custom Port Shape
 
@@ -218,30 +232,30 @@ class TrianglePortShape extends StatelessWidget {
 Ports are positioned relative to their parent node based on `PortPosition` and optional `offset`:
 
 ```dart
-// Port on left edge, centered vertically
+// Port on left edge - type defaults to input for left/top positions
 Port(
   id: 'input',
   name: 'Input',
   position: PortPosition.left,
-  type: PortType.target,
+  // type: PortType.input is inferred from PortPosition.left
 )
 
-// Port on right edge, offset up by 20 pixels
+// Port on right edge with vertical offset
+// offset.dy specifies the vertical CENTER position from the top of the node
 Port(
   id: 'output-1',
   name: 'True',
   position: PortPosition.right,
-  type: PortType.source,
-  offset: Offset(0, -20),  // 20px above center
+  // type: PortType.output is inferred from PortPosition.right
+  offset: Offset(0, 33),  // Center at 33px from top
 )
 
-// Port on right edge, offset down by 20 pixels
+// Another right port at a different vertical position
 Port(
   id: 'output-2',
   name: 'False',
   position: PortPosition.right,
-  type: PortType.source,
-  offset: Offset(0, 20),   // 20px below center
+  offset: Offset(0, 67),   // Center at 67px from top
 )
 ```
 
@@ -305,7 +319,7 @@ The `snapDistance` creates an invisible buffer around the port, making it easier
 ```dart
 class CustomPortNode extends StatelessWidget {
   final Node<MyData> node;
-  final NodeFlowController<MyData> controller;
+  final NodeFlowController<MyData, dynamic> controller;
   final Rect nodeBounds;
 
   const CustomPortNode({
@@ -316,15 +330,16 @@ class CustomPortNode extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = controller.theme ?? NodeFlowTheme.light;
+    final theme = Theme.of(context).extension<NodeFlowTheme>()!;
+    final size = node.size.value;
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
         // Node content
         Container(
-          width: node.size.width,
-          height: node.size.height,
+          width: size.width,
+          height: size.height,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
@@ -337,7 +352,7 @@ class CustomPortNode extends StatelessWidget {
         for (var i = 0; i < node.inputPorts.length; i++)
           Positioned(
             left: -6,  // Half port size outside node
-            top: _calculatePortOffset(i, node.inputPorts.length, node.size.height),
+            top: _calculatePortOffset(i, node.inputPorts.length, size.height),
             child: PortWidget(
               port: node.inputPorts[i],
               theme: theme.portTheme,
@@ -353,7 +368,7 @@ class CustomPortNode extends StatelessWidget {
         for (var i = 0; i < node.outputPorts.length; i++)
           Positioned(
             right: -6,  // Half port size outside node
-            top: _calculatePortOffset(i, node.outputPorts.length, node.size.height),
+            top: _calculatePortOffset(i, node.outputPorts.length, size.height),
             child: PortWidget(
               port: node.outputPorts[i],
               theme: theme.portTheme,

@@ -24,7 +24,7 @@ class InteractionLayer<T> extends StatelessWidget {
     this.animation,
   });
 
-  final NodeFlowController<T> controller;
+  final NodeFlowController<T, dynamic> controller;
 
   /// The transformation controller that provides the current canvas transform.
   ///
@@ -99,7 +99,7 @@ class InteractionLayerPainter<T> extends CustomPainter {
              : transformationController,
        );
 
-  final NodeFlowController<T> controller;
+  final NodeFlowController<T, dynamic> controller;
   final NodeFlowTheme theme;
 
   /// Selection rectangle in graph coordinates.

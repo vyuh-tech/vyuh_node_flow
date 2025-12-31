@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'design_kit/theme.dart';
 import 'embed_wrapper.dart';
 import 'example_browser.dart';
 import 'example_not_found.dart';
@@ -79,21 +80,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Vyuh Node Flow Examples',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-          dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
-        ),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-          brightness: Brightness.dark,
-          dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
-        ),
-        useMaterial3: true,
-      ),
+      theme: DemoTheme.light,
+      darkTheme: DemoTheme.dark,
       themeMode: ThemeMode.system,
       routerConfig: _router,
     );

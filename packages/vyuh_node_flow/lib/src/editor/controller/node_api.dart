@@ -33,7 +33,7 @@ part of 'node_flow_controller.dart';
 /// ## Layout APIs
 /// - [alignNodes] - Alignment operations
 /// - [distributeNodesHorizontally], [distributeNodesVertically] - Distribution
-extension NodeApi<T> on NodeFlowController<T> {
+extension NodeApi<T, C> on NodeFlowController<T, C> {
   // ============================================================================
   // Model APIs - Lookup
   // ============================================================================
@@ -163,8 +163,8 @@ extension NodeApi<T> on NodeFlowController<T> {
   /// 1. Remove the node from the graph
   /// 2. Remove it from the selection if selected
   /// 3. Remove all connections involving this node
-  /// 4. Remove the node from any group annotations
-  /// 5. Delete empty group annotations that no longer contain any nodes
+  /// 4. Remove the node from any [GroupNode] it belongs to
+  /// 5. Delete empty [GroupNode] instances that no longer contain any nodes
   ///
   /// Triggers the `onNodeDeleted` callback after successful removal.
   void removeNode(String nodeId) {
@@ -1121,7 +1121,7 @@ extension NodeApi<T> on NodeFlowController<T> {
   }
 
   /// Rebuilds spatial index for a single connection using accurate path segments.
-  void _rebuildSingleConnectionSpatialIndex(Connection connection) {
+  void _rebuildSingleConnectionSpatialIndex(Connection<C> connection) {
     if (!isConnectionPainterInitialized || _theme == null) return;
 
     final sourceNode = _nodes[connection.sourceNodeId];

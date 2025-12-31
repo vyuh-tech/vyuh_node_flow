@@ -143,7 +143,7 @@ Control distance from port center:
 ```dart
 portTheme: PortTheme.dark.copyWith(
   showLabel: true,
-  labelOffset: 12.0, // Distance in logical pixels (default: 8.0)
+  labelOffset: 12.0, // Distance in logical pixels (default: 4.0)
 )
 ```
 
@@ -204,13 +204,13 @@ class PortLabelsExample extends StatefulWidget {
 }
 
 class _PortLabelsExampleState extends State<PortLabelsExample> {
-  late final NodeFlowController<String> _controller;
+  late final NodeFlowController<String, dynamic> _controller;
   bool _showLabels = true;
 
   @override
   void initState() {
     super.initState();
-    _controller = NodeFlowController<String>();
+    _controller = NodeFlowController<String, dynamic>();
     _setupNodes();
   }
 
@@ -262,15 +262,15 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           id: 'circle-input',
           name: 'Circle',
           position: PortPosition.left,
-          shape: const CirclePortShape(),
+          shape: MarkerShapes.circle,
           showLabel: true,
         ),
         Port(
-          id: 'square-input',
-          name: 'Square',
+          id: 'rectangle-input',
+          name: 'Rectangle',
           position: PortPosition.left,
           offset: const Offset(0, 40),
-          shape: const SquarePortShape(),
+          shape: MarkerShapes.rectangle,
           showLabel: true,
         ),
         Port(
@@ -278,7 +278,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           name: 'Diamond',
           position: PortPosition.left,
           offset: const Offset(0, 80),
-          shape: const DiamondPortShape(),
+          shape: MarkerShapes.diamond,
           showLabel: true,
         ),
       ],
@@ -287,7 +287,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           id: 'triangle-output',
           name: 'Triangle',
           position: PortPosition.right,
-          shape: const TrianglePortShape(),
+          shape: MarkerShapes.triangle,
           showLabel: true,
         ),
       ],
@@ -395,7 +395,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
           ),
         ],
       ),
-      body: NodeFlowEditor<String>(
+      body: NodeFlowEditor<String, dynamic>(
         controller: _controller,
         theme: NodeFlowTheme.dark.copyWith(
           portTheme: PortTheme.dark.copyWith(
@@ -555,7 +555,7 @@ controller.updateNode(
 | ---------------- | ------------ | ------- | ------------------------------------------------- |
 | `showLabel`      | `bool`       | `false` | Global enable/disable for all port labels         |
 | `labelTextStyle` | `TextStyle?` | `null`  | Text style for labels (size, color, weight, etc.) |
-| `labelOffset`    | `double`     | `8.0`   | Distance from port center in logical pixels       |
+| `labelOffset`    | `double`     | `4.0`   | Distance from port center in logical pixels       |
 
 > **Note**: Port label visibility at different zoom levels is controlled by the LOD system via `LODConfig` in `NodeFlowConfig`, not by the theme.
 

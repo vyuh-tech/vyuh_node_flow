@@ -1,15 +1,15 @@
 ---
 title: Configuration
-description: Configure editor behavior with NodeFlowConfig and AutoPanConfig
+description: Configure editor behavior with NodeFlowConfig and extensions
 ---
 
 # Configuration
 
-Node Flow provides two configuration classes that control editor behavior: `NodeFlowConfig` for general settings and `AutoPanConfig` for automatic viewport panning during drag operations.
+Node Flow uses a configuration system with two components: `NodeFlowConfig` for core behavioral settings and an extension system for features like minimap, autopan, and debug visualization.
 
 ## NodeFlowConfig
 
-`NodeFlowConfig` is a reactive configuration class that controls behavioral properties of the editor. All properties are MobX observables, allowing real-time updates.
+`NodeFlowConfig` is a reactive configuration class that controls core behavioral properties of the editor. Most properties are MobX observables, allowing real-time updates.
 
 ### Constructor
 
@@ -21,11 +21,8 @@ NodeFlowConfig({
   double portSnapDistance = 8.0,
   double minZoom = 0.5,
   double maxZoom = 2.0,
-  bool showMinimap = false,
-  bool isMinimapInteractive = true,
   bool showAttribution = true,
-  AutoPanConfig? autoPan = AutoPanConfig.normal,
-  bool debugMode = false,
+  List<NodeFlowExtension>? extensions,
 })
 ```
 
@@ -39,26 +36,35 @@ NodeFlowConfig({
 | `portSnapDistance` | `Observable<double>` | `8.0` | Distance threshold for port snapping during connection |
 | `minZoom` | `Observable<double>` | `0.5` | Minimum zoom level (0.5 = 50%) |
 | `maxZoom` | `Observable<double>` | `2.0` | Maximum zoom level (2.0 = 200%) |
-| `showMinimap` | `Observable<bool>` | `false` | Whether to show the minimap overlay |
-| `isMinimapInteractive` | `Observable<bool>` | `true` | Whether the minimap responds to clicks |
 | `showAttribution` | `bool` | `true` | Whether to show the attribution label |
-| `autoPan` | `Observable<AutoPanConfig?>` | `.normal` | Autopan configuration (null to disable) |
-| `debugMode` | `Observable<bool>` | `false` | Enable debug visualization overlays |
+| `extensions` | `List<NodeFlowExtension>?` | default extensions | Extensions for minimap, autopan, debug, etc. |
 
 ::: details 🖼️ Snap-to-Grid Behavior
 Split-screen animation: left side shows free-form node dragging (smooth movement), right side shows snap-to-grid enabled (nodes jump to grid intersections). Visual grid overlay shows the 20px grid cells.
 :::
 
+### Default Extensions
+
+If no extensions are provided, the following defaults are used:
+
+- `AutoPanExtension` - autopan near viewport edges (normal mode)
+- `DebugExtension` - debug overlays (disabled by default)
+- `LodExtension` - level of detail (disabled by default)
+- `MinimapExtension` - minimap overlay
+- `StatsExtension` - performance statistics display (disabled by default)
+
 ### Basic Usage
 
 ```dart
 // Create controller with configuration
-final controller = NodeFlowController<MyData>(
+final controller = NodeFlowController<MyData, dynamic>(
   config: NodeFlowConfig(
     snapToGrid: true,
     gridSize: 20.0,
-    showMinimap: true,
-    autoPan: AutoPanConfig.normal,
+    extensions: [
+      MinimapExtension(config: MinimapConfig(visible: true)),
+      AutoPanExtension(config: AutoPanConfig.normal),
+    ],
   ),
 );
 
@@ -68,7 +74,7 @@ final gridSize = controller.config.gridSize.value;
 
 ### Reactive Updates
 
-Since all properties are observables, you can update them at runtime:
+Since observable properties can be updated at runtime:
 
 ```dart
 // Toggle snap-to-grid
@@ -81,7 +87,6 @@ controller.config.snapToGrid.value = true;
 controller.config.update(
   snapToGrid: true,
   gridSize: 25.0,
-  showMinimap: true,
 );
 ```
 
@@ -96,36 +101,31 @@ controller.config.toggleNodeSnapping();
 
 // Toggle only annotation snapping
 controller.config.toggleAnnotationSnapping();
-
-// Toggle minimap visibility
-controller.config.toggleMinimap();
-
-// Toggle debug mode
-controller.config.toggleDebugMode();
 ```
 
-```dart [Autopan Control]
-// Disable autopan
-controller.config.disableAutoPan();
+```dart [Extension Access]
+// Access extensions via controller
+controller.minimap.toggle();
+controller.minimap.setPosition(MinimapPosition.topRight);
 
-// Set specific autopan configuration
-controller.config.setAutoPan(AutoPanConfig.fast);
+controller.autoPan.disable();
+controller.autoPan.setConfig(AutoPanConfig.fast);
 
-// Or directly set the observable
-controller.config.autoPan.value = AutoPanConfig.precise;
+controller.debug.toggle();
+controller.debug.setMode(DebugMode.spatialIndex);
 ```
 
 :::
 
-## AutoPanConfig
+## AutoPanExtension
 
-`AutoPanConfig` controls automatic viewport panning when dragging elements (nodes, annotations, connections) near the edges of the viewport.
+The `AutoPanExtension` manages automatic viewport panning when dragging elements near the edges of the viewport. Configure it via `AutoPanConfig`.
 
 ### How Autopan Works
 
 When you drag an element near the edge of the viewport, the canvas automatically pans to reveal more space. This allows seamless dragging across large canvases without manually panning.
 
-### Constructor
+### AutoPanConfig Constructor
 
 ```dart
 const AutoPanConfig({
@@ -223,47 +223,66 @@ Available curves:
 ::: code-group
 
 ```dart [Disabling Autopan]
-// Option 1: Set to null in config
+// Option 1: Pass null config to extension
 NodeFlowConfig(
-  autoPan: null,
+  extensions: [
+    AutoPanExtension(config: null),  // Disabled
+  ],
 )
 
-// Option 2: Disable at runtime
-controller.config.disableAutoPan();
-
-// Option 3: Set null directly
-controller.config.autoPan.value = null;
+// Option 2: Disable at runtime via extension
+controller.autoPan.disable();
 ```
 
 ```dart [Checking Autopan State]
-final config = controller.config.autoPan.value;
-
-if (config != null && config.isEnabled) {
+// Access via controller extension
+if (controller.autoPan.isEnabled) {
   // Autopan is active
 }
+
+final config = controller.autoPan.currentConfig;
 ```
 
 :::
 
-## Debug Mode
+## DebugExtension
 
-Enable debug mode to visualize internal editor state:
+The `DebugExtension` provides debug visualization overlays for understanding internal editor state.
+
+Enable debug mode via extension configuration:
 
 ```dart
 NodeFlowConfig(
-  debugMode: true,
+  extensions: [
+    DebugExtension(mode: DebugMode.all),
+  ],
 )
 ```
+
+### Debug Modes
+
+| Mode | Description |
+|------|-------------|
+| `DebugMode.none` | No debug visualizations (default) |
+| `DebugMode.all` | Show all debug visualizations |
+| `DebugMode.spatialIndex` | Show only spatial index grid |
+| `DebugMode.autoPanZone` | Show only autopan edge zones |
 
 Debug mode shows:
 - **Spatial index grid**: Visualization of the spatial partitioning used for hit testing
 - **Autopan edge zones**: Highlighted areas where autopan activates
-- **Hit areas and bounds**: Visual feedback for interaction areas
 
-Toggle at runtime:
+Toggle at runtime via extension:
 
 ```dart
-controller.config.toggleDebugMode();
+// Toggle between none and all
+controller.debug.toggle();
+
+// Set specific mode
+controller.debug.setMode(DebugMode.spatialIndex);
+
+// Cycle through all modes
+controller.debug.cycle();
 ```
 
 ::: info
@@ -280,12 +299,12 @@ class ConfigurableEditor extends StatefulWidget {
 }
 
 class _ConfigurableEditorState extends State<ConfigurableEditor> {
-  late final NodeFlowController<MyData> controller;
+  late final NodeFlowController<MyData, dynamic> controller;
 
   @override
   void initState() {
     super.initState();
-    controller = NodeFlowController<MyData>(
+    controller = NodeFlowController<MyData, dynamic>(
       config: NodeFlowConfig(
         // Grid snapping
         snapToGrid: true,
@@ -299,23 +318,33 @@ class _ConfigurableEditorState extends State<ConfigurableEditor> {
         // Port connection snapping
         portSnapDistance: 12.0,
 
-        // Minimap
-        showMinimap: true,
-        isMinimapInteractive: true,
-
-        // Autopan with custom settings
-        autoPan: AutoPanConfig(
-          edgePadding: EdgeInsets.symmetric(
-            horizontal: 50.0,
-            vertical: 40.0,
+        // Extensions for additional features
+        extensions: [
+          // Minimap with custom config
+          MinimapExtension(
+            config: MinimapConfig(
+              visible: true,
+              interactive: true,
+              position: MinimapPosition.bottomRight,
+            ),
           ),
-          panAmount: 12.0,
-          useProximityScaling: true,
-          speedCurve: Curves.easeIn,
-        ),
 
-        // Debug visualization (disable in production)
-        debugMode: false,
+          // Autopan with custom settings
+          AutoPanExtension(
+            config: AutoPanConfig(
+              edgePadding: EdgeInsets.symmetric(
+                horizontal: 50.0,
+                vertical: 40.0,
+              ),
+              panAmount: 12.0,
+              useProximityScaling: true,
+              speedCurve: Curves.easeIn,
+            ),
+          ),
+
+          // Debug visualization (disabled by default)
+          DebugExtension(mode: DebugMode.none),
+        ],
       ),
     );
   }
@@ -334,13 +363,13 @@ class _ConfigurableEditorState extends State<ConfigurableEditor> {
                 child: Text('Snap to Grid'),
               ),
               ToggleButton(
-                isSelected: controller.config.showMinimap.value,
-                onPressed: controller.config.toggleMinimap,
+                isSelected: controller.minimap.isVisible,
+                onPressed: controller.minimap.toggle,
                 child: Text('Minimap'),
               ),
               ToggleButton(
-                isSelected: controller.config.debugMode.value,
-                onPressed: controller.config.toggleDebugMode,
+                isSelected: controller.debug.isEnabled,
+                onPressed: controller.debug.toggle,
                 child: Text('Debug'),
               ),
             ],
@@ -349,7 +378,7 @@ class _ConfigurableEditorState extends State<ConfigurableEditor> {
 
         // Editor
         Expanded(
-          child: NodeFlowEditor<MyData>(
+          child: NodeFlowEditor<MyData, dynamic>(
             controller: controller,
             theme: NodeFlowTheme.light,
             nodeBuilder: (context, node) => MyNodeWidget(node: node),

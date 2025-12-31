@@ -267,7 +267,7 @@ class AnnotatedWorkflow extends StatefulWidget {
 }
 
 class _AnnotatedWorkflowState extends State<AnnotatedWorkflow> {
-  late final NodeFlowController<String> controller;
+  late final NodeFlowController<String, dynamic> controller;
 
   @override
   void initState() {
@@ -352,7 +352,7 @@ class _AnnotatedWorkflowState extends State<AnnotatedWorkflow> {
 
   @override
   Widget build(BuildContext context) {
-    return NodeFlowEditor<String>(
+    return NodeFlowEditor<String, dynamic>(
       controller: controller,
       nodeBuilder: (context, node) => Center(
         child: Text(node.data),
@@ -370,16 +370,25 @@ class _AnnotatedWorkflowState extends State<AnnotatedWorkflow> {
 
 ## Serialization
 
-Both node types support JSON serialization:
+Both node types support JSON serialization via `exportGraph()` and `loadGraph()`:
 
 ```dart
 // Export includes all nodes (regular, group, and comment)
-final json = controller.toJson((data) => data);
+final graph = controller.exportGraph();
+final json = graph.toJson((data) => data);
 
 // Import restores all nodes
-controller.fromJson(
+// The default node factory automatically handles group and comment nodes
+final loadedGraph = NodeGraph.fromJson(
   json,
-  dataFromJson: (json) => json as String,
+  (data) => data as String,
+);
+controller.loadGraph(loadedGraph);
+
+// Or with a custom node factory for additional node types
+final loadedGraph = NodeGraph.fromJson(
+  json,
+  (data) => data as String,
   nodeFromJson: (json, dataFromJson) {
     final type = json['type'] as String;
     switch (type) {
@@ -387,11 +396,14 @@ controller.fromJson(
         return GroupNode.fromJson(json, dataFromJson: dataFromJson);
       case 'comment':
         return CommentNode.fromJson(json, dataFromJson: dataFromJson);
+      case 'custom':
+        return CustomNode.fromJson(json, dataFromJson: dataFromJson);
       default:
-        return Node.fromJson(json, dataFromJson: dataFromJson);
+        return Node.fromJson(json, dataFromJson);
     }
   },
 );
+controller.loadGraph(loadedGraph);
 ```
 
 ## Best Practices

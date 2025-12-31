@@ -12,7 +12,7 @@ import '../helpers/test_factories.dart';
 /// These tests verify that the minimap widget builds correctly,
 /// responds to graph changes, and supports interactive navigation.
 void main() {
-  late NodeFlowController<String> controller;
+  late NodeFlowController<String, dynamic> controller;
 
   setUp(() {
     resetTestCounters();
@@ -450,7 +450,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: visibleController,
                 nodeBuilder: (context, node) =>
                     SizedBox(width: 100, height: 60),
@@ -463,7 +463,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
       // The built-in minimap overlay renders NodeFlowMinimap when visible
       expect(find.byType(NodeFlowMinimap<String>), findsOneWidget);
 
@@ -493,7 +493,7 @@ void main() {
             body: SizedBox(
               width: 800,
               height: 600,
-              child: NodeFlowEditor<String>(
+              child: NodeFlowEditor<String, dynamic>(
                 controller: hiddenController,
                 nodeBuilder: (context, node) =>
                     SizedBox(width: 100, height: 60),
@@ -506,7 +506,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.byType(NodeFlowEditor<String>), findsOneWidget);
+      expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
       // Minimap should not render when visibility is false
       expect(find.byType(NodeFlowMinimap<String>), findsNothing);
 

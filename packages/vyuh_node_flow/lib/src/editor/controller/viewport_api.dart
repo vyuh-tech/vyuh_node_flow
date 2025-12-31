@@ -11,7 +11,7 @@ part of 'node_flow_controller.dart';
 ///
 /// All coordinate methods use typed extension types ([GraphPosition], [ScreenPosition],
 /// [GraphRect]) to prevent accidentally mixing coordinate spaces.
-extension ViewportApi<T> on NodeFlowController<T> {
+extension ViewportApi<T, C> on NodeFlowController<T, C> {
   // ============================================================================
   // Viewport State
   // ============================================================================

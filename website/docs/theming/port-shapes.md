@@ -5,26 +5,30 @@ description: Customize the visual appearance of connection ports
 
 # Port Shapes
 
-Port shapes define how connection points appear on your nodes. Vyuh Node Flow provides six built-in shapes, each serving different visual and functional purposes.
+Port shapes define how connection points appear on your nodes. Vyuh Node Flow provides six built-in marker shapes, each serving different visual and functional purposes. These shapes are shared between ports and connection endpoints.
 
 ::: details 🖼️ All Port Shapes
-Six port shapes displayed on a node: Circle (default), Square, Diamond, Triangle (pointing right), Capsule Half (half-circle opening outward), and None (invisible). Each labeled with name and typical use case.
+Six port shapes displayed on a node: Circle, Rectangle, Diamond, Triangle, Capsule Half (default), and None (invisible). Each labeled with name and typical use case.
 :::
 
 ## Available Shapes
 
 ### Circle
 
-The default port shape - a simple circle. Universal and works in all contexts.
+A simple circular shape. Universal and works in all contexts.
 
 ```dart
 Port(
   id: 'port-1',
   name: 'Output',
   position: PortPosition.right,
-  shape: PortShapes.circle, // Default
+  shape: MarkerShapes.circle,
 )
 ```
+
+::: info
+The default port shape is `capsuleHalf`, not circle. To use a circle, explicitly set `shape: MarkerShapes.circle`.
+:::
 
 **Best for**:
 - General purpose
@@ -36,7 +40,7 @@ Port(
 - Easy to recognize and interact with
 - Works with all port positions (left, right, top, bottom)
 
-### Square
+### Rectangle
 
 A rectangular port shape. Good for technical and structured diagrams.
 
@@ -45,9 +49,13 @@ Port(
   id: 'port-1',
   name: 'Control',
   position: PortPosition.right,
-  shape: PortShapes.square,
+  shape: MarkerShapes.rectangle,
 )
 ```
+
+::: tip
+For square markers, use a port with equal width and height (e.g., `size: Size.square(10)`).
+:::
 
 **Best for**:
 - Control flow ports
@@ -58,6 +66,7 @@ Port(
 - Sharp, technical appearance
 - Aligns well with rectangular nodes
 - Clear visual distinction from circular ports
+- Uses the provided `Size` directly (not forced to be square)
 
 ### Diamond
 
@@ -68,7 +77,7 @@ Port(
   id: 'condition-port',
   name: 'Decision',
   position: PortPosition.right,
-  shape: PortShapes.diamond,
+  shape: MarkerShapes.diamond,
 )
 ```
 
@@ -88,41 +97,41 @@ Close-up of diamond port (rotated 45-degree square). Shows how it stands out for
 
 ### Triangle
 
-A triangular shape that points in the direction of the port position. Shows directionality.
+A triangular shape with orientation based on port position. For ports, the triangle tip always points **inward** (into the node), with the flat side at the node edge.
 
 ```dart
 Port(
-  id: 'output-port',
-  name: 'Output',
-  position: PortPosition.right,
-  shape: PortShapes.triangle, // Points right
+  id: 'input-port',
+  name: 'Input',
+  position: PortPosition.left,
+  shape: MarkerShapes.triangle,
 )
 ```
 
 **Best for**:
 - Directional data flow
-- Output ports
+- Input/output indication
 - Signal paths
 
 **Characteristics**:
-- Directional - points toward port position
-- Strong visual indicator of flow direction
+- Tip points inward (into the node)
+- Flat side aligns with node boundary
 - Orientation automatically matches port position:
-  - `PortPosition.right` → points right (▶)
-  - `PortPosition.left` → points left (◀)
-  - `PortPosition.top` → points up (▲)
-  - `PortPosition.bottom` → points down (▼)
+  - `PortPosition.left` → flat side on left, tip points right (into node)
+  - `PortPosition.right` → flat side on right, tip points left (into node)
+  - `PortPosition.top` → flat side on top, tip points down (into node)
+  - `PortPosition.bottom` → flat side on bottom, tip points up (into node)
 
 ### Capsule Half
 
-A half-capsule (semi-circle) shape that opens toward the connection direction.
+A half-capsule (semi-circle) shape. This is the **default** port shape.
 
 ```dart
 Port(
   id: 'connector',
   name: 'Socket',
   position: PortPosition.left,
-  shape: PortShapes.capsuleHalf, // Opens left
+  shape: MarkerShapes.capsuleHalf, // This is the default
 )
 ```
 
@@ -149,7 +158,7 @@ Port(
   id: 'invisible-port',
   name: 'Hidden',
   position: PortPosition.right,
-  shape: PortShapes.none,
+  shape: MarkerShapes.none,
 )
 ```
 
@@ -175,13 +184,13 @@ Node(
       id: 'in-1',
       name: 'Data Input',
       position: PortPosition.left,
-      shape: PortShapes.circle,
+      shape: MarkerShapes.circle,
     ),
     Port(
       id: 'trigger',
       name: 'Trigger',
       position: PortPosition.top,
-      shape: PortShapes.square,
+      shape: MarkerShapes.rectangle,
     ),
   ],
   outputPorts: [
@@ -189,13 +198,13 @@ Node(
       id: 'out-1',
       name: 'Output',
       position: PortPosition.right,
-      shape: PortShapes.triangle,
+      shape: MarkerShapes.triangle,
     ),
     Port(
       id: 'error',
       name: 'Error',
       position: PortPosition.bottom,
-      shape: PortShapes.diamond,
+      shape: MarkerShapes.diamond,
     ),
   ],
 )
@@ -212,26 +221,26 @@ Port createPort({
   required PortPosition position,
   required String portType,
 }) {
-  PortShape shape;
+  MarkerShape shape;
 
   switch (portType) {
     case 'data':
-      shape = PortShapes.circle;
+      shape = MarkerShapes.circle;
       break;
     case 'control':
-      shape = PortShapes.square;
+      shape = MarkerShapes.rectangle;
       break;
     case 'event':
-      shape = PortShapes.triangle;
+      shape = MarkerShapes.triangle;
       break;
     case 'condition':
-      shape = PortShapes.diamond;
+      shape = MarkerShapes.diamond;
       break;
     case 'socket':
-      shape = PortShapes.capsuleHalf;
+      shape = MarkerShapes.capsuleHalf;
       break;
     default:
-      shape = PortShapes.circle;
+      shape = MarkerShapes.circle;
   }
 
   return Port(
@@ -245,14 +254,14 @@ Port createPort({
 
 ## Shape Comparison
 
-| Shape | Use Case | Directionality | Visual Weight |
-|-------|----------|----------------|---------------|
-| **Circle** | General purpose | None | Medium |
-| **Square** | Control flow | None | Medium |
-| **Diamond** | Decisions | None | High |
-| **Triangle** | Directional flow | Yes | High |
-| **Capsule Half** | Connections | Yes | Medium |
-| **None** | Minimalist | N/A | None |
+| Shape | Class | Use Case | Visual Weight |
+|-------|-------|----------|---------------|
+| **Circle** | `MarkerShapes.circle` | General purpose | Medium |
+| **Rectangle** | `MarkerShapes.rectangle` | Control flow | Medium |
+| **Diamond** | `MarkerShapes.diamond` | Decisions | High |
+| **Triangle** | `MarkerShapes.triangle` | Directional flow | High |
+| **Capsule Half** | `MarkerShapes.capsuleHalf` | Connections (default) | Medium |
+| **None** | `MarkerShapes.none` | Minimalist | None |
 
 ## Styling Port Shapes
 
@@ -260,11 +269,11 @@ Customize appearance through theme:
 
 ```dart
 NodeFlowEditor(
-  theme: NodeFlowTheme(
-    portTheme: PortTheme(
-      size: 12,                      // Port diameter
+  theme: NodeFlowTheme.dark.copyWith(
+    portTheme: PortTheme.dark.copyWith(
+      size: Size(12, 12),            // Port size (width, height)
       color: Colors.blue,            // Fill color
-      hoverColor: Colors.blue[700]!, // Hover state
+      highlightColor: Colors.blue.shade700, // Highlight state during connection drag
       borderColor: Colors.white,     // Border color
       borderWidth: 2,                // Border thickness
     ),
@@ -274,43 +283,43 @@ NodeFlowEditor(
 
 ## Shape Orientation
 
-Directional shapes (triangle, capsuleHalf) automatically orient based on port position:
+Directional shapes (triangle, capsuleHalf) automatically orient based on port position. For ports, asymmetric shapes have their tips pointing **inward** (into the node).
 
 ::: code-group
 
 ```dart [Triangle]
-// Points in direction of port
+// Tips point inward (into the node)
 Port(
   position: PortPosition.right,
-  shape: PortShapes.triangle, // ▶
+  shape: MarkerShapes.triangle, // flat on right, tip points left ◀
 )
 
 Port(
   position: PortPosition.left,
-  shape: PortShapes.triangle, // ◀
+  shape: MarkerShapes.triangle, // flat on left, tip points right ▶
 )
 
 Port(
   position: PortPosition.top,
-  shape: PortShapes.triangle, // ▲
+  shape: MarkerShapes.triangle, // flat on top, tip points down ▼
 )
 
 Port(
   position: PortPosition.bottom,
-  shape: PortShapes.triangle, // ▼
+  shape: MarkerShapes.triangle, // flat on bottom, tip points up ▲
 )
 ```
 
 ```dart [Capsule Half]
-// Opens toward connection direction
+// Orientation based on port position
 Port(
   position: PortPosition.left,
-  shape: PortShapes.capsuleHalf, // Opens left ⊂
+  shape: MarkerShapes.capsuleHalf,
 )
 
 Port(
   position: PortPosition.right,
-  shape: PortShapes.capsuleHalf, // Opens right ⊃
+  shape: MarkerShapes.capsuleHalf,
 )
 ```
 
@@ -322,38 +331,44 @@ Consider these common conventions when choosing shapes:
 
 ### Data Flow Diagrams
 - **Circle**: Data ports
-- **Triangle**: Output direction indicators
+- **Triangle**: Directional indicators
 - **None**: Clean, minimal design
 
 ### Control Flow / BPMN
-- **Square**: Event/message ports
+- **Rectangle**: Event/message ports
 - **Diamond**: Gateway/decision points
 - **Circle**: Standard sequence flow
 
 ### Circuit Diagrams
-- **Capsule Half**: Pin connections
+- **Capsule Half**: Pin connections (default)
 - **Circle**: General connection points
-- **Square**: Digital signal ports
+- **Rectangle**: Digital signal ports
 
 ## Creating Custom Port Shapes
 
-Extend `PortShape` to create custom shapes:
+Extend `MarkerShape` to create custom shapes:
 
 ```dart
-class StarPortShape extends PortShape {
-  const StarPortShape();
+import 'dart:math';
+
+class StarMarkerShape extends MarkerShape {
+  const StarMarkerShape();
+
+  @override
+  String get typeName => 'star';
 
   @override
   void paint(
     Canvas canvas,
     Offset center,
-    double size,
+    Size size,
     Paint fillPaint,
     Paint? borderPaint, {
-    ShapeOrientation? orientation,
+    ShapeDirection? orientation,
+    bool isPointingOutward = false,
   }) {
     final path = Path();
-    final radius = size / 2;
+    final radius = size.shortestSide / 2;
 
     // Draw 5-point star
     for (int i = 0; i < 5; i++) {
@@ -370,13 +385,10 @@ class StarPortShape extends PortShape {
     path.close();
 
     canvas.drawPath(path, fillPaint);
-    if (borderPaint != null) {
+    if (borderPaint != null && borderPaint.strokeWidth > 0) {
       canvas.drawPath(path, borderPaint);
     }
   }
-
-  @override
-  String get typeName => 'star';
 }
 
 // Usage
@@ -384,13 +396,12 @@ Port(
   id: 'special-port',
   name: 'Special',
   position: PortPosition.right,
-  shape: const StarPortShape(),
+  shape: const StarMarkerShape(),
 )
 ```
 
 ::: info
-**Learn More**: See the [API Reference](/docs/api/custom-port-shapes) for detailed guidance on creating custom port shapes.
-
+The `typeName` getter is required for JSON serialization support.
 :::
 
 ## Best Practices

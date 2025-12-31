@@ -272,9 +272,10 @@ Node<String> roundTripNodeJson(Node<String> node) {
 }
 
 /// Round-trip a connection through JSON serialization.
-Connection roundTripConnectionJson(Connection connection) {
-  final json = connection.toJson();
-  return Connection.fromJson(json);
+/// Uses dynamic data type to support any connection data.
+Connection<dynamic> roundTripConnectionJson(Connection connection) {
+  final json = connection.toJson((data) => data);
+  return Connection<dynamic>.fromJson(json, (json) => json);
 }
 
 /// Round-trip a viewport through JSON serialization.

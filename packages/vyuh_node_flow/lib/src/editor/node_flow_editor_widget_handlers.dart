@@ -9,8 +9,8 @@ part of 'node_flow_editor.dart';
 /// NOTE: Drag update/end is handled via Listener in node_flow_editor.dart
 /// because widget-level gestures don't work outside Stack bounds.
 /// The drag start handlers are called from _handlePointerDown when hitting
-/// a node or annotation.
-extension _WidgetGestureHandlers<T> on _NodeFlowEditorState<T> {
+/// a node.
+extension _WidgetGestureHandlers<T, C> on _NodeFlowEditorState<T, C> {
   // ============================================================
   // Node Gesture Handlers
   // ============================================================
@@ -97,8 +97,7 @@ extension _WidgetGestureHandlers<T> on _NodeFlowEditorState<T> {
     );
   }
 
-  // Note: Annotation handlers have been removed.
-  // GroupNode and CommentNode are now regular nodes and use the node handlers above.
+  // GroupNode and CommentNode are specialized nodes that use the same node handlers.
   // - Node tap/double-tap/context-menu work for all node types
   // - Node drag is handled via NodeWidget's GestureDetector
 }

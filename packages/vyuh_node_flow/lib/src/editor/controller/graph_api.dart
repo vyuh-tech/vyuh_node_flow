@@ -9,7 +9,7 @@ part of 'node_flow_controller.dart';
 /// - Batch selection operations
 /// - Theme and event configuration
 /// - Keyboard shortcuts
-extension GraphApi<T> on NodeFlowController<T> {
+extension GraphApi<T, C> on NodeFlowController<T, C> {
   // ============================================================================
   // Graph Loading & Export
   // ============================================================================
@@ -41,7 +41,7 @@ extension GraphApi<T> on NodeFlowController<T> {
   /// );
   /// controller.loadGraph(graph);
   /// ```
-  void loadGraph(NodeGraph<T> graph) {
+  void loadGraph(NodeGraph<T, C> graph) {
     runInAction(() {
       // Clear existing state
       clearGraph();
@@ -82,10 +82,10 @@ extension GraphApi<T> on NodeFlowController<T> {
   /// // Save to JSON
   /// final json = graph.toJson();
   /// ```
-  NodeGraph<T> exportGraph() {
-    return NodeGraph<T>(
+  NodeGraph<T, C> exportGraph() {
+    return NodeGraph<T, C>(
       nodes: _nodes.values.toList(),
-      connections: _connections,
+      connections: _connections.toList(),
       viewport: _viewport.value,
     );
   }

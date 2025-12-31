@@ -5,10 +5,10 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 void main() {
   group('Performance Culling Logic', () {
-    late NodeFlowController<void> controller;
+    late NodeFlowController<void, dynamic> controller;
 
     setUp(() {
-      controller = NodeFlowController<void>();
+      controller = NodeFlowController<void, dynamic>();
 
       // Initialize controller infrastructure
       controller.initController(

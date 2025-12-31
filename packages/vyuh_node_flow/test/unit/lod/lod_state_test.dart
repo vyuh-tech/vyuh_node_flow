@@ -205,55 +205,55 @@ void main() {
 
   group('LodExtension - Normalized Zoom Calculation', () {
     test('calculates normalized zoom correctly', () {
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(minZoom: 0.5, maxZoom: 2.0),
         initialViewport: const GraphViewport(zoom: 1.0),
       );
 
       // At zoom 1.0, with range 0.5-2.0
       // normalized = (1.0 - 0.5) / (2.0 - 0.5) = 0.5 / 1.5 = 0.333...
-      expect(controller.lod.normalizedZoom, closeTo(0.333, 0.01));
+      expect(controller.lod!.normalizedZoom, closeTo(0.333, 0.01));
 
       controller.dispose();
     });
 
     test('normalized zoom is 0 at minZoom', () {
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(minZoom: 0.5, maxZoom: 2.0),
         initialViewport: const GraphViewport(zoom: 0.5),
       );
 
-      expect(controller.lod.normalizedZoom, equals(0.0));
+      expect(controller.lod!.normalizedZoom, equals(0.0));
 
       controller.dispose();
     });
 
     test('normalized zoom is 1 at maxZoom', () {
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(minZoom: 0.5, maxZoom: 2.0),
         initialViewport: const GraphViewport(zoom: 2.0),
       );
 
-      expect(controller.lod.normalizedZoom, equals(1.0));
+      expect(controller.lod!.normalizedZoom, equals(1.0));
 
       controller.dispose();
     });
 
     test('normalized zoom clamps to valid range', () {
       // Below minZoom
-      final controllerLow = NodeFlowController<String>(
+      final controllerLow = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(minZoom: 0.5, maxZoom: 2.0),
         initialViewport: const GraphViewport(zoom: 0.3),
       );
-      expect(controllerLow.lod.normalizedZoom, equals(0.0));
+      expect(controllerLow.lod!.normalizedZoom, equals(0.0));
       controllerLow.dispose();
 
       // Above maxZoom
-      final controllerHigh = NodeFlowController<String>(
+      final controllerHigh = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(minZoom: 0.5, maxZoom: 2.0),
         initialViewport: const GraphViewport(zoom: 3.0),
       );
-      expect(controllerHigh.lod.normalizedZoom, equals(1.0));
+      expect(controllerHigh.lod!.normalizedZoom, equals(1.0));
       controllerHigh.dispose();
     });
   });
@@ -278,33 +278,33 @@ void main() {
       );
 
       // Below minThreshold (zoom 0.1 = normalized 0.1)
-      final controllerMin = NodeFlowController<String>(
+      final controllerMin = NodeFlowController<String, dynamic>(
         config: configWithLod(lodConfig),
         initialViewport: const GraphViewport(zoom: 0.1),
       );
       expect(
-        controllerMin.lod.currentVisibility,
+        controllerMin.lod!.currentVisibility,
         same(DetailVisibility.minimal),
       );
       controllerMin.dispose();
 
       // Between thresholds (zoom 0.4 = normalized 0.4)
-      final controllerMid = NodeFlowController<String>(
+      final controllerMid = NodeFlowController<String, dynamic>(
         config: configWithLod(lodConfig),
         initialViewport: const GraphViewport(zoom: 0.4),
       );
       expect(
-        controllerMid.lod.currentVisibility,
+        controllerMid.lod!.currentVisibility,
         same(DetailVisibility.standard),
       );
       controllerMid.dispose();
 
       // Above midThreshold (zoom 0.8 = normalized 0.8)
-      final controllerMax = NodeFlowController<String>(
+      final controllerMax = NodeFlowController<String, dynamic>(
         config: configWithLod(lodConfig),
         initialViewport: const GraphViewport(zoom: 0.8),
       );
-      expect(controllerMax.lod.currentVisibility, same(DetailVisibility.full));
+      expect(controllerMax.lod!.currentVisibility, same(DetailVisibility.full));
       controllerMax.dispose();
     });
   });
@@ -315,7 +315,7 @@ void main() {
 
   group('LodExtension - Convenience Accessors', () {
     test('convenience accessors match currentVisibility', () {
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(
           minZoom: 0.0,
           maxZoom: 1.0,
@@ -331,7 +331,7 @@ void main() {
         initialViewport: const GraphViewport(zoom: 0.8), // Full visibility
       );
 
-      final lod = controller.lod;
+      final lod = controller.lod!;
       final visibility = lod.currentVisibility;
 
       expect(lod.showNodeContent, equals(visibility.showNodeContent));
@@ -355,7 +355,7 @@ void main() {
 
   group('LodExtension - LODConfig Updates', () {
     test('updateConfig changes visibility behavior', () {
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(
           minZoom: 0.0,
           maxZoom: 1.0,
@@ -372,13 +372,16 @@ void main() {
       );
 
       // Initially should be standard visibility
-      expect(controller.lod.currentVisibility, same(DetailVisibility.standard));
+      expect(
+        controller.lod!.currentVisibility,
+        same(DetailVisibility.standard),
+      );
 
       // Switch to disabled (always full)
-      controller.lod.updateConfig(LODConfig.disabled);
+      controller.lod!.updateConfig(LODConfig.disabled);
 
       // Now should be full visibility even at same zoom
-      expect(controller.lod.currentVisibility, same(DetailVisibility.full));
+      expect(controller.lod!.currentVisibility, same(DetailVisibility.full));
 
       controller.dispose();
     });
@@ -390,7 +393,7 @@ void main() {
 
   group('LodExtension - Reactivity', () {
     test('visibility updates when viewport zoom changes', () {
-      final controller = NodeFlowController<String>(
+      final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(
           minZoom: 0.0,
           maxZoom: 1.0,
@@ -407,19 +410,22 @@ void main() {
       );
 
       // Start at minimal
-      expect(controller.lod.currentVisibility, same(DetailVisibility.minimal));
+      expect(controller.lod!.currentVisibility, same(DetailVisibility.minimal));
 
       // Zoom to mid-range
       controller.setViewport(const GraphViewport(zoom: 0.4));
-      expect(controller.lod.currentVisibility, same(DetailVisibility.standard));
+      expect(
+        controller.lod!.currentVisibility,
+        same(DetailVisibility.standard),
+      );
 
       // Zoom to full
       controller.setViewport(const GraphViewport(zoom: 0.8));
-      expect(controller.lod.currentVisibility, same(DetailVisibility.full));
+      expect(controller.lod!.currentVisibility, same(DetailVisibility.full));
 
       // Zoom back to minimal
       controller.setViewport(const GraphViewport(zoom: 0.1));
-      expect(controller.lod.currentVisibility, same(DetailVisibility.minimal));
+      expect(controller.lod!.currentVisibility, same(DetailVisibility.minimal));
 
       controller.dispose();
     });
@@ -431,7 +437,7 @@ void main() {
 
   group('LodExtension - Extension Lifecycle', () {
     test('lod getter returns the same extension instance', () {
-      final controller = NodeFlowController<String>();
+      final controller = NodeFlowController<String, dynamic>();
 
       final lod1 = controller.lod;
       final lod2 = controller.lod;
@@ -442,7 +448,7 @@ void main() {
     });
 
     test('lod extension is registered with controller', () {
-      final controller = NodeFlowController<String>();
+      final controller = NodeFlowController<String, dynamic>();
 
       // Access lod to trigger lazy registration
       controller.lod;

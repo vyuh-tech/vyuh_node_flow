@@ -470,7 +470,12 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
   }
 
   @override
-  Widget buildWidget(BuildContext context) {
+  Widget? buildWidget(BuildContext context) {
+    // Respect instance-level widgetBuilder first
+    if (widgetBuilder != null) {
+      return widgetBuilder!(context, this);
+    }
+    // GroupNode is self-rendering with its own styled content
     return _GroupContent<T>(node: this);
   }
 

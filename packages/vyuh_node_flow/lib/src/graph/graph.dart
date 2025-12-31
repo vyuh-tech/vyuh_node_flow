@@ -31,9 +31,14 @@ Node<T> defaultNodeFromJson<T>(
   };
 }
 
-/// Immutable data class for graph serialization/deserialization
-/// All state management is handled by NodeFlowController
-class NodeGraph<T> {
+/// Immutable data class for graph serialization/deserialization.
+///
+/// Type parameters:
+/// - [T]: The type of node data
+/// - [C]: The type of connection data
+///
+/// All state management is handled by NodeFlowController.
+class NodeGraph<T, C> {
   const NodeGraph({
     this.nodes = const [],
     this.connections = const [],
@@ -42,7 +47,7 @@ class NodeGraph<T> {
   });
 
   final List<Node<T>> nodes;
-  final List<Connection> connections;
+  final List<Connection<C>> connections;
   final GraphViewport viewport;
   final Map<String, dynamic> metadata;
 
@@ -62,22 +67,22 @@ class NodeGraph<T> {
   }
 
   /// Gets all connections for a specific node
-  List<Connection> getNodeConnections(String nodeId) {
+  List<Connection<C>> getNodeConnections(String nodeId) {
     return connections.where((conn) => conn.involvesNode(nodeId)).toList();
   }
 
   /// Gets all input connections for a node
-  List<Connection> getInputConnections(String nodeId) {
+  List<Connection<C>> getInputConnections(String nodeId) {
     return connections.where((conn) => conn.targetNodeId == nodeId).toList();
   }
 
   /// Gets all output connections for a node
-  List<Connection> getOutputConnections(String nodeId) {
+  List<Connection<C>> getOutputConnections(String nodeId) {
     return connections.where((conn) => conn.sourceNodeId == nodeId).toList();
   }
 
   /// Gets connections for a specific port
-  List<Connection> getPortConnections(String nodeId, String portId) {
+  List<Connection<C>> getPortConnections(String nodeId, String portId) {
     return connections
         .where((conn) => conn.involvesPort(nodeId, portId))
         .toList();
@@ -170,9 +175,30 @@ class NodeGraph<T> {
         .toList();
   }
 
+  /// Creates a [NodeGraph] from a JSON map.
+  ///
+  /// ## Parameters
+  /// - [json]: The JSON map to deserialize
+  /// - [fromJsonT]: Factory function to deserialize node data of type [T]
+  /// - [fromJsonC]: Factory function to deserialize connection data of type [C].
+  /// - [nodeFromJson]: Optional custom node factory for routing to Node subclasses
+  ///
+  /// ## Example
+  /// ```dart
+  /// // With typed node and connection data
+  /// final graph = NodeGraph<MyNodeData, EdgeMetadata>.fromJson(
+  ///   json,
+  ///   (data) => MyNodeData.fromJson(data as Map<String, dynamic>),
+  ///   (data) => EdgeMetadata.fromJson(data as Map<String, dynamic>),
+  /// );
+  ///
+  /// // Access typed connection data
+  /// final weight = graph.connections.first.data?.weight;
+  /// ```
   factory NodeGraph.fromJson(
     Map<String, dynamic> json,
-    T Function(Object? json) fromJsonT, {
+    T Function(Object? json) fromJsonT,
+    C Function(Object? json) fromJsonC, {
     Node<T> Function(
       Map<String, dynamic> json,
       T Function(Object? json) fromJsonT,
@@ -188,14 +214,16 @@ class NodeGraph<T> {
 
     final connectionsJson = json['connections'] as List<dynamic>? ?? [];
     final connections = connectionsJson
-        .map((e) => Connection.fromJson(e as Map<String, dynamic>))
+        .map(
+          (e) => Connection<C>.fromJson(e as Map<String, dynamic>, fromJsonC),
+        )
         .toList();
 
     final viewport = json['viewport'] != null
         ? GraphViewport.fromJson(json['viewport'] as Map<String, dynamic>)
         : GraphViewport();
 
-    return NodeGraph<T>(
+    return NodeGraph<T, C>(
       nodes: nodes,
       connections: connections,
       viewport: viewport,
@@ -203,10 +231,11 @@ class NodeGraph<T> {
     );
   }
 
-  /// Convenience method to load graph from JSON string
-  static NodeGraph<T> fromJsonString<T>(
+  /// Convenience method to load graph from JSON string.
+  static NodeGraph<T, C> fromJsonString<T, C>(
     String jsonString,
-    T Function(Object? json) fromJsonT, {
+    T Function(Object? json) fromJsonT,
+    C Function(Object? json) fromJsonC, {
     Node<T> Function(
       Map<String, dynamic> json,
       T Function(Object? json) fromJsonT,
@@ -214,13 +243,19 @@ class NodeGraph<T> {
     nodeFromJson,
   }) {
     final Map<String, dynamic> json = jsonDecode(jsonString);
-    return NodeGraph<T>.fromJson(json, fromJsonT, nodeFromJson: nodeFromJson);
+    return NodeGraph<T, C>.fromJson(
+      json,
+      fromJsonT,
+      fromJsonC,
+      nodeFromJson: nodeFromJson,
+    );
   }
 
-  /// Convenience method to load graph from asset file
-  static Future<NodeGraph<T>> fromAsset<T>(
+  /// Convenience method to load graph from asset file.
+  static Future<NodeGraph<T, C>> fromAsset<T, C>(
     String assetPath,
-    T Function(Object? json) fromJsonT, {
+    T Function(Object? json) fromJsonT,
+    C Function(Object? json) fromJsonC, {
     Node<T> Function(
       Map<String, dynamic> json,
       T Function(Object? json) fromJsonT,
@@ -228,11 +263,18 @@ class NodeGraph<T> {
     nodeFromJson,
   }) async {
     final String jsonString = await rootBundle.loadString(assetPath);
-    return fromJsonString<T>(jsonString, fromJsonT, nodeFromJson: nodeFromJson);
+    return fromJsonString<T, C>(
+      jsonString,
+      fromJsonT,
+      fromJsonC,
+      nodeFromJson: nodeFromJson,
+    );
   }
 
-  /// Simple factory for Map data type (most common case)
-  static NodeGraph<Map<String, dynamic>> fromJsonMap(
+  /// Simple factory for Map data type (most common case).
+  ///
+  /// Both node and connection data are preserved as raw JSON (dynamic).
+  static NodeGraph<Map<String, dynamic>, dynamic> fromJsonMap(
     Map<String, dynamic> json, {
     Node<Map<String, dynamic>> Function(
       Map<String, dynamic> json,
@@ -240,15 +282,16 @@ class NodeGraph<T> {
     )?
     nodeFromJson,
   }) {
-    return NodeGraph<Map<String, dynamic>>.fromJson(
+    return NodeGraph<Map<String, dynamic>, dynamic>.fromJson(
       json,
       (jsonData) => Map<String, dynamic>.from(jsonData as Map? ?? {}),
+      (jsonData) => jsonData,
       nodeFromJson: nodeFromJson,
     );
   }
 
-  /// Convenience method to load graph with Map data from JSON string
-  static NodeGraph<Map<String, dynamic>> fromJsonStringMap(
+  /// Convenience method to load graph with Map data from JSON string.
+  static NodeGraph<Map<String, dynamic>, dynamic> fromJsonStringMap(
     String jsonString, {
     Node<Map<String, dynamic>> Function(
       Map<String, dynamic> json,
@@ -260,8 +303,8 @@ class NodeGraph<T> {
     return fromJsonMap(json, nodeFromJson: nodeFromJson);
   }
 
-  /// Convenience method to load graph with Map data from asset file
-  static Future<NodeGraph<Map<String, dynamic>>> fromAssetMap(
+  /// Convenience method to load graph with Map data from asset file.
+  static Future<NodeGraph<Map<String, dynamic>, dynamic>> fromAssetMap(
     String assetPath, {
     Node<Map<String, dynamic>> Function(
       Map<String, dynamic> json,
@@ -273,7 +316,8 @@ class NodeGraph<T> {
     return fromJsonStringMap(jsonString, nodeFromJson: nodeFromJson);
   }
 
-  static Future<NodeGraph<Map<String, dynamic>>> fromUrl(
+  /// Load graph from URL with Map data type.
+  static Future<NodeGraph<Map<String, dynamic>, dynamic>> fromUrl(
     String url, {
     Node<Map<String, dynamic>> Function(
       Map<String, dynamic> json,
@@ -286,16 +330,37 @@ class NodeGraph<T> {
     return fromJsonMap(json, nodeFromJson: nodeFromJson);
   }
 
-  Map<String, dynamic> toJson(Object? Function(T value) toJsonT) => {
-    'nodes': nodes.map((node) => node.toJson(toJsonT)).toList(),
-    'connections': connections.map((e) => e.toJson()).toList(),
-    'viewport': viewport.toJson(),
-    'metadata': metadata,
-  };
+  /// Converts this [NodeGraph] to a JSON map.
+  ///
+  /// ## Parameters
+  /// - [toJsonT]: Function to serialize node data of type [T]
+  /// - [toJsonC]: Function to serialize connection data of type [C].
+  ///
+  /// ## Example
+  /// ```dart
+  /// final json = graph.toJson(
+  ///   (nodeData) => nodeData.toJson(),
+  ///   (connData) => connData?.toJson(),
+  /// );
+  /// ```
+  Map<String, dynamic> toJson(
+    Object? Function(T value) toJsonT,
+    Object? Function(C value) toJsonC,
+  ) {
+    return {
+      'nodes': nodes.map((node) => node.toJson(toJsonT)).toList(),
+      'connections': connections.map((e) => e.toJson(toJsonC)).toList(),
+      'viewport': viewport.toJson(),
+      'metadata': metadata,
+    };
+  }
 
-  /// Convenience method to convert graph to JSON string
+  /// Convenience method to convert graph to JSON string.
+  ///
+  /// Uses identity functions for both node and connection data serialization.
+  /// For custom serialization, use [toJson] directly.
   String toJsonString({bool indent = false}) {
-    final map = toJson((value) => value);
+    final map = toJson((value) => value, (value) => value);
     if (indent) {
       const encoder = JsonEncoder.withIndent('  ');
       return encoder.convert(map);

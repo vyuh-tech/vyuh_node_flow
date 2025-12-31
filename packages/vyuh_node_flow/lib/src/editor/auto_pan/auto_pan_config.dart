@@ -3,7 +3,7 @@ import 'package:flutter/painting.dart';
 
 /// Configuration for autopan behavior during drag operations.
 ///
-/// When a dragged element (node, annotation, or connection) approaches the
+/// When a dragged element (node or connection) approaches the
 /// edge of the viewport, autopan automatically pans the viewport to reveal
 /// more canvas, allowing continued dragging beyond the current visible area.
 ///

@@ -10,7 +10,7 @@ The `NodeFlowController` manages all graph state including nodes, connections, s
 ## Constructor
 
 ```dart
-NodeFlowController<T>({
+NodeFlowController<T, dynamic>({
   GraphViewport? initialViewport,
   NodeFlowConfig? config,
   List<Node<T>>? nodes,
@@ -58,8 +58,33 @@ void removeNode(String nodeId)
 
 ::: info
 Removing a node automatically removes all connections to and from that node, and removes the node from any group annotations.
-
 :::
+
+### requestDeleteNode
+
+Request deletion with lock check and confirmation callback.
+
+```dart
+Future<bool> requestDeleteNode(String nodeId)
+```
+
+Returns `true` if deleted, `false` if prevented by lock or callback.
+
+### duplicateNode
+
+Create a duplicate of a node.
+
+```dart
+void duplicateNode(String nodeId)
+```
+
+### deleteNodes
+
+Delete multiple nodes at once.
+
+```dart
+void deleteNodes(List<String> nodeIds)
+```
 
 ### moveNode
 
@@ -149,6 +174,29 @@ Remove a connection by ID.
 
 ```dart
 void removeConnection(String connectionId)
+```
+
+### requestDeleteConnection
+
+Request deletion with lock check and confirmation callback.
+
+```dart
+Future<bool> requestDeleteConnection(String connectionId)
+```
+
+Returns `true` if deleted, `false` if prevented by lock or callback.
+
+### createConnection
+
+Create a connection with auto-generated ID.
+
+```dart
+void createConnection(
+  String sourceNodeId,
+  String sourcePortId,
+  String targetNodeId,
+  String targetPortId,
+)
 ```
 
 ### getConnectionsForNode
@@ -591,7 +639,7 @@ Returns `null` if the mouse is outside the canvas.
 Load a complete graph (nodes, connections, annotations, viewport).
 
 ```dart
-void loadGraph(NodeGraph<T> graph)
+void loadGraph(NodeGraph<T, dynamic> graph)
 ```
 
 ### exportGraph
@@ -599,7 +647,7 @@ void loadGraph(NodeGraph<T> graph)
 Export current graph state.
 
 ```dart
-NodeGraph<T> exportGraph()
+NodeGraph<T, dynamic> exportGraph()
 ```
 
 **Example:**
@@ -721,12 +769,12 @@ class WorkflowEditor extends StatefulWidget {
 }
 
 class _WorkflowEditorState extends State<WorkflowEditor> {
-  late final NodeFlowController<WorkflowData> controller;
+  late final NodeFlowController<WorkflowData, dynamic> controller;
 
   @override
   void initState() {
     super.initState();
-    controller = NodeFlowController<WorkflowData>();
+    controller = NodeFlowController<WorkflowData, dynamic>();
     _setupGraph();
   }
 
@@ -798,7 +846,7 @@ class _WorkflowEditorState extends State<WorkflowEditor> {
           IconButton(icon: Icon(Icons.save), onPressed: _saveGraph),
         ],
       ),
-      body: NodeFlowEditor<WorkflowData>(
+      body: NodeFlowEditor<WorkflowData, dynamic>(
         controller: controller,
         theme: NodeFlowTheme.light,
         nodeBuilder: (context, node) => Center(child: Text(node.data.label)),

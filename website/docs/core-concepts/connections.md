@@ -5,7 +5,8 @@ description: Understanding connections between nodes
 
 # Connections
 
-Connections (also called edges or links) connect ports on different nodes, representing relationships or data flow in your graph.
+Connections (also called edges or links) connect ports on different nodes,
+representing relationships or data flow in your graph.
 
 ## Connection Structure
 
@@ -16,11 +17,79 @@ class Connection {
   final String sourcePortId;    // Source port ID
   final String targetNodeId;    // Target node ID
   final String targetPortId;    // Target port ID
-  final String? label;          // Optional middle label
-  final String? startLabel;     // Optional start label
-  final String? endLabel;       // Optional end label
+
+  // Labels (ConnectionLabel objects, not strings)
+  ConnectionLabel? startLabel;  // Label at start (anchor 0.0)
+  ConnectionLabel? label;       // Label at center (anchor 0.5)
+  ConnectionLabel? endLabel;    // Label at end (anchor 1.0)
+
+  // Styling
+  final ConnectionStyle? style;       // Custom style override
+  final ConnectionEndPoint? startPoint; // Custom start marker
+  final ConnectionEndPoint? endPoint;   // Custom end marker
+  final double? startGap;             // Gap from source port
+  final double? endGap;               // Gap from target port
+
+  // State
+  bool animated;                // Whether to show animation
+  bool selected;                // Whether currently selected
+  final bool locked;            // Whether deletion is prevented
 }
 ```
+
+## Connection Anatomy
+
+::: details Connection Anatomy Diagram
+
+<!-- TODO: Add visual diagram showing connection anatomy -->
+
+A connection consists of the following visual elements:
+
+**Path Elements:**
+
+- **Connection Path** - The line itself rendered using `ConnectionStyle`
+  (bezier, smoothstep, step, straight)
+- **Path Stroke** - Line styling using `ConnectionTheme.color` and `strokeWidth`
+- **Path Curvature** - Bezier curve control via
+  `ConnectionTheme.bezierCurvature`
+- **Corner Radius** - Rounded corners for step styles via
+  `ConnectionTheme.cornerRadius`
+
+**Endpoint Elements:**
+
+- **Start Endpoint** - Marker at source port using `ConnectionEndPoint` (none,
+  triangle, circle, diamond, rectangle, capsuleHalf)
+- **End Endpoint** - Marker at target port using `ConnectionEndPoint`
+- **Endpoint Colors** - Fill and border using `ConnectionTheme.endpointColor`
+  and `endpointBorderColor`
+- **Start/End Gaps** - Space between port and endpoint via `startGap` and
+  `endGap`
+
+**Label Elements:**
+
+- **Start Label** - Text at anchor 0.0 (source port)
+- **Center Label** - Text at anchor 0.5 (midpoint)
+- **End Label** - Text at anchor 1.0 (target port)
+- **Label Styling** - Background, border, text via `LabelTheme`
+
+**Animation Elements:**
+
+- **Animation Effect** - Visual effect (FlowingDashEffect, ParticleEffect,
+  GradientFlowEffect, PulseEffect)
+- **Dash Pattern** - Static dashes via `ConnectionTheme.dashPattern`
+
+**State Colors:**
+
+- **Default State** - Normal color using `ConnectionTheme.color`
+- **Selected State** - When selected using `ConnectionTheme.selectedColor` and
+  `selectedStrokeWidth`
+- **Highlight State** - On hover using `ConnectionTheme.highlightColor`
+
+**Control Points (Editable Paths):**
+
+- **Waypoints** - User-defined control points stored in
+  `Connection.controlPoints`
+- **Control Point Handles** - Interactive handles for path editing :::
 
 ## Creating Connections
 
@@ -45,9 +114,23 @@ final connection = Connection(
   sourcePortId: 'node-1-out',
   targetNodeId: 'node-2',
   targetPortId: 'node-2-in',
-  label: 'Data Flow',        // Center label
-  startLabel: 'Send',        // Label at source
-  endLabel: 'Receive',       // Label at target
+  startLabel: ConnectionLabel.start(text: 'Send'),
+  label: ConnectionLabel.center(text: 'Data Flow'),
+  endLabel: ConnectionLabel.end(text: 'Receive'),
+);
+
+controller.addConnection(connection);
+```
+
+```dart [Animated Connection]
+final connection = Connection(
+  id: 'conn-3',
+  sourceNodeId: 'node-1',
+  sourcePortId: 'node-1-out',
+  targetNodeId: 'node-2',
+  targetPortId: 'node-2-in',
+  animated: true,
+  style: ConnectionStyles.smoothstep,
 );
 
 controller.addConnection(connection);
@@ -57,27 +140,30 @@ controller.addConnection(connection);
 
 ## Connection Styles
 
-::: details 🖼️ Connection Styles Comparison
-Four-panel comparison showing the same two connected nodes with different connection styles: (1) Smoothstep - smooth orthogonal paths with rounded corners, (2) Bezier - flowing curved S-shape, (3) Step - sharp 90-degree right angles, (4) Straight - direct diagonal line. Each labeled with style name.
-:::
+::: details Connection Styles Comparison Four-panel comparison showing the same
+two connected nodes with different connection styles: (1) Smoothstep - smooth
+orthogonal paths with rounded corners, (2) Bezier - flowing curved S-shape, (3)
+Step - sharp 90-degree right angles, (4) Straight - direct diagonal line. Each
+labeled with style name. :::
 
-Vyuh Node Flow supports multiple connection rendering styles:
+Vyuh Node Flow supports multiple connection rendering styles via
+`ConnectionStyles`:
 
 ### Smoothstep (Recommended)
 
 ```dart
-theme: NodeFlowTheme(
-  connectionStyle: ConnectionStyles.smoothstep,
+connectionTheme: ConnectionTheme.light.copyWith(
+  style: ConnectionStyles.smoothstep,
 )
 ```
 
-Smooth orthogonal paths that maintain horizontal/vertical segments.
+Smooth orthogonal paths with rounded corners. This is the default.
 
 ### Bezier
 
 ```dart
-theme: NodeFlowTheme(
-  connectionStyle: ConnectionStyles.bezier,
+connectionTheme: ConnectionTheme.light.copyWith(
+  style: ConnectionStyles.bezier,
 )
 ```
 
@@ -86,8 +172,8 @@ Curved Bezier paths for a flowing appearance.
 ### Step
 
 ```dart
-theme: NodeFlowTheme(
-  connectionStyle: ConnectionStyles.step,
+connectionTheme: ConnectionTheme.light.copyWith(
+  style: ConnectionStyles.step,
 )
 ```
 
@@ -96,8 +182,8 @@ Sharp right-angle paths with clear horizontal and vertical segments.
 ### Straight
 
 ```dart
-theme: NodeFlowTheme(
-  connectionStyle: ConnectionStyles.straight,
+connectionTheme: ConnectionTheme.light.copyWith(
+  style: ConnectionStyles.straight,
 )
 ```
 
@@ -105,22 +191,29 @@ Direct straight lines between ports.
 
 ## Connection Theme
 
-Customize connection appearance:
+Customize connection appearance via `ConnectionTheme`:
 
 ```dart
-theme: NodeFlowTheme(
+theme: NodeFlowTheme.light.copyWith(
   connectionTheme: ConnectionTheme(
-    color: Colors.blue,              // Default color
-    strokeWidth: 2,                  // Line width
-    selectedColor: Colors.blue[700]!, // Selected color
-    selectedStrokeWidth: 3,          // Selected width
+    style: ConnectionStyles.smoothstep,
+    color: Colors.blue,
+    selectedColor: Colors.blue.shade700,
+    highlightColor: Colors.blue.shade400,
+    highlightBorderColor: Colors.blue.shade800,
+    strokeWidth: 2.0,
+    selectedStrokeWidth: 3.0,
     startPoint: ConnectionEndPoint.none,
-    endPoint: ConnectionEndPoint(
-      shape: EndpointShape.triangle,
-      size: 9,
-      color: Colors.blue,
-    ),
-    dashPattern: null,               // Solid line (default)
+    endPoint: ConnectionEndPoint.triangle,
+    endpointColor: Colors.blue,
+    endpointBorderColor: Colors.blue.shade800,
+    endpointBorderWidth: 0.0,
+    bezierCurvature: 0.5,
+    cornerRadius: 4.0,
+    portExtension: 20.0,
+    backEdgeGap: 20.0,
+    hitTolerance: 8.0,
+    dashPattern: null,  // Solid line (default)
   ),
 )
 ```
@@ -128,62 +221,69 @@ theme: NodeFlowTheme(
 ::: code-group
 
 ```dart [Dashed Connections]
-connectionTheme: ConnectionTheme(
-  color: Colors.grey,
-  strokeWidth: 2,
+connectionTheme: ConnectionTheme.light.copyWith(
   dashPattern: [8, 4], // 8px dash, 4px gap
 )
 ```
 
 ```dart [Arrows and Endpoints]
-// Triangle arrow at end
-endPoint: ConnectionEndPoint(
-  shape: EndpointShape.triangle,
-  size: 10,
-  color: Colors.blue,
-)
+// Triangle arrow at end (predefined)
+endPoint: ConnectionEndPoint.triangle,
 
-// Circle at start
-startPoint: ConnectionEndPoint(
-  shape: EndpointShape.circle,
-  size: 6,
+// Circle at start (predefined)
+startPoint: ConnectionEndPoint.circle,
+
+// Custom endpoint with colors
+endPoint: ConnectionEndPoint(
+  shape: MarkerShapes.triangle,
+  size: Size.square(10),
   color: Colors.blue,
-)
+  borderColor: Colors.blue.shade800,
+  borderWidth: 1.0,
+),
 
 // No endpoints
 startPoint: ConnectionEndPoint.none,
 endPoint: ConnectionEndPoint.none,
 ```
 
+```dart [Predefined Endpoints]
+// Available predefined endpoints:
+ConnectionEndPoint.none        // No marker
+ConnectionEndPoint.circle      // Circular dot
+ConnectionEndPoint.triangle    // Arrow head
+ConnectionEndPoint.rectangle   // Solid rectangle
+ConnectionEndPoint.diamond     // Diamond shape
+ConnectionEndPoint.capsuleHalf // Rounded arrow
+```
+
 :::
 
 ## Temporary Connections
 
-When creating connections by dragging, a temporary connection is shown:
+When creating connections by dragging, a temporary connection is shown.
+Configure via `temporaryConnectionTheme`:
 
 ```dart
-theme: NodeFlowTheme(
-  temporaryConnectionStyle: ConnectionStyles.smoothstep,
-  temporaryConnectionTheme: ConnectionTheme(
-    color: Colors.blue.withOpacity(0.5),
+theme: NodeFlowTheme.light.copyWith(
+  temporaryConnectionTheme: ConnectionTheme.light.copyWith(
+    color: Colors.grey,
     strokeWidth: 2,
-    dashPattern: [8, 4],
-    endPoint: ConnectionEndPoint(
-      shape: EndpointShape.triangle,
-      size: 9,
-    ),
+    dashPattern: [5, 5],
+    endPoint: ConnectionEndPoint.capsuleHalf,
   ),
 )
 ```
 
 ## Connection Events
 
-Handle connection lifecycle and interactions using the `ConnectionEvents` class. See [Event System](/docs/advanced/events) for complete documentation.
+Handle connection lifecycle and interactions using `ConnectionEvents`. See
+[Event System](/docs/advanced/events) for complete documentation.
 
 ::: code-group
 
 ```dart [Lifecycle Events]
-NodeFlowEditor<MyData>(
+NodeFlowEditor<MyData, dynamic>(
   controller: controller,
   events: NodeFlowEvents(
     connection: ConnectionEvents(
@@ -204,29 +304,29 @@ NodeFlowEditor<MyData>(
 ```
 
 ```dart [Validation]
-NodeFlowEditor<MyData>(
+NodeFlowEditor<MyData, dynamic>(
   controller: controller,
   events: NodeFlowEvents(
     connection: ConnectionEvents(
       onBeforeStart: (context) {
         // Prevent connections from disabled nodes
         if (context.sourceNode.data.isDisabled) {
-          return ConnectionValidationResult(
-            allowed: false,
+          return ConnectionValidationResult.deny(
             reason: 'Cannot connect from disabled node',
+            showMessage: true,
           );
         }
-        return ConnectionValidationResult(allowed: true);
+        return ConnectionValidationResult.allow();
       },
       onBeforeComplete: (context) {
         // Prevent self-connections
-        if (context.sourceNode.id == context.targetNode.id) {
-          return ConnectionValidationResult(
-            allowed: false,
+        if (context.isSelfConnection) {
+          return ConnectionValidationResult.deny(
             reason: 'Cannot connect to same node',
+            showMessage: true,
           );
         }
-        return ConnectionValidationResult(allowed: true);
+        return ConnectionValidationResult.allow();
       },
     ),
   ),
@@ -234,20 +334,24 @@ NodeFlowEditor<MyData>(
 ```
 
 ```dart [Interactions]
-NodeFlowEditor<MyData>(
+NodeFlowEditor<MyData, dynamic>(
   controller: controller,
   events: NodeFlowEvents(
     connection: ConnectionEvents(
       onTap: (connection) => _selectConnection(connection),
       onDoubleTap: (connection) => _editConnection(connection),
-      onContextMenu: (connection, position) {
-        _showConnectionMenu(connection, position);
+      onContextMenu: (connection, screenPosition) {
+        _showConnectionMenu(connection, screenPosition);
       },
-      onConnectStart: (nodeId, portId, isOutput) {
-        print('Starting connection from $nodeId:$portId');
+      onConnectStart: (sourceNode, sourcePort) {
+        print('Starting connection from ${sourceNode.id}:${sourcePort.id}');
       },
-      onConnectEnd: (success) {
-        print(success ? 'Connected' : 'Cancelled');
+      onConnectEnd: (targetNode, targetPort, position) {
+        if (targetNode != null) {
+          print('Connected to ${targetNode.id}');
+        } else {
+          print('Connection cancelled at $position');
+        }
       },
     ),
   ),
@@ -256,10 +360,9 @@ NodeFlowEditor<MyData>(
 
 :::
 
-::: tip
-Use `onBeforeComplete` for validation instead of removing connections after creation. This provides better UX with visual feedback before the connection is made.
-
-:::
+::: tip Use `onBeforeComplete` for validation instead of removing connections
+after creation. This provides better UX with visual feedback before the
+connection is made. :::
 
 ## Connection Operations
 
@@ -296,49 +399,80 @@ final toPort = controller.getConnectionsToPort('node-2', 'in-1');
 
 ## Connection Validation
 
-::: code-group
+The `ConnectionValidationResult` class is used to control connection creation:
 
-```dart [Prevent Self-Connections]
-bool isValidConnection(Connection connection) {
-  if (connection.sourceNodeId == connection.targetNodeId) {
-    return false;
-  }
-  return true;
+```dart
+// Allow connection
+ConnectionValidationResult.allow()
+
+// Deny with reason
+ConnectionValidationResult.deny(
+  reason: 'Cannot connect input to input',
+  showMessage: true,  // Show visual feedback to user
+)
+
+// Custom result
+ConnectionValidationResult(
+  allowed: isValid,
+  reason: validationMessage,
+  showMessage: true,
+)
+```
+
+### Validation Contexts
+
+Two context objects provide information during validation:
+
+```dart
+// ConnectionStartContext - when starting a drag
+class ConnectionStartContext<T> {
+  final Node<T> sourceNode;
+  final Port sourcePort;
+  final List<String> existingConnections;
+
+  bool get isOutputPort;
+  bool get isInputPort;
+}
+
+// ConnectionCompleteContext - when completing a connection
+class ConnectionCompleteContext<T> {
+  final Node<T> sourceNode;
+  final Port sourcePort;
+  final Node<T> targetNode;
+  final Port targetPort;
+  final List<String> existingSourceConnections;
+  final List<String> existingTargetConnections;
+
+  bool get isOutputToInput;
+  bool get isInputToOutput;
+  bool get isSelfConnection;
+  bool get isSamePort;
 }
 ```
 
-```dart [Prevent Duplicate Connections]
-bool isDuplicateConnection(Connection connection) {
-  return controller.connections.any(
-    (c) =>
-        c.sourceNodeId == connection.sourceNodeId &&
-        c.sourcePortId == connection.sourcePortId &&
-        c.targetNodeId == connection.targetNodeId &&
-        c.targetPortId == connection.targetPortId,
-  );
+::: code-group
+
+```dart [Prevent Self-Connections]
+onBeforeComplete: (context) {
+  if (context.isSelfConnection) {
+    return ConnectionValidationResult.deny(
+      reason: 'Cannot connect node to itself',
+    );
+  }
+  return ConnectionValidationResult.allow();
 }
 ```
 
 ```dart [Port Type Validation]
-bool validatePortTypes(Connection connection) {
-  final sourceNode = controller.getNode(connection.sourceNodeId);
-  final targetNode = controller.getNode(connection.targetNodeId);
-
-  if (sourceNode == null || targetNode == null) return false;
-
-  final sourcePort = sourceNode.outputPorts.firstWhere(
-    (p) => p.id == connection.sourcePortId,
-    orElse: () => throw Exception('Source port not found'),
-  );
-
-  final targetPort = targetNode.inputPorts.firstWhere(
-    (p) => p.id == connection.targetPortId,
-    orElse: () => throw Exception('Target port not found'),
-  );
-
-  // Check if source can connect to target
-  return sourcePort.type != PortType.target &&
-      targetPort.type != PortType.source;
+onBeforeComplete: (context) {
+  // Only allow output-to-input connections
+  if (!context.isOutputToInput) {
+    return ConnectionValidationResult.deny(
+      reason: 'Must connect output to input',
+      showMessage: true,
+    );
+  }
+  return ConnectionValidationResult.allow();
 }
 ```
 
@@ -381,124 +515,69 @@ bool wouldCreateCycle(Connection newConnection) {
 
   return hasCycle(newConnection.sourceNodeId);
 }
-```
 
-```dart [Complete Validation]
-ConnectionValidationResult validateConnection(Connection connection) {
-  // Check self-connection
-  if (connection.sourceNodeId == connection.targetNodeId) {
-    return ConnectionValidationResult.error('Cannot connect node to itself');
-  }
-
-  // Check duplicate
-  if (isDuplicateConnection(connection)) {
-    return ConnectionValidationResult.error('Connection already exists');
-  }
-
-  // Check port types
-  if (!validatePortTypes(connection)) {
-    return ConnectionValidationResult.error('Invalid port types');
-  }
-
-  // Check cycles
-  if (wouldCreateCycle(connection)) {
-    return ConnectionValidationResult.error('Would create a cycle');
-  }
-
-  return ConnectionValidationResult.valid();
-}
-
-class ConnectionValidationResult {
-  final bool isValid;
-  final String? errorMessage;
-
-  ConnectionValidationResult.valid()
-      : isValid = true,
-        errorMessage = null;
-
-  ConnectionValidationResult.error(this.errorMessage) : isValid = false;
-}
+// Use built-in cycle detection
+final hasCycles = controller.hasCycles();
+final cycles = controller.getCycles();
 ```
 
 :::
 
-## Conditional Connection Styling
-
-Style connections based on their properties using connection-specific overrides:
-
-```dart
-// Create connections with different colors based on type
-final errorConnection = Connection(
-  id: 'error-conn',
-  sourceNodeId: 'node-1',
-  sourcePortId: 'error-out',
-  targetNodeId: 'node-2',
-  targetPortId: 'in',
-  color: Colors.red,  // Override theme color
-  label: 'Error Path',
-);
-
-final successConnection = Connection(
-  id: 'success-conn',
-  sourceNodeId: 'node-1',
-  sourcePortId: 'success-out',
-  targetNodeId: 'node-3',
-  targetPortId: 'in',
-  color: Colors.green,  // Override theme color
-  label: 'Success Path',
-);
-
-controller.addConnection(errorConnection);
-controller.addConnection(successConnection);
-```
-
 ## Connection Labels
+
+Labels use the `ConnectionLabel` class with anchor positioning:
 
 ::: code-group
 
-```dart [Static Labels]
-Connection(
-  id: 'conn-1',
-  sourceNodeId: 'node-1',
-  sourcePortId: 'port-out',
-  targetNodeId: 'node-2',
-  targetPortId: 'port-in',
-  label: 'Data Flow',
-  startLabel: 'Send',
-  endLabel: 'Receive',
+```dart [Factory Constructors]
+// Start label (anchor 0.0 - at source)
+ConnectionLabel.start(text: 'Send')
+
+// Center label (anchor 0.5 - at midpoint)
+ConnectionLabel.center(text: 'Data Flow')
+
+// End label (anchor 1.0 - at target)
+ConnectionLabel.end(text: 'Receive')
+
+// With perpendicular offset
+ConnectionLabel.center(text: 'Flow', offset: 10.0)
+```
+
+```dart [Custom Anchor Position]
+// Custom position (0.0 to 1.0)
+ConnectionLabel(
+  text: 'Custom',
+  anchor: 0.25,  // 25% along the path
+  offset: -5.0,  // Offset perpendicular to path
 )
 ```
 
-```dart [Dynamic Labels]
-Connection getConnectionWithDynamicLabel(
-  String sourceId,
-  String targetId,
-) {
-  final sourceNode = controller.getNode(sourceId);
-  final targetNode = controller.getNode(targetId);
+```dart [Updating Labels]
+// Labels are reactive - changes trigger UI updates
+connection.label = ConnectionLabel.center(text: 'Updated');
+connection.startLabel = null;  // Remove label
 
-  final label = '${sourceNode?.data.label} → ${targetNode?.data.label}';
-
-  return Connection(
-    id: 'conn-${DateTime.now().millisecondsSinceEpoch}',
-    sourceNodeId: sourceId,
-    sourcePortId: 'out',
-    targetNodeId: targetId,
-    targetPortId: 'in',
-    label: label,
-  );
-}
+// Or update existing label
+connection.label?.updateText('New Text');
+connection.label?.updateAnchor(0.75);
 ```
 
 ```dart [Label Theme]
-theme: NodeFlowTheme(
+theme: NodeFlowTheme.light.copyWith(
   labelTheme: LabelTheme(
-    fontSize: 12,
-    color: Colors.black87,
+    textStyle: TextStyle(
+      fontSize: 12,
+      color: Colors.black87,
+      fontWeight: FontWeight.w500,
+    ),
     backgroundColor: Colors.white,
+    border: Border.all(color: Colors.grey.shade300),
+    borderRadius: BorderRadius.circular(4),
     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    borderRadius: 4,
-    border: Border.all(color: Colors.grey[300]!),
+    maxWidth: 150,    // Wrap text after 150px
+    maxLines: 2,      // Maximum 2 lines
+    offset: 0.0,      // Default perpendicular offset
+    labelGap: 8.0,    // Minimum gap from endpoints
   ),
 )
 ```
@@ -507,17 +586,24 @@ theme: NodeFlowTheme(
 
 ## Connection Selection
 
-Connections can be selected (future feature):
-
 ```dart
 // Select connection
 controller.selectConnection('conn-1');
 
+// Toggle selection
+controller.selectConnection('conn-1', toggle: true);
+
 // Clear connection selection
 controller.clearConnectionSelection();
 
-// Get selected connections
-final selectedConnections = controller.selectedConnectionIds;
+// Check if selected
+final isSelected = controller.isConnectionSelected('conn-1');
+
+// Get selected connection IDs
+final selectedIds = controller.selectedConnectionIds;
+
+// Select all connections
+controller.selectAllConnections();
 ```
 
 ## Interactive Connections
@@ -534,7 +620,11 @@ events: NodeFlowEvents(
       );
     },
     onDoubleTap: (connection) => _editConnection(connection),
-    onContextMenu: (connection, position) => _showMenu(connection, position),
+    onContextMenu: (connection, screenPosition) {
+      _showMenu(connection, screenPosition);
+    },
+    onMouseEnter: (connection) => _highlightConnection(connection),
+    onMouseLeave: (connection) => _unhighlightConnection(connection),
   ),
 )
 ```
@@ -556,12 +646,14 @@ controller.loadGraph(loadedGraph);
 ## Best Practices
 
 1. **Unique IDs**: Use unique, meaningful connection IDs
-2. **Validation**: Always validate connections before adding
-3. **Cleanup**: Remove connections when deleting nodes
-4. **Visual Feedback**: Use different colors for different connection types
+2. **Validation**: Use `onBeforeComplete` for validation to provide immediate
+   feedback
+3. **Cleanup**: Connections are automatically removed when nodes are deleted
+4. **Visual Feedback**: Use different endpoint styles for different connection
+   types
 5. **Labels**: Use labels sparingly to avoid clutter
 6. **Performance**: Limit the number of connections for smooth rendering
-7. **Cycles**: Decide if cycles are allowed in your graph
+7. **Cycles**: Use `controller.hasCycles()` to detect cycles in your graph
 
 ## Common Patterns
 
@@ -578,7 +670,7 @@ class ConnectionFactory {
     required String sourcePortId,
     required String targetNodeId,
     required String targetPortId,
-    String? label,
+    String? labelText,
   }) {
     return Connection(
       id: generateId(),
@@ -586,7 +678,9 @@ class ConnectionFactory {
       sourcePortId: sourcePortId,
       targetNodeId: targetNodeId,
       targetPortId: targetPortId,
-      label: label,
+      label: labelText != null
+          ? ConnectionLabel.center(text: labelText)
+          : null,
     );
   }
 }
@@ -611,6 +705,18 @@ void autoConnect(String sourceNodeId, String targetNodeId) {
 
   controller.addConnection(connection);
 }
+```
+
+```dart [Locked Connections]
+// Create a connection that cannot be deleted
+final connection = Connection(
+  id: 'required-conn',
+  sourceNodeId: 'node-1',
+  sourcePortId: 'out',
+  targetNodeId: 'node-2',
+  targetPortId: 'in',
+  locked: true,  // Prevents deletion
+);
 ```
 
 :::

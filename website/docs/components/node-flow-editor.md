@@ -121,17 +121,16 @@ All these capabilities work together seamlessly. For example, when you drag a no
 ## Constructor
 
 ```dart
-NodeFlowEditor<T>({
+NodeFlowEditor<T, dynamic>({
   Key? key,
-  required NodeFlowController<T> controller,
+  required NodeFlowController<T, dynamic> controller,
   required Widget Function(BuildContext, Node<T>) nodeBuilder,
   required NodeFlowTheme theme,
   NodeShape? Function(BuildContext, Node<T>)? nodeShapeBuilder,
-  Widget Function(BuildContext, Node<T>, Widget)? nodeContainerBuilder,
   PortBuilder<T>? portBuilder,
   LabelBuilder? labelBuilder,
   ConnectionStyleOverrides? Function(Connection)? connectionStyleResolver,
-  NodeFlowEvents<T>? events,
+  NodeFlowEvents<T, dynamic>? events,
   NodeFlowBehavior behavior = NodeFlowBehavior.design,
   bool scrollToZoom = true,
   bool showAnnotations = true,
@@ -143,22 +142,21 @@ NodeFlowEditor<T>({
 ### controller
 
 ```dart
-required NodeFlowController<T> controller
+required NodeFlowController<T, dynamic> controller
 ```
 
 The controller that manages the graph state. Create it in your widget's state:
 
 ```dart
-late final NodeFlowController<MyData> controller;
+late final NodeFlowController<MyData, dynamic> controller;
 
 @override
 void initState() {
   super.initState();
-  controller = NodeFlowController<MyData>(
+  controller = NodeFlowController<MyData, dynamic>(
     config: NodeFlowConfig(
       snapToGrid: true,
       gridSize: 20.0,
-      autoPan: AutoPanConfig.normal,
     ),
   );
 }
@@ -247,31 +245,6 @@ nodeShapeBuilder: (context, node) {
 Side-by-side comparison showing different node shapes: rectangular (default), circle, diamond, and hexagon nodes with ports
 :::
 
-### nodeContainerBuilder
-
-```dart
-Widget Function(BuildContext, Node<T>, Widget)? nodeContainerBuilder
-```
-
-Customize the node container wrapping. Receives the node content from `nodeBuilder`:
-
-```dart
-nodeContainerBuilder: (context, node, content) {
-  return Container(
-    decoration: BoxDecoration(
-      border: Border.all(
-        color: node.isSelected ? Colors.blue : Colors.grey,
-        width: node.isSelected ? 2 : 1,
-      ),
-      boxShadow: node.isSelected
-          ? [BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 8)]
-          : null,
-    ),
-    child: content,
-  );
-}
-```
-
 ### portBuilder
 
 ```dart
@@ -347,7 +320,7 @@ connectionStyleResolver: (connection) {
 ### events
 
 ```dart
-NodeFlowEvents<T>? events
+NodeFlowEvents<T, dynamic>? events
 ```
 
 Comprehensive event handling for all editor interactions. See [Event System](/docs/advanced/events) for complete documentation.
@@ -386,11 +359,13 @@ events: NodeFlowEvents(
 )
 ```
 
-```dart [behavior]
+:::
+
+### behavior
+
+```dart
 NodeFlowBehavior behavior = NodeFlowBehavior.design
 ```
-
-:::
 
 Controls what interactions are allowed. See [Behavior Modes](#behavior-modes) below.
 
@@ -452,19 +427,21 @@ Each behavior mode has specific capabilities:
 | `canPan` | Yes | Yes | No |
 | `canZoom` | Yes | Yes | No |
 
-You can check capabilities programmatically:
+You can check capabilities programmatically using the behavior enum:
 
 ```dart
-if (controller.behavior.canDelete) {
+const behavior = NodeFlowBehavior.design;
+
+if (behavior.canDelete) {
   // Allow deletion
 }
 
-if (controller.behavior.canModify) {
-  // Any CRUD operation allowed
+if (behavior.canModify) {
+  // Any CRUD operation allowed (create, update, or delete)
 }
 
-if (controller.behavior.isInteractive) {
-  // Any interaction allowed
+if (behavior.isInteractive) {
+  // Any interaction allowed (drag, select, pan, or zoom)
 }
 ```
 
@@ -477,18 +454,16 @@ class MyFlowEditor extends StatefulWidget {
 }
 
 class _MyFlowEditorState extends State<MyFlowEditor> {
-  late final NodeFlowController<MyNodeData> _controller;
+  late final NodeFlowController<MyNodeData, dynamic> _controller;
   Node<MyNodeData>? _selectedNode;
 
   @override
   void initState() {
     super.initState();
-    _controller = NodeFlowController<MyNodeData>(
+    _controller = NodeFlowController<MyNodeData, dynamic>(
       config: NodeFlowConfig(
         snapToGrid: true,
         gridSize: 20.0,
-        autoPan: AutoPanConfig.normal,
-        showMinimap: true,
       ),
     );
     _initializeGraph();
@@ -523,7 +498,7 @@ class _MyFlowEditorState extends State<MyFlowEditor> {
         children: [
           Expanded(
             flex: 3,
-            child: NodeFlowEditor<MyNodeData>(
+            child: NodeFlowEditor<MyNodeData, dynamic>(
               controller: _controller,
               theme: NodeFlowTheme.light,
               behavior: NodeFlowBehavior.design,
@@ -547,7 +522,7 @@ class _MyFlowEditorState extends State<MyFlowEditor> {
                   onDeleted: (conn) => _showSnackBar('Connection deleted'),
                 ),
                 viewport: ViewportEvents(
-                  onCanvasTap: (pos) => _controller.deselectAll(),
+                  onCanvasTap: (pos) => _controller.clearSelection(),
                 ),
                 onInit: () => _controller.fitToView(),
               ),
@@ -612,7 +587,7 @@ class _MyFlowEditorState extends State<MyFlowEditor> {
   }
 
   void _editNode(Node<MyNodeData> node) { /* Show edit dialog */ }
-  void _showNodeMenu(Node<MyNodeData> node, Offset pos) { /* Show context menu */ }
+  void _showNodeMenu(Node<MyNodeData> node, ScreenPosition pos) { /* Show context menu */ }
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }

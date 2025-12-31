@@ -27,7 +27,7 @@ part of 'node_flow_controller.dart';
 ///
 /// ## Validation APIs
 /// - [hasCycles], [getCycles] - Cycle detection
-extension ConnectionApi<T> on NodeFlowController<T> {
+extension ConnectionApi<T, C> on NodeFlowController<T, C> {
   // ============================================================================
   // Model APIs - Lookup
   // ============================================================================
@@ -43,7 +43,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
   ///   print('Source: ${connection.sourceNodeId}');
   /// }
   /// ```
-  Connection? getConnection(String connectionId) {
+  Connection<C>? getConnection(String connectionId) {
     try {
       return _connections.firstWhere((c) => c.id == connectionId);
     } catch (_) {
@@ -66,7 +66,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
   /// final connections = controller.getConnectionsForNode('node1');
   /// print('Node has ${connections.length} connections');
   /// ```
-  List<Connection> getConnectionsForNode(String nodeId) {
+  List<Connection<C>> getConnectionsForNode(String nodeId) {
     return _connections
         .where(
           (conn) => conn.sourceNodeId == nodeId || conn.targetNodeId == nodeId,
@@ -82,7 +82,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
   /// ```dart
   /// final outgoing = controller.getConnectionsFromPort('node1', 'output1');
   /// ```
-  List<Connection> getConnectionsFromPort(String nodeId, String portId) {
+  List<Connection<C>> getConnectionsFromPort(String nodeId, String portId) {
     return _connections
         .where(
           (conn) => conn.sourceNodeId == nodeId && conn.sourcePortId == portId,
@@ -98,7 +98,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
   /// ```dart
   /// final incoming = controller.getConnectionsToPort('node2', 'input1');
   /// ```
-  List<Connection> getConnectionsToPort(String nodeId, String portId) {
+  List<Connection<C>> getConnectionsToPort(String nodeId, String portId) {
     return _connections
         .where(
           (conn) => conn.targetNodeId == nodeId && conn.targetPortId == portId,
@@ -125,7 +125,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
   /// );
   /// controller.addConnection(connection);
   /// ```
-  void addConnection(Connection connection) {
+  void addConnection(Connection<C> connection) {
     runInAction(() {
       _connections.add(connection);
       // Update connection index for O(1) lookup
@@ -247,7 +247,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
     String targetNodeId,
     String targetPortId,
   ) {
-    final connection = Connection(
+    final connection = Connection<C>(
       id: 'conn_${DateTime.now().millisecondsSinceEpoch}',
       sourceNodeId: sourceNodeId,
       sourcePortId: sourcePortId,
@@ -344,7 +344,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
   /// Gets all visible connections in the graph.
   ///
   /// A connection is visible when both its source and target nodes are visible.
-  List<Connection> getVisibleConnections() {
+  List<Connection<C>> getVisibleConnections() {
     return _connections.where((connection) {
       final sourceNode = _nodes[connection.sourceNodeId];
       final targetNode = _nodes[connection.targetNodeId];
@@ -358,7 +358,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
   /// Gets all hidden connections in the graph.
   ///
   /// A connection is hidden when either its source or target node is hidden.
-  List<Connection> getHiddenConnections() {
+  List<Connection<C>> getHiddenConnections() {
     return _connections.where((connection) {
       final sourceNode = _nodes[connection.sourceNodeId];
       final targetNode = _nodes[connection.targetNodeId];
@@ -370,7 +370,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
   }
 
   /// Calculates the bounding box for a connection based on its source and target nodes.
-  Rect? _calculateConnectionBounds(Connection connection) {
+  Rect? _calculateConnectionBounds(Connection<C> connection) {
     final sourceNode = _nodes[connection.sourceNodeId];
     final targetNode = _nodes[connection.targetNodeId];
     if (sourceNode == null || targetNode == null) return null;
@@ -540,7 +540,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
 
   /// Selects a connection in the graph.
   ///
-  /// Automatically clears selections of other element types (nodes, annotations).
+  /// Automatically clears node selections.
   /// Requests canvas focus if not already focused.
   ///
   /// Triggers the `onConnectionSelected` callback after selection changes.
@@ -1166,7 +1166,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
   /// - [targetPortId]: The ID of the target port
   ///
   /// Returns the created connection, or null if creation failed.
-  Connection? completeConnectionDrag({
+  Connection<C>? completeConnectionDrag({
     required String targetNodeId,
     required String targetPortId,
   }) {
@@ -1268,7 +1268,7 @@ extension ConnectionApi<T> on NodeFlowController<T> {
 
     // Create the new connection
     final createdConnection = runInAction(() {
-      final connection = Connection(
+      final connection = Connection<C>(
         id: '${sourceNodeId}_${sourcePortId}_${actualTargetNodeId}_$actualTargetPortId',
         sourceNodeId: sourceNodeId,
         sourcePortId: sourcePortId,

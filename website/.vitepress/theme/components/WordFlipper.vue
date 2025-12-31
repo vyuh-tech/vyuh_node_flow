@@ -65,7 +65,7 @@ onUnmounted(() => {
   @apply flex relative overflow-visible w-full;
 }
 
-@media (width < theme(--breakpoint-lg)) {
+@media (width < theme(--breakpoint-xl)) {
   .word-flipper {
     @apply justify-center;
   }
@@ -98,7 +98,7 @@ onUnmounted(() => {
   transform: translateY(0.3em);
 }
 
-@media (width < theme(--breakpoint-lg)) {
+@media (width < theme(--breakpoint-xl)) {
   .flipper-next {
     @apply left-1/2;
     transform: translateX(-50%) translateY(0.3em);
@@ -116,7 +116,7 @@ onUnmounted(() => {
   animation: slideInDesktop 0.4s ease-out forwards;
 }
 
-@media (width < theme(--breakpoint-lg)) {
+@media (width < theme(--breakpoint-xl)) {
   .flipper-next.animating-in {
     animation: slideInMobile 0.4s ease-out forwards;
   }
