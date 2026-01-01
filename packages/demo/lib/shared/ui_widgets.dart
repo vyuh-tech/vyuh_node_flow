@@ -560,7 +560,7 @@ class _ComprehensiveStats extends StatelessWidget {
     final isDark = context.isDark;
 
     return Padding(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -569,78 +569,66 @@ class _ComprehensiveStats extends StatelessWidget {
             children: [
               Icon(
                 Icons.analytics_outlined,
-                size: 14,
-                color: context.textSecondaryColor,
+                size: 12,
+                color: context.textTertiaryColor,
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 4),
               Text(
-                'GRAPH STATISTICS',
+                'STATS',
                 style: theme.textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.5,
-                  color: context.textSecondaryColor,
+                  fontSize: 9,
+                  color: context.textTertiaryColor,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          // Main stats row - each stat wrapped in Observer for fine-grained updates
-          Row(
+          const SizedBox(height: 6),
+          // Main stats - compact wrapping chips
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
             children: [
-              Expanded(
-                child: Observer(
-                  builder: (_) => _StatBox(
-                    label: 'Nodes',
-                    value: stats.nodeCount.toString(),
-                    icon: Icons.circle_outlined,
-                    color: DemoTheme.info,
-                  ),
+              Observer(
+                builder: (_) => _StatChip(
+                  label: 'nodes',
+                  value: stats.nodeCount.toString(),
+                  icon: Icons.square_outlined,
+                  color: DemoTheme.info,
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Observer(
-                  builder: (_) => _StatBox(
-                    label: 'Edges',
-                    value: stats.connectionCount.toString(),
-                    icon: Icons.timeline,
-                    color: DemoTheme.success,
-                  ),
+              Observer(
+                builder: (_) => _StatChip(
+                  label: 'edges',
+                  value: stats.connectionCount.toString(),
+                  icon: Icons.timeline,
+                  color: DemoTheme.success,
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Observer(
-                  builder: (_) => _StatBox(
-                    label: 'Selected',
-                    value: stats.selectedNodeCount.toString(),
-                    icon: Icons.check_circle_outline,
-                    color: stats.hasSelection
-                        ? (isDark ? DemoTheme.accentLight : DemoTheme.accent)
-                        : context.textTertiaryColor,
-                  ),
+              Observer(
+                builder: (_) => _StatChip(
+                  label: 'selected',
+                  value: stats.selectedNodeCount.toString(),
+                  icon: Icons.check_circle_outline,
+                  color: stats.hasSelection
+                      ? (isDark ? DemoTheme.accentLight : DemoTheme.accent)
+                      : context.textTertiaryColor,
+                ),
+              ),
+              Observer(
+                builder: (_) => _StatChip(
+                  label: 'visible',
+                  value: stats.nodesInViewport.toString(),
+                  icon: Icons.visibility_outlined,
+                  color: DemoTheme.warning,
                 ),
               ),
             ],
           ),
-          // Viewport details row
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Observer(
-                  builder: (_) => _StatBox(
-                    label: 'Visible',
-                    value: stats.nodesInViewport.toString(),
-                    icon: Icons.visibility_outlined,
-                    color: DemoTheme.warning,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(flex: 2, child: _ViewportInfo(stats: stats)),
-            ],
-          ),
+          const SizedBox(height: 6),
+          // Viewport info - compact inline
+          _ViewportInfo(stats: stats),
         ],
       ),
     );
@@ -708,11 +696,7 @@ class _ViewportInfo extends StatelessWidget {
           // Bounds - with granular Observer
           Row(
             children: [
-              Icon(
-                Icons.crop_square,
-                size: 10,
-                color: context.textTertiaryColor,
-              ),
+              Icon(Icons.crop_free, size: 10, color: context.textTertiaryColor),
               const SizedBox(width: 4),
               // Observer around boundsSummary
               Observer(
@@ -733,13 +717,14 @@ class _ViewportInfo extends StatelessWidget {
   }
 }
 
-class _StatBox extends StatelessWidget {
+/// Compact inline stat chip for displaying count metrics.
+class _StatChip extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
   final Color color;
 
-  const _StatBox({
+  const _StatChip({
     required this.label,
     required this.value,
     required this.icon,
@@ -752,24 +737,27 @@ class _StatBox extends StatelessWidget {
     final isDark = context.isDark;
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: isDark ? 0.12 : 0.08),
-        borderRadius: BorderRadius.circular(6),
+        color: color.withValues(alpha: isDark ? 0.15 : 0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
-      child: Column(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(height: 4),
+          Icon(icon, size: 10, color: color),
+          const SizedBox(width: 3),
           Text(
             value,
-            style: theme.textTheme.titleSmall?.copyWith(
+            style: theme.textTheme.labelSmall?.copyWith(
               fontWeight: FontWeight.w700,
               fontFamily: 'JetBrains Mono',
+              fontSize: 10,
               color: color,
             ),
           ),
+          const SizedBox(width: 2),
           Text(
             label,
             style: theme.textTheme.labelSmall?.copyWith(

@@ -4,8 +4,6 @@
 library;
 
 export 'buttons.dart';
-export 'example_container.dart';
 export 'panels.dart';
 export 'responsive.dart';
-export 'stats_panel.dart';
 export 'theme.dart';

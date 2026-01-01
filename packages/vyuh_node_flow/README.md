@@ -69,6 +69,13 @@ minimap, and more.
 - [Serialization](#serialization)
   - [Save and Load Graphs](#save-and-load-graphs)
   - [Load from URL](#load-from-url)
+- [Extensions](#extensions)
+  - [Extension System Overview](#extension-system-overview)
+  - [Built-in Extensions](#built-in-extensions)
+  - [DebugExtension](#debugextension)
+  - [StatsExtension](#statsextension)
+  - [Creating Custom Extensions](#creating-custom-extensions)
+  - [Graph Events](#graph-events)
 - [Advanced Configuration](#️-advanced-configuration)
   - [Grid Snapping](#grid-snapping)
   - [Zoom Limits](#zoom-limits)
@@ -103,6 +110,8 @@ minimap, and more.
 - **Keyboard Shortcuts** - Full keyboard support for power users
 - **Read-Only Viewer** - Display flows without editing capabilities
 - **Serialization** - Save and load flows from JSON
+- **Extension Architecture** - Modular, pluggable extensions for features like
+  minimap, debug overlays, statistics, and custom behaviors
 
 ## Screenshots
 
@@ -2863,6 +2872,277 @@ final graph = await NodeGraph.fromUrl<MyData>(
 
 controller.loadGraph(graph);
 ```
+
+---
+
+## Extensions
+
+Vyuh Node Flow uses an **extension-based architecture** for optional features
+and behaviors. Extensions are modular, reactive components that observe graph
+events and provide additional capabilities without modifying core behavior.
+
+### Extension System Overview
+
+Extensions follow a simple lifecycle:
+
+1. **Create** the extension with optional configuration
+2. **Register** via `NodeFlowConfig.extensions`
+3. **Attach** is called automatically with the controller reference
+4. **React** to graph events via `onEvent()`
+5. **Detach** is called when the extension is removed
+
+```dart
+// Register extensions via NodeFlowConfig
+final controller = NodeFlowController<MyData, dynamic>(
+  config: NodeFlowConfig(
+    extensions: [
+      MinimapExtension(config: MinimapConfig(visible: true)),
+      LodExtension(config: LODConfig.defaultConfig),
+      AutoPanExtension(config: AutoPanConfig.normal),
+      DebugExtension(mode: DebugMode.none),
+      StatsExtension(),
+    ],
+  ),
+);
+```
+
+### Built-in Extensions
+
+| Extension             | Purpose                                           | Config Type        | Access via            |
+| --------------------- | ------------------------------------------------- | ------------------ | --------------------- |
+| `MinimapExtension`    | Navigation minimap overlay                        | `MinimapConfig`    | `controller.minimap`  |
+| `LodExtension`        | Level of Detail visibility based on zoom          | `LODConfig`        | `controller.lod`      |
+| `AutoPanExtension`    | Auto-pan when dragging near edges                 | `AutoPanConfig?`   | `controller.autoPan`  |
+| `DebugExtension`      | Debug overlays (spatial index, autopan zones)     | `DebugMode`        | `controller.debug`    |
+| `StatsExtension`      | Reactive graph statistics                         | `void` (none)      | `controller.stats`    |
+
+### DebugExtension
+
+The debug extension provides visual overlays for understanding internal behavior:
+
+```dart
+final config = NodeFlowConfig(
+  extensions: [
+    DebugExtension(
+      mode: DebugMode.spatialIndex, // or .all, .autoPanZone, .none
+      theme: DebugTheme.dark,
+    ),
+  ],
+);
+```
+
+**Debug Modes:**
+
+- `none` - No debug overlays (default)
+- `all` - Show all debug visualizations
+- `spatialIndex` - Show spatial index grid with cell coordinates and object counts
+- `autoPanZone` - Show autopan trigger zones at viewport edges
+
+**Runtime Control:**
+
+```dart
+// Access via controller
+controller.debug?.toggle();             // Toggle between none and all
+controller.debug?.cycle();              // Cycle through all modes
+controller.debug?.setMode(DebugMode.all);
+controller.debug?.showOnlySpatialIndex();
+controller.debug?.hide();
+```
+
+### StatsExtension
+
+Provides reactive statistics about the graph for building status displays:
+
+```dart
+final config = NodeFlowConfig(
+  extensions: [StatsExtension()],
+);
+```
+
+**Available Statistics:**
+
+```dart
+// Node statistics
+controller.stats?.nodeCount;           // Total nodes
+controller.stats?.visibleNodeCount;    // Non-hidden nodes
+controller.stats?.groupCount;          // GroupNode count
+controller.stats?.commentCount;        // CommentNode count
+controller.stats?.nodesByType;         // Map<String, int> breakdown
+
+// Connection statistics
+controller.stats?.connectionCount;
+controller.stats?.labeledConnectionCount;
+controller.stats?.avgConnectionsPerNode;
+
+// Selection statistics
+controller.stats?.selectedNodeCount;
+controller.stats?.selectedConnectionCount;
+controller.stats?.hasSelection;
+controller.stats?.isMultiSelection;
+
+// Viewport statistics
+controller.stats?.zoom;               // Current zoom (e.g., 1.0)
+controller.stats?.zoomPercent;        // As integer (e.g., 100)
+controller.stats?.pan;                // Current pan offset
+controller.stats?.lodLevel;           // 'minimal', 'standard', or 'full'
+
+// Summary helpers
+controller.stats?.summary;            // "25 nodes, 40 connections"
+controller.stats?.selectionSummary;   // "3 nodes selected"
+controller.stats?.viewportSummary;    // "100% at (0, 0)"
+```
+
+**Usage in Observer widgets:**
+
+```dart
+Observer(builder: (_) {
+  final stats = controller.stats;
+  if (stats == null) return const SizedBox.shrink();
+
+  return Text('${stats.nodeCount} nodes, ${stats.zoomPercent}%');
+});
+```
+
+### Creating Custom Extensions
+
+Implement `NodeFlowExtension<TConfig>` to create your own extensions:
+
+```dart
+class UndoRedoExtension extends NodeFlowExtension<void> {
+  final List<GraphEvent> _history = [];
+  NodeFlowController? _controller;
+
+  @override
+  String get id => 'undo-redo';
+
+  @override
+  Null get config => null;
+
+  @override
+  void attach(NodeFlowController controller) {
+    _controller = controller;
+  }
+
+  @override
+  void detach() {
+    _controller = null;
+    _history.clear();
+  }
+
+  @override
+  void onEvent(GraphEvent event) {
+    // Record events for undo
+    switch (event) {
+      case NodeAdded():
+      case NodeRemoved():
+      case NodeMoved():
+      case ConnectionAdded():
+      case ConnectionRemoved():
+        _history.add(event);
+      default:
+        // Ignore other events
+    }
+  }
+
+  void undo() {
+    // Implement undo logic using _controller and _history
+  }
+}
+```
+
+### Graph Events
+
+Extensions receive graph events through `onEvent()`. Use pattern matching to
+handle specific events:
+
+<details>
+<summary><strong>Event Categories</strong></summary>
+
+**Node Events:**
+
+- `NodeAdded(node)` - Node was added to the graph
+- `NodeRemoved(node)` - Node was removed
+- `NodeMoved(node, previousPosition)` - Node position changed
+- `NodeResized(node, previousSize)` - Node size changed
+- `NodeDataChanged(node, previousData)` - Node data updated
+- `NodeVisibilityChanged(node, isVisible)` - Visibility toggled
+- `NodeZIndexChanged(node, previousZIndex)` - Z-order changed
+- `NodeLockChanged(node, isLocked)` - Lock state changed
+- `NodeGroupChanged(node, previousGroupId)` - Group membership changed
+
+**Connection Events:**
+
+- `ConnectionAdded(connection)` - Connection created
+- `ConnectionRemoved(connection)` - Connection deleted
+
+**Selection Events:**
+
+- `SelectionChanged(selectedNodeIds, selectedConnectionIds)` - Selection changed
+
+**Viewport Events:**
+
+- `ViewportChanged(viewport, previousViewport)` - Pan or zoom changed
+
+**Drag Events:**
+
+- `NodeDragStarted(node)` / `NodeDragEnded(node)` - Node drag lifecycle
+- `ConnectionDragStarted(...)` / `ConnectionDragEnded(...)` - Connection creation
+- `ResizeStarted(node)` / `ResizeEnded(node)` - Resize lifecycle
+
+**Hover Events:**
+
+- `NodeHoverChanged(node, isHovered)` - Mouse enter/leave node
+- `ConnectionHoverChanged(connection, isHovered)` - Mouse on connection
+- `PortHoverChanged(port, node, isHovered)` - Mouse on port
+
+**Lifecycle Events:**
+
+- `GraphCleared()` - Graph was cleared
+- `GraphLoaded(graph)` - Graph was loaded
+
+**Batch Events:**
+
+- `BatchStarted(reason)` - Batch operation beginning
+- `BatchEnded()` - Batch operation complete
+
+**LOD Events:**
+
+- `LODLevelChanged(visibility, previousVisibility)` - Detail level changed
+
+</details>
+
+<details>
+<summary><strong>Event Handling Example</strong></summary>
+
+```dart
+@override
+void onEvent(GraphEvent event) {
+  switch (event) {
+    case NodeAdded(:final node):
+      print('Node added: ${node.id}');
+
+    case NodeMoved(:final node, :final previousPosition):
+      print('Node ${node.id} moved from $previousPosition to ${node.position}');
+
+    case SelectionChanged(:final selectedNodeIds, :final selectedConnectionIds):
+      print('Selected: ${selectedNodeIds.length} nodes, '
+            '${selectedConnectionIds.length} connections');
+
+    case BatchStarted(:final reason):
+      // Start accumulating changes
+      print('Batch started: $reason');
+
+    case BatchEnded():
+      // Finalize accumulated changes
+      print('Batch ended');
+
+    default:
+      // Ignore other events
+  }
+}
+```
+
+</details>
 
 ---
 

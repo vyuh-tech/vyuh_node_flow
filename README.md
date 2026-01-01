@@ -29,17 +29,21 @@ The core Flutter package providing the node-based flow editor functionality.
 **Features:**
 
 - High-performance reactive rendering with MobX
+- Level of Detail (LOD) for automatic visual simplification at zoom levels
 - Type-safe node data with generics
 - Fully customizable themes for nodes, connections, and ports
 - Flexible port system with multiple shapes and positions
+- Connection animation effects (flowing dashes, particles, gradients, pulse)
+- Multiple connection styles (bezier, smoothstep, straight, step) with
+  customizable endpoints
+- AutoPan when dragging near viewport edges
+- Viewport animations for smooth navigation transitions
 - Annotations (sticky notes, markers, groups)
 - Built-in minimap for navigation
 - Comprehensive keyboard shortcuts
-- Multiple connection styles (bezier, smoothstep, straight, step) with
-  customizable end points
 - Read-only viewer mode
 - JSON serialization for saving/loading flows
-- Auto-layout algorithms (grid, hierarchical, alignment, distribution)
+- Extension architecture for modular, pluggable features
 
 **Installation:**
 
