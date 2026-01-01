@@ -265,23 +265,27 @@ class _EditableConnectionsExampleState
       children: [
         const SectionTitle('About'),
         SectionContent(
-          child: InfoCard(
-            title: 'Instructions',
-            content:
-                '1. Enable editing mode to see control points\n'
-                '2. Drag control points to modify connection paths\n'
-                '3. Control points define waypoints for smooth step routing\n'
-                '4. Connections without control points use automatic routing',
-          ),
-        ),
-        SectionContent(
-          child: InfoCard(
-            title: 'Features',
-            content:
-                '• Drag control points to customize paths\n'
-                '• Add/remove control points programmatically\n'
-                '• Maintains orthogonal (90°) routing\n'
-                '• Smooth rounded corners at bends',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InfoCard(
+                title: 'Instructions',
+                content:
+                    '1. Enable editing mode to see control points\n'
+                    '2. Drag control points to modify connection paths\n'
+                    '3. Control points define waypoints for smooth step routing\n'
+                    '4. Connections without control points use automatic routing',
+              ),
+              const SizedBox(height: 12),
+              InfoCard(
+                title: 'Features',
+                content:
+                    '• Drag control points to customize paths\n'
+                    '• Add/remove control points programmatically\n'
+                    '• Maintains orthogonal (90°) routing\n'
+                    '• Smooth rounded corners at bends',
+              ),
+            ],
           ),
         ),
         const SectionTitle('Actions'),

@@ -43,7 +43,7 @@ class SectionTitle extends StatelessWidget {
   }
 }
 
-/// Wrapper for section content - no padding by default
+/// Wrapper for section content with padding on all sides
 /// Use SectionTitle for headers and SectionContent for content items
 class SectionContent extends StatelessWidget {
   final Widget child;
@@ -52,7 +52,28 @@ class SectionContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return child;
+    return Padding(padding: const EdgeInsets.all(16), child: child);
+  }
+}
+
+/// A faint divider for separating subsections within a SectionContent
+/// Use between logical groups of controls within the same section
+class SubsectionDivider extends StatelessWidget {
+  const SubsectionDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.isDark;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Divider(
+        height: 1,
+        thickness: 1,
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.black.withValues(alpha: 0.06),
+      ),
+    );
   }
 }
 
@@ -423,20 +444,9 @@ class ControlPanel extends StatelessWidget {
     if (widgets.isEmpty) return widgets;
     final result = <Widget>[];
     for (var i = 0; i < widgets.length; i++) {
-      final widget = widgets[i];
-      // SectionTitle spans full width, SectionContent gets horizontal padding
-      if (widget is SectionContent) {
-        result.add(
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: widget,
-          ),
-        );
-      } else {
-        result.add(widget);
-      }
+      result.add(widgets[i]);
       if (i < widgets.length - 1) {
-        result.add(const SizedBox(height: 12)); // Reduced from 16
+        result.add(const SizedBox(height: 12));
       }
     }
     return result;

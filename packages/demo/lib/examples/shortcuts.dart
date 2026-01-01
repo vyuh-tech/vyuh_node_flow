@@ -185,35 +185,37 @@ class _ShortcutsExampleState extends State<ShortcutsExample> {
     return [
       const SectionTitle('Shortcuts'),
       SectionContent(
-        child: _buildShortcutCategory('Selection', [
-          _buildShortcutRow('Cmd/Ctrl + A', 'Select all nodes'),
-          _buildShortcutRow('Cmd/Ctrl + I', 'Invert selection'),
-          _buildShortcutRow('Escape', 'Clear selection'),
-          _buildShortcutRow('Shift + Drag', 'Multi-select'),
-        ]),
-      ),
-      SectionContent(
-        child: _buildShortcutCategory('Editing', [
-          _buildShortcutRow('Delete/Backspace', 'Delete selected'),
-          _buildShortcutRow('Cmd/Ctrl + D', 'Duplicate'),
-          _buildShortcutRow('Cmd/Ctrl + C', 'Copy'),
-          _buildShortcutRow('Cmd/Ctrl + V', 'Paste'),
-        ]),
-      ),
-      SectionContent(
-        child: _buildShortcutCategory('Navigation', [
-          _buildShortcutRow('F', 'Fit to view'),
-          _buildShortcutRow('H', 'Fit selected'),
-          _buildShortcutRow('Cmd/Ctrl + 0', 'Reset zoom'),
-          _buildShortcutRow('Cmd/Ctrl + =', 'Zoom in'),
-          _buildShortcutRow('Cmd/Ctrl + -', 'Zoom out'),
-        ]),
-      ),
-      SectionContent(
-        child: _buildShortcutCategory('Custom', [
-          _buildShortcutRow('Cmd/Ctrl + S', 'Save workflow', custom: true),
-          _buildShortcutRow('Cmd/Ctrl + E', 'Export graph', custom: true),
-        ]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildShortcutCategory('Selection', [
+              _buildShortcutRow('Cmd/Ctrl + A', 'Select all nodes'),
+              _buildShortcutRow('Cmd/Ctrl + I', 'Invert selection'),
+              _buildShortcutRow('Escape', 'Clear selection'),
+              _buildShortcutRow('Shift + Drag', 'Multi-select'),
+            ]),
+            const SizedBox(height: 12),
+            _buildShortcutCategory('Editing', [
+              _buildShortcutRow('Delete/Backspace', 'Delete selected'),
+              _buildShortcutRow('Cmd/Ctrl + D', 'Duplicate'),
+              _buildShortcutRow('Cmd/Ctrl + C', 'Copy'),
+              _buildShortcutRow('Cmd/Ctrl + V', 'Paste'),
+            ]),
+            const SizedBox(height: 12),
+            _buildShortcutCategory('Navigation', [
+              _buildShortcutRow('F', 'Fit to view'),
+              _buildShortcutRow('H', 'Fit selected'),
+              _buildShortcutRow('Cmd/Ctrl + 0', 'Reset zoom'),
+              _buildShortcutRow('Cmd/Ctrl + =', 'Zoom in'),
+              _buildShortcutRow('Cmd/Ctrl + -', 'Zoom out'),
+            ]),
+            const SizedBox(height: 12),
+            _buildShortcutCategory('Custom', [
+              _buildShortcutRow('Cmd/Ctrl + S', 'Save workflow', custom: true),
+              _buildShortcutRow('Cmd/Ctrl + E', 'Export graph', custom: true),
+            ]),
+          ],
+        ),
       ),
       const SectionTitle('Actions'),
       SectionContent(

@@ -371,7 +371,6 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     // All initialization happens in _initController in a specific, documented order.
     // See editor_init_api.dart for the full initialization sequence.
     final themePortSize = widget.theme.portTheme.size;
-    final connectionStyle = widget.theme.connectionTheme.style;
 
     widget.controller.initController(
       theme: widget.theme,
@@ -396,13 +395,14 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
         final targetNode = widget.controller.getNode(connection.targetNodeId);
         if (sourceNode == null || targetNode == null) return [];
 
-        return widget.controller.connectionPainter.pathCache
-            .getOrCreateSegmentBounds(
-              connection: connection,
-              sourceNode: sourceNode,
-              targetNode: targetNode,
-              connectionStyle: connectionStyle,
-            );
+        // Use current theme style, not a captured one from initState
+        final pathCache = widget.controller.connectionPainter.pathCache;
+        return pathCache.getOrCreateSegmentBounds(
+          connection: connection,
+          sourceNode: sourceNode,
+          targetNode: targetNode,
+          connectionStyle: pathCache.theme.connectionTheme.style,
+        );
       },
       events: widget.events,
     );

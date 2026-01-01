@@ -197,17 +197,21 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample>
       children: [
         const SectionTitle('Actions'),
         SectionContent(
-          child: ControlButton(
-            label: 'Add Node',
-            icon: Icons.add,
-            onPressed: _addNode,
-          ),
-        ),
-        SectionContent(
-          child: InfoCard(
-            title: 'Instructions',
-            content:
-                'Add nodes and connect them by dragging from output to input ports',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ControlButton(
+                label: 'Add Node',
+                icon: Icons.add,
+                onPressed: _addNode,
+              ),
+              const SizedBox(height: 12),
+              InfoCard(
+                title: 'Instructions',
+                content:
+                    'Add nodes and connect them by dragging from output to input ports',
+              ),
+            ],
           ),
         ),
       ],

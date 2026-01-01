@@ -458,68 +458,73 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo>
       // Animation Section
       const SectionTitle('Animation'),
       SectionContent(
-        child: Observer(
-          builder: (context) => SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text(
-              'Orbit Target Node',
-              style: TextStyle(fontSize: 13),
-            ),
-            subtitle: const Text(
-              'Target node orbits around source node',
-              style: TextStyle(fontSize: 11),
-            ),
-            value: _themeControl._isRotating.value,
-            onChanged: (value) {
-              _themeControl.isRotating = value;
-            },
-          ),
-        ),
-      ),
-      SectionContent(
-        child: Observer(
-          builder: (context) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Orbit Speed: ${_themeControl._rotationSpeed.value.toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 13),
-              ),
-              Slider(
-                value: _themeControl._rotationSpeed.value,
-                min: 0.1,
-                max: 2.0,
-                divisions: 19,
-                label: _themeControl._rotationSpeed.value.toStringAsFixed(2),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Observer(
+              builder: (context) => SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text(
+                  'Orbit Target Node',
+                  style: TextStyle(fontSize: 13),
+                ),
+                subtitle: const Text(
+                  'Target node orbits around source node',
+                  style: TextStyle(fontSize: 11),
+                ),
+                value: _themeControl._isRotating.value,
                 onChanged: (value) {
-                  _themeControl.rotationSpeed = value;
+                  _themeControl.isRotating = value;
                 },
               ),
-            ],
-          ),
-        ),
-      ),
-      SectionContent(
-        child: Observer(
-          builder: (context) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Orbit Radius: ${_themeControl._orbitRadius.value.toStringAsFixed(0)}',
-                style: const TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            Observer(
+              builder: (context) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Orbit Speed: ${_themeControl._rotationSpeed.value.toStringAsFixed(2)}',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  Slider(
+                    value: _themeControl._rotationSpeed.value,
+                    min: 0.1,
+                    max: 2.0,
+                    divisions: 19,
+                    label: _themeControl._rotationSpeed.value.toStringAsFixed(
+                      2,
+                    ),
+                    onChanged: (value) {
+                      _themeControl.rotationSpeed = value;
+                    },
+                  ),
+                ],
               ),
-              Slider(
-                value: _themeControl._orbitRadius.value,
-                min: 50,
-                max: 400,
-                divisions: 35,
-                label: _themeControl._orbitRadius.value.toStringAsFixed(0),
-                onChanged: (value) {
-                  _themeControl.orbitRadius = value;
-                },
+            ),
+            const SizedBox(height: 12),
+            Observer(
+              builder: (context) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Orbit Radius: ${_themeControl._orbitRadius.value.toStringAsFixed(0)}',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  Slider(
+                    value: _themeControl._orbitRadius.value,
+                    min: 50,
+                    max: 400,
+                    divisions: 35,
+                    label: _themeControl._orbitRadius.value.toStringAsFixed(0),
+                    onChanged: (value) {
+                      _themeControl.orbitRadius = value;
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       // Connection Style Section

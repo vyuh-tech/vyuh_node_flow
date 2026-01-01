@@ -443,11 +443,11 @@ class _ThemingExampleState extends State<ThemingExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Connections'),
-        // Style subsection
         SectionContent(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Style subsection
               const Text(
                 'Style',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -480,14 +480,8 @@ class _ThemingExampleState extends State<ThemingExample> {
                   );
                 }).toList(),
               ),
-            ],
-          ),
-        ),
-        // Path Parameters subsection
-        SectionContent(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+              const SubsectionDivider(),
+              // Path Parameters subsection
               const Text(
                 'Path Parameters',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -580,14 +574,8 @@ class _ThemingExampleState extends State<ThemingExample> {
                 'Curvature factor for bezier-style connections',
                 style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
               ),
-            ],
-          ),
-        ),
-        // Effect subsection
-        SectionContent(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+              const SubsectionDivider(),
+              // Effect subsection
               const Text(
                 'Effect',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -625,14 +613,8 @@ class _ThemingExampleState extends State<ThemingExample> {
                       );
                     }).toList(),
               ),
-            ],
-          ),
-        ),
-        // Start Point subsection
-        SectionContent(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+              const SubsectionDivider(),
+              // Start Point subsection
               const Text(
                 'Start Point',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -674,14 +656,8 @@ class _ThemingExampleState extends State<ThemingExample> {
                       );
                     }).toList(),
               ),
-            ],
-          ),
-        ),
-        // End Point subsection
-        SectionContent(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+              const SubsectionDivider(),
+              // End Point subsection
               const Text(
                 'End Point',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -794,14 +770,8 @@ class _ThemingExampleState extends State<ThemingExample> {
                   );
                 },
               ),
-            ],
-          ),
-        ),
-        // Endpoint Styling subsection
-        SectionContent(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+              const SubsectionDivider(),
+              // Endpoint Styling subsection
               const Text(
                 'Endpoint Styling',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -856,14 +826,8 @@ class _ThemingExampleState extends State<ThemingExample> {
                   );
                 },
               ),
-            ],
-          ),
-        ),
-        // Colors subsection
-        SectionContent(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+              const SubsectionDivider(),
+              // Colors subsection
               const Text(
                 'Colors',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -894,14 +858,8 @@ class _ThemingExampleState extends State<ThemingExample> {
                   );
                 },
               ),
-            ],
-          ),
-        ),
-        // Stroke Width subsection
-        SectionContent(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+              const SubsectionDivider(),
+              // Stroke Width subsection
               const Text(
                 'Stroke Width',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -989,13 +947,7 @@ class _ThemingExampleState extends State<ThemingExample> {
                   ),
                 );
               }),
-            ],
-          ),
-        ),
-        SectionContent(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+              const SubsectionDivider(),
               const Text('End Point Shape', style: TextStyle(fontSize: 12)),
               const SizedBox(height: 8),
               Wrap(
@@ -1030,13 +982,7 @@ class _ThemingExampleState extends State<ThemingExample> {
                       );
                     }).toList(),
               ),
-            ],
-          ),
-        ),
-        SectionContent(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+              const SubsectionDivider(),
               const Text('Animation Effect', style: TextStyle(fontSize: 12)),
               const SizedBox(height: 8),
               Wrap(
@@ -1068,13 +1014,7 @@ class _ThemingExampleState extends State<ThemingExample> {
                       );
                     }).toList(),
               ),
-            ],
-          ),
-        ),
-        SectionContent(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+              const SubsectionDivider(),
               _buildSlider('Start Gap', tempTheme.startGap, 0.0, 20.0, (value) {
                 _updateTheme(
                   _theme.copyWith(
@@ -1206,11 +1146,11 @@ class _ThemingExampleState extends State<ThemingExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Ports'),
-        // Size subsection
         SectionContent(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Size subsection
               const Text(
                 'Size',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -1238,14 +1178,8 @@ class _ThemingExampleState extends State<ThemingExample> {
                   ),
                 );
               }),
-            ],
-          ),
-        ),
-        // Shape subsection
-        SectionContent(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+              const SubsectionDivider(),
+              // Shape subsection
               const Text(
                 'Shape',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -1274,14 +1208,8 @@ class _ThemingExampleState extends State<ThemingExample> {
                       );
                     }).toList(),
               ),
-            ],
-          ),
-        ),
-        // Custom Builders subsection
-        SectionContent(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+              const SubsectionDivider(),
+              // Custom Builders subsection
               const Text(
                 'Custom Builders',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -1402,13 +1330,7 @@ class _ThemingExampleState extends State<ThemingExample> {
                   ),
                 );
               }),
-            ],
-          ),
-        ),
-        SectionContent(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+              const SubsectionDivider(),
               const Text('Grid Style', style: TextStyle(fontSize: 12)),
               const SizedBox(height: 8),
               Wrap(

@@ -338,39 +338,43 @@ class _AnnotationExampleState extends State<AnnotationExample> {
         ),
         const SectionTitle('Visibility'),
         SectionContent(
-          child: Grid2Cols(
-            buttons: [
-              GridButton(
-                label: 'Hide All',
-                icon: Icons.visibility_off,
-                onPressed: () {
-                  for (final node in controller.nodes.values) {
-                    if (node is CommentNode || node is GroupNode) {
-                      node.isVisible = false;
-                    }
-                  }
-                },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Grid2Cols(
+                buttons: [
+                  GridButton(
+                    label: 'Hide All',
+                    icon: Icons.visibility_off,
+                    onPressed: () {
+                      for (final node in controller.nodes.values) {
+                        if (node is CommentNode || node is GroupNode) {
+                          node.isVisible = false;
+                        }
+                      }
+                    },
+                  ),
+                  GridButton(
+                    label: 'Show All',
+                    icon: Icons.visibility,
+                    onPressed: () {
+                      for (final node in controller.nodes.values) {
+                        if (node is CommentNode || node is GroupNode) {
+                          node.isVisible = true;
+                        }
+                      }
+                    },
+                  ),
+                ],
               ),
-              GridButton(
-                label: 'Show All',
-                icon: Icons.visibility,
-                onPressed: () {
-                  for (final node in controller.nodes.values) {
-                    if (node is CommentNode || node is GroupNode) {
-                      node.isVisible = true;
-                    }
-                  }
-                },
+              const SizedBox(height: 12),
+              ControlButton(
+                label: 'Clear All Comment/Group Nodes',
+                icon: Icons.clear,
+                isDestructive: true,
+                onPressed: _clearAllCommentAndGroupNodes,
               ),
             ],
-          ),
-        ),
-        SectionContent(
-          child: ControlButton(
-            label: 'Clear All Comment/Group Nodes',
-            icon: Icons.clear,
-            isDestructive: true,
-            onPressed: _clearAllCommentAndGroupNodes,
           ),
         ),
       ],

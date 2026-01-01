@@ -199,10 +199,10 @@ extension EditorInitApi<T, C> on NodeFlowController<T, C> {
       );
     }
 
-    // Update the connection painter's theme
+    // Update the connection painter's theme (invalidates cache if style changed)
     _connectionPainter?.updateTheme(theme);
 
-    // Update observable theme - this triggers reactions for spatial index rebuild
+    // Update observable theme
     runInAction(() => _themeObservable.value = theme);
   }
 

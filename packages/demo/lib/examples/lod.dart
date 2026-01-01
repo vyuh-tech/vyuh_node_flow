@@ -762,31 +762,34 @@ class _LODExampleState extends State<LODExample> {
       children: [
         const SectionTitle('Quick Zoom'),
         SectionContent(
-          child: Text(
-            'Jump to specific zoom levels to see LOD changes',
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-          ),
-        ),
-        SectionContent(
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildZoomButton('Min', _controller.config.minZoom.value),
-              _buildZoomButton('25%', 0.25),
-              _buildZoomButton('50%', 0.5),
-              _buildZoomButton('75%', 0.75),
-              _buildZoomButton('100%', 1.0),
-              _buildZoomButton('150%', 1.5),
-              _buildZoomButton('Max', _controller.config.maxZoom.value),
+              Text(
+                'Jump to specific zoom levels to see LOD changes',
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildZoomButton('Min', _controller.config.minZoom.value),
+                  _buildZoomButton('25%', 0.25),
+                  _buildZoomButton('50%', 0.5),
+                  _buildZoomButton('75%', 0.75),
+                  _buildZoomButton('100%', 1.0),
+                  _buildZoomButton('150%', 1.5),
+                  _buildZoomButton('Max', _controller.config.maxZoom.value),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ControlButton(
+                icon: Icons.fit_screen,
+                label: 'Fit to View',
+                onPressed: () => _controller.fitToView(),
+              ),
             ],
-          ),
-        ),
-        SectionContent(
-          child: ControlButton(
-            icon: Icons.fit_screen,
-            label: 'Fit to View',
-            onPressed: () => _controller.fitToView(),
           ),
         ),
       ],

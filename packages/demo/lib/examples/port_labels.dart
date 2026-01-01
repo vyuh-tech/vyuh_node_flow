@@ -320,13 +320,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
                   });
                 },
               ),
-            ],
-          ),
-        ),
-        SectionContent(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+              const SizedBox(height: 12),
               Text(
                 'Label Offset: ${_labelOffset.toStringAsFixed(0)}',
                 style: theme.textTheme.bodyMedium,
