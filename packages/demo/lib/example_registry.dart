@@ -1,30 +1,32 @@
 import 'package:flutter/material.dart';
 
 import 'example_model.dart';
-// All examples - flat imports
-import 'examples/alignment.dart';
-import 'examples/animated_connections.dart';
-import 'examples/annotations.dart';
-import 'examples/autopan.dart';
-import 'examples/callbacks.dart';
-import 'examples/connection_labels.dart';
-import 'examples/controlling_nodes.dart';
-import 'examples/dynamic_ports.dart';
-import 'examples/interactive_widgets.dart';
-import 'examples/lod.dart';
-import 'examples/minimap.dart';
-import 'examples/node_shapes.dart';
-import 'examples/port_labels.dart';
-import 'examples/ports.dart';
-import 'examples/serialization.dart';
-import 'examples/shortcuts.dart';
-import 'examples/simple.dart';
-import 'examples/theming.dart';
-import 'examples/validation.dart';
-import 'examples/viewer.dart';
-import 'examples/viewport_animations.dart';
-import 'examples/visibility.dart';
-import 'examples/workbench.dart';
+
+// Deferred imports - each example is loaded on-demand
+// This reduces initial bundle size for web builds
+import 'examples/alignment.dart' deferred as alignment;
+import 'examples/animated_connections.dart' deferred as animated_connections;
+import 'examples/annotations.dart' deferred as annotations;
+import 'examples/autopan.dart' deferred as autopan;
+import 'examples/callbacks.dart' deferred as callbacks;
+import 'examples/connection_labels.dart' deferred as connection_labels;
+import 'examples/controlling_nodes.dart' deferred as controlling_nodes;
+import 'examples/dynamic_ports.dart' deferred as dynamic_ports;
+import 'examples/interactive_widgets.dart' deferred as interactive_widgets;
+import 'examples/lod.dart' deferred as lod;
+import 'examples/minimap.dart' deferred as minimap;
+import 'examples/node_shapes.dart' deferred as node_shapes;
+import 'examples/port_labels.dart' deferred as port_labels;
+import 'examples/ports.dart' deferred as ports;
+import 'examples/serialization.dart' deferred as serialization;
+import 'examples/shortcuts.dart' deferred as shortcuts;
+import 'examples/simple.dart' deferred as simple;
+import 'examples/theming.dart' deferred as theming;
+import 'examples/validation.dart' deferred as validation;
+import 'examples/viewer.dart' deferred as viewer;
+import 'examples/viewport_animations.dart' deferred as viewport_animations;
+import 'examples/visibility.dart' deferred as visibility;
+import 'examples/workbench.dart' deferred as workbench;
 
 class ExampleRegistry {
   static List<ExampleCategory> get all => [
@@ -40,7 +42,10 @@ class ExampleRegistry {
           title: 'Simple Graph',
           description: 'Add basic nodes to the canvas with a click',
           icon: Icons.add_circle_outline,
-          builder: (_) => const SimpleNodeAdditionExample(),
+          loader: () async {
+            await simple.loadLibrary();
+            return (_) => simple.SimpleNodeAdditionExample();
+          },
         ),
         Example(
           id: 'callbacks',
@@ -48,14 +53,20 @@ class ExampleRegistry {
           description:
               'Real-time event logging for all node, connection, and viewport lifecycle events',
           icon: Icons.monitor_heart_outlined,
-          builder: (_) => const CallbacksExample(),
+          loader: () async {
+            await callbacks.loadLibrary();
+            return (_) => callbacks.CallbacksExample();
+          },
         ),
         Example(
           id: 'viewer',
           title: 'Read-only Viewer',
           description: 'Display graphs in read-only mode without editing',
           icon: Icons.visibility_outlined,
-          builder: (_) => const ViewerExample(),
+          loader: () async {
+            await viewer.loadLibrary();
+            return (_) => viewer.ViewerExample();
+          },
         ),
       ],
     ),
@@ -73,7 +84,10 @@ class ExampleRegistry {
           description:
               'Add different node types, select, move, and delete nodes',
           icon: Icons.control_camera,
-          builder: (_) => const ControllingNodesExample(),
+          loader: () async {
+            await controlling_nodes.loadLibrary();
+            return (_) => controlling_nodes.ControllingNodesExample();
+          },
         ),
         Example(
           id: 'node-shapes',
@@ -81,7 +95,10 @@ class ExampleRegistry {
           description:
               'Explore different node shapes: Circle, Diamond, Hexagon, and Rectangle',
           icon: Icons.category_outlined,
-          builder: (_) => const NodeShapesExample(),
+          loader: () async {
+            await node_shapes.loadLibrary();
+            return (_) => node_shapes.NodeShapesExample();
+          },
         ),
         Example(
           id: 'interactive-widgets',
@@ -89,7 +106,10 @@ class ExampleRegistry {
           description:
               'Buttons, text fields, and sliders inside nodes - drag outside to verify gestures',
           icon: Icons.touch_app_outlined,
-          builder: (_) => const InteractiveWidgetsExample(),
+          loader: () async {
+            await interactive_widgets.loadLibrary();
+            return (_) => interactive_widgets.InteractiveWidgetsExample();
+          },
         ),
       ],
     ),
@@ -107,7 +127,10 @@ class ExampleRegistry {
           description:
               'Explore all port positions and connection styles with live preview',
           icon: Icons.settings_ethernet,
-          builder: (_) => const PortCombinationsDemo(),
+          loader: () async {
+            await ports.loadLibrary();
+            return (_) => ports.PortCombinationsDemo();
+          },
         ),
         Example(
           id: 'port-labels',
@@ -115,7 +138,10 @@ class ExampleRegistry {
           description:
               'Display and customize port names with intelligent positioning',
           icon: Icons.label_outline,
-          builder: (_) => const PortLabelsExample(),
+          loader: () async {
+            await port_labels.loadLibrary();
+            return (_) => port_labels.PortLabelsExample();
+          },
         ),
         Example(
           id: 'dynamic-ports',
@@ -123,7 +149,10 @@ class ExampleRegistry {
           description:
               'Add ports dynamically to nodes - nodes resize automatically',
           icon: Icons.add_link,
-          builder: (_) => const DynamicPortsExample(),
+          loader: () async {
+            await dynamic_ports.loadLibrary();
+            return (_) => dynamic_ports.DynamicPortsExample();
+          },
         ),
       ],
     ),
@@ -141,7 +170,10 @@ class ExampleRegistry {
           description:
               'Interactive demo of all animation effects: flowing dashes, particles, gradients',
           icon: Icons.animation,
-          builder: (_) => const AnimatedConnectionsExample(),
+          loader: () async {
+            await animated_connections.loadLibrary();
+            return (_) => animated_connections.AnimatedConnectionsExample();
+          },
         ),
         Example(
           id: 'connection-labels',
@@ -149,7 +181,10 @@ class ExampleRegistry {
           description:
               'Add, edit, and position labels dynamically on connections',
           icon: Icons.label_important_outline,
-          builder: (_) => const ConnectionLabelsExample(),
+          loader: () async {
+            await connection_labels.loadLibrary();
+            return (_) => connection_labels.ConnectionLabelsExample();
+          },
         ),
         Example(
           id: 'validation',
@@ -157,7 +192,10 @@ class ExampleRegistry {
           description:
               'Custom validation rules, type checking, and connection limits',
           icon: Icons.verified_user_outlined,
-          builder: (_) => const ConnectionValidationExample(),
+          loader: () async {
+            await validation.loadLibrary();
+            return (_) => validation.ConnectionValidationExample();
+          },
         ),
       ],
     ),
@@ -175,7 +213,10 @@ class ExampleRegistry {
           description:
               'Interactive minimap for navigating large graphs with customizable options',
           icon: Icons.map_outlined,
-          builder: (_) => const MinimapExample(),
+          loader: () async {
+            await minimap.loadLibrary();
+            return (_) => minimap.MinimapExample();
+          },
         ),
         Example(
           id: 'viewport-animations',
@@ -183,14 +224,20 @@ class ExampleRegistry {
           description:
               'Animated navigation to nodes, positions, bounds, and zoom levels',
           icon: Icons.animation,
-          builder: (_) => const ViewportAnimationsExample(),
+          loader: () async {
+            await viewport_animations.loadLibrary();
+            return (_) => viewport_animations.ViewportAnimationsExample();
+          },
         ),
         Example(
           id: 'autopan',
           title: 'AutoPan',
           description: 'Automatic viewport panning when dragging near edges',
           icon: Icons.pan_tool_alt_outlined,
-          builder: (_) => const AutoPanExample(),
+          loader: () async {
+            await autopan.loadLibrary();
+            return (_) => autopan.AutoPanExample();
+          },
         ),
       ],
     ),
@@ -208,7 +255,10 @@ class ExampleRegistry {
           description:
               'Customize colors, styles, and appearance of the node flow editor',
           icon: Icons.color_lens_outlined,
-          builder: (_) => const ThemingExample(),
+          loader: () async {
+            await theming.loadLibrary();
+            return (_) => theming.ThemingExample();
+          },
         ),
         Example(
           id: 'lod',
@@ -216,14 +266,20 @@ class ExampleRegistry {
           description:
               'Automatic visual simplification based on zoom level for performance',
           icon: Icons.layers_outlined,
-          builder: (_) => const LODExample(),
+          loader: () async {
+            await lod.loadLibrary();
+            return (_) => lod.LODExample();
+          },
         ),
         Example(
           id: 'visibility',
           title: 'Visibility Toggling',
           description: 'Show/hide nodes and annotations with eye icon controls',
           icon: Icons.visibility_off_outlined,
-          builder: (_) => const VisibilityExample(),
+          loader: () async {
+            await visibility.loadLibrary();
+            return (_) => visibility.VisibilityExample();
+          },
         ),
       ],
     ),
@@ -241,7 +297,10 @@ class ExampleRegistry {
           description:
               'Export graphs to JSON, save workflows, and restore them',
           icon: Icons.save_outlined,
-          builder: (_) => const SerializationExample(),
+          loader: () async {
+            await serialization.loadLibrary();
+            return (_) => serialization.SerializationExample();
+          },
         ),
         Example(
           id: 'shortcuts',
@@ -249,7 +308,10 @@ class ExampleRegistry {
           description:
               'Comprehensive showcase of all keyboard shortcuts and custom actions',
           icon: Icons.keyboard_outlined,
-          builder: (_) => const ShortcutsExample(),
+          loader: () async {
+            await shortcuts.loadLibrary();
+            return (_) => shortcuts.ShortcutsExample();
+          },
         ),
       ],
     ),
@@ -267,7 +329,10 @@ class ExampleRegistry {
           description:
               'Comment nodes and group nodes for organizing your graph',
           icon: Icons.sticky_note_2_outlined,
-          builder: (_) => const AnnotationExample(),
+          loader: () async {
+            await annotations.loadLibrary();
+            return (_) => annotations.AnnotationExample();
+          },
         ),
         Example(
           id: 'alignment',
@@ -275,7 +340,10 @@ class ExampleRegistry {
           description:
               'Align, distribute, and arrange nodes. Use Shift-Drag to select multiple',
           icon: Icons.align_horizontal_center,
-          builder: (_) => const AlignmentExample(),
+          loader: () async {
+            await alignment.loadLibrary();
+            return (_) => alignment.AlignmentExample();
+          },
         ),
         Example(
           id: 'workbench',
@@ -283,7 +351,10 @@ class ExampleRegistry {
           description:
               'Comprehensive demo with workflows, layouts, and interactive tools',
           icon: Icons.dashboard_outlined,
-          builder: (_) => const WorkbenchExample(),
+          loader: () async {
+            await workbench.loadLibrary();
+            return (_) => workbench.WorkbenchExample();
+          },
         ),
       ],
     ),

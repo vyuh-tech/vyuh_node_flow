@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'embed_wrapper.dart';
 import 'example_model.dart';
 
 /// Provides example metadata to child widgets via InheritedWidget
@@ -40,7 +41,11 @@ class ExampleDetailView extends StatelessWidget {
 
     // No header - the header will be shown in the right panel
     // Wrap with ExampleContext so child widgets can access example metadata
-    return ExampleContext(example: example!, child: example!.builder(context));
+    // Use DeferredExampleLoader to handle async loading
+    return ExampleContext(
+      example: example!,
+      child: DeferredExampleLoader(example: example!),
+    );
   }
 
   Widget _buildEmptyState(BuildContext context) {

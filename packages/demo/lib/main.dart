@@ -36,8 +36,6 @@ final _router = GoRouter(
 
         // Check for embed mode via query params
         final isEmbed = state.uri.queryParameters['embed'] == 'true';
-        final isMinimal = state.uri.queryParameters['minimal'] == 'true';
-        final showHeader = state.uri.queryParameters['header'] != 'false';
 
         // Validate that the category and example exist
         final example = ExampleRegistry.findExample(categoryId, exampleId);
@@ -45,19 +43,9 @@ final _router = GoRouter(
           return ExampleNotFound(categoryId: categoryId, exampleId: exampleId);
         }
 
-        // Embed mode: minimal wrapper for iframe embedding
+        // Embed mode: show just the example without navigation or control panel
         if (isEmbed) {
-          if (isMinimal) {
-            return EmbedWrapperMinimal(example: example);
-          }
-          return EmbedWrapper(
-            example: example,
-            showHeader: showHeader,
-            onSourceTap: () {
-              // Open source on GitHub
-              // Could use url_launcher here
-            },
-          );
+          return EmbedWrapper(example: example);
         }
 
         // Normal mode: full browser with navigation

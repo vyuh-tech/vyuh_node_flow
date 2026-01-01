@@ -3,6 +3,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../design_kit/theme.dart';
+import '../embed_wrapper.dart';
 import '../example_detail_view.dart';
 import 'responsive.dart';
 
@@ -872,6 +873,11 @@ class _ResponsiveControlPanelState extends State<ResponsiveControlPanel> {
 
   @override
   Widget build(BuildContext context) {
+    // In embed mode, just show the child without any chrome
+    if (EmbedContext.of(context)) {
+      return widget.child;
+    }
+
     final isMobile = Responsive.isMobile(context);
 
     // Auto-read from ExampleContext if header params aren't provided
