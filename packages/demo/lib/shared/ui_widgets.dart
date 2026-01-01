@@ -43,7 +43,8 @@ class SectionTitle extends StatelessWidget {
   }
 }
 
-/// Wrapper for section content with horizontal padding
+/// Wrapper for section content - no padding by default
+/// Use SectionTitle for headers and SectionContent for content items
 class SectionContent extends StatelessWidget {
   final Widget child;
 
@@ -51,10 +52,7 @@ class SectionContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: child,
-    );
+    return child;
   }
 }
 
@@ -312,7 +310,7 @@ class GridButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         hoverColor: context.borderColor,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(8),
@@ -323,21 +321,22 @@ class GridButton extends StatelessWidget {
                   : context.borderSubtleColor,
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 18, color: fgColor),
-              const SizedBox(height: 6),
-              Text(
-                label,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: fgColor,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+              Icon(icon, size: 16, color: fgColor),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: fgColor,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -361,7 +360,7 @@ class Grid2Cols extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 8,
       crossAxisSpacing: 8,
-      childAspectRatio: 2.0, // Reduced from 2.5 to give more vertical space
+      childAspectRatio: 3.0, // Horizontal buttons need wider aspect ratio
       children: buttons,
     );
   }
@@ -424,7 +423,18 @@ class ControlPanel extends StatelessWidget {
     if (widgets.isEmpty) return widgets;
     final result = <Widget>[];
     for (var i = 0; i < widgets.length; i++) {
-      result.add(widgets[i]);
+      final widget = widgets[i];
+      // SectionTitle spans full width, SectionContent gets horizontal padding
+      if (widget is SectionContent) {
+        result.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: widget,
+          ),
+        );
+      } else {
+        result.add(widget);
+      }
       if (i < widgets.length - 1) {
         result.add(const SizedBox(height: 12)); // Reduced from 16
       }
@@ -618,10 +628,7 @@ class _ComprehensiveStats extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Expanded(
-                flex: 2,
-                child: Observer(builder: (_) => _ViewportInfo(stats: stats)),
-              ),
+              Expanded(flex: 2, child: _ViewportInfo(stats: stats)),
             ],
           ),
         ],
@@ -631,6 +638,7 @@ class _ComprehensiveStats extends StatelessWidget {
 }
 
 /// Viewport info display showing zoom, pan, and bounds
+/// Each reactive property is wrapped in its own Observer for granular updates.
 class _ViewportInfo extends StatelessWidget {
   final StatsExtension stats;
 
@@ -640,7 +648,6 @@ class _ViewportInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = context.isDark;
-    final pan = stats.pan;
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
@@ -651,35 +658,44 @@ class _ViewportInfo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Zoom and pan
+          // Zoom and pan - each with granular Observer
           Row(
             children: [
               Icon(Icons.zoom_in, size: 10, color: context.textTertiaryColor),
               const SizedBox(width: 4),
-              Text(
-                '${stats.zoomPercent}%',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontFamily: 'JetBrains Mono',
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? DemoTheme.accentLight : DemoTheme.accent,
+              // Observer around zoomPercent
+              Observer(
+                builder: (_) => Text(
+                  '${stats.zoomPercent}%',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontFamily: 'JetBrains Mono',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? DemoTheme.accentLight : DemoTheme.accent,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
               Icon(Icons.open_with, size: 10, color: context.textTertiaryColor),
               const SizedBox(width: 4),
-              Text(
-                '${pan.dx.toInt()}, ${pan.dy.toInt()}',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontFamily: 'JetBrains Mono',
-                  fontSize: 10,
-                  color: context.textTertiaryColor,
-                ),
+              // Observer around pan
+              Observer(
+                builder: (_) {
+                  final pan = stats.pan;
+                  return Text(
+                    '${pan.dx.toInt()}, ${pan.dy.toInt()}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      fontFamily: 'JetBrains Mono',
+                      fontSize: 10,
+                      color: context.textTertiaryColor,
+                    ),
+                  );
+                },
               ),
             ],
           ),
           const SizedBox(height: 2),
-          // Bounds
+          // Bounds - with granular Observer
           Row(
             children: [
               Icon(
@@ -688,12 +704,15 @@ class _ViewportInfo extends StatelessWidget {
                 color: context.textTertiaryColor,
               ),
               const SizedBox(width: 4),
-              Text(
-                stats.boundsSummary,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontFamily: 'JetBrains Mono',
-                  fontSize: 10,
-                  color: context.textTertiaryColor,
+              // Observer around boundsSummary
+              Observer(
+                builder: (_) => Text(
+                  stats.boundsSummary,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontFamily: 'JetBrains Mono',
+                    fontSize: 10,
+                    color: context.textTertiaryColor,
+                  ),
                 ),
               ),
             ],

@@ -520,16 +520,16 @@ class _CallbacksExampleState extends State<CallbacksExample> {
         ),
       ),
       children: [
-        const Text(
-          'This example demonstrates ALL events in the new event system. '
-          'Try dragging nodes, creating connections, panning/zooming, and right-clicking!',
-          style: TextStyle(fontSize: 12, color: Colors.black54),
+        const SectionTitle('About'),
+        SectionContent(
+          child: Text(
+            'This example demonstrates ALL events in the new event system. '
+            'Try dragging nodes, creating connections, panning/zooming, and right-clicking!',
+            style: TextStyle(fontSize: 12, color: Colors.black54),
+          ),
         ),
-        const SizedBox(height: 16),
         _buildEventStats(),
-        const SizedBox(height: 16),
         _buildQuickActions(),
-        const SizedBox(height: 16),
         _buildEventLog(),
       ],
     );
@@ -540,30 +540,31 @@ class _CallbacksExampleState extends State<CallbacksExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Event Statistics'),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: EventType.values.map((type) {
-            final count = _eventCounts[type] ?? 0;
-            final color = _getEventTypeColor(type);
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: color),
-              ),
-              child: Text(
-                '${_getEventTypeTag(type).replaceAll('[', '').replaceAll(']', '')}: $count',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: color,
+        SectionContent(
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: EventType.values.map((type) {
+              final count = _eventCounts[type] ?? 0;
+              final color = _getEventTypeColor(type);
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: color),
                 ),
-              ),
-            );
-          }).toList(),
+                child: Text(
+                  '${_getEventTypeTag(type).replaceAll('[', '').replaceAll(']', '')}: $count',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
         ),
       ],
     );
@@ -591,73 +592,71 @@ class _CallbacksExampleState extends State<CallbacksExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Quick Actions'),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            ControlButton(
-              icon: Icons.add_circle_outline,
-              label: 'Add Node',
-              onPressed: () {
-                final nodeId = 'node-${DateTime.now().millisecondsSinceEpoch}';
-                _controller.addNode(
-                  Node<Map<String, dynamic>>(
-                    id: nodeId,
-                    type: 'process',
-                    position: Offset(
-                      200 + (_eventCounter % 3) * 100,
-                      100 + (_eventCounter % 3) * 100,
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                icon: Icons.add_circle_outline,
+                label: 'Add Node',
+                onPressed: () {
+                  final nodeId =
+                      'node-${DateTime.now().millisecondsSinceEpoch}';
+                  _controller.addNode(
+                    Node<Map<String, dynamic>>(
+                      id: nodeId,
+                      type: 'process',
+                      position: Offset(
+                        200 + (_eventCounter % 3) * 100,
+                        100 + (_eventCounter % 3) * 100,
+                      ),
+                      size: const Size(120, 80),
+                      data: {'label': 'Node ${_eventCounter + 1}'},
+                      inputPorts: [
+                        Port(
+                          id: 'in',
+                          name: 'Input',
+                          position: PortPosition.left,
+                          offset: Offset(0, 40),
+                        ),
+                      ],
+                      outputPorts: [
+                        Port(
+                          id: 'out',
+                          name: 'Output',
+                          position: PortPosition.right,
+                          offset: Offset(0, 40),
+                        ),
+                      ],
                     ),
-                    size: const Size(120, 80),
-                    data: {'label': 'Node ${_eventCounter + 1}'},
-                    inputPorts: [
-                      Port(
-                        id: 'in',
-                        name: 'Input',
-                        position: PortPosition.left,
-                        offset: Offset(0, 40), // Vertical center of 80 height
-                      ),
-                    ],
-                    outputPorts: [
-                      Port(
-                        id: 'out',
-                        name: 'Output',
-                        position: PortPosition.right,
-                        offset: Offset(0, 40), // Vertical center of 80 height
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            ControlButton(
-              icon: Icons.fit_screen,
-              label: 'Fit View',
-              onPressed: () {
-                _controller.fitToView();
-              },
-            ),
-            ControlButton(
-              icon: Icons.clear,
-              label: 'Clear Log',
-              onPressed: _clearEvents,
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Checkbox(
-              value: _autoScroll,
-              onChanged: (value) {
-                setState(() {
-                  _autoScroll = value ?? true;
-                });
-              },
-            ),
-            const Text('Auto-scroll to latest', style: TextStyle(fontSize: 11)),
-          ],
+                  );
+                },
+              ),
+              GridButton(
+                icon: Icons.fit_screen,
+                label: 'Fit View',
+                onPressed: () {
+                  _controller.fitToView();
+                },
+              ),
+              GridButton(
+                icon: Icons.clear,
+                label: 'Clear Log',
+                onPressed: _clearEvents,
+              ),
+              GridButton(
+                icon: _autoScroll
+                    ? Icons.check_box
+                    : Icons.check_box_outline_blank,
+                label: 'Auto-scroll',
+                isActive: _autoScroll,
+                onPressed: () {
+                  setState(() {
+                    _autoScroll = !_autoScroll;
+                  });
+                },
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -694,13 +693,8 @@ class _CallbacksExampleState extends State<CallbacksExample> {
           ),
         ),
         SectionContent(
-          child: Container(
+          child: SizedBox(
             height: 350,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
             child: _events.isEmpty
                 ? Center(
                     child: Text(
@@ -713,32 +707,23 @@ class _CallbacksExampleState extends State<CallbacksExample> {
                   )
                 : ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.all(8),
                     itemCount: _events.length,
                     itemBuilder: (context, index) {
                       final event = _events[index];
                       final isRecent = index < 3;
 
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 4),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isRecent
-                              ? Colors.blue.shade50
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
                         child: Text(
                           event,
                           style: TextStyle(
                             fontFamily: 'monospace',
                             fontSize: 10,
                             color: isRecent
-                                ? Colors.blue.shade900
-                                : Colors.grey.shade800,
+                                ? (isDark
+                                      ? DemoTheme.accentLight
+                                      : DemoTheme.accent)
+                                : context.textSecondaryColor,
                             fontWeight: isRecent
                                 ? FontWeight.w600
                                 : FontWeight.normal,
@@ -747,12 +732,6 @@ class _CallbacksExampleState extends State<CallbacksExample> {
                       );
                     },
                   ),
-          ),
-        ),
-        SectionContent(
-          child: Text(
-            'Tip: Try dragging nodes, right-clicking, creating connections, panning/zooming!',
-            style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
           ),
         ),
       ],

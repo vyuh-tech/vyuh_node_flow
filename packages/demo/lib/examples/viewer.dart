@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
+import '../shared/ui_widgets.dart';
+
 /// Example demonstrating the NodeFlowViewer widget
 class ViewerExample extends StatefulWidget {
   const ViewerExample({super.key});
@@ -32,11 +34,47 @@ class _ViewerExampleState extends State<ViewerExample> {
 
   @override
   Widget build(BuildContext context) {
-    return NodeFlowViewer<String, dynamic>(
+    return ResponsiveControlPanel(
       controller: _controller,
-      nodeBuilder: _buildNode,
-      theme: NodeFlowTheme.light,
-      // Uses NodeFlowBehavior.preview by default (pan, zoom, select, drag)
+      onReset: () => _controller.fitToView(),
+      child: NodeFlowViewer<String, dynamic>(
+        controller: _controller,
+        nodeBuilder: _buildNode,
+        theme: NodeFlowTheme.light,
+        // Uses NodeFlowBehavior.preview by default (pan, zoom, select, drag)
+      ),
+      children: [
+        const SectionTitle('About'),
+        SectionContent(
+          child: InfoCard(
+            title: 'Read-Only Viewer',
+            content:
+                'The NodeFlowViewer provides a read-only view of node graphs. It supports panning and zooming but disables editing operations like creating connections or moving nodes.',
+          ),
+        ),
+        const SectionTitle('Navigation'),
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                icon: Icons.center_focus_strong,
+                label: 'Fit to View',
+                onPressed: () => _controller.fitToView(),
+              ),
+              GridButton(
+                icon: Icons.zoom_in,
+                label: 'Zoom In',
+                onPressed: () => _controller.zoomBy(0.2),
+              ),
+              GridButton(
+                icon: Icons.zoom_out,
+                label: 'Zoom Out',
+                onPressed: () => _controller.zoomBy(-0.2),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

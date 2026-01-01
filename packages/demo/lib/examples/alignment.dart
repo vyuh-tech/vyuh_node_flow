@@ -223,99 +223,108 @@ class _AlignmentExampleState extends State<AlignmentExample> {
       children: [
         // Add Node section
         const SectionTitle('Add Node'),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Add Random Node',
-          icon: Icons.add_circle_outline,
-          onPressed: _addRandomNode,
+        SectionContent(
+          child: ControlButton(
+            label: 'Add Random Node',
+            icon: Icons.add_circle_outline,
+            onPressed: _addRandomNode,
+          ),
         ),
-        const SizedBox(height: 24),
 
         // Alignment section
         const SectionTitle('Align'),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Align Left',
-          icon: Icons.align_horizontal_left,
-          onPressed: _alignLeft,
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                label: 'Left',
+                icon: Icons.align_horizontal_left,
+                onPressed: _alignLeft,
+              ),
+              GridButton(
+                label: 'Right',
+                icon: Icons.align_horizontal_right,
+                onPressed: _alignRight,
+              ),
+              GridButton(
+                label: 'Top',
+                icon: Icons.align_vertical_top,
+                onPressed: _alignTop,
+              ),
+              GridButton(
+                label: 'Bottom',
+                icon: Icons.align_vertical_bottom,
+                onPressed: _alignBottom,
+              ),
+              GridButton(
+                label: 'Center H',
+                icon: Icons.align_horizontal_center,
+                onPressed: _alignCenterHorizontal,
+              ),
+              GridButton(
+                label: 'Center V',
+                icon: Icons.align_vertical_center,
+                onPressed: _alignMiddleVertical,
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Align Right',
-          icon: Icons.align_horizontal_right,
-          onPressed: _alignRight,
-        ),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Align Top',
-          icon: Icons.align_vertical_top,
-          onPressed: _alignTop,
-        ),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Align Bottom',
-          icon: Icons.align_vertical_bottom,
-          onPressed: _alignBottom,
-        ),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Center Horizontal',
-          icon: Icons.align_horizontal_center,
-          onPressed: _alignCenterHorizontal,
-        ),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Center Vertical',
-          icon: Icons.align_vertical_center,
-          onPressed: _alignMiddleVertical,
-        ),
-        const SizedBox(height: 24),
 
         // Distribution section
         const SectionTitle('Distribute'),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Distribute Horizontal',
-          icon: Icons.horizontal_distribute,
-          onPressed: _distributeHorizontally,
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                label: 'Horizontal',
+                icon: Icons.horizontal_distribute,
+                onPressed: _distributeHorizontally,
+              ),
+              GridButton(
+                label: 'Vertical',
+                icon: Icons.vertical_distribute,
+                onPressed: _distributeVertically,
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Distribute Vertical',
-          icon: Icons.vertical_distribute,
-          onPressed: _distributeVertically,
-        ),
-        const SizedBox(height: 24),
 
         // Layout section
         const SectionTitle('Layout'),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Grid Layout',
-          icon: Icons.grid_4x4,
-          onPressed: _gridLayout,
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                label: 'Grid',
+                icon: Icons.grid_4x4,
+                onPressed: _gridLayout,
+              ),
+              GridButton(
+                label: 'Hierarchy',
+                icon: Icons.account_tree,
+                onPressed: _hierarchicalLayout,
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Hierarchical',
-          icon: Icons.account_tree,
-          onPressed: _hierarchicalLayout,
-        ),
-        const SizedBox(height: 24),
 
         // Layering section
         const SectionTitle('Layering'),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Bring to Front',
-          icon: Icons.flip_to_front,
-          onPressed: _bringToFront,
-        ),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Send to Back',
-          icon: Icons.flip_to_back,
-          onPressed: _sendToBack,
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                label: 'To Front',
+                icon: Icons.flip_to_front,
+                onPressed: _bringToFront,
+              ),
+              GridButton(
+                label: 'To Back',
+                icon: Icons.flip_to_back,
+                onPressed: _sendToBack,
+              ),
+            ],
+          ),
         ),
       ],
     );

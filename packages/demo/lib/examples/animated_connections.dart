@@ -555,111 +555,58 @@ class _AnimatedConnectionsExampleState
         ),
       ),
       children: [
-        // Connection appearance section (always visible)
-        const SectionTitle('Connection Appearance'),
-        const SizedBox(height: 12),
-        Observer(
-          builder: (context) => SliderControl(
-            label: 'Stroke Width',
-            value: _store.strokeWidth,
-            min: 1.0,
-            max: 10.0,
-            onChanged: (value) => _store.strokeWidth = value,
+        const SectionTitle('About'),
+        SectionContent(
+          child: InfoCard(
+            title: 'Instructions',
+            content:
+                'Click on a connection to select it and customize its animation effect. Adjust speed, particle count, and other parameters.',
           ),
         ),
-        const SizedBox(height: 16),
+        // Connection appearance section (always visible)
+        const SectionTitle('Connection Appearance'),
+        SectionContent(
+          child: Observer(
+            builder: (context) => SliderControl(
+              label: 'Stroke Width',
+              value: _store.strokeWidth,
+              min: 1.0,
+              max: 10.0,
+              onChanged: (value) => _store.strokeWidth = value,
+            ),
+          ),
+        ),
         Observer(
           builder: (context) => _store.selectedConnection == null
-              ? const Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text(
-                      'Click on a connection to select it and apply animation effects.',
-                      style: TextStyle(fontSize: 12),
-                    ),
+              ? SectionContent(
+                  child: InfoCard(
+                    title: 'Select a Connection',
+                    content:
+                        'Click on a connection to select it and apply animation effects.',
                   ),
                 )
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const Text(
-                              'Selected Connection',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Builder(
-                              builder: (context) {
-                                final conn = _store.selectedConnection!;
-                                final sourceNode =
-                                    _controller.nodes[conn.sourceNodeId];
-                                final targetNode =
-                                    _controller.nodes[conn.targetNodeId];
-                                final sourceName =
-                                    sourceNode?.data['label'] ??
-                                    conn.sourceNodeId;
-                                final targetName =
-                                    targetNode?.data['label'] ??
-                                    conn.targetNodeId;
-
-                                return RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface,
-                                    ),
-                                    children: [
-                                      TextSpan(text: sourceName),
-                                      TextSpan(
-                                        text: ' (${conn.sourcePortId})',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                      const TextSpan(text: ' → '),
-                                      TextSpan(text: targetName),
-                                      TextSpan(
-                                        text: ' (${conn.targetPortId})',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
+                    const SectionTitle('Selected Connection'),
+                    SectionContent(
+                      child: _SelectedConnectionInfo(
+                        connection: _store.selectedConnection!,
+                        controller: _controller,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    // Animation effect selector (no section title)
-                    EffectTypeSelector(
-                      selectedEffectType: _store.selectedEffectType,
-                      onChanged: (value) {
-                        if (value != null) {
-                          _store.selectedEffectType = value;
-                        }
-                      },
+                    const SizedBox(height: 8),
+                    const SectionTitle('Effect Type'),
+                    SectionContent(
+                      child: EffectTypeSelector(
+                        selectedEffectType: _store.selectedEffectType,
+                        onChanged: (value) {
+                          if (value != null) {
+                            _store.selectedEffectType = value;
+                          }
+                        },
+                      ),
                     ),
-                    const SizedBox(height: 16),
                     if (_store.selectedEffectType != 'none') ...[
                       EffectControlsPanel(
                         effectType: _store.selectedEffectType,
@@ -928,30 +875,36 @@ class FlowingDashControls extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Flowing Dash Settings'),
-        const SizedBox(height: 12),
-        SliderControl(
-          label: 'Speed',
-          value: speed,
-          min: 1.0,
-          max: 5.0,
-          divisions: 4,
-          onChanged: onSpeedChanged,
-        ),
-        SliderControl(
-          label: 'Dash Length',
-          value: dashLength,
-          min: 2.0,
-          max: 30.0,
-          divisions: 28,
-          onChanged: onDashLengthChanged,
-        ),
-        SliderControl(
-          label: 'Gap Length',
-          value: gapLength,
-          min: 1.0,
-          max: 20.0,
-          divisions: 19,
-          onChanged: onGapLengthChanged,
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SliderControl(
+                label: 'Speed',
+                value: speed,
+                min: 1.0,
+                max: 5.0,
+                divisions: 4,
+                onChanged: onSpeedChanged,
+              ),
+              SliderControl(
+                label: 'Dash Length',
+                value: dashLength,
+                min: 2.0,
+                max: 30.0,
+                divisions: 28,
+                onChanged: onDashLengthChanged,
+              ),
+              SliderControl(
+                label: 'Gap Length',
+                value: gapLength,
+                min: 1.0,
+                max: 20.0,
+                divisions: 19,
+                onChanged: onGapLengthChanged,
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -994,75 +947,84 @@ class ParticleControls extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Particle Settings'),
-        const SizedBox(height: 12),
-        // Particle Type Selector
-        const Text('Particle Type', style: TextStyle(fontSize: 12)),
-        const SizedBox(height: 8),
-        DropdownButton<String>(
-          value: particleType,
-          isExpanded: true,
-          items: const [
-            DropdownMenuItem(value: 'circle', child: Text('Circle')),
-            DropdownMenuItem(value: 'arrow', child: Text('Arrow')),
-            DropdownMenuItem(
-              value: 'character',
-              child: Text('Character/Emoji'),
-            ),
-          ],
-          onChanged: (value) {
-            if (value != null) onParticleTypeChanged(value);
-          },
-        ),
-        const SizedBox(height: 12),
-        // Character input (shown only for character type)
-        if (particleType == 'character') ...[
-          const Text('Character', style: TextStyle(fontSize: 12)),
-          const SizedBox(height: 8),
-          TextField(
-            controller: TextEditingController(text: particleCharacter)
-              ..selection = TextSelection.fromPosition(
-                TextPosition(offset: particleCharacter.length),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Particle Type Selector
+              const Text('Particle Type', style: TextStyle(fontSize: 12)),
+              const SizedBox(height: 8),
+              DropdownButton<String>(
+                value: particleType,
+                isExpanded: true,
+                items: const [
+                  DropdownMenuItem(value: 'circle', child: Text('Circle')),
+                  DropdownMenuItem(value: 'arrow', child: Text('Arrow')),
+                  DropdownMenuItem(
+                    value: 'character',
+                    child: Text('Character/Emoji'),
+                  ),
+                ],
+                onChanged: (value) {
+                  if (value != null) onParticleTypeChanged(value);
+                },
               ),
-            maxLength: 2,
-            decoration: const InputDecoration(
-              hintText: 'Enter emoji or character',
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            ),
-            onChanged: onParticleCharacterChanged,
+              const SizedBox(height: 12),
+              // Character input (shown only for character type)
+              if (particleType == 'character') ...[
+                const Text('Character', style: TextStyle(fontSize: 12)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: TextEditingController(text: particleCharacter)
+                    ..selection = TextSelection.fromPosition(
+                      TextPosition(offset: particleCharacter.length),
+                    ),
+                  maxLength: 2,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter emoji or character',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 8,
+                    ),
+                  ),
+                  onChanged: onParticleCharacterChanged,
+                ),
+                const SizedBox(height: 12),
+              ],
+              SliderControl(
+                label: 'Speed',
+                value: speed,
+                min: 1.0,
+                max: 5.0,
+                divisions: 4,
+                onChanged: onSpeedChanged,
+              ),
+              SliderControl(
+                label: 'Particle Count',
+                value: particleCount.toDouble(),
+                min: 1,
+                max: 10,
+                divisions: 9,
+                onChanged: (value) => onParticleCountChanged(value.round()),
+              ),
+              SliderControl(
+                label: 'Particle Size',
+                value: particleSize,
+                min: 1.0,
+                max: 10.0,
+                divisions: 9,
+                onChanged: onParticleSizeChanged,
+              ),
+              SliderControl(
+                label: 'Connection Opacity',
+                value: connectionOpacity,
+                min: 0.0,
+                max: 1.0,
+                onChanged: onConnectionOpacityChanged,
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-        ],
-        SliderControl(
-          label: 'Speed',
-          value: speed,
-          min: 1.0,
-          max: 5.0,
-          divisions: 4,
-          onChanged: onSpeedChanged,
-        ),
-        SliderControl(
-          label: 'Particle Count',
-          value: particleCount.toDouble(),
-          min: 1,
-          max: 10,
-          divisions: 9,
-          onChanged: (value) => onParticleCountChanged(value.round()),
-        ),
-        SliderControl(
-          label: 'Particle Size',
-          value: particleSize,
-          min: 1.0,
-          max: 10.0,
-          divisions: 9,
-          onChanged: onParticleSizeChanged,
-        ),
-        SliderControl(
-          label: 'Connection Opacity',
-          value: connectionOpacity,
-          min: 0.0,
-          max: 1.0,
-          onChanged: onConnectionOpacityChanged,
         ),
       ],
     );
@@ -1097,62 +1059,68 @@ class GradientControls extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Gradient Settings'),
-        const SizedBox(height: 12),
-        const Text('Color Preset', style: TextStyle(fontSize: 12)),
-        const SizedBox(height: 8),
-        DropdownButton<String>(
-          value: selectedGradientPreset,
-          isExpanded: true,
-          items: gradientPresets.keys.map((key) {
-            final colors = gradientPresets[key]!;
-            return DropdownMenuItem(
-              value: key,
-              child: Row(
-                children: [
-                  // Color preview
-                  Container(
-                    width: 60,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: colors),
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.grey.shade300),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Color Preset', style: TextStyle(fontSize: 12)),
+              const SizedBox(height: 8),
+              DropdownButton<String>(
+                value: selectedGradientPreset,
+                isExpanded: true,
+                items: gradientPresets.keys.map((key) {
+                  final colors = gradientPresets[key]!;
+                  return DropdownMenuItem(
+                    value: key,
+                    child: Row(
+                      children: [
+                        // Color preview
+                        Container(
+                          width: 60,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(colors: colors),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(key.replaceAll('_', ' → ')),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(key.replaceAll('_', ' → ')),
-                ],
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    onGradientPresetChanged(value);
+                  }
+                },
               ),
-            );
-          }).toList(),
-          onChanged: (value) {
-            if (value != null) {
-              onGradientPresetChanged(value);
-            }
-          },
-        ),
-        const SizedBox(height: 16),
-        SliderControl(
-          label: 'Speed',
-          value: speed,
-          min: 1.0,
-          max: 5.0,
-          divisions: 4,
-          onChanged: onSpeedChanged,
-        ),
-        SliderControl(
-          label: 'Gradient Length',
-          value: gradientLength,
-          min: 0.1,
-          max: 1.0,
-          onChanged: onGradientLengthChanged,
-        ),
-        SliderControl(
-          label: 'Connection Opacity',
-          value: connectionOpacity,
-          min: 0.0,
-          max: 1.0,
-          onChanged: onConnectionOpacityChanged,
+              const SizedBox(height: 16),
+              SliderControl(
+                label: 'Speed',
+                value: speed,
+                min: 1.0,
+                max: 5.0,
+                divisions: 4,
+                onChanged: onSpeedChanged,
+              ),
+              SliderControl(
+                label: 'Gradient Length',
+                value: gradientLength,
+                min: 0.1,
+                max: 1.0,
+                onChanged: onGradientLengthChanged,
+              ),
+              SliderControl(
+                label: 'Connection Opacity',
+                value: connectionOpacity,
+                min: 0.0,
+                max: 1.0,
+                onChanged: onConnectionOpacityChanged,
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -1187,36 +1155,67 @@ class PulseControls extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Pulse Settings'),
-        const SizedBox(height: 12),
-        SliderControl(
-          label: 'Pulse Speed',
-          value: speed,
-          min: 0.1,
-          max: 5.0,
-          onChanged: onSpeedChanged,
-        ),
-        SliderControl(
-          label: 'Min Opacity',
-          value: minOpacity,
-          min: 0.0,
-          max: 1.0,
-          onChanged: onMinOpacityChanged,
-        ),
-        SliderControl(
-          label: 'Max Opacity',
-          value: maxOpacity,
-          min: 0.0,
-          max: 1.0,
-          onChanged: onMaxOpacityChanged,
-        ),
-        SliderControl(
-          label: 'Width Variation',
-          value: widthVariation,
-          min: 1.0,
-          max: 3.0,
-          onChanged: onWidthVariationChanged,
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SliderControl(
+                label: 'Pulse Speed',
+                value: speed,
+                min: 0.1,
+                max: 5.0,
+                onChanged: onSpeedChanged,
+              ),
+              SliderControl(
+                label: 'Min Opacity',
+                value: minOpacity,
+                min: 0.0,
+                max: 1.0,
+                onChanged: onMinOpacityChanged,
+              ),
+              SliderControl(
+                label: 'Max Opacity',
+                value: maxOpacity,
+                min: 0.0,
+                max: 1.0,
+                onChanged: onMaxOpacityChanged,
+              ),
+              SliderControl(
+                label: 'Width Variation',
+                value: widthVariation,
+                min: 1.0,
+                max: 3.0,
+                onChanged: onWidthVariationChanged,
+              ),
+            ],
+          ),
         ),
       ],
+    );
+  }
+}
+
+/// Displays selected connection info with proper styling
+class _SelectedConnectionInfo extends StatelessWidget {
+  const _SelectedConnectionInfo({
+    required this.connection,
+    required this.controller,
+  });
+
+  final Connection connection;
+  final NodeFlowController<Map<String, dynamic>, dynamic> controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final sourceNode = controller.nodes[connection.sourceNodeId];
+    final targetNode = controller.nodes[connection.targetNodeId];
+    final sourceName = sourceNode?.data['label'] ?? connection.sourceNodeId;
+    final targetName = targetNode?.data['label'] ?? connection.targetNodeId;
+
+    return InfoCard(
+      title: '$sourceName → $targetName',
+      content:
+          'Port: ${connection.sourcePortId} → ${connection.targetPortId}\nID: ${connection.id}',
     );
   }
 }

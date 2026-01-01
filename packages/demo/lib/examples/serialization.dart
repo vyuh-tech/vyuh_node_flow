@@ -462,31 +462,29 @@ class _SerializationExampleState extends State<SerializationExample> {
         ),
         const SectionTitle('Actions'),
         SectionContent(
-          child: ControlButton(
-            icon: Icons.upload,
-            label: 'Export',
-            onPressed: _exportGraph,
-          ),
-        ),
-        SectionContent(
-          child: ControlButton(
-            icon: Icons.download,
-            label: 'Import',
-            onPressed: _importGraph,
-          ),
-        ),
-        SectionContent(
-          child: ControlButton(
-            icon: Icons.clear,
-            label: 'Clear',
-            onPressed: _clearGraph,
-          ),
-        ),
-        SectionContent(
-          child: ControlButton(
-            icon: Icons.refresh,
-            label: 'Reset',
-            onPressed: _resetToInitial,
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                icon: Icons.upload,
+                label: 'Export',
+                onPressed: _exportGraph,
+              ),
+              GridButton(
+                icon: Icons.download,
+                label: 'Import',
+                onPressed: _importGraph,
+              ),
+              GridButton(
+                icon: Icons.clear,
+                label: 'Clear',
+                onPressed: _clearGraph,
+              ),
+              GridButton(
+                icon: Icons.refresh,
+                label: 'Reset',
+                onPressed: _resetToInitial,
+              ),
+            ],
           ),
         ),
         if (_statusMessage.isNotEmpty) SectionContent(child: _buildStatus()),

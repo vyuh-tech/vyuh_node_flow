@@ -438,119 +438,123 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
       ),
       children: [
         // Instructions
-        const InfoCard(
-          title: 'Instructions',
-          content:
-              'Click buttons to add nodes. Click to select, drag to move. Cmd-click or Shift-drag to select multiple nodes.',
+        const SectionTitle('About'),
+        SectionContent(
+          child: InfoCard(
+            title: 'Instructions',
+            content:
+                'Click buttons to add nodes. Click to select, drag to move. Cmd-click or Shift-drag to select multiple nodes.',
+          ),
         ),
-        const SizedBox(height: 24),
 
         // Add Nodes section
         const SectionTitle('Add Nodes'),
-        const SizedBox(height: 8),
-        Grid2Cols(
-          buttons: [
-            GridButton(
-              label: 'Input',
-              icon: Icons.input,
-              onPressed: () => _addNode('input'),
-            ),
-            GridButton(
-              label: 'Process',
-              icon: Icons.settings,
-              onPressed: () => _addNode('process'),
-            ),
-            GridButton(
-              label: 'Decision',
-              icon: Icons.call_split,
-              onPressed: () => _addNode('decision'),
-            ),
-            GridButton(
-              label: 'Output',
-              icon: Icons.output,
-              onPressed: () => _addNode('output'),
-            ),
-          ],
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                label: 'Input',
+                icon: Icons.input,
+                onPressed: () => _addNode('input'),
+              ),
+              GridButton(
+                label: 'Process',
+                icon: Icons.settings,
+                onPressed: () => _addNode('process'),
+              ),
+              GridButton(
+                label: 'Decision',
+                icon: Icons.call_split,
+                onPressed: () => _addNode('decision'),
+              ),
+              GridButton(
+                label: 'Output',
+                icon: Icons.output,
+                onPressed: () => _addNode('output'),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 24),
 
         // Node Actions section
         const SectionTitle('Node Actions'),
-        const SizedBox(height: 8),
-        Observer(
-          builder: (_) {
-            final hasSelection = _controller.selectedNodeIds.isNotEmpty;
-            return ControlButton(
-              label: 'Delete Selected',
-              icon: Icons.delete,
-              onPressed: hasSelection ? _deleteSelectedNodes : null,
-            );
-          },
-        ),
-        const SizedBox(height: 8),
-        Observer(
-          builder: (_) {
-            final hasSelection = _controller.selectedNodeIds.isNotEmpty;
-            return ControlButton(
-              label: 'Duplicate Node',
-              icon: Icons.content_copy,
-              onPressed: hasSelection ? _duplicateNode : null,
-            );
-          },
+        SectionContent(
+          child: Observer(
+            builder: (_) {
+              final hasSelection = _controller.selectedNodeIds.isNotEmpty;
+              return Grid2Cols(
+                buttons: [
+                  GridButton(
+                    label: 'Delete',
+                    icon: Icons.delete,
+                    onPressed: hasSelection ? _deleteSelectedNodes : null,
+                  ),
+                  GridButton(
+                    label: 'Duplicate',
+                    icon: Icons.content_copy,
+                    onPressed: hasSelection ? _duplicateNode : null,
+                  ),
+                ],
+              );
+            },
+          ),
         ),
         // Node Movement section
         const SectionTitle('Move Nodes'),
-        const SizedBox(height: 8),
-        Observer(
-          builder: (_) {
-            final hasSelection = _controller.selectedNodeIds.isNotEmpty;
-            return Grid2Cols(
-              buttons: [
-                GridButton(
-                  label: 'Left',
-                  icon: Icons.arrow_back,
-                  onPressed: hasSelection ? _moveNodeLeft : null,
-                ),
-                GridButton(
-                  label: 'Right',
-                  icon: Icons.arrow_forward,
-                  onPressed: hasSelection ? _moveNodeRight : null,
-                ),
-                GridButton(
-                  label: 'Up',
-                  icon: Icons.arrow_upward,
-                  onPressed: hasSelection ? _moveNodeUp : null,
-                ),
-                GridButton(
-                  label: 'Down',
-                  icon: Icons.arrow_downward,
-                  onPressed: hasSelection ? _moveNodeDown : null,
-                ),
-              ],
-            );
-          },
+        SectionContent(
+          child: Observer(
+            builder: (_) {
+              final hasSelection = _controller.selectedNodeIds.isNotEmpty;
+              return Grid2Cols(
+                buttons: [
+                  GridButton(
+                    label: 'Left',
+                    icon: Icons.arrow_back,
+                    onPressed: hasSelection ? _moveNodeLeft : null,
+                  ),
+                  GridButton(
+                    label: 'Right',
+                    icon: Icons.arrow_forward,
+                    onPressed: hasSelection ? _moveNodeRight : null,
+                  ),
+                  GridButton(
+                    label: 'Up',
+                    icon: Icons.arrow_upward,
+                    onPressed: hasSelection ? _moveNodeUp : null,
+                  ),
+                  GridButton(
+                    label: 'Down',
+                    icon: Icons.arrow_downward,
+                    onPressed: hasSelection ? _moveNodeDown : null,
+                  ),
+                ],
+              );
+            },
+          ),
         ),
-        const SizedBox(height: 24),
 
         // Selection section
         const SectionTitle('Selection'),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Select All',
-          icon: Icons.select_all,
-          onPressed: _selectAllNodes,
-        ),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Invert Selection',
-          icon: Icons.flip,
-          onPressed: _invertSelection,
-        ),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Clear Selection',
-          icon: Icons.deselect,
-          onPressed: _clearSelection,
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                label: 'Select All',
+                icon: Icons.select_all,
+                onPressed: _selectAllNodes,
+              ),
+              GridButton(
+                label: 'Invert',
+                icon: Icons.flip,
+                onPressed: _invertSelection,
+              ),
+              GridButton(
+                label: 'Clear',
+                icon: Icons.deselect,
+                onPressed: _clearSelection,
+              ),
+            ],
+          ),
         ),
       ],
     );

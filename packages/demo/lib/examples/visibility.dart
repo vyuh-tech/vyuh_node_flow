@@ -333,46 +333,57 @@ class _VisibilityExampleState extends State<VisibilityExample> {
         ],
       ),
       children: [
-        const InfoCard(
-          title: 'Instructions',
-          content:
-              'Toggle visibility of all node types using the eye icons. '
-              'Hidden elements disappear from the canvas but remain in the list. '
-              'Connections to hidden nodes are also hidden.',
+        const SectionTitle('About'),
+        SectionContent(
+          child: InfoCard(
+            title: 'Instructions',
+            content:
+                'Toggle visibility of all node types using the eye icons. '
+                'Hidden elements disappear from the canvas but remain in the list. '
+                'Connections to hidden nodes are also hidden.',
+          ),
         ),
-        const SizedBox(height: 24),
         const SectionTitle('Add Elements'),
-        const SizedBox(height: 8),
-        Grid2Cols(
-          buttons: [
-            GridButton(label: 'Node', icon: Icons.add_box, onPressed: _addNode),
-            GridButton(
-              label: 'Comment',
-              icon: Icons.sticky_note_2,
-              onPressed: _addCommentNote,
-            ),
-            GridButton(
-              label: 'Group',
-              icon: Icons.group_work,
-              onPressed: _addGroup,
-            ),
-            GridButton(
-              label: 'Show All',
-              icon: Icons.visibility,
-              onPressed: _showAll,
-            ),
-          ],
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                label: 'Node',
+                icon: Icons.add_box,
+                onPressed: _addNode,
+              ),
+              GridButton(
+                label: 'Comment',
+                icon: Icons.sticky_note_2,
+                onPressed: _addCommentNote,
+              ),
+              GridButton(
+                label: 'Group',
+                icon: Icons.group_work,
+                onPressed: _addGroup,
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Hide All',
-          icon: Icons.visibility_off,
-          onPressed: _hideAll,
+        const SectionTitle('Visibility'),
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                label: 'Show All',
+                icon: Icons.visibility,
+                onPressed: _showAll,
+              ),
+              GridButton(
+                label: 'Hide All',
+                icon: Icons.visibility_off,
+                onPressed: _hideAll,
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 24),
         const SectionTitle('All Nodes'),
-        const SizedBox(height: 8),
-        _NodeList(controller: controller),
+        SectionContent(child: _NodeList(controller: controller)),
       ],
     );
   }

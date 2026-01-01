@@ -248,15 +248,10 @@ class _ViewportAnimationsExampleState extends State<ViewportAnimationsExample> {
       ),
       children: [
         _buildAnimationSettings(),
-        const SizedBox(height: 24),
         _buildNavigateToNode(),
-        const SizedBox(height: 24),
         _buildNavigateToPosition(),
-        const SizedBox(height: 24),
         _buildZoomAnimations(),
-        const SizedBox(height: 24),
         _buildBoundsAnimations(),
-        const SizedBox(height: 24),
         _buildQuickActions(),
       ],
     );
@@ -267,67 +262,73 @@ class _ViewportAnimationsExampleState extends State<ViewportAnimationsExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Animation Settings'),
-        const SizedBox(height: 12),
-
-        // Duration slider
-        Row(
-          children: [
-            const SizedBox(
-              width: 80,
-              child: Text('Duration', style: TextStyle(fontSize: 12)),
-            ),
-            Expanded(
-              child: Slider(
-                value: _duration.inMilliseconds.toDouble(),
-                min: 100,
-                max: 1500,
-                divisions: 14,
-                onChanged: (value) {
-                  setState(() {
-                    _duration = Duration(milliseconds: value.toInt());
-                  });
-                },
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Duration slider
+              Row(
+                children: [
+                  const SizedBox(
+                    width: 80,
+                    child: Text('Duration', style: TextStyle(fontSize: 12)),
+                  ),
+                  Expanded(
+                    child: Slider(
+                      value: _duration.inMilliseconds.toDouble(),
+                      min: 100,
+                      max: 1500,
+                      divisions: 14,
+                      onChanged: (value) {
+                        setState(() {
+                          _duration = Duration(milliseconds: value.toInt());
+                        });
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    width: 50,
+                    child: Text(
+                      '${_duration.inMilliseconds}ms',
+                      style: const TextStyle(fontSize: 11),
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            SizedBox(
-              width: 50,
-              child: Text(
-                '${_duration.inMilliseconds}ms',
-                style: const TextStyle(fontSize: 11),
-                textAlign: TextAlign.right,
+              const SizedBox(height: 8),
+              // Curve selector
+              Row(
+                children: [
+                  const SizedBox(
+                    width: 80,
+                    child: Text('Curve', style: TextStyle(fontSize: 12)),
+                  ),
+                  Expanded(
+                    child: DropdownButton<String>(
+                      value: _selectedCurveName,
+                      isExpanded: true,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black87,
+                      ),
+                      items: _curves.keys.map((name) {
+                        return DropdownMenuItem(value: name, child: Text(name));
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _selectedCurveName = value;
+                            _curve = _curves[value]!;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 8),
-
-        // Curve selector
-        Row(
-          children: [
-            const SizedBox(
-              width: 80,
-              child: Text('Curve', style: TextStyle(fontSize: 12)),
-            ),
-            Expanded(
-              child: DropdownButton<String>(
-                value: _selectedCurveName,
-                isExpanded: true,
-                style: const TextStyle(fontSize: 12, color: Colors.black87),
-                items: _curves.keys.map((name) {
-                  return DropdownMenuItem(value: name, child: Text(name));
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _selectedCurveName = value;
-                      _curve = _curves[value]!;
-                    });
-                  }
-                },
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
@@ -340,28 +341,34 @@ class _ViewportAnimationsExampleState extends State<ViewportAnimationsExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Navigate to Node'),
-        const SizedBox(height: 8),
-        Text(
-          'Click a node name to animate the viewport to center on it',
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: nodes.map((node) {
-            return ActionChip(
-              label: Text(node.data, style: const TextStyle(fontSize: 11)),
-              onPressed: () {
-                _controller.animateToNode(
-                  node.id,
-                  zoom: _targetZoom,
-                  duration: _duration,
-                  curve: _curve,
-                );
-              },
-            );
-          }).toList(),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Click a node name to animate the viewport to center on it',
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: nodes.map((node) {
+                  return StyledChip(
+                    label: node.data,
+                    onSelected: (_) {
+                      _controller.animateToNode(
+                        node.id,
+                        zoom: _targetZoom,
+                        duration: _duration,
+                        curve: _curve,
+                      );
+                    },
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -379,30 +386,36 @@ class _ViewportAnimationsExampleState extends State<ViewportAnimationsExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Navigate to Position'),
-        const SizedBox(height: 8),
-        Text(
-          'Animate to specific canvas coordinates',
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: positions.map((entry) {
-            final (name, offset) = entry;
-            return ActionChip(
-              avatar: const Icon(Icons.place, size: 16),
-              label: Text(name, style: const TextStyle(fontSize: 11)),
-              onPressed: () {
-                _controller.animateToPosition(
-                  GraphOffset(offset),
-                  zoom: _targetZoom,
-                  duration: _duration,
-                  curve: _curve,
-                );
-              },
-            );
-          }).toList(),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Animate to specific canvas coordinates',
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: positions.map((entry) {
+                  final (name, offset) = entry;
+                  return StyledChip(
+                    icon: Icons.place,
+                    label: name,
+                    onSelected: (_) {
+                      _controller.animateToPosition(
+                        GraphOffset(offset),
+                        zoom: _targetZoom,
+                        duration: _duration,
+                        curve: _curve,
+                      );
+                    },
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -415,67 +428,72 @@ class _ViewportAnimationsExampleState extends State<ViewportAnimationsExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Zoom Animations'),
-        const SizedBox(height: 8),
-        Text(
-          'Animate to a specific zoom level (keeps center fixed)',
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: zoomLevels.map((zoom) {
-            final percentage = (zoom * 100).toInt();
-            return ActionChip(
-              avatar: Icon(
-                zoom > 1.0
-                    ? Icons.zoom_in
-                    : (zoom < 1.0 ? Icons.zoom_out : Icons.center_focus_strong),
-                size: 16,
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Animate to a specific zoom level (keeps center fixed)',
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
               ),
-              label: Text('$percentage%', style: const TextStyle(fontSize: 11)),
-              onPressed: () {
-                _controller.animateToScale(
-                  zoom,
-                  duration: _duration,
-                  curve: _curve,
-                );
-              },
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            const SizedBox(
-              width: 80,
-              child: Text('Target Zoom', style: TextStyle(fontSize: 12)),
-            ),
-            Expanded(
-              child: Slider(
-                value: _targetZoom,
-                min: 0.5,
-                max: 2.0,
-                divisions: 6,
-                label: '${(_targetZoom * 100).toInt()}%',
-                onChanged: (value) {
-                  setState(() => _targetZoom = value);
-                },
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: zoomLevels.map((zoom) {
+                  final percentage = (zoom * 100).toInt();
+                  return StyledChip(
+                    icon: zoom > 1.0
+                        ? Icons.zoom_in
+                        : (zoom < 1.0
+                              ? Icons.zoom_out
+                              : Icons.center_focus_strong),
+                    label: '$percentage%',
+                    onSelected: (_) {
+                      _controller.animateToScale(
+                        zoom,
+                        duration: _duration,
+                        curve: _curve,
+                      );
+                    },
+                  );
+                }).toList(),
               ),
-            ),
-            SizedBox(
-              width: 45,
-              child: Text(
-                '${(_targetZoom * 100).toInt()}%',
-                style: const TextStyle(fontSize: 11),
-                textAlign: TextAlign.right,
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const SizedBox(
+                    width: 80,
+                    child: Text('Target Zoom', style: TextStyle(fontSize: 12)),
+                  ),
+                  Expanded(
+                    child: Slider(
+                      value: _targetZoom,
+                      min: 0.5,
+                      max: 2.0,
+                      divisions: 6,
+                      label: '${(_targetZoom * 100).toInt()}%',
+                      onChanged: (value) {
+                        setState(() => _targetZoom = value);
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    width: 45,
+                    child: Text(
+                      '${(_targetZoom * 100).toInt()}%',
+                      style: const TextStyle(fontSize: 11),
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
-        Text(
-          'Used for "Navigate to Node" and "Navigate to Position"',
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              Text(
+                'Used for "Navigate to Node" and "Navigate to Position"',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -486,93 +504,102 @@ class _ViewportAnimationsExampleState extends State<ViewportAnimationsExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Bounds Animations'),
-        const SizedBox(height: 8),
-        Text(
-          'Animate to fit regions in view',
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-        ),
-        const SizedBox(height: 12),
-        ControlButton(
-          icon: Icons.select_all,
-          label: 'Fit Selected Nodes',
-          onPressed: () {
-            final selected = _controller.selectedNodeIds;
-            if (selected.isEmpty) {
-              return;
-            }
-
-            // Calculate bounds of selected nodes
-            Rect? bounds;
-            for (final nodeId in selected) {
-              final node = _controller.getNode(nodeId);
-              if (node != null) {
-                final nodeBounds = node.getBounds();
-                bounds = bounds?.expandToInclude(nodeBounds) ?? nodeBounds;
-              }
-            }
-
-            if (bounds != null) {
-              _controller.animateToBounds(
-                GraphRect(bounds),
-                padding: 50,
-                duration: _duration,
-                curve: _curve,
-              );
-            }
-          },
-        ),
-        const SizedBox(height: 8),
-        ControlButton(
-          icon: Icons.fit_screen,
-          label: 'Fit All Content',
-          onPressed: () {
-            // Get bounds of all nodes
-            Rect? bounds;
-            for (final node in _controller.nodes.values) {
-              final nodeBounds = node.getBounds();
-              bounds = bounds?.expandToInclude(nodeBounds) ?? nodeBounds;
-            }
-
-            if (bounds != null) {
-              _controller.animateToBounds(
-                GraphRect(bounds),
-                padding: 80,
-                duration: _duration,
-                curve: _curve,
-              );
-            }
-          },
-        ),
-        const SizedBox(height: 8),
-        ControlButton(
-          icon: Icons.crop_free,
-          label: 'Animate to Main Pipeline',
-          onPressed: () {
-            // Animate to the "Main Pipeline" group bounds
-            _controller.animateToBounds(
-              GraphRect(const Rect.fromLTWH(80, 80, 700, 280)),
-              padding: 30,
-              duration: _duration,
-              curve: _curve,
-            );
-          },
-        ),
-        const SizedBox(height: 8),
-        ControlButton(
-          icon: Icons.crop_square,
-          label: 'Animate to Outputs',
-          onPressed: () {
-            // Animate to the "Outputs" group bounds
-            _controller.animateToBounds(
-              GraphRect(const Rect.fromLTWH(830, 80, 300, 280)),
-              padding: 30,
-              duration: _duration,
-              curve: _curve,
-            );
-          },
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Animate to fit regions in view',
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 12),
+              Grid2Cols(
+                buttons: [
+                  GridButton(
+                    icon: Icons.select_all,
+                    label: 'Fit Selected',
+                    onPressed: _animateToSelectedNodes,
+                  ),
+                  GridButton(
+                    icon: Icons.fit_screen,
+                    label: 'Fit All',
+                    onPressed: _animateToAllNodes,
+                  ),
+                  GridButton(
+                    icon: Icons.crop_free,
+                    label: 'Main Pipeline',
+                    onPressed: () {
+                      _controller.animateToBounds(
+                        GraphRect(const Rect.fromLTWH(80, 80, 700, 280)),
+                        padding: 30,
+                        duration: _duration,
+                        curve: _curve,
+                      );
+                    },
+                  ),
+                  GridButton(
+                    icon: Icons.crop_square,
+                    label: 'Outputs',
+                    onPressed: () {
+                      _controller.animateToBounds(
+                        GraphRect(const Rect.fromLTWH(830, 80, 300, 280)),
+                        padding: 30,
+                        duration: _duration,
+                        curve: _curve,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ],
     );
+  }
+
+  void _animateToSelectedNodes() {
+    final selected = _controller.selectedNodeIds;
+    if (selected.isEmpty) {
+      return;
+    }
+
+    // Calculate bounds of selected nodes
+    Rect? bounds;
+    for (final nodeId in selected) {
+      final node = _controller.getNode(nodeId);
+      if (node != null) {
+        final nodeBounds = node.getBounds();
+        bounds = bounds?.expandToInclude(nodeBounds) ?? nodeBounds;
+      }
+    }
+
+    if (bounds != null) {
+      _controller.animateToBounds(
+        GraphRect(bounds),
+        padding: 50,
+        duration: _duration,
+        curve: _curve,
+      );
+    }
+  }
+
+  void _animateToAllNodes() {
+    // Get bounds of all nodes
+    Rect? bounds;
+    for (final node in _controller.nodes.values) {
+      final nodeBounds = node.getBounds();
+      bounds = bounds?.expandToInclude(nodeBounds) ?? nodeBounds;
+    }
+
+    if (bounds != null) {
+      _controller.animateToBounds(
+        GraphRect(bounds),
+        padding: 80,
+        duration: _duration,
+        curve: _curve,
+      );
+    }
   }
 
   Widget _buildQuickActions() {
@@ -580,53 +607,54 @@ class _ViewportAnimationsExampleState extends State<ViewportAnimationsExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Quick Actions'),
-        const SizedBox(height: 12),
-        Grid2Cols(
-          buttons: [
-            GridButton(
-              icon: Icons.home,
-              label: 'Reset View',
-              onPressed: () {
-                _controller.animateToViewport(
-                  const GraphViewport(x: 0, y: 0, zoom: 1.0),
-                  duration: _duration,
-                  curve: _curve,
-                );
-              },
-            ),
-            GridButton(
-              icon: Icons.center_focus_strong,
-              label: 'Center Origin',
-              onPressed: () {
-                _controller.animateToPosition(
-                  GraphOffset.zero,
-                  zoom: 1.0,
-                  duration: _duration,
-                  curve: _curve,
-                );
-              },
-            ),
-            GridButton(
-              icon: Icons.zoom_out_map,
-              label: 'Fit All',
-              onPressed: () {
-                // Immediate fit
-                _controller.fitToView();
-              },
-            ),
-            GridButton(
-              icon: Icons.explore,
-              label: 'To Remote',
-              onPressed: () {
-                _controller.animateToNode(
-                  'remote-1',
-                  zoom: 1.2,
-                  duration: _duration,
-                  curve: _curve,
-                );
-              },
-            ),
-          ],
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                icon: Icons.home,
+                label: 'Reset View',
+                onPressed: () {
+                  _controller.animateToViewport(
+                    const GraphViewport(x: 0, y: 0, zoom: 1.0),
+                    duration: _duration,
+                    curve: _curve,
+                  );
+                },
+              ),
+              GridButton(
+                icon: Icons.center_focus_strong,
+                label: 'Center Origin',
+                onPressed: () {
+                  _controller.animateToPosition(
+                    GraphOffset.zero,
+                    zoom: 1.0,
+                    duration: _duration,
+                    curve: _curve,
+                  );
+                },
+              ),
+              GridButton(
+                icon: Icons.zoom_out_map,
+                label: 'Fit All',
+                onPressed: () {
+                  // Immediate fit
+                  _controller.fitToView();
+                },
+              ),
+              GridButton(
+                icon: Icons.explore,
+                label: 'To Remote',
+                onPressed: () {
+                  _controller.animateToNode(
+                    'remote-1',
+                    zoom: 1.2,
+                    duration: _duration,
+                    curve: _curve,
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ],
     );

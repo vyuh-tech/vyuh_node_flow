@@ -260,61 +260,80 @@ class _InteractiveWidgetsExampleState extends State<InteractiveWidgetsExample> {
         events: NodeFlowEvents(onInit: () => _controller.fitToView()),
       ),
       children: [
-        const SectionTitle('Add Nodes'),
-        const SizedBox(height: 8),
-        Grid2Cols(
-          buttons: [
-            GridButton(
-              label: 'Button',
-              icon: Icons.smart_button,
-              onPressed: _addButtonNode,
-            ),
-            GridButton(
-              label: 'TextField',
-              icon: Icons.text_fields,
-              onPressed: _addTextFieldNode,
-            ),
-            GridButton(
-              label: 'Slider',
-              icon: Icons.tune,
-              onPressed: _addSliderNode,
-            ),
-          ],
+        const SectionTitle('About'),
+        SectionContent(
+          child: InfoCard(
+            title: 'Test Instructions',
+            content:
+                'Drag nodes FAR outside the visible area, then interact with buttons/textfields/sliders. '
+                'If gestures work, events will appear in the log.',
+          ),
         ),
-        const SizedBox(height: 16),
-        const SectionTitle('Event Log'),
-        const SizedBox(height: 8),
-        Observer(
-          builder: (_) {
-            return Container(
-              height: 150,
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade300),
+        const SectionTitle('Add Nodes'),
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                label: 'Button',
+                icon: Icons.smart_button,
+                onPressed: _addButtonNode,
               ),
-              child: ListView.builder(
-                itemCount: _eventLog.length,
-                itemBuilder: (context, index) {
-                  return Text(
-                    _eventLog[index],
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontFamily: 'monospace',
+              GridButton(
+                label: 'TextField',
+                icon: Icons.text_fields,
+                onPressed: _addTextFieldNode,
+              ),
+              GridButton(
+                label: 'Slider',
+                icon: Icons.tune,
+                onPressed: _addSliderNode,
+              ),
+            ],
+          ),
+        ),
+        const SectionTitle('Event Log'),
+        SectionContent(
+          child: SizedBox(
+            height: 200,
+            child: Observer(
+              builder: (_) {
+                if (_eventLog.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No events yet. Interact with nodes!',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade500,
+                      ),
                     ),
                   );
-                },
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 16),
-        const InfoCard(
-          title: 'Test Instructions',
-          content:
-              'Drag nodes FAR outside the visible area, then interact with buttons/textfields/sliders. '
-              'If gestures work, events will appear in the log.',
+                }
+                return ListView.builder(
+                  itemCount: _eventLog.length,
+                  itemBuilder: (context, index) {
+                    final isRecent = index < 3;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text(
+                        _eventLog[index],
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontFamily: 'monospace',
+                          color: isRecent
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).textTheme.bodySmall?.color
+                                    ?.withValues(alpha: 0.7),
+                          fontWeight: isRecent
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
         ),
       ],
     );

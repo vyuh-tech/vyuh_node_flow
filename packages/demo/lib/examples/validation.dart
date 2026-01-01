@@ -278,28 +278,28 @@ class _ConnectionValidationExampleState
         // Uses NodeFlowBehavior.design by default (full editing)
       ),
       children: [
-        const InfoCard(
-          title: 'Validation Logic',
-          content:
-              '• Locked nodes (gray) cannot create or receive connections\n'
-              '• Input nodes cannot connect directly to output nodes\n'
-              '• Input nodes can have at most 2 output connections\n'
-              '• Special ports can only connect to other special ports',
-        ),
-        const SizedBox(height: 16),
-        const SectionTitle('Last Action'),
-        const SizedBox(height: 8),
-        if (_lastMessage.isNotEmpty)
-          InfoCard(title: 'Status', content: _lastMessage)
-        else
-          const InfoCard(
-            title: 'Status',
-            content: 'No actions yet. Try creating connections!',
+        const SectionTitle('About'),
+        SectionContent(
+          child: InfoCard(
+            title: 'Validation Logic',
+            content:
+                '• Locked nodes (gray) cannot create or receive connections\n'
+                '• Input nodes cannot connect directly to output nodes\n'
+                '• Input nodes can have at most 2 output connections\n'
+                '• Special ports can only connect to other special ports',
           ),
-        const SizedBox(height: 16),
+        ),
+        const SectionTitle('Last Action'),
+        SectionContent(
+          child: _lastMessage.isNotEmpty
+              ? InfoCard(title: 'Status', content: _lastMessage)
+              : const InfoCard(
+                  title: 'Status',
+                  content: 'No actions yet. Try creating connections!',
+                ),
+        ),
         const SectionTitle('Node Types'),
-        const SizedBox(height: 8),
-        _buildLegend(),
+        SectionContent(child: _buildLegend()),
       ],
     );
   }

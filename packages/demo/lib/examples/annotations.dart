@@ -284,29 +284,31 @@ class _AnnotationExampleState extends State<AnnotationExample> {
         ],
       ),
       children: [
-        const InfoCard(
-          title: 'Instructions',
-          content:
-              'Drag comment nodes around. Group nodes follow their contained nodes. Select nodes and create groups.',
+        const SectionTitle('About'),
+        SectionContent(
+          child: InfoCard(
+            title: 'Instructions',
+            content:
+                'Drag comment nodes around. Group nodes follow their contained nodes. Select nodes and create groups.',
+          ),
         ),
-        const SizedBox(height: 24),
         const SectionTitle('Add Nodes'),
-        const SizedBox(height: 8),
-        Grid2Cols(
-          buttons: [
-            GridButton(
-              label: 'Comment',
-              icon: Icons.add_comment,
-              onPressed: _addRandomCommentNode,
-            ),
-            GridButton(
-              label: 'Group',
-              icon: Icons.group_work,
-              onPressed: _createRandomGroup,
-            ),
-          ],
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                label: 'Comment',
+                icon: Icons.add_comment,
+                onPressed: _addRandomCommentNode,
+              ),
+              GridButton(
+                label: 'Group',
+                icon: Icons.group_work,
+                onPressed: _createRandomGroup,
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 24),
         // Show behavior selector when a group is selected
         Observer(
           builder: (_) {
@@ -324,47 +326,52 @@ class _AnnotationExampleState extends State<AnnotationExample> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SectionTitle('Group Behavior'),
-                const SizedBox(height: 8),
-                _GroupBehaviorSelector(group: selected, controller: controller),
-                const SizedBox(height: 24),
+                SectionContent(
+                  child: _GroupBehaviorSelector(
+                    group: selected,
+                    controller: controller,
+                  ),
+                ),
               ],
             );
           },
         ),
         const SectionTitle('Visibility'),
-        const SizedBox(height: 8),
-        Grid2Cols(
-          buttons: [
-            GridButton(
-              label: 'Hide All',
-              icon: Icons.visibility_off,
-              onPressed: () {
-                for (final node in controller.nodes.values) {
-                  if (node is CommentNode || node is GroupNode) {
-                    node.isVisible = false;
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                label: 'Hide All',
+                icon: Icons.visibility_off,
+                onPressed: () {
+                  for (final node in controller.nodes.values) {
+                    if (node is CommentNode || node is GroupNode) {
+                      node.isVisible = false;
+                    }
                   }
-                }
-              },
-            ),
-            GridButton(
-              label: 'Show All',
-              icon: Icons.visibility,
-              onPressed: () {
-                for (final node in controller.nodes.values) {
-                  if (node is CommentNode || node is GroupNode) {
-                    node.isVisible = true;
+                },
+              ),
+              GridButton(
+                label: 'Show All',
+                icon: Icons.visibility,
+                onPressed: () {
+                  for (final node in controller.nodes.values) {
+                    if (node is CommentNode || node is GroupNode) {
+                      node.isVisible = true;
+                    }
                   }
-                }
-              },
-            ),
-          ],
+                },
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 16),
-        ControlButton(
-          label: 'Clear All Comment/Group Nodes',
-          icon: Icons.clear,
-          isDestructive: true,
-          onPressed: _clearAllCommentAndGroupNodes,
+        SectionContent(
+          child: ControlButton(
+            label: 'Clear All Comment/Group Nodes',
+            icon: Icons.clear,
+            isDestructive: true,
+            onPressed: _clearAllCommentAndGroupNodes,
+          ),
         ),
       ],
     );

@@ -387,19 +387,32 @@ class _ConnectionLabelsControlPanel extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
+            const SectionTitle('About'),
+            SectionContent(
+              child: InfoCard(
+                title: 'Instructions',
+                content:
+                    'Click on a connection to edit its labels. Adjust text, offset, and global theme settings.',
+              ),
+            ),
             // Only show connection-specific sections when a connection is selected
             if (store.selectedConnectionId != null) ...[
               const SectionTitle('Selected Connection'),
-              const SizedBox(height: 8),
-              Text(
-                'ID: ${store.selectedConnectionId}',
-                style: theme.textTheme.bodySmall,
+              SectionContent(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'ID: ${store.selectedConnectionId}',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    Text(
+                      'Labels: ${connection?.labels.length ?? 0}',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
+                ),
               ),
-              Text(
-                'Labels: ${connection?.labels.length ?? 0}',
-                style: theme.textTheme.bodySmall,
-              ),
-              const SizedBox(height: 16),
 
               // Start Label
               _LabelControl(
@@ -408,7 +421,6 @@ class _ConnectionLabelsControlPanel extends StatelessWidget {
                 onTextChanged: store.setStartLabel,
                 onOffsetChanged: store.setStartLabelOffset,
               ),
-              const SizedBox(height: 16),
 
               // Center Label
               _LabelControl(
@@ -417,7 +429,6 @@ class _ConnectionLabelsControlPanel extends StatelessWidget {
                 onTextChanged: store.setLabel,
                 onOffsetChanged: store.setLabelOffset,
               ),
-              const SizedBox(height: 16),
 
               // End Label
               _LabelControl(
@@ -426,122 +437,122 @@ class _ConnectionLabelsControlPanel extends StatelessWidget {
                 onTextChanged: store.setEndLabel,
                 onOffsetChanged: store.setEndLabelOffset,
               ),
-              const SizedBox(height: 16),
-            ] else ...[
-              InfoCard(
-                title: 'Select a Connection',
-                content: 'Click on a connection to edit its labels.',
-              ),
-              const SizedBox(height: 16),
             ],
 
             // Theme controls - always visible
             const SectionTitle('Global Label Theme'),
-            const SizedBox(height: 8),
-            Observer(
-              builder: (_) => _ColorPickerRow(
-                label: 'Text Color',
-                color: store.labelColor.value,
-                onColorChanged: store.setLabelColor,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Observer(
-              builder: (_) => _ColorPickerRow(
-                label: 'Background',
-                color: store.labelBackgroundColor.value,
-                onColorChanged: store.setLabelBackgroundColor,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Observer(
-              builder: (_) => _ColorPickerRow(
-                label: 'Border',
-                color: store.labelBorderColor.value,
-                onColorChanged: store.setLabelBorderColor,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Observer(
-              builder: (_) => Column(
+            SectionContent(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    'Font Size: ${store.labelFontSize.value.toStringAsFixed(0)}',
-                    style: theme.textTheme.bodySmall,
+                  Observer(
+                    builder: (_) => _ColorPickerRow(
+                      label: 'Text Color',
+                      color: store.labelColor.value,
+                      onColorChanged: store.setLabelColor,
+                    ),
                   ),
-                  Slider(
-                    value: store.labelFontSize.value,
-                    min: 8.0,
-                    max: 24.0,
-                    divisions: 16,
-                    label: store.labelFontSize.value.toStringAsFixed(0),
-                    onChanged: store.setLabelFontSize,
+                  const SizedBox(height: 8),
+                  Observer(
+                    builder: (_) => _ColorPickerRow(
+                      label: 'Background',
+                      color: store.labelBackgroundColor.value,
+                      onColorChanged: store.setLabelBackgroundColor,
+                    ),
                   ),
-                ],
-              ),
-            ),
-            Observer(
-              builder: (_) => Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Max Width: ${store.labelMaxWidth.value.isFinite ? store.labelMaxWidth.value.toStringAsFixed(0) : "∞"}',
+                  const SizedBox(height: 8),
+                  Observer(
+                    builder: (_) => _ColorPickerRow(
+                      label: 'Border',
+                      color: store.labelBorderColor.value,
+                      onColorChanged: store.setLabelBorderColor,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Observer(
+                    builder: (_) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Font Size: ${store.labelFontSize.value.toStringAsFixed(0)}',
                           style: theme.textTheme.bodySmall,
                         ),
-                      ),
-                      if (store.labelMaxWidth.value.isFinite)
-                        TextButton(
-                          onPressed: () =>
-                              store.setLabelMaxWidth(double.infinity),
-                          child: const Text('Reset'),
+                        Slider(
+                          value: store.labelFontSize.value,
+                          min: 8.0,
+                          max: 24.0,
+                          divisions: 16,
+                          label: store.labelFontSize.value.toStringAsFixed(0),
+                          onChanged: store.setLabelFontSize,
                         ),
-                    ],
+                      ],
+                    ),
                   ),
-                  Slider(
-                    value: store.labelMaxWidth.value.isFinite
-                        ? store.labelMaxWidth.value
-                        : 200.0,
-                    min: 100.0,
-                    max: 200.0,
-                    divisions: 5,
-                    label: store.labelMaxWidth.value.isFinite
-                        ? store.labelMaxWidth.value.toStringAsFixed(0)
-                        : '∞',
-                    onChanged: store.setLabelMaxWidth,
-                  ),
-                ],
-              ),
-            ),
-            Observer(
-              builder: (_) => Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Max Lines: ${store.labelMaxLines.value?.toString() ?? "∞"}',
-                          style: theme.textTheme.bodySmall,
+                  Observer(
+                    builder: (_) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Max Width: ${store.labelMaxWidth.value.isFinite ? store.labelMaxWidth.value.toStringAsFixed(0) : "∞"}',
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ),
+                            if (store.labelMaxWidth.value.isFinite)
+                              TextButton(
+                                onPressed: () =>
+                                    store.setLabelMaxWidth(double.infinity),
+                                child: const Text('Reset'),
+                              ),
+                          ],
                         ),
-                      ),
-                      if (store.labelMaxLines.value != null)
-                        TextButton(
-                          onPressed: () => store.setLabelMaxLines(null),
-                          child: const Text('Reset'),
+                        Slider(
+                          value: store.labelMaxWidth.value.isFinite
+                              ? store.labelMaxWidth.value
+                              : 200.0,
+                          min: 100.0,
+                          max: 200.0,
+                          divisions: 5,
+                          label: store.labelMaxWidth.value.isFinite
+                              ? store.labelMaxWidth.value.toStringAsFixed(0)
+                              : '∞',
+                          onChanged: store.setLabelMaxWidth,
                         ),
-                    ],
+                      ],
+                    ),
                   ),
-                  Slider(
-                    value: (store.labelMaxLines.value ?? 5).toDouble(),
-                    min: 1.0,
-                    max: 5.0,
-                    divisions: 4,
-                    label: store.labelMaxLines.value?.toString() ?? '∞',
-                    onChanged: (value) => store.setLabelMaxLines(value.toInt()),
+                  Observer(
+                    builder: (_) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Max Lines: ${store.labelMaxLines.value?.toString() ?? "∞"}',
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ),
+                            if (store.labelMaxLines.value != null)
+                              TextButton(
+                                onPressed: () => store.setLabelMaxLines(null),
+                                child: const Text('Reset'),
+                              ),
+                          ],
+                        ),
+                        Slider(
+                          value: (store.labelMaxLines.value ?? 5).toDouble(),
+                          min: 1.0,
+                          max: 5.0,
+                          divisions: 4,
+                          label: store.labelMaxLines.value?.toString() ?? '∞',
+                          onChanged: (value) =>
+                              store.setLabelMaxLines(value.toInt()),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -602,46 +613,55 @@ class _LabelControlState extends State<_LabelControl> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionTitle(widget.title),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _textController,
-          decoration: InputDecoration(
-            labelText: 'Text',
-            border: const OutlineInputBorder(),
-            suffixIcon: widget.label != null
-                ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      _textController.clear();
-                      widget.onTextChanged(null);
-                    },
-                  )
-                : null,
-          ),
-          onChanged: widget.onTextChanged,
-        ),
-        const SizedBox(height: 12),
-        if (widget.label != null)
-          Observer(
-            builder: (_) => Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text('Offset: ${widget.label!.offset.toStringAsFixed(1)}px'),
-                Slider(
-                  value: widget.label!.offset,
-                  min: -50.0,
-                  max: 50.0,
-                  divisions: 100,
-                  label: widget.label!.offset.toStringAsFixed(1),
-                  onChanged: widget.onOffsetChanged,
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: _textController,
+                decoration: InputDecoration(
+                  labelText: 'Text',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: widget.label != null
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _textController.clear();
+                            widget.onTextChanged(null);
+                          },
+                        )
+                      : null,
                 ),
-                const Text(
-                  'Perpendicular offset from path',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                onChanged: widget.onTextChanged,
+              ),
+              if (widget.label != null) ...[
+                const SizedBox(height: 12),
+                Observer(
+                  builder: (_) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Offset: ${widget.label!.offset.toStringAsFixed(1)}px',
+                      ),
+                      Slider(
+                        value: widget.label!.offset,
+                        min: -50.0,
+                        max: 50.0,
+                        divisions: 100,
+                        label: widget.label!.offset.toStringAsFixed(1),
+                        onChanged: widget.onOffsetChanged,
+                      ),
+                      const Text(
+                        'Perpendicular offset from path',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
+                  ),
                 ),
               ],
-            ),
+            ],
           ),
+        ),
       ],
     );
   }

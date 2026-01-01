@@ -264,96 +264,61 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
   List<Widget> _buildControlPanelChildren() {
     return [
       // Loading indicator
-      if (_isLoading)
-        const LinearProgressIndicator()
-      else
-        const SizedBox(height: 4),
+      if (_isLoading) const LinearProgressIndicator(),
 
       // Workflow Selection Dropdown
-      Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Select Workflow',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedWorkflow,
-                isExpanded: true,
-                decoration: const InputDecoration(
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                items: _availableWorkflows.map((workflow) {
-                  return DropdownMenuItem<String>(
-                    value: workflow['file']!,
-                    child: Text(
-                      workflow['name']!,
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null && newValue != _selectedWorkflow) {
-                    _loadWorkflow(newValue);
-                  }
-                },
-              ),
-            ],
+      const SectionTitle('Workflow'),
+      SectionContent(
+        child: DropdownButtonFormField<String>(
+          initialValue: _selectedWorkflow,
+          isExpanded: true,
+          decoration: const InputDecoration(
+            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            border: OutlineInputBorder(),
+            isDense: true,
           ),
+          items: _availableWorkflows.map((workflow) {
+            return DropdownMenuItem<String>(
+              value: workflow['file']!,
+              child: Text(
+                workflow['name']!,
+                style: const TextStyle(fontSize: 13),
+              ),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            if (newValue != null && newValue != _selectedWorkflow) {
+              _loadWorkflow(newValue);
+            }
+          },
         ),
       ),
 
       // Connection Effect Selection Dropdown
-      Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Connection Effect',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedEffect,
-                isExpanded: true,
-                decoration: const InputDecoration(
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                items: _availableEffects.map((effect) {
-                  return DropdownMenuItem<String>(
-                    value: effect['value']!,
-                    child: Text(
-                      effect['name']!,
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null && newValue != _selectedEffect) {
-                    _updateConnectionEffect(newValue);
-                  }
-                },
-              ),
-            ],
+      const SectionTitle('Connection Effect'),
+      SectionContent(
+        child: DropdownButtonFormField<String>(
+          initialValue: _selectedEffect,
+          isExpanded: true,
+          decoration: const InputDecoration(
+            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            border: OutlineInputBorder(),
+            isDense: true,
           ),
+          items: _availableEffects.map((effect) {
+            return DropdownMenuItem<String>(
+              value: effect['value']!,
+              child: Text(
+                effect['name']!,
+                style: const TextStyle(fontSize: 13),
+              ),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            if (newValue != null && newValue != _selectedEffect) {
+              _updateConnectionEffect(newValue);
+            }
+          },
         ),
       ),
 
@@ -506,46 +471,46 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SectionTitle('Graph Statistics'),
-        const SizedBox(height: 12),
-        Observer(
-          builder: (context) => DataTable(
-            headingRowHeight: 0,
-            dataRowMinHeight: 36,
-            dataRowMaxHeight: 36,
-            columnSpacing: 16,
-            horizontalMargin: 0,
-            dividerThickness: 0,
-            columns: const [
-              DataColumn(label: SizedBox.shrink()),
-              DataColumn(label: SizedBox.shrink()),
-            ],
-            rows: [
-              _buildDataRow(
-                'Selected Nodes',
-                '${_controller.selectedNodeIds.length}',
-              ),
-              _buildDataRow('Total Nodes', '${_controller.nodes.length}'),
-              _buildDataRow(
-                'Total Connections',
-                '${_controller.connections.length}',
-              ),
-              _buildDataRow(
-                'Zoom Level',
-                '${_controller.currentZoom.toStringAsFixed(2)}x',
-              ),
-              _buildDataRow(
-                'Pan Offset',
-                '(${_controller.currentPan.dx.toInt()}, ${_controller.currentPan.dy.toInt()})',
-              ),
-              _buildDataRow(
-                'Bounds',
-                '${_controller.nodesBounds.size.width.toInt()} × ${_controller.nodesBounds.size.height.toInt()}',
-              ),
-            ],
+        const SectionTitle('Graph Statistics'),
+        SectionContent(
+          child: Observer(
+            builder: (context) => DataTable(
+              headingRowHeight: 0,
+              dataRowMinHeight: 36,
+              dataRowMaxHeight: 36,
+              columnSpacing: 16,
+              horizontalMargin: 0,
+              dividerThickness: 0,
+              columns: const [
+                DataColumn(label: SizedBox.shrink()),
+                DataColumn(label: SizedBox.shrink()),
+              ],
+              rows: [
+                _buildDataRow(
+                  'Selected Nodes',
+                  '${_controller.selectedNodeIds.length}',
+                ),
+                _buildDataRow('Total Nodes', '${_controller.nodes.length}'),
+                _buildDataRow(
+                  'Total Connections',
+                  '${_controller.connections.length}',
+                ),
+                _buildDataRow(
+                  'Zoom Level',
+                  '${_controller.currentZoom.toStringAsFixed(2)}x',
+                ),
+                _buildDataRow(
+                  'Pan Offset',
+                  '(${_controller.currentPan.dx.toInt()}, ${_controller.currentPan.dy.toInt()})',
+                ),
+                _buildDataRow(
+                  'Bounds',
+                  '${_controller.nodesBounds.size.width.toInt()} × ${_controller.nodesBounds.size.height.toInt()}',
+                ),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 16),
       ],
     );
   }
@@ -589,17 +554,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionTitle(title),
-        const SizedBox(height: 12),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: 2.5,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 4,
-          children: buttons,
-        ),
-        const SizedBox(height: 16),
+        SectionContent(child: Grid2Cols(buttons: buttons)),
       ],
     );
   }

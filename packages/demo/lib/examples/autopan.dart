@@ -252,15 +252,9 @@ class _AutoPanExampleState extends State<AutoPanExample> {
       ),
       children: [
         _buildPresetSection(),
-        const SizedBox(height: 24),
         _buildDebugModeToggle(),
-        const SizedBox(height: 24),
         _buildCurrentSettingsInfo(),
-        const SizedBox(height: 24),
-        if (_selectedPreset == AutoPanPreset.custom) ...[
-          _buildCustomSettings(),
-          const SizedBox(height: 24),
-        ],
+        if (_selectedPreset == AutoPanPreset.custom) _buildCustomSettings(),
         _buildInstructions(),
       ],
     );
@@ -271,23 +265,34 @@ class _AutoPanExampleState extends State<AutoPanExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('AutoPan Preset'),
-        const SizedBox(height: 12),
-        ...AutoPanPreset.values.map((preset) {
-          final isSelected = _selectedPreset == preset;
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: _PresetButton(
-              preset: preset,
-              isSelected: isSelected,
-              onTap: () {
-                setState(() {
-                  _selectedPreset = preset;
-                });
-                _updateAutoPan();
-              },
-            ),
-          );
-        }),
+        SectionContent(
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: AutoPanPreset.values.map((preset) {
+              final isSelected = _selectedPreset == preset;
+              final label = switch (preset) {
+                AutoPanPreset.normal => 'Normal',
+                AutoPanPreset.fast => 'Fast',
+                AutoPanPreset.precise => 'Precise',
+                AutoPanPreset.custom => 'Custom',
+                AutoPanPreset.disabled => 'Disabled',
+              };
+              return StyledChip(
+                label: label,
+                selected: isSelected,
+                onSelected: (selected) {
+                  if (selected) {
+                    setState(() {
+                      _selectedPreset = preset;
+                    });
+                    _updateAutoPan();
+                  }
+                },
+              );
+            }).toList(),
+          ),
+        ),
       ],
     );
   }
@@ -297,37 +302,13 @@ class _AutoPanExampleState extends State<AutoPanExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Debug Visualization'),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.purple.shade50,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.purple.shade200),
-          ),
+        SectionContent(
           child: Row(
             children: [
-              Icon(Icons.visibility, size: 20, color: Colors.purple.shade600),
-              const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Show Edge Zones',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      'Visualize autopan trigger areas',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  'Show Edge Zones',
+                  style: const TextStyle(fontSize: 12),
                 ),
               ),
               Switch(
@@ -350,50 +331,22 @@ class _AutoPanExampleState extends State<AutoPanExample> {
     final config = _controller.autoPan?.currentConfig;
     final isDisabled = config == null;
 
+    final content = isDisabled
+        ? 'AutoPan is disabled'
+        : 'Edge Padding: ${_formatEdgePadding(config.edgePadding)}\n'
+              'Pan Amount: ${config.panAmount.toStringAsFixed(0)} units\n'
+              'Interval: ${config.panInterval.inMilliseconds} ms\n'
+              'Proximity Scaling: ${config.useProximityScaling ? 'On' : 'Off'}';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Current Settings'),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isDisabled ? Colors.grey.shade100 : Colors.blue.shade50,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isDisabled ? Colors.grey.shade300 : Colors.blue.shade200,
-            ),
+        SectionContent(
+          child: InfoCard(
+            title: isDisabled ? 'Disabled' : 'Active Configuration',
+            content: content,
           ),
-          child: isDisabled
-              ? const Text(
-                  'AutoPan is disabled',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    fontStyle: FontStyle.italic,
-                  ),
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSettingRow(
-                      'Edge Padding',
-                      _formatEdgePadding(config.edgePadding),
-                    ),
-                    _buildSettingRow(
-                      'Pan Amount',
-                      '${config.panAmount.toStringAsFixed(0)} units',
-                    ),
-                    _buildSettingRow(
-                      'Interval',
-                      '${config.panInterval.inMilliseconds} ms',
-                    ),
-                    _buildSettingRow(
-                      'Proximity Scaling',
-                      config.useProximityScaling ? 'On' : 'Off',
-                    ),
-                  ],
-                ),
         ),
       ],
     );
@@ -411,66 +364,55 @@ class _AutoPanExampleState extends State<AutoPanExample> {
         'R:${padding.right.toStringAsFixed(0)} B:${padding.bottom.toStringAsFixed(0)}';
   }
 
-  Widget _buildSettingRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 12)),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.blue.shade700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCustomSettings() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Custom Configuration'),
-        const SizedBox(height: 12),
-        _buildSlider('Edge Padding', _edgePadding, 20, 100, (value) {
-          setState(() => _edgePadding = value);
-          _updateAutoPan();
-        }),
-        Text(
-          'Distance from edge where panning starts',
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
-        ),
-        const SizedBox(height: 12),
-        _buildSlider('Pan Amount', _panAmount, 2, 30, (value) {
-          setState(() => _panAmount = value);
-          _updateAutoPan();
-        }),
-        Text(
-          'Pan distance per tick (graph units)',
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            const Text('Proximity Scaling', style: TextStyle(fontSize: 12)),
-            const Spacer(),
-            Switch(
-              value: _useProximityScaling,
-              onChanged: (value) {
-                setState(() => _useProximityScaling = value);
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildSlider('Edge Padding', _edgePadding, 20, 100, (value) {
+                setState(() => _edgePadding = value);
                 _updateAutoPan();
-              },
-            ),
-          ],
-        ),
-        Text(
-          'Speed increases as pointer gets closer to edge',
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              }),
+              Text(
+                'Distance from edge where panning starts',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 12),
+              _buildSlider('Pan Amount', _panAmount, 2, 30, (value) {
+                setState(() => _panAmount = value);
+                _updateAutoPan();
+              }),
+              Text(
+                'Pan distance per tick (graph units)',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Text(
+                    'Proximity Scaling',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  const Spacer(),
+                  Switch(
+                    value: _useProximityScaling,
+                    onChanged: (value) {
+                      setState(() => _useProximityScaling = value);
+                      _updateAutoPan();
+                    },
+                  ),
+                ],
+              ),
+              Text(
+                'Speed increases as pointer gets closer to edge',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -515,155 +457,17 @@ class _AutoPanExampleState extends State<AutoPanExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Try It Out'),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.amber.shade50,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.amber.shade200),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.lightbulb, size: 16, color: Colors.amber.shade700),
-                  const SizedBox(width: 8),
-                  Text(
-                    'How to test:',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.amber.shade900,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              _buildInstruction('1. Drag a node toward the viewport edge'),
-              _buildInstruction('2. Hold at the edge to trigger autopan'),
-              _buildInstruction('3. The canvas pans to reveal more space'),
-              _buildInstruction(
+        SectionContent(
+          child: InfoCard(
+            title: 'How to Test',
+            content:
+                '1. Drag a node toward the viewport edge\n'
+                '2. Hold at the edge to trigger autopan\n'
+                '3. The canvas pans to reveal more space\n'
                 '4. Try different presets to feel the difference',
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Works with all node types and connections!',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.amber.shade800,
-                ),
-              ),
-            ],
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildInstruction(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Text(
-        text,
-        style: TextStyle(fontSize: 11, color: Colors.amber.shade900),
-      ),
-    );
-  }
-}
-
-class _PresetButton extends StatelessWidget {
-  final AutoPanPreset preset;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _PresetButton({
-    required this.preset,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final (icon, label, description) = switch (preset) {
-      AutoPanPreset.normal => (
-        Icons.speed,
-        'Normal',
-        'Balanced settings for most use cases',
-      ),
-      AutoPanPreset.fast => (
-        Icons.fast_forward,
-        'Fast',
-        'Quick panning for large canvases',
-      ),
-      AutoPanPreset.precise => (
-        Icons.precision_manufacturing,
-        'Precise',
-        'Fine control with smaller movements',
-      ),
-      AutoPanPreset.custom => (
-        Icons.tune,
-        'Custom',
-        'Configure your own settings',
-      ),
-      AutoPanPreset.disabled => (Icons.block, 'Disabled', 'AutoPan turned off'),
-    };
-
-    return Material(
-      color: isSelected ? Colors.blue.shade50 : Colors.transparent,
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isSelected ? Colors.blue : Colors.grey.shade300,
-              width: isSelected ? 2 : 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                size: 20,
-                color: isSelected ? Colors.blue : Colors.grey.shade600,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: isSelected
-                            ? Colors.blue.shade700
-                            : Colors.grey.shade800,
-                      ),
-                    ),
-                    Text(
-                      description,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (isSelected)
-                Icon(Icons.check_circle, size: 18, color: Colors.blue.shade600),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

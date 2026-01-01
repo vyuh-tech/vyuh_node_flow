@@ -374,11 +374,8 @@ class _LODExampleState extends State<LODExample> {
       ),
       children: [
         _buildCurrentState(),
-        const SizedBox(height: 24),
         _buildThresholdControls(),
-        const SizedBox(height: 24),
         _buildVisibilityInfo(),
-        const SizedBox(height: 24),
         _buildZoomActions(),
       ],
     );
@@ -389,74 +386,75 @@ class _LODExampleState extends State<LODExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Current State'),
-        const SizedBox(height: 12),
-        Observer(
-          builder: (_) {
-            final lod = _controller.lod;
-            final normalizedZoom = lod?.normalizedZoom ?? 1.0;
+        SectionContent(
+          child: Observer(
+            builder: (_) {
+              final lod = _controller.lod;
+              final normalizedZoom = lod?.normalizedZoom ?? 1.0;
 
-            // Determine LOD level
-            String level;
-            Color levelColor;
-            if (normalizedZoom < _minThreshold) {
-              level = 'Minimal';
-              levelColor = Colors.red;
-            } else if (normalizedZoom < _midThreshold) {
-              level = 'Standard';
-              levelColor = Colors.orange;
-            } else {
-              level = 'Full';
-              levelColor = Colors.green;
-            }
+              // Determine LOD level
+              String level;
+              Color levelColor;
+              if (normalizedZoom < _minThreshold) {
+                level = 'Minimal';
+                levelColor = Colors.red;
+              } else if (normalizedZoom < _midThreshold) {
+                level = 'Standard';
+                levelColor = Colors.orange;
+              } else {
+                level = 'Full';
+                levelColor = Colors.green;
+              }
 
-            if (!_lodEnabled) {
-              level = 'Disabled (Full)';
-              levelColor = Colors.grey;
-            }
+              if (!_lodEnabled) {
+                level = 'Disabled (Full)';
+                levelColor = Colors.grey;
+              }
 
-            return Column(
-              children: [
-                _buildInfoRow(
-                  'Zoom',
-                  '${(_controller.viewport.zoom * 100).toStringAsFixed(0)}%',
-                ),
-                _buildInfoRow(
-                  'Normalized',
-                  '${(normalizedZoom * 100).toStringAsFixed(0)}%',
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+              return Column(
+                children: [
+                  _buildInfoRow(
+                    'Zoom',
+                    '${(_controller.viewport.zoom * 100).toStringAsFixed(0)}%',
                   ),
-                  decoration: BoxDecoration(
-                    color: levelColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: levelColor.withValues(alpha: 0.3),
+                  _buildInfoRow(
+                    'Normalized',
+                    '${(normalizedZoom * 100).toStringAsFixed(0)}%',
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: levelColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: levelColor.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.layers, size: 16, color: levelColor),
+                        const SizedBox(width: 8),
+                        Text(
+                          'LOD Level: $level',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: levelColor,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.layers, size: 16, color: levelColor),
-                      const SizedBox(width: 8),
-                      Text(
-                        'LOD Level: $level',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: levelColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Visual zoom scale
-                _buildZoomScale(normalizedZoom),
-              ],
-            );
-          },
+                  const SizedBox(height: 12),
+                  // Visual zoom scale
+                  _buildZoomScale(normalizedZoom),
+                ],
+              );
+            },
+          ),
         ),
       ],
     );
@@ -570,61 +568,67 @@ class _LODExampleState extends State<LODExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('LOD Configuration'),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            const Text('Enable LOD', style: TextStyle(fontSize: 12)),
-            const Spacer(),
-            Switch(
-              value: _lodEnabled,
-              onChanged: (value) {
-                setState(() {
-                  _lodEnabled = value;
-                });
-                _updateLODConfig();
-              },
-            ),
-          ],
-        ),
-        Text(
-          _lodEnabled
-              ? 'Visual elements hide based on zoom level'
-              : 'All visual elements always visible',
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
-        ),
-        const SizedBox(height: 16),
-        _buildSlider(
-          'Min Threshold',
-          _minThreshold,
-          0.0,
-          _midThreshold - 0.05,
-          (value) {
-            setState(() {
-              _minThreshold = value;
-            });
-            _updateLODConfig();
-          },
-        ),
-        Text(
-          'Below ${(_minThreshold * 100).toStringAsFixed(0)}%: Minimal detail',
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
-        ),
-        const SizedBox(height: 8),
-        _buildSlider(
-          'Mid Threshold',
-          _midThreshold,
-          _minThreshold + 0.05,
-          1.0,
-          (value) {
-            setState(() {
-              _midThreshold = value;
-            });
-            _updateLODConfig();
-          },
-        ),
-        Text(
-          'Above ${(_midThreshold * 100).toStringAsFixed(0)}%: Full detail',
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const Text('Enable LOD', style: TextStyle(fontSize: 12)),
+                  const Spacer(),
+                  Switch(
+                    value: _lodEnabled,
+                    onChanged: (value) {
+                      setState(() {
+                        _lodEnabled = value;
+                      });
+                      _updateLODConfig();
+                    },
+                  ),
+                ],
+              ),
+              Text(
+                _lodEnabled
+                    ? 'Visual elements hide based on zoom level'
+                    : 'All visual elements always visible',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 16),
+              _buildSlider(
+                'Min Threshold',
+                _minThreshold,
+                0.0,
+                _midThreshold - 0.05,
+                (value) {
+                  setState(() {
+                    _minThreshold = value;
+                  });
+                  _updateLODConfig();
+                },
+              ),
+              Text(
+                'Below ${(_minThreshold * 100).toStringAsFixed(0)}%: Minimal detail',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 8),
+              _buildSlider(
+                'Mid Threshold',
+                _midThreshold,
+                _minThreshold + 0.05,
+                1.0,
+                (value) {
+                  setState(() {
+                    _midThreshold = value;
+                  });
+                  _updateLODConfig();
+                },
+              ),
+              Text(
+                'Above ${(_midThreshold * 100).toStringAsFixed(0)}%: Full detail',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -666,35 +670,47 @@ class _LODExampleState extends State<LODExample> {
   }
 
   Widget _buildVisibilityInfo() {
-    return Observer(
-      builder: (_) {
-        final visibility =
-            _controller.lod?.currentVisibility ?? DetailVisibility.full;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle('Current Visibility'),
+        SectionContent(
+          child: Observer(
+            builder: (_) {
+              final visibility =
+                  _controller.lod?.currentVisibility ?? DetailVisibility.full;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SectionTitle('Current Visibility'),
-            const SizedBox(height: 12),
-            _buildVisibilityRow('Node Content', visibility.showNodeContent),
-            _buildVisibilityRow('Ports', visibility.showPorts),
-            _buildVisibilityRow('Port Labels', visibility.showPortLabels),
-            _buildVisibilityRow(
-              'Connection Lines',
-              visibility.showConnectionLines,
-            ),
-            _buildVisibilityRow(
-              'Connection Labels',
-              visibility.showConnectionLabels,
-            ),
-            _buildVisibilityRow(
-              'Connection Endpoints',
-              visibility.showConnectionEndpoints,
-            ),
-            _buildVisibilityRow('Resize Handles', visibility.showResizeHandles),
-          ],
-        );
-      },
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildVisibilityRow(
+                    'Node Content',
+                    visibility.showNodeContent,
+                  ),
+                  _buildVisibilityRow('Ports', visibility.showPorts),
+                  _buildVisibilityRow('Port Labels', visibility.showPortLabels),
+                  _buildVisibilityRow(
+                    'Connection Lines',
+                    visibility.showConnectionLines,
+                  ),
+                  _buildVisibilityRow(
+                    'Connection Labels',
+                    visibility.showConnectionLabels,
+                  ),
+                  _buildVisibilityRow(
+                    'Connection Endpoints',
+                    visibility.showConnectionEndpoints,
+                  ),
+                  _buildVisibilityRow(
+                    'Resize Handles',
+                    visibility.showResizeHandles,
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -745,46 +761,49 @@ class _LODExampleState extends State<LODExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Quick Zoom'),
-        const SizedBox(height: 12),
-        Text(
-          'Jump to specific zoom levels to see LOD changes',
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+        SectionContent(
+          child: Text(
+            'Jump to specific zoom levels to see LOD changes',
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+          ),
         ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _buildZoomButton('Min', _controller.config.minZoom.value),
-            _buildZoomButton('25%', 0.25),
-            _buildZoomButton('50%', 0.5),
-            _buildZoomButton('75%', 0.75),
-            _buildZoomButton('100%', 1.0),
-            _buildZoomButton('150%', 1.5),
-            _buildZoomButton('Max', _controller.config.maxZoom.value),
-          ],
+        SectionContent(
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildZoomButton('Min', _controller.config.minZoom.value),
+              _buildZoomButton('25%', 0.25),
+              _buildZoomButton('50%', 0.5),
+              _buildZoomButton('75%', 0.75),
+              _buildZoomButton('100%', 1.0),
+              _buildZoomButton('150%', 1.5),
+              _buildZoomButton('Max', _controller.config.maxZoom.value),
+            ],
+          ),
         ),
-        const SizedBox(height: 16),
-        ControlButton(
-          icon: Icons.fit_screen,
-          label: 'Fit to View',
-          onPressed: () => _controller.fitToView(),
+        SectionContent(
+          child: ControlButton(
+            icon: Icons.fit_screen,
+            label: 'Fit to View',
+            onPressed: () => _controller.fitToView(),
+          ),
         ),
       ],
     );
   }
 
   Widget _buildZoomButton(String label, double zoom) {
-    return ElevatedButton(
-      onPressed: () {
-        _controller.zoomTo(zoom);
+    return Observer(
+      builder: (_) {
+        final currentZoom = _controller.viewport.zoom;
+        final isSelected = (currentZoom - zoom).abs() < 0.05;
+        return StyledChip(
+          label: label,
+          selected: isSelected,
+          onSelected: (_) => _controller.zoomTo(zoom),
+        );
       },
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-      child: Text(label, style: const TextStyle(fontSize: 11)),
     );
   }
 }

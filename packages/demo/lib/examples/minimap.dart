@@ -204,20 +204,18 @@ class _MinimapExampleState extends State<MinimapExample> {
         events: NodeFlowEvents(onInit: () => _controller.fitToView()),
       ),
       children: [
-        const InfoCard(
-          title: 'Navigate',
-          content:
-              'Use the minimap to navigate around the large graph. Pan and zoom to explore different areas.',
+        const SectionTitle('About'),
+        SectionContent(
+          child: InfoCard(
+            title: 'Navigate',
+            content:
+                'Use the minimap to navigate around the large graph. Pan and zoom to explore different areas.',
+          ),
         ),
-        const SizedBox(height: 24),
         _buildMinimapToggle(),
-        const SizedBox(height: 24),
         _buildMinimapInteractivity(),
-        const SizedBox(height: 24),
         _buildMinimapPosition(),
-        const SizedBox(height: 24),
         _buildMinimapSize(),
-        const SizedBox(height: 24),
         _buildNavigationButtons(),
       ],
     );
@@ -228,19 +226,20 @@ class _MinimapExampleState extends State<MinimapExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Visibility'),
-        const SizedBox(height: 12),
-        Observer(
-          builder: (_) => Row(
-            children: [
-              const Text('Show Minimap', style: TextStyle(fontSize: 12)),
-              const Spacer(),
-              Switch(
-                value: _controller.minimap?.isVisible ?? false,
-                onChanged: (value) {
-                  _controller.minimap?.setVisible(value);
-                },
-              ),
-            ],
+        SectionContent(
+          child: Observer(
+            builder: (_) => Row(
+              children: [
+                const Text('Show Minimap', style: TextStyle(fontSize: 12)),
+                const Spacer(),
+                Switch(
+                  value: _controller.minimap?.isVisible ?? false,
+                  onChanged: (value) {
+                    _controller.minimap?.setVisible(value);
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -252,29 +251,30 @@ class _MinimapExampleState extends State<MinimapExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Interactivity'),
-        const SizedBox(height: 12),
-        Observer(
-          builder: (_) {
-            final minimap = _controller.minimap;
-            return Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    'Interactive (click to navigate)',
-                    style: TextStyle(fontSize: 12),
+        SectionContent(
+          child: Observer(
+            builder: (_) {
+              final minimap = _controller.minimap;
+              return Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Interactive (click to navigate)',
+                      style: TextStyle(fontSize: 12),
+                    ),
                   ),
-                ),
-                Switch(
-                  value: minimap?.isInteractive ?? false,
-                  onChanged: (minimap?.isVisible ?? false)
-                      ? (value) {
-                          minimap?.setInteractive(value);
-                        }
-                      : null,
-                ),
-              ],
-            );
-          },
+                  Switch(
+                    value: minimap?.isInteractive ?? false,
+                    onChanged: (minimap?.isVisible ?? false)
+                        ? (value) {
+                            minimap?.setInteractive(value);
+                          }
+                        : null,
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ],
     );
@@ -285,40 +285,41 @@ class _MinimapExampleState extends State<MinimapExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Position'),
-        const SizedBox(height: 12),
-        Observer(
-          builder: (_) {
-            // Observe showMinimap for enabling/disabling and current position
-            final minimap = _controller.minimap;
-            final showMinimap = minimap?.isVisible ?? false;
-            final currentPosition =
-                minimap?.position ?? MinimapPosition.bottomRight;
+        SectionContent(
+          child: Observer(
+            builder: (_) {
+              // Observe showMinimap for enabling/disabling and current position
+              final minimap = _controller.minimap;
+              final showMinimap = minimap?.isVisible ?? false;
+              final currentPosition =
+                  minimap?.position ?? MinimapPosition.bottomRight;
 
-            return Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children:
-                  [
-                    ('Top Left', MinimapPosition.topLeft),
-                    ('Top Right', MinimapPosition.topRight),
-                    ('Bottom Left', MinimapPosition.bottomLeft),
-                    ('Bottom Right', MinimapPosition.bottomRight),
-                  ].map((entry) {
-                    final (name, position) = entry;
-                    return ChoiceChip(
-                      label: Text(name, style: const TextStyle(fontSize: 11)),
-                      selected: currentPosition == position,
-                      onSelected: showMinimap
-                          ? (selected) {
-                              if (selected) {
-                                _updateMinimapPosition(position);
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children:
+                    [
+                      ('Top Left', MinimapPosition.topLeft),
+                      ('Top Right', MinimapPosition.topRight),
+                      ('Bottom Left', MinimapPosition.bottomLeft),
+                      ('Bottom Right', MinimapPosition.bottomRight),
+                    ].map((entry) {
+                      final (name, position) = entry;
+                      return StyledChip(
+                        label: name,
+                        selected: currentPosition == position,
+                        onSelected: showMinimap
+                            ? (selected) {
+                                if (selected) {
+                                  _updateMinimapPosition(position);
+                                }
                               }
-                            }
-                          : null,
-                    );
-                  }).toList(),
-            );
-          },
+                            : null,
+                      );
+                    }).toList(),
+              );
+            },
+          ),
         ),
       ],
     );
@@ -329,82 +330,83 @@ class _MinimapExampleState extends State<MinimapExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Size'),
-        const SizedBox(height: 12),
-        Observer(
-          builder: (_) {
-            final minimap = _controller.minimap;
-            final showMinimap = minimap?.isVisible ?? false;
-            final currentSize = minimap?.size ?? const Size(200, 150);
+        SectionContent(
+          child: Observer(
+            builder: (_) {
+              final minimap = _controller.minimap;
+              final showMinimap = minimap?.isVisible ?? false;
+              final currentSize = minimap?.size ?? const Size(200, 150);
 
-            return Column(
-              children: [
-                Row(
-                  children: [
-                    const SizedBox(
-                      width: 50,
-                      child: Text('Width', style: TextStyle(fontSize: 12)),
-                    ),
-                    Expanded(
-                      child: Slider(
-                        value: currentSize.width,
-                        min: 100,
-                        max: 400,
-                        divisions: 30,
-                        label: currentSize.width.toStringAsFixed(0),
-                        onChanged: showMinimap
-                            ? (value) {
-                                _updateMinimapSize(
-                                  Size(value, currentSize.height),
-                                );
-                              }
-                            : null,
+              return Column(
+                children: [
+                  Row(
+                    children: [
+                      const SizedBox(
+                        width: 50,
+                        child: Text('Width', style: TextStyle(fontSize: 12)),
                       ),
-                    ),
-                    SizedBox(
-                      width: 40,
-                      child: Text(
-                        currentSize.width.toStringAsFixed(0),
-                        style: const TextStyle(fontSize: 11),
-                        textAlign: TextAlign.right,
+                      Expanded(
+                        child: Slider(
+                          value: currentSize.width,
+                          min: 100,
+                          max: 400,
+                          divisions: 30,
+                          label: currentSize.width.toStringAsFixed(0),
+                          onChanged: showMinimap
+                              ? (value) {
+                                  _updateMinimapSize(
+                                    Size(value, currentSize.height),
+                                  );
+                                }
+                              : null,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    const SizedBox(
-                      width: 50,
-                      child: Text('Height', style: TextStyle(fontSize: 12)),
-                    ),
-                    Expanded(
-                      child: Slider(
-                        value: currentSize.height,
-                        min: 75,
-                        max: 300,
-                        divisions: 30,
-                        label: currentSize.height.toStringAsFixed(0),
-                        onChanged: showMinimap
-                            ? (value) {
-                                _updateMinimapSize(
-                                  Size(currentSize.width, value),
-                                );
-                              }
-                            : null,
+                      SizedBox(
+                        width: 40,
+                        child: Text(
+                          currentSize.width.toStringAsFixed(0),
+                          style: const TextStyle(fontSize: 11),
+                          textAlign: TextAlign.right,
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      width: 40,
-                      child: Text(
-                        currentSize.height.toStringAsFixed(0),
-                        style: const TextStyle(fontSize: 11),
-                        textAlign: TextAlign.right,
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const SizedBox(
+                        width: 50,
+                        child: Text('Height', style: TextStyle(fontSize: 12)),
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
+                      Expanded(
+                        child: Slider(
+                          value: currentSize.height,
+                          min: 75,
+                          max: 300,
+                          divisions: 30,
+                          label: currentSize.height.toStringAsFixed(0),
+                          onChanged: showMinimap
+                              ? (value) {
+                                  _updateMinimapSize(
+                                    Size(currentSize.width, value),
+                                  );
+                                }
+                              : null,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 40,
+                        child: Text(
+                          currentSize.height.toStringAsFixed(0),
+                          style: const TextStyle(fontSize: 11),
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ],
     );
@@ -415,27 +417,26 @@ class _MinimapExampleState extends State<MinimapExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Quick Navigation'),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            ControlButton(
-              icon: Icons.center_focus_strong,
-              label: 'Fit to View',
-              onPressed: () => _controller.fitToView(),
-            ),
-            ControlButton(
-              icon: Icons.zoom_in,
-              label: 'Zoom In',
-              onPressed: () => _controller.zoomBy(0.2),
-            ),
-            ControlButton(
-              icon: Icons.zoom_out,
-              label: 'Zoom Out',
-              onPressed: () => _controller.zoomBy(-0.2),
-            ),
-          ],
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                icon: Icons.center_focus_strong,
+                label: 'Fit to View',
+                onPressed: () => _controller.fitToView(),
+              ),
+              GridButton(
+                icon: Icons.zoom_in,
+                label: 'Zoom In',
+                onPressed: () => _controller.zoomBy(0.2),
+              ),
+              GridButton(
+                icon: Icons.zoom_out,
+                label: 'Zoom Out',
+                onPressed: () => _controller.zoomBy(-0.2),
+              ),
+            ],
+          ),
         ),
       ],
     );

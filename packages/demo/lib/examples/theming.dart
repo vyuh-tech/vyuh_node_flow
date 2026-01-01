@@ -398,19 +398,12 @@ class _ThemingExampleState extends State<ThemingExample> {
       ),
       children: [
         _buildThemePresets(),
-        const SizedBox(height: 24),
         _buildConnectionsSection(),
-        const SizedBox(height: 24),
         _buildTemporaryConnectionSection(),
-        const SizedBox(height: 24),
         _buildPortsSection(),
-        const SizedBox(height: 24),
         _buildGridSection(),
-        const SizedBox(height: 24),
         _buildViewportSection(),
-        const SizedBox(height: 24),
         _buildNodesSection(),
-        const SizedBox(height: 24),
         _buildDebugSection(),
       ],
     );
@@ -421,21 +414,25 @@ class _ThemingExampleState extends State<ThemingExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Theme Presets'),
-        const SizedBox(height: 12),
-        ControlButton(
-          icon: Icons.light_mode,
-          label: 'Light',
-          onPressed: _resetToLightTheme,
-        ),
-        const SizedBox(height: 8),
-        ControlButton(
-          icon: Icons.dark_mode,
-          label: 'Dark',
-          onPressed: () {
-            setState(() {
-              _theme = NodeFlowTheme.dark;
-            });
-          },
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                icon: Icons.light_mode,
+                label: 'Light',
+                onPressed: _resetToLightTheme,
+              ),
+              GridButton(
+                icon: Icons.dark_mode,
+                label: 'Dark',
+                onPressed: () {
+                  setState(() {
+                    _theme = NodeFlowTheme.dark;
+                  });
+                },
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -446,437 +443,502 @@ class _ThemingExampleState extends State<ThemingExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Connections'),
-        const SizedBox(height: 12),
-
         // Style subsection
-        const Text(
-          'Style',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: ConnectionStyles.all.map((style) {
-            if (style == ConnectionStyles.customBezier) {
-              return const SizedBox.shrink();
-            }
-            return ChoiceChip(
-              label: Text(
-                style.displayName,
-                style: const TextStyle(fontSize: 11),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Style',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
               ),
-              selected: _theme.connectionTheme.style == style,
-              onSelected: (selected) {
-                if (selected) {
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: ConnectionStyles.all.map((style) {
+                  if (style == ConnectionStyles.customBezier) {
+                    return const SizedBox.shrink();
+                  }
+                  return StyledChip(
+                    label: style.displayName,
+                    selected: _theme.connectionTheme.style == style,
+                    onSelected: (selected) {
+                      if (selected) {
+                        _updateTheme(
+                          _theme.copyWith(
+                            connectionTheme: _theme.connectionTheme.copyWith(
+                              style: style,
+                            ),
+                            temporaryConnectionTheme: _theme
+                                .temporaryConnectionTheme
+                                .copyWith(style: style),
+                          ),
+                        );
+                      }
+                    },
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+        // Path Parameters subsection
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Path Parameters',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              _buildSlider(
+                'Corner Radius',
+                _theme.connectionTheme.cornerRadius,
+                0.0,
+                20.0,
+                (value) {
                   _updateTheme(
                     _theme.copyWith(
                       connectionTheme: _theme.connectionTheme.copyWith(
-                        style: style,
+                        cornerRadius: value,
                       ),
                       temporaryConnectionTheme: _theme.temporaryConnectionTheme
-                          .copyWith(style: style),
+                          .copyWith(cornerRadius: value),
                     ),
                   );
-                }
-              },
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 16),
-
-        // Path Parameters subsection
-        const Text(
-          'Path Parameters',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        _buildSlider(
-          'Corner Radius',
-          _theme.connectionTheme.cornerRadius,
-          0.0,
-          20.0,
-          (value) {
-            _updateTheme(
-              _theme.copyWith(
-                connectionTheme: _theme.connectionTheme.copyWith(
-                  cornerRadius: value,
-                ),
-                temporaryConnectionTheme: _theme.temporaryConnectionTheme
-                    .copyWith(cornerRadius: value),
+                },
               ),
-            );
-          },
-        ),
-        Text(
-          'Rounded corners for step-style connections',
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
-        ),
-        const SizedBox(height: 4),
-        _buildSlider(
-          'Port Extension',
-          _theme.connectionTheme.portExtension,
-          5.0,
-          50.0,
-          (value) {
-            _updateTheme(
-              _theme.copyWith(
-                connectionTheme: _theme.connectionTheme.copyWith(
-                  portExtension: value,
-                ),
-                temporaryConnectionTheme: _theme.temporaryConnectionTheme
-                    .copyWith(portExtension: value),
+              Text(
+                'Rounded corners for step-style connections',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
               ),
-            );
-          },
-        ),
-        Text(
-          'Distance connections extend straight from ports',
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
-        ),
-        const SizedBox(height: 4),
-        _buildSlider(
-          'Back Edge Gap',
-          _theme.connectionTheme.backEdgeGap,
-          5.0,
-          80.0,
-          (value) {
-            _updateTheme(
-              _theme.copyWith(
-                connectionTheme: _theme.connectionTheme.copyWith(
-                  backEdgeGap: value,
-                ),
-                temporaryConnectionTheme: _theme.temporaryConnectionTheme
-                    .copyWith(backEdgeGap: value),
+              const SizedBox(height: 4),
+              _buildSlider(
+                'Port Extension',
+                _theme.connectionTheme.portExtension,
+                5.0,
+                50.0,
+                (value) {
+                  _updateTheme(
+                    _theme.copyWith(
+                      connectionTheme: _theme.connectionTheme.copyWith(
+                        portExtension: value,
+                      ),
+                      temporaryConnectionTheme: _theme.temporaryConnectionTheme
+                          .copyWith(portExtension: value),
+                    ),
+                  );
+                },
               ),
-            );
-          },
-        ),
-        Text(
-          'Clearance from node bounds for loopback routing',
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
-        ),
-        const SizedBox(height: 4),
-        _buildSlider(
-          'Curvature',
-          _theme.connectionTheme.bezierCurvature,
-          0.0,
-          1.0,
-          (value) {
-            _updateTheme(
-              _theme.copyWith(
-                connectionTheme: _theme.connectionTheme.copyWith(
-                  bezierCurvature: value,
-                ),
-                temporaryConnectionTheme: _theme.temporaryConnectionTheme
-                    .copyWith(bezierCurvature: value),
+              Text(
+                'Distance connections extend straight from ports',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
               ),
-            );
-          },
+              const SizedBox(height: 4),
+              _buildSlider(
+                'Back Edge Gap',
+                _theme.connectionTheme.backEdgeGap,
+                5.0,
+                80.0,
+                (value) {
+                  _updateTheme(
+                    _theme.copyWith(
+                      connectionTheme: _theme.connectionTheme.copyWith(
+                        backEdgeGap: value,
+                      ),
+                      temporaryConnectionTheme: _theme.temporaryConnectionTheme
+                          .copyWith(backEdgeGap: value),
+                    ),
+                  );
+                },
+              ),
+              Text(
+                'Clearance from node bounds for loopback routing',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 4),
+              _buildSlider(
+                'Curvature',
+                _theme.connectionTheme.bezierCurvature,
+                0.0,
+                1.0,
+                (value) {
+                  _updateTheme(
+                    _theme.copyWith(
+                      connectionTheme: _theme.connectionTheme.copyWith(
+                        bezierCurvature: value,
+                      ),
+                      temporaryConnectionTheme: _theme.temporaryConnectionTheme
+                          .copyWith(bezierCurvature: value),
+                    ),
+                  );
+                },
+              ),
+              Text(
+                'Curvature factor for bezier-style connections',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
+            ],
+          ),
         ),
-        Text(
-          'Curvature factor for bezier-style connections',
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
-        ),
-        const SizedBox(height: 16),
-
         // Effect subsection
-        const Text(
-          'Effect',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children:
-              [
-                ('None', null),
-                ('Flowing Dash', ConnectionEffects.flowingDash),
-                ('Particles', ConnectionEffects.particles),
-                ('Gradient', ConnectionEffects.gradientFlow),
-                ('Pulse', ConnectionEffects.pulse),
-              ].map((entry) {
-                final (name, effect) = entry;
-                return ChoiceChip(
-                  label: Text(name, style: const TextStyle(fontSize: 11)),
-                  selected: _theme.connectionTheme.animationEffect == effect,
-                  onSelected: (selected) {
-                    if (selected) {
-                      _updateTheme(
-                        _theme.copyWith(
-                          connectionTheme: _theme.connectionTheme.copyWith(
-                            animationEffect: effect,
-                          ),
-                          temporaryConnectionTheme: _theme
-                              .temporaryConnectionTheme
-                              .copyWith(animationEffect: effect),
-                        ),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Effect',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children:
+                    [
+                      ('None', null),
+                      ('Flowing Dash', ConnectionEffects.flowingDash),
+                      ('Particles', ConnectionEffects.particles),
+                      ('Gradient', ConnectionEffects.gradientFlow),
+                      ('Pulse', ConnectionEffects.pulse),
+                    ].map((entry) {
+                      final (name, effect) = entry;
+                      return StyledChip(
+                        label: name,
+                        selected:
+                            _theme.connectionTheme.animationEffect == effect,
+                        onSelected: (selected) {
+                          if (selected) {
+                            _updateTheme(
+                              _theme.copyWith(
+                                connectionTheme: _theme.connectionTheme
+                                    .copyWith(animationEffect: effect),
+                                temporaryConnectionTheme: _theme
+                                    .temporaryConnectionTheme
+                                    .copyWith(animationEffect: effect),
+                              ),
+                            );
+                          }
+                        },
                       );
-                    }
-                  },
-                );
-              }).toList(),
+                    }).toList(),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 16),
-
         // Start Point subsection
-        const Text(
-          'Start Point',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children:
-              [
-                ('None', MarkerShapes.none),
-                ('Circle', MarkerShapes.circle),
-                ('Rectangle', MarkerShapes.rectangle),
-                ('Diamond', MarkerShapes.diamond),
-                ('Triangle', MarkerShapes.triangle),
-                ('Capsule', MarkerShapes.capsuleHalf),
-              ].map((entry) {
-                final (name, shape) = entry;
-                final isSelected =
-                    _theme.connectionTheme.startPoint.shape == shape;
-                return ChoiceChip(
-                  label: Text(name, style: const TextStyle(fontSize: 11)),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) {
-                      _updateTheme(
-                        _theme.copyWith(
-                          connectionTheme: _theme.connectionTheme.copyWith(
-                            startPoint: ConnectionEndPoint(
-                              shape: shape,
-                              size: _endpointSize,
-                            ),
-                          ),
-                        ),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Start Point',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children:
+                    [
+                      ('None', MarkerShapes.none),
+                      ('Circle', MarkerShapes.circle),
+                      ('Rectangle', MarkerShapes.rectangle),
+                      ('Diamond', MarkerShapes.diamond),
+                      ('Triangle', MarkerShapes.triangle),
+                      ('Capsule', MarkerShapes.capsuleHalf),
+                    ].map((entry) {
+                      final (name, shape) = entry;
+                      final isSelected =
+                          _theme.connectionTheme.startPoint.shape == shape;
+                      return StyledChip(
+                        label: name,
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            _updateTheme(
+                              _theme.copyWith(
+                                connectionTheme: _theme.connectionTheme
+                                    .copyWith(
+                                      startPoint: ConnectionEndPoint(
+                                        shape: shape,
+                                        size: _endpointSize,
+                                      ),
+                                    ),
+                              ),
+                            );
+                          }
+                        },
                       );
-                    }
-                  },
-                );
-              }).toList(),
+                    }).toList(),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 12),
-
         // End Point subsection
-        const Text(
-          'End Point',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children:
-              [
-                ('None', MarkerShapes.none),
-                ('Circle', MarkerShapes.circle),
-                ('Rectangle', MarkerShapes.rectangle),
-                ('Diamond', MarkerShapes.diamond),
-                ('Triangle', MarkerShapes.triangle),
-                ('Capsule', MarkerShapes.capsuleHalf),
-              ].map((entry) {
-                final (name, shape) = entry;
-                final isSelected =
-                    _theme.connectionTheme.endPoint.shape == shape;
-                return ChoiceChip(
-                  label: Text(name, style: const TextStyle(fontSize: 11)),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) {
-                      _updateTheme(
-                        _theme.copyWith(
-                          connectionTheme: _theme.connectionTheme.copyWith(
-                            endPoint: ConnectionEndPoint(
-                              shape: shape,
-                              size: _endpointSize,
-                            ),
-                          ),
-                        ),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'End Point',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children:
+                    [
+                      ('None', MarkerShapes.none),
+                      ('Circle', MarkerShapes.circle),
+                      ('Rectangle', MarkerShapes.rectangle),
+                      ('Diamond', MarkerShapes.diamond),
+                      ('Triangle', MarkerShapes.triangle),
+                      ('Capsule', MarkerShapes.capsuleHalf),
+                    ].map((entry) {
+                      final (name, shape) = entry;
+                      final isSelected =
+                          _theme.connectionTheme.endPoint.shape == shape;
+                      return StyledChip(
+                        label: name,
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            _updateTheme(
+                              _theme.copyWith(
+                                connectionTheme: _theme.connectionTheme
+                                    .copyWith(
+                                      endPoint: ConnectionEndPoint(
+                                        shape: shape,
+                                        size: _endpointSize,
+                                      ),
+                                    ),
+                              ),
+                            );
+                          }
+                        },
                       );
-                    }
-                  },
+                    }).toList(),
+              ),
+              const SizedBox(height: 12),
+              _buildSlider('Endpoint Width', _endpointSize.width, 3.0, 20.0, (
+                value,
+              ) {
+                final newSize = Size(value, _endpointSize.height);
+                setState(() {
+                  _endpointSize = newSize;
+                });
+                _updateTheme(
+                  _theme.copyWith(
+                    connectionTheme: _theme.connectionTheme.copyWith(
+                      startPoint: _theme.connectionTheme.startPoint.copyWith(
+                        size: newSize,
+                      ),
+                      endPoint: _theme.connectionTheme.endPoint.copyWith(
+                        size: newSize,
+                      ),
+                    ),
+                  ),
                 );
-              }).toList(),
+              }),
+              _buildSlider('Endpoint Height', _endpointSize.height, 3.0, 20.0, (
+                value,
+              ) {
+                final newSize = Size(_endpointSize.width, value);
+                setState(() {
+                  _endpointSize = newSize;
+                });
+                _updateTheme(
+                  _theme.copyWith(
+                    connectionTheme: _theme.connectionTheme.copyWith(
+                      startPoint: _theme.connectionTheme.startPoint.copyWith(
+                        size: newSize,
+                      ),
+                      endPoint: _theme.connectionTheme.endPoint.copyWith(
+                        size: newSize,
+                      ),
+                    ),
+                  ),
+                );
+              }),
+              _buildSlider(
+                'Start Gap',
+                _theme.connectionTheme.startGap,
+                0.0,
+                20.0,
+                (value) {
+                  _updateTheme(
+                    _theme.copyWith(
+                      connectionTheme: _theme.connectionTheme.copyWith(
+                        startGap: value,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              _buildSlider(
+                'End Gap',
+                _theme.connectionTheme.endGap,
+                0.0,
+                20.0,
+                (value) {
+                  _updateTheme(
+                    _theme.copyWith(
+                      connectionTheme: _theme.connectionTheme.copyWith(
+                        endGap: value,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 12),
-        _buildSlider('Endpoint Width', _endpointSize.width, 3.0, 20.0, (value) {
-          final newSize = Size(value, _endpointSize.height);
-          setState(() {
-            _endpointSize = newSize;
-          });
-          _updateTheme(
-            _theme.copyWith(
-              connectionTheme: _theme.connectionTheme.copyWith(
-                startPoint: _theme.connectionTheme.startPoint.copyWith(
-                  size: newSize,
-                ),
-                endPoint: _theme.connectionTheme.endPoint.copyWith(
-                  size: newSize,
-                ),
-              ),
-            ),
-          );
-        }),
-        _buildSlider('Endpoint Height', _endpointSize.height, 3.0, 20.0, (
-          value,
-        ) {
-          final newSize = Size(_endpointSize.width, value);
-          setState(() {
-            _endpointSize = newSize;
-          });
-          _updateTheme(
-            _theme.copyWith(
-              connectionTheme: _theme.connectionTheme.copyWith(
-                startPoint: _theme.connectionTheme.startPoint.copyWith(
-                  size: newSize,
-                ),
-                endPoint: _theme.connectionTheme.endPoint.copyWith(
-                  size: newSize,
-                ),
-              ),
-            ),
-          );
-        }),
-        const SizedBox(height: 12),
-        _buildSlider('Start Gap', _theme.connectionTheme.startGap, 0.0, 20.0, (
-          value,
-        ) {
-          _updateTheme(
-            _theme.copyWith(
-              connectionTheme: _theme.connectionTheme.copyWith(startGap: value),
-            ),
-          );
-        }),
-        _buildSlider('End Gap', _theme.connectionTheme.endGap, 0.0, 20.0, (
-          value,
-        ) {
-          _updateTheme(
-            _theme.copyWith(
-              connectionTheme: _theme.connectionTheme.copyWith(endGap: value),
-            ),
-          );
-        }),
-        const SizedBox(height: 16),
-
         // Endpoint Styling subsection
-        const Text(
-          'Endpoint Styling',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        _buildColorPicker('Fill Color', _theme.connectionTheme.endpointColor, (
-          color,
-        ) {
-          _updateTheme(
-            _theme.copyWith(
-              connectionTheme: _theme.connectionTheme.copyWith(
-                endpointColor: color,
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Endpoint Styling',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
               ),
-              temporaryConnectionTheme: _theme.temporaryConnectionTheme
-                  .copyWith(endpointColor: color),
-            ),
-          );
-        }),
-        const SizedBox(height: 8),
-        _buildColorPicker(
-          'Border Color',
-          _theme.connectionTheme.endpointBorderColor,
-          (color) {
-            _updateTheme(
-              _theme.copyWith(
-                connectionTheme: _theme.connectionTheme.copyWith(
-                  endpointBorderColor: color,
-                ),
-                temporaryConnectionTheme: _theme.temporaryConnectionTheme
-                    .copyWith(endpointBorderColor: color),
+              const SizedBox(height: 8),
+              _buildColorPicker(
+                'Fill Color',
+                _theme.connectionTheme.endpointColor,
+                (color) {
+                  _updateTheme(
+                    _theme.copyWith(
+                      connectionTheme: _theme.connectionTheme.copyWith(
+                        endpointColor: color,
+                      ),
+                      temporaryConnectionTheme: _theme.temporaryConnectionTheme
+                          .copyWith(endpointColor: color),
+                    ),
+                  );
+                },
               ),
-            );
-          },
-        ),
-        const SizedBox(height: 8),
-        _buildSlider(
-          'Border Width',
-          _theme.connectionTheme.endpointBorderWidth,
-          0.0,
-          3.0,
-          (value) {
-            _updateTheme(
-              _theme.copyWith(
-                connectionTheme: _theme.connectionTheme.copyWith(
-                  endpointBorderWidth: value,
-                ),
-                temporaryConnectionTheme: _theme.temporaryConnectionTheme
-                    .copyWith(endpointBorderWidth: value),
+              const SizedBox(height: 8),
+              _buildColorPicker(
+                'Border Color',
+                _theme.connectionTheme.endpointBorderColor,
+                (color) {
+                  _updateTheme(
+                    _theme.copyWith(
+                      connectionTheme: _theme.connectionTheme.copyWith(
+                        endpointBorderColor: color,
+                      ),
+                      temporaryConnectionTheme: _theme.temporaryConnectionTheme
+                          .copyWith(endpointBorderColor: color),
+                    ),
+                  );
+                },
               ),
-            );
-          },
+              const SizedBox(height: 8),
+              _buildSlider(
+                'Border Width',
+                _theme.connectionTheme.endpointBorderWidth,
+                0.0,
+                3.0,
+                (value) {
+                  _updateTheme(
+                    _theme.copyWith(
+                      connectionTheme: _theme.connectionTheme.copyWith(
+                        endpointBorderWidth: value,
+                      ),
+                      temporaryConnectionTheme: _theme.temporaryConnectionTheme
+                          .copyWith(endpointBorderWidth: value),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 16),
-
         // Colors subsection
-        const Text(
-          'Colors',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        _buildColorPicker('Normal', _theme.connectionTheme.color, (color) {
-          _updateTheme(
-            _theme.copyWith(
-              connectionTheme: _theme.connectionTheme.copyWith(color: color),
-            ),
-          );
-        }),
-        const SizedBox(height: 8),
-        _buildColorPicker('Selected', _theme.connectionTheme.selectedColor, (
-          color,
-        ) {
-          _updateTheme(
-            _theme.copyWith(
-              connectionTheme: _theme.connectionTheme.copyWith(
-                selectedColor: color,
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Colors',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
               ),
-            ),
-          );
-        }),
-        const SizedBox(height: 16),
-
+              const SizedBox(height: 8),
+              _buildColorPicker('Normal', _theme.connectionTheme.color, (
+                color,
+              ) {
+                _updateTheme(
+                  _theme.copyWith(
+                    connectionTheme: _theme.connectionTheme.copyWith(
+                      color: color,
+                    ),
+                  ),
+                );
+              }),
+              const SizedBox(height: 8),
+              _buildColorPicker(
+                'Selected',
+                _theme.connectionTheme.selectedColor,
+                (color) {
+                  _updateTheme(
+                    _theme.copyWith(
+                      connectionTheme: _theme.connectionTheme.copyWith(
+                        selectedColor: color,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
         // Stroke Width subsection
-        const Text(
-          'Stroke Width',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        _buildSlider('Normal', _theme.connectionTheme.strokeWidth, 1.0, 5.0, (
-          value,
-        ) {
-          _updateTheme(
-            _theme.copyWith(
-              connectionTheme: _theme.connectionTheme.copyWith(
-                strokeWidth: value,
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Stroke Width',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
               ),
-            ),
-          );
-        }),
-        _buildSlider(
-          'Selected',
-          _theme.connectionTheme.selectedStrokeWidth,
-          1.0,
-          6.0,
-          (value) {
-            _updateTheme(
-              _theme.copyWith(
-                connectionTheme: _theme.connectionTheme.copyWith(
-                  selectedStrokeWidth: value,
-                ),
+              const SizedBox(height: 8),
+              _buildSlider(
+                'Normal',
+                _theme.connectionTheme.strokeWidth,
+                1.0,
+                5.0,
+                (value) {
+                  _updateTheme(
+                    _theme.copyWith(
+                      connectionTheme: _theme.connectionTheme.copyWith(
+                        strokeWidth: value,
+                      ),
+                    ),
+                  );
+                },
               ),
-            );
-          },
+              _buildSlider(
+                'Selected',
+                _theme.connectionTheme.selectedStrokeWidth,
+                1.0,
+                6.0,
+                (value) {
+                  _updateTheme(
+                    _theme.copyWith(
+                      connectionTheme: _theme.connectionTheme.copyWith(
+                        selectedStrokeWidth: value,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -889,119 +951,149 @@ class _ThemingExampleState extends State<ThemingExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Temporary Connection'),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            const Text('Dashed Line', style: TextStyle(fontSize: 12)),
-            const Spacer(),
-            Switch(
-              value: hasDash,
-              onChanged: (value) {
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const Text('Dashed Line', style: TextStyle(fontSize: 12)),
+                  const Spacer(),
+                  Switch(
+                    value: hasDash,
+                    onChanged: (value) {
+                      _updateTheme(
+                        _theme.copyWith(
+                          temporaryConnectionTheme: tempTheme.copyWith(
+                            dashPattern: value ? [6, 4] : null,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              Text(
+                'Show temporary connections as dashed lines',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 12),
+              _buildSlider('Stroke Width', tempTheme.strokeWidth, 1.0, 5.0, (
+                value,
+              ) {
                 _updateTheme(
                   _theme.copyWith(
                     temporaryConnectionTheme: tempTheme.copyWith(
-                      dashPattern: value ? [6, 4] : null,
+                      strokeWidth: value,
                     ),
                   ),
                 );
-              },
-            ),
-          ],
+              }),
+            ],
+          ),
         ),
-        Text(
-          'Show temporary connections as dashed lines',
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
-        ),
-        const SizedBox(height: 12),
-        _buildSlider('Stroke Width', tempTheme.strokeWidth, 1.0, 5.0, (value) {
-          _updateTheme(
-            _theme.copyWith(
-              temporaryConnectionTheme: tempTheme.copyWith(strokeWidth: value),
-            ),
-          );
-        }),
-        const SizedBox(height: 12),
-        const Text('End Point Shape', style: TextStyle(fontSize: 12)),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children:
-              [
-                ('None', MarkerShapes.none),
-                ('Circle', MarkerShapes.circle),
-                ('Triangle', MarkerShapes.triangle),
-                ('Capsule', MarkerShapes.capsuleHalf),
-              ].map((entry) {
-                final (name, shape) = entry;
-                final isSelected = tempTheme.endPoint.shape == shape;
-                return ChoiceChip(
-                  label: Text(name, style: const TextStyle(fontSize: 11)),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) {
-                      _updateTheme(
-                        _theme.copyWith(
-                          temporaryConnectionTheme: tempTheme.copyWith(
-                            endPoint: ConnectionEndPoint(
-                              shape: shape,
-                              size: _endpointSize,
-                            ),
-                          ),
-                        ),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('End Point Shape', style: TextStyle(fontSize: 12)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children:
+                    [
+                      ('None', MarkerShapes.none),
+                      ('Circle', MarkerShapes.circle),
+                      ('Triangle', MarkerShapes.triangle),
+                      ('Capsule', MarkerShapes.capsuleHalf),
+                    ].map((entry) {
+                      final (name, shape) = entry;
+                      final isSelected = tempTheme.endPoint.shape == shape;
+                      return StyledChip(
+                        label: name,
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            _updateTheme(
+                              _theme.copyWith(
+                                temporaryConnectionTheme: tempTheme.copyWith(
+                                  endPoint: ConnectionEndPoint(
+                                    shape: shape,
+                                    size: _endpointSize,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                        },
                       );
-                    }
-                  },
-                );
-              }).toList(),
+                    }).toList(),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 16),
-        const Text('Animation Effect', style: TextStyle(fontSize: 12)),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children:
-              [
-                ('None', null),
-                ('Flowing Dash', ConnectionEffects.flowingDash),
-                ('Particles', ConnectionEffects.particles),
-                ('Gradient', ConnectionEffects.gradientFlow),
-                ('Pulse', ConnectionEffects.pulse),
-              ].map((entry) {
-                final (name, effect) = entry;
-                return ChoiceChip(
-                  label: Text(name, style: const TextStyle(fontSize: 11)),
-                  selected: tempTheme.animationEffect == effect,
-                  onSelected: (selected) {
-                    if (selected) {
-                      _updateTheme(
-                        _theme.copyWith(
-                          temporaryConnectionTheme: tempTheme.copyWith(
-                            animationEffect: effect,
-                          ),
-                        ),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Animation Effect', style: TextStyle(fontSize: 12)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children:
+                    [
+                      ('None', null),
+                      ('Flowing Dash', ConnectionEffects.flowingDash),
+                      ('Particles', ConnectionEffects.particles),
+                      ('Gradient', ConnectionEffects.gradientFlow),
+                      ('Pulse', ConnectionEffects.pulse),
+                    ].map((entry) {
+                      final (name, effect) = entry;
+                      return StyledChip(
+                        label: name,
+                        selected: tempTheme.animationEffect == effect,
+                        onSelected: (selected) {
+                          if (selected) {
+                            _updateTheme(
+                              _theme.copyWith(
+                                temporaryConnectionTheme: tempTheme.copyWith(
+                                  animationEffect: effect,
+                                ),
+                              ),
+                            );
+                          }
+                        },
                       );
-                    }
-                  },
-                );
-              }).toList(),
+                    }).toList(),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 12),
-        _buildSlider('Start Gap', tempTheme.startGap, 0.0, 20.0, (value) {
-          _updateTheme(
-            _theme.copyWith(
-              temporaryConnectionTheme: tempTheme.copyWith(startGap: value),
-            ),
-          );
-        }),
-        _buildSlider('End Gap', tempTheme.endGap, 0.0, 20.0, (value) {
-          _updateTheme(
-            _theme.copyWith(
-              temporaryConnectionTheme: tempTheme.copyWith(endGap: value),
-            ),
-          );
-        }),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildSlider('Start Gap', tempTheme.startGap, 0.0, 20.0, (value) {
+                _updateTheme(
+                  _theme.copyWith(
+                    temporaryConnectionTheme: tempTheme.copyWith(
+                      startGap: value,
+                    ),
+                  ),
+                );
+              }),
+              _buildSlider('End Gap', tempTheme.endGap, 0.0, 20.0, (value) {
+                _updateTheme(
+                  _theme.copyWith(
+                    temporaryConnectionTheme: tempTheme.copyWith(endGap: value),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -1114,109 +1206,132 @@ class _ThemingExampleState extends State<ThemingExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Ports'),
-        const SizedBox(height: 12),
-
         // Size subsection
-        const Text(
-          'Size',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        _buildSlider('Width', _theme.portTheme.size.width, 6.0, 20.0, (value) {
-          _updateTheme(
-            _theme.copyWith(
-              portTheme: _theme.portTheme.copyWith(
-                size: Size(value, _theme.portTheme.size.height),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Size',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
               ),
-            ),
-          );
-        }),
-        _buildSlider('Height', _theme.portTheme.size.height, 6.0, 20.0, (
-          value,
-        ) {
-          _updateTheme(
-            _theme.copyWith(
-              portTheme: _theme.portTheme.copyWith(
-                size: Size(_theme.portTheme.size.width, value),
-              ),
-            ),
-          );
-        }),
-        const SizedBox(height: 12),
-
-        // Shape subsection
-        const Text(
-          'Shape',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children:
-              [
-                ('Circle', MarkerShapes.circle),
-                ('Rectangle', MarkerShapes.rectangle),
-                ('Diamond', MarkerShapes.diamond),
-                ('Triangle', MarkerShapes.triangle),
-                ('Capsule', MarkerShapes.capsuleHalf),
-              ].map((entry) {
-                final (name, shape) = entry;
-                return ChoiceChip(
-                  label: Text(name, style: const TextStyle(fontSize: 11)),
-                  selected: _selectedPortShape == shape,
-                  onSelected: (selected) {
-                    if (selected) {
-                      _updatePortShape(shape);
-                    }
-                  },
+              const SizedBox(height: 8),
+              _buildSlider('Width', _theme.portTheme.size.width, 6.0, 20.0, (
+                value,
+              ) {
+                _updateTheme(
+                  _theme.copyWith(
+                    portTheme: _theme.portTheme.copyWith(
+                      size: Size(value, _theme.portTheme.size.height),
+                    ),
+                  ),
                 );
-              }).toList(),
+              }),
+              _buildSlider('Height', _theme.portTheme.size.height, 6.0, 20.0, (
+                value,
+              ) {
+                _updateTheme(
+                  _theme.copyWith(
+                    portTheme: _theme.portTheme.copyWith(
+                      size: Size(_theme.portTheme.size.width, value),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
         ),
-        const SizedBox(height: 16),
-
+        // Shape subsection
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Shape',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children:
+                    [
+                      ('Circle', MarkerShapes.circle),
+                      ('Rectangle', MarkerShapes.rectangle),
+                      ('Diamond', MarkerShapes.diamond),
+                      ('Triangle', MarkerShapes.triangle),
+                      ('Capsule', MarkerShapes.capsuleHalf),
+                    ].map((entry) {
+                      final (name, shape) = entry;
+                      return StyledChip(
+                        label: name,
+                        selected: _selectedPortShape == shape,
+                        onSelected: (selected) {
+                          if (selected) {
+                            _updatePortShape(shape);
+                          }
+                        },
+                      );
+                    }).toList(),
+              ),
+            ],
+          ),
+        ),
         // Custom Builders subsection
-        const Text(
-          'Custom Builders',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            const Text('Custom Port Builder', style: TextStyle(fontSize: 12)),
-            const Spacer(),
-            Switch(
-              value: _useCustomPortBuilder,
-              onChanged: (value) {
-                setState(() {
-                  _useCustomPortBuilder = value;
-                });
-              },
-            ),
-          ],
-        ),
-        Text(
-          'Colors ports based on input (blue) / output (green)',
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            const Text('Custom Label Builder', style: TextStyle(fontSize: 12)),
-            const Spacer(),
-            Switch(
-              value: _useCustomLabelBuilder,
-              onChanged: (value) {
-                setState(() {
-                  _useCustomLabelBuilder = value;
-                });
-              },
-            ),
-          ],
-        ),
-        Text(
-          'Adds icons and custom styling to connection labels',
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Custom Builders',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Text(
+                    'Custom Port Builder',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  const Spacer(),
+                  Switch(
+                    value: _useCustomPortBuilder,
+                    onChanged: (value) {
+                      setState(() {
+                        _useCustomPortBuilder = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              Text(
+                'Colors ports based on input (blue) / output (green)',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Text(
+                    'Custom Label Builder',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  const Spacer(),
+                  Switch(
+                    value: _useCustomLabelBuilder,
+                    onChanged: (value) {
+                      setState(() {
+                        _useCustomLabelBuilder = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              Text(
+                'Adds icons and custom styling to connection labels',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -1263,52 +1378,68 @@ class _ThemingExampleState extends State<ThemingExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Grid'),
-        const SizedBox(height: 12),
-        _buildColorPicker('Grid Color', gridTheme.color, (color) {
-          _updateTheme(
-            _theme.copyWith(gridTheme: gridTheme.copyWith(color: color)),
-          );
-        }),
-        const SizedBox(height: 8),
-        _buildSlider('Grid Size', gridTheme.size, 10.0, 50.0, (value) {
-          _updateTheme(
-            _theme.copyWith(gridTheme: gridTheme.copyWith(size: value)),
-          );
-        }),
-        _buildSlider('Grid Thickness', gridTheme.thickness, 0.5, 3.0, (value) {
-          _updateTheme(
-            _theme.copyWith(gridTheme: gridTheme.copyWith(thickness: value)),
-          );
-        }),
-        const SizedBox(height: 8),
-        const Text('Grid Style', style: TextStyle(fontSize: 12)),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children:
-              [
-                ('lines', GridStyles.lines),
-                ('dots', GridStyles.dots),
-                ('hierarchical', GridStyles.hierarchical),
-                ('cross', GridStyles.cross),
-                ('none', GridStyles.none),
-              ].map((entry) {
-                final (name, style) = entry;
-                return ChoiceChip(
-                  label: Text(name, style: const TextStyle(fontSize: 11)),
-                  selected: gridTheme.style == style,
-                  onSelected: (selected) {
-                    if (selected) {
-                      _updateTheme(
-                        _theme.copyWith(
-                          gridTheme: gridTheme.copyWith(style: style),
-                        ),
-                      );
-                    }
-                  },
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildColorPicker('Grid Color', gridTheme.color, (color) {
+                _updateTheme(
+                  _theme.copyWith(gridTheme: gridTheme.copyWith(color: color)),
                 );
-              }).toList(),
+              }),
+              const SizedBox(height: 8),
+              _buildSlider('Grid Size', gridTheme.size, 10.0, 50.0, (value) {
+                _updateTheme(
+                  _theme.copyWith(gridTheme: gridTheme.copyWith(size: value)),
+                );
+              }),
+              _buildSlider('Grid Thickness', gridTheme.thickness, 0.5, 3.0, (
+                value,
+              ) {
+                _updateTheme(
+                  _theme.copyWith(
+                    gridTheme: gridTheme.copyWith(thickness: value),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Grid Style', style: TextStyle(fontSize: 12)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children:
+                    [
+                      ('lines', GridStyles.lines),
+                      ('dots', GridStyles.dots),
+                      ('hierarchical', GridStyles.hierarchical),
+                      ('cross', GridStyles.cross),
+                      ('none', GridStyles.none),
+                    ].map((entry) {
+                      final (name, style) = entry;
+                      return StyledChip(
+                        label: name,
+                        selected: gridTheme.style == style,
+                        onSelected: (selected) {
+                          if (selected) {
+                            _updateTheme(
+                              _theme.copyWith(
+                                gridTheme: gridTheme.copyWith(style: style),
+                              ),
+                            );
+                          }
+                        },
+                      );
+                    }).toList(),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -1319,20 +1450,21 @@ class _ThemingExampleState extends State<ThemingExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Viewport'),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            const Text('Scroll to Zoom', style: TextStyle(fontSize: 12)),
-            const Spacer(),
-            Switch(
-              value: _controller.config.scrollToZoom.value,
-              onChanged: (value) {
-                setState(() {
-                  _controller.config.update(scrollToZoom: value);
-                });
-              },
-            ),
-          ],
+        SectionContent(
+          child: Row(
+            children: [
+              const Text('Scroll to Zoom', style: TextStyle(fontSize: 12)),
+              const Spacer(),
+              Switch(
+                value: _controller.config.scrollToZoom.value,
+                onChanged: (value) {
+                  setState(() {
+                    _controller.config.update(scrollToZoom: value);
+                  });
+                },
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -1343,25 +1475,31 @@ class _ThemingExampleState extends State<ThemingExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Debug'),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            const Text('Debug Mode', style: TextStyle(fontSize: 12)),
-            const Spacer(),
-            Switch(
-              value: _debugMode.isEnabled,
-              onChanged: (value) {
-                setState(() {
-                  _debugMode = value ? DebugMode.all : DebugMode.none;
-                  _controller.debug?.setMode(_debugMode);
-                });
-              },
-            ),
-          ],
-        ),
-        Text(
-          'Show spatial index grid & connection hit areas',
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const Text('Debug Mode', style: TextStyle(fontSize: 12)),
+                  const Spacer(),
+                  Switch(
+                    value: _debugMode.isEnabled,
+                    onChanged: (value) {
+                      setState(() {
+                        _debugMode = value ? DebugMode.all : DebugMode.none;
+                        _controller.debug?.setMode(_debugMode);
+                      });
+                    },
+                  ),
+                ],
+              ),
+              Text(
+                'Show spatial index grid & connection hit areas',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -1372,54 +1510,66 @@ class _ThemingExampleState extends State<ThemingExample> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionTitle('Nodes'),
-        const SizedBox(height: 12),
-
-        // Border subsection
-        const Text(
-          'Border',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        _buildSlider('Width', _theme.nodeTheme.borderWidth, 0.0, 5.0, (value) {
-          _updateTheme(
-            _theme.copyWith(
-              nodeTheme: _theme.nodeTheme.copyWith(borderWidth: value),
-            ),
-          );
-        }),
-        _buildSlider(
-          'Radius',
-          _theme.nodeTheme.borderRadius.topLeft.x,
-          0.0,
-          20.0,
-          (value) {
-            _updateTheme(
-              _theme.copyWith(
-                nodeTheme: _theme.nodeTheme.copyWith(
-                  borderRadius: BorderRadius.circular(value),
-                ),
+        SectionContent(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Border',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
               ),
-            );
-          },
+              const SizedBox(height: 8),
+              _buildSlider('Width', _theme.nodeTheme.borderWidth, 0.0, 5.0, (
+                value,
+              ) {
+                _updateTheme(
+                  _theme.copyWith(
+                    nodeTheme: _theme.nodeTheme.copyWith(borderWidth: value),
+                  ),
+                );
+              }),
+              _buildSlider(
+                'Radius',
+                _theme.nodeTheme.borderRadius.topLeft.x,
+                0.0,
+                20.0,
+                (value) {
+                  _updateTheme(
+                    _theme.copyWith(
+                      nodeTheme: _theme.nodeTheme.copyWith(
+                        borderRadius: BorderRadius.circular(value),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 8),
+              _buildColorPicker('Normal', _theme.nodeTheme.borderColor, (
+                color,
+              ) {
+                _updateTheme(
+                  _theme.copyWith(
+                    nodeTheme: _theme.nodeTheme.copyWith(borderColor: color),
+                  ),
+                );
+              }),
+              const SizedBox(height: 8),
+              _buildColorPicker(
+                'Selected',
+                _theme.nodeTheme.selectedBorderColor,
+                (color) {
+                  _updateTheme(
+                    _theme.copyWith(
+                      nodeTheme: _theme.nodeTheme.copyWith(
+                        selectedBorderColor: color,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 8),
-        _buildColorPicker('Normal', _theme.nodeTheme.borderColor, (color) {
-          _updateTheme(
-            _theme.copyWith(
-              nodeTheme: _theme.nodeTheme.copyWith(borderColor: color),
-            ),
-          );
-        }),
-        const SizedBox(height: 8),
-        _buildColorPicker('Selected', _theme.nodeTheme.selectedBorderColor, (
-          color,
-        ) {
-          _updateTheme(
-            _theme.copyWith(
-              nodeTheme: _theme.nodeTheme.copyWith(selectedBorderColor: color),
-            ),
-          );
-        }),
       ],
     );
   }

@@ -263,42 +263,48 @@ class _EditableConnectionsExampleState
         theme: _theme,
       ),
       children: [
-        const SectionTitle('Editable Connections'),
-        const SizedBox(height: 12),
-        ControlButton(
-          label: isEditable ? 'Disable Editing' : 'Enable Editing',
-          icon: isEditable ? Icons.lock : Icons.edit,
-          onPressed: _toggleEditableStyle,
+        const SectionTitle('About'),
+        SectionContent(
+          child: InfoCard(
+            title: 'Instructions',
+            content:
+                '1. Enable editing mode to see control points\n'
+                '2. Drag control points to modify connection paths\n'
+                '3. Control points define waypoints for smooth step routing\n'
+                '4. Connections without control points use automatic routing',
+          ),
         ),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Add Control Point',
-          icon: Icons.add_location,
-          onPressed: isEditable ? _addControlPoint : null,
+        SectionContent(
+          child: InfoCard(
+            title: 'Features',
+            content:
+                '• Drag control points to customize paths\n'
+                '• Add/remove control points programmatically\n'
+                '• Maintains orthogonal (90°) routing\n'
+                '• Smooth rounded corners at bends',
+          ),
         ),
-        const SizedBox(height: 8),
-        ControlButton(
-          label: 'Clear Control Points',
-          icon: Icons.clear_all,
-          onPressed: isEditable ? _removeControlPoints : null,
-        ),
-        const SizedBox(height: 16),
-        const InfoCard(
-          title: 'Instructions',
-          content:
-              '1. Enable editing mode to see control points\n'
-              '2. Drag control points to modify connection paths\n'
-              '3. Control points define waypoints for smooth step routing\n'
-              '4. Connections without control points use automatic routing',
-        ),
-        const SizedBox(height: 16),
-        const InfoCard(
-          title: 'Features',
-          content:
-              '• Drag control points to customize paths\n'
-              '• Add/remove control points programmatically\n'
-              '• Maintains orthogonal (90°) routing\n'
-              '• Smooth rounded corners at bends',
+        const SectionTitle('Actions'),
+        SectionContent(
+          child: Grid2Cols(
+            buttons: [
+              GridButton(
+                label: isEditable ? 'Disable Edit' : 'Enable Edit',
+                icon: isEditable ? Icons.lock : Icons.edit,
+                onPressed: _toggleEditableStyle,
+              ),
+              GridButton(
+                label: 'Add Point',
+                icon: Icons.add_location,
+                onPressed: isEditable ? _addControlPoint : null,
+              ),
+              GridButton(
+                label: 'Clear Points',
+                icon: Icons.clear_all,
+                onPressed: isEditable ? _removeControlPoints : null,
+              ),
+            ],
+          ),
         ),
       ],
     );
