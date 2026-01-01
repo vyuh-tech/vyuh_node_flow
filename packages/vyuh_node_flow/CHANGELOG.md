@@ -1,3 +1,8 @@
+## 0.21.0
+
+ - **FEAT**: improve connection painter caching and theme handling, and fix path cache referencing current theme style.
+ - **FEAT**: improve website and demo theming, extension organization and consistent node, port, connection, label builders.
+
 ## 0.20.0
 
  - **FEAT**: enable reactive Minimap updates for position and size, simplify state management, and improve theme configurability.
