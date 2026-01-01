@@ -1,3 +1,7 @@
+## 0.21.1
+
+ - **FEAT**: remove `ExampleContainer`, `DemoStatsPanel`, and related components; update README with new extension-based statistics and features.
+
 ## 0.21.0
 
  - **FEAT**: improve connection painter caching and theme handling, and fix path cache referencing current theme style.
