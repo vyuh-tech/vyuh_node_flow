@@ -11,7 +11,7 @@ defineProps<{
 
 <template>
   <div
-    class="relative rounded-lg overflow-hidden border border-slate-200/50 dark:border-zinc-600/50 bg-transparent"
+    class="relative rounded-lg overflow-hidden border border-slate-200/50 dark:border-zinc-600/50 bg-white/75 dark:bg-zinc-900/75"
     style="
       box-shadow:
         0 20px 50px rgba(0, 0, 0, 0.1),
@@ -20,11 +20,10 @@ defineProps<{
   >
     <iframe
       :src="url"
-      class="w-full border-none bg-transparent"
+      class="w-full border-none"
       :style="{ height: height || '520px' }"
       :title="title || url"
       loading="lazy"
-      allowtransparency="true"
     />
   </div>
 </template>

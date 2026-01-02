@@ -40,13 +40,13 @@ defineProps<{
       <slot v-if="$slots.default" />
       <!-- Video prop -->
       <div v-else-if="video" class="feature-video">
-        <video autoplay loop muted playsinline>
+        <video autoplay loop muted playsinline preload="metadata">
           <source :src="video" type="video/webm" />
         </video>
       </div>
       <!-- Image prop -->
       <div v-else-if="image" class="feature-image">
-        <img :src="image" :alt="title" />
+        <img :src="image" :alt="title" loading="lazy" />
       </div>
       <!-- Fallback to placeholder -->
       <MediaPlaceholder
