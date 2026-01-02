@@ -54,11 +54,7 @@ const workflowFeatures = [
       'Conditional branching and parallel execution paths',
       'Simulation mode with step-through debugging',
     ],
-    placeholder: {
-      type: 'video' as const,
-      title: 'Workflow Editor Demo',
-      description: 'See the visual workflow designer in action',
-    },
+    video: '/editor.webm',
   },
   {
     tag: 'Dart Execution',
@@ -74,7 +70,6 @@ const workflowFeatures = [
       'Custom executor plugins for specialized tasks',
     ],
     placeholder: {
-      type: 'animation' as const,
       title: 'Executor Pipeline',
       description: 'Watch workflows execute step-by-step',
     },
@@ -93,7 +88,6 @@ const workflowFeatures = [
       'Alerting and notification integrations',
     ],
     placeholder: {
-      type: 'image' as const,
       title: 'Monitoring Dashboard',
       description: 'Live workflow analytics and insights',
     },
@@ -112,7 +106,6 @@ const workflowFeatures = [
       'Integration with external systems and APIs',
     ],
     placeholder: {
-      type: 'image' as const,
       title: 'Infrastructure Overview',
       description: 'Scalable workflow architecture',
     },
@@ -310,6 +303,7 @@ const comparisonRows: ComparisonRow[] = [
           :title="feature.title"
           :subtitle="feature.subtitle"
           :bullets="feature.bullets"
+          :video="feature.video"
           :placeholder="feature.placeholder"
           :reverse="index % 2 === 1"
         />

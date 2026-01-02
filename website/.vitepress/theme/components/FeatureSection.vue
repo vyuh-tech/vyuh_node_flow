@@ -4,7 +4,6 @@ import Badge from './Badge.vue';
 import MediaPlaceholder from './MediaPlaceholder.vue';
 
 export interface PlaceholderConfig {
-  type: 'video' | 'animation' | 'image' | 'gif';
   title: string;
   description: string;
 }
@@ -52,7 +51,6 @@ defineProps<{
       <!-- Fallback to placeholder -->
       <MediaPlaceholder
         v-else-if="placeholder"
-        :type="placeholder.type"
         :title="placeholder.title"
         :description="placeholder.description"
       />
