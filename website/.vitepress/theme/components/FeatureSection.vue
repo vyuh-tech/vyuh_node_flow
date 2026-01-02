@@ -17,6 +17,8 @@ defineProps<{
   subtitle: string;
   bullets: string[];
   placeholder?: PlaceholderConfig;
+  video?: string;
+  image?: string;
   reverse?: boolean;
 }>();
 </script>
@@ -35,8 +37,19 @@ defineProps<{
       </ul>
     </div>
     <div class="feature-section-visual">
-      <!-- Slot takes priority over placeholder -->
+      <!-- Slot takes priority -->
       <slot v-if="$slots.default" />
+      <!-- Video prop -->
+      <div v-else-if="video" class="feature-video">
+        <video autoplay loop muted playsinline>
+          <source :src="video" type="video/webm" />
+        </video>
+      </div>
+      <!-- Image prop -->
+      <div v-else-if="image" class="feature-image">
+        <img :src="image" :alt="title" />
+      </div>
+      <!-- Fallback to placeholder -->
       <MediaPlaceholder
         v-else-if="placeholder"
         :type="placeholder.type"
@@ -97,6 +110,42 @@ defineProps<{
 }
 
 .feature-section-visual {
-  @apply flex items-stretch justify-center w-full max-w-full overflow-hidden;
+  @apply flex items-stretch justify-center w-full max-w-full overflow-visible;
+}
+
+.feature-video {
+  @apply relative w-full rounded-2xl overflow-hidden;
+  @apply bg-slate-900 dark:bg-zinc-900;
+  box-shadow:
+    0 0 60px -15px rgba(99, 102, 241, 0.4),
+    0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+:root.dark .feature-video {
+  box-shadow:
+    0 0 80px -15px rgba(129, 140, 248, 0.3),
+    0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.feature-video video {
+  @apply w-full h-full object-cover;
+}
+
+.feature-image {
+  @apply relative w-full rounded-2xl overflow-hidden;
+  @apply bg-slate-100 dark:bg-zinc-800;
+  box-shadow:
+    0 0 60px -15px rgba(99, 102, 241, 0.4),
+    0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+:root.dark .feature-image {
+  box-shadow:
+    0 0 80px -15px rgba(129, 140, 248, 0.3),
+    0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.feature-image img {
+  @apply w-full h-full object-cover;
 }
 </style>

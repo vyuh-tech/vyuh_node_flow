@@ -142,6 +142,7 @@ class EmbedContext extends InheritedWidget {
 ///
 /// Shows just the raw example content without any navigation,
 /// control panel, or header chrome. Handles deferred loading automatically.
+/// Uses a transparent background to allow the host page's background to show through.
 class EmbedWrapper extends StatelessWidget {
   final Example example;
 
@@ -150,6 +151,7 @@ class EmbedWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: EmbedContext(
         isEmbed: true,
         child: DeferredExampleLoader(example: example),

@@ -40,7 +40,7 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
     'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=256&h=256&fit=crop&q=80',
   ];
 
-  // Available colors
+  // Available colors (saturated for color overlay swatches)
   static const _colors = [
     Color(0xFF6366F1), // Indigo
     Color(0xFFEC4899), // Pink
@@ -50,21 +50,22 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
     Color(0xFFEF4444), // Red
   ];
 
-  // Custom theme with glowing dash connections
+  // Custom lightweight modern theme
   late final NodeFlowTheme _theme;
 
-  // Port themes for type-based coloring (grey when disconnected, colored when connected)
-  static final _imagePortTheme = PortTheme.light.copyWith(
-    color: const Color(0xFF9CA3AF), // Grey when disconnected
-    connectedColor: const Color(0xFF3B82F6), // Blue when connected
+  // Minimal port themes - subtle when disconnected, accent when connected
+  static final _basePortTheme = PortTheme.light.copyWith(
+    size: const Size(8, 8), // Smaller ports for cleaner look
+    color: const Color(0xFFD1D5DB), // Light grey when disconnected
   );
-  static final _colorPortTheme = PortTheme.light.copyWith(
-    color: const Color(0xFF9CA3AF), // Grey when disconnected
-    connectedColor: const Color(0xFFEC4899), // Pink when connected
+  static final _imagePortTheme = _basePortTheme.copyWith(
+    connectedColor: const Color(0xFF60A5FA), // Soft blue when connected
   );
-  static final _effectPortTheme = PortTheme.light.copyWith(
-    color: const Color(0xFF9CA3AF), // Grey when disconnected
-    connectedColor: const Color(0xFF10B981), // Green when connected
+  static final _colorPortTheme = _basePortTheme.copyWith(
+    connectedColor: const Color(0xFFF472B6), // Soft pink when connected
+  );
+  static final _effectPortTheme = _basePortTheme.copyWith(
+    connectedColor: const Color(0xFF34D399), // Soft green when connected
   );
 
   @override
@@ -74,22 +75,47 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
   void initState() {
     super.initState();
 
-    // Create custom theme with bezier style and glowing flowing dash effect
+    // Create modern lightweight theme with minimal visual weight
     final baseTheme = NodeFlowTheme.light;
     _theme = baseTheme.copyWith(
+      backgroundColor: Colors.transparent,
+      gridTheme: GridTheme.light.copyWith(style: GridStyles.none),
+      // Lightweight node styling - 1px borders, subtle colors
+      nodeTheme: baseTheme.nodeTheme.copyWith(
+        backgroundColor: Colors.white,
+        selectedBackgroundColor: const Color(0xFFFAFAFA),
+        highlightBackgroundColor: const Color(0xFFF8FAFC),
+        borderColor: const Color(0xFFCBD5E1), // Slate-300 for better visibility
+        selectedBorderColor: const Color(0xFF818CF8), // Soft indigo selection
+        highlightBorderColor: const Color(0xFFA5B4FC),
+        borderWidth: 1.0, // Thin 1px border
+        selectedBorderWidth: 1.0,
+        borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+      ),
+      // Subtle connection lines with flowing animation
       connectionTheme: baseTheme.connectionTheme.copyWith(
         style: ConnectionStyles.bezier,
-        strokeWidth: 1,
+        color: const Color(0xFFD1D5DB), // Light grey
+        selectedColor: const Color(0xFF818CF8), // Soft indigo
+        strokeWidth: 1.5,
+        selectedStrokeWidth: 2,
         animationEffect: FlowingDashEffect(
-          dashLength: 8,
-          gapLength: 6,
+          dashLength: 6,
+          gapLength: 4,
           speed: 2,
         ),
       ),
-      // Temporary connection also uses bezier style
+      // Temporary connection styling
       temporaryConnectionTheme: baseTheme.temporaryConnectionTheme.copyWith(
         style: ConnectionStyles.bezier,
-        strokeWidth: 1,
+        strokeWidth: 1.5,
+        color: const Color(0xFFA5B4FC),
+      ),
+      // Smaller, subtler ports
+      portTheme: baseTheme.portTheme.copyWith(
+        size: const Size(8, 8),
+        color: const Color(0xFFD1D5DB),
+        connectedColor: const Color(0xFF9CA3AF),
       ),
     );
 
@@ -123,7 +149,7 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
         data: ImageSourceData(
           title: 'Image Source',
           icon: Icons.image_outlined,
-          color: const Color(0xFF3B82F6),
+          color: const Color(0xFF60A5FA),
           selectedImage: _selectedImage,
           images: _images,
         ),
@@ -148,7 +174,7 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
         data: ColorOverlayData(
           title: 'Color Overlay',
           icon: Icons.palette_outlined,
-          color: const Color(0xFFEC4899),
+          color: const Color(0xFFF472B6),
           selectedColor: _selectedColor,
           opacity: _colorOpacity,
           colors: _colors,
@@ -174,7 +200,7 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
         data: EffectsData(
           title: 'Effects',
           icon: Icons.blur_on,
-          color: const Color(0xFF10B981),
+          color: const Color(0xFF34D399),
           blurRadius: _blurRadius,
           saturation: _saturation,
         ),
@@ -199,7 +225,7 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
         data: OutputData(
           title: 'Output',
           icon: Icons.auto_awesome,
-          color: const Color(0xFFF59E0B),
+          color: const Color(0xFF818CF8),
           controller: _controller,
           selectedImage: _selectedImage,
           selectedColor: _selectedColor,
@@ -269,8 +295,9 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
 
   Widget _buildNode(BuildContext context, Node<HeroNodeData> node) {
     final data = node.data;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Get border radius and width from theme
+    // Get border radius from theme
     final nodeTheme = _theme.nodeTheme;
     final outerRadius = nodeTheme.borderRadius;
     final borderWidth = node.isSelected
@@ -280,33 +307,45 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
     // Inner radius = outer radius - border width
     final innerRadiusValue = (outerRadius.topLeft.x - borderWidth);
 
+    // Theme-aware colors
+    final backgroundColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final headerColor = isDark
+        ? data.color.withValues(alpha: 0.15)
+        : data.color.withValues(alpha: 0.06);
+
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(innerRadiusValue),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Very thin header - inner radius accounts for border width
+          // Modern minimal header - just subtle tinted background
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(color: data.color),
+            decoration: BoxDecoration(color: headerColor),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             child: Row(
               children: [
-                Icon(data.icon, size: 12, color: Colors.white),
-                const SizedBox(width: 4),
+                Icon(data.icon, size: 13, color: data.color),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     data.title,
-                    style: const TextStyle(fontSize: 10, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: data.color.withValues(alpha: 0.9),
+                      letterSpacing: 0.2,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          // Content
+          // Content with refined padding
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(10),
@@ -614,9 +653,9 @@ class _ColorSelector extends StatelessWidget {
       builder: (_) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Color swatches - just tick mark for selection, fixed size
+          // Color swatches - checkmark for selection
           SizedBox(
-            height: 32,
+            height: 24,
             child: Row(
               children: colors.map((color) {
                 final isSelected = selectedColor.value == color;
@@ -625,11 +664,11 @@ class _ColorSelector extends StatelessWidget {
                     onTap: () => runInAction(() => selectedColor.value = color),
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 2),
+                      alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: color,
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                      alignment: Alignment.center,
                       child: isSelected
                           ? const Icon(
                               Icons.check,
@@ -663,19 +702,25 @@ class _ColorSelector extends StatelessWidget {
               Expanded(
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
-                    trackHeight: 3,
+                    trackHeight: 2,
+                    activeTrackColor: selectedColor.value.withValues(
+                      alpha: 0.8,
+                    ),
+                    inactiveTrackColor: selectedColor.value.withValues(
+                      alpha: 0.15,
+                    ),
                     thumbShape: const RoundSliderThumbShape(
-                      enabledThumbRadius: 6,
+                      enabledThumbRadius: 5,
                     ),
                     overlayShape: const RoundSliderOverlayShape(
-                      overlayRadius: 12,
+                      overlayRadius: 10,
                     ),
+                    thumbColor: selectedColor.value,
                   ),
                   child: Slider(
                     value: opacity.value,
                     min: 0.1,
                     max: 1.0,
-                    activeColor: selectedColor.value,
                     onChanged: (v) => runInAction(() => opacity.value = v),
                   ),
                 ),
@@ -730,27 +775,33 @@ class _EffectsPanel extends StatelessWidget {
             children: [
               Icon(
                 Icons.blur_on,
-                size: 14,
-                color: isDark ? Colors.white54 : Colors.black45,
+                size: 13,
+                color: isDark ? Colors.white54 : Colors.black38,
               ),
               const SizedBox(width: 4),
               Text('Blur', style: labelStyle),
               Expanded(
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
-                    trackHeight: 3,
+                    trackHeight: 2,
+                    activeTrackColor: const Color(
+                      0xFF34D399,
+                    ).withValues(alpha: 0.8),
+                    inactiveTrackColor: const Color(
+                      0xFF34D399,
+                    ).withValues(alpha: 0.15),
                     thumbShape: const RoundSliderThumbShape(
-                      enabledThumbRadius: 6,
+                      enabledThumbRadius: 5,
                     ),
                     overlayShape: const RoundSliderOverlayShape(
-                      overlayRadius: 12,
+                      overlayRadius: 10,
                     ),
+                    thumbColor: const Color(0xFF34D399),
                   ),
                   child: Slider(
                     value: blurRadius.value,
                     min: 0,
                     max: 10,
-                    activeColor: const Color(0xFF10B981),
                     onChanged: (v) => runInAction(() => blurRadius.value = v),
                   ),
                 ),
@@ -769,27 +820,33 @@ class _EffectsPanel extends StatelessWidget {
             children: [
               Icon(
                 Icons.tune,
-                size: 14,
-                color: isDark ? Colors.white54 : Colors.black45,
+                size: 13,
+                color: isDark ? Colors.white54 : Colors.black38,
               ),
               const SizedBox(width: 4),
               Text('Saturation', style: labelStyle),
               Expanded(
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
-                    trackHeight: 3,
+                    trackHeight: 2,
+                    activeTrackColor: const Color(
+                      0xFF34D399,
+                    ).withValues(alpha: 0.8),
+                    inactiveTrackColor: const Color(
+                      0xFF34D399,
+                    ).withValues(alpha: 0.15),
                     thumbShape: const RoundSliderThumbShape(
-                      enabledThumbRadius: 6,
+                      enabledThumbRadius: 5,
                     ),
                     overlayShape: const RoundSliderOverlayShape(
-                      overlayRadius: 12,
+                      overlayRadius: 10,
                     ),
+                    thumbColor: const Color(0xFF34D399),
                   ),
                   child: Slider(
                     value: saturation.value,
                     min: 0,
                     max: 1,
-                    activeColor: const Color(0xFF10B981),
                     onChanged: (v) => runInAction(() => saturation.value = v),
                   ),
                 ),

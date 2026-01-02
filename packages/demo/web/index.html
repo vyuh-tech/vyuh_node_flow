@@ -1,113 +1,132 @@
-<!DOCTYPE html><html><head>
-    <!--
-      If you are serving your web app in a path other than the root, change the
-      href value below to reflect the base path you are serving from.
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="$FLUTTER_BASE_HREF">
 
-      The path provided below has to start and end with a slash "/" in order for
-      it to work correctly.
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Vyuh Node Flow - Visual Node Editor for Flutter">
 
-      For more details:
-      * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Vyuh Node Flow">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-      This is a placeholder for base href that will be replaced by the value of
-      the `--base-href` argument provided to `flutter build`.
-    -->
-    <base href="$FLUTTER_BASE_HREF">
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png">
 
-    <meta charset="UTF-8">
-    <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-    <meta content="A new Flutter project." name="description">
+  <title>Vyuh Node Flow</title>
+  <link rel="manifest" href="manifest.json">
 
-    <!-- iOS meta tags & icons -->
-    <meta content="yes" name="mobile-web-app-capable">
-    <meta content="black" name="apple-mobile-web-app-status-bar-style">
-    <meta content="vyuh_node_flow_example" name="apple-mobile-web-app-title">
-    <link href="icons/Icon-192.png" rel="apple-touch-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <!-- Favicon -->
-    <link href="favicon.png" rel="icon" type="image/png">
-
-    <title>vyuh_node_flow_example</title>
-    <link href="manifest.json" rel="manifest">
-    
-    
-    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
-  <style id="splash-screen-style">
-    html {
-      height: 100%
+  <style>
+    * {
+      box-sizing: border-box;
     }
 
+    :root,
+    html,
     body {
+      height: 100%;
       margin: 0;
-      min-height: 100%;
-      background-color: #ffffff;
-          background-size: 100% 100%;
+      padding: 0;
+      background-color: transparent;
+      background: transparent;
+      /* Support both light and dark color schemes */
+      color-scheme: light dark;
     }
 
-    .center {
-      margin: 0;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      -ms-transform: translate(-50%, -50%);
-      transform: translate(-50%, -50%);
+    /* Ensure transparency in both light and dark modes */
+    @media (prefers-color-scheme: dark) {
+      :root,
+      html,
+      body {
+        background-color: transparent;
+        background: transparent;
+      }
     }
 
-    .contain {
-      display:block;
-      width:100%; height:100%;
-      object-fit: contain;
+    /* Hide Flutter's default loading indicator */
+    .loading-indicator,
+    .flutter-loader {
+      display: none !important;
     }
 
-    .stretch {
-      display:block;
-      width:100%; height:100%;
+    /* Modern loader styles */
+    #loader {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      z-index: 1000;
+      opacity: 1;
+      transition: opacity 0.5s ease-out;
     }
 
-    .cover {
-      display:block;
-      width:100%; height:100%;
-      object-fit: cover;
+    #loader.fade-out {
+      opacity: 0;
+      pointer-events: none;
     }
 
-    .bottom {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      -ms-transform: translate(-50%, 0);
-      transform: translate(-50%, 0);
+    .progress-wrapper {
+      width: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
     }
 
-    .bottomLeft {
-      position: absolute;
-      bottom: 0;
-      left: 0;
+    .progress-track {
+      width: 100%;
+      height: 3px;
+      background: rgba(99, 102, 241, 0.15);
+      border-radius: 3px;
+      overflow: hidden;
     }
 
-    .bottomRight {
-      position: absolute;
-      bottom: 0;
-      right: 0;
+    #progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #6366f1, #a78bfa, #6366f1);
+      background-size: 200% 100%;
+      border-radius: 3px;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: shimmer 1.5s ease-in-out infinite;
+    }
+
+    #progress-text {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      color: #6366f1;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      opacity: 0.8;
+      transition: opacity 0.3s ease;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
   </style>
-  <script id="splash-screen-script">
-    function removeSplashFromWeb() {
-      document.getElementById("splash")?.remove();
-      document.getElementById("splash-branding")?.remove();
-      document.body.style.background = "transparent";
-    }
-  </script>
 </head>
 <body>
-  <picture id="splash">
-      <source srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x, splash/img/light-3x.png 3x, splash/img/light-4x.png 4x" media="(prefers-color-scheme: light)">
-      <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">
-      <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
-  </picture>
+  <!-- Modern progress loader -->
+  <div id="loader">
+    <div class="progress-wrapper">
+      <div class="progress-track">
+        <div id="progress-bar"></div>
+      </div>
+      <div id="progress-text">Loading</div>
+    </div>
+  </div>
 
-<script async="" src="flutter_bootstrap.js"></script>
-
-
-
-
-</body></html>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

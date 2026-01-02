@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Icon } from '@iconify/vue';
 import Badge from './components/Badge.vue';
 import BentoGrid from './components/BentoGrid.vue';
@@ -18,6 +19,14 @@ import SectionConnector from './components/SectionConnector.vue';
 import SectionHeader from './components/SectionHeader.vue';
 import SiteFooter from './components/SiteFooter.vue';
 import WordFlipper from './components/WordFlipper.vue';
+
+// Demo URL - use localhost in dev mode, production URL otherwise
+const demoUrl = computed(() => {
+  const path = '#/hero/image?embed=true';
+  return import.meta.env.DEV
+    ? `http://localhost:8080/${path}`
+    : `https://flow.demo.vyuh.tech/${path}`;
+});
 
 // Full words for the flipper
 const flipperWords = [
@@ -43,8 +52,8 @@ const marqueeLines = [
       'Undo/Redo Support',
       'Auto Pan',
       'Bezier Curves',
-      'Straight Lines',
-      'Smooth Step Lines',
+      'Node Shapes',
+      'Behavior Modes',
     ],
     color: 'blue' as const,
     duration: 40,
@@ -57,8 +66,8 @@ const marqueeLines = [
       'Drag Selection',
       'Viewport Animations',
       'Infinite Canvas',
-      'Custom Markers',
-      'Gradient Flow',
+      'Align & Distribute',
+      'Z-Order Controls',
     ],
     color: 'purple' as const,
     reverse: true,
@@ -72,8 +81,8 @@ const marqueeLines = [
       'Grid Styles',
       'Node Resizing',
       'Connection Effects',
-      'JSON Serialization',
-      'Reactive State',
+      'Connection Labels',
+      'Lock & Freeze',
       'Level of Detail',
       'Viewport Culling',
     ],
@@ -105,7 +114,7 @@ const capabilities = [
   {
     icon: 'ph:cube-fill',
     title: 'Custom Nodes',
-    desc: 'Create any node UI using standard Flutter widgets with full control over appearance.',
+    desc: 'Build any node UI with Flutter widgets. Includes Circle, Diamond, and Hexagon shapes out of the box.',
     color: 'amber' as const,
   },
   {
@@ -147,7 +156,7 @@ const capabilities = [
   {
     icon: 'ph:stack-fill',
     title: 'Group Nodes',
-    desc: 'Create collapsible groups and nested hierarchies for complex workflows.',
+    desc: 'Create collapsible groups with nested hierarchies. Align and distribute nodes for clean layouts.',
     color: 'teal' as const,
   },
   {
@@ -197,12 +206,7 @@ const detailedFeatures = [
       'Pattern matching for node data handling',
       'Comprehensive API documentation',
     ],
-    placeholder: {
-      type: 'video' as const,
-      title: 'Type-Safe API Demo',
-      description:
-        'Screen recording showing IDE autocomplete, type inference, and compile-time error catching while building a flow',
-    },
+    video: '/type-safe.webm',
   },
   {
     tag: 'Theming',
@@ -217,12 +221,7 @@ const detailedFeatures = [
       'Custom shapes for endpoints and markers',
       'Consistent theming across all components',
     ],
-    placeholder: {
-      type: 'video' as const,
-      title: 'Theme Switching',
-      description:
-        'Animated transition between light/dark themes and custom brand colors applied to nodes and connections',
-    },
+    video: '/theming.webm',
   },
   {
     tag: 'Interactions',
@@ -237,12 +236,7 @@ const detailedFeatures = [
       'Drag-and-drop with snap-to-port validation',
       'Smooth pan and zoom with momentum',
     ],
-    placeholder: {
-      type: 'video' as const,
-      title: 'Connection Effects Showcase',
-      description:
-        'Loop showing FlowingDash, Particle, Pulse, and Rainbow effects on connections with smooth transitions',
-    },
+    video: '/interactions.webm',
   },
   {
     tag: 'Custom Nodes',
@@ -257,12 +251,7 @@ const detailedFeatures = [
       'Dynamic sizing and resizing support',
       'Node templates for rapid development',
     ],
-    placeholder: {
-      type: 'video' as const,
-      title: 'Custom Node Builder',
-      description:
-        'Walkthrough of creating a custom node with form inputs, dropdowns, and real-time preview inside the node',
-    },
+    video: '/node-styles.webm',
   },
   {
     tag: 'Performance',
@@ -277,12 +266,7 @@ const detailedFeatures = [
       'Minimal memory footprint',
       'Efficient hit testing algorithms',
     ],
-    placeholder: {
-      type: 'video' as const,
-      title: 'Performance Stress Test',
-      description:
-        'Demo showing smooth 60fps interaction with 1000+ nodes, zooming, panning, and selecting',
-    },
+    video: '/perf.webm',
   },
 ];
 
@@ -406,10 +390,7 @@ const heroBlinkCells = generateBlinkCells(20, 42);
       </template>
 
       <template #visual>
-        <DemoFrame
-          url="https://flow.demo.vyuh.tech/#/hero/image?embed=true"
-          title="Vyuh Node Flow Demo"
-        />
+        <DemoFrame :url="demoUrl" title="Vyuh Node Flow Demo" />
       </template>
     </HeroSection>
 
@@ -428,6 +409,8 @@ const heroBlinkCells = generateBlinkCells(20, 42);
         :subtitle="feature.subtitle"
         :bullets="feature.bullets"
         :placeholder="feature.placeholder"
+        :video="feature.video"
+        :image="feature.image"
         :reverse="index % 2 === 1"
       />
     </Section>
