@@ -1119,24 +1119,4 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
       );
     });
   }
-
-  /// Rebuilds spatial index for a single connection using accurate path segments.
-  void _rebuildSingleConnectionSpatialIndex(Connection<C> connection) {
-    if (!isConnectionPainterInitialized || _theme == null) return;
-
-    final sourceNode = _nodes[connection.sourceNodeId];
-    final targetNode = _nodes[connection.targetNodeId];
-    if (sourceNode == null || targetNode == null) return;
-
-    final pathCache = _connectionPainter!.pathCache;
-    final connectionStyle = _theme!.connectionTheme.style;
-
-    final segments = pathCache.getOrCreateSegmentBounds(
-      connection: connection,
-      sourceNode: sourceNode,
-      targetNode: targetNode,
-      connectionStyle: connectionStyle,
-    );
-    _spatialIndex.updateConnection(connection, segments);
-  }
 }

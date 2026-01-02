@@ -16,19 +16,19 @@ class DeferredExampleLoader extends StatefulWidget {
 }
 
 class _DeferredExampleLoaderState extends State<DeferredExampleLoader> {
-  late Future<Widget> _loadFuture;
+  late Future<void> _loadFuture;
 
   @override
   void initState() {
     super.initState();
-    _loadFuture = widget.example.load(context);
+    _loadFuture = widget.example.load();
   }
 
   @override
   void didUpdateWidget(DeferredExampleLoader oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.example.id != widget.example.id) {
-      _loadFuture = widget.example.load(context);
+      _loadFuture = widget.example.load();
     }
   }
 
@@ -40,14 +40,15 @@ class _DeferredExampleLoaderState extends State<DeferredExampleLoader> {
     }
 
     // Otherwise show loading indicator while loading
-    return FutureBuilder<Widget>(
+    return FutureBuilder<void>(
       future: _loadFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
             return _ErrorView(error: snapshot.error.toString());
           }
-          return snapshot.data!;
+          // Build synchronously after async load completes
+          return widget.example.build(context);
         }
         return const _LoadingView();
       },

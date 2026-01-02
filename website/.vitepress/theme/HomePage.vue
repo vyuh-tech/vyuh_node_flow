@@ -407,7 +407,7 @@ const heroBlinkCells = generateBlinkCells(20, 42);
 
       <template #visual>
         <DemoFrame
-          url="flow.demo.vyuh.tech/#/hero/image?embed=true"
+          url="https://flow.demo.vyuh.tech/#/hero/image?embed=true"
           title="Vyuh Node Flow Demo"
         />
       </template>

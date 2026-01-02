@@ -28,11 +28,10 @@ class Example {
   /// Whether this example has been loaded.
   bool get isLoaded => _cachedBuilder != null;
 
-  /// Loads the example and returns the widget.
-  /// Caches the builder after first load.
-  Future<Widget> load(BuildContext context) async {
+  /// Loads the example's deferred library.
+  /// After this completes, [build] can be called safely.
+  Future<void> load() async {
     _cachedBuilder ??= await loader();
-    return _cachedBuilder!(context);
   }
 
   /// Builds the widget synchronously if already loaded.
