@@ -1,3 +1,7 @@
+## 0.22.1
+
+ - **FEAT**: remove `EditableConnectionsExample` and related imports; clean up unused connection spatial index logic and props in demos.
+
 ## 0.22.0
 
  - **FEAT**: enable per-node theming fallback with `node.theme ?? nodeTheme` in `NodesLayer`.
