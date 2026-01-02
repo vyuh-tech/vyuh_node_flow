@@ -69,10 +69,10 @@ typedef PortBuilder<T> =
 /// Properties are resolved in this order of precedence:
 /// 1. Theme values (from [PortTheme]) - lowest priority
 /// 2. Widget-level overrides (constructor parameters)
-/// 3. Model-level values (from [Port]) - highest priority
+/// 3. Port theme values (from [Port.theme]) - highest priority
 ///
-/// For example, port size is resolved as:
-/// - `port.size` (if different from default) → widget `size` → `theme.size`
+/// For example, port color is resolved as:
+/// - `port.theme?.color` → widget `color` → `theme.color`
 ///
 /// Example with overrides:
 /// ```dart
@@ -353,7 +353,10 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
                   Positioned.fill(
                     child: IgnorePointer(
                       child: PortShapeWidget(
-                        shape: widget.port.shape ?? widget.theme.shape,
+                        shape:
+                            widget.port.shape ??
+                            widget.port.theme?.shape ??
+                            widget.theme.shape,
                         position: widget.port.position,
                         size: effectiveSize,
                         color: _getPortColorFromHighlight(showHighlight),
@@ -448,42 +451,58 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
   }
 
   /// Get the effective port size using the cascade:
-  /// port.size (model) → widget.size → theme.size
+  /// port.size (model) → port.theme.size → widget.size → theme.size
   Size _getPortSize() {
-    // Cascade: port.size → widget.size → theme.size
-    return widget.port.size ?? widget.size ?? widget.theme.size;
+    return widget.port.size ??
+        widget.port.theme?.size ??
+        widget.size ??
+        widget.theme.size;
   }
 
   /// Determines the appropriate color for the port based on its state.
   ///
-  /// Uses widget-level overrides if provided, otherwise falls back to theme.
+  /// Cascade: port.theme → widget override → theme
   /// Priority: highlightColor (when highlighted) > connectedColor > color
   Color _getPortColorFromHighlight(bool isHighlighted) {
+    final portTheme = widget.port.theme;
+
     if (isHighlighted) {
-      return widget.highlightColor ?? widget.theme.highlightColor;
+      return portTheme?.highlightColor ??
+          widget.highlightColor ??
+          widget.theme.highlightColor;
     } else if (widget.isConnected) {
-      return widget.connectedColor ?? widget.theme.connectedColor;
+      return portTheme?.connectedColor ??
+          widget.connectedColor ??
+          widget.theme.connectedColor;
     } else {
-      return widget.color ?? widget.theme.color;
+      return portTheme?.color ?? widget.color ?? widget.theme.color;
     }
   }
 
   /// Get border color based on port state.
   ///
-  /// Uses widget-level overrides if provided, otherwise falls back to theme.
+  /// Cascade: port.theme → widget override → theme
   Color _getBorderColorFromHighlight(bool isHighlighted) {
+    final portTheme = widget.port.theme;
+
     if (isHighlighted) {
-      return widget.highlightBorderColor ?? widget.theme.highlightBorderColor;
+      return portTheme?.highlightBorderColor ??
+          widget.highlightBorderColor ??
+          widget.theme.highlightBorderColor;
     } else {
-      return widget.borderColor ?? widget.theme.borderColor;
+      return portTheme?.borderColor ??
+          widget.borderColor ??
+          widget.theme.borderColor;
     }
   }
 
   /// Get border width.
   ///
-  /// Uses widget-level overrides if provided, otherwise falls back to theme.
+  /// Cascade: port.theme → widget override → theme
   double _getBorderWidth() {
-    return widget.borderWidth ?? widget.theme.borderWidth;
+    return widget.port.theme?.borderWidth ??
+        widget.borderWidth ??
+        widget.theme.borderWidth;
   }
 }
 
@@ -505,13 +524,18 @@ class _PortLabel extends StatelessWidget {
     // Visibility is now controlled by the parent (PortWidget) via LOD system
     // No need to check zoom threshold here anymore
 
+    // Cascade: port.theme → widget.theme
+    final effectiveTheme = port.theme ?? theme;
+
     final textStyle =
-        theme.labelTextStyle ??
+        effectiveTheme.labelTextStyle ??
         const TextStyle(
           fontSize: 10.0,
           color: Color(0xFF333333),
           fontWeight: FontWeight.w500,
         );
+
+    final labelOffset = effectiveTheme.labelOffset;
 
     // Calculate label position based on port position
     // Labels appear "inside" (toward the node)
@@ -521,7 +545,7 @@ class _PortLabel extends StatelessWidget {
         // Left port: label to the right (inside)
         // Offset from right edge of port, vertically centered
         return Positioned(
-          left: size.width + theme.labelOffset,
+          left: size.width + labelOffset,
           top: size.height / 2,
           child: FractionalTranslation(
             translation: const Offset(0.0, -0.5),
@@ -532,7 +556,7 @@ class _PortLabel extends StatelessWidget {
         // Right port: label to the left (inside)
         // Offset from left edge of port, vertically centered
         return Positioned(
-          right: size.width + theme.labelOffset,
+          right: size.width + labelOffset,
           top: size.height / 2,
           child: FractionalTranslation(
             translation: const Offset(0.0, -0.5),
@@ -548,7 +572,7 @@ class _PortLabel extends StatelessWidget {
         // Offset from bottom edge of port, horizontally centered
         return Positioned(
           left: size.width / 2,
-          top: size.height / 2 + theme.labelOffset,
+          top: size.height / 2 + labelOffset,
           child: FractionalTranslation(
             translation: const Offset(-0.5, 0.0), // Center horizontally
             child: Text(
@@ -563,7 +587,7 @@ class _PortLabel extends StatelessWidget {
         // Offset from top edge of port, horizontally centered
         return Positioned(
           left: size.width / 2,
-          bottom: size.height / 2 + theme.labelOffset,
+          bottom: size.height / 2 + labelOffset,
           child: FractionalTranslation(
             translation: const Offset(-0.5, 0.0), // Center horizontally
             child: Text(

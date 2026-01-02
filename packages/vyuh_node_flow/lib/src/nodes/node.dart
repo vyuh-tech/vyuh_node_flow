@@ -3,6 +3,7 @@ import 'package:mobx/mobx.dart';
 
 import '../ports/port.dart';
 import 'node_drag_context.dart';
+import 'node_theme.dart';
 
 export 'node_drag_context.dart';
 export 'node_port_geometry.dart';
@@ -130,6 +131,7 @@ class Node<T> {
     this.locked = false,
     this.selectable = true,
     this.widgetBuilder,
+    this.theme,
   }) : size = Observable(size ?? const Size(150, 100)),
        position = Observable(position),
        visualPosition = Observable(position),
@@ -209,6 +211,26 @@ class Node<T> {
   /// 3. `nodeBuilder` (global) - editor-level customization
   /// 4. Default content - framework default
   final NodeWidgetBuilder<T>? widgetBuilder;
+
+  /// Optional theme override for this node.
+  ///
+  /// When provided, this theme overrides the global [NodeTheme] from
+  /// [NodeFlowTheme.nodeTheme]. Use this to customize individual node
+  /// appearance without affecting other nodes.
+  ///
+  /// Example:
+  /// ```dart
+  /// Node<MyData>(
+  ///   id: 'custom',
+  ///   type: 'custom',
+  ///   position: Offset.zero,
+  ///   data: MyData(),
+  ///   theme: NodeTheme.light.copyWith(
+  ///     backgroundColor: Colors.blue.shade50,
+  ///   ),
+  /// )
+  /// ```
+  final NodeTheme? theme;
 
   // ===========================================================================
   // Capability Indicators

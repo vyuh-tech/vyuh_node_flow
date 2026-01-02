@@ -324,8 +324,6 @@ class ConnectionPathCache {
       cornerRadius: connectionTheme.cornerRadius,
       offset: connectionTheme.portExtension,
       backEdgeGap: connectionTheme.backEdgeGap,
-      controlPoints: connection.controlPoints
-          .toList(), // Convert ObservableList to List
       sourceNodeBounds: sourceNodeBounds,
       targetNodeBounds: targetNodeBounds,
     );

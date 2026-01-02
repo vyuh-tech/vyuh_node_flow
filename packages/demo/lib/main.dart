@@ -4,12 +4,28 @@ import 'package:go_router/go_router.dart';
 import 'design_kit/theme.dart';
 import 'embed_wrapper.dart';
 import 'example_browser.dart';
+import 'example_model.dart';
 import 'example_not_found.dart';
 import 'example_registry.dart';
+import 'examples/hero_showcase.dart' deferred as hero_showcase;
 
 void main() {
   runApp(const MyApp());
 }
+
+// Hero showcase examples (not in registry, accessed via direct routes)
+final _heroExamples = {
+  'image': Example(
+    id: 'image',
+    title: 'Image Effects Pipeline',
+    description: 'Visual effects pipeline with image, color, and blur nodes',
+    icon: Icons.auto_awesome,
+    loader: () async {
+      await hero_showcase.loadLibrary();
+      return (_) => hero_showcase.HeroShowcaseExample();
+    },
+  ),
+};
 
 final _router = GoRouter(
   initialLocation: '/',
@@ -26,6 +42,32 @@ final _router = GoRouter(
           return '/$categoryId/$exampleId$queryString';
         }
         return null;
+      },
+    ),
+    // Direct route for hero showcase examples
+    GoRoute(
+      path: '/hero/:exampleId',
+      builder: (context, state) {
+        final exampleId = state.pathParameters['exampleId']!;
+        final isEmbed = state.uri.queryParameters['embed'] == 'true';
+
+        final example = _heroExamples[exampleId];
+        if (example == null) {
+          return ExampleNotFound(categoryId: 'hero', exampleId: exampleId);
+        }
+
+        // Hero examples are always shown in embed mode style (clean, no chrome)
+        if (isEmbed) {
+          return EmbedWrapper(example: example);
+        }
+
+        // Non-embed: wrap in scaffold with minimal chrome
+        return Scaffold(
+          body: EmbedContext(
+            isEmbed: false,
+            child: DeferredExampleLoader(example: example),
+          ),
+        );
       },
     ),
     GoRoute(

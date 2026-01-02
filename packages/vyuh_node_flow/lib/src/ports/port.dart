@@ -6,6 +6,7 @@ import 'package:mobx/mobx.dart';
 import '../nodes/node.dart';
 import '../shared/json_converters.dart';
 import '../shared/shapes/marker_shape.dart';
+import 'port_theme.dart';
 
 part 'port.g.dart';
 
@@ -141,6 +142,7 @@ class Port extends Equatable {
   /// - [isConnectable]: Whether connections can be made to this port (default: true)
   /// - [maxConnections]: Maximum number of connections allowed (null for unlimited)
   /// - [showLabel]: Whether to display the port's label (default: false)
+  /// - [theme]: Optional theme override for this port (overrides global PortTheme)
 
   Port({
     required this.id,
@@ -156,6 +158,7 @@ class Port extends Equatable {
     this.maxConnections,
     this.showLabel = false,
     this.widgetBuilder,
+    this.theme,
   }) : type = type ?? _inferTypeFromPosition(position);
 
   /// Infers the port type from its position.
@@ -267,6 +270,27 @@ class Port extends Equatable {
   /// Label visibility may also be affected by zoom level based on theme settings.
   final bool showLabel;
 
+  /// Optional theme override for this port.
+  ///
+  /// When provided, this theme overrides the global [PortTheme] from
+  /// [NodeFlowTheme.portTheme]. Use this to customize individual port
+  /// appearance without affecting other ports.
+  ///
+  /// Example:
+  /// ```dart
+  /// Port(
+  ///   id: 'image_out',
+  ///   name: 'Image',
+  ///   theme: PortTheme.light.copyWith(
+  ///     connectedColor: Colors.blue,
+  ///   ),
+  /// )
+  /// ```
+  ///
+  /// Not serialized to JSON.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final PortTheme? theme;
+
   /// Per-instance widget builder for custom port rendering.
   ///
   /// When provided, this builder takes precedence over the global `portBuilder`
@@ -349,6 +373,7 @@ class Port extends Equatable {
     int? maxConnections,
     bool? showLabel,
     PortWidgetBuilder<dynamic>? widgetBuilder,
+    PortTheme? theme,
   }) {
     return Port(
       id: id ?? this.id,
@@ -364,6 +389,7 @@ class Port extends Equatable {
       maxConnections: maxConnections ?? this.maxConnections,
       showLabel: showLabel ?? this.showLabel,
       widgetBuilder: widgetBuilder ?? this.widgetBuilder,
+      theme: theme ?? this.theme,
     );
   }
 

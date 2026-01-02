@@ -89,15 +89,6 @@ void main() {
 
       expect(connection.animated, isTrue);
     });
-
-    test('creates connection with empty control points by default', () {
-      final connection = createTestConnection(
-        sourceNodeId: 'node-a',
-        targetNodeId: 'node-b',
-      );
-
-      expect(connection.controlPoints, isEmpty);
-    });
   });
 
   group('Observable Properties', () {
@@ -226,58 +217,6 @@ void main() {
 
       expect(labels.length, equals(1));
       expect(labels[0].text, equals('Center Only'));
-    });
-  });
-
-  group('Control Points', () {
-    test('controlPoints starts empty', () {
-      final connection = createTestConnection(
-        sourceNodeId: 'node-a',
-        targetNodeId: 'node-b',
-      );
-
-      expect(connection.controlPoints, isEmpty);
-    });
-
-    test('controlPoints can be initialized with values', () {
-      final connection = Connection(
-        id: 'conn',
-        sourceNodeId: 'node-a',
-        sourcePortId: 'output-1',
-        targetNodeId: 'node-b',
-        targetPortId: 'input-1',
-        controlPoints: [const Offset(100, 100), const Offset(200, 200)],
-      );
-
-      expect(connection.controlPoints.length, equals(2));
-      expect(connection.controlPoints[0], equals(const Offset(100, 100)));
-      expect(connection.controlPoints[1], equals(const Offset(200, 200)));
-    });
-
-    test('controlPoints can be updated via setter', () {
-      final connection = createTestConnection(
-        sourceNodeId: 'node-a',
-        targetNodeId: 'node-b',
-      );
-
-      connection.controlPoints = [
-        const Offset(50, 50),
-        const Offset(150, 150),
-        const Offset(250, 250),
-      ];
-
-      expect(connection.controlPoints.length, equals(3));
-    });
-
-    test('controlPoints is an ObservableList', () {
-      final connection = createTestConnection(
-        sourceNodeId: 'node-a',
-        targetNodeId: 'node-b',
-      );
-
-      connection.controlPoints.add(const Offset(100, 100));
-
-      expect(connection.controlPoints.length, equals(1));
     });
   });
 
@@ -463,42 +402,6 @@ void main() {
       expect(json['startLabel'], isNotNull);
       expect(json['label'], isNotNull);
       expect(json['endLabel'], isNotNull);
-    });
-
-    test('serialization includes control points', () {
-      final connection = Connection(
-        id: 'conn',
-        sourceNodeId: 'node-a',
-        sourcePortId: 'output-1',
-        targetNodeId: 'node-b',
-        targetPortId: 'input-1',
-        controlPoints: [const Offset(100, 100), const Offset(200, 200)],
-      );
-
-      final json = connection.toJson((data) => data);
-
-      expect(json['controlPoints'], isNotNull);
-      expect((json['controlPoints'] as List).length, equals(2));
-    });
-
-    test('fromJson restores control points', () {
-      final json = {
-        'id': 'conn',
-        'sourceNodeId': 'node-a',
-        'sourcePortId': 'output-1',
-        'targetNodeId': 'node-b',
-        'targetPortId': 'input-1',
-        'controlPoints': [
-          {'dx': 50.0, 'dy': 60.0},
-          {'dx': 150.0, 'dy': 160.0},
-        ],
-      };
-
-      final connection = Connection<dynamic>.fromJson(json, (json) => json);
-
-      expect(connection.controlPoints.length, equals(2));
-      expect(connection.controlPoints[0], equals(const Offset(50, 60)));
-      expect(connection.controlPoints[1], equals(const Offset(150, 160)));
     });
 
     test('fromJson restores labels', () {

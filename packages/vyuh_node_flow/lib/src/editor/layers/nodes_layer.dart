@@ -274,7 +274,7 @@ class NodesLayer<T> extends StatelessWidget {
       portSnapDistance: portSnapDistance,
       child: NodeWidget<T>(
         node: node,
-        theme: nodeTheme,
+        theme: node.theme ?? nodeTheme,
         shape: shape,
         showContent: showNodeContent,
         child: content,

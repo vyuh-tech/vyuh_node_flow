@@ -78,9 +78,6 @@ class ConnectionsLayer<T, C> extends StatelessWidget {
                 }
 
                 connection.animationEffect;
-                for (var i = 0; i < connection.controlPoints.length; i++) {
-                  connection.controlPoints[i];
-                }
               }
 
               return CustomPaint(
@@ -129,9 +126,6 @@ class ConnectionsLayer<T, C> extends StatelessWidget {
               }
 
               connection.animationEffect;
-              for (var i = 0; i < connection.controlPoints.length; i++) {
-                connection.controlPoints[i];
-              }
             }
 
             return CustomPaint(
