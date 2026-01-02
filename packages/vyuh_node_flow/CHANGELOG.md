@@ -1,3 +1,7 @@
+## 0.22.0
+
+ - **FEAT**: enable per-node theming fallback with `node.theme ?? nodeTheme` in `NodesLayer`.
+
 ## 0.21.1
 
  - **FEAT**: remove `ExampleContainer`, `DemoStatsPanel`, and related components; update README with new extension-based statistics and features.
