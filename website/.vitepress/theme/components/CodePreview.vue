@@ -217,6 +217,15 @@ onUnmounted(() => {
   min-width: 100%;
 }
 
+/* Preserve height for empty/blank lines */
+.code-body :deep(.line) {
+  min-height: 1.5em;
+}
+
+.code-body :deep(.line:empty)::before {
+  content: ' ';
+}
+
 /* Shiki Line Focus Styling */
 .code-body :deep(.has-focused-lines .line:not(.focused)) {
   @apply opacity-35 transition-all duration-300;

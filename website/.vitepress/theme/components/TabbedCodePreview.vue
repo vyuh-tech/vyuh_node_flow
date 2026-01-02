@@ -55,7 +55,7 @@ const activeTab = ref(props.tabs[0]?.id || '');
           <!-- Preview Tab -->
           <div v-else-if="tab.isPreview" class="preview-panel">
             <iframe
-              :src="'https://' + (tab.previewUrl || 'flow.demo.vyuh.tech')"
+              :src="tab.previewUrl"
               :title="tab.previewTitle || 'Preview'"
               class="preview-iframe"
               loading="lazy"

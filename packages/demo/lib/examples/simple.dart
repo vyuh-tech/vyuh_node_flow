@@ -32,6 +32,28 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample>
     for (final node in _createInitialNodes()) {
       _controller.addNode(node);
     }
+    for (final connection in _createInitialConnections()) {
+      _controller.addConnection(connection);
+    }
+  }
+
+  static List<Connection> _createInitialConnections() {
+    return [
+      Connection(
+        id: 'conn-1',
+        sourceNodeId: 'node-1',
+        sourcePortId: 'output',
+        targetNodeId: 'node-2',
+        targetPortId: 'input',
+      ),
+      Connection(
+        id: 'conn-2',
+        sourceNodeId: 'node-2',
+        sourcePortId: 'output',
+        targetNodeId: 'node-3',
+        targetPortId: 'input',
+      ),
+    ];
   }
 
   static List<Node<Map<String, dynamic>>> _createInitialNodes() {
@@ -62,7 +84,7 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample>
       Node<Map<String, dynamic>>(
         id: 'node-2',
         type: 'simple',
-        position: const Offset(350, 100),
+        position: const Offset(350, 150),
         data: {'label': 'Node 2'},
         size: const Size(150, 100),
         inputPorts: [
@@ -85,7 +107,7 @@ class _SimpleNodeAdditionExampleState extends State<SimpleNodeAdditionExample>
       Node<Map<String, dynamic>>(
         id: 'node-3',
         type: 'simple',
-        position: const Offset(350, 250),
+        position: const Offset(600, 150),
         data: {'label': 'Node 3'},
         size: const Size(150, 100),
         inputPorts: [
