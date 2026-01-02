@@ -810,194 +810,147 @@ class _EffectsPanel extends StatelessWidget {
 }
 
 /// Output preview widget showing the final blended result.
+/// Optimized for 60fps with RepaintBoundary and cached calculations.
 class _OutputPreview extends StatelessWidget {
   final OutputData data;
 
   const _OutputPreview({required this.data});
 
+  // Pre-computed saturation matrices for common values (0.0, 0.5, 1.0)
+  // to avoid recalculation on every frame
+  static final _saturationCache = <int, List<double>>{};
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Observer(
-      builder: (_) {
-        final hasImage = data.hasImageConnection;
-        final hasColor = data.hasColorConnection;
-        final hasEffect = data.hasEffectConnection;
+    return RepaintBoundary(
+      child: Observer(
+        builder: (_) {
+          final hasImage = data.hasImageConnection;
+          final hasColor = data.hasColorConnection;
+          final hasEffect = data.hasEffectConnection;
 
-        final imageUrl = data.images[data.selectedImage.value];
-        final color = data.selectedColor.value;
-        final blur = hasEffect ? data.blurRadius.value : 0.0;
-        final opacity = hasColor ? data.colorOpacity.value : 0.0;
-        final sat = hasEffect ? data.saturation.value : 1.0;
+          final imageUrl = data.images[data.selectedImage.value];
+          final color = data.selectedColor.value;
+          final blur = hasEffect ? data.blurRadius.value : 0.0;
+          final opacity = hasColor ? data.colorOpacity.value : 0.0;
+          final sat = hasEffect ? data.saturation.value : 1.0;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Main preview
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: hasColor
-                      ? [
-                          BoxShadow(
-                            color: color.withValues(alpha: 0.3),
-                            blurRadius: 16,
-                            spreadRadius: -4,
-                          ),
-                        ]
-                      : null,
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Base image with saturation (only if connected)
-                      if (hasImage)
-                        ColorFiltered(
-                          colorFilter: ColorFilter.matrix(
-                            _saturationMatrix(sat),
-                          ),
-                          child: Image.network(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, error, stack) => Container(
-                              color: Colors.grey.shade800,
-                              child: const Icon(
-                                Icons.image_not_supported,
-                                size: 48,
-                                color: Colors.white54,
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Main preview
+              Expanded(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: hasColor
+                        ? [
+                            BoxShadow(
+                              color: color.withValues(alpha: 0.3),
+                              blurRadius: 16,
+                              spreadRadius: -4,
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // Base image with saturation (only if connected)
+                        if (hasImage)
+                          RepaintBoundary(
+                            child: ColorFiltered(
+                              colorFilter: ColorFilter.matrix(
+                                _getCachedSaturationMatrix(sat),
+                              ),
+                              child: Image.network(
+                                imageUrl,
+                                fit: BoxFit.cover,
+                                // Cache decoded image at specific size for performance
+                                cacheWidth: 256,
+                                cacheHeight: 256,
+                                filterQuality: FilterQuality.medium,
+                                errorBuilder: (_, error, stack) =>
+                                    const _PlaceholderWidget(
+                                      icon: Icons.image_not_supported,
+                                      iconSize: 48,
+                                    ),
+                                loadingBuilder: (_, child, progress) {
+                                  if (progress == null) return child;
+                                  return const _PlaceholderWidget(
+                                    icon: Icons.hourglass_empty,
+                                    iconSize: 32,
+                                    showProgress: true,
+                                  );
+                                },
                               ),
                             ),
-                            loadingBuilder: (_, child, progress) {
-                              if (progress == null) return child;
-                              return Container(
-                                color: Colors.grey.shade800,
-                                child: const Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        )
-                      else
-                        Container(
-                          color: isDark
-                              ? Colors.grey.shade800
-                              : Colors.grey.shade200,
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.image_not_supported_outlined,
-                                  size: 32,
-                                  color: isDark
-                                      ? Colors.white38
-                                      : Colors.black26,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'No image',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: isDark
-                                        ? Colors.white38
-                                        : Colors.black26,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      // Color overlay (only if connected)
-                      if (hasColor && opacity > 0)
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                color.withValues(alpha: opacity * 0.8),
-                                color.withValues(alpha: opacity * 0.4),
-                              ],
-                            ),
-                          ),
-                        ),
-                      // Blur effect (only if connected)
-                      if (hasEffect && blur > 0)
-                        BackdropFilter(
-                          filter: ImageFilter.blur(
-                            sigmaX: blur / 3,
-                            sigmaY: blur / 3,
-                          ),
-                          child: Container(color: Colors.transparent),
-                        ),
-                      // Vignette effect
-                      if (hasImage)
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: RadialGradient(
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withValues(alpha: 0.3),
-                              ],
-                              stops: const [0.5, 1.0],
-                            ),
-                          ),
-                        ),
-                      // Status indicator
-                      Positioned(
-                        bottom: 6,
-                        right: 6,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                hasImage ? Icons.auto_awesome : Icons.link_off,
-                                size: 10,
-                                color: Colors.white70,
+                          )
+                        else
+                          _NoImagePlaceholder(isDark: isDark),
+
+                        // Color overlay (only if connected) - use simple Container
+                        if (hasColor && opacity > 0)
+                          DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  color.withValues(alpha: opacity * 0.8),
+                                  color.withValues(alpha: opacity * 0.4),
+                                ],
                               ),
-                              const SizedBox(width: 3),
-                              Text(
-                                hasImage ? 'LIVE' : 'DISCONNECTED',
-                                style: const TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white70,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ],
+                            ),
+                            child: const SizedBox.expand(),
                           ),
-                        ),
-                      ),
-                    ],
+
+                        // Blur effect - EXPENSIVE, only apply when blur > threshold
+                        // Use RepaintBoundary to isolate blur repaints
+                        if (hasEffect && blur > 0.5)
+                          RepaintBoundary(
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(
+                                sigmaX: blur / 3,
+                                sigmaY: blur / 3,
+                              ),
+                              child: const SizedBox.expand(),
+                            ),
+                          ),
+
+                        // Vignette effect - static, const gradient
+                        if (hasImage) const _VignetteOverlay(),
+
+                        // Status indicator
+                        _StatusIndicator(hasImage: hasImage),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
   }
 
-  /// Creates a saturation color matrix.
-  List<double> _saturationMatrix(double saturation) {
+  /// Gets cached saturation matrix or computes and caches it.
+  /// Caches at 1% granularity to balance memory vs computation.
+  List<double> _getCachedSaturationMatrix(double saturation) {
+    final key = (saturation * 100).round();
+    return _saturationCache.putIfAbsent(
+      key,
+      () => _computeSaturationMatrix(saturation),
+    );
+  }
+
+  /// Computes a saturation color matrix.
+  static List<double> _computeSaturationMatrix(double saturation) {
     final s = saturation;
     const lumR = 0.3086;
     const lumG = 0.6094;
@@ -1025,5 +978,127 @@ class _OutputPreview extends StatelessWidget {
       1,
       0,
     ];
+  }
+}
+
+/// Placeholder widget for loading/error states - const for performance.
+class _PlaceholderWidget extends StatelessWidget {
+  final IconData icon;
+  final double iconSize;
+  final bool showProgress;
+
+  const _PlaceholderWidget({
+    required this.icon,
+    required this.iconSize,
+    this.showProgress = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.grey.shade800,
+      child: Center(
+        child: showProgress
+            ? const CircularProgressIndicator(strokeWidth: 2)
+            : Icon(icon, size: iconSize, color: Colors.white54),
+      ),
+    );
+  }
+}
+
+/// No image placeholder - extracted for const optimization.
+class _NoImagePlaceholder extends StatelessWidget {
+  final bool isDark;
+
+  const _NoImagePlaceholder({required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.image_not_supported_outlined,
+              size: 32,
+              color: isDark ? Colors.white38 : Colors.black26,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'No image',
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? Colors.white38 : Colors.black26,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Vignette overlay - const widget for maximum performance.
+class _VignetteOverlay extends StatelessWidget {
+  const _VignetteOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return const DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          colors: [
+            Colors.transparent,
+            Color(0x4D000000), // Colors.black with 0.3 alpha
+          ],
+          stops: [0.5, 1.0],
+        ),
+      ),
+      child: SizedBox.expand(),
+    );
+  }
+}
+
+/// Status indicator badge - const where possible.
+class _StatusIndicator extends StatelessWidget {
+  final bool hasImage;
+
+  const _StatusIndicator({required this.hasImage});
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      bottom: 6,
+      right: 6,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+        decoration: BoxDecoration(
+          color: Colors.black54,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              hasImage ? Icons.auto_awesome : Icons.link_off,
+              size: 10,
+              color: Colors.white70,
+            ),
+            const SizedBox(width: 3),
+            Text(
+              hasImage ? 'LIVE' : 'DISCONNECTED',
+              style: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                color: Colors.white70,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
