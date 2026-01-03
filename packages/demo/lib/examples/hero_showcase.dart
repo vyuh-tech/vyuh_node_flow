@@ -382,6 +382,8 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return ResponsiveControlPanel(
       controller: _controller,
       onReset: resetExample,
@@ -396,35 +398,146 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
           ),
         ),
       ],
-      child: NodeFlowEditor<HeroNodeData, dynamic>(
-        controller: _controller,
-        nodeBuilder: _buildNode,
-        theme: _theme,
-        events: NodeFlowEvents(
-          onInit: () => _controller.fitToView(),
-          // Prevent node deletion but allow connection deletion
-          node: NodeEvents(onBeforeDelete: (_) async => false),
-          // Validate port connections - only allow matching port types
-          connection: ConnectionEvents(
-            onBeforeComplete: (context) {
-              final sourcePortId = context.sourcePort.id;
-              final targetPortId = context.targetPort.id;
+      child: Stack(
+        children: [
+          NodeFlowEditor<HeroNodeData, dynamic>(
+            controller: _controller,
+            nodeBuilder: _buildNode,
+            theme: _theme,
+            events: NodeFlowEvents(
+              onInit: () => _controller.fitToView(),
+              // Prevent node deletion but allow connection deletion
+              node: NodeEvents(onBeforeDelete: (_) async => false),
+              // Validate port connections - only allow matching port types
+              connection: ConnectionEvents(
+                onBeforeComplete: (context) {
+                  final sourcePortId = context.sourcePort.id;
+                  final targetPortId = context.targetPort.id;
 
-              // Define valid connections: source_out -> target_in
-              const validConnections = {
-                'image_out': 'image_in',
-                'color_out': 'color_in',
-                'effect_out': 'effect_in',
-              };
+                  // Define valid connections: source_out -> target_in
+                  const validConnections = {
+                    'image_out': 'image_in',
+                    'color_out': 'color_in',
+                    'effect_out': 'effect_in',
+                  };
 
-              if (validConnections[sourcePortId] == targetPortId) {
-                return const ConnectionValidationResult.allow();
-              }
-              return const ConnectionValidationResult.deny(
-                reason: 'Invalid port connection',
-              );
-            },
+                  if (validConnections[sourcePortId] == targetPortId) {
+                    return const ConnectionValidationResult.allow();
+                  }
+                  return const ConnectionValidationResult.deny(
+                    reason: 'Invalid port connection',
+                  );
+                },
+              ),
+            ),
           ),
+          // Viewport controls - bottom left
+          Positioned(
+            left: 12,
+            bottom: 12,
+            child: _ViewportControls(controller: _controller, isDark: isDark),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Viewport controls widget for zoom and fit operations.
+class _ViewportControls extends StatelessWidget {
+  final NodeFlowController controller;
+  final bool isDark;
+
+  const _ViewportControls({required this.controller, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    final bgColor = isDark
+        ? const Color(0xFF1E293B).withValues(alpha: 0.9)
+        : Colors.white.withValues(alpha: 0.9);
+    final iconColor = isDark ? Colors.white70 : Colors.black54;
+    final disabledColor = isDark ? Colors.white24 : Colors.black26;
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Observer(
+        builder: (_) {
+          final currentZoom = controller.viewport.zoom;
+          final minZoom = controller.config.minZoom.value;
+          final maxZoom = controller.config.maxZoom.value;
+
+          final canZoomIn = currentZoom < maxZoom;
+          final canZoomOut = currentZoom > minZoom;
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _ControlButton(
+                icon: Icons.add,
+                onTap: canZoomIn ? () => controller.zoomBy(0.2) : null,
+                iconColor: canZoomIn ? iconColor : disabledColor,
+                tooltip: 'Zoom in',
+              ),
+              Container(height: 1, width: 24, color: borderColor),
+              _ControlButton(
+                icon: Icons.remove,
+                onTap: canZoomOut ? () => controller.zoomBy(-0.2) : null,
+                iconColor: canZoomOut ? iconColor : disabledColor,
+                tooltip: 'Zoom out',
+              ),
+              Container(height: 1, width: 24, color: borderColor),
+              _ControlButton(
+                icon: Icons.crop_free,
+                onTap: () => controller.fitToView(),
+                iconColor: iconColor,
+                tooltip: 'Fit to view',
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Individual control button.
+class _ControlButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+  final Color iconColor;
+  final String tooltip;
+
+  const _ControlButton({
+    required this.icon,
+    required this.onTap,
+    required this.iconColor,
+    required this.tooltip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Icon(icon, size: 18, color: iconColor),
         ),
       ),
     );

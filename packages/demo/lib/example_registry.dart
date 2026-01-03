@@ -5,6 +5,7 @@ import 'example_model.dart';
 // Deferred imports - each example is loaded on-demand
 // This reduces initial bundle size for web builds
 import 'examples/alignment.dart' deferred as alignment;
+import 'examples/hero_showcase.dart' deferred as hero_showcase;
 import 'examples/animated_connections.dart' deferred as animated_connections;
 import 'examples/annotations.dart' deferred as annotations;
 import 'examples/autopan.dart' deferred as autopan;
@@ -354,6 +355,27 @@ class ExampleRegistry {
           loader: () async {
             await workbench.loadLibrary();
             return (_) => workbench.WorkbenchExample();
+          },
+        ),
+      ],
+    ),
+
+    // 9. Showcase
+    ExampleCategory(
+      id: 'showcase',
+      title: 'Showcase',
+      description: 'Featured examples demonstrating real-world use cases',
+      icon: Icons.auto_awesome,
+      examples: [
+        Example(
+          id: 'hero-image',
+          title: 'Image Effects Pipeline',
+          description:
+              'Visual effects pipeline with image, color, and blur nodes',
+          icon: Icons.image_outlined,
+          loader: () async {
+            await hero_showcase.loadLibrary();
+            return (_) => hero_showcase.HeroShowcaseExample();
           },
         ),
       ],
