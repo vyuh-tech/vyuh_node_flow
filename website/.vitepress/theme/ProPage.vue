@@ -54,7 +54,7 @@ const workflowFeatures = [
       'Conditional branching and parallel execution paths',
       'Simulation mode with step-through debugging',
     ],
-    video: '/editor.webm',
+    video: '/videos/editor.webm',
   },
   {
     tag: 'Dart Execution',
@@ -69,10 +69,7 @@ const workflowFeatures = [
       'Built-in retry policies and error handling',
       'Custom executor plugins for specialized tasks',
     ],
-    placeholder: {
-      title: 'Executor Pipeline',
-      description: 'Watch workflows execute step-by-step',
-    },
+    video: '/videos/executors.webm',
   },
   {
     tag: 'Observability',
@@ -87,10 +84,7 @@ const workflowFeatures = [
       'Performance metrics and bottleneck detection',
       'Alerting and notification integrations',
     ],
-    placeholder: {
-      title: 'Monitoring Dashboard',
-      description: 'Live workflow analytics and insights',
-    },
+    video: '/videos/monitoring.webm',
   },
   {
     tag: 'Enterprise Ready',
@@ -107,7 +101,7 @@ const workflowFeatures = [
     ],
     placeholder: {
       title: 'Infrastructure Overview',
-      description: 'Scalable workflow architecture',
+      description: 'Scalable workflow architecture (coming soon)',
     },
   },
 ];

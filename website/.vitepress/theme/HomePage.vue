@@ -206,7 +206,7 @@ const detailedFeatures = [
       'Pattern matching for node data handling',
       'Comprehensive API documentation',
     ],
-    video: '/type-safe.webm',
+    video: '/videos/type-safe.webm',
   },
   {
     tag: 'Theming',
@@ -221,7 +221,7 @@ const detailedFeatures = [
       'Custom shapes for endpoints and markers',
       'Consistent theming across all components',
     ],
-    video: '/theming.webm',
+    video: '/videos/theming.webm',
   },
   {
     tag: 'Interactions',
@@ -236,7 +236,7 @@ const detailedFeatures = [
       'Drag-and-drop with snap-to-port validation',
       'Smooth pan and zoom with momentum',
     ],
-    video: '/interactions.webm',
+    video: '/videos/interactions.webm',
   },
   {
     tag: 'Custom Nodes',
@@ -251,7 +251,7 @@ const detailedFeatures = [
       'Dynamic sizing and resizing support',
       'Node templates for rapid development',
     ],
-    video: '/node-styles.webm',
+    video: '/videos/node-styles.webm',
   },
   {
     tag: 'Performance',
@@ -266,7 +266,7 @@ const detailedFeatures = [
       'Minimal memory footprint',
       'Efficient hit testing algorithms',
     ],
-    video: '/perf.webm',
+    video: '/videos/perf.webm',
   },
 ];
 

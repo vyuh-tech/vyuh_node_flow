@@ -1,16 +1,23 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+import { useVisibility } from '../composables/useVisibility';
+
 defineProps<{
   items: string[];
   color: 'blue' | 'purple' | 'teal';
   reverse?: boolean;
   duration?: number; // Duration in seconds (default: 40)
 }>();
+
+const containerRef = ref<HTMLElement | null>(null);
+const { isVisible } = useVisibility(containerRef);
 </script>
 
 <template>
   <div
+    ref="containerRef"
     class="marquee-track"
-    :class="['marquee-' + color, { reverse }]"
+    :class="['marquee-' + color, { reverse, 'is-paused': !isVisible }]"
     :style="duration ? { '--marquee-duration': `${duration}s` } : undefined"
   >
     <div class="marquee-content">
@@ -60,5 +67,10 @@ defineProps<{
 
 .marquee-teal .marquee-item {
   @apply text-teal-500/40 dark:text-teal-400/50;
+}
+
+/* Pause animation when not visible */
+.marquee-track.is-paused .marquee-content {
+  animation-play-state: paused;
 }
 </style>

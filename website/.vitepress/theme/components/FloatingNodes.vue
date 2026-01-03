@@ -1,12 +1,30 @@
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue';
+
 /**
  * Decorative floating node shapes that appear in the background
  * to reinforce the node editor theme.
+ * Animations pause when page is not visible to save CPU.
  */
 
 defineProps<{
   variant?: 'hero' | 'sparse';
 }>();
+
+// Pause animations when page is not visible
+const isPaused = ref(false);
+
+function handleVisibilityChange() {
+  isPaused.value = document.hidden;
+}
+
+onMounted(() => {
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
+});
 
 // Individual port configuration for each node
 interface PortConfig {
@@ -43,7 +61,7 @@ const sparseNodes: FloatingNode[] = [
 </script>
 
 <template>
-  <div class="floating-nodes">
+  <div class="floating-nodes" :class="{ 'is-paused': isPaused }">
     <div
       v-for="node in (variant === 'sparse' ? sparseNodes : nodes)"
       :key="node.id"
@@ -241,5 +259,10 @@ const sparseNodes: FloatingNode[] = [
     opacity: 0.35;
     transform: scale(0.8);
   }
+}
+
+/* Pause animations when page is not visible */
+.floating-nodes.is-paused .floating-node {
+  animation-play-state: paused;
 }
 </style>

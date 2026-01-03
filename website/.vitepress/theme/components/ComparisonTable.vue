@@ -137,7 +137,14 @@ defineProps<{
 .feature-header {
   @apply py-5 px-6 text-left align-middle;
   @apply border-b-2 border-slate-200 dark:border-zinc-700;
-  width: 40%;
+  width: 28%;
+}
+
+@media (max-width: 768px) {
+  .feature-header {
+    width: 24%;
+    @apply px-4;
+  }
 }
 
 .feature-header-label {
@@ -148,7 +155,14 @@ defineProps<{
 .plan-header {
   @apply py-5 px-6 align-middle;
   @apply border-b-2 border-slate-200 dark:border-zinc-700;
-  width: 30%;
+  width: 36%;
+}
+
+@media (max-width: 768px) {
+  .plan-header {
+    width: 38%;
+    @apply px-3;
+  }
 }
 
 .opensource-header {

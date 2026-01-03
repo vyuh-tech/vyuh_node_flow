@@ -1,12 +1,22 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+import { useVisibility } from '../composables/useVisibility';
+
 defineProps<{
   color?: 'blue' | 'purple' | 'teal';
   variant?: 'left' | 'right' | 'center';
 }>();
+
+const containerRef = ref<HTMLElement | null>(null);
+const { isVisible } = useVisibility(containerRef);
 </script>
 
 <template>
-  <div class="section-connector" :class="[`connector-${color || 'purple'}`, `connector-${variant || 'center'}`]">
+  <div
+    ref="containerRef"
+    class="section-connector"
+    :class="[`connector-${color || 'purple'}`, `connector-${variant || 'center'}`, { 'is-paused': !isVisible }]"
+  >
     <svg class="connector-svg" viewBox="0 0 200 120" preserveAspectRatio="none">
       <!-- Main flowing path -->
       <path
@@ -88,5 +98,10 @@ defineProps<{
 
 .connector-right {
   @apply justify-end pr-16;
+}
+
+/* Pause animation when not visible */
+.section-connector.is-paused .connector-path-animated {
+  animation-play-state: paused;
 }
 </style>

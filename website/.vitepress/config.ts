@@ -38,15 +38,17 @@ export default defineConfig({
     ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
     ['link', { rel: 'preconnect', href: 'https://api.iconify.design' }],
     ['link', { rel: 'preconnect', href: 'https://flow.demo.vyuh.tech' }],
-    // Non-blocking font loading (moved from CSS @import for better performance)
+    // Non-blocking font loading - reduced weights for faster load
+    // Montserrat: 600 (semibold), 700 (bold), 900 (black for headers)
+    // JetBrains Mono: 400 only (code doesn't need variants)
     ['link', {
       rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Montserrat:wght@400;600;800;900&display=swap',
+      href: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&family=Montserrat:wght@600;700;900&display=swap',
       media: 'print',
       onload: "this.media='all'"
     }],
     // Fallback for browsers with JS disabled
-    ['noscript', {}, '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400&family=Montserrat:wght@400;600;800;900&display=swap">'],
+    ['noscript', {}, '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&family=Montserrat:wght@600;700;900&display=swap">'],
     ['link', { rel: 'icon', href: '/icon.svg', type: 'image/svg+xml' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:title', content: 'Vyuh Node Flow - Visual Flow Editor for Flutter' }],

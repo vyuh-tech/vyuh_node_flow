@@ -9,6 +9,7 @@ const props = defineProps<{
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let animationId: number | null = null;
 let startTime = 0;
+let isPaused = false; // Track pause state for page visibility
 
 // Color configurations for each theme
 const colorConfigs = {
@@ -103,6 +104,12 @@ const render = (timestamp: number) => {
   const canvas = canvasRef.value;
   if (!canvas) return;
 
+  // Don't render if paused (page not visible)
+  if (isPaused) {
+    animationId = null;
+    return;
+  }
+
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -119,6 +126,16 @@ const render = (timestamp: number) => {
 
   // Continue animation loop only if we have blinking cells and not on mobile
   if (props.blinkCells && !isMobile.value) {
+    animationId = requestAnimationFrame(render);
+  }
+};
+
+// Handle page visibility changes to pause/resume animation
+const handleVisibilityChange = () => {
+  isPaused = document.hidden;
+
+  if (!isPaused && props.blinkCells && !isMobile.value && !animationId) {
+    // Resume animation
     animationId = requestAnimationFrame(render);
   }
 };
@@ -170,6 +187,7 @@ onMounted(() => {
   startTime = performance.now();
 
   window.addEventListener('resize', resizeCanvas);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
   darkModeObserver = observeDarkMode();
 
   // Start animation loop if we have blinking cells
@@ -180,6 +198,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', resizeCanvas);
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
   if (animationId) {
     cancelAnimationFrame(animationId);
   }

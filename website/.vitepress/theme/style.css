@@ -130,16 +130,33 @@ body {
 
 /* ═══════════════════════════════════════════════════════════════════
    MOBILE PERFORMANCE OPTIMIZATIONS
-   Disable expensive effects on mobile devices for better performance
+   Reduce expensive effects on mobile devices for better performance
    ═══════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-  /* Reduce blur intensity on floating orbs for better mobile performance */
+  /* Reduce blur intensity on floating orbs (30px instead of 60px+) */
   .hero-blur,
   .cta-blur,
   .pro-blur {
-    filter: blur(60px) !important;
-    opacity: 0.08 !important;
+    filter: blur(30px) !important;
+    opacity: 0.06 !important;
+  }
+
+  /* Reduce backdrop-blur intensity on mobile */
+  .backdrop-blur-md {
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+  }
+
+  .backdrop-blur-sm {
+    backdrop-filter: blur(2px) !important;
+    -webkit-backdrop-filter: blur(2px) !important;
+  }
+
+  /* Simplify box-shadows to single shadow on mobile */
+  .feature-video,
+  .feature-image {
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.2) !important;
   }
 
   /* Disable cell blink animations on mobile */
@@ -174,7 +191,7 @@ body {
     animation: none !important;
   }
 
-  /* Hide demo iframe on mobile to improve initial load */
+  /* Demo iframe minimum height */
   .demo-iframe {
     min-height: 300px;
   }
