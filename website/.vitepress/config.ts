@@ -33,32 +33,99 @@ export default defineConfig({
   cleanUrls: true,
 
   head: [
+    // Google Analytics 4
+    [
+      'script',
+      {
+        async: '',
+        src: 'https://www.googletagmanager.com/gtag/js?id=G-5JHR3XB6XK',
+      },
+    ],
+    [
+      'script',
+      {},
+      `
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-5JHR3XB6XK');
+    `,
+    ],
+
     // Preconnect for faster resource loading
     ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
-    ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    [
+      'link',
+      { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+    ],
     ['link', { rel: 'preconnect', href: 'https://api.iconify.design' }],
     ['link', { rel: 'preconnect', href: 'https://flow.demo.vyuh.tech' }],
     // Non-blocking font loading - reduced weights for faster load
     // Montserrat: 600 (semibold), 700 (bold), 900 (black for headers)
     // JetBrains Mono: 400 only (code doesn't need variants)
-    ['link', {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&family=Montserrat:wght@600;700;900&display=swap',
-      media: 'print',
-      onload: "this.media='all'"
-    }],
+    [
+      'link',
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&family=Montserrat:wght@600;700;900&display=swap',
+        media: 'print',
+        onload: "this.media='all'",
+      },
+    ],
     // Fallback for browsers with JS disabled
-    ['noscript', {}, '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&family=Montserrat:wght@600;700;900&display=swap">'],
+    [
+      'noscript',
+      {},
+      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&family=Montserrat:wght@600;700;900&display=swap">',
+    ],
     ['link', { rel: 'icon', href: '/icon.svg', type: 'image/svg+xml' }],
     ['meta', { property: 'og:type', content: 'website' }],
-    ['meta', { property: 'og:title', content: 'Vyuh Node Flow - Visual Flow Editor for Flutter' }],
-    ['meta', { property: 'og:description', content: 'A flexible, high-performance node-based flow editor for building workflow editors, visual programming interfaces, and interactive diagrams in Flutter.' }],
-    ['meta', { property: 'og:image', content: 'https://flow.vyuh.tech/node-flow-banner.png' }],
+    [
+      'meta',
+      {
+        property: 'og:title',
+        content: 'Vyuh Node Flow - Visual Flow Editor for Flutter',
+      },
+    ],
+    [
+      'meta',
+      {
+        property: 'og:description',
+        content:
+          'A flexible, high-performance node-based flow editor for building workflow editors, visual programming interfaces, and interactive diagrams in Flutter.',
+      },
+    ],
+    [
+      'meta',
+      {
+        property: 'og:image',
+        content: 'https://flow.vyuh.tech/node-flow-banner.png',
+      },
+    ],
     ['meta', { property: 'og:url', content: 'https://flow.vyuh.tech' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
-    ['meta', { name: 'twitter:title', content: 'Vyuh Node Flow - Visual Flow Editor for Flutter' }],
-    ['meta', { name: 'twitter:description', content: 'A flexible, high-performance node-based flow editor for building workflow editors, visual programming interfaces, and interactive diagrams in Flutter.' }],
-    ['meta', { name: 'twitter:image', content: 'https://flow.vyuh.tech/node-flow-banner.png' }],
+    [
+      'meta',
+      {
+        name: 'twitter:title',
+        content: 'Vyuh Node Flow - Visual Flow Editor for Flutter',
+      },
+    ],
+    [
+      'meta',
+      {
+        name: 'twitter:description',
+        content:
+          'A flexible, high-performance node-based flow editor for building workflow editors, visual programming interfaces, and interactive diagrams in Flutter.',
+      },
+    ],
+    [
+      'meta',
+      {
+        name: 'twitter:image',
+        content: 'https://flow.vyuh.tech/node-flow-banner.png',
+      },
+    ],
   ],
 
   // Ignore dead links to planned pages that don't exist yet
@@ -101,7 +168,10 @@ export default defineConfig({
         {
           text: 'Getting Started',
           items: [
-            { text: 'Installation', link: '/docs/getting-started/installation' },
+            {
+              text: 'Installation',
+              link: '/docs/getting-started/installation',
+            },
             { text: 'Quick Start', link: '/docs/getting-started/quick-start' },
           ],
         },
@@ -110,7 +180,10 @@ export default defineConfig({
           items: [
             { text: 'Architecture', link: '/docs/core-concepts/architecture' },
             { text: 'Controller', link: '/docs/core-concepts/controller' },
-            { text: 'Configuration', link: '/docs/core-concepts/configuration' },
+            {
+              text: 'Configuration',
+              link: '/docs/core-concepts/configuration',
+            },
             { text: 'Nodes', link: '/docs/core-concepts/nodes' },
             { text: 'Ports', link: '/docs/core-concepts/ports' },
             { text: 'Connections', link: '/docs/core-concepts/connections' },
@@ -119,12 +192,24 @@ export default defineConfig({
         {
           text: 'Components',
           items: [
-            { text: 'NodeFlowEditor', link: '/docs/components/node-flow-editor' },
-            { text: 'NodeFlowViewer', link: '/docs/components/node-flow-viewer' },
+            {
+              text: 'NodeFlowEditor',
+              link: '/docs/components/node-flow-editor',
+            },
+            {
+              text: 'NodeFlowViewer',
+              link: '/docs/components/node-flow-viewer',
+            },
             { text: 'NodeWidget', link: '/docs/components/node-widget' },
             { text: 'PortWidget', link: '/docs/components/port-widget' },
-            { text: 'ConnectionsLayer', link: '/docs/components/connections-layer' },
-            { text: 'Special Node Types', link: '/docs/components/special-node-types' },
+            {
+              text: 'ConnectionsLayer',
+              link: '/docs/components/connections-layer',
+            },
+            {
+              text: 'Special Node Types',
+              link: '/docs/components/special-node-types',
+            },
             { text: 'Minimap', link: '/docs/components/minimap' },
           ],
         },
@@ -136,8 +221,14 @@ export default defineConfig({
           text: 'Theming',
           items: [
             { text: 'Overview', link: '/docs/theming/overview' },
-            { text: 'Connection Styles', link: '/docs/theming/connection-styles' },
-            { text: 'Connection Effects', link: '/docs/theming/connection-effects' },
+            {
+              text: 'Connection Styles',
+              link: '/docs/theming/connection-styles',
+            },
+            {
+              text: 'Connection Effects',
+              link: '/docs/theming/connection-effects',
+            },
             { text: 'Port Shapes', link: '/docs/theming/port-shapes' },
             { text: 'Port Labels', link: '/docs/theming/port-labels' },
             { text: 'Grid Styles', link: '/docs/theming/grid-styles' },
@@ -147,12 +238,21 @@ export default defineConfig({
         {
           text: 'Advanced',
           items: [
-            { text: 'Special Node Types', link: '/docs/advanced/special-node-types' },
+            {
+              text: 'Special Node Types',
+              link: '/docs/advanced/special-node-types',
+            },
             { text: 'Level of Detail (LOD)', link: '/docs/advanced/lod' },
             { text: 'Events', link: '/docs/advanced/events' },
             { text: 'Serialization', link: '/docs/advanced/serialization' },
-            { text: 'Keyboard Shortcuts', link: '/docs/advanced/keyboard-shortcuts' },
-            { text: 'Shortcuts & Actions', link: '/docs/advanced/shortcuts-actions' },
+            {
+              text: 'Keyboard Shortcuts',
+              link: '/docs/advanced/keyboard-shortcuts',
+            },
+            {
+              text: 'Shortcuts & Actions',
+              link: '/docs/advanced/shortcuts-actions',
+            },
           ],
         },
         {
