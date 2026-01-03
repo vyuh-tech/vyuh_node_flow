@@ -1,3 +1,7 @@
+## 0.22.2
+
+ - **FEAT**: update homepage URL in `pubspec.yaml` to reflect new subdomain.
+
 ## 0.22.1
 
  - **FEAT**: remove `EditableConnectionsExample` and related imports; clean up unused connection spatial index logic and props in demos.
