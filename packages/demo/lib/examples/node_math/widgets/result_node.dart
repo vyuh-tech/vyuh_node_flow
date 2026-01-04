@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../evaluation.dart';
 import '../models.dart';
 import '../theme.dart';
+import '../utils.dart';
 
 /// Content widget for a result/output node with auto-resize based on expression.
 class ResultNodeContent extends StatefulWidget {
@@ -24,21 +25,11 @@ class ResultNodeContent extends StatefulWidget {
 class _ResultNodeContentState extends State<ResultNodeContent> {
   Size? _lastSize;
 
-  // Text styles for measurement
   static const _expressionStyle = TextStyle(
     color: MathColors.textSecondary,
     fontSize: 13,
     fontWeight: FontWeight.w400,
   );
-
-  @override
-  void didUpdateWidget(ResultNodeContent oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Schedule size check after frame to ensure proper measurement
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _checkAndUpdateSize();
-    });
-  }
 
   @override
   void initState() {
@@ -48,11 +39,18 @@ class _ResultNodeContentState extends State<ResultNodeContent> {
     });
   }
 
+  @override
+  void didUpdateWidget(ResultNodeContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _checkAndUpdateSize();
+    });
+  }
+
   void _checkAndUpdateSize() {
     final expression = widget.result?.expression ?? '';
     final newSize = _calculateRequiredSize(expression);
 
-    // Only notify if size actually changed
     if (_lastSize != newSize) {
       _lastSize = newSize;
       widget.onSizeChanged?.call(newSize);
@@ -64,7 +62,6 @@ class _ResultNodeContentState extends State<ResultNodeContent> {
       return Size(MathNodeSizes.resultMinWidth, MathNodeSizes.resultHeight);
     }
 
-    // Measure expression text width
     final textPainter = TextPainter(
       text: TextSpan(text: expression, style: _expressionStyle),
       textDirection: TextDirection.ltr,
@@ -72,10 +69,7 @@ class _ResultNodeContentState extends State<ResultNodeContent> {
     );
     textPainter.layout();
 
-    // Calculate required width: text width + padding
     final requiredWidth = textPainter.width + MathNodeSizes.resultPadding;
-
-    // Clamp to min/max constraints
     final width = requiredWidth.clamp(
       MathNodeSizes.resultMinWidth,
       MathNodeSizes.resultMaxWidth,
@@ -92,23 +86,12 @@ class _ResultNodeContentState extends State<ResultNodeContent> {
     final isUnconnected = expression == '?';
 
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: MathNodeStyles.nodeDecorationNoBorder,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.max,
         children: [
-          // Expression at top
           if (expression.isNotEmpty && !isUnconnected)
             Flexible(
               child: Text(
@@ -118,8 +101,6 @@ class _ResultNodeContentState extends State<ResultNodeContent> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-
-          // Equals sign (hide if unconnected)
           if (!isUnconnected)
             const Text(
               '=',
@@ -129,17 +110,11 @@ class _ResultNodeContentState extends State<ResultNodeContent> {
                 fontWeight: FontWeight.w400,
               ),
             ),
-
-          // Result value
           Flexible(
             child: FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
-                isUnconnected
-                    ? '?'
-                    : (hasError
-                        ? '?'
-                        : (value != null ? _formatValue(value) : '?')),
+                _getDisplayValue(value, hasError, isUnconnected),
                 style: TextStyle(
                   color: (isUnconnected || hasError)
                       ? MathColors.textError
@@ -155,11 +130,8 @@ class _ResultNodeContentState extends State<ResultNodeContent> {
     );
   }
 
-  String _formatValue(double value) {
-    if (value.isNaN || value.isInfinite) return '?';
-    if (value == value.toInt()) {
-      return value.toInt().toString();
-    }
-    return value.toStringAsFixed(2);
+  String _getDisplayValue(double? value, bool hasError, bool isUnconnected) {
+    if (isUnconnected || hasError || value == null) return '?';
+    return MathFormatters.formatNumber(value);
   }
 }

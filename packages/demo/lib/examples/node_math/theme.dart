@@ -36,6 +36,36 @@ abstract final class MathColors {
   };
 }
 
+/// Shared node decoration styles.
+abstract final class MathNodeStyles {
+  static const double borderRadius = 10.0;
+  static const double borderWidth = 1.0;
+
+  /// Standard node shadow.
+  static List<BoxShadow> get nodeShadow => [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.06),
+      blurRadius: 6,
+      offset: const Offset(0, 2),
+    ),
+  ];
+
+  /// Standard node decoration with border.
+  static BoxDecoration get nodeDecoration => BoxDecoration(
+    color: MathColors.nodeBackground,
+    borderRadius: BorderRadius.circular(borderRadius),
+    border: Border.all(color: MathColors.nodeBorder, width: borderWidth),
+    boxShadow: nodeShadow,
+  );
+
+  /// Node decoration without border (for function nodes).
+  static BoxDecoration get nodeDecorationNoBorder => BoxDecoration(
+    color: MathColors.nodeBackground,
+    borderRadius: BorderRadius.circular(8),
+    boxShadow: nodeShadow,
+  );
+}
+
 /// Node size configurations.
 abstract final class MathNodeSizes {
   static const number = Size(140, 48);

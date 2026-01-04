@@ -2,6 +2,7 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import 'constants.dart';
 import 'models.dart';
+import 'utils.dart';
 
 /// Result of evaluating a single node.
 class EvalResult {
@@ -29,14 +30,11 @@ class MathEvaluator {
   ) {
     final results = <String, EvalResult>{};
 
-    // Create node ID set for fast lookup
-    final nodeIds = {for (final node in nodes) node.id};
-
-    // Filter connections to only include valid ones (both nodes must exist)
-    final validConnections = connections.where((conn) {
-      return nodeIds.contains(conn.sourceNodeId) &&
-          nodeIds.contains(conn.targetNodeId);
-    }).toList();
+    final nodeIds = MathConnectionUtils.getNodeIds(nodes);
+    final validConnections = MathConnectionUtils.getValidConnections(
+      nodes,
+      connections,
+    );
 
     // Check for cycles using only valid connections
     if (_hasCycle(nodes, validConnections, nodeIds)) {
@@ -83,7 +81,10 @@ class MathEvaluator {
   ) {
     switch (node) {
       case NumberData(:final value):
-        return EvalResult.success(value, expression: _formatNumber(value));
+        return EvalResult.success(
+          value,
+          expression: MathFormatters.formatNumber(value),
+        );
 
       case OperatorData(:final operator):
         return _evaluateOperator(
@@ -124,9 +125,8 @@ class MathEvaluator {
     Map<String, double> values,
     Map<String, String> expressions,
   ) {
-    // Find connections to specific input ports (A and B)
-    final portAId = '$nodeId-input-a';
-    final portBId = '$nodeId-input-b';
+    final portAId = MathPortIds.inputA(nodeId);
+    final portBId = MathPortIds.inputB(nodeId);
 
     final inputA = connections
         .where(
@@ -145,7 +145,6 @@ class MathEvaluator {
         )
         .firstOrNull;
 
-    // Check if source nodes exist and have values
     final hasA =
         inputA != null &&
         nodeIds.contains(inputA.sourceNodeId) &&
@@ -155,32 +154,30 @@ class MathEvaluator {
         nodeIds.contains(inputB.sourceNodeId) &&
         values.containsKey(inputB.sourceNodeId);
 
-    // If only first operand connected, pass through expression, result is 0
     if (hasA && !hasB) {
       final aExpr =
           expressions[inputA!.sourceNodeId] ??
-          _formatNumber(values[inputA.sourceNodeId]!);
+          MathFormatters.formatNumber(values[inputA.sourceNodeId]!);
       return EvalResult.success(0.0, expression: aExpr);
     }
 
-    // If only second operand connected, pass through expression, result is 0
     if (!hasA && hasB) {
       final bExpr =
           expressions[inputB!.sourceNodeId] ??
-          _formatNumber(values[inputB.sourceNodeId]!);
+          MathFormatters.formatNumber(values[inputB.sourceNodeId]!);
       return EvalResult.success(0.0, expression: bExpr);
     }
 
-    // If neither operand connected, show "?"
     if (!hasA && !hasB) {
       return EvalResult.success(0.0, expression: '?');
     }
 
-    // Both operands present - normal evaluation
     final aValue = values[inputA!.sourceNodeId]!;
     final bValue = values[inputB!.sourceNodeId]!;
-    final aExpr = expressions[inputA.sourceNodeId] ?? _formatNumber(aValue);
-    final bExpr = expressions[inputB.sourceNodeId] ?? _formatNumber(bValue);
+    final aExpr =
+        expressions[inputA.sourceNodeId] ?? MathFormatters.formatNumber(aValue);
+    final bExpr =
+        expressions[inputB.sourceNodeId] ?? MathFormatters.formatNumber(bValue);
 
     final result = operator.apply(aValue, bValue);
 
@@ -210,7 +207,6 @@ class MathEvaluator {
         )
         .firstOrNull;
 
-    // Handle missing input or invalid source node
     if (input == null || !nodeIds.contains(input.sourceNodeId)) {
       return EvalResult.success(0.0, expression: '${function.symbol}(0)');
     }
@@ -227,7 +223,8 @@ class MathEvaluator {
     }
 
     final inputExpr =
-        expressions[input.sourceNodeId] ?? _formatNumber(inputValue);
+        expressions[input.sourceNodeId] ??
+        MathFormatters.formatNumber(inputValue);
 
     return EvalResult.success(
       result,
@@ -248,7 +245,6 @@ class MathEvaluator {
         )
         .firstOrNull;
 
-    // Handle missing input or invalid source node - show question mark
     if (input == null || !nodeIds.contains(input.sourceNodeId)) {
       return EvalResult.success(0.0, expression: '?');
     }
@@ -259,16 +255,10 @@ class MathEvaluator {
     }
 
     final inputExpr =
-        expressions[input.sourceNodeId] ?? _formatNumber(inputValue);
+        expressions[input.sourceNodeId] ??
+        MathFormatters.formatNumber(inputValue);
 
     return EvalResult.success(inputValue, expression: inputExpr);
-  }
-
-  static String _formatNumber(double value) {
-    if (value == value.toInt()) {
-      return value.toInt().toString();
-    }
-    return value.toStringAsFixed(2);
   }
 
   /// Check if graph has a cycle using DFS.

@@ -4,7 +4,7 @@ import '../constants.dart';
 import '../models.dart';
 import '../theme.dart';
 
-/// Content widget for an operator node - matches reference design.
+/// Content widget for an operator node.
 class OperatorNodeContent extends StatelessWidget {
   final OperatorData data;
   final ValueChanged<MathOperator>? onOperatorChanged;
@@ -18,18 +18,7 @@ class OperatorNodeContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: MathColors.nodeBorder, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      decoration: MathNodeStyles.nodeDecoration,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,

@@ -5,6 +5,7 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../models.dart';
 import '../state.dart';
+import '../utils.dart';
 import 'node_factory.dart';
 
 /// The main canvas widget that displays the math node graph.
@@ -184,16 +185,9 @@ class _MathCanvasState extends State<MathCanvas> {
   }
 
   Offset _getNodePosition(MathNodeData nodeData) {
-    final savedPosition = switch (nodeData) {
-      NumberData(:final position) => position,
-      OperatorData(:final position) => position,
-      FunctionData(:final position) => position,
-      ResultData(:final position) => position,
-    };
+    if (nodeData.position != null) return nodeData.position!;
 
-    if (savedPosition != null) return savedPosition;
-
-    // Calculate a staggered default position
+    // Calculate a staggered default position for new nodes
     final nodeIndex = state.nodes.indexWhere((n) => n.id == nodeData.id);
     final row = nodeIndex ~/ 3;
     final col = nodeIndex % 3;
@@ -244,7 +238,6 @@ class _MathCanvasState extends State<MathCanvas> {
   ConnectionValidationResult _validateConnection(
     ConnectionCompleteContext<MathNodeData> context,
   ) {
-    // Prevent self-connections
     if (context.sourceNode.id == context.targetNode.id) {
       return ConnectionValidationResult.deny(
         reason: 'Cannot connect to self',
@@ -252,7 +245,6 @@ class _MathCanvasState extends State<MathCanvas> {
       );
     }
 
-    // Prevent cycles
     if (_wouldCreateCycle(context.sourceNode.id, context.targetNode.id)) {
       return ConnectionValidationResult.deny(
         reason: 'Would create a cycle',
@@ -260,14 +252,11 @@ class _MathCanvasState extends State<MathCanvas> {
       );
     }
 
-    // Get valid connections (both source and target nodes must exist)
-    final nodeIds = state.nodes.map((n) => n.id).toSet();
-    final validConnections = state.connections.where(
-      (c) =>
-          nodeIds.contains(c.sourceNodeId) && nodeIds.contains(c.targetNodeId),
+    final validConnections = MathConnectionUtils.getValidConnections(
+      state.nodes.toList(),
+      state.connections.toList(),
     );
 
-    // Prevent duplicate connections to same port
     final existingConnection = validConnections.any(
       (c) =>
           c.targetNodeId == context.targetNode.id &&
@@ -284,15 +273,10 @@ class _MathCanvasState extends State<MathCanvas> {
   }
 
   bool _wouldCreateCycle(String sourceId, String targetId) {
-    // Only consider valid connections (both nodes must exist)
-    final nodeIds = state.nodes.map((n) => n.id).toSet();
-    final validConnections = state.connections
-        .where(
-          (c) =>
-              nodeIds.contains(c.sourceNodeId) &&
-              nodeIds.contains(c.targetNodeId),
-        )
-        .toList();
+    final validConnections = MathConnectionUtils.getValidConnections(
+      state.nodes.toList(),
+      state.connections.toList(),
+    );
 
     final visited = <String>{};
 

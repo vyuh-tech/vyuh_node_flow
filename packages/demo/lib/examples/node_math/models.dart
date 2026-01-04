@@ -16,6 +16,9 @@ sealed class MathNodeData implements NodeData {
   /// Signature for change detection.
   String get signature;
 
+  /// Current position (nullable, set after initial placement).
+  Offset? get position;
+
   /// Copy with new position (used by sync).
   MathNodeData copyWithPosition(Offset position);
 }
@@ -23,6 +26,7 @@ sealed class MathNodeData implements NodeData {
 /// Number input node.
 class NumberData extends MathNodeData {
   final double value;
+  @override
   final Offset? position;
 
   const NumberData({required super.id, required this.value, this.position})
@@ -48,6 +52,7 @@ class NumberData extends MathNodeData {
 /// Operator node (+, -, ×, ÷).
 class OperatorData extends MathNodeData {
   final MathOperator operator;
+  @override
   final Offset? position;
 
   const OperatorData({required super.id, required this.operator, this.position})
@@ -75,6 +80,7 @@ class OperatorData extends MathNodeData {
 /// Function node (sin, cos, sqrt).
 class FunctionData extends MathNodeData {
   final MathFunction function;
+  @override
   final Offset? position;
 
   const FunctionData({required super.id, required this.function, this.position})
@@ -102,6 +108,7 @@ class FunctionData extends MathNodeData {
 /// Result/output node.
 class ResultData extends MathNodeData {
   final String label;
+  @override
   final Offset? position;
 
   const ResultData({required super.id, this.label = 'Result', this.position})

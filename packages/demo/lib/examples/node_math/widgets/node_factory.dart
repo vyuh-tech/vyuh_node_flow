@@ -23,16 +23,12 @@ class MathNodeFactory {
     final data = node.data;
 
     return switch (data) {
-      NumberData() => NumberNodeContent(
-        data: data,
-        result: result,
-        onChanged: onUpdate,
-      ),
+      NumberData() => NumberNodeContent(data: data, onChanged: onUpdate),
       OperatorData() => OperatorNodeContent(
         data: data,
         onOperatorChanged: (op) => onUpdate(data.copyWith(operator: op)),
       ),
-      FunctionData() => FunctionNodeContent(data: data, result: result),
+      FunctionData() => FunctionNodeContent(data: data),
       ResultData() => ResultNodeContent(
         data: data,
         result: result,
@@ -77,49 +73,54 @@ class MathNodeFactory {
   static List<Port> _createInputPorts(MathNodeData data, Size size) {
     final portColor = MathColors.portColorFor(data.type);
     final portTheme = _portThemeFor(portColor);
+    final hOffset = -MathPortConfig.horizontalOffset;
 
     return switch (data) {
       NumberData() => [],
       OperatorData() => [
         Port(
-          id: '${data.id}-input-a',
+          id: MathPortIds.inputA(data.id),
           name: 'A',
           type: PortType.input,
           position: PortPosition.left,
-          // Centered on left edge, 1/3 from top
-          offset: Offset(-3, size.height * 0.30),
+          offset: Offset(
+            hOffset,
+            size.height * MathPortConfig.operatorPortAVerticalRatio,
+          ),
           theme: portTheme,
           maxConnections: MathPortConfig.maxInputConnections,
         ),
         Port(
-          id: '${data.id}-input-b',
+          id: MathPortIds.inputB(data.id),
           name: 'B',
           type: PortType.input,
           position: PortPosition.left,
-          // Centered on left edge, 2/3 from top
-          offset: Offset(-3, size.height * 0.70),
+          offset: Offset(
+            hOffset,
+            size.height * MathPortConfig.operatorPortBVerticalRatio,
+          ),
           theme: portTheme,
           maxConnections: MathPortConfig.maxInputConnections,
         ),
       ],
       FunctionData() => [
         Port(
-          id: '${data.id}-input',
+          id: MathPortIds.input(data.id),
           name: 'x',
           type: PortType.input,
           position: PortPosition.left,
-          offset: Offset(-3, size.height / 2),
+          offset: Offset(hOffset, size.height / 2),
           theme: portTheme,
           maxConnections: MathPortConfig.maxInputConnections,
         ),
       ],
       ResultData() => [
         Port(
-          id: '${data.id}-input',
+          id: MathPortIds.input(data.id),
           name: 'value',
           type: PortType.input,
           position: PortPosition.left,
-          offset: Offset(-3, size.height / 2),
+          offset: Offset(hOffset, size.height / 2),
           theme: _portThemeFor(MathColors.portResult),
           maxConnections: MathPortConfig.maxInputConnections,
         ),
@@ -130,27 +131,27 @@ class MathNodeFactory {
   static List<Port> _createOutputPorts(MathNodeData data, Size size) {
     final portColor = MathColors.portColorFor(data.type);
     final portTheme = _portThemeFor(portColor);
+    final hOffset = MathPortConfig.horizontalOffset;
 
     return switch (data) {
       NumberData() => [
         Port(
-          id: '${data.id}-output',
+          id: MathPortIds.output(data.id),
           name: 'value',
-
           type: PortType.output,
           position: PortPosition.right,
-          offset: Offset(3, size.height / 2),
+          offset: Offset(hOffset, size.height / 2),
           theme: portTheme,
           multiConnections: true,
         ),
       ],
       OperatorData() || FunctionData() => [
         Port(
-          id: '${data.id}-output',
+          id: MathPortIds.output(data.id),
           name: 'result',
           type: PortType.output,
           position: PortPosition.right,
-          offset: Offset(3, size.height / 2),
+          offset: Offset(hOffset, size.height / 2),
           theme: portTheme,
           multiConnections: true,
         ),

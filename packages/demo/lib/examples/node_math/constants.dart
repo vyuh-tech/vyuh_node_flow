@@ -8,11 +8,25 @@ abstract final class MathNodeTypes {
   static const result = 'result';
 }
 
-/// Configuration for port connection limits.
+/// Configuration for port connection limits and positioning.
 abstract final class MathPortConfig {
   /// Maximum connections allowed per input port.
-  /// Set to 1 to ensure each input port can only have one connection.
   static const int maxInputConnections = 1;
+
+  /// Horizontal offset for ports (positive = outward from node edge).
+  static const double horizontalOffset = 3.0;
+
+  /// Vertical position ratios for operator node's two input ports.
+  static const double operatorPortAVerticalRatio = 0.30;
+  static const double operatorPortBVerticalRatio = 0.70;
+}
+
+/// Port ID generation utilities.
+abstract final class MathPortIds {
+  static String inputA(String nodeId) => '$nodeId-input-a';
+  static String inputB(String nodeId) => '$nodeId-input-b';
+  static String input(String nodeId) => '$nodeId-input';
+  static String output(String nodeId) => '$nodeId-output';
 }
 
 /// Arithmetic operators.
