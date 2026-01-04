@@ -1,3 +1,8 @@
+## 0.22.3
+
+ - **FEAT**: update documentation links for consistent structure and improved navigation.
+ - **FEAT**: simplify extension configs, refine LOD and minimap APIs, and update examples/tests for consistency across NodeFlow usage.
+
 ## 0.22.2
 
  - **FEAT**: update homepage URL in `pubspec.yaml` to reflect new subdomain.
