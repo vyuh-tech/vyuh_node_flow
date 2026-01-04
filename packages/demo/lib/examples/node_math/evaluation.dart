@@ -198,14 +198,14 @@ class MathEvaluator {
 
     if (hasA && !hasB) {
       final aExpr =
-          expressions[inputA!.sourceNodeId] ??
+          expressions[inputA.sourceNodeId] ??
           MathFormatters.formatNumber(values[inputA.sourceNodeId]!);
       return EvalResult.success(0.0, expression: aExpr);
     }
 
     if (!hasA && hasB) {
       final bExpr =
-          expressions[inputB!.sourceNodeId] ??
+          expressions[inputB.sourceNodeId] ??
           MathFormatters.formatNumber(values[inputB.sourceNodeId]!);
       return EvalResult.success(0.0, expression: bExpr);
     }
