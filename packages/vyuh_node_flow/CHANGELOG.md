@@ -1,3 +1,7 @@
+## 0.23.0+1
+
+ - **FIX**: update performance test expectation to use `lessThanOrEqualTo` for improved accuracy.
+
 ## 0.23.0
 
  - **FEAT**: remove AutoPanConfig and LODConfig, introduce AutoPanExtension for improved flexibility and updated tests.
