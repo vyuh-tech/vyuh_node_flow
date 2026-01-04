@@ -1,3 +1,6 @@
+/// Utility functions for the Node Math Calculator.
+///
+/// Contains formatters and connection validation helpers.
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import 'models.dart';

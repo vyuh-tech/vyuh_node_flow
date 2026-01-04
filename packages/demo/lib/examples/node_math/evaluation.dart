@@ -1,3 +1,15 @@
+/// Graph evaluation logic for the math calculator.
+///
+/// This module provides standalone evaluation that works directly on
+/// [MathNodeData] lists, independent of the NodeFlowController.
+///
+/// ### Why Custom Cycle Detection?
+/// While the core package provides `controller.hasCycles()`, this evaluator
+/// implements its own cycle detection because:
+/// 1. It operates on [MathNodeData] lists, not controller nodes
+/// 2. Evaluator runs independently without controller access
+/// 3. Cycle check feeds directly into topological sort (same pass optimization)
+/// 4. Domain-specific: only considers valid math connections
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import 'constants.dart';
@@ -21,7 +33,13 @@ class EvalResult {
   bool get hasError => error != null;
 }
 
-/// Evaluates a math node graph.
+/// Evaluates a math node graph using topological sort.
+///
+/// Performs a complete evaluation pass:
+/// 1. Validates connections (filters orphaned references)
+/// 2. Detects cycles (fails fast if found)
+/// 3. Topologically sorts nodes (dependency order)
+/// 4. Evaluates each node in order
 class MathEvaluator {
   /// Evaluate all nodes and return results map.
   static Map<String, EvalResult> evaluate(
@@ -261,7 +279,9 @@ class MathEvaluator {
     return EvalResult.success(inputValue, expression: inputExpr);
   }
 
-  /// Check if graph has a cycle using DFS.
+  /// Detects cycles using DFS with recursion stack.
+  ///
+  /// Note: Intentionally separate from controller.hasCycles() - see file docs.
   static bool _hasCycle(
     List<MathNodeData> nodes,
     List<Connection> connections,

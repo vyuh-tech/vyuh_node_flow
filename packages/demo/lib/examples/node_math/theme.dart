@@ -1,3 +1,6 @@
+/// Theme configuration for the Node Math Calculator.
+///
+/// Contains colors, styles, sizes, and NodeFlowTheme configuration.
 import 'package:flutter/material.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 

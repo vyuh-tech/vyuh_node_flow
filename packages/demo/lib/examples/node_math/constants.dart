@@ -1,3 +1,6 @@
+/// Constants and enums for the Node Math Calculator.
+///
+/// Centralizes all magic values, type identifiers, and configuration.
 import 'dart:math' as math;
 
 /// Node type identifiers for the math calculator.

@@ -1,3 +1,6 @@
+/// Reactive state management for the Node Math Calculator.
+///
+/// Uses MobX observables with debounced evaluation for performance.
 import 'dart:async';
 
 import 'package:mobx/mobx.dart';
