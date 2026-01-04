@@ -23,6 +23,13 @@ class _MathCanvasState extends State<MathCanvas> {
   final List<ReactionDisposer> _reactions = [];
   bool _isInitialized = false;
 
+  // Pending sync operations that were deferred during drag
+  bool _pendingNodeDataSync = false;
+  bool _pendingConnectionSync = false;
+
+  // Track previous drag state to detect drag end
+  String? _previousDraggedNodeId;
+
   MathState get state => widget.state;
 
   @override
@@ -43,6 +50,7 @@ class _MathCanvasState extends State<MathCanvas> {
 
   void _setupReactions() {
     // Sync nodes from state to controller when node list changes
+    // This is safe to run during drag as it only adds/removes nodes
     _reactions.add(
       reaction(
         (_) => state.nodes.map((n) => n.id).join('|'),
@@ -52,21 +60,62 @@ class _MathCanvasState extends State<MathCanvas> {
     );
 
     // Sync node data updates (values, operators)
+    // Defer during drag to prevent flickering
     _reactions.add(
-      reaction(
-        (_) => state.nodes.map((n) => n.signature).join('|'),
-        (_) => _syncNodeDataToController(),
-      ),
+      reaction((_) => state.nodes.map((n) => n.signature).join('|'), (_) {
+        if (_isDragging()) {
+          _pendingNodeDataSync = true;
+        } else {
+          _syncNodeDataToController();
+        }
+      }),
     );
 
     // Sync connections from state to controller
+    // Defer during drag to prevent flickering
     _reactions.add(
-      reaction(
-        (_) => state.connections.map((c) => c.id).join('|'),
-        (_) => _syncConnectionsToController(),
-        fireImmediately: true,
-      ),
+      reaction((_) => state.connections.map((c) => c.id).join('|'), (_) {
+        if (_isDragging()) {
+          _pendingConnectionSync = true;
+        } else {
+          _syncConnectionsToController();
+        }
+      }, fireImmediately: true),
     );
+
+    // When drag ends, process any pending sync operations
+    _reactions.add(
+      reaction((_) => _controller.interaction.draggedNodeId.value, (
+        String? draggedNodeId,
+      ) {
+        // Drag just ended (was dragging, now null)
+        final wasDragging = _previousDraggedNodeId != null;
+        final isDragging = draggedNodeId != null;
+        _previousDraggedNodeId = draggedNodeId;
+
+        if (wasDragging &&
+            !isDragging &&
+            (_pendingNodeDataSync || _pendingConnectionSync)) {
+          // Small delay to ensure drag state is fully cleared
+          Future.microtask(() {
+            if (_pendingNodeDataSync) {
+              _pendingNodeDataSync = false;
+              _syncNodeDataToController();
+            }
+            if (_pendingConnectionSync) {
+              _pendingConnectionSync = false;
+              _syncConnectionsToController();
+            }
+          });
+        }
+      }),
+    );
+  }
+
+  /// Check if any drag operation is in progress
+  bool _isDragging() {
+    return _controller.interaction.canvasLocked.value ||
+        _controller.interaction.draggedNodeId.value != null;
   }
 
   void _syncNodesToController() {
@@ -89,36 +138,49 @@ class _MathCanvasState extends State<MathCanvas> {
   }
 
   void _syncNodeDataToController() {
-    for (final nodeData in state.nodes) {
-      final existingNode = _controller.nodes[nodeData.id];
-      if (existingNode != null &&
-          existingNode.data.signature != nodeData.signature) {
-        // Preserve connections before removing the node
-        final connectionsToRestore = state.connections
-            .where(
-              (c) =>
-                  c.sourceNodeId == nodeData.id ||
-                  c.targetNodeId == nodeData.id,
-            )
-            .toList();
+    // Skip if dragging to prevent flickering
+    if (_isDragging()) {
+      _pendingNodeDataSync = true;
+      return;
+    }
 
-        // Update the node's data while keeping position
-        final position = existingNode.position.value;
-        _controller.removeNode(nodeData.id);
-        final node = MathNodeFactory.createNode(nodeData, position);
-        _controller.addNode(node);
+    // Use batch to group operations for better performance
+    _controller.batch('sync-node-data', () {
+      for (final nodeData in state.nodes) {
+        final existingNode = _controller.nodes[nodeData.id];
+        if (existingNode != null &&
+            existingNode.data.signature != nodeData.signature) {
+          // Preserve connections before removing the node
+          final connectionsToRestore = state.connections
+              .where(
+                (c) =>
+                    c.sourceNodeId == nodeData.id ||
+                    c.targetNodeId == nodeData.id,
+              )
+              .toList();
 
-        // Restore connections after adding the new node
-        for (final conn in connectionsToRestore) {
-          // Only restore if both nodes exist (the other node might have been removed)
-          final sourceExists = _controller.nodes.containsKey(conn.sourceNodeId);
-          final targetExists = _controller.nodes.containsKey(conn.targetNodeId);
-          if (sourceExists && targetExists) {
-            _controller.addConnection(conn);
+          // Update the node's data while keeping position
+          final position = existingNode.position.value;
+          _controller.removeNode(nodeData.id);
+          final node = MathNodeFactory.createNode(nodeData, position);
+          _controller.addNode(node);
+
+          // Restore connections after adding the new node
+          for (final conn in connectionsToRestore) {
+            // Only restore if both nodes exist (the other node might have been removed)
+            final sourceExists = _controller.nodes.containsKey(
+              conn.sourceNodeId,
+            );
+            final targetExists = _controller.nodes.containsKey(
+              conn.targetNodeId,
+            );
+            if (sourceExists && targetExists) {
+              _controller.addConnection(conn);
+            }
           }
         }
       }
-    }
+    });
   }
 
   Offset _getNodePosition(MathNodeData nodeData) {
@@ -140,20 +202,31 @@ class _MathCanvasState extends State<MathCanvas> {
   }
 
   void _syncConnectionsToController() {
-    final controllerConnIds = _controller.connections.map((c) => c.id).toSet();
-    final stateConnIds = state.connections.map((c) => c.id).toSet();
-
-    // Remove connections no longer in state
-    for (final connId in controllerConnIds.difference(stateConnIds)) {
-      _controller.removeConnection(connId);
+    // Skip if dragging to prevent flickering
+    if (_isDragging()) {
+      _pendingConnectionSync = true;
+      return;
     }
 
-    // Add new connections from state
-    for (final conn in state.connections) {
-      if (!controllerConnIds.contains(conn.id)) {
-        _controller.addConnection(conn);
+    // Use batch to group operations for better performance
+    _controller.batch('sync-connections', () {
+      final controllerConnIds = _controller.connections
+          .map((c) => c.id)
+          .toSet();
+      final stateConnIds = state.connections.map((c) => c.id).toSet();
+
+      // Remove connections no longer in state
+      for (final connId in controllerConnIds.difference(stateConnIds)) {
+        _controller.removeConnection(connId);
       }
-    }
+
+      // Add new connections from state
+      for (final conn in state.connections) {
+        if (!controllerConnIds.contains(conn.id)) {
+          _controller.addConnection(conn);
+        }
+      }
+    });
   }
 
   void _handleConnectionCreated(Connection connection) {
@@ -236,31 +309,28 @@ class _MathCanvasState extends State<MathCanvas> {
 
   @override
   Widget build(BuildContext context) {
-    return Observer(
-      builder: (context) {
-        // Trigger rebuild when results change
-        final _ = state.results.length;
-
-        return NodeFlowEditor<MathNodeData, dynamic>(
-          controller: _controller,
-          theme: MathTheme.nodeFlowTheme,
-          nodeBuilder: _buildNodeContent,
-          events: NodeFlowEvents(
-            onInit: _handleInit,
-            connection: ConnectionEvents<MathNodeData, dynamic>(
-              onCreated: _handleConnectionCreated,
-              onDeleted: _handleConnectionDeleted,
-              onBeforeComplete: _validateConnection,
-            ),
-          ),
-        );
-      },
+    // Remove unnecessary Observer - NodeFlowEditor handles its own reactivity
+    // Results are accessed per-node in _buildNodeContent, not globally
+    return NodeFlowEditor<MathNodeData, dynamic>(
+      controller: _controller,
+      theme: MathTheme.nodeFlowTheme,
+      nodeBuilder: _buildNodeContent,
+      events: NodeFlowEvents(
+        onInit: _handleInit,
+        connection: ConnectionEvents<MathNodeData, dynamic>(
+          onCreated: _handleConnectionCreated,
+          onDeleted: _handleConnectionDeleted,
+          onBeforeComplete: _validateConnection,
+        ),
+      ),
     );
   }
 
   Widget _buildNodeContent(BuildContext context, Node<MathNodeData> node) {
+    // Only observe the specific result for this node, not all results
     return Observer(
       builder: (context) {
+        // Access result directly - only rebuilds when this specific result changes
         final result = state.results[node.id];
         return MathNodeFactory.buildContent(
           node,
