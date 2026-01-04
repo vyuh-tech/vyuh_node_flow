@@ -30,11 +30,14 @@ jobs:
       - name: Get workspace dependencies
         run: dart pub get
 
+      - name: Install Melos
+        run: dart pub global activate melos
+
       - name: Bootstrap workspace
-        run: dart run melos bootstrap
+        run: melos bootstrap
 
       - name: Analyze code
-        run: dart run melos run analyze
+        run: melos run analyze
 
       - name: Run tests with coverage
         run: |
