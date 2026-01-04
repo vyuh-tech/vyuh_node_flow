@@ -1,12 +1,18 @@
 /// Data models for the Node Math Calculator.
 ///
-/// Uses a sealed class hierarchy for type-safe pattern matching.
+/// Uses a sealed class hierarchy for exhaustive pattern matching in switch expressions.
 import 'package:flutter/material.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import 'constants.dart';
 
-/// Base class for all math node data.
+/// Base sealed class for all math node data types.
+///
+/// Sealed hierarchy enables exhaustive switch matching:
+/// - [NumberData] - numeric constant input
+/// - [OperatorData] - binary arithmetic operation
+/// - [FunctionData] - unary mathematical function
+/// - [ResultData] - output display node
 sealed class MathNodeData implements NodeData {
   final String id;
   final String type;
@@ -16,17 +22,19 @@ sealed class MathNodeData implements NodeData {
   @override
   MathNodeData clone();
 
-  /// Signature for change detection.
+  /// Unique signature combining id and mutable state for change detection.
+  ///
+  /// Used by MobX reactions to detect when node data (not just identity) changes.
   String get signature;
 
-  /// Current position (nullable, set after initial placement).
+  /// Canvas position if already placed, null for newly created nodes.
   Offset? get position;
 
-  /// Copy with new position (used by sync).
+  /// Creates a copy with updated position for canvas synchronization.
   MathNodeData copyWithPosition(Offset position);
 }
 
-/// Number input node.
+/// Numeric constant node that outputs a user-editable value.
 class NumberData extends MathNodeData {
   final double value;
   @override
@@ -52,7 +60,7 @@ class NumberData extends MathNodeData {
   );
 }
 
-/// Operator node (+, -, ×, ÷).
+/// Binary arithmetic operator node with two inputs (A, B) and one output.
 class OperatorData extends MathNodeData {
   final MathOperator operator;
   @override
@@ -80,7 +88,7 @@ class OperatorData extends MathNodeData {
       );
 }
 
-/// Function node (sin, cos, sqrt).
+/// Unary mathematical function node with one input and one output.
 class FunctionData extends MathNodeData {
   final MathFunction function;
   @override
@@ -108,7 +116,7 @@ class FunctionData extends MathNodeData {
       );
 }
 
-/// Result/output node.
+/// Terminal output node that displays the computed expression and value.
 class ResultData extends MathNodeData {
   final String label;
   @override

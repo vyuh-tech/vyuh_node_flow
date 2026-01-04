@@ -5,7 +5,10 @@ import '../models.dart';
 import '../theme.dart';
 import '../utils.dart';
 
-/// Content widget for a number input node.
+/// Content widget for a number input node with editable text field.
+///
+/// Manages its own TextEditingController and handles focus state to
+/// prevent external updates from overwriting user's in-progress edits.
 class NumberNodeContent extends StatefulWidget {
   final NumberData data;
   final ValueChanged<NumberData>? onChanged;
@@ -42,6 +45,7 @@ class _NumberNodeContentState extends State<NumberNodeContent> {
     super.dispose();
   }
 
+  /// Parses text input and propagates valid number changes to parent.
   void _handleChange(String text) {
     final parsed = double.tryParse(text);
     if (parsed != null) {

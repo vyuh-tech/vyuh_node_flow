@@ -6,27 +6,34 @@ import '../models.dart';
 import '../state.dart';
 import '../theme.dart';
 
-/// Toolbox panel for adding math nodes.
+/// Side panel containing buttons to add new nodes to the canvas.
+///
+/// Organized into sections: Inputs (Number), Operators, Functions, Output (Result).
+/// Each button creates a new node with default values and adds it to the graph.
 class MathToolbox extends StatelessWidget {
   final MathState state;
 
   const MathToolbox({super.key, required this.state});
 
+  /// Creates a number node with default value of 10.
   void _addNumber() {
     final id = state.generateNodeId();
     state.addNode(NumberData(id: id, value: 10));
   }
 
+  /// Creates an operator node defaulting to addition.
   void _addOperator() {
     final id = state.generateNodeId();
     state.addNode(OperatorData(id: id, operator: MathOperator.add));
   }
 
+  /// Creates a function node with the specified mathematical function.
   void _addFunction(MathFunction func) {
     final id = state.generateNodeId();
     state.addNode(FunctionData(id: id, function: func));
   }
 
+  /// Creates a result node for displaying computed output.
   void _addResult() {
     final id = state.generateNodeId();
     state.addNode(ResultData(id: id));
@@ -112,6 +119,7 @@ class MathToolbox extends StatelessWidget {
   }
 }
 
+/// Styled button for the toolbox with icon, label, and semantic color.
 class _ToolboxButton extends StatelessWidget {
   final String label;
   final IconData icon;

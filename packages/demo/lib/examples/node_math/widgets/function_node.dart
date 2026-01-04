@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../models.dart';
 import '../theme.dart';
 
-/// Content widget for a function node.
+/// Content widget displaying the function symbol (sin, cos, √).
+///
+/// Static display only - the function type is fixed at node creation.
 class FunctionNodeContent extends StatelessWidget {
   final FunctionData data;
 

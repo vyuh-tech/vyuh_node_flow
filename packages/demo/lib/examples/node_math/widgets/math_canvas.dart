@@ -8,7 +8,13 @@ import '../state.dart';
 import '../utils.dart';
 import 'node_factory.dart';
 
-/// The main canvas widget that displays the math node graph.
+/// The primary canvas widget for the math node graph editor.
+///
+/// Bridges MobX state ([MathState]) with the [NodeFlowController], handling:
+/// - Bidirectional sync between state and controller (nodes, connections)
+/// - Drag-aware deferred updates to prevent UI flickering during interactions
+/// - Connection validation (self-loops, cycles, port limits)
+/// - Automatic fit-to-view on first render
 class MathCanvas extends StatefulWidget {
   final MathState state;
   final NodeFlowTheme theme;
@@ -49,9 +55,15 @@ class _MathCanvasState extends State<MathCanvas> {
     _setupReactions();
   }
 
+  /// Configures MobX reactions to sync MathState changes to NodeFlowController.
+  ///
+  /// Reactions are organized by sync type:
+  /// 1. Node list changes (add/remove) - safe during drag
+  /// 2. Node data changes (values, operators) - deferred during drag
+  /// 3. Connection changes - deferred during drag
+  /// 4. Drag-end handler - flushes pending syncs after drag completes
   void _setupReactions() {
-    // Sync nodes from state to controller when node list changes
-    // This is safe to run during drag as it only adds/removes nodes
+    // Node list sync: fires when nodes are added/removed
     _reactions.add(
       reaction(
         (_) => state.nodes.map((n) => n.id).join('|'),
@@ -60,8 +72,7 @@ class _MathCanvasState extends State<MathCanvas> {
       ),
     );
 
-    // Sync node data updates (values, operators)
-    // Defer during drag to prevent flickering
+    // Node data sync: tracks signature changes (value edits, operator toggles)
     _reactions.add(
       reaction((_) => state.nodes.map((n) => n.signature).join('|'), (_) {
         if (_isDragging()) {
@@ -72,8 +83,7 @@ class _MathCanvasState extends State<MathCanvas> {
       }),
     );
 
-    // Sync connections from state to controller
-    // Defer during drag to prevent flickering
+    // Connection sync: tracks connection list changes
     _reactions.add(
       reaction((_) => state.connections.map((c) => c.id).join('|'), (_) {
         if (_isDragging()) {
@@ -84,12 +94,11 @@ class _MathCanvasState extends State<MathCanvas> {
       }, fireImmediately: true),
     );
 
-    // When drag ends, process any pending sync operations
+    // Drag-end flush: processes deferred syncs when user stops dragging
     _reactions.add(
       reaction((_) => _controller.interaction.draggedNodeId.value, (
         String? draggedNodeId,
       ) {
-        // Drag just ended (was dragging, now null)
         final wasDragging = _previousDraggedNodeId != null;
         final isDragging = draggedNodeId != null;
         _previousDraggedNodeId = draggedNodeId;
@@ -97,7 +106,6 @@ class _MathCanvasState extends State<MathCanvas> {
         if (wasDragging &&
             !isDragging &&
             (_pendingNodeDataSync || _pendingConnectionSync)) {
-          // Small delay to ensure drag state is fully cleared
           Future.microtask(() {
             if (_pendingNodeDataSync) {
               _pendingNodeDataSync = false;
@@ -113,22 +121,26 @@ class _MathCanvasState extends State<MathCanvas> {
     );
   }
 
-  /// Check if any drag operation is in progress
+  /// Returns true if a drag or canvas lock is active.
   bool _isDragging() {
     return _controller.interaction.canvasLocked.value ||
         _controller.interaction.draggedNodeId.value != null;
   }
 
+  /// Synchronizes the node list from MathState to NodeFlowController.
+  ///
+  /// Performs set-difference operations to:
+  /// - Remove controller nodes that no longer exist in state
+  /// - Add new state nodes that don't exist in controller
+  /// Does NOT update existing nodes (handled by [_syncNodeDataToController]).
   void _syncNodesToController() {
     final controllerNodeIds = _controller.nodes.keys.toSet();
     final stateNodeIds = state.nodes.map((n) => n.id).toSet();
 
-    // Remove nodes no longer in state
     for (final nodeId in controllerNodeIds.difference(stateNodeIds)) {
       _controller.removeNode(nodeId);
     }
 
-    // Add new nodes from state
     for (final nodeData in state.nodes) {
       if (!controllerNodeIds.contains(nodeData.id)) {
         final position = _getNodePosition(nodeData);
@@ -138,20 +150,27 @@ class _MathCanvasState extends State<MathCanvas> {
     }
   }
 
+  /// Updates controller nodes when their data (value, operator) changes.
+  ///
+  /// Since ports are derived from node data, changing data requires a
+  /// remove-and-recreate cycle. This method:
+  /// 1. Preserves the node's current position
+  /// 2. Saves connections attached to the node
+  /// 3. Removes and recreates the node with new data
+  /// 4. Restores connections to maintain graph integrity
+  ///
+  /// Batched for performance; deferred during drag to prevent flickering.
   void _syncNodeDataToController() {
-    // Skip if dragging to prevent flickering
     if (_isDragging()) {
       _pendingNodeDataSync = true;
       return;
     }
 
-    // Use batch to group operations for better performance
     _controller.batch('sync-node-data', () {
       for (final nodeData in state.nodes) {
         final existingNode = _controller.nodes[nodeData.id];
         if (existingNode != null &&
             existingNode.data.signature != nodeData.signature) {
-          // Preserve connections before removing the node
           final connectionsToRestore = state.connections
               .where(
                 (c) =>
@@ -160,15 +179,12 @@ class _MathCanvasState extends State<MathCanvas> {
               )
               .toList();
 
-          // Update the node's data while keeping position
           final position = existingNode.position.value;
           _controller.removeNode(nodeData.id);
           final node = MathNodeFactory.createNode(nodeData, position);
           _controller.addNode(node);
 
-          // Restore connections after adding the new node
           for (final conn in connectionsToRestore) {
-            // Only restore if both nodes exist (the other node might have been removed)
             final sourceExists = _controller.nodes.containsKey(
               conn.sourceNodeId,
             );
@@ -184,10 +200,13 @@ class _MathCanvasState extends State<MathCanvas> {
     });
   }
 
+  /// Computes default position for nodes without explicit placement.
+  ///
+  /// Arranges nodes in a 3-column grid pattern, spacing them 220px
+  /// horizontally and 130px vertically to prevent overlap.
   Offset _getNodePosition(MathNodeData nodeData) {
     if (nodeData.position != null) return nodeData.position!;
 
-    // Calculate a staggered default position for new nodes
     final nodeIndex = state.nodes.indexWhere((n) => n.id == nodeData.id);
     final row = nodeIndex ~/ 3;
     final col = nodeIndex % 3;
@@ -195,26 +214,26 @@ class _MathCanvasState extends State<MathCanvas> {
     return Offset(100 + (col * 220.0), 100 + (row * 130.0));
   }
 
+  /// Synchronizes connections from MathState to NodeFlowController.
+  ///
+  /// Uses set-difference to add/remove connections efficiently.
+  /// Batched for performance; deferred during drag to prevent flickering.
   void _syncConnectionsToController() {
-    // Skip if dragging to prevent flickering
     if (_isDragging()) {
       _pendingConnectionSync = true;
       return;
     }
 
-    // Use batch to group operations for better performance
     _controller.batch('sync-connections', () {
       final controllerConnIds = _controller.connections
           .map((c) => c.id)
           .toSet();
       final stateConnIds = state.connections.map((c) => c.id).toSet();
 
-      // Remove connections no longer in state
       for (final connId in controllerConnIds.difference(stateConnIds)) {
         _controller.removeConnection(connId);
       }
 
-      // Add new connections from state
       for (final conn in state.connections) {
         if (!controllerConnIds.contains(conn.id)) {
           _controller.addConnection(conn);
@@ -223,18 +242,27 @@ class _MathCanvasState extends State<MathCanvas> {
     });
   }
 
+  /// Propagates new connections from controller to MathState.
   void _handleConnectionCreated(Connection connection) {
     state.addConnection(connection);
   }
 
+  /// Propagates connection deletions from controller to MathState.
   void _handleConnectionDeleted(Connection connection) {
     state.removeConnection(connection.id);
   }
 
+  /// Propagates node deletions from controller to MathState.
   void _handleNodeDeleted(Node<MathNodeData> node) {
     state.removeNode(node.id);
   }
 
+  /// Validates a pending connection before it's created.
+  ///
+  /// Rejects connections that would:
+  /// - Connect a node to itself (self-loop)
+  /// - Create a cycle in the graph (prevents infinite evaluation loops)
+  /// - Connect to an input port that already has a connection
   ConnectionValidationResult _validateConnection(
     ConnectionCompleteContext<MathNodeData> context,
   ) {
@@ -272,6 +300,10 @@ class _MathCanvasState extends State<MathCanvas> {
     return ConnectionValidationResult.allow();
   }
 
+  /// Detects if adding connection source→target would create a cycle.
+  ///
+  /// Uses DFS to check if there's already a path from target to source.
+  /// If such a path exists, adding source→target would complete a cycle.
   bool _wouldCreateCycle(String sourceId, String targetId) {
     final validConnections = MathConnectionUtils.getValidConnections(
       state.nodes.toList(),
@@ -296,6 +328,7 @@ class _MathCanvasState extends State<MathCanvas> {
     return hasPath(targetId, sourceId);
   }
 
+  /// Centers and scales the view to fit all nodes on first load.
   void _handleInit() {
     if (!_isInitialized && _controller.nodes.isNotEmpty) {
       _isInitialized = true;
@@ -332,11 +365,13 @@ class _MathCanvasState extends State<MathCanvas> {
     );
   }
 
+  /// Builds the content widget for each node based on its type.
+  ///
+  /// Uses MobX Observer to reactively update when evaluation result changes.
+  /// Each node only observes its own result, preventing unnecessary rebuilds.
   Widget _buildNodeContent(BuildContext context, Node<MathNodeData> node) {
-    // Only observe the specific result for this node, not all results
     return Observer(
       builder: (context) {
-        // Access result directly - only rebuilds when this specific result changes
         final result = state.results[node.id];
         return MathNodeFactory.buildContent(
           node,
@@ -348,6 +383,10 @@ class _MathCanvasState extends State<MathCanvas> {
     );
   }
 
+  /// Updates node dimensions in controller when content size changes.
+  ///
+  /// Used by ResultNode to expand width based on expression length.
+  /// Ignores sub-pixel changes to prevent layout thrashing.
   void _handleNodeSizeChanged(String nodeId, Size newSize) {
     final node = _controller.nodes[nodeId];
     if (node == null) return;
@@ -358,7 +397,6 @@ class _MathCanvasState extends State<MathCanvas> {
       return;
     }
 
-    // Update the node size in the controller
     node.setSize(newSize);
   }
 }

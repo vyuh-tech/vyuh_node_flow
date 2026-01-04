@@ -4,7 +4,10 @@ import '../constants.dart';
 import '../models.dart';
 import '../theme.dart';
 
-/// Content widget for an operator node.
+/// Content widget displaying a row of operator buttons (+, -, ×, ÷).
+///
+/// Only one operator is active at a time. Tapping a button updates the
+/// node's operator and triggers graph re-evaluation.
 class OperatorNodeContent extends StatelessWidget {
   final OperatorData data;
   final ValueChanged<MathOperator>? onOperatorChanged;
@@ -40,6 +43,7 @@ class OperatorNodeContent extends StatelessWidget {
   }
 }
 
+/// Individual operator button with active/inactive visual states.
 class _OperatorButton extends StatelessWidget {
   final String symbol;
   final bool isActive;

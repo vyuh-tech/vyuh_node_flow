@@ -1,13 +1,17 @@
 /// Utility functions for the Node Math Calculator.
 ///
-/// Contains formatters and connection validation helpers.
+/// Provides shared formatting and connection filtering used across the module.
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import 'models.dart';
 
-/// Shared formatting utilities for the math calculator.
+/// Number formatting utilities for display and input fields.
 abstract final class MathFormatters {
-  /// Formats a number for display (integer if whole, otherwise 2 decimal places).
+  /// Formats a number for result display.
+  ///
+  /// - Returns "?" for NaN/Infinite values
+  /// - Omits decimal for whole numbers (e.g., "42" not "42.00")
+  /// - Shows 2 decimal places otherwise (e.g., "3.14")
   static String formatNumber(double value) {
     if (value.isNaN || value.isInfinite) return '?';
     if (value == value.toInt()) {
@@ -16,7 +20,9 @@ abstract final class MathFormatters {
     return value.toStringAsFixed(2);
   }
 
-  /// Formats a number for input field display (preserves full precision).
+  /// Formats a number for text field editing.
+  ///
+  /// Preserves full precision to avoid losing decimal places during editing.
   static String formatForInput(double value) {
     if (value == value.toInt()) {
       return value.toInt().toString();
@@ -25,9 +31,13 @@ abstract final class MathFormatters {
   }
 }
 
-/// Shared connection utilities for the math calculator.
+/// Connection filtering utilities shared between canvas and evaluator.
 abstract final class MathConnectionUtils {
-  /// Filters connections to only include valid ones (both nodes must exist).
+  /// Filters out orphaned connections (references to deleted nodes).
+  ///
+  /// Connections may reference nodes that have been deleted. This filters
+  /// the connection list to only include valid connections where both
+  /// source and target nodes still exist.
   static List<Connection> getValidConnections(
     List<MathNodeData> nodes,
     List<Connection> connections,
@@ -42,7 +52,7 @@ abstract final class MathConnectionUtils {
         .toList();
   }
 
-  /// Creates a set of node IDs for fast lookup.
+  /// Builds a set of node IDs for O(1) membership checks.
   static Set<String> getNodeIds(List<MathNodeData> nodes) {
     return {for (final node in nodes) node.id};
   }

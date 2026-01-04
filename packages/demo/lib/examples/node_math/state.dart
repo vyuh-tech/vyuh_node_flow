@@ -9,40 +9,47 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 import 'evaluation.dart';
 import 'models.dart';
 
-/// Reactive state for the math calculator.
+/// Central state store for the math calculator, managing nodes, connections, and results.
+///
+/// Owns the source of truth for the graph structure. Changes here propagate
+/// to [MathCanvas] via MobX reactions. Evaluation is debounced to prevent
+/// rapid re-computation during fast edits.
 class MathState {
   MathState();
 
-  /// All nodes in the graph.
+  /// Observable list of all nodes in the graph.
   final nodes = ObservableList<MathNodeData>();
 
-  /// All connections.
+  /// Observable list of all connections between nodes.
   final connections = ObservableList<Connection>();
 
-  /// Evaluation results per node.
+  /// Cached evaluation results, keyed by node ID.
   final results = ObservableMap<String, EvalResult>();
 
-  /// Currently selected node ID.
+  /// Currently selected node for UI highlighting (if any).
   final selectedNodeId = Observable<String?>(null);
 
-  /// Node counter for unique IDs.
+  /// Auto-incrementing counter for generating unique node IDs.
   int _nodeCounter = 0;
 
+  /// Debounce timer to coalesce rapid state changes before evaluation.
   Timer? _evalDebouncer;
 
-  /// Generate unique node ID.
+  /// Generates a unique node ID using incremental counter.
   String generateNodeId() {
     _nodeCounter++;
     return 'math-node-$_nodeCounter';
   }
 
-  /// Add a node.
+  /// Adds a new node to the graph and triggers re-evaluation.
   void addNode(MathNodeData node) {
     nodes.add(node);
     _scheduleEvaluation();
   }
 
-  /// Remove a node and its connections.
+  /// Removes a node and all its connections, then re-evaluates.
+  ///
+  /// Also clears selection if the deleted node was selected.
   void removeNode(String nodeId) {
     nodes.removeWhere((n) => n.id == nodeId);
     connections.removeWhere(
@@ -57,7 +64,7 @@ class MathState {
     _scheduleEvaluation();
   }
 
-  /// Update a node's data.
+  /// Updates a node's data (e.g., value change, operator toggle).
   void updateNode(MathNodeData node) {
     final index = nodes.indexWhere((n) => n.id == node.id);
     if (index != -1) {
@@ -66,26 +73,25 @@ class MathState {
     }
   }
 
-  /// Add a connection.
+  /// Adds a connection between two ports if not already present.
   void addConnection(Connection connection) {
-    // Avoid duplicates
     if (connections.any((c) => c.id == connection.id)) return;
     connections.add(connection);
     _scheduleEvaluation();
   }
 
-  /// Remove a connection.
+  /// Removes a connection by ID and triggers re-evaluation.
   void removeConnection(String connectionId) {
     connections.removeWhere((c) => c.id == connectionId);
     _scheduleEvaluation();
   }
 
-  /// Select a node.
+  /// Sets the currently selected node for UI highlighting.
   void selectNode(String? nodeId) {
     selectedNodeId.value = nodeId;
   }
 
-  /// Clear all nodes and connections.
+  /// Resets the calculator to empty state.
   void clearAll() {
     nodes.clear();
     connections.clear();
@@ -93,12 +99,18 @@ class MathState {
     selectedNodeId.value = null;
   }
 
+  /// Schedules evaluation after a 50ms debounce window.
+  ///
+  /// Prevents rapid re-computation when user types quickly or
+  /// drags connections in rapid succession.
   void _scheduleEvaluation() {
     _evalDebouncer?.cancel();
     _evalDebouncer = Timer(const Duration(milliseconds: 50), evaluate);
   }
 
-  /// Evaluate the graph.
+  /// Runs the graph evaluator and updates all node results.
+  ///
+  /// Called automatically via debounce after any graph mutation.
   void evaluate() {
     final evalResults = MathEvaluator.evaluate(
       nodes.toList(),
@@ -109,7 +121,7 @@ class MathState {
     results.addAll(evalResults);
   }
 
-  /// Dispose resources.
+  /// Releases resources (cancels pending evaluation timer).
   void dispose() {
     _evalDebouncer?.cancel();
   }

@@ -16,7 +16,11 @@ import 'constants.dart';
 import 'models.dart';
 import 'utils.dart';
 
-/// Result of evaluating a single node.
+/// Represents the evaluation outcome for a single math node.
+///
+/// Contains either:
+/// - A computed [value] with optional human-readable [expression] (success)
+/// - An [error] message describing why evaluation failed
 class EvalResult {
   final double? value;
   final String? expression;
@@ -41,7 +45,15 @@ class EvalResult {
 /// 3. Topologically sorts nodes (dependency order)
 /// 4. Evaluates each node in order
 class MathEvaluator {
-  /// Evaluate all nodes and return results map.
+  /// Evaluates the entire node graph and returns results for each node.
+  ///
+  /// Algorithm:
+  /// 1. Filter orphaned connections (references to deleted nodes)
+  /// 2. Detect cycles - returns error for all nodes if found
+  /// 3. Topologically sort nodes (guarantees inputs evaluated before outputs)
+  /// 4. Evaluate each node in dependency order, building expressions
+  ///
+  /// Returns a map of nodeId → [EvalResult] with computed values.
   static Map<String, EvalResult> evaluate(
     List<MathNodeData> nodes,
     List<Connection> connections,
@@ -54,7 +66,6 @@ class MathEvaluator {
       connections,
     );
 
-    // Check for cycles using only valid connections
     if (_hasCycle(nodes, validConnections, nodeIds)) {
       for (final node in nodes) {
         results[node.id] = EvalResult.error('Cycle detected');
@@ -62,10 +73,8 @@ class MathEvaluator {
       return results;
     }
 
-    // Topological sort using valid connections
     final sorted = _topologicalSort(nodes, validConnections, nodeIds);
 
-    // Evaluate in order
     final values = <String, double>{};
     final expressions = <String, String>{};
 
@@ -90,6 +99,13 @@ class MathEvaluator {
     return results;
   }
 
+  /// Dispatches evaluation to the appropriate handler based on node type.
+  ///
+  /// Each node type has specific evaluation logic:
+  /// - Number: returns its stored value directly
+  /// - Operator: combines two inputs with arithmetic operation
+  /// - Function: applies mathematical function to single input
+  /// - Result: passes through input value for display
   static EvalResult _evaluateNode(
     MathNodeData node,
     List<Connection> connections,
@@ -135,6 +151,14 @@ class MathEvaluator {
     }
   }
 
+  /// Evaluates a binary operator node (A op B).
+  ///
+  /// Handles partial connections gracefully:
+  /// - Both inputs connected: computes result and builds expression (e.g. "5+3")
+  /// - Only one input: shows partial expression, returns 0
+  /// - No inputs: returns "?" placeholder
+  ///
+  /// Detects division by zero and returns error.
   static EvalResult _evaluateOperator(
     String nodeId,
     MathOperator operator,
@@ -211,6 +235,11 @@ class MathEvaluator {
     );
   }
 
+  /// Evaluates a unary function node (fn(x)).
+  ///
+  /// Applies mathematical function (sin, cos, sqrt) to input value.
+  /// Returns error for invalid inputs (e.g., sqrt of negative number).
+  /// Builds expression string in function notation (e.g., "sin(45)").
   static EvalResult _evaluateFunction(
     String nodeId,
     MathFunction function,
@@ -250,6 +279,10 @@ class MathEvaluator {
     );
   }
 
+  /// Evaluates a result/display node.
+  ///
+  /// Passes through the input value and expression unchanged.
+  /// Shows "?" when not connected, indicating awaiting input.
   static EvalResult _evaluateResult(
     String nodeId,
     List<Connection> connections,
@@ -279,9 +312,13 @@ class MathEvaluator {
     return EvalResult.success(inputValue, expression: inputExpr);
   }
 
-  /// Detects cycles using DFS with recursion stack.
+  /// Detects cycles in the graph using DFS with three-color marking.
   ///
-  /// Note: Intentionally separate from controller.hasCycles() - see file docs.
+  /// Uses the "visiting" set to track nodes in the current DFS path.
+  /// If we encounter a node already in "visiting", we've found a back edge (cycle).
+  ///
+  /// Separate from controller.hasCycles() because this evaluator operates on
+  /// raw MathNodeData lists and needs cycle detection as part of evaluation.
   static bool _hasCycle(
     List<MathNodeData> nodes,
     List<Connection> connections,
@@ -314,7 +351,16 @@ class MathEvaluator {
     return false;
   }
 
-  /// Topological sort using Kahn's algorithm.
+  /// Sorts nodes in dependency order using Kahn's algorithm.
+  ///
+  /// Guarantees that when evaluating node N, all nodes that N depends on
+  /// have already been evaluated. This enables single-pass evaluation.
+  ///
+  /// Algorithm:
+  /// 1. Count incoming edges (in-degree) for each node
+  /// 2. Start with nodes that have no dependencies (in-degree = 0)
+  /// 3. Process each node, decrementing in-degrees of its neighbors
+  /// 4. Add neighbors to queue when their in-degree becomes 0
   static List<MathNodeData> _topologicalSort(
     List<MathNodeData> nodes,
     List<Connection> connections,
@@ -324,13 +370,11 @@ class MathEvaluator {
     final inDegree = <String, int>{};
     final adjacency = <String, List<String>>{};
 
-    // Initialize
     for (final node in nodes) {
       inDegree[node.id] = 0;
       adjacency[node.id] = [];
     }
 
-    // Build graph using only valid connections
     for (final conn in connections) {
       if (nodeIds.contains(conn.sourceNodeId) &&
           nodeIds.contains(conn.targetNodeId)) {
@@ -339,7 +383,6 @@ class MathEvaluator {
       }
     }
 
-    // Find nodes with no incoming edges
     final queue = <String>[
       for (final entry in inDegree.entries)
         if (entry.value == 0) entry.key,
