@@ -5,14 +5,14 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../models.dart';
 import '../state.dart';
-import '../theme.dart';
 import 'node_factory.dart';
 
 /// The main canvas widget that displays the math node graph.
 class MathCanvas extends StatefulWidget {
   final MathState state;
+  final NodeFlowTheme theme;
 
-  const MathCanvas({super.key, required this.state});
+  const MathCanvas({super.key, required this.state, required this.theme});
 
   @override
   State<MathCanvas> createState() => _MathCanvasState();
@@ -237,6 +237,10 @@ class _MathCanvasState extends State<MathCanvas> {
     state.removeConnection(connection.id);
   }
 
+  void _handleNodeDeleted(Node<MathNodeData> node) {
+    state.removeNode(node.id);
+  }
+
   ConnectionValidationResult _validateConnection(
     ConnectionCompleteContext<MathNodeData> context,
   ) {
@@ -256,8 +260,15 @@ class _MathCanvasState extends State<MathCanvas> {
       );
     }
 
+    // Get valid connections (both source and target nodes must exist)
+    final nodeIds = state.nodes.map((n) => n.id).toSet();
+    final validConnections = state.connections.where(
+      (c) =>
+          nodeIds.contains(c.sourceNodeId) && nodeIds.contains(c.targetNodeId),
+    );
+
     // Prevent duplicate connections to same port
-    final existingConnection = state.connections.any(
+    final existingConnection = validConnections.any(
       (c) =>
           c.targetNodeId == context.targetNode.id &&
           c.targetPortId == context.targetPort.id,
@@ -273,6 +284,16 @@ class _MathCanvasState extends State<MathCanvas> {
   }
 
   bool _wouldCreateCycle(String sourceId, String targetId) {
+    // Only consider valid connections (both nodes must exist)
+    final nodeIds = state.nodes.map((n) => n.id).toSet();
+    final validConnections = state.connections
+        .where(
+          (c) =>
+              nodeIds.contains(c.sourceNodeId) &&
+              nodeIds.contains(c.targetNodeId),
+        )
+        .toList();
+
     final visited = <String>{};
 
     bool hasPath(String from, String to) {
@@ -280,7 +301,7 @@ class _MathCanvasState extends State<MathCanvas> {
       if (visited.contains(from)) return false;
       visited.add(from);
 
-      for (final conn in state.connections) {
+      for (final conn in validConnections) {
         if (conn.sourceNodeId == from && hasPath(conn.targetNodeId, to)) {
           return true;
         }
@@ -313,10 +334,11 @@ class _MathCanvasState extends State<MathCanvas> {
     // Results are accessed per-node in _buildNodeContent, not globally
     return NodeFlowEditor<MathNodeData, dynamic>(
       controller: _controller,
-      theme: MathTheme.nodeFlowTheme,
+      theme: widget.theme,
       nodeBuilder: _buildNodeContent,
       events: NodeFlowEvents(
         onInit: _handleInit,
+        node: NodeEvents<MathNodeData>(onDeleted: _handleNodeDeleted),
         connection: ConnectionEvents<MathNodeData, dynamic>(
           onCreated: _handleConnectionCreated,
           onDeleted: _handleConnectionDeleted,
@@ -336,8 +358,23 @@ class _MathCanvasState extends State<MathCanvas> {
           node,
           result,
           (updated) => state.updateNode(updated),
+          onNodeSizeChanged: _handleNodeSizeChanged,
         );
       },
     );
+  }
+
+  void _handleNodeSizeChanged(String nodeId, Size newSize) {
+    final node = _controller.nodes[nodeId];
+    if (node == null) return;
+
+    final currentSize = node.size.value;
+    if ((currentSize.width - newSize.width).abs() < 1 &&
+        (currentSize.height - newSize.height).abs() < 1) {
+      return;
+    }
+
+    // Update the node size in the controller
+    node.setSize(newSize);
   }
 }

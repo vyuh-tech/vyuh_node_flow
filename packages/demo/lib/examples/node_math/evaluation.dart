@@ -29,23 +29,38 @@ class MathEvaluator {
   ) {
     final results = <String, EvalResult>{};
 
-    // Check for cycles
-    if (_hasCycle(nodes, connections)) {
+    // Create node ID set for fast lookup
+    final nodeIds = {for (final node in nodes) node.id};
+
+    // Filter connections to only include valid ones (both nodes must exist)
+    final validConnections = connections.where((conn) {
+      return nodeIds.contains(conn.sourceNodeId) &&
+          nodeIds.contains(conn.targetNodeId);
+    }).toList();
+
+    // Check for cycles using only valid connections
+    if (_hasCycle(nodes, validConnections, nodeIds)) {
       for (final node in nodes) {
         results[node.id] = EvalResult.error('Cycle detected');
       }
       return results;
     }
 
-    // Topological sort
-    final sorted = _topologicalSort(nodes, connections);
+    // Topological sort using valid connections
+    final sorted = _topologicalSort(nodes, validConnections, nodeIds);
 
     // Evaluate in order
     final values = <String, double>{};
     final expressions = <String, String>{};
 
     for (final node in sorted) {
-      final result = _evaluateNode(node, connections, values, expressions);
+      final result = _evaluateNode(
+        node,
+        validConnections,
+        nodeIds,
+        values,
+        expressions,
+      );
       results[node.id] = result;
 
       if (result.hasValue) {
@@ -62,6 +77,7 @@ class MathEvaluator {
   static EvalResult _evaluateNode(
     MathNodeData node,
     List<Connection> connections,
+    Set<String> nodeIds,
     Map<String, double> values,
     Map<String, String> expressions,
   ) {
@@ -74,6 +90,7 @@ class MathEvaluator {
           node.id,
           operator,
           connections,
+          nodeIds,
           values,
           expressions,
         );
@@ -83,12 +100,19 @@ class MathEvaluator {
           node.id,
           function,
           connections,
+          nodeIds,
           values,
           expressions,
         );
 
       case ResultData():
-        return _evaluateResult(node.id, connections, values, expressions);
+        return _evaluateResult(
+          node.id,
+          connections,
+          nodeIds,
+          values,
+          expressions,
+        );
     }
   }
 
@@ -96,6 +120,7 @@ class MathEvaluator {
     String nodeId,
     MathOperator operator,
     List<Connection> connections,
+    Set<String> nodeIds,
     Map<String, double> values,
     Map<String, String> expressions,
   ) {
@@ -104,33 +129,58 @@ class MathEvaluator {
     final portBId = '$nodeId-input-b';
 
     final inputA = connections
-        .where((c) => c.targetNodeId == nodeId && c.targetPortId == portAId)
+        .where(
+          (c) =>
+              c.targetNodeId == nodeId &&
+              c.targetPortId == portAId &&
+              nodeIds.contains(c.sourceNodeId),
+        )
         .firstOrNull;
     final inputB = connections
-        .where((c) => c.targetNodeId == nodeId && c.targetPortId == portBId)
+        .where(
+          (c) =>
+              c.targetNodeId == nodeId &&
+              c.targetPortId == portBId &&
+              nodeIds.contains(c.sourceNodeId),
+        )
         .firstOrNull;
 
-    // Handle missing inputs gracefully - use 0 for disconnected inputs
-    double aValue = 0.0;
-    double bValue = 0.0;
-    String aExpr = '0';
-    String bExpr = '0';
+    // Check if source nodes exist and have values
+    final hasA =
+        inputA != null &&
+        nodeIds.contains(inputA.sourceNodeId) &&
+        values.containsKey(inputA.sourceNodeId);
+    final hasB =
+        inputB != null &&
+        nodeIds.contains(inputB.sourceNodeId) &&
+        values.containsKey(inputB.sourceNodeId);
 
-    if (inputA != null) {
-      final aSourceValue = values[inputA.sourceNodeId];
-      if (aSourceValue != null) {
-        aValue = aSourceValue;
-        aExpr = expressions[inputA.sourceNodeId] ?? _formatNumber(aValue);
-      }
+    // If only first operand connected, pass through expression, result is 0
+    if (hasA && !hasB) {
+      final aExpr =
+          expressions[inputA!.sourceNodeId] ??
+          _formatNumber(values[inputA.sourceNodeId]!);
+      return EvalResult.success(0.0, expression: aExpr);
     }
 
-    if (inputB != null) {
-      final bSourceValue = values[inputB.sourceNodeId];
-      if (bSourceValue != null) {
-        bValue = bSourceValue;
-        bExpr = expressions[inputB.sourceNodeId] ?? _formatNumber(bValue);
-      }
+    // If only second operand connected, pass through expression, result is 0
+    if (!hasA && hasB) {
+      final bExpr =
+          expressions[inputB!.sourceNodeId] ??
+          _formatNumber(values[inputB.sourceNodeId]!);
+      return EvalResult.success(0.0, expression: bExpr);
     }
+
+    // If neither operand connected, show "?"
+    if (!hasA && !hasB) {
+      return EvalResult.success(0.0, expression: '?');
+    }
+
+    // Both operands present - normal evaluation
+    final aValue = values[inputA!.sourceNodeId]!;
+    final bValue = values[inputB!.sourceNodeId]!;
+    final aExpr = expressions[inputA.sourceNodeId] ?? _formatNumber(aValue);
+    final bExpr = expressions[inputB.sourceNodeId] ?? _formatNumber(bValue);
 
     final result = operator.apply(aValue, bValue);
 
@@ -150,15 +200,18 @@ class MathEvaluator {
     String nodeId,
     MathFunction function,
     List<Connection> connections,
+    Set<String> nodeIds,
     Map<String, double> values,
     Map<String, String> expressions,
   ) {
     final input = connections
-        .where((c) => c.targetNodeId == nodeId)
+        .where(
+          (c) => c.targetNodeId == nodeId && nodeIds.contains(c.sourceNodeId),
+        )
         .firstOrNull;
 
-    // Handle missing input gracefully - return neutral state
-    if (input == null) {
+    // Handle missing input or invalid source node
+    if (input == null || !nodeIds.contains(input.sourceNodeId)) {
       return EvalResult.success(0.0, expression: '${function.symbol}(0)');
     }
 
@@ -185,21 +238,24 @@ class MathEvaluator {
   static EvalResult _evaluateResult(
     String nodeId,
     List<Connection> connections,
+    Set<String> nodeIds,
     Map<String, double> values,
     Map<String, String> expressions,
   ) {
     final input = connections
-        .where((c) => c.targetNodeId == nodeId)
+        .where(
+          (c) => c.targetNodeId == nodeId && nodeIds.contains(c.sourceNodeId),
+        )
         .firstOrNull;
 
-    // Handle missing input gracefully - show placeholder
-    if (input == null) {
-      return EvalResult.success(0.0, expression: '—');
+    // Handle missing input or invalid source node - show question mark
+    if (input == null || !nodeIds.contains(input.sourceNodeId)) {
+      return EvalResult.success(0.0, expression: '?');
     }
 
     final inputValue = values[input.sourceNodeId];
     if (inputValue == null) {
-      return EvalResult.success(0.0, expression: '—');
+      return EvalResult.success(0.0, expression: '?');
     }
 
     final inputExpr =
@@ -219,17 +275,21 @@ class MathEvaluator {
   static bool _hasCycle(
     List<MathNodeData> nodes,
     List<Connection> connections,
+    Set<String> nodeIds,
   ) {
     final visiting = <String>{};
     final visited = <String>{};
 
     bool dfs(String nodeId) {
+      if (!nodeIds.contains(nodeId)) return false;
       if (visiting.contains(nodeId)) return true;
       if (visited.contains(nodeId)) return false;
 
       visiting.add(nodeId);
 
-      for (final conn in connections.where((c) => c.sourceNodeId == nodeId)) {
+      for (final conn in connections.where(
+        (c) => c.sourceNodeId == nodeId && nodeIds.contains(c.targetNodeId),
+      )) {
         if (dfs(conn.targetNodeId)) return true;
       }
 
@@ -248,6 +308,7 @@ class MathEvaluator {
   static List<MathNodeData> _topologicalSort(
     List<MathNodeData> nodes,
     List<Connection> connections,
+    Set<String> nodeIds,
   ) {
     final nodeMap = {for (final n in nodes) n.id: n};
     final inDegree = <String, int>{};
@@ -259,10 +320,10 @@ class MathEvaluator {
       adjacency[node.id] = [];
     }
 
-    // Build graph
+    // Build graph using only valid connections
     for (final conn in connections) {
-      if (nodeMap.containsKey(conn.sourceNodeId) &&
-          nodeMap.containsKey(conn.targetNodeId)) {
+      if (nodeIds.contains(conn.sourceNodeId) &&
+          nodeIds.contains(conn.targetNodeId)) {
         adjacency[conn.sourceNodeId]!.add(conn.targetNodeId);
         inDegree[conn.targetNodeId] = (inDegree[conn.targetNodeId] ?? 0) + 1;
       }
@@ -282,6 +343,7 @@ class MathEvaluator {
       if (node != null) result.add(node);
 
       for (final neighbor in adjacency[nodeId] ?? []) {
+        if (!nodeIds.contains(neighbor)) continue;
         inDegree[neighbor] = (inDegree[neighbor] ?? 1) - 1;
         if (inDegree[neighbor] == 0) {
           queue.add(neighbor);

@@ -41,7 +41,13 @@ abstract final class MathNodeSizes {
   static const number = Size(140, 48);
   static const operator = Size(200, 60);
   static const function = Size(90, 56);
-  static const result = Size(120, 120);
+  static const result = Size(100, 90);
+
+  // Result node size constraints
+  static const resultMinWidth = 80.0;
+  static const resultMaxWidth = 300.0;
+  static const resultHeight = 90.0;
+  static const resultPadding = 24.0; // Horizontal padding for expression text
 
   static Size forType(String nodeType) => switch (nodeType) {
     MathNodeTypes.number => number,
@@ -71,6 +77,11 @@ class MathTheme {
         endpointColor: const Color(0xFFBDBDBD),
         endpointBorderColor: Colors.white,
         endpointBorderWidth: 1,
+        animationEffect: FlowingDashEffect(
+          dashLength: 3,
+          gapLength: 6,
+          speed: 5,
+        ),
       ),
       // Temporary connection with animation
       temporaryConnectionTheme: base.temporaryConnectionTheme.copyWith(
@@ -80,7 +91,11 @@ class MathTheme {
         dashPattern: const [6, 4],
         startPoint: ConnectionEndPoint.none,
         endPoint: ConnectionEndPoint.triangle,
-        animationEffect: ConnectionEffects.flowingDash, // Enable animation
+        animationEffect: FlowingDashEffect(
+          dashLength: 3,
+          gapLength: 6,
+          speed: 5,
+        ), // Enable animation
       ),
       portTheme: base.portTheme.copyWith(
         color: MathColors.portOperator,

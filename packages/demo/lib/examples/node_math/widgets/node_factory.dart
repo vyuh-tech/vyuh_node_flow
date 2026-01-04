@@ -17,8 +17,9 @@ class MathNodeFactory {
   static Widget buildContent(
     Node<MathNodeData> node,
     EvalResult? result,
-    void Function(MathNodeData) onUpdate,
-  ) {
+    void Function(MathNodeData) onUpdate, {
+    void Function(String nodeId, Size newSize)? onNodeSizeChanged,
+  }) {
     final data = node.data;
 
     return switch (data) {
@@ -32,13 +33,21 @@ class MathNodeFactory {
         onOperatorChanged: (op) => onUpdate(data.copyWith(operator: op)),
       ),
       FunctionData() => FunctionNodeContent(data: data, result: result),
-      ResultData() => ResultNodeContent(data: data, result: result),
+      ResultData() => ResultNodeContent(
+        data: data,
+        result: result,
+        onSizeChanged: onNodeSizeChanged != null
+            ? (size) => onNodeSizeChanged(data.id, size)
+            : null,
+      ),
     };
   }
 
   /// Create a vyuh Node from MathNodeData.
   static Node<MathNodeData> createNode(MathNodeData data, Offset position) {
     final size = MathNodeSizes.forType(data.type);
+    final portColor = MathColors.portColorFor(data.type);
+    final baseTheme = MathTheme.nodeFlowTheme.nodeTheme;
 
     return Node<MathNodeData>(
       id: data.id,
@@ -48,6 +57,7 @@ class MathNodeFactory {
       data: data,
       inputPorts: _createInputPorts(data, size),
       outputPorts: _createOutputPorts(data, size),
+      theme: baseTheme.copyWith(selectedBorderColor: portColor),
     );
   }
 

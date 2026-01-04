@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../shared/ui_widgets.dart';
 import 'state.dart';
+import 'theme.dart';
 import 'widgets/math_canvas.dart';
 import 'widgets/math_toolbox.dart';
 
@@ -23,6 +25,13 @@ class NodeMathExample extends StatefulWidget {
 
 class _NodeMathExampleState extends State<NodeMathExample> {
   final _state = MathState();
+  late NodeFlowTheme _theme;
+
+  @override
+  void initState() {
+    super.initState();
+    _theme = MathTheme.nodeFlowTheme;
+  }
 
   @override
   void dispose() {
@@ -34,14 +43,21 @@ class _NodeMathExampleState extends State<NodeMathExample> {
     _state.clearAll();
   }
 
+  void _updateTheme(NodeFlowTheme newTheme) {
+    setState(() {
+      _theme = newTheme;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return ResponsiveControlPanel(
       onReset: _handleReset,
-      child: MathCanvas(state: _state),
+      child: MathCanvas(state: _state, theme: _theme),
       children: [
         MathToolbox(state: _state),
         const Spacer(),
+        ConnectionStyleSelector(theme: _theme, onThemeChanged: _updateTheme),
         const SectionTitle('Instructions'),
         const SectionContent(
           child: InfoCard(
