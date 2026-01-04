@@ -381,4 +381,4 @@ class WorkflowStep {
 
 - [NodeFlowEditor](/docs/components/node-flow-editor) - Full-featured editor
 - [NodeFlowBehavior](/docs/components/node-flow-editor#behavior-modes) - Behavior mode details
-- [Configuration](/docs/core-concepts/configuration) - NodeFlowConfig options
+- [Configuration](/docs/concepts/configuration) - NodeFlowConfig options

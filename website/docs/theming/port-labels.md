@@ -604,6 +604,6 @@ Port labels improve accessibility by:
 
 ## See Also
 
-- [Ports](/docs/core-concepts/ports) - Understanding port concepts
+- [Ports](/docs/concepts/ports) - Understanding port concepts
 - [Port Shapes](/docs/theming/port-shapes) - Customizing port appearance
 - [Theming Overview](/docs/theming/overview) - Complete theming guide

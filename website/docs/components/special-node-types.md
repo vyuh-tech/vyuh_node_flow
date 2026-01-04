@@ -85,4 +85,4 @@ See **[Special Node Types (Advanced)](/docs/advanced/special-node-types)**.
 
 - [Level of Detail](/docs/advanced/lod) - Zoom-based visibility control
 - [Theming Overview](/docs/theming/overview) - Customize node appearance
-- [Controller](/docs/core-concepts/controller) - Node management API
+- [Controller](/docs/concepts/controller) - Node management API

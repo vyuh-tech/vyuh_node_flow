@@ -595,5 +595,5 @@ Reference for built-in actions you can customize or extend:
 ## See Also
 
 - [Keyboard Shortcuts](/docs/advanced/keyboard-shortcuts) - User guide to shortcuts
-- [Controller](/docs/core-concepts/controller) - Controller API
+- [Controller](/docs/concepts/controller) - Controller API
 - [Examples](/docs/examples/) - See custom actions in practice

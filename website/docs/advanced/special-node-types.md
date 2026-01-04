@@ -418,4 +418,4 @@ controller.loadGraph(loadedGraph);
 
 - [Level of Detail](/docs/advanced/lod) - Visibility control at different zoom levels
 - [Theming Overview](/docs/theming/overview) - Customize node appearance
-- [Controller](/docs/core-concepts/controller) - Full controller API
+- [Controller](/docs/concepts/controller) - Full controller API

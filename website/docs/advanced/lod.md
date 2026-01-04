@@ -343,7 +343,7 @@ Widget buildDebugOverlay(NodeFlowController controller) {
 }
 ```
 
-## API Reference
+## API
 
 ### LodExtension Constructor
 
@@ -381,6 +381,6 @@ Widget buildDebugOverlay(NodeFlowController controller) {
 
 ## See Also
 
-- [Configuration](/docs/core-concepts/configuration) - General configuration options
+- [Configuration](/docs/concepts/configuration) - General configuration options
 - [Theming Overview](/docs/theming/overview) - Visual customization
 - [Port Labels](/docs/theming/port-labels) - How LOD affects port labels

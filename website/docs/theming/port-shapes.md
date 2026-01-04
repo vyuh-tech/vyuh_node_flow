@@ -423,6 +423,6 @@ All port shapes support the same interaction features:
 
 ## See Also
 
-- [Ports](/docs/core-concepts/ports) - Understanding port concepts
+- [Ports](/docs/concepts/ports) - Understanding port concepts
 - [Theming Overview](/docs/theming/overview) - Complete theming guide
 - [Port Theme](/docs/theming/overview#port-theme) - Port styling options

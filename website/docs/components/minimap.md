@@ -333,4 +333,4 @@ class MinimapWithBadge extends StatelessWidget {
 ## See Also
 
 - [NodeFlowEditor](/docs/components/node-flow-editor) - Main editor component
-- [Controller](/docs/core-concepts/controller) - Managing viewport and navigation
+- [Controller](/docs/concepts/controller) - Managing viewport and navigation

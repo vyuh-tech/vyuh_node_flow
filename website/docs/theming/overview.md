@@ -335,6 +335,6 @@ class _MyEditorState extends State<MyEditor> {
 
 ## Next Steps
 
-- [Node Theme](/docs/theming/node-theme) - Detailed node theming
-- [Connection Theme](/docs/theming/connection-theme) - Connection customization
+- [Node Shapes](/docs/theming/node-shapes) - Custom node shapes
+- [Connection Styles](/docs/theming/connection-styles) - Connection path customization
 - [Examples](/docs/examples/) - See themes in action

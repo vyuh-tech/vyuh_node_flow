@@ -489,6 +489,6 @@ class StarShape extends NodeShape {
 
 ## See Also
 
-- [Nodes](/docs/core-concepts/nodes) - Node concepts and properties
+- [Nodes](/docs/concepts/nodes) - Node concepts and properties
 - [Port Shapes](/docs/theming/port-shapes) - Customize port appearance
 - [Theming Overview](/docs/theming/overview) - Complete theming guide

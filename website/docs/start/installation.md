@@ -124,7 +124,7 @@ The `vyuh_node_flow` package exports everything you need:
 | `NodeFlowEvents` | Event callbacks for nodes, ports, connections, viewport, and annotations |
 
 ::: tip Extensions
-Additional features like **minimap**, **autopan**, **debug overlays**, **level-of-detail (LOD)**, and **statistics** are managed via **Extensions**. Most extensions take direct parameters (e.g., `MinimapExtension`, `DebugExtension`, `LodExtension`), while `AutoPanExtension` accepts an `AutoPanConfig` object. See the [Configuration](/docs/core-concepts/configuration) guide for details.
+Additional features like **minimap**, **autopan**, **debug overlays**, **level-of-detail (LOD)**, and **statistics** are managed via **Extensions**. Most extensions take direct parameters (e.g., `MinimapExtension`, `DebugExtension`, `LodExtension`), while `AutoPanExtension` accepts an `AutoPanConfig` object. See the [Configuration](/docs/concepts/configuration) guide for details.
 :::
 
 ### Core Data Models
@@ -168,5 +168,5 @@ Themes for extensions like `MinimapTheme` and `DebugTheme` are configured via th
 
 ## Next Steps
 
-  - **[Quick Start](/docs/getting-started/quick-start)** - Build your first flow editor
-  - **[Architecture](/docs/core-concepts/architecture)** - Understand the core concepts
+  - **[Quick Start](/docs/start/quick-start)** - Build your first flow editor
+  - **[Architecture](/docs/concepts/architecture)** - Understand the core concepts

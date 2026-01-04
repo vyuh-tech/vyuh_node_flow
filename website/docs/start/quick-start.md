@@ -346,7 +346,7 @@ NodeFlowEditor<String, dynamic>(
 
 ## Next Steps
 
-  - **[Core Concepts](/docs/core-concepts/architecture)** - Understand nodes, ports, and connections
+  - **[Core Concepts](/docs/concepts/architecture)** - Understand nodes, ports, and connections
   - **[Theming](/docs/theming/overview)** - Customize every visual aspect
   - **[Connection Styles](/docs/theming/connection-styles)** - Bezier, step, straight, and more
   - **[Serialization](/docs/advanced/serialization)** - Save and load your flows

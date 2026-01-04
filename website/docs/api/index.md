@@ -1,18 +1,18 @@
 ---
-title: API Reference
+title: API
 description: Complete API documentation for Vyuh Node Flow
 ---
 
-# API Reference
+# API
 
 Complete reference documentation for all classes, methods, and properties in Vyuh Node Flow.
 
 ## Core Classes
 
-  - **[NodeFlowController](/docs/api-reference/controller)** - Central controller for managing the graph state
-  - **[Node](/docs/api-reference/node)** - Individual nodes in the graph with data and ports
-  - **[Port](/docs/api-reference/port)** - Connection points on nodes
-  - **[Connection](/docs/api-reference/connection)** - Links between node ports
+  - **[NodeFlowController](/docs/api/controller)** - Central controller for managing the graph state
+  - **[Node](/docs/api/node)** - Individual nodes in the graph with data and ports
+  - **[Port](/docs/api/port)** - Connection points on nodes
+  - **[Connection](/docs/api/connection)** - Links between node ports
 
 ## Widgets
 
@@ -21,11 +21,11 @@ Complete reference documentation for all classes, methods, and properties in Vyu
 
 ## Events
 
-  - **[NodeFlowEvents](/docs/api-reference/events)** - Event handling for all interactions
+  - **[NodeFlowEvents](/docs/api/events)** - Event handling for all interactions
 
 ## Theming
 
-  - **[NodeFlowTheme](/docs/api-reference/theme)** - Complete theme configuration
+  - **[NodeFlowTheme](/docs/api/theme)** - Complete theme configuration
 
 ## Quick Reference
 

@@ -287,7 +287,7 @@ hexagon with ports. :::
 
 ## Next Steps
 
-- Learn about [Nodes](/docs/core-concepts/nodes)
-- Explore [Ports](/docs/core-concepts/ports)
-- Understand [Connections](/docs/core-concepts/connections)
-- Deep dive into the [Controller](/docs/core-concepts/controller)
+- Learn about [Nodes](/docs/concepts/nodes)
+- Explore [Ports](/docs/concepts/ports)
+- Understand [Connections](/docs/concepts/connections)
+- Deep dive into the [Controller](/docs/concepts/controller)

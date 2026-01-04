@@ -654,6 +654,6 @@ class PortFactory {
 
 ## Next Steps
 
-- Learn about [Connections](/docs/core-concepts/connections)
-- Explore [Connection Validation](/docs/advanced/validation)
-- See [Port Examples](/docs/examples/custom-ports)
+- Learn about [Connections](/docs/concepts/connections)
+- Explore [Events & Validation](/docs/advanced/events)
+- See [Examples](/docs/examples/)

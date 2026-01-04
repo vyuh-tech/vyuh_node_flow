@@ -20,7 +20,7 @@ data pipelines with ease.
 
 <p align="center">
   <a href="https://flow.demo.vyuh.tech"><strong>Try the Live Demo</strong></a> ·
-  <a href="https://flow.vyuh.tech/docs/getting-started/installation"><strong>Get Started</strong></a>
+  <a href="https://flow.vyuh.tech/docs/start/installation"><strong>Get Started</strong></a>
 </p>
 
 ---
@@ -34,14 +34,15 @@ data pipelines with ease.
 ## Features
 
 - **High Performance** — Optimized rendering for smooth 60fps interactions
-- **Fully Customizable** — Comprehensive theming for nodes, connections, ports,
-  and backgrounds
-- **Connection Effects** — Flowing dashes, particles, gradients, and pulse
-  animations
-- **Type-Safe** — Generic support for strongly-typed node data
-- **Extensions** — Modular architecture with minimap, debug overlays, and
-  statistics
-- **Serialization** — Save and load flows from JSON
+- **Viewport Controls** — Pan, zoom, fit-to-view with animated transitions
+- **Smart Connections** — Bezier, smoothstep, step paths with validation rules
+- **Connection Effects** — Particles, flowing dashes, gradients, pulse & rainbow
+- **Comprehensive Theming** — Nodes, ports, connections, grid backgrounds & more
+- **Keyboard Shortcuts** — 20+ built-in actions, fully customizable
+- **Multi-Select** — Marquee selection, copy/paste, and bulk operations
+- **Minimap & LOD** — Bird's-eye navigation and zoom-based detail levels
+- **Special Nodes** — Groups for organization, comments for annotations
+- **Serialization** — Save and load flows from JSON with type-safe generics
 
 ## Showcase
 
@@ -282,15 +283,15 @@ For comprehensive guides and API reference, visit the documentation:
 
 | Topic                                                                              | Description                                  |
 | ---------------------------------------------------------------------------------- | -------------------------------------------- |
-| [Installation](https://flow.vyuh.tech/docs/getting-started/installation)           | Setup and requirements                       |
-| [Core Concepts](https://flow.vyuh.tech/docs/core-concepts/architecture)            | Nodes, ports, connections, and controller    |
-| [Theming](https://flow.vyuh.tech/docs/theming/overview)                            | Complete visual customization                |
-| [Connection Effects](https://flow.vyuh.tech/docs/theming/connection-effects)       | Particles, flowing dashes, gradients & more  |
-| [Events](https://flow.vyuh.tech/docs/advanced/events)                              | Interaction callbacks and validation         |
-| [Serialization](https://flow.vyuh.tech/docs/advanced/serialization)                | Save and load flows                          |
-| [Special Nodes](https://flow.vyuh.tech/docs/components/special-node-types)         | Comments, groups, and annotations            |
-| [API Reference](https://flow.vyuh.tech/docs/api-reference)                         | Complete API documentation                   |
-| [Examples](https://flow.vyuh.tech/docs/examples)                                   | Working code examples                        |
+| [Installation](https://flow.vyuh.tech/docs/start/installation)              | Setup and requirements                       |
+| [Core Concepts](https://flow.vyuh.tech/docs/concepts/architecture)           | Nodes, ports, connections, and controller    |
+| [Theming](https://flow.vyuh.tech/docs/theming/overview)                      | Complete visual customization                |
+| [Connection Effects](https://flow.vyuh.tech/docs/theming/connection-effects) | Particles, flowing dashes, gradients & more  |
+| [Events](https://flow.vyuh.tech/docs/advanced/events)                        | Interaction callbacks and validation         |
+| [Serialization](https://flow.vyuh.tech/docs/advanced/serialization)          | Save and load flows                          |
+| [Special Nodes](https://flow.vyuh.tech/docs/components/special-node-types)   | Comments, groups, and annotations            |
+| [API](https://flow.vyuh.tech/docs/api)                                       | Complete API documentation                   |
+| [Examples](https://flow.vyuh.tech/docs/examples)                             | Working code examples                        |
 
 ---
 

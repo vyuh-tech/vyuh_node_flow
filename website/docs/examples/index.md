@@ -173,6 +173,6 @@ All examples are available in the repository:
 
 ## Next Steps
 
-  - **[API Reference](/docs/core-concepts/controller)** - Detailed controller and widget documentation
+  - **[API](/docs/concepts/controller)** - Detailed controller and widget documentation
   - **[Theming Guide](/docs/theming/overview)** - Customize every visual aspect
   - **[GitHub Discussions](https://github.com/vyuh-tech/vyuh_node_flow/discussions)** - Ask questions and share ideas

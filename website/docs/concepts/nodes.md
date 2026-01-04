@@ -64,7 +64,7 @@ A node consists of the following visual elements:
 
 **Interaction Elements:**
 - **Resize Handles** - Appear on resizable nodes (GroupNode, CommentNode)
-- **Ports** - Connection points on node edges (see [Ports](/docs/core-concepts/ports))
+- **Ports** - Connection points on node edges (see [Ports](/docs/concepts/ports))
 
 **State Indicators:**
 - **Hover State** - Visual feedback using `NodeTheme.highlightBackgroundColor`
@@ -686,6 +686,6 @@ controller.setNodePorts('node-1', inputPorts: [...], outputPorts: [...]);
 
 ## Next Steps
 
-- Learn about [Ports](/docs/core-concepts/ports)
-- Explore [Connections](/docs/core-concepts/connections)
-- See [Node Examples](/docs/examples/custom-nodes)
+- Learn about [Ports](/docs/concepts/ports)
+- Explore [Connections](/docs/concepts/connections)
+- See [Examples](/docs/examples/)
