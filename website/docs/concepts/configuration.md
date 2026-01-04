@@ -411,5 +411,5 @@ class _ConfigurableEditorState extends State<ConfigurableEditor> {
 ## See Also
 
 - [NodeFlowEditor](/docs/components/node-flow-editor) - Main editor widget
-- [Minimap](/docs/components/minimap) - Minimap component
+- [Minimap](/docs/extensions/minimap) - Minimap component
 - [Theming](/docs/theming/overview) - Visual customization

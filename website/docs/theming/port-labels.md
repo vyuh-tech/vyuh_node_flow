@@ -192,7 +192,7 @@ NodeFlowController(
 )
 ```
 
-See [Level of Detail](/docs/advanced/lod) for complete LOD configuration options.
+See [Level of Detail](/docs/extensions/lod) for complete LOD configuration options.
 
 ## Complete Example
 

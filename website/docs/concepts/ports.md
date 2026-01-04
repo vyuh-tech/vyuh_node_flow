@@ -594,7 +594,7 @@ theme: NodeFlowTheme(
 )
 ```
 
-Note: Port label visibility at different zoom levels is controlled by the LOD (Level of Detail) system via `LodExtension`. See [Level of Detail](/docs/advanced/lod) for details.
+Note: Port label visibility at different zoom levels is controlled by the LOD (Level of Detail) system via `LodExtension`. See [Level of Detail](/docs/extensions/lod) for details.
 
 ## Best Practices
 

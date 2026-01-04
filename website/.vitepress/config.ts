@@ -178,6 +178,7 @@ export default defineConfig({
                         {text: 'Nodes', link: '/docs/concepts/nodes'},
                         {text: 'Ports', link: '/docs/concepts/ports'},
                         {text: 'Connections', link: '/docs/concepts/connections'},
+                        {text: 'Extensions', link: '/docs/concepts/extensions'},
                     ],
                 },
                 {
@@ -201,7 +202,16 @@ export default defineConfig({
                             text: 'Special Node Types',
                             link: '/docs/components/special-node-types',
                         },
-                        {text: 'Minimap', link: '/docs/components/minimap'},
+                    ],
+                },
+                {
+                    text: 'Extensions',
+                    items: [
+                        {text: 'Minimap', link: '/docs/extensions/minimap'},
+                        {text: 'AutoPan', link: '/docs/extensions/autopan'},
+                        {text: 'Level of Detail (LOD)', link: '/docs/extensions/lod'},
+                        {text: 'Debug', link: '/docs/extensions/debug'},
+                        {text: 'Stats', link: '/docs/extensions/stats'},
                     ],
                 },
                 {
@@ -233,7 +243,10 @@ export default defineConfig({
                             text: 'Special Node Types',
                             link: '/docs/advanced/special-node-types',
                         },
-                        {text: 'Level of Detail (LOD)', link: '/docs/advanced/lod'},
+                        {
+                            text: 'Viewport Animations',
+                            link: '/docs/advanced/viewport-animations',
+                        },
                         {text: 'Events', link: '/docs/advanced/events'},
                         {text: 'Serialization', link: '/docs/advanced/serialization'},
                         {

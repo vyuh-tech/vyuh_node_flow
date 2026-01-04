@@ -17,7 +17,7 @@ Complete reference documentation for all classes, methods, and properties in Vyu
 ## Widgets
 
   - **[NodeFlowEditor](/docs/components/node-flow-editor)** - Main editor widget for interactive graphs
-  - **[Minimap](/docs/components/minimap)** - Navigation overview widget
+  - **[Minimap](/docs/extensions/minimap)** - Navigation overview widget
 
 ## Events
 

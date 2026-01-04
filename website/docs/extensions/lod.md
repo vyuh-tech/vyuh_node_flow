@@ -15,13 +15,7 @@ The Level of Detail (LOD) system automatically adjusts which visual elements are
 
 LOD uses **normalized zoom** (0.0 to 1.0) based on your min/max zoom configuration:
 
-```
-normalizedZoom:  0.0 ─────── 3% ─────── 10% ─────── 1.0
-                  │          │           │           │
-                minZoom  minThreshold  midThreshold  maxZoom
-                  │          │           │           │
-Visibility:    [  minimal  ][  standard  ][   full   ]
-```
+<img src="/images/diagrams/lod-thresholds.svg" alt="LOD Thresholds" style="max-width: 520px; display: block; margin: 1rem 0;" />
 
 | Zoom Range        | Visibility Preset | Elements Visible                                      |
 | ----------------- | ----------------- | ----------------------------------------------------- |
