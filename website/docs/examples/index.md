@@ -42,7 +42,7 @@ Explore sophisticated capabilities for production applications.
 
   - **Alignment & Distribution** - Align and distribute nodes with precision tools.
 
-  - **Annotation System** - Sticky notes, groups, and markers for documentation.
+  - **Special Node Types** - Comment nodes and group nodes for documentation and organization.
 
   - **Animated Connections** - Flowing dashes, particles, gradients, and pulse effects.
 

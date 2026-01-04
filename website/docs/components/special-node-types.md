@@ -5,14 +5,10 @@ description: GroupNode and CommentNode for organizing your node flows
 
 # Special Node Types
 
-::: warning Deprecation Notice
-This page has been moved. The annotation system has been replaced with special node types that integrate directly with the node system.
-:::
+Vyuh Node Flow provides **special node types** for organization and documentation:
 
-Vyuh Node Flow uses **special node types** instead of a separate annotation system:
-
-- **`CommentNode<T>`** - Free-floating sticky notes (replaces "sticky annotations")
-- **`GroupNode<T>`** - Visual containers for grouping nodes (replaces "group annotations")
+- **`CommentNode<T>`** - Free-floating sticky notes for documentation
+- **`GroupNode<T>`** - Visual containers for grouping related nodes
 
 Both are added via the standard `controller.addNode()` API and support all node features including selection, visibility, and serialization.
 
