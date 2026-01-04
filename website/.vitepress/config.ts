@@ -136,7 +136,6 @@ export default defineConfig({
 
         nav: [
             {text: 'Docs', link: '/docs/start/installation'},
-            {text: 'Examples', link: '/docs/examples/'},
             {component: 'NavProBadge'},
             {
                 text: 'Links',
