@@ -1,3 +1,7 @@
+## 0.23.0
+
+ - **FEAT**: remove AutoPanConfig and LODConfig, introduce AutoPanExtension for improved flexibility and updated tests.
+
 ## 0.22.3
 
  - **FEAT**: update documentation links for consistent structure and improved navigation.
