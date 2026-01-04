@@ -887,6 +887,8 @@ class _ResponsiveControlPanelState extends State<ResponsiveControlPanel> {
     final headerIcon = widget.headerIcon ?? example?.icon;
 
     if (isMobile) {
+      // On mobile, the app bar already shows the example info,
+      // so we don't show the header in the control panel drawer
       return Scaffold(
         key: _scaffoldKey,
         body: widget.child,
@@ -896,9 +898,6 @@ class _ResponsiveControlPanelState extends State<ResponsiveControlPanel> {
             child: ControlPanel(
               width: widget.width,
               footer: _buildFooter(),
-              headerTitle: headerTitle,
-              headerSubtitle: headerSubtitle,
-              headerIcon: headerIcon,
               children: widget.children,
             ),
           ),
@@ -908,6 +907,9 @@ class _ResponsiveControlPanelState extends State<ResponsiveControlPanel> {
             _scaffoldKey.currentState?.openEndDrawer();
           },
           tooltip: 'Controls',
+          backgroundColor: context.surfaceElevatedColor,
+          foregroundColor: context.textPrimaryColor,
+          elevation: 2,
           child: const Icon(Icons.tune, size: 20),
         ),
       );

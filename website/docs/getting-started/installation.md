@@ -124,7 +124,7 @@ The `vyuh_node_flow` package exports everything you need:
 | `NodeFlowEvents` | Event callbacks for nodes, ports, connections, viewport, and annotations |
 
 ::: tip Extensions
-Additional features like **minimap**, **autopan**, **debug overlays**, **level-of-detail (LOD)**, and **statistics** are managed via **Extensions**. Each extension has its own configuration class (e.g., `AutoPanConfig`, `MinimapConfig`, `DebugConfig`). See the [Minimap](/docs/components/minimap) component for an example.
+Additional features like **minimap**, **autopan**, **debug overlays**, **level-of-detail (LOD)**, and **statistics** are managed via **Extensions**. Most extensions take direct parameters (e.g., `MinimapExtension`, `DebugExtension`, `LodExtension`), while `AutoPanExtension` accepts an `AutoPanConfig` object. See the [Configuration](/docs/core-concepts/configuration) guide for details.
 :::
 
 ### Core Data Models

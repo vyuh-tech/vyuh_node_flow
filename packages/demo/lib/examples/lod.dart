@@ -23,12 +23,7 @@ class _LODExampleState extends State<LODExample> {
     _controller = NodeFlowController<Map<String, dynamic>, dynamic>(
       config: NodeFlowConfig(
         extensions: [
-          LodExtension(
-            config: LODConfig(
-              minThreshold: _minThreshold,
-              midThreshold: _midThreshold,
-            ),
-          ),
+          LodExtension(),
           AutoPanExtension(),
           DebugExtension(),
           MinimapExtension(),

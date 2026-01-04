@@ -10,59 +10,6 @@ import '../node_flow_extension.dart';
 // Re-export MinimapPosition for convenience
 export 'minimap_theme.dart' show MinimapPosition;
 
-/// Configuration for the minimap extension.
-///
-/// Use this to set initial state when creating the extension:
-/// ```dart
-/// MinimapExtension(config: MinimapConfig(
-///   visible: false,
-///   position: MinimapPosition.topLeft,
-///   margin: 16.0,
-/// ));
-/// ```
-class MinimapConfig {
-  /// Creates a minimap configuration.
-  const MinimapConfig({
-    this.visible = false,
-    this.interactive = true,
-    this.position = MinimapPosition.bottomRight,
-    this.size = const Size(200, 150),
-    this.margin = 20.0,
-    this.autoHighlightSelection = true,
-  });
-
-  /// Initial visibility of the minimap.
-  final bool visible;
-
-  /// Whether the minimap can be interacted with (panning, clicking).
-  final bool interactive;
-
-  /// Initial position/corner of the minimap.
-  final MinimapPosition position;
-
-  /// Initial size of the minimap in pixels.
-  ///
-  /// Can be updated at runtime via [MinimapExtension.setSize].
-  final Size size;
-
-  /// Margin from the edge of the editor to the minimap.
-  ///
-  /// Applied to both axes based on [position].
-  final double margin;
-
-  /// Whether to automatically highlight selected nodes in the minimap.
-  final bool autoHighlightSelection;
-
-  /// Default configuration with minimap visible in bottom-right.
-  static const defaultConfig = MinimapConfig();
-
-  /// Configuration with minimap hidden by default.
-  static const hidden = MinimapConfig(visible: false);
-
-  /// Configuration with minimap visible but non-interactive.
-  static const readOnly = MinimapConfig(interactive: false);
-}
-
 /// Minimap extension for managing minimap state and behavior.
 ///
 /// This extension provides reactive state for minimap visibility, position,
@@ -70,54 +17,57 @@ class MinimapConfig {
 ///
 /// ## Usage
 /// ```dart
-/// // Toggle visibility
-/// controller.minimap.toggle();
+/// // Create with visibility enabled
+/// MinimapExtension(visible: true);
 ///
-/// // Highlight nodes (e.g., search results)
-/// controller.minimap.highlightNodes({'node-1', 'node-3'});
-///
-/// // Change position
-/// controller.minimap.setPosition(MinimapPosition.topRight);
-///
-/// // Configure with custom theme
+/// // Configure position and theme
 /// MinimapExtension(
-///   config: MinimapConfig(position: MinimapPosition.topLeft),
-///   theme: MinimapTheme.dark.copyWith(nodeColor: Colors.red),
+///   visible: true,
+///   position: MinimapPosition.topLeft,
+///   theme: MinimapTheme.dark,
 /// );
 ///
-/// // In widget - reactive to extension state
-/// Observer(builder: (_) {
-///   if (!controller.minimap.isVisible) return const SizedBox.shrink();
-///   return NodeFlowMinimap(controller: controller, theme: controller.minimap.theme);
-/// });
+/// // Toggle visibility at runtime
+/// controller.minimap?.toggle();
+///
+/// // Highlight nodes (e.g., search results)
+/// controller.minimap?.highlightNodes({'node-1', 'node-3'});
 /// ```
-class MinimapExtension extends NodeFlowExtension<MinimapConfig> {
-  /// Creates a minimap extension with optional configuration and theme.
+class MinimapExtension extends NodeFlowExtension {
+  /// Creates a minimap extension.
+  ///
+  /// Parameters:
+  /// - [visible]: Whether the minimap is shown initially (default: false)
+  /// - [interactive]: Whether the minimap responds to clicks/drags (default: true)
+  /// - [position]: Corner position of the minimap (default: bottomRight)
+  /// - [size]: Size of the minimap in pixels (default: 200x150)
+  /// - [margin]: Distance from the edge (default: 20.0)
+  /// - [autoHighlightSelection]: Auto-highlight selected nodes (default: true)
+  /// - [theme]: Visual theme for the minimap (default: MinimapTheme.light)
   MinimapExtension({
-    MinimapConfig config = const MinimapConfig(),
+    bool visible = false,
+    bool interactive = true,
+    MinimapPosition position = MinimapPosition.bottomRight,
+    Size size = const Size(200, 150),
+    this.margin = 20.0,
+    bool autoHighlightSelection = true,
     MinimapTheme theme = MinimapTheme.light,
-  }) : _config = config,
-       _theme = theme,
-       _size = Observable(config.size),
-       _isVisible = Observable(config.visible),
-       _isInteractive = Observable(config.interactive),
-       _position = Observable(config.position),
-       _autoHighlightSelection = Observable(config.autoHighlightSelection);
+  }) : _theme = theme,
+       _size = Observable(size),
+       _isVisible = Observable(visible),
+       _isInteractive = Observable(interactive),
+       _position = Observable(position),
+       _autoHighlightSelection = Observable(autoHighlightSelection);
 
-  final MinimapConfig _config;
   final MinimapTheme _theme;
-
-  @override
-  MinimapConfig get config => _config;
 
   /// The visual theme for the minimap.
   ///
   /// This theme controls colors, sizes, and visual appearance of the minimap.
-  /// Position and margin are configured via [config], not the theme.
   MinimapTheme get theme => _theme;
 
   /// Margin from the edge of the editor to the minimap.
-  double get margin => _config.margin;
+  final double margin;
 
   NodeFlowController? _controller;
 
@@ -327,15 +277,11 @@ extension MinimapExtensionAccess<T> on NodeFlowController<T, dynamic> {
   /// access minimap features.
   ///
   /// ```dart
-  /// // Configure via NodeFlowConfig
-  /// final flowConfig = NodeFlowConfig(
-  ///   extensions: [
-  ///     MinimapExtension(config: MinimapConfig(visible: false)),
-  ///   ],
-  /// );
+  /// // Add extension
+  /// controller.addExtension(MinimapExtension(visible: true));
   ///
   /// // Safe access - returns null if not configured
-  /// controller.minimap?.isVisible; // false, or null if not configured
+  /// controller.minimap?.toggle();
   /// ```
   MinimapExtension? get minimap => resolveExtension<MinimapExtension>();
 }

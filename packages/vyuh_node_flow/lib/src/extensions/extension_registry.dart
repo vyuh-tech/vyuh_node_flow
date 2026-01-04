@@ -11,8 +11,8 @@ import 'node_flow_extension.dart';
 ///
 /// ```dart
 /// final registry = ExtensionRegistry([
-///   MinimapExtension(config: MinimapConfig(visible: false)),
-///   LodExtension(config: LODConfig.disabled),
+///   MinimapExtension(visible: true),
+///   LodExtension(),
 ///   StatsExtension(),
 /// ]);
 ///
@@ -21,8 +21,7 @@ import 'node_flow_extension.dart';
 /// ```
 class ExtensionRegistry {
   /// Creates a registry with the given extensions.
-  ExtensionRegistry([List<NodeFlowExtension<dynamic>>? extensions])
-    : _extensions = {} {
+  ExtensionRegistry([List<NodeFlowExtension>? extensions]) : _extensions = {} {
     if (extensions != null) {
       for (final ext in extensions) {
         _extensions[ext.id] = ext;
@@ -30,7 +29,7 @@ class ExtensionRegistry {
     }
   }
 
-  final Map<String, NodeFlowExtension<dynamic>> _extensions;
+  final Map<String, NodeFlowExtension> _extensions;
 
   /// Observable to trigger reactivity when extensions are added/removed.
   final Observable<int> _version = Observable(0);
@@ -38,13 +37,13 @@ class ExtensionRegistry {
   /// Registers an extension.
   ///
   /// If an extension with the same ID exists, it is replaced.
-  void register(NodeFlowExtension<dynamic> extension) {
+  void register(NodeFlowExtension extension) {
     _extensions[extension.id] = extension;
     runInAction(() => _version.value++);
   }
 
   /// Gets an extension by type.
-  E? get<E extends NodeFlowExtension<dynamic>>() {
+  E? get<E extends NodeFlowExtension>() {
     for (final ext in _extensions.values) {
       if (ext is E) return ext;
     }
@@ -52,7 +51,7 @@ class ExtensionRegistry {
   }
 
   /// Gets an extension by its ID.
-  NodeFlowExtension<dynamic>? getById(String id) => _extensions[id];
+  NodeFlowExtension? getById(String id) => _extensions[id];
 
   /// Checks if an extension is registered for the given ID.
   bool has(String id) => _extensions.containsKey(id);
@@ -61,7 +60,7 @@ class ExtensionRegistry {
   Iterable<String> get ids => _extensions.keys;
 
   /// Gets all extension instances.
-  Iterable<NodeFlowExtension<dynamic>> get all => _extensions.values;
+  Iterable<NodeFlowExtension> get all => _extensions.values;
 
   /// Removes an extension by ID.
   void remove(String id) {

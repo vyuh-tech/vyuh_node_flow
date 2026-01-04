@@ -24,8 +24,8 @@ export '../../editor/auto_pan/auto_pan_config.dart';
 /// );
 ///
 /// // Access via controller
-/// controller.autoPan.isEnabled; // true
-/// controller.autoPan.config;    // AutoPanConfig.fast
+/// controller.autoPan.isEnabled;     // true
+/// controller.autoPan.currentConfig; // AutoPanConfig.fast
 ///
 /// // Disable at runtime
 /// controller.autoPan.disable();
@@ -33,7 +33,7 @@ export '../../editor/auto_pan/auto_pan_config.dart';
 /// // Change config at runtime
 /// controller.autoPan.setConfig(AutoPanConfig.precise);
 /// ```
-class AutoPanExtension extends NodeFlowExtension<AutoPanConfig?> {
+class AutoPanExtension extends NodeFlowExtension {
   /// Creates an autopan extension.
   ///
   /// Pass `null` to disable autopan, or an [AutoPanConfig] to enable it.
@@ -44,9 +44,6 @@ class AutoPanExtension extends NodeFlowExtension<AutoPanConfig?> {
 
   @override
   String get id => 'auto-pan';
-
-  @override
-  AutoPanConfig? get config => _config.value;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // State

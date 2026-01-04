@@ -167,10 +167,13 @@ The LOD system uses three visibility presets based on normalized zoom level:
 NodeFlowEditor(
   controller: NodeFlowController(
     config: NodeFlowConfig(
-      lodConfig: const LODConfig(
-        minThreshold: 0.25,  // Below this: minimal visibility
-        midThreshold: 0.60,  // Above this: full visibility (labels shown)
-      ),
+      extensions: [
+        LodExtension(
+          minThreshold: 0.25,  // Below this: minimal visibility
+          midThreshold: 0.60,  // Above this: full visibility (labels shown)
+        ),
+        ...NodeFlowConfig.defaultExtensions().where((e) => e is! LodExtension),
+      ],
     ),
   ),
 )
@@ -181,7 +184,10 @@ NodeFlowEditor(
 ```dart
 NodeFlowController(
   config: NodeFlowConfig(
-    lodConfig: LODConfig.disabled, // Always show full detail
+    extensions: [
+      LodExtension(enabled: false), // Always show full detail
+      ...NodeFlowConfig.defaultExtensions().where((e) => e is! LodExtension),
+    ],
   ),
 )
 ```
@@ -557,7 +563,7 @@ controller.updateNode(
 | `labelTextStyle` | `TextStyle?` | `null`  | Text style for labels (size, color, weight, etc.) |
 | `labelOffset`    | `double`     | `4.0`   | Distance from port center in logical pixels       |
 
-> **Note**: Port label visibility at different zoom levels is controlled by the LOD system via `LODConfig` in `NodeFlowConfig`, not by the theme.
+> **Note**: Port label visibility at different zoom levels is controlled by the LOD system via `LodExtension`, not by the theme.
 
 ### Port Properties
 

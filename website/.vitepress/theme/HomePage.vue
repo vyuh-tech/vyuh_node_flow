@@ -24,7 +24,8 @@ import WordFlipper from './components/WordFlipper.vue';
 const demoUrl = computed(() => {
   const path = '#/hero/image?embed=true';
   return import.meta.env.DEV
-    ? `http://localhost:8080/${path}`
+    ? `https://flow.demo.vyuh.tech/${path}`
+    // ? `http://localhost:8080/${path}`
     : `https://flow.demo.vyuh.tech/${path}`;
 });
 

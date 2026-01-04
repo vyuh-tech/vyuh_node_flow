@@ -24,11 +24,9 @@ final controller = NodeFlowController<MyData, dynamic>(
   config: NodeFlowConfig(
     extensions: [
       MinimapExtension(
-        config: MinimapConfig(
-          visible: true,
-          position: MinimapPosition.bottomRight,
-          margin: 20.0,
-        ),
+        visible: true,
+        position: MinimapPosition.bottomRight,
+        margin: 20.0,
         theme: MinimapTheme.light,
       ),
     ],
@@ -43,19 +41,17 @@ NodeFlowEditor<MyData, dynamic>(
 )
 ```
 
-## MinimapConfig
+## Configuration
 
-Configure minimap behavior via `MinimapConfig`:
+Configure minimap behavior directly via constructor parameters:
 
 ```dart
 MinimapExtension(
-  config: MinimapConfig(
-    visible: true,                           // Initial visibility
-    interactive: true,                       // Allow click/drag navigation
-    position: MinimapPosition.bottomRight,   // Corner position
-    margin: 20.0,                            // Margin from edge
-    autoHighlightSelection: true,            // Highlight selected nodes
-  ),
+  visible: true,                           // Initial visibility
+  interactive: true,                       // Allow click/drag navigation
+  position: MinimapPosition.bottomRight,   // Corner position
+  margin: 20.0,                            // Margin from edge
+  autoHighlightSelection: true,            // Highlight selected nodes
 )
 ```
 
@@ -74,7 +70,7 @@ Customize the minimap appearance via `MinimapTheme`:
 
 ```dart
 MinimapExtension(
-  config: MinimapConfig(visible: true),
+  visible: true,
   theme: MinimapTheme(
     size: Size(200, 150),              // Minimap dimensions
     backgroundColor: Color(0xFFF5F5F5),

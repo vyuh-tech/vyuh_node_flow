@@ -9,9 +9,9 @@ import 'lod_config.dart';
 /// Level of Detail (LOD) extension that provides reactive visibility
 /// settings based on the viewport zoom level.
 ///
-/// This extension extends [NodeFlowExtension] with [LODConfig] and manages
-/// its own config via an internal Observable. It computes visibility settings
-/// using MobX [Computed] values that react to zoom and config changes.
+/// This extension manages LOD state via internal Observables and computes
+/// visibility settings using MobX [Computed] values that react to zoom and
+/// threshold changes.
 ///
 /// ## Usage
 ///
@@ -29,17 +29,48 @@ import 'lod_config.dart';
 ///
 /// ## Configuration
 ///
-/// Update LOD thresholds at runtime:
+/// Configure via constructor parameters:
 ///
 /// ```dart
-/// controller.lod.updateConfig(LODConfig.disabled); // Always show full detail
+/// LodExtension(
+///   minThreshold: 0.2,
+///   midThreshold: 0.5,
+/// )
 /// ```
-class LodExtension extends NodeFlowExtension<LODConfig> {
-  /// Creates a LOD extension with optional initial configuration.
+///
+/// Disable LOD at runtime:
+///
+/// ```dart
+/// controller.lod.disable(); // Always show full detail
+/// ```
+class LodExtension extends NodeFlowExtension {
+  /// Creates a LOD extension with optional threshold and visibility settings.
   ///
-  /// Defaults to [LODConfig.standard] if no config is provided.
-  LodExtension({LODConfig config = LODConfig.defaultConfig})
-    : _config = Observable(config);
+  /// Parameters:
+  /// - [enabled]: Whether LOD is enabled (default: false)
+  /// - [minThreshold]: Normalized zoom below which [minVisibility] is used (default: 0.03)
+  /// - [midThreshold]: Normalized zoom below which [midVisibility] is used (default: 0.1)
+  /// - [minVisibility]: Visibility settings for lowest zoom level (default: minimal)
+  /// - [midVisibility]: Visibility settings for medium zoom level (default: standard)
+  /// - [maxVisibility]: Visibility settings for highest zoom level (default: full)
+  LodExtension({
+    bool enabled = false,
+    double minThreshold = 0.03,
+    double midThreshold = 0.1,
+    DetailVisibility minVisibility = DetailVisibility.minimal,
+    DetailVisibility midVisibility = DetailVisibility.standard,
+    DetailVisibility maxVisibility = DetailVisibility.full,
+  }) : _config = Observable(
+         enabled
+             ? LODConfig(
+                 minThreshold: minThreshold,
+                 midThreshold: midThreshold,
+                 minVisibility: minVisibility,
+                 midVisibility: midVisibility,
+                 maxVisibility: maxVisibility,
+               )
+             : LODConfig.disabled,
+       );
 
   /// The internal observable holding the LOD configuration.
   final Observable<LODConfig> _config;
@@ -51,9 +82,6 @@ class LodExtension extends NodeFlowExtension<LODConfig> {
 
   @override
   String get id => 'lod';
-
-  @override
-  LODConfig get config => _config.value;
 
   @override
   void attach(NodeFlowController controller) {
@@ -205,7 +233,10 @@ extension LodExtensionAccess<T> on NodeFlowController<T, dynamic> {
   /// // Configure via NodeFlowConfig
   /// final flowConfig = NodeFlowConfig(
   ///   extensions: [
-  ///     LodExtension(config: LODConfig.disabled),
+  ///     LodExtension(
+  ///       minThreshold: 0.2,
+  ///       midThreshold: 0.5,
+  ///     ),
   ///   ],
   /// );
   ///

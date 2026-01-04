@@ -264,13 +264,14 @@ void main() {
 
   group('LodExtension - Current Visibility', () {
     test('returns visibility based on normalized zoom and thresholds', () {
-      const lodConfig = LODConfig(minThreshold: 0.25, midThreshold: 0.60);
-
-      NodeFlowConfig configWithLod(LODConfig lod) => NodeFlowConfig(
+      NodeFlowConfig configWithLod({
+        double minThreshold = 0.25,
+        double midThreshold = 0.60,
+      }) => NodeFlowConfig(
         minZoom: 0.0,
         maxZoom: 1.0,
         extensions: [
-          LodExtension(config: lod),
+          LodExtension(minThreshold: minThreshold, midThreshold: midThreshold),
           ...NodeFlowConfig.defaultExtensions().where(
             (e) => e is! LodExtension,
           ),
@@ -279,7 +280,7 @@ void main() {
 
       // Below minThreshold (zoom 0.1 = normalized 0.1)
       final controllerMin = NodeFlowController<String, dynamic>(
-        config: configWithLod(lodConfig),
+        config: configWithLod(),
         initialViewport: const GraphViewport(zoom: 0.1),
       );
       expect(
@@ -290,7 +291,7 @@ void main() {
 
       // Between thresholds (zoom 0.4 = normalized 0.4)
       final controllerMid = NodeFlowController<String, dynamic>(
-        config: configWithLod(lodConfig),
+        config: configWithLod(),
         initialViewport: const GraphViewport(zoom: 0.4),
       );
       expect(
@@ -301,7 +302,7 @@ void main() {
 
       // Above midThreshold (zoom 0.8 = normalized 0.8)
       final controllerMax = NodeFlowController<String, dynamic>(
-        config: configWithLod(lodConfig),
+        config: configWithLod(),
         initialViewport: const GraphViewport(zoom: 0.8),
       );
       expect(controllerMax.lod!.currentVisibility, same(DetailVisibility.full));
@@ -320,9 +321,7 @@ void main() {
           minZoom: 0.0,
           maxZoom: 1.0,
           extensions: [
-            LodExtension(
-              config: const LODConfig(minThreshold: 0.25, midThreshold: 0.60),
-            ),
+            LodExtension(minThreshold: 0.25, midThreshold: 0.60),
             ...NodeFlowConfig.defaultExtensions().where(
               (e) => e is! LodExtension,
             ),
@@ -360,9 +359,7 @@ void main() {
           minZoom: 0.0,
           maxZoom: 1.0,
           extensions: [
-            LodExtension(
-              config: const LODConfig(minThreshold: 0.25, midThreshold: 0.60),
-            ),
+            LodExtension(minThreshold: 0.25, midThreshold: 0.60),
             ...NodeFlowConfig.defaultExtensions().where(
               (e) => e is! LodExtension,
             ),
@@ -398,9 +395,7 @@ void main() {
           minZoom: 0.0,
           maxZoom: 1.0,
           extensions: [
-            LodExtension(
-              config: const LODConfig(minThreshold: 0.25, midThreshold: 0.60),
-            ),
+            LodExtension(minThreshold: 0.25, midThreshold: 0.60),
             ...NodeFlowConfig.defaultExtensions().where(
               (e) => e is! LodExtension,
             ),

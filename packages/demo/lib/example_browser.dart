@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'design_kit/theme.dart';
 import 'example_detail_view.dart';
 import 'example_model.dart';
 import 'example_navigation.dart';
@@ -93,14 +94,28 @@ class _ExampleBrowserState extends State<ExampleBrowser> {
 
   PreferredSizeWidget _buildCompactAppBar() {
     final theme = Theme.of(context);
+    final isDark = context.isDark;
 
     return AppBar(
       title: _selectedExample != null
           ? Row(
               children: [
                 if (_selectedExample!.icon != null) ...[
-                  Icon(_selectedExample!.icon, size: 20),
-                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: DemoTheme.accent.withValues(
+                        alpha: isDark ? 0.2 : 0.12,
+                      ),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Icon(
+                      _selectedExample!.icon,
+                      size: 16,
+                      color: isDark ? DemoTheme.accentLight : DemoTheme.accent,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                 ],
                 Expanded(
                   child: Column(
@@ -119,9 +134,7 @@ class _ExampleBrowserState extends State<ExampleBrowser> {
                         Text(
                           _selectedExample!.description,
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.7,
-                            ),
+                            color: context.textSecondaryColor,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -138,11 +151,11 @@ class _ExampleBrowserState extends State<ExampleBrowser> {
           _scaffoldKey.currentState?.openDrawer();
         },
       ),
-      backgroundColor: theme.colorScheme.surfaceContainerHigh,
+      backgroundColor: context.surfaceElevatedColor,
       elevation: 0,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
-        child: Divider(height: 1, color: theme.colorScheme.outlineVariant),
+        child: Divider(height: 1, color: context.borderColor),
       ),
     );
   }

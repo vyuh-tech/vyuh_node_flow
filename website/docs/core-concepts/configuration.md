@@ -62,8 +62,8 @@ final controller = NodeFlowController<MyData, dynamic>(
     snapToGrid: true,
     gridSize: 20.0,
     extensions: [
-      MinimapExtension(config: MinimapConfig(visible: true)),
-      AutoPanExtension(config: AutoPanConfig.normal),
+      MinimapExtension(visible: true),
+      AutoPanExtension(),
     ],
   ),
 );
@@ -320,27 +320,15 @@ class _ConfigurableEditorState extends State<ConfigurableEditor> {
 
         // Extensions for additional features
         extensions: [
-          // Minimap with custom config
+          // Minimap with custom settings
           MinimapExtension(
-            config: MinimapConfig(
-              visible: true,
-              interactive: true,
-              position: MinimapPosition.bottomRight,
-            ),
+            visible: true,
+            interactive: true,
+            position: MinimapPosition.bottomRight,
           ),
 
-          // Autopan with custom settings
-          AutoPanExtension(
-            config: AutoPanConfig(
-              edgePadding: EdgeInsets.symmetric(
-                horizontal: 50.0,
-                vertical: 40.0,
-              ),
-              panAmount: 12.0,
-              useProximityScaling: true,
-              speedCurve: Curves.easeIn,
-            ),
-          ),
+          // Autopan enabled
+          AutoPanExtension(),
 
           // Debug visualization (disabled by default)
           DebugExtension(mode: DebugMode.none),

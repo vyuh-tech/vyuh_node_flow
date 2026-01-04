@@ -33,25 +33,25 @@ Visibility:    [  minimal  ][  standard  ][   full   ]
 
 ### Default Behavior
 
-LOD is included as a default extension with LOD disabled (always full detail):
+LOD is included as a default extension but is **disabled by default** (always shows full detail):
 
 ```dart
 NodeFlowController(
   config: NodeFlowConfig(
-    // Default extensions include LodExtension(config: LODConfig.disabled)
+    // Default extensions include LodExtension() which is disabled
   ),
 )
 ```
 
-### Enable LOD with Default Thresholds
+### Enable LOD
 
-Enable LOD with standard thresholds:
+Enable LOD to auto-hide details when zoomed out:
 
 ```dart
 NodeFlowController(
   config: NodeFlowConfig(
     extensions: [
-      LodExtension(config: LODConfig.defaultConfig),
+      LodExtension(enabled: true),
       // ... other extensions
     ],
   ),
@@ -67,10 +67,8 @@ NodeFlowController(
   config: NodeFlowConfig(
     extensions: [
       LodExtension(
-        config: const LODConfig(
-          minThreshold: 0.2,   // Minimal below 20%
-          midThreshold: 0.5,   // Standard 20-50%, Full above 50%
-        ),
+        minThreshold: 0.2,   // Minimal below 20%
+        midThreshold: 0.5,   // Standard 20-50%, Full above 50%
       ),
       // ... other extensions
     ],
@@ -151,13 +149,11 @@ NodeFlowController(
   config: NodeFlowConfig(
     extensions: [
       LodExtension(
-        config: LODConfig(
-          minThreshold: 0.25,
-          midThreshold: 0.60,
-          minVisibility: DetailVisibility.minimal,
-          midVisibility: connectionsOnly, // Custom preset
-          maxVisibility: DetailVisibility.full,
-        ),
+        minThreshold: 0.25,
+        midThreshold: 0.60,
+        minVisibility: DetailVisibility.minimal,
+        midVisibility: connectionsOnly, // Custom preset
+        maxVisibility: DetailVisibility.full,
       ),
       // ... other extensions
     ],
@@ -349,29 +345,16 @@ Widget buildDebugOverlay(NodeFlowController controller) {
 
 ## API Reference
 
-### LODConfig
+### LodExtension Constructor
 
-| Property        | Type               | Default                   | Description                          |
+| Parameter       | Type               | Default                   | Description                          |
 | --------------- | ------------------ | ------------------------- | ------------------------------------ |
+| `enabled`       | `bool`             | `false`                   | Whether LOD is enabled               |
 | `minThreshold`  | `double`           | `0.03`                    | Normalized zoom for minimal detail   |
 | `midThreshold`  | `double`           | `0.10`                    | Normalized zoom for standard detail  |
 | `minVisibility` | `DetailVisibility` | `DetailVisibility.minimal`| Visibility below minThreshold        |
 | `midVisibility` | `DetailVisibility` | `DetailVisibility.standard`| Visibility between thresholds       |
 | `maxVisibility` | `DetailVisibility` | `DetailVisibility.full`   | Visibility above midThreshold        |
-
-### LODConfig Methods
-
-| Method                        | Description                                  |
-| ----------------------------- | -------------------------------------------- |
-| `getVisibilityForZoom(zoom)`  | Returns visibility for a normalized zoom    |
-| `copyWith(...)`               | Creates a copy with overridden properties   |
-
-### LODConfig Static Properties
-
-| Property  | Description                                    |
-| --------- | ---------------------------------------------- |
-| `defaultConfig` | Default LOD configuration                |
-| `disabled`      | LOD disabled (always full visibility)    |
 
 ### LodExtension (accessed via controller.lod)
 
