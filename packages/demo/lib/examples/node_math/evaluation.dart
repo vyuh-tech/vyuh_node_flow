@@ -99,19 +99,37 @@ class MathEvaluator {
     Map<String, double> values,
     Map<String, String> expressions,
   ) {
-    // Get inputs sorted by port ID for consistent ordering
-    final inputs = connections.where((c) => c.targetNodeId == nodeId).toList()
-      ..sort((a, b) => a.targetPortId.compareTo(b.targetPortId));
+    // Find connections to specific input ports (A and B)
+    final portAId = '$nodeId-input-a';
+    final portBId = '$nodeId-input-b';
 
-    if (inputs.length < 2) {
-      return EvalResult.error('Need 2 inputs');
+    final inputA = connections
+        .where((c) => c.targetNodeId == nodeId && c.targetPortId == portAId)
+        .firstOrNull;
+    final inputB = connections
+        .where((c) => c.targetNodeId == nodeId && c.targetPortId == portBId)
+        .firstOrNull;
+
+    // Handle missing inputs gracefully - use 0 for disconnected inputs
+    double aValue = 0.0;
+    double bValue = 0.0;
+    String aExpr = '0';
+    String bExpr = '0';
+
+    if (inputA != null) {
+      final aSourceValue = values[inputA.sourceNodeId];
+      if (aSourceValue != null) {
+        aValue = aSourceValue;
+        aExpr = expressions[inputA.sourceNodeId] ?? _formatNumber(aValue);
+      }
     }
 
-    final aValue = values[inputs[0].sourceNodeId];
-    final bValue = values[inputs[1].sourceNodeId];
-
-    if (aValue == null || bValue == null) {
-      return EvalResult.error('Missing input');
+    if (inputB != null) {
+      final bSourceValue = values[inputB.sourceNodeId];
+      if (bSourceValue != null) {
+        bValue = bSourceValue;
+        bExpr = expressions[inputB.sourceNodeId] ?? _formatNumber(bValue);
+      }
     }
 
     final result = operator.apply(aValue, bValue);
@@ -121,9 +139,6 @@ class MathEvaluator {
         operator == MathOperator.divide ? 'Division by zero' : 'Invalid result',
       );
     }
-
-    final aExpr = expressions[inputs[0].sourceNodeId] ?? _formatNumber(aValue);
-    final bExpr = expressions[inputs[1].sourceNodeId] ?? _formatNumber(bValue);
 
     return EvalResult.success(
       result,
@@ -142,13 +157,14 @@ class MathEvaluator {
         .where((c) => c.targetNodeId == nodeId)
         .firstOrNull;
 
+    // Handle missing input gracefully - return neutral state
     if (input == null) {
-      return EvalResult.error('No input');
+      return EvalResult.success(0.0, expression: '${function.symbol}(0)');
     }
 
     final inputValue = values[input.sourceNodeId];
     if (inputValue == null) {
-      return EvalResult.error('Missing input');
+      return EvalResult.success(0.0, expression: '${function.symbol}(0)');
     }
 
     final result = function.apply(inputValue);
@@ -176,13 +192,14 @@ class MathEvaluator {
         .where((c) => c.targetNodeId == nodeId)
         .firstOrNull;
 
+    // Handle missing input gracefully - show placeholder
     if (input == null) {
-      return EvalResult.error('No input');
+      return EvalResult.success(0.0, expression: '—');
     }
 
     final inputValue = values[input.sourceNodeId];
     if (inputValue == null) {
-      return EvalResult.error('Missing input');
+      return EvalResult.success(0.0, expression: '—');
     }
 
     final inputExpr =

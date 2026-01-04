@@ -8,6 +8,13 @@ abstract final class MathNodeTypes {
   static const result = 'result';
 }
 
+/// Configuration for port connection limits.
+abstract final class MathPortConfig {
+  /// Maximum connections allowed per input port.
+  /// Set to 1 to ensure each input port can only have one connection.
+  static const int maxInputConnections = 1;
+}
+
 /// Arithmetic operators.
 enum MathOperator {
   add('+'),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
+import '../constants.dart';
 import '../evaluation.dart';
 import '../models.dart';
 import '../theme.dart';
@@ -78,6 +79,7 @@ class MathNodeFactory {
           // Centered on left edge, 1/3 from top
           offset: Offset(-3, size.height * 0.30),
           theme: portTheme,
+          maxConnections: MathPortConfig.maxInputConnections,
         ),
         Port(
           id: '${data.id}-input-b',
@@ -87,6 +89,7 @@ class MathNodeFactory {
           // Centered on left edge, 2/3 from top
           offset: Offset(-3, size.height * 0.70),
           theme: portTheme,
+          maxConnections: MathPortConfig.maxInputConnections,
         ),
       ],
       FunctionData() => [
@@ -97,6 +100,7 @@ class MathNodeFactory {
           position: PortPosition.left,
           offset: Offset(-3, size.height / 2),
           theme: portTheme,
+          maxConnections: MathPortConfig.maxInputConnections,
         ),
       ],
       ResultData() => [
@@ -107,6 +111,7 @@ class MathNodeFactory {
           position: PortPosition.left,
           offset: Offset(-3, size.height / 2),
           theme: _portThemeFor(MathColors.portResult),
+          maxConnections: MathPortConfig.maxInputConnections,
         ),
       ],
     };
