@@ -39,7 +39,7 @@ NodeFlowConfig({
 | `showAttribution` | `bool` | `true` | Whether to show the attribution label |
 | `extensions` | `List<NodeFlowExtension>?` | default extensions | Extensions for minimap, autopan, debug, etc. |
 
-::: details 🖼️ Snap-to-Grid Behavior
+::: details Snap-to-Grid Behavior
 Split-screen animation: left side shows free-form node dragging (smooth movement), right side shows snap-to-grid enabled (nodes jump to grid intersections). Visual grid overlay shows the 20px grid cells.
 :::
 
@@ -47,7 +47,7 @@ Split-screen animation: left side shows free-form node dragging (smooth movement
 
 If no extensions are provided, the following defaults are used:
 
-- `AutoPanExtension` - autopan near viewport edges (normal mode)
+- `AutoPanExtension` - autopan near viewport edges (enabled by default)
 - `DebugExtension` - debug overlays (disabled by default)
 - `LodExtension` - level of detail (disabled by default)
 - `MinimapExtension` - minimap overlay
@@ -105,30 +105,31 @@ controller.config.toggleAnnotationSnapping();
 
 ```dart [Extension Access]
 // Access extensions via controller
-controller.minimap.toggle();
-controller.minimap.setPosition(MinimapPosition.topRight);
+controller.minimap?.toggle();
+controller.minimap?.setPosition(MinimapPosition.topRight);
 
-controller.autoPan.disable();
-controller.autoPan.setConfig(AutoPanConfig.fast);
+controller.autoPan?.disable();
+controller.autoPan?.useFast();
 
-controller.debug.toggle();
-controller.debug.setMode(DebugMode.spatialIndex);
+controller.debug?.toggle();
+controller.debug?.setMode(DebugMode.spatialIndex);
 ```
 
 :::
 
 ## AutoPanExtension
 
-The `AutoPanExtension` manages automatic viewport panning when dragging elements near the edges of the viewport. Configure it via `AutoPanConfig`.
+The `AutoPanExtension` manages automatic viewport panning when dragging elements near the edges of the viewport.
 
 ### How Autopan Works
 
 When you drag an element near the edge of the viewport, the canvas automatically pans to reveal more space. This allows seamless dragging across large canvases without manually panning.
 
-### AutoPanConfig Constructor
+### AutoPanExtension Constructor
 
 ```dart
-const AutoPanConfig({
+AutoPanExtension({
+  bool enabled = true,
   EdgeInsets edgePadding = const EdgeInsets.all(50.0),
   double panAmount = 10.0,
   Duration panInterval = const Duration(milliseconds: 16),
@@ -141,6 +142,7 @@ const AutoPanConfig({
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
+| `enabled` | `bool` | `true` | Whether autopan is enabled |
 | `edgePadding` | `EdgeInsets` | `EdgeInsets.all(50.0)` | Distance from viewport edges where autopan activates |
 | `panAmount` | `double` | `10.0` | Base pan amount per tick in graph units |
 | `panInterval` | `Duration` | `16ms` | Time between pan ticks (~60fps) |
@@ -149,41 +151,38 @@ const AutoPanConfig({
 
 ### Preset Configurations
 
-AutoPanConfig provides three preset configurations for common use cases:
+AutoPanExtension provides three preset methods for common use cases:
 
 ::: code-group
 
 ```dart [Normal]
 // Balanced settings for most use cases (default)
-AutoPanConfig.normal
-// Equivalent to:
-AutoPanConfig(
-  edgePadding: EdgeInsets.all(50.0),
-  panAmount: 10.0,
-  panInterval: Duration(milliseconds: 16),
-)
+final extension = AutoPanExtension();
+extension.useNormal();
+// Sets:
+//   edgePadding: EdgeInsets.all(50.0)
+//   panAmount: 10.0
+//   panInterval: Duration(milliseconds: 16)
 ```
 
 ```dart [Fast]
 // Faster panning for large canvases
-AutoPanConfig.fast
-// Equivalent to:
-AutoPanConfig(
-  edgePadding: EdgeInsets.all(60.0),
-  panAmount: 20.0,
-  panInterval: Duration(milliseconds: 12),
-)
+final extension = AutoPanExtension();
+extension.useFast();
+// Sets:
+//   edgePadding: EdgeInsets.all(60.0)
+//   panAmount: 20.0
+//   panInterval: Duration(milliseconds: 12)
 ```
 
 ```dart [Precise]
 // Slower, more controlled panning
-AutoPanConfig.precise
-// Equivalent to:
-AutoPanConfig(
-  edgePadding: EdgeInsets.all(30.0),
-  panAmount: 5.0,
-  panInterval: Duration(milliseconds: 20),
-)
+final extension = AutoPanExtension();
+extension.usePrecise();
+// Sets:
+//   edgePadding: EdgeInsets.all(30.0)
+//   panAmount: 5.0
+//   panInterval: Duration(milliseconds: 20)
 ```
 
 :::
@@ -191,7 +190,7 @@ AutoPanConfig(
 You can specify different padding for each edge:
 
 ```dart
-AutoPanConfig(
+AutoPanExtension(
   edgePadding: EdgeInsets.only(
     left: 50.0,
     right: 50.0,
@@ -207,7 +206,7 @@ AutoPanConfig(
 Enable proximity scaling for gradual speed increase as the pointer approaches the edge:
 
 ```dart
-AutoPanConfig(
+AutoPanExtension(
   edgePadding: EdgeInsets.all(50.0),
   panAmount: 15.0,
   useProximityScaling: true,
@@ -223,27 +222,52 @@ Available curves:
 ::: code-group
 
 ```dart [Disabling Autopan]
-// Option 1: Pass null config to extension
+// Option 1: Disable in constructor
 NodeFlowConfig(
   extensions: [
-    AutoPanExtension(config: null),  // Disabled
+    AutoPanExtension(enabled: false),
   ],
 )
 
 // Option 2: Disable at runtime via extension
-controller.autoPan.disable();
+controller.autoPan?.disable();
 ```
 
 ```dart [Checking Autopan State]
 // Access via controller extension
-if (controller.autoPan.isEnabled) {
+if (controller.autoPan?.isEnabled ?? false) {
   // Autopan is active
 }
 
-final config = controller.autoPan.currentConfig;
+// Access current settings
+final panAmount = controller.autoPan?.panAmount;
+final edgePadding = controller.autoPan?.edgePadding;
 ```
 
 :::
+
+### Runtime Configuration
+
+Change autopan settings at runtime:
+
+```dart
+// Switch to a preset
+controller.autoPan?.useNormal();
+controller.autoPan?.useFast();
+controller.autoPan?.usePrecise();
+
+// Update individual properties
+controller.autoPan?.setEdgePadding(EdgeInsets.all(60.0));
+controller.autoPan?.setPanAmount(15.0);
+controller.autoPan?.setPanInterval(Duration(milliseconds: 20));
+controller.autoPan?.setUseProximityScaling(true);
+controller.autoPan?.setSpeedCurve(Curves.easeIn);
+
+// Enable/disable
+controller.autoPan?.enable();
+controller.autoPan?.disable();
+controller.autoPan?.toggle();
+```
 
 ## DebugExtension
 
@@ -276,13 +300,13 @@ Toggle at runtime via extension:
 
 ```dart
 // Toggle between none and all
-controller.debug.toggle();
+controller.debug?.toggle();
 
 // Set specific mode
-controller.debug.setMode(DebugMode.spatialIndex);
+controller.debug?.setMode(DebugMode.spatialIndex);
 
 // Cycle through all modes
-controller.debug.cycle();
+controller.debug?.cycle();
 ```
 
 ::: info
@@ -327,7 +351,7 @@ class _ConfigurableEditorState extends State<ConfigurableEditor> {
             position: MinimapPosition.bottomRight,
           ),
 
-          // Autopan enabled
+          // Autopan enabled with default settings
           AutoPanExtension(),
 
           // Debug visualization (disabled by default)
@@ -351,13 +375,13 @@ class _ConfigurableEditorState extends State<ConfigurableEditor> {
                 child: Text('Snap to Grid'),
               ),
               ToggleButton(
-                isSelected: controller.minimap.isVisible,
-                onPressed: controller.minimap.toggle,
+                isSelected: controller.minimap?.isVisible ?? false,
+                onPressed: () => controller.minimap?.toggle(),
                 child: Text('Minimap'),
               ),
               ToggleButton(
-                isSelected: controller.debug.isEnabled,
-                onPressed: controller.debug.toggle,
+                isSelected: controller.debug?.isEnabled ?? false,
+                onPressed: () => controller.debug?.toggle(),
                 child: Text('Debug'),
               ),
             ],

@@ -5,7 +5,7 @@ description: Zoom-based visibility for improved performance and reduced clutter
 
 # Level of Detail (LOD)
 
-::: details 🖼️ LOD in Action
+::: details LOD in Action
 Animation showing the same node flow at three zoom levels: At 20% zoom (minimal) - nodes appear as simple colored rectangles, connections hidden. At 40% zoom (standard) - node content visible, connections shown without labels. At 80% zoom (full) - all details visible including ports, labels, and resize handles.
 :::
 
@@ -67,6 +67,7 @@ NodeFlowController(
   config: NodeFlowConfig(
     extensions: [
       LodExtension(
+        enabled: true,
         minThreshold: 0.2,   // Minimal below 20%
         midThreshold: 0.5,   // Standard 20-50%, Full above 50%
       ),
@@ -144,11 +145,12 @@ const connectionsOnly = DetailVisibility(
   showResizeHandles: false,
 );
 
-// Use in LOD config via extension
+// Use in LodExtension
 NodeFlowController(
   config: NodeFlowConfig(
     extensions: [
       LodExtension(
+        enabled: true,
         minThreshold: 0.25,
         midThreshold: 0.60,
         minVisibility: DetailVisibility.minimal,
@@ -179,17 +181,17 @@ The LOD state is reactive and can be accessed through the controller's `lod` ext
 
 ```dart
 // Get current normalized zoom (0.0 to 1.0)
-final zoom = controller.lod.normalizedZoom;
+final zoom = controller.lod?.normalizedZoom;
 
 // Get current visibility settings
-final visibility = controller.lod.currentVisibility;
+final visibility = controller.lod?.currentVisibility;
 
 // Check individual visibility flags
-if (controller.lod.showPorts) {
+if (controller.lod?.showPorts ?? false) {
   // Ports are visible at current zoom
 }
 
-if (controller.lod.showConnectionLabels) {
+if (controller.lod?.showConnectionLabels ?? false) {
   // Connection labels are visible
 }
 ```
@@ -208,11 +210,14 @@ class ZoomAwareWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Observer(
       builder: (_) {
-        final visibility = controller.lod.currentVisibility;
+        final lod = controller.lod;
+        if (lod == null) return const SizedBox.shrink();
+
+        final visibility = lod.currentVisibility;
 
         return Column(
           children: [
-            Text('Zoom: ${(controller.lod.normalizedZoom * 100).toStringAsFixed(0)}%'),
+            Text('Zoom: ${(lod.normalizedZoom * 100).toStringAsFixed(0)}%'),
             Text('Showing ports: ${visibility.showPorts}'),
             Text('Showing labels: ${visibility.showPortLabels}'),
           ],
@@ -225,22 +230,24 @@ class ZoomAwareWidget extends StatelessWidget {
 
 ## Runtime Configuration
 
-Change LOD settings at runtime via the `lod` extension:
+Change LOD settings at runtime via the `lod` extension methods:
 
 ```dart
-// Update LOD config through the controller's lod extension
-controller.lod.updateConfig(
-  LODConfig(
-    minThreshold: 0.3,
-    midThreshold: 0.7,
-  ),
+// Update individual thresholds
+controller.lod?.setThresholds(
+  minThreshold: 0.3,
+  midThreshold: 0.7,
 );
 
-// Disable LOD at runtime
-controller.lod.disable();
+// Update visibility presets
+controller.lod?.setMinVisibility(DetailVisibility.minimal);
+controller.lod?.setMidVisibility(DetailVisibility.standard);
+controller.lod?.setMaxVisibility(DetailVisibility.full);
 
-// Restore default LOD behavior
-controller.lod.useDefault();
+// Enable/disable LOD
+controller.lod?.enable();
+controller.lod?.disable();
+controller.lod?.toggle();
 ```
 
 ## Performance Benefits
@@ -276,11 +283,11 @@ Disable LOD when presenting to always show full detail:
 
 ```dart
 void enterPresentationMode() {
-  controller.lod.disable();
+  controller.lod?.disable();
 }
 
 void exitPresentationMode() {
-  controller.lod.useDefault();
+  controller.lod?.enable();
 }
 ```
 
@@ -296,16 +303,16 @@ class FlowEditorSettings extends StatelessWidget {
   Widget build(BuildContext context) {
     return Observer(
       builder: (_) {
-        final isLODEnabled = controller.lod.lodConfig != LODConfig.disabled;
+        final isLODEnabled = controller.lod?.isEnabled ?? false;
 
         return SwitchListTile(
           title: const Text('Auto-hide details when zoomed out'),
           value: isLODEnabled,
           onChanged: (enabled) {
             if (enabled) {
-              controller.lod.useDefault();
+              controller.lod?.enable();
             } else {
-              controller.lod.disable();
+              controller.lod?.disable();
             }
           },
         );
@@ -324,6 +331,8 @@ Widget buildDebugOverlay(NodeFlowController controller) {
   return Observer(
     builder: (_) {
       final lod = controller.lod;
+      if (lod == null) return const SizedBox.shrink();
+
       return Container(
         padding: const EdgeInsets.all(8),
         color: Colors.black54,
@@ -356,11 +365,16 @@ Widget buildDebugOverlay(NodeFlowController controller) {
 | `midVisibility` | `DetailVisibility` | `DetailVisibility.standard`| Visibility between thresholds       |
 | `maxVisibility` | `DetailVisibility` | `DetailVisibility.full`   | Visibility above midThreshold        |
 
-### LodExtension (accessed via controller.lod)
+### LodExtension Properties (accessed via controller.lod)
 
 | Property            | Type               | Description                           |
 | ------------------- | ------------------ | ------------------------------------- |
-| `lodConfig`         | `LODConfig`        | The current LOD configuration         |
+| `isEnabled`         | `bool`             | Whether LOD is currently enabled      |
+| `minThreshold`      | `double`           | Threshold for minimal visibility      |
+| `midThreshold`      | `double`           | Threshold for standard visibility     |
+| `minVisibility`     | `DetailVisibility` | Visibility preset for minimal detail  |
+| `midVisibility`     | `DetailVisibility` | Visibility preset for standard detail |
+| `maxVisibility`     | `DetailVisibility` | Visibility preset for full detail     |
 | `normalizedZoom`    | `double`           | Current zoom normalized to 0.0-1.0    |
 | `currentVisibility` | `DetailVisibility` | Current visibility settings           |
 | `showNodeContent`   | `bool`             | Whether node content is visible       |
@@ -373,11 +387,17 @@ Widget buildDebugOverlay(NodeFlowController controller) {
 
 ### LodExtension Methods
 
-| Method                      | Description                                      |
-| --------------------------- | ------------------------------------------------ |
-| `updateConfig(LODConfig)`   | Updates the LOD configuration at runtime         |
-| `disable()`                 | Disables LOD (always shows full detail)          |
-| `useDefault()`              | Enables standard LOD with default configuration  |
+| Method                                     | Description                                        |
+| ------------------------------------------ | -------------------------------------------------- |
+| `enable()`                                 | Enables LOD visibility adjustments                 |
+| `disable()`                                | Disables LOD (always shows full detail)            |
+| `toggle()`                                 | Toggles between enabled and disabled               |
+| `setThresholds({minThreshold, midThreshold})`| Updates zoom thresholds                         |
+| `setMinThreshold(double)`                  | Sets the minimal visibility threshold              |
+| `setMidThreshold(double)`                  | Sets the standard visibility threshold             |
+| `setMinVisibility(DetailVisibility)`       | Sets visibility preset for minimal detail          |
+| `setMidVisibility(DetailVisibility)`       | Sets visibility preset for standard detail         |
+| `setMaxVisibility(DetailVisibility)`       | Sets visibility preset for full detail             |
 
 ## See Also
 

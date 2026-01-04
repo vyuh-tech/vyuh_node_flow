@@ -1,10 +1,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import 'auto_pan/auto_pan_config.dart';
 import 'auto_pan/auto_pan_mixin.dart';
 import 'drag_session.dart';
 import 'non_trackpad_pan_gesture_recognizer.dart';
+import '../extensions/autopan/auto_pan_extension.dart';
 import '../graph/coordinates.dart';
 
 /// A unified interaction scope for draggable elements (nodes, ports).
@@ -75,17 +75,17 @@ import '../graph/coordinates.dart';
 ///
 /// ## Autopan Support
 ///
-/// When [autoPan] is provided, the widget automatically pans the viewport
-/// when the pointer approaches the edges during a drag operation. The element
-/// moves with the viewport during autopan.
+/// When [autoPan] is provided and enabled, the widget automatically pans the
+/// viewport when the pointer approaches the edges during a drag operation.
+/// The element moves with the viewport during autopan.
 ///
 /// ```dart
 /// ElementScope(
 ///   onDragStart: (_) => controller.startNodeDrag(nodeId),
 ///   onDragUpdate: (details) => controller.moveNodeDrag(details.delta),
 ///   onDragEnd: (_) => controller.endNodeDrag(),
-///   // Enable autopan
-///   autoPan: AutoPanConfig.normal,
+///   // Enable autopan via the controller's autopan extension
+///   autoPan: controller.autoPan,
 ///   getViewportBounds: () => controller.viewportScreenBounds.rect,
 ///   onAutoPan: (delta) {
 ///     // Pan viewport - ElementScope also calls onDragUpdate to move element
@@ -241,13 +241,13 @@ class ElementScope extends StatefulWidget {
   // Autopan Parameters
   // ---------------------------------------------------------------------------
 
-  /// Configuration for autopan behavior during drag operations.
+  /// The autopan extension for autopan behavior during drag operations.
   ///
-  /// When provided (non-null), autopan is enabled. The viewport will
+  /// When provided (non-null) and enabled, autopan is active. The viewport will
   /// automatically pan when the pointer approaches the edges during a drag.
   ///
   /// Requires [onAutoPan] and [getViewportBounds] to also be provided.
-  final AutoPanConfig? autoPan;
+  final AutoPanExtension? autoPan;
 
   /// Callback invoked when autopan triggers during a drag.
   ///

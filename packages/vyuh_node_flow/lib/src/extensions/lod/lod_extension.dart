@@ -4,14 +4,12 @@ import '../events/events.dart';
 import '../node_flow_extension.dart';
 import '../../editor/controller/node_flow_controller.dart';
 import 'detail_visibility.dart';
-import 'lod_config.dart';
 
 /// Level of Detail (LOD) extension that provides reactive visibility
 /// settings based on the viewport zoom level.
 ///
 /// This extension manages LOD state via internal Observables and computes
-/// visibility settings using MobX [Computed] values that react to zoom and
-/// threshold changes.
+/// visibility settings that react to zoom and threshold changes.
 ///
 /// ## Usage
 ///
@@ -33,6 +31,7 @@ import 'lod_config.dart';
 ///
 /// ```dart
 /// LodExtension(
+///   enabled: true,
 ///   minThreshold: 0.2,
 ///   midThreshold: 0.5,
 /// )
@@ -60,20 +59,23 @@ class LodExtension extends NodeFlowExtension {
     DetailVisibility minVisibility = DetailVisibility.minimal,
     DetailVisibility midVisibility = DetailVisibility.standard,
     DetailVisibility maxVisibility = DetailVisibility.full,
-  }) : _config = Observable(
-         enabled
-             ? LODConfig(
-                 minThreshold: minThreshold,
-                 midThreshold: midThreshold,
-                 minVisibility: minVisibility,
-                 midVisibility: midVisibility,
-                 maxVisibility: maxVisibility,
-               )
-             : LODConfig.disabled,
-       );
+  }) : _enabled = Observable(enabled),
+       _minThreshold = Observable(minThreshold),
+       _midThreshold = Observable(midThreshold),
+       _minVisibility = Observable(minVisibility),
+       _midVisibility = Observable(midVisibility),
+       _maxVisibility = Observable(maxVisibility);
 
-  /// The internal observable holding the LOD configuration.
-  final Observable<LODConfig> _config;
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Observable State
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  final Observable<bool> _enabled;
+  final Observable<double> _minThreshold;
+  final Observable<double> _midThreshold;
+  final Observable<DetailVisibility> _minVisibility;
+  final Observable<DetailVisibility> _midVisibility;
+  final Observable<DetailVisibility> _maxVisibility;
 
   NodeFlowController? _controller;
 
@@ -100,12 +102,119 @@ class LodExtension extends NodeFlowExtension {
     // viewport zoom changes via MobX computed values
   }
 
-  // ============================================================================
-  // Core LOD State
-  // ============================================================================
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Enabled State
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  /// The LOD configuration containing thresholds and visibility presets.
-  LODConfig get lodConfig => _config.value;
+  /// Whether LOD is enabled.
+  ///
+  /// When disabled, [currentVisibility] always returns [maxVisibility].
+  bool get isEnabled => _enabled.value;
+
+  /// Enables LOD functionality.
+  void enable() => runInAction(() => _enabled.value = true);
+
+  /// Disables LOD functionality (always show full detail).
+  void disable() => runInAction(() => _enabled.value = false);
+
+  /// Toggles LOD enabled state.
+  void toggle() => runInAction(() => _enabled.value = !_enabled.value);
+
+  /// Sets the enabled state.
+  void setEnabled(bool enabled) => runInAction(() => _enabled.value = enabled);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Thresholds
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Normalized zoom threshold for minimal detail.
+  ///
+  /// When the normalized zoom is below this value, [minVisibility] is applied.
+  /// Range: 0.0 to 1.0. Default: 0.03 (3% of zoom range).
+  double get minThreshold => _minThreshold.value;
+
+  /// Sets the minimum threshold.
+  void setMinThreshold(double value) {
+    assert(
+      value >= 0.0 && value <= 1.0,
+      'minThreshold must be between 0.0 and 1.0',
+    );
+    assert(
+      value <= _midThreshold.value,
+      'minThreshold must be <= midThreshold',
+    );
+    runInAction(() => _minThreshold.value = value);
+  }
+
+  /// Normalized zoom threshold for standard detail.
+  ///
+  /// When the normalized zoom is at or above [minThreshold] but below this value,
+  /// [midVisibility] is applied. When at or above this value, [maxVisibility]
+  /// is applied.
+  /// Range: 0.0 to 1.0. Default: 0.1 (10% of zoom range).
+  double get midThreshold => _midThreshold.value;
+
+  /// Sets the mid threshold.
+  void setMidThreshold(double value) {
+    assert(
+      value >= 0.0 && value <= 1.0,
+      'midThreshold must be between 0.0 and 1.0',
+    );
+    assert(
+      value >= _minThreshold.value,
+      'midThreshold must be >= minThreshold',
+    );
+    runInAction(() => _midThreshold.value = value);
+  }
+
+  /// Sets both thresholds at once.
+  void setThresholds({double? minThreshold, double? midThreshold}) {
+    final newMin = minThreshold ?? _minThreshold.value;
+    final newMid = midThreshold ?? _midThreshold.value;
+    assert(
+      newMin >= 0.0 && newMin <= 1.0,
+      'minThreshold must be between 0.0 and 1.0',
+    );
+    assert(
+      newMid >= 0.0 && newMid <= 1.0,
+      'midThreshold must be between 0.0 and 1.0',
+    );
+    assert(newMin <= newMid, 'minThreshold must be <= midThreshold');
+    runInAction(() {
+      _minThreshold.value = newMin;
+      _midThreshold.value = newMid;
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Visibility Presets
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Visibility configuration applied when normalizedZoom < [minThreshold].
+  DetailVisibility get minVisibility => _minVisibility.value;
+
+  /// Sets the visibility for minimum zoom level.
+  void setMinVisibility(DetailVisibility visibility) =>
+      runInAction(() => _minVisibility.value = visibility);
+
+  /// Visibility configuration applied when
+  /// [minThreshold] <= normalizedZoom < [midThreshold].
+  DetailVisibility get midVisibility => _midVisibility.value;
+
+  /// Sets the visibility for mid zoom level.
+  void setMidVisibility(DetailVisibility visibility) =>
+      runInAction(() => _midVisibility.value = visibility);
+
+  /// Visibility configuration applied when normalizedZoom >= [midThreshold].
+  DetailVisibility get maxVisibility => _maxVisibility.value;
+
+  /// Sets the visibility for maximum zoom level.
+  void setMaxVisibility(DetailVisibility visibility) =>
+      runInAction(() => _maxVisibility.value = visibility);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Computed State
+  // ═══════════════════════════════════════════════════════════════════════════
 
   /// The current zoom value normalized to a 0.0-1.0 range.
   ///
@@ -115,15 +224,17 @@ class LodExtension extends NodeFlowExtension {
 
   /// The current visibility configuration based on zoom level.
   ///
-  /// Returns one of:
-  /// - [LODConfig.minVisibility] when normalizedZoom < minThreshold
-  /// - [LODConfig.midVisibility] when minThreshold <= normalizedZoom < midThreshold
-  /// - [LODConfig.maxVisibility] when normalizedZoom >= midThreshold
+  /// When [isEnabled] is false, always returns [maxVisibility].
+  ///
+  /// When enabled, returns one of:
+  /// - [minVisibility] when normalizedZoom < minThreshold
+  /// - [midVisibility] when minThreshold <= normalizedZoom < midThreshold
+  /// - [maxVisibility] when normalizedZoom >= midThreshold
   DetailVisibility get currentVisibility => _currentVisibility.value;
 
-  // ============================================================================
+  // ═══════════════════════════════════════════════════════════════════════════
   // Convenience Accessors
-  // ============================================================================
+  // ═══════════════════════════════════════════════════════════════════════════
 
   /// Whether node content should be visible at the current zoom level.
   bool get showNodeContent => currentVisibility.showNodeContent;
@@ -146,34 +257,9 @@ class LodExtension extends NodeFlowExtension {
   /// Whether resize handles should be visible at the current zoom level.
   bool get showResizeHandles => currentVisibility.showResizeHandles;
 
-  // ============================================================================
-  // Configuration Updates
-  // ============================================================================
-
-  /// Updates the LOD configuration at runtime.
-  ///
-  /// Use this to change LOD thresholds or visibility presets dynamically.
-  /// The change will immediately affect [currentVisibility].
-  ///
-  /// Example:
-  /// ```dart
-  /// controller.lod.updateConfig(LODConfig.disabled);
-  /// ```
-  void updateConfig(LODConfig newConfig) {
-    runInAction(() => _config.value = newConfig);
-  }
-
-  /// Disables LOD by setting config to [LODConfig.disabled].
-  ///
-  /// This ensures all visual elements are always shown regardless of zoom.
-  void disable() => updateConfig(LODConfig.disabled);
-
-  /// Enables standard LOD behavior by setting config to [LODConfig.defaultConfig].
-  void useDefault() => updateConfig(LODConfig.defaultConfig);
-
-  // ============================================================================
+  // ═══════════════════════════════════════════════════════════════════════════
   // Private Implementation
-  // ============================================================================
+  // ═══════════════════════════════════════════════════════════════════════════
 
   void _setupComputedValues() {
     final controller = _controller!;
@@ -193,18 +279,29 @@ class LodExtension extends NodeFlowExtension {
     });
 
     _currentVisibility = Computed(() {
-      final normalized = _normalizedZoom.value;
-      // Use the extension's internal config Observable
-      final lodConfig = _config.value;
+      // When disabled, always return max visibility
+      if (!_enabled.value) {
+        return _maxVisibility.value;
+      }
 
-      return lodConfig.getVisibilityForZoom(normalized);
+      final normalized = _normalizedZoom.value;
+      final minThresh = _minThreshold.value;
+      final midThresh = _midThreshold.value;
+
+      if (normalized < minThresh) {
+        return _minVisibility.value;
+      } else if (normalized < midThresh) {
+        return _midVisibility.value;
+      } else {
+        return _maxVisibility.value;
+      }
     });
   }
 }
 
-// ============================================================================
+// ═══════════════════════════════════════════════════════════════════════════
 // Controller Extension for LOD Access
-// ============================================================================
+// ═══════════════════════════════════════════════════════════════════════════
 
 /// Dart extension providing convenient access to LOD functionality.
 ///
@@ -234,6 +331,7 @@ extension LodExtensionAccess<T> on NodeFlowController<T, dynamic> {
   /// final flowConfig = NodeFlowConfig(
   ///   extensions: [
   ///     LodExtension(
+  ///       enabled: true,
   ///       minThreshold: 0.2,
   ///       midThreshold: 0.5,
   ///     ),

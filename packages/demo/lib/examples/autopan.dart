@@ -36,7 +36,7 @@ class _AutoPanExampleState extends State<AutoPanExample> {
     _controller = NodeFlowController<String, dynamic>(
       config: NodeFlowConfig(
         extensions: [
-          AutoPanExtension(config: AutoPanConfig.normal),
+          AutoPanExtension(), // Uses defaults (normal preset values)
           DebugExtension(
             mode: DebugMode.autoPanZone,
           ), // Show edge zones overlay by default
@@ -162,33 +162,37 @@ class _AutoPanExampleState extends State<AutoPanExample> {
   }
 
   void _updateAutoPan() {
-    AutoPanConfig? config;
+    final autoPan = _controller.autoPan;
+    if (autoPan == null) return;
 
     switch (_selectedPreset) {
       case AutoPanPreset.normal:
-        config = AutoPanConfig.normal;
+        autoPan.useNormal();
+        autoPan.enable();
         break;
       case AutoPanPreset.fast:
-        config = AutoPanConfig.fast;
+        autoPan.useFast();
+        autoPan.enable();
         break;
       case AutoPanPreset.precise:
-        config = AutoPanConfig.precise;
+        autoPan.usePrecise();
+        autoPan.enable();
         break;
       case AutoPanPreset.custom:
-        config = AutoPanConfig(
-          edgePadding: EdgeInsets.all(_edgePadding),
-          panAmount: _panAmount,
-          useProximityScaling: _useProximityScaling,
-          speedCurve: _useProximityScaling ? Curves.easeIn : null,
-        );
+        autoPan.setEdgePadding(EdgeInsets.all(_edgePadding));
+        autoPan.setPanAmount(_panAmount);
+        autoPan.setUseProximityScaling(_useProximityScaling);
+        if (_useProximityScaling) {
+          autoPan.setSpeedCurve(Curves.easeIn);
+        } else {
+          autoPan.setSpeedCurve(null);
+        }
+        autoPan.enable();
         break;
       case AutoPanPreset.disabled:
-        config = null;
+        autoPan.disable();
         break;
     }
-
-    // Use the reactive API to update autopan config
-    _controller.autoPan?.setConfig(config);
   }
 
   Widget _buildNode(BuildContext context, Node<String> node) {
@@ -305,11 +309,8 @@ class _AutoPanExampleState extends State<AutoPanExample> {
         SectionContent(
           child: Row(
             children: [
-              Expanded(
-                child: Text(
-                  'Show Edge Zones',
-                  style: const TextStyle(fontSize: 12),
-                ),
+              const Expanded(
+                child: Text('Show Edge Zones', style: TextStyle(fontSize: 12)),
               ),
               Switch(
                 value: _controller.debug?.showAutoPanZone ?? false,
@@ -328,15 +329,15 @@ class _AutoPanExampleState extends State<AutoPanExample> {
   }
 
   Widget _buildCurrentSettingsInfo() {
-    final config = _controller.autoPan?.currentConfig;
-    final isDisabled = config == null;
+    final autoPan = _controller.autoPan;
+    final isDisabled = autoPan == null || !autoPan.isEnabled;
 
     final content = isDisabled
         ? 'AutoPan is disabled'
-        : 'Edge Padding: ${_formatEdgePadding(config.edgePadding)}\n'
-              'Pan Amount: ${config.panAmount.toStringAsFixed(0)} units\n'
-              'Interval: ${config.panInterval.inMilliseconds} ms\n'
-              'Proximity Scaling: ${config.useProximityScaling ? 'On' : 'Off'}';
+        : 'Edge Padding: ${_formatEdgePadding(autoPan.edgePadding)}\n'
+              'Pan Amount: ${autoPan.panAmount.toStringAsFixed(0)} units\n'
+              'Interval: ${autoPan.panInterval.inMilliseconds} ms\n'
+              'Proximity Scaling: ${autoPan.useProximityScaling ? 'On' : 'Off'}';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
