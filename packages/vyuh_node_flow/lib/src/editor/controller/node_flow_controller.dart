@@ -784,10 +784,7 @@ class NodeFlowController<T, C> {
   // ============================================================
 
   /// Registered extensions for this controller.
-  ///
-  /// Extensions are stored as `NodeFlowExtension<dynamic>` to allow
-  /// different config types in the same collection.
-  final List<NodeFlowExtension<dynamic>> _extensions = [];
+  final List<NodeFlowExtension> _extensions = [];
 
   /// Current batch nesting depth.
   /// When > 0, we're inside a batch operation.
@@ -802,7 +799,7 @@ class NodeFlowController<T, C> {
   /// ```dart
   /// controller.addExtension(UndoRedoExtension<MyData>());
   /// ```
-  void addExtension(NodeFlowExtension<dynamic> extension) {
+  void addExtension(NodeFlowExtension extension) {
     if (_extensions.any((e) => e.id == extension.id)) {
       throw StateError(
         'Extension "${extension.id}" is already registered. '
@@ -842,7 +839,7 @@ class NodeFlowController<T, C> {
   ///   history!.undo();
   /// }
   /// ```
-  E? getExtension<E extends NodeFlowExtension<dynamic>>() {
+  E? getExtension<E extends NodeFlowExtension>() {
     for (final ext in _extensions) {
       if (ext is E) return ext;
     }
@@ -861,7 +858,7 @@ class NodeFlowController<T, C> {
   /// final minimap = controller.resolveExtension<MinimapExtension>();
   /// minimap?.toggle();
   /// ```
-  E? resolveExtension<E extends NodeFlowExtension<dynamic>>() {
+  E? resolveExtension<E extends NodeFlowExtension>() {
     // First check if already attached
     var ext = getExtension<E>();
     if (ext != null) return ext;
@@ -887,8 +884,7 @@ class NodeFlowController<T, C> {
   /// Gets all registered extensions.
   ///
   /// Returns an unmodifiable view of the extensions list.
-  List<NodeFlowExtension<dynamic>> get extensions =>
-      List.unmodifiable(_extensions);
+  List<NodeFlowExtension> get extensions => List.unmodifiable(_extensions);
 
   /// Emits an event to all registered extensions.
   ///

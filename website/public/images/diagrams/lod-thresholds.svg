@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120" fill="none">
+  <style>
+    .track { fill: #f1f5f9; stroke: #e2e8f0; stroke-width: 1; rx: 4; }
+    .minimal { fill: #fecaca; }
+    .standard { fill: #fef3c7; }
+    .full { fill: #bbf7d0; }
+    .marker { stroke: #374151; stroke-width: 2; }
+    .label { font-family: system-ui, sans-serif; font-size: 11px; fill: #374151; }
+    .label-sm { font-family: system-ui, sans-serif; font-size: 10px; fill: #6b7280; }
+    .value { font-family: system-ui, sans-serif; font-size: 10px; fill: #9ca3af; font-weight: 600; }
+  </style>
+
+  <!-- Background track -->
+  <rect x="40" y="40" width="440" height="30" class="track"/>
+
+  <!-- Minimal zone (0.0 to 0.03) -->
+  <rect x="40" y="40" width="60" height="30" class="minimal" rx="4"/>
+
+  <!-- Standard zone (0.03 to 0.10) -->
+  <rect x="100" y="40" width="100" height="30" class="standard"/>
+
+  <!-- Full zone (0.10 to 1.0) -->
+  <rect x="200" y="40" width="280" height="30" class="full" rx="4"/>
+
+  <!-- Threshold markers -->
+  <line x1="100" y1="35" x2="100" y2="75" class="marker"/>
+  <line x1="200" y1="35" x2="200" y2="75" class="marker"/>
+
+  <!-- Zone labels -->
+  <text x="70" y="60" class="label" text-anchor="middle">minimal</text>
+  <text x="150" y="60" class="label" text-anchor="middle">standard</text>
+  <text x="340" y="60" class="label" text-anchor="middle">full</text>
+
+  <!-- Value labels -->
+  <text x="40" y="95" class="value">0.0</text>
+  <text x="100" y="95" class="value" text-anchor="middle">3%</text>
+  <text x="200" y="95" class="value" text-anchor="middle">10%</text>
+  <text x="480" y="95" class="value" text-anchor="end">1.0</text>
+
+  <!-- Top labels -->
+  <text x="40" y="25" class="label-sm">minZoom</text>
+  <text x="100" y="25" class="label-sm" text-anchor="middle">minThreshold</text>
+  <text x="200" y="25" class="label-sm" text-anchor="middle">midThreshold</text>
+  <text x="480" y="25" class="label-sm" text-anchor="end">maxZoom</text>
+
+  <!-- Arrow showing normalized zoom -->
+  <text x="260" y="110" class="label-sm" text-anchor="middle">normalizedZoom →</text>
+</svg>

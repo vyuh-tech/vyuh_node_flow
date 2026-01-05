@@ -509,7 +509,7 @@ See [Connection Effects](/docs/theming/connection-effects) for more details.
 
 ## See Also
 
-- [Connections (Core Concepts)](/docs/core-concepts/connections) - Connection model and operations
+- [Connections (Core Concepts)](/docs/concepts/connections) - Connection model and operations
 - [Connection Styles](/docs/theming/connection-styles) - Style options
 - [Connection Effects](/docs/theming/connection-effects) - Animation effects
 - [Events](/docs/advanced/events) - Connection event handling

@@ -468,6 +468,5 @@ class _WorkflowEditorState extends State<WorkflowEditor> {
 
 ## See Also
 
-- [Controller](/docs/core-concepts/controller) - Programmatic graph manipulation
-- [Connection Validation](/docs/advanced/validation) - Advanced validation patterns
+- [Controller](/docs/concepts/controller) - Programmatic graph manipulation
 - [Keyboard Shortcuts](/docs/advanced/keyboard-shortcuts) - Keyboard event handling

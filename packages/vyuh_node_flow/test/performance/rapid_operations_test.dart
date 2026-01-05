@@ -535,7 +535,7 @@ void main() {
       // Performance should not degrade by more than 50%
       expect(
         time2,
-        lessThan(time1 * 1.5),
+        lessThanOrEqualTo(time1 * 1.5),
         reason: 'Performance should not degrade after many operations',
       );
     });

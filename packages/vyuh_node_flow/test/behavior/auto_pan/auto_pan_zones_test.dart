@@ -20,36 +20,38 @@ void main() {
   });
 
   group('Auto-Pan Zone Configuration', () {
-    test('normal preset defines 50px edge zones', () {
-      const config = AutoPanConfig.normal;
+    test('default extension defines 50px edge zones', () {
+      final extension = AutoPanExtension();
 
-      expect(config.edgePadding.left, equals(50.0));
-      expect(config.edgePadding.right, equals(50.0));
-      expect(config.edgePadding.top, equals(50.0));
-      expect(config.edgePadding.bottom, equals(50.0));
+      expect(extension.edgePadding.left, equals(50.0));
+      expect(extension.edgePadding.right, equals(50.0));
+      expect(extension.edgePadding.top, equals(50.0));
+      expect(extension.edgePadding.bottom, equals(50.0));
     });
 
-    test('fast preset defines 60px edge zones', () {
-      const config = AutoPanConfig.fast;
+    test('useFast applies 60px edge zones', () {
+      final extension = AutoPanExtension();
+      extension.useFast();
 
-      expect(config.edgePadding.left, equals(60.0));
-      expect(config.edgePadding.right, equals(60.0));
-      expect(config.edgePadding.top, equals(60.0));
-      expect(config.edgePadding.bottom, equals(60.0));
+      expect(extension.edgePadding.left, equals(60.0));
+      expect(extension.edgePadding.right, equals(60.0));
+      expect(extension.edgePadding.top, equals(60.0));
+      expect(extension.edgePadding.bottom, equals(60.0));
     });
 
-    test('precise preset defines 30px edge zones', () {
-      const config = AutoPanConfig.precise;
+    test('usePrecise applies 30px edge zones', () {
+      final extension = AutoPanExtension();
+      extension.usePrecise();
 
-      expect(config.edgePadding.left, equals(30.0));
-      expect(config.edgePadding.right, equals(30.0));
-      expect(config.edgePadding.top, equals(30.0));
-      expect(config.edgePadding.bottom, equals(30.0));
+      expect(extension.edgePadding.left, equals(30.0));
+      expect(extension.edgePadding.right, equals(30.0));
+      expect(extension.edgePadding.top, equals(30.0));
+      expect(extension.edgePadding.bottom, equals(30.0));
     });
 
     test('asymmetric zones can be configured', () {
-      const config = AutoPanConfig(
-        edgePadding: EdgeInsets.only(
+      final extension = AutoPanExtension(
+        edgePadding: const EdgeInsets.only(
           left: 40.0,
           right: 60.0,
           top: 30.0,
@@ -57,10 +59,10 @@ void main() {
         ),
       );
 
-      expect(config.edgePadding.left, equals(40.0));
-      expect(config.edgePadding.right, equals(60.0));
-      expect(config.edgePadding.top, equals(30.0));
-      expect(config.edgePadding.bottom, equals(100.0));
+      expect(extension.edgePadding.left, equals(40.0));
+      expect(extension.edgePadding.right, equals(60.0));
+      expect(extension.edgePadding.top, equals(30.0));
+      expect(extension.edgePadding.bottom, equals(100.0));
     });
   });
 
@@ -83,8 +85,8 @@ void main() {
     });
 
     test('edge zone width equals edge padding', () {
-      const config = AutoPanConfig(
-        edgePadding: EdgeInsets.only(
+      final extension = AutoPanExtension(
+        edgePadding: const EdgeInsets.only(
           left: 40.0,
           right: 60.0,
           top: 30.0,
@@ -92,15 +94,15 @@ void main() {
         ),
       );
 
-      expect(config.edgePadding.left, equals(40.0));
-      expect(config.edgePadding.right, equals(60.0));
-      expect(config.edgePadding.top, equals(30.0));
-      expect(config.edgePadding.bottom, equals(50.0));
+      expect(extension.edgePadding.left, equals(40.0));
+      expect(extension.edgePadding.right, equals(60.0));
+      expect(extension.edgePadding.top, equals(30.0));
+      expect(extension.edgePadding.bottom, equals(50.0));
     });
 
     test('zero padding on one edge disables that zone', () {
-      const config = AutoPanConfig(
-        edgePadding: EdgeInsets.only(
+      final extension = AutoPanExtension(
+        edgePadding: const EdgeInsets.only(
           left: 50.0,
           right: 0.0, // disabled
           top: 50.0,
@@ -108,9 +110,9 @@ void main() {
         ),
       );
 
-      expect(config.edgePadding.right, equals(0.0));
-      // Config is still enabled because other edges have padding
-      expect(config.isEnabled, isTrue);
+      expect(extension.edgePadding.right, equals(0.0));
+      // Extension is still enabled because other edges have padding
+      expect(extension.isEnabled, isTrue);
     });
   });
 
@@ -262,10 +264,12 @@ void main() {
       // Edge padding is always in screen pixels
       // This is by design - the visual trigger zone stays constant
       // regardless of zoom level
-      const config = AutoPanConfig(edgePadding: EdgeInsets.all(50.0));
+      final extension = AutoPanExtension(
+        edgePadding: const EdgeInsets.all(50.0),
+      );
 
       // At zoom 0.5, 1.0, or 2.0, the edge padding is still 50 screen pixels
-      expect(config.edgePadding.left, equals(50.0));
+      expect(extension.edgePadding.left, equals(50.0));
     });
 
     test('viewport extent in graph coordinates changes with zoom', () {
@@ -285,39 +289,39 @@ void main() {
 
   group('Disabled Zones', () {
     test('zero edge padding disables autopan', () {
-      const config = AutoPanConfig(
+      final extension = AutoPanExtension(
         edgePadding: EdgeInsets.zero,
         panAmount: 10.0,
       );
 
-      expect(config.isEnabled, isFalse);
+      expect(extension.isEnabled, isFalse);
     });
 
     test('zero pan amount disables autopan', () {
-      const config = AutoPanConfig(
-        edgePadding: EdgeInsets.all(50.0),
+      final extension = AutoPanExtension(
+        edgePadding: const EdgeInsets.all(50.0),
         panAmount: 0.0,
       );
 
-      expect(config.isEnabled, isFalse);
+      expect(extension.isEnabled, isFalse);
     });
 
     test('negative pan amount disables autopan', () {
-      const config = AutoPanConfig(
-        edgePadding: EdgeInsets.all(50.0),
+      final extension = AutoPanExtension(
+        edgePadding: const EdgeInsets.all(50.0),
         panAmount: -5.0,
       );
 
-      expect(config.isEnabled, isFalse);
+      expect(extension.isEnabled, isFalse);
     });
 
     test('partially disabled zones still enable autopan', () {
-      const config = AutoPanConfig(
-        edgePadding: EdgeInsets.only(left: 50.0), // only left enabled
+      final extension = AutoPanExtension(
+        edgePadding: const EdgeInsets.only(left: 50.0), // only left enabled
         panAmount: 10.0,
       );
 
-      expect(config.isEnabled, isTrue);
+      expect(extension.isEnabled, isTrue);
     });
   });
 }

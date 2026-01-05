@@ -626,6 +626,6 @@ See [Keyboard Shortcuts](/docs/advanced/keyboard-shortcuts) for the complete lis
 ## See Also
 
 - [NodeFlowViewer](/docs/components/node-flow-viewer) - Read-only view
-- [NodeFlowMinimap](/docs/components/minimap) - Overview minimap
-- [Configuration](/docs/core-concepts/configuration) - NodeFlowConfig and AutoPanConfig
+- [NodeFlowMinimap](/docs/extensions/minimap) - Overview minimap
+- [Configuration](/docs/concepts/configuration) - NodeFlowConfig and AutoPanConfig
 - [Theming](/docs/theming/overview) - Customization guide

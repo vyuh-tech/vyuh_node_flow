@@ -1,0 +1,55 @@
+name: Test & Coverage
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/vyuh_node_flow/**'
+      - '.github/workflows/test-coverage.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'packages/vyuh_node_flow/**'
+      - '.github/workflows/test-coverage.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Get workspace dependencies
+        run: dart pub get
+
+      - name: Install Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap workspace
+        run: melos bootstrap
+
+      - name: Analyze code
+        run: melos run analyze
+
+      - name: Run tests with coverage
+        run: |
+          cd packages/vyuh_node_flow
+          flutter test --coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: packages/vyuh_node_flow/coverage/lcov.info
+          flags: unittests
+          name: vyuh_node_flow
+          fail_ci_if_error: true
+          verbose: true

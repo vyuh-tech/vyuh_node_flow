@@ -2,7 +2,7 @@
 ///
 /// Tests cover:
 /// - DetailVisibility configuration class and factory presets
-/// - LODConfig threshold configuration and visibility resolution
+/// - LodExtension threshold configuration and visibility resolution
 /// - LodExtension reactive state and normalized zoom calculations
 /// - Integration with NodeFlowConfig
 @Tags(['unit'])
@@ -99,103 +99,171 @@ void main() {
   });
 
   // ===========================================================================
-  // LODConfig - Threshold Configuration
+  // LodExtension - Threshold Configuration
   // ===========================================================================
 
-  group('LODConfig - Threshold Configuration', () {
-    test('defaultConfig has sensible defaults', () {
-      const config = LODConfig.defaultConfig;
+  group('LodExtension - Threshold Configuration', () {
+    test('default thresholds have sensible values', () {
+      final controller = NodeFlowController<String, dynamic>();
+      final lod = controller.lod!;
 
       // Actual defaults: minThreshold=0.03, midThreshold=0.1
-      expect(config.minThreshold, equals(0.03));
-      expect(config.midThreshold, equals(0.1));
-      expect(config.minVisibility, same(DetailVisibility.minimal));
-      expect(config.midVisibility, same(DetailVisibility.standard));
-      expect(config.maxVisibility, same(DetailVisibility.full));
+      expect(lod.minThreshold, equals(0.03));
+      expect(lod.midThreshold, equals(0.1));
+      expect(lod.minVisibility, same(DetailVisibility.minimal));
+      expect(lod.midVisibility, same(DetailVisibility.standard));
+      expect(lod.maxVisibility, same(DetailVisibility.full));
+
+      controller.dispose();
     });
 
-    test('disabled config always shows full detail', () {
-      const config = LODConfig.disabled;
-
-      // All thresholds at 0 means always maxVisibility
-      expect(config.minThreshold, equals(0.0));
-      expect(config.midThreshold, equals(0.0));
-      expect(config.maxVisibility, same(DetailVisibility.full));
-
-      // Verify at any zoom we get full visibility
-      expect(config.getVisibilityForZoom(0.0), same(DetailVisibility.full));
-      expect(config.getVisibilityForZoom(0.5), same(DetailVisibility.full));
-      expect(config.getVisibilityForZoom(1.0), same(DetailVisibility.full));
-    });
-
-    test('custom config can specify different presets', () {
-      const config = LODConfig(
-        minThreshold: 0.3,
-        midThreshold: 0.7,
-        minVisibility: DetailVisibility.full, // Inverted for testing
-        midVisibility: DetailVisibility.standard,
-        maxVisibility: DetailVisibility.minimal,
+    test('disabled LOD always shows full detail', () {
+      final controller = NodeFlowController<String, dynamic>(
+        config: NodeFlowConfig(minZoom: 0.0, maxZoom: 1.0),
+        initialViewport: const GraphViewport(zoom: 0.1),
       );
+      final lod = controller.lod!;
 
-      expect(config.getVisibilityForZoom(0.1), same(DetailVisibility.full));
-      expect(config.getVisibilityForZoom(0.5), same(DetailVisibility.standard));
-      expect(config.getVisibilityForZoom(0.9), same(DetailVisibility.minimal));
+      // LOD disabled by default
+      expect(lod.isEnabled, isFalse);
+
+      // At any zoom we get full visibility when disabled
+      expect(lod.currentVisibility, same(DetailVisibility.full));
+
+      controller.setViewport(const GraphViewport(zoom: 0.5));
+      expect(lod.currentVisibility, same(DetailVisibility.full));
+
+      controller.setViewport(const GraphViewport(zoom: 1.0));
+      expect(lod.currentVisibility, same(DetailVisibility.full));
+
+      controller.dispose();
+    });
+
+    test('can set thresholds at runtime', () {
+      final controller = NodeFlowController<String, dynamic>(
+        config: NodeFlowConfig(
+          minZoom: 0.0,
+          maxZoom: 1.0,
+          extensions: [
+            LodExtension(enabled: true),
+            ...NodeFlowConfig.defaultExtensions().where(
+              (e) => e is! LodExtension,
+            ),
+          ],
+        ),
+        initialViewport: const GraphViewport(zoom: 0.5),
+      );
+      final lod = controller.lod!;
+
+      // Set custom thresholds
+      lod.setThresholds(minThreshold: 0.3, midThreshold: 0.7);
+      expect(lod.minThreshold, equals(0.3));
+      expect(lod.midThreshold, equals(0.7));
+
+      // At zoom 0.5 with new thresholds (0.3-0.7), should be mid visibility
+      expect(lod.currentVisibility, same(DetailVisibility.standard));
+
+      controller.dispose();
     });
   });
 
   // ===========================================================================
-  // LODConfig - Visibility Resolution
+  // LodExtension - Visibility Resolution
   // ===========================================================================
 
-  group('LODConfig - Visibility Resolution', () {
-    test('getVisibilityForZoom returns correct preset for each zone', () {
-      const config = LODConfig(minThreshold: 0.25, midThreshold: 0.60);
+  group('LodExtension - Visibility Resolution', () {
+    test('returns correct visibility for each zoom zone', () {
+      final controller = NodeFlowController<String, dynamic>(
+        config: NodeFlowConfig(
+          minZoom: 0.0,
+          maxZoom: 1.0,
+          extensions: [
+            LodExtension(enabled: true, minThreshold: 0.25, midThreshold: 0.60),
+            ...NodeFlowConfig.defaultExtensions().where(
+              (e) => e is! LodExtension,
+            ),
+          ],
+        ),
+        initialViewport: const GraphViewport(zoom: 0.0),
+      );
+      final lod = controller.lod!;
 
       // Below minThreshold -> minVisibility
-      expect(config.getVisibilityForZoom(0.0), same(DetailVisibility.minimal));
-      expect(config.getVisibilityForZoom(0.24), same(DetailVisibility.minimal));
+      controller.setViewport(const GraphViewport(zoom: 0.0));
+      expect(lod.currentVisibility, same(DetailVisibility.minimal));
+
+      controller.setViewport(const GraphViewport(zoom: 0.24));
+      expect(lod.currentVisibility, same(DetailVisibility.minimal));
 
       // At or above minThreshold but below midThreshold -> midVisibility
-      expect(
-        config.getVisibilityForZoom(0.25),
-        same(DetailVisibility.standard),
-      );
-      expect(
-        config.getVisibilityForZoom(0.40),
-        same(DetailVisibility.standard),
-      );
-      expect(
-        config.getVisibilityForZoom(0.59),
-        same(DetailVisibility.standard),
-      );
+      controller.setViewport(const GraphViewport(zoom: 0.25));
+      expect(lod.currentVisibility, same(DetailVisibility.standard));
+
+      controller.setViewport(const GraphViewport(zoom: 0.40));
+      expect(lod.currentVisibility, same(DetailVisibility.standard));
+
+      controller.setViewport(const GraphViewport(zoom: 0.59));
+      expect(lod.currentVisibility, same(DetailVisibility.standard));
 
       // At or above midThreshold -> maxVisibility
-      expect(config.getVisibilityForZoom(0.60), same(DetailVisibility.full));
-      expect(config.getVisibilityForZoom(0.80), same(DetailVisibility.full));
-      expect(config.getVisibilityForZoom(1.0), same(DetailVisibility.full));
-    });
+      controller.setViewport(const GraphViewport(zoom: 0.60));
+      expect(lod.currentVisibility, same(DetailVisibility.full));
 
-    test('getVisibilityForZoom clamps input to 0-1 range', () {
-      const config = LODConfig.defaultConfig;
+      controller.setViewport(const GraphViewport(zoom: 0.80));
+      expect(lod.currentVisibility, same(DetailVisibility.full));
 
-      // Negative zoom should be treated as 0
-      expect(config.getVisibilityForZoom(-0.5), same(DetailVisibility.minimal));
+      controller.setViewport(const GraphViewport(zoom: 1.0));
+      expect(lod.currentVisibility, same(DetailVisibility.full));
 
-      // Zoom > 1 should be treated as 1
-      expect(config.getVisibilityForZoom(1.5), same(DetailVisibility.full));
+      controller.dispose();
     });
 
     test('edge cases: thresholds at boundaries', () {
       // All thresholds at 0 - always max
-      const allMin = LODConfig(minThreshold: 0.0, midThreshold: 0.0);
-      expect(allMin.getVisibilityForZoom(0.0), same(DetailVisibility.full));
-      expect(allMin.getVisibilityForZoom(0.5), same(DetailVisibility.full));
+      final controllerMin = NodeFlowController<String, dynamic>(
+        config: NodeFlowConfig(
+          minZoom: 0.0,
+          maxZoom: 1.0,
+          extensions: [
+            LodExtension(enabled: true, minThreshold: 0.0, midThreshold: 0.0),
+            ...NodeFlowConfig.defaultExtensions().where(
+              (e) => e is! LodExtension,
+            ),
+          ],
+        ),
+        initialViewport: const GraphViewport(zoom: 0.0),
+      );
+      expect(controllerMin.lod!.currentVisibility, same(DetailVisibility.full));
+      controllerMin.setViewport(const GraphViewport(zoom: 0.5));
+      expect(controllerMin.lod!.currentVisibility, same(DetailVisibility.full));
+      controllerMin.dispose();
 
       // All thresholds at 1 - always min except at exactly 1
-      const allMax = LODConfig(minThreshold: 1.0, midThreshold: 1.0);
-      expect(allMax.getVisibilityForZoom(0.0), same(DetailVisibility.minimal));
-      expect(allMax.getVisibilityForZoom(0.99), same(DetailVisibility.minimal));
-      expect(allMax.getVisibilityForZoom(1.0), same(DetailVisibility.full));
+      final controllerMax = NodeFlowController<String, dynamic>(
+        config: NodeFlowConfig(
+          minZoom: 0.0,
+          maxZoom: 1.0,
+          extensions: [
+            LodExtension(enabled: true, minThreshold: 1.0, midThreshold: 1.0),
+            ...NodeFlowConfig.defaultExtensions().where(
+              (e) => e is! LodExtension,
+            ),
+          ],
+        ),
+        initialViewport: const GraphViewport(zoom: 0.0),
+      );
+      expect(
+        controllerMax.lod!.currentVisibility,
+        same(DetailVisibility.minimal),
+      );
+      controllerMax.setViewport(const GraphViewport(zoom: 0.99));
+      expect(
+        controllerMax.lod!.currentVisibility,
+        same(DetailVisibility.minimal),
+      );
+      controllerMax.setViewport(const GraphViewport(zoom: 1.0));
+      expect(controllerMax.lod!.currentVisibility, same(DetailVisibility.full));
+      controllerMax.dispose();
     });
   });
 
@@ -264,13 +332,18 @@ void main() {
 
   group('LodExtension - Current Visibility', () {
     test('returns visibility based on normalized zoom and thresholds', () {
-      const lodConfig = LODConfig(minThreshold: 0.25, midThreshold: 0.60);
-
-      NodeFlowConfig configWithLod(LODConfig lod) => NodeFlowConfig(
+      NodeFlowConfig configWithLod({
+        double minThreshold = 0.25,
+        double midThreshold = 0.60,
+      }) => NodeFlowConfig(
         minZoom: 0.0,
         maxZoom: 1.0,
         extensions: [
-          LodExtension(config: lod),
+          LodExtension(
+            enabled: true,
+            minThreshold: minThreshold,
+            midThreshold: midThreshold,
+          ),
           ...NodeFlowConfig.defaultExtensions().where(
             (e) => e is! LodExtension,
           ),
@@ -279,7 +352,7 @@ void main() {
 
       // Below minThreshold (zoom 0.1 = normalized 0.1)
       final controllerMin = NodeFlowController<String, dynamic>(
-        config: configWithLod(lodConfig),
+        config: configWithLod(),
         initialViewport: const GraphViewport(zoom: 0.1),
       );
       expect(
@@ -290,7 +363,7 @@ void main() {
 
       // Between thresholds (zoom 0.4 = normalized 0.4)
       final controllerMid = NodeFlowController<String, dynamic>(
-        config: configWithLod(lodConfig),
+        config: configWithLod(),
         initialViewport: const GraphViewport(zoom: 0.4),
       );
       expect(
@@ -301,7 +374,7 @@ void main() {
 
       // Above midThreshold (zoom 0.8 = normalized 0.8)
       final controllerMax = NodeFlowController<String, dynamic>(
-        config: configWithLod(lodConfig),
+        config: configWithLod(),
         initialViewport: const GraphViewport(zoom: 0.8),
       );
       expect(controllerMax.lod!.currentVisibility, same(DetailVisibility.full));
@@ -320,9 +393,7 @@ void main() {
           minZoom: 0.0,
           maxZoom: 1.0,
           extensions: [
-            LodExtension(
-              config: const LODConfig(minThreshold: 0.25, midThreshold: 0.60),
-            ),
+            LodExtension(enabled: true, minThreshold: 0.25, midThreshold: 0.60),
             ...NodeFlowConfig.defaultExtensions().where(
               (e) => e is! LodExtension,
             ),
@@ -350,19 +421,17 @@ void main() {
   });
 
   // ===========================================================================
-  // LodExtension - LODConfig Updates
+  // LodExtension - Enable/Disable
   // ===========================================================================
 
-  group('LodExtension - LODConfig Updates', () {
-    test('updateConfig changes visibility behavior', () {
+  group('LodExtension - Enable/Disable', () {
+    test('disable() changes visibility behavior', () {
       final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(
           minZoom: 0.0,
           maxZoom: 1.0,
           extensions: [
-            LodExtension(
-              config: const LODConfig(minThreshold: 0.25, midThreshold: 0.60),
-            ),
+            LodExtension(enabled: true, minThreshold: 0.25, midThreshold: 0.60),
             ...NodeFlowConfig.defaultExtensions().where(
               (e) => e is! LodExtension,
             ),
@@ -377,11 +446,45 @@ void main() {
         same(DetailVisibility.standard),
       );
 
-      // Switch to disabled (always full)
-      controller.lod!.updateConfig(LODConfig.disabled);
+      // Disable LOD (always full)
+      controller.lod!.disable();
 
       // Now should be full visibility even at same zoom
       expect(controller.lod!.currentVisibility, same(DetailVisibility.full));
+
+      controller.dispose();
+    });
+
+    test('toggle() switches enabled state', () {
+      final controller = NodeFlowController<String, dynamic>(
+        config: NodeFlowConfig(
+          minZoom: 0.0,
+          maxZoom: 1.0,
+          extensions: [
+            LodExtension(enabled: true, minThreshold: 0.25, midThreshold: 0.60),
+            ...NodeFlowConfig.defaultExtensions().where(
+              (e) => e is! LodExtension,
+            ),
+          ],
+        ),
+        initialViewport: const GraphViewport(zoom: 0.1),
+      );
+
+      final lod = controller.lod!;
+
+      // Initially enabled, should be minimal
+      expect(lod.isEnabled, isTrue);
+      expect(lod.currentVisibility, same(DetailVisibility.minimal));
+
+      // Toggle off
+      lod.toggle();
+      expect(lod.isEnabled, isFalse);
+      expect(lod.currentVisibility, same(DetailVisibility.full));
+
+      // Toggle back on
+      lod.toggle();
+      expect(lod.isEnabled, isTrue);
+      expect(lod.currentVisibility, same(DetailVisibility.minimal));
 
       controller.dispose();
     });
@@ -398,9 +501,7 @@ void main() {
           minZoom: 0.0,
           maxZoom: 1.0,
           extensions: [
-            LodExtension(
-              config: const LODConfig(minThreshold: 0.25, midThreshold: 0.60),
-            ),
+            LodExtension(enabled: true, minThreshold: 0.25, midThreshold: 0.60),
             ...NodeFlowConfig.defaultExtensions().where(
               (e) => e is! LodExtension,
             ),

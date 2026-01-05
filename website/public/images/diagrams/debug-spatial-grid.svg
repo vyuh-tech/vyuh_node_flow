@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 280" fill="none">
+  <style>
+    .cell { fill: #f8fafc; stroke: #e5e7eb; stroke-width: 1; }
+    .cell-active { fill: #dcfce7; stroke: #22c55e; stroke-width: 2; }
+    .cell-label { font-family: system-ui, sans-serif; font-size: 10px; fill: #9ca3af; }
+    .cell-label-active { font-family: system-ui, sans-serif; font-size: 10px; fill: #16a34a; font-weight: 600; }
+    .title { font-family: system-ui, sans-serif; font-size: 11px; fill: #374151; }
+    .arrow { stroke: #6366f1; stroke-width: 1.5; fill: none; marker-end: url(#arrowIndigo); }
+  </style>
+
+  <defs>
+    <marker id="arrowIndigo" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#6366f1"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="20" y="25" class="title">Spatial Index Grid</text>
+
+  <!-- Grid cells 4x3 -->
+  <!-- Row 0 -->
+  <rect x="20" y="40" width="80" height="60" class="cell"/>
+  <text x="60" y="75" class="cell-label" text-anchor="middle">0</text>
+
+  <rect x="100" y="40" width="80" height="60" class="cell"/>
+  <text x="140" y="75" class="cell-label" text-anchor="middle">1</text>
+
+  <rect x="180" y="40" width="80" height="60" class="cell"/>
+  <text x="220" y="75" class="cell-label" text-anchor="middle">2</text>
+
+  <rect x="260" y="40" width="80" height="60" class="cell"/>
+  <text x="300" y="75" class="cell-label" text-anchor="middle">3</text>
+
+  <!-- Row 1 -->
+  <rect x="20" y="100" width="80" height="60" class="cell"/>
+  <text x="60" y="135" class="cell-label" text-anchor="middle">4</text>
+
+  <rect x="100" y="100" width="80" height="60" class="cell-active"/>
+  <text x="140" y="135" class="cell-label-active" text-anchor="middle">[5]</text>
+
+  <rect x="180" y="100" width="80" height="60" class="cell"/>
+  <text x="220" y="135" class="cell-label" text-anchor="middle">6</text>
+
+  <rect x="260" y="100" width="80" height="60" class="cell"/>
+  <text x="300" y="135" class="cell-label" text-anchor="middle">7</text>
+
+  <!-- Row 2 -->
+  <rect x="20" y="160" width="80" height="60" class="cell"/>
+  <text x="60" y="195" class="cell-label" text-anchor="middle">8</text>
+
+  <rect x="100" y="160" width="80" height="60" class="cell"/>
+  <text x="140" y="195" class="cell-label" text-anchor="middle">9</text>
+
+  <rect x="180" y="160" width="80" height="60" class="cell"/>
+  <text x="220" y="195" class="cell-label" text-anchor="middle">10</text>
+
+  <rect x="260" y="160" width="80" height="60" class="cell"/>
+  <text x="300" y="195" class="cell-label" text-anchor="middle">11</text>
+
+  <!-- Legend -->
+  <text x="20" y="245" class="title">Legend:</text>
+  <rect x="80" y="232" width="16" height="16" class="cell-active"/>
+  <text x="102" y="245" class="cell-label">= active cell (mouse position)</text>
+
+  <!-- Arrow pointing to active cell -->
+  <path d="M 360 130 L 185 130" class="arrow"/>
+  <text x="365" y="125" class="cell-label">mouse</text>
+  <text x="365" y="138" class="cell-label">here</text>
+</svg>

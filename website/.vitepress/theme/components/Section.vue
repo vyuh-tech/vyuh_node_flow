@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{
-  /** Whether this is the first content section (adds top border) - deprecated, use borderTop */
+  /** Whether this is the first content section (adds top border) */
   first?: boolean;
   /** Container max-width: 'sm' (4xl), 'md' (5xl), 'lg' (6xl), 'xl' (7xl) */
   size?: 'sm' | 'md' | 'lg' | 'xl';

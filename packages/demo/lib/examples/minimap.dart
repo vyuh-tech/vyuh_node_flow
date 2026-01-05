@@ -23,13 +23,9 @@ class _MinimapExampleState extends State<MinimapExample> {
       config: NodeFlowConfig(
         extensions: [
           MinimapExtension(
-            config: const MinimapConfig(
-              visible: true,
-              interactive: true,
-              position: MinimapPosition.bottomRight,
-            ),
-            // Size is set in the theme but can be updated reactively via
-            // controller.minimap.setSize()
+            visible: true,
+            interactive: true,
+            position: MinimapPosition.bottomRight,
             theme: MinimapTheme.light,
           ),
           StatsExtension(),

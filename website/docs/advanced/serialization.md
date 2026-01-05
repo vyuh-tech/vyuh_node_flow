@@ -424,6 +424,6 @@ class VersionedGraph {
 
 ## See Also
 
-- [Graph API](/docs/core-concepts/controller)
-- [Node Data](/docs/core-concepts/nodes)
+- [Graph API](/docs/concepts/controller)
+- [Node Data](/docs/concepts/nodes)
 - [Examples](/docs/examples/)

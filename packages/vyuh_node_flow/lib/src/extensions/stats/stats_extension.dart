@@ -38,14 +38,11 @@ import '../node_flow_extension.dart';
 /// Observer(builder: (_) => Text(controller.stats.summary));
 /// // Output: "25 nodes, 40 connections"
 /// ```
-class StatsExtension extends NodeFlowExtension<void> {
+class StatsExtension extends NodeFlowExtension {
   /// Creates a stats extension.
   StatsExtension();
 
   NodeFlowController? _controller;
-
-  @override
-  Null get config => null;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // Observable Collections (direct access for reactive UI)

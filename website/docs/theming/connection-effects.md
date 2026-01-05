@@ -535,10 +535,8 @@ Too many animated connections will degrade performance and slow down the user ex
 
 Explore related topics:
 
-- [Connection Labels](/docs/advanced/connection-labels) - Add text
-  labels to connections
 - [Theming](/docs/theming/overview) - Customize the overall appearance
-- [Connections](/docs/core-concepts/connections) - Learn more about
+- [Connections](/docs/concepts/connections) - Learn more about
   connections
 
 ::: tip

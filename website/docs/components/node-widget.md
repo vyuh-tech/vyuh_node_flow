@@ -579,6 +579,6 @@ Widget buildNodeWithProgress(Node<ProcessData> node) {
 
 ## See Also
 
-- [Nodes](/docs/core-concepts/nodes) - Understanding node concepts
+- [Nodes](/docs/concepts/nodes) - Understanding node concepts
 - [NodeFlowEditor](/docs/components/node-flow-editor) - Main editor component
 - [Theming](/docs/theming/overview) - Styling and theming

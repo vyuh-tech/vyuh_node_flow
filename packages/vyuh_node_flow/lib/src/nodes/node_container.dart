@@ -166,7 +166,7 @@ class NodeContainer<T> extends StatelessWidget {
                     // Background/foreground layers use translucent for hit testing
                     hitTestBehavior: HitTestBehavior.opaque,
                     // Autopan configuration
-                    autoPan: controller.autoPan?.currentConfig,
+                    autoPan: controller.autoPan,
                     getViewportBounds: () =>
                         controller.viewportScreenBounds.rect,
                     onAutoPan: (delta) {

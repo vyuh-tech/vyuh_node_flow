@@ -25,8 +25,8 @@ export '../extensions/debug/debug_extension.dart' show DebugMode;
 /// ```dart
 /// NodeFlowConfig(
 ///   extensions: [
-///     MinimapExtension(config: MinimapConfig(visible: true, interactive: true)),
-///     LodExtension(config: LODConfig.disabled),
+///     MinimapExtension(visible: true, interactive: true),
+///     LodExtension(enabled: false),
 ///     AutoPanExtension(config: AutoPanConfig.fast),
 ///     DebugExtension(mode: DebugMode.spatialIndex),
 ///     StatsExtension(),
@@ -51,7 +51,7 @@ class NodeFlowConfig {
     double maxZoom = 2.0,
     bool scrollToZoom = true,
     this.showAttribution = true,
-    List<NodeFlowExtension<dynamic>>? extensions,
+    List<NodeFlowExtension>? extensions,
   }) : extensionRegistry = ExtensionRegistry(
          extensions ?? defaultExtensions(),
        ) {
@@ -66,11 +66,11 @@ class NodeFlowConfig {
   }
 
   /// Default extensions for a new config.
-  static List<NodeFlowExtension<dynamic>> defaultExtensions() {
+  static List<NodeFlowExtension> defaultExtensions() {
     return [
       AutoPanExtension(),
       DebugExtension(),
-      LodExtension(config: LODConfig.disabled),
+      LodExtension(),
       MinimapExtension(),
       StatsExtension(),
     ];

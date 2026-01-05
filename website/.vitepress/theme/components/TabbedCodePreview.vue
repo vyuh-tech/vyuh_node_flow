@@ -81,6 +81,13 @@ const activeTab = ref(props.tabs[0]?.id || '');
   @apply flex gap-1 px-3 py-2;
   @apply bg-slate-800 dark:bg-slate-900;
   @apply border-b border-white/10;
+  @apply overflow-x-auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tab-bar::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-button {
@@ -91,6 +98,7 @@ const activeTab = ref(props.tabs[0]?.id || '');
   @apply transition-all duration-200;
   @apply cursor-pointer;
   @apply border-none bg-transparent;
+  @apply flex-shrink-0;
   font-family: var(--vn-font-mono);
 }
 

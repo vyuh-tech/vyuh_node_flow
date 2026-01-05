@@ -345,5 +345,5 @@ NodeFlowEditor(
 
 - [Connection Effects](/docs/theming/connection-effects) - Animate your
   connections
-- [Connections](/docs/core-concepts/connections) - Understanding connections
+- [Connections](/docs/concepts/connections) - Understanding connections
 - [Theming Overview](/docs/theming/overview) - Complete theming guide

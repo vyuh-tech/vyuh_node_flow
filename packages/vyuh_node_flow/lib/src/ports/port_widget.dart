@@ -435,7 +435,7 @@ class _PortWidgetState<T> extends State<PortWidget<T>> {
                   onMouseLeave: () => _handleHoverChange(false),
                   cursor: cursor,
                   // Autopan configuration for connection dragging
-                  autoPan: widget.controller.autoPan?.currentConfig,
+                  autoPan: widget.controller.autoPan,
                   getViewportBounds: () =>
                       widget.controller.viewportScreenBounds.rect,
                   onAutoPan: _handleAutoPan,

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 300" fill="none">
+  <style>
+    .edge-zone { fill: #fef3c7; }
+    .safe-area { fill: #f8fafc; stroke: #6366f1; stroke-width: 2; stroke-dasharray: 6 3; }
+    .viewport { fill: none; stroke: #e2e8f0; stroke-width: 2; rx: 4; }
+    .label { font-family: system-ui, sans-serif; font-size: 11px; fill: #6b7280; }
+    .label-bold { font-family: system-ui, sans-serif; font-size: 11px; fill: #92400e; font-weight: 600; }
+  </style>
+
+  <!-- Outer viewport border -->
+  <rect x="20" y="20" width="420" height="260" class="viewport" rx="4"/>
+
+  <!-- Full edge zone background -->
+  <rect x="20" y="20" width="420" height="260" class="edge-zone" rx="4"/>
+
+  <!-- Safe area (center) - overlays the edge zone -->
+  <rect x="60" y="60" width="340" height="180" class="safe-area" rx="4"/>
+
+  <!-- Labels -->
+  <text x="230" y="44" class="label-bold" text-anchor="middle">EDGE ZONE</text>
+  <text x="230" y="155" class="label" text-anchor="middle">Safe area</text>
+  <text x="230" y="172" class="label" text-anchor="middle">(no auto-pan)</text>
+
+  <!-- Dimension markers -->
+  <line x1="60" y1="12" x2="60" y2="22" stroke="#9ca3af" stroke-width="1"/>
+  <line x1="400" y1="12" x2="400" y2="22" stroke="#9ca3af" stroke-width="1"/>
+  <line x1="60" y1="14" x2="400" y2="14" stroke="#9ca3af" stroke-width="1"/>
+  <text x="230" y="9" class="label" text-anchor="middle" font-size="10">edgePadding</text>
+</svg>

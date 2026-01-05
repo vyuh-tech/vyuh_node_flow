@@ -7,22 +7,9 @@ import 'events/events.dart';
 /// additional capabilities without modifying core behavior. Each extension
 /// manages its own state and reacts to graph events.
 ///
-/// ## Type Parameter
-///
-/// The [TConfig] type parameter represents the configuration type for this
-/// extension. Use `void` for extensions that don't require configuration:
-///
-/// ```dart
-/// // Extension with configuration
-/// class MinimapExtension extends NodeFlowExtension<MinimapConfig> { ... }
-///
-/// // Extension without configuration
-/// class StatsExtension extends NodeFlowExtension<void> { ... }
-/// ```
-///
 /// ## Lifecycle
 ///
-/// 1. Extension is created (optionally with config)
+/// 1. Extension is created with its configuration
 /// 2. [attach] is called with the controller reference
 /// 3. [onEvent] is called for each graph event
 /// 4. [detach] is called when the extension is removed
@@ -30,14 +17,11 @@ import 'events/events.dart';
 /// ## Example Implementation
 ///
 /// ```dart
-/// class LoggingExtension extends NodeFlowExtension<void> {
+/// class LoggingExtension extends NodeFlowExtension {
 ///   NodeFlowController? _controller;
 ///
 ///   @override
 ///   String get id => 'logging';
-///
-///   @override
-///   void get config => null;
 ///
 ///   @override
 ///   void attach(NodeFlowController controller) {
@@ -64,18 +48,12 @@ import 'events/events.dart';
 /// final controller = NodeFlowController<MyData>();
 /// controller.addExtension(LoggingExtension());
 /// ```
-abstract class NodeFlowExtension<TConfig> {
+abstract class NodeFlowExtension {
   /// Unique identifier for this extension.
   ///
   /// Used to prevent duplicate registrations and for removal.
   /// Should be a descriptive, kebab-case string like 'undo-redo' or 'export'.
   String get id;
-
-  /// The configuration for this extension.
-  ///
-  /// For extensions with configuration, this returns the current config.
-  /// For extensions without configuration (TConfig = void), return `null`.
-  TConfig? get config;
 
   /// Called when the extension is attached to a controller.
   ///
