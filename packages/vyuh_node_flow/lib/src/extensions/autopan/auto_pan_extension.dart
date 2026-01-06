@@ -1,12 +1,10 @@
+import 'package:flutter/animation.dart';
+import 'package:flutter/painting.dart';
 import 'package:mobx/mobx.dart';
 
-import '../../editor/auto_pan/auto_pan_config.dart';
 import '../../editor/controller/node_flow_controller.dart';
 import '../events/events.dart';
 import '../node_flow_extension.dart';
-
-// Re-export for convenience
-export '../../editor/auto_pan/auto_pan_config.dart';
 
 /// Extension for managing autopan behavior during drag operations.
 ///
@@ -19,83 +17,227 @@ export '../../editor/auto_pan/auto_pan_config.dart';
 /// // Configure via NodeFlowConfig
 /// NodeFlowConfig(
 ///   extensions: [
-///     AutoPanExtension(config: AutoPanConfig.fast),
+///     AutoPanExtension(enabled: true),
 ///   ],
 /// );
 ///
 /// // Access via controller
-/// controller.autoPan.isEnabled; // true
-/// controller.autoPan.config;    // AutoPanConfig.fast
+/// controller.autoPan?.isEnabled;  // true
 ///
 /// // Disable at runtime
-/// controller.autoPan.disable();
+/// controller.autoPan?.disable();
 ///
-/// // Change config at runtime
-/// controller.autoPan.setConfig(AutoPanConfig.precise);
+/// // Use presets
+/// controller.autoPan?.useFast();
+/// controller.autoPan?.usePrecise();
 /// ```
-class AutoPanExtension extends NodeFlowExtension<AutoPanConfig?> {
+///
+/// ## Edge Detection Zones
+///
+/// ```
+/// ┌─────────────────────────────────────────────┐
+/// │░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░│ ← edgePadding.top
+/// │░░┌─────────────────────────────────────────┐░░│
+/// │░░│                                         │░░│
+/// │░░│         Safe area (no pan)              │░░│
+/// │░░│                                         │░░│
+/// │░░└─────────────────────────────────────────┘░░│
+/// │░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░│ ← edgePadding.bottom
+/// └─────────────────────────────────────────────┘
+///  ↑                                           ↑
+///  edgePadding.left               edgePadding.right
+/// ```
+class AutoPanExtension extends NodeFlowExtension {
   /// Creates an autopan extension.
   ///
-  /// Pass `null` to disable autopan, or an [AutoPanConfig] to enable it.
-  AutoPanExtension({AutoPanConfig? config = AutoPanConfig.normal})
-    : _config = Observable(config);
+  /// When [enabled] is true, autopan is active with the given settings.
+  /// Pass [enabled]: false to disable autopan completely.
+  ///
+  /// Parameters:
+  /// - [enabled]: Whether autopan is enabled (default: true)
+  /// - [edgePadding]: Distance from viewport edges where autopan triggers (default: 50px all sides)
+  /// - [panAmount]: Base pan amount per tick in graph units (default: 10.0)
+  /// - [panInterval]: Duration between pan ticks (default: 16ms)
+  /// - [useProximityScaling]: Whether to scale pan speed based on proximity (default: false)
+  /// - [speedCurve]: Curve for proximity-based speed scaling
+  AutoPanExtension({
+    bool enabled = true,
+    EdgeInsets edgePadding = const EdgeInsets.all(50.0),
+    double panAmount = 10.0,
+    Duration panInterval = const Duration(milliseconds: 16),
+    bool useProximityScaling = false,
+    Curve? speedCurve,
+  }) : _enabled = Observable(enabled),
+       _edgePadding = Observable(edgePadding),
+       _panAmount = Observable(panAmount),
+       _panInterval = Observable(panInterval),
+       _useProximityScaling = Observable(useProximityScaling),
+       _speedCurve = Observable(speedCurve);
 
-  final Observable<AutoPanConfig?> _config;
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Observable State
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  final Observable<bool> _enabled;
+  final Observable<EdgeInsets> _edgePadding;
+  final Observable<double> _panAmount;
+  final Observable<Duration> _panInterval;
+  final Observable<bool> _useProximityScaling;
+  final Observable<Curve?> _speedCurve;
 
   @override
   String get id => 'auto-pan';
 
-  @override
-  AutoPanConfig? get config => _config.value;
-
   // ═══════════════════════════════════════════════════════════════════════════
-  // State
+  // Enabled State
   // ═══════════════════════════════════════════════════════════════════════════
 
   /// Whether autopan is currently enabled.
-  bool get isEnabled => _config.value?.isEnabled ?? false;
+  bool get isEnabled => _enabled.value && _isEffectivelyEnabled;
 
-  /// Current autopan configuration, or null if disabled.
-  AutoPanConfig? get currentConfig => _config.value;
+  /// Whether autopan settings would allow panning (non-zero padding and amount).
+  bool get _isEffectivelyEnabled =>
+      (_edgePadding.value.left > 0 ||
+          _edgePadding.value.right > 0 ||
+          _edgePadding.value.top > 0 ||
+          _edgePadding.value.bottom > 0) &&
+      _panAmount.value > 0;
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // Actions
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /// Enables autopan with the given configuration.
-  void enable([AutoPanConfig config = AutoPanConfig.normal]) {
-    runInAction(() => _config.value = config);
-  }
+  /// Enables autopan.
+  void enable() => runInAction(() => _enabled.value = true);
 
   /// Disables autopan.
-  void disable() {
-    runInAction(() => _config.value = null);
-  }
+  void disable() => runInAction(() => _enabled.value = false);
 
-  /// Toggles autopan on/off.
+  /// Toggles autopan enabled state.
+  void toggle() => runInAction(() => _enabled.value = !_enabled.value);
+
+  /// Sets the enabled state.
+  void setEnabled(bool enabled) => runInAction(() => _enabled.value = enabled);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Configuration Properties
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Distance from each viewport edge where autopan activates.
   ///
-  /// When enabling, uses the provided [config] or defaults to [AutoPanConfig.normal].
-  void toggle([AutoPanConfig config = AutoPanConfig.normal]) {
+  /// When the pointer enters any of these zones during a drag, autopan begins.
+  EdgeInsets get edgePadding => _edgePadding.value;
+
+  /// Sets the edge padding.
+  void setEdgePadding(EdgeInsets padding) =>
+      runInAction(() => _edgePadding.value = padding);
+
+  /// Base pan amount per tick in graph units.
+  double get panAmount => _panAmount.value;
+
+  /// Sets the pan amount.
+  void setPanAmount(double amount) =>
+      runInAction(() => _panAmount.value = amount);
+
+  /// Duration between pan ticks.
+  Duration get panInterval => _panInterval.value;
+
+  /// Sets the pan interval.
+  void setPanInterval(Duration interval) =>
+      runInAction(() => _panInterval.value = interval);
+
+  /// Whether to scale pan speed based on proximity to the edge.
+  bool get useProximityScaling => _useProximityScaling.value;
+
+  /// Sets whether to use proximity scaling.
+  void setUseProximityScaling(bool value) =>
+      runInAction(() => _useProximityScaling.value = value);
+
+  /// Curve for proximity-based speed scaling.
+  Curve? get speedCurve => _speedCurve.value;
+
+  /// Sets the speed curve.
+  void setSpeedCurve(Curve? curve) =>
+      runInAction(() => _speedCurve.value = curve);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Presets
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Applies normal autopan settings (balanced for most use cases).
+  ///
+  /// - Edge padding: 50px all sides
+  /// - Pan amount: 10 graph units
+  /// - Pan interval: 16ms
+  void useNormal() {
     runInAction(() {
-      _config.value = _config.value == null ? config : null;
+      _enabled.value = true;
+      _edgePadding.value = const EdgeInsets.all(50.0);
+      _panAmount.value = 10.0;
+      _panInterval.value = const Duration(milliseconds: 16);
+      _useProximityScaling.value = false;
+      _speedCurve.value = null;
     });
   }
 
-  /// Sets the autopan configuration.
+  /// Applies fast autopan settings (for large canvases).
   ///
-  /// Pass `null` to disable autopan.
-  void setConfig(AutoPanConfig? config) {
-    runInAction(() => _config.value = config);
+  /// - Edge padding: 60px all sides
+  /// - Pan amount: 20 graph units
+  /// - Pan interval: 12ms
+  void useFast() {
+    runInAction(() {
+      _enabled.value = true;
+      _edgePadding.value = const EdgeInsets.all(60.0);
+      _panAmount.value = 20.0;
+      _panInterval.value = const Duration(milliseconds: 12);
+      _useProximityScaling.value = false;
+      _speedCurve.value = null;
+    });
   }
 
-  /// Sets autopan to fast mode (larger pan amounts, quicker intervals).
-  void useFast() => setConfig(AutoPanConfig.fast);
+  /// Applies precise autopan settings (for fine control).
+  ///
+  /// - Edge padding: 30px all sides
+  /// - Pan amount: 5 graph units
+  /// - Pan interval: 20ms
+  void usePrecise() {
+    runInAction(() {
+      _enabled.value = true;
+      _edgePadding.value = const EdgeInsets.all(30.0);
+      _panAmount.value = 5.0;
+      _panInterval.value = const Duration(milliseconds: 20);
+      _useProximityScaling.value = false;
+      _speedCurve.value = null;
+    });
+  }
 
-  /// Sets autopan to normal mode (balanced settings).
-  void useNormal() => setConfig(AutoPanConfig.normal);
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Pan Amount Calculation
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Sets autopan to precise mode (smaller pan amounts, finer control).
-  void usePrecise() => setConfig(AutoPanConfig.precise);
+  /// Calculates the scaled pan amount based on proximity to a specific edge.
+  ///
+  /// [proximity] is the distance from the edge zone boundary to the pointer,
+  /// where 0 is at the boundary and the edge's padding is at the viewport edge.
+  ///
+  /// [edgePaddingValue] is the padding for the specific edge being checked
+  /// (e.g., [edgePadding.left], [edgePadding.top], etc.).
+  double calculatePanAmount(
+    double proximity, {
+    required double edgePaddingValue,
+  }) {
+    if (!_useProximityScaling.value || edgePaddingValue <= 0) {
+      return _panAmount.value;
+    }
+
+    // Normalize proximity to 0-1 range (0 = at boundary, 1 = at edge)
+    final normalizedProximity = (proximity / edgePaddingValue).clamp(0.0, 1.0);
+
+    // Apply curve if provided, otherwise use linear scaling
+    final scaleFactor =
+        _speedCurve.value?.transform(normalizedProximity) ??
+        normalizedProximity;
+
+    // Scale from 0.3x to 1.5x the base amount
+    return _panAmount.value * (0.3 + scaleFactor * 1.2);
+  }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // NodeFlowExtension Implementation

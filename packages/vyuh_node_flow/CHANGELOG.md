@@ -1,3 +1,20 @@
+## 0.23.1
+
+ - **FEAT**: added lots of tests across the board to increase coverage to 90%.
+
+## 0.23.0+1
+
+ - **FIX**: update performance test expectation to use `lessThanOrEqualTo` for improved accuracy.
+
+## 0.23.0
+
+ - **FEAT**: remove AutoPanConfig and LODConfig, introduce AutoPanExtension for improved flexibility and updated tests.
+
+## 0.22.3
+
+ - **FEAT**: update documentation links for consistent structure and improved navigation.
+ - **FEAT**: simplify extension configs, refine LOD and minimap APIs, and update examples/tests for consistency across NodeFlow usage.
+
 ## 0.22.2
 
  - **FEAT**: update homepage URL in `pubspec.yaml` to reflect new subdomain.

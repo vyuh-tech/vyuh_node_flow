@@ -327,7 +327,7 @@ const comparisonRows: ComparisonRow[] = [
       }"
       :secondary-actions="[
         {
-          href: '/docs/getting-started/installation',
+          href: '/docs/start/installation',
           icon: 'ph:github-logo-fill',
           label: 'Try Free Version',
         },

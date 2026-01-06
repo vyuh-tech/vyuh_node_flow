@@ -26,6 +26,7 @@ const markerPositions = ref<{ [key: number]: number }>({});
 const scrollOffset = ref(0);
 const codeBodyRef = ref<HTMLElement | null>(null);
 const highlighter = shallowRef<Highlighter | null>(null);
+const scrollDebounceTimer = ref<ReturnType<typeof setTimeout> | null>(null);
 
 // Highlight code with shiki
 const highlightCode = async (code: string) => {
@@ -86,9 +87,15 @@ const calculateMarkerPositions = () => {
 };
 
 const handleScroll = () => {
-  if (codeBodyRef.value) {
-    scrollOffset.value = codeBodyRef.value.scrollTop;
+  // Debounce scroll offset updates so markers move after scroll completes
+  if (scrollDebounceTimer.value) {
+    clearTimeout(scrollDebounceTimer.value);
   }
+  scrollDebounceTimer.value = setTimeout(() => {
+    if (codeBodyRef.value) {
+      scrollOffset.value = codeBodyRef.value.scrollTop;
+    }
+  }, 150);
 };
 
 onMounted(async () => {
@@ -117,6 +124,9 @@ watch(() => props.code, async (newCode) => {
 onUnmounted(() => {
   if (codeBodyRef.value) {
     codeBodyRef.value.removeEventListener('scroll', handleScroll);
+  }
+  if (scrollDebounceTimer.value) {
+    clearTimeout(scrollDebounceTimer.value);
   }
   window.removeEventListener('resize', calculateMarkerPositions);
 });

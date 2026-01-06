@@ -243,7 +243,7 @@ NodeFlowConfig createTestConfig({
   double portSnapDistance = 8.0,
   double minZoom = 0.1,
   double maxZoom = 4.0,
-  List<NodeFlowExtension<dynamic>>? extensions,
+  List<NodeFlowExtension>? extensions,
 }) {
   return NodeFlowConfig(
     snapToGrid: snapToGrid,

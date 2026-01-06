@@ -6,10 +6,8 @@
 ///
 /// Key classes:
 /// - [DetailVisibility] - Configuration for which elements are visible
-/// - [LODConfig] - Thresholds and visibility presets for different zoom levels
 /// - [LodExtension] - Extension that provides reactive visibility state
 library;
 
 export 'detail_visibility.dart';
-export 'lod_config.dart';
 export 'lod_extension.dart';

@@ -62,20 +62,14 @@ class AutopanZoneDebugLayer<T> extends StatelessWidget {
     // Observer for reactive updates when debug mode or config changes
     return Observer(
       builder: (context) {
-        final autoPanConfig = autoPan.currentConfig;
-
-        // Only show if autopan zone debug is enabled and autopan is configured
-        if (!debug.showAutoPanZone ||
-            autoPanConfig == null ||
-            !autoPanConfig.isEnabled) {
+        // Only show if autopan zone debug is enabled and autopan is enabled
+        if (!debug.showAutoPanZone || !autoPan.isEnabled) {
           return const SizedBox.shrink();
         }
 
         return IgnorePointer(
           child: CustomPaint(
-            painter: _AutopanZonePainter(
-              edgePadding: autoPanConfig.edgePadding,
-            ),
+            painter: _AutopanZonePainter(edgePadding: autoPan.edgePadding),
             size: Size.infinite,
           ),
         );

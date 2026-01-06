@@ -69,7 +69,8 @@ mixin AutoPanMixin on State<ElementScope> {
     _lastPointerPosition = globalPosition;
 
     // Start autopan timer if configured and not already running
-    if (widget.autoPan != null && _autoPanTimer == null) {
+    final autoPan = widget.autoPan;
+    if (autoPan != null && autoPan.isEnabled && _autoPanTimer == null) {
       _startAutoPan();
     }
   }
@@ -134,11 +135,14 @@ mixin AutoPanMixin on State<ElementScope> {
 
   /// Checks if pointer is in edge zone (autopan zone).
   bool _isInEdgeZone() {
-    final config = widget.autoPan;
+    final autoPan = widget.autoPan;
     final getViewportBounds = widget.getViewportBounds;
     final pointer = _lastPointerPosition;
 
-    if (config == null || getViewportBounds == null || pointer == null) {
+    if (autoPan == null ||
+        !autoPan.isEnabled ||
+        getViewportBounds == null ||
+        pointer == null) {
       return false;
     }
 
@@ -149,7 +153,7 @@ mixin AutoPanMixin on State<ElementScope> {
       return false;
     }
 
-    final padding = config.edgePadding;
+    final padding = autoPan.edgePadding;
 
     final inLeftZone =
         padding.left > 0 && pointer.dx < bounds.left + padding.left;
@@ -164,25 +168,26 @@ mixin AutoPanMixin on State<ElementScope> {
 
   /// Starts the autopan timer.
   void _startAutoPan() {
-    final config = widget.autoPan;
-    if (config == null || !config.isEnabled || _autoPanTimer != null) {
+    final autoPan = widget.autoPan;
+    if (autoPan == null || !autoPan.isEnabled || _autoPanTimer != null) {
       return;
     }
 
     _autoPanTimer = Timer.periodic(
-      config.panInterval,
+      autoPan.panInterval,
       (_) => _performAutoPan(),
     );
   }
 
   /// Performs autopan when pointer is in edge zone or outside bounds.
   void _performAutoPan() {
-    final config = widget.autoPan;
+    final autoPan = widget.autoPan;
     final onAutoPan = widget.onAutoPan;
     final getViewportBounds = widget.getViewportBounds;
     final pointer = _lastPointerPosition;
 
-    if (config == null ||
+    if (autoPan == null ||
+        !autoPan.isEnabled ||
         onAutoPan == null ||
         getViewportBounds == null ||
         pointer == null ||
@@ -191,7 +196,7 @@ mixin AutoPanMixin on State<ElementScope> {
     }
 
     final bounds = getViewportBounds();
-    final padding = config.edgePadding;
+    final padding = autoPan.edgePadding;
     final isOutside = !bounds.contains(pointer);
 
     // If pointer is inside inner bounds (not in edge zone), no autopan needed
@@ -209,11 +214,11 @@ mixin AutoPanMixin on State<ElementScope> {
     if (pointer.dx < bounds.left + padding.left) {
       if (isOutside && pointer.dx < bounds.left) {
         // Outside left - pan at max speed
-        dx = -config.panAmount;
+        dx = -autoPan.panAmount;
       } else if (padding.left > 0) {
         // In left edge zone - scale by proximity
         final proximity = bounds.left + padding.left - pointer.dx;
-        dx = -config.calculatePanAmount(
+        dx = -autoPan.calculatePanAmount(
           proximity,
           edgePaddingValue: padding.left,
         );
@@ -223,11 +228,11 @@ mixin AutoPanMixin on State<ElementScope> {
     else if (pointer.dx > bounds.right - padding.right) {
       if (isOutside && pointer.dx > bounds.right) {
         // Outside right - pan at max speed
-        dx = config.panAmount;
+        dx = autoPan.panAmount;
       } else if (padding.right > 0) {
         // In right edge zone - scale by proximity
         final proximity = pointer.dx - (bounds.right - padding.right);
-        dx = config.calculatePanAmount(
+        dx = autoPan.calculatePanAmount(
           proximity,
           edgePaddingValue: padding.right,
         );
@@ -238,11 +243,11 @@ mixin AutoPanMixin on State<ElementScope> {
     if (pointer.dy < bounds.top + padding.top) {
       if (isOutside && pointer.dy < bounds.top) {
         // Outside top - pan at max speed
-        dy = -config.panAmount;
+        dy = -autoPan.panAmount;
       } else if (padding.top > 0) {
         // In top edge zone - scale by proximity
         final proximity = bounds.top + padding.top - pointer.dy;
-        dy = -config.calculatePanAmount(
+        dy = -autoPan.calculatePanAmount(
           proximity,
           edgePaddingValue: padding.top,
         );
@@ -252,11 +257,11 @@ mixin AutoPanMixin on State<ElementScope> {
     else if (pointer.dy > bounds.bottom - padding.bottom) {
       if (isOutside && pointer.dy > bounds.bottom) {
         // Outside bottom - pan at max speed
-        dy = config.panAmount;
+        dy = autoPan.panAmount;
       } else if (padding.bottom > 0) {
         // In bottom edge zone - scale by proximity
         final proximity = pointer.dy - (bounds.bottom - padding.bottom);
-        dy = config.calculatePanAmount(
+        dy = autoPan.calculatePanAmount(
           proximity,
           edgePaddingValue: padding.bottom,
         );

@@ -157,10 +157,10 @@ void main() {
       expect(ext.id, equals('debug'));
     });
 
-    test('config returns current mode', () {
+    test('mode returns current mode', () {
       final ext = DebugExtension(mode: DebugMode.all);
 
-      expect(ext.config, equals(DebugMode.all));
+      expect(ext.mode, equals(DebugMode.all));
     });
   });
 

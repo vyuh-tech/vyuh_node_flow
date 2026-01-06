@@ -23,12 +23,7 @@ class _LODExampleState extends State<LODExample> {
     _controller = NodeFlowController<Map<String, dynamic>, dynamic>(
       config: NodeFlowConfig(
         extensions: [
-          LodExtension(
-            config: LODConfig(
-              minThreshold: _minThreshold,
-              midThreshold: _midThreshold,
-            ),
-          ),
+          LodExtension(),
           AutoPanExtension(),
           DebugExtension(),
           MinimapExtension(),
@@ -292,12 +287,17 @@ class _LODExampleState extends State<LODExample> {
   }
 
   void _updateLODConfig() {
+    final lod = _controller.lod;
+    if (lod == null) return;
+
     if (_lodEnabled) {
-      _controller.lod?.updateConfig(
-        LODConfig(minThreshold: _minThreshold, midThreshold: _midThreshold),
+      lod.setThresholds(
+        minThreshold: _minThreshold,
+        midThreshold: _midThreshold,
       );
+      lod.enable();
     } else {
-      _controller.lod?.disable();
+      lod.disable();
     }
   }
 

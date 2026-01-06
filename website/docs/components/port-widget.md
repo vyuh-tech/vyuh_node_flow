@@ -407,6 +407,6 @@ class CustomPortNode extends StatelessWidget {
 
 ## See Also
 
-- [Ports (Core Concepts)](/docs/core-concepts/ports) - Port model and configuration
-- [Connections](/docs/core-concepts/connections) - Connection handling
+- [Ports (Core Concepts)](/docs/concepts/ports) - Port model and configuration
+- [Connections](/docs/concepts/connections) - Connection handling
 - [Theming](/docs/theming/overview) - Port theme customization

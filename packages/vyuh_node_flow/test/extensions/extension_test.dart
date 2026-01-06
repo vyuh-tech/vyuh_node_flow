@@ -7,14 +7,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 /// A simple test extension that tracks events
-class TestExtension extends NodeFlowExtension<void> {
+class TestExtension extends NodeFlowExtension {
   @override
   final String id;
 
   TestExtension({this.id = 'test-extension'});
-
-  @override
-  Null get config => null;
 
   NodeFlowController? controller;
   final List<GraphEvent> events = [];

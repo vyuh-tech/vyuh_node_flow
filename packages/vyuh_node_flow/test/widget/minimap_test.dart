@@ -434,7 +434,7 @@ void main() {
       final visibleController = createTestController(
         config: NodeFlowConfig(
           extensions: [
-            MinimapExtension(config: const MinimapConfig(visible: true)),
+            MinimapExtension(visible: true),
             ...NodeFlowConfig.defaultExtensions().where(
               (e) => e is! MinimapExtension,
             ),
@@ -477,7 +477,7 @@ void main() {
       final hiddenController = createTestController(
         config: NodeFlowConfig(
           extensions: [
-            MinimapExtension(config: const MinimapConfig(visible: false)),
+            MinimapExtension(visible: false),
             ...NodeFlowConfig.defaultExtensions().where(
               (e) => e is! MinimapExtension,
             ),

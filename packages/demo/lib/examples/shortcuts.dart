@@ -34,7 +34,7 @@ class _ShortcutsExampleState extends State<ShortcutsExample> {
     final config = NodeFlowConfig(
       snapToGrid: false,
       extensions: [
-        MinimapExtension(config: const MinimapConfig(visible: true)),
+        MinimapExtension(visible: true),
         StatsExtension(),
         ...NodeFlowConfig.defaultExtensions().where(
           (e) => e is! MinimapExtension,

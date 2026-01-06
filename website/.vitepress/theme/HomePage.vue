@@ -24,7 +24,8 @@ import WordFlipper from './components/WordFlipper.vue';
 const demoUrl = computed(() => {
   const path = '#/hero/image?embed=true';
   return import.meta.env.DEV
-    ? `http://localhost:8080/${path}`
+    ? `https://flow.demo.vyuh.tech/${path}`
+    // ? `http://localhost:8080/${path}`
     : `https://flow.demo.vyuh.tech/${path}`;
 });
 
@@ -371,7 +372,7 @@ const heroBlinkCells = generateBlinkCells(20, 42);
           class="flex gap-4 flex-wrap hero-animate-4 opacity-0 max-xl:justify-center mt-12"
         >
           <CtaButton
-            href="/docs/getting-started/installation"
+            href="/docs/start/installation"
             variant="primary"
             size="large"
           >
@@ -476,7 +477,7 @@ const heroBlinkCells = generateBlinkCells(20, 42);
       title="Ready to Create?"
       subtitle="Join developers building next-generation visual editors with Flutter. Production-ready, fully typed, and beautifully designed."
       :primary-action="{
-        href: '/docs/getting-started/installation',
+        href: '/docs/start/installation',
         icon: 'ph:book-open-fill',
         label: 'Read the Docs',
       }"

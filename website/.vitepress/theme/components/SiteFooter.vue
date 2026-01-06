@@ -22,11 +22,11 @@ defineProps<{
       <div class="footer-links">
         <div class="footer-column">
           <h4 class="footer-heading">Resources</h4>
-          <a href="/docs/getting-started/installation" class="footer-link"
+          <a href="/docs/start/installation" class="footer-link"
             ><Icon icon="ph:book-open-fill" /> Documentation</a
           >
-          <a href="/docs/api-reference/" class="footer-link"
-            ><Icon icon="ph:code-fill" /> API Reference</a
+          <a href="/docs/api/" class="footer-link"
+            ><Icon icon="ph:code-fill" /> API</a
           >
           <a href="/docs/examples/" class="footer-link"
             ><Icon icon="ph:folder-open-fill" /> Examples</a

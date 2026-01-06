@@ -227,7 +227,7 @@ enum DebugMode {
 /// // Set specific mode
 /// controller.debug.setMode(DebugMode.all);
 /// ```
-class DebugExtension extends NodeFlowExtension<DebugMode> {
+class DebugExtension extends NodeFlowExtension {
   /// Creates a debug extension.
   ///
   /// Defaults to [DebugMode.none] (no debug overlays) and [DebugTheme.light].
@@ -242,9 +242,6 @@ class DebugExtension extends NodeFlowExtension<DebugMode> {
 
   @override
   String get id => 'debug';
-
-  @override
-  DebugMode get config => _mode.value;
 
   /// The visual theme for debug visualizations.
   ///

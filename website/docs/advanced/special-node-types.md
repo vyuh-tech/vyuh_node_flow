@@ -9,7 +9,7 @@ description: Add comment nodes and group nodes to organize your flows
 Canvas showing both special node types: yellow CommentNode with multi-line text in the foreground, and a blue GroupNode containing several nodes with 'Data Processing' title header. Shows how they integrate with regular nodes.
 :::
 
-Vyuh Node Flow provides two special node types for organizing and annotating your flows. These are full-fledged nodes (not a separate annotation system) and are managed via the standard `controller.addNode()` API.
+Vyuh Node Flow provides two special node types for organizing and annotating your flows. These are full-fledged nodes managed via the standard `controller.addNode()` API.
 
 <Card title="Comment Nodes" href="#comment-nodes">
 Free-floating sticky notes for comments and documentation
@@ -416,6 +416,6 @@ controller.loadGraph(loadedGraph);
 
 ## See Also
 
-- [Level of Detail](/docs/advanced/lod) - Visibility control at different zoom levels
+- [Level of Detail](/docs/extensions/lod) - Visibility control at different zoom levels
 - [Theming Overview](/docs/theming/overview) - Customize node appearance
-- [Controller](/docs/core-concepts/controller) - Full controller API
+- [Controller](/docs/concepts/controller) - Full controller API

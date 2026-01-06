@@ -607,8 +607,8 @@ class _GridStyleDemoState extends State<GridStyleDemo> {
 Explore more theming options:
 
 - [Theme Overview](/docs/theming/overview) - Complete theming guide
-- [Connection Styles](/docs/core-concepts/connections) - Customize connections
-- [Node Styling](/docs/core-concepts/nodes) - Style your nodes
+- [Connection Styles](/docs/concepts/connections) - Customize connections
+- [Node Styling](/docs/concepts/nodes) - Style your nodes
 
 ::: tip
 **Tip**: Try different grid styles to see what works best for your use case. The right grid can dramatically improve the user experience!
