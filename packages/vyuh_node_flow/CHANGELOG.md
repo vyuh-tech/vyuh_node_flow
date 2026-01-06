@@ -1,3 +1,7 @@
+## 0.23.1
+
+ - **FEAT**: added lots of tests across the board to increase coverage to 90%.
+
 ## 0.23.0+1
 
  - **FIX**: update performance test expectation to use `lessThanOrEqualTo` for improved accuracy.
