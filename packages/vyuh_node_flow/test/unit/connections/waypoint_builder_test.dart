@@ -19,8 +19,6 @@ import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 import 'package:vyuh_node_flow/src/connections/styles/waypoint_builder.dart';
-import 'package:vyuh_node_flow/src/connections/styles/connection_style_base.dart';
-import 'package:vyuh_node_flow/src/connections/styles/path_segments.dart';
 
 import '../../helpers/test_factories.dart';
 

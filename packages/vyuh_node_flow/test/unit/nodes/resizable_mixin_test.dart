@@ -31,14 +31,13 @@ class TestResizableNode<T> extends Node<T> with ResizableMixin<T> {
   TestResizableNode({
     required super.id,
     required super.type,
-    required Offset position,
+    required super.position,
     required super.data,
-    Size? size,
+    super.size,
     Size? minSizeOverride,
     Size? maxSizeOverride,
   }) : _minSizeOverride = minSizeOverride,
-       _maxSizeOverride = maxSizeOverride,
-       super(position: position, size: size);
+       _maxSizeOverride = maxSizeOverride;
 
   final Size? _minSizeOverride;
   final Size? _maxSizeOverride;

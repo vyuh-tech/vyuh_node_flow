@@ -199,7 +199,7 @@ void main() {
           portBuilder: (context, builderNode, port) {
             receivedPorts.add(port.id);
             expect(builderNode.id, equals('check-ports-node'));
-            return Container(width: 10, height: 10);
+            return SizedBox(width: 10, height: 10);
           },
         ),
       );

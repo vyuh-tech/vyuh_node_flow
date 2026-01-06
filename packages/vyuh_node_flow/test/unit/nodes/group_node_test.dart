@@ -448,7 +448,7 @@ void main() {
 
         expect(ids, containsAll(['node-1', 'node-2']));
         // The returned set should be unmodifiable
-        expect(() => (ids as Set<String>).add('new'), throwsUnsupportedError);
+        expect(() => (ids).add('new'), throwsUnsupportedError);
       });
     });
   });
@@ -470,7 +470,7 @@ void main() {
       final originalSize = group.size.value;
 
       // Create a mock lookup
-      NodeLookup lookup = (id) => createTestNode(
+      Node<dynamic>? lookup(String id) => createTestNode(
         id: id,
         position: const Offset(100, 100),
         size: const Size(150, 100),
@@ -495,7 +495,7 @@ void main() {
       final originalPosition = group.position.value;
       final originalSize = group.size.value;
 
-      NodeLookup lookup = (id) => createTestNode(
+      Node<dynamic>? lookup(String id) => createTestNode(
         id: id,
         position: const Offset(100, 100),
         size: const Size(150, 100),
@@ -519,7 +519,7 @@ void main() {
       final originalPosition = group.position.value;
       final originalSize = group.size.value;
 
-      NodeLookup lookup = (_) => null;
+      Node<dynamic>? lookup(String _) => null;
 
       group.fitToNodes(lookup);
 
@@ -539,7 +539,7 @@ void main() {
         padding: const EdgeInsets.all(20),
       );
 
-      NodeLookup lookup = (id) {
+      Node<dynamic>? lookup(String id) {
         if (id == 'node-1') {
           return createTestNode(
             id: 'node-1',
@@ -548,7 +548,7 @@ void main() {
           );
         }
         return null;
-      };
+      }
 
       group.fitToNodes(lookup);
 
@@ -573,7 +573,7 @@ void main() {
         padding: const EdgeInsets.all(10),
       );
 
-      NodeLookup lookup = (id) {
+      Node<dynamic>? lookup(String id) {
         if (id == 'node-1') {
           return createTestNode(
             id: 'node-1',
@@ -589,7 +589,7 @@ void main() {
           );
         }
         return null;
-      };
+      }
 
       group.fitToNodes(lookup);
 
@@ -615,7 +615,7 @@ void main() {
         // Uses kGroupNodeDefaultPadding (20, 40, 20, 20)
       );
 
-      NodeLookup lookup = (id) {
+      Node<dynamic>? lookup(String id) {
         if (id == 'node-1') {
           return createTestNode(
             id: 'node-1',
@@ -624,7 +624,7 @@ void main() {
           );
         }
         return null;
-      };
+      }
 
       group.fitToNodes(lookup);
 
@@ -648,7 +648,7 @@ void main() {
         padding: const EdgeInsets.all(10),
       );
 
-      NodeLookup lookup = (id) {
+      Node<dynamic>? lookup(String id) {
         if (id == 'node-1') {
           return createTestNode(
             id: 'node-1',
@@ -664,7 +664,7 @@ void main() {
           );
         }
         return null; // node-missing returns null
-      };
+      }
 
       group.fitToNodes(lookup);
 
@@ -690,7 +690,7 @@ void main() {
       final originalPosition = group.position.value;
       final originalSize = group.size.value;
 
-      NodeLookup lookup = (_) => null;
+      Node<dynamic>? lookup(String _) => null;
 
       group.fitToNodes(lookup);
 
@@ -710,7 +710,7 @@ void main() {
         padding: const EdgeInsets.all(10),
       );
 
-      NodeLookup lookup = (id) {
+      Node<dynamic>? lookup(String id) {
         if (id == 'node-1') {
           return createTestNode(
             id: 'node-1',
@@ -719,7 +719,7 @@ void main() {
           );
         }
         return null;
-      };
+      }
 
       group.fitToNodes(lookup);
 
@@ -1476,7 +1476,7 @@ void main() {
         padding: const EdgeInsets.all(10),
       );
 
-      NodeLookup lookup = (id) {
+      Node<dynamic>? lookup(String id) {
         if (id == 'node-1') {
           return createTestNode(
             id: 'node-1',
@@ -1488,7 +1488,7 @@ void main() {
           );
         }
         return null;
-      };
+      }
 
       group.setBehavior(
         GroupBehavior.explicit,

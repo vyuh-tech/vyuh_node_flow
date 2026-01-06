@@ -15,7 +15,6 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vyuh_node_flow/src/connections/connection.dart';
 import 'package:vyuh_node_flow/src/nodes/node.dart';
 import 'package:vyuh_node_flow/src/shared/spatial/graph_spatial_index.dart';
 import 'package:vyuh_node_flow/src/shared/spatial/spatial_item.dart';

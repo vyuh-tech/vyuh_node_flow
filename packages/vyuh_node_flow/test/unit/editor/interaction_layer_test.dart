@@ -1216,7 +1216,7 @@ void main() {
               child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
-                    Container(width: 100, height: 60),
+                    SizedBox(width: 100, height: 60),
                 theme: NodeFlowTheme.light,
               ),
             ),
@@ -1251,7 +1251,7 @@ void main() {
               child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
-                    Container(width: 100, height: 60),
+                    SizedBox(width: 100, height: 60),
                 theme: NodeFlowTheme.light,
               ),
             ),
@@ -1282,7 +1282,7 @@ void main() {
               child: NodeFlowEditor<String, dynamic>(
                 controller: controller,
                 nodeBuilder: (context, node) =>
-                    Container(width: 100, height: 60),
+                    SizedBox(width: 100, height: 60),
                 theme: NodeFlowTheme.light,
               ),
             ),

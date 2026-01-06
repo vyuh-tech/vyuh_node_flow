@@ -66,8 +66,8 @@ void main() {
       final container = NodeContainer<String>(
         node: node,
         controller: controller,
-        child: const SizedBox(),
         portSnapDistance: 12.0,
+        child: const SizedBox(),
       );
 
       expect(container.portSnapDistance, equals(12.0));
@@ -98,8 +98,8 @@ void main() {
       final container = NodeContainer<String>(
         node: node,
         controller: controller,
-        child: const SizedBox(),
         connections: [connection],
+        child: const SizedBox(),
       );
 
       expect(container.connections.length, equals(1));
@@ -114,8 +114,8 @@ void main() {
       final container = NodeContainer<String>(
         node: node,
         controller: controller,
-        child: const SizedBox(),
         shape: shape,
+        child: const SizedBox(),
       );
 
       expect(container.shape, equals(shape));
@@ -320,8 +320,8 @@ void main() {
       final container = NodeContainer<String>(
         node: node,
         controller: controller,
-        child: const SizedBox(),
         connections: [connection],
+        child: const SizedBox(),
       );
 
       // Use reflection or testing helper to access private method
@@ -349,8 +349,8 @@ void main() {
       final container = NodeContainer<String>(
         node: node,
         controller: controller,
-        child: const SizedBox(),
         connections: [connection],
+        child: const SizedBox(),
       );
 
       expect(
@@ -394,8 +394,8 @@ void main() {
       final container = NodeContainer<String>(
         node: node,
         controller: controller,
-        child: const SizedBox(),
         connections: connections,
+        child: const SizedBox(),
       );
 
       expect(container.connections.length, equals(2));
@@ -492,8 +492,8 @@ void main() {
       final container = NodeContainer<String>(
         node: node,
         controller: controller,
-        child: const SizedBox(),
         portBuilder: customBuilder,
+        child: const SizedBox(),
       );
 
       expect(container.portBuilder, isNotNull);
@@ -1358,11 +1358,7 @@ void main() {
 
 /// A simple test implementation of [NodeShape] for testing.
 class _TestNodeShape extends NodeShape {
-  _TestNodeShape({
-    super.fillColor = Colors.blue,
-    super.strokeColor = Colors.black,
-    super.strokeWidth = 2.0,
-  });
+  _TestNodeShape();
 
   @override
   Path buildPath(Size size) {

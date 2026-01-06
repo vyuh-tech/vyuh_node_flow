@@ -14,7 +14,6 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobx/mobx.dart';
 import 'package:vyuh_node_flow/src/connections/temporary_connection.dart';
 import 'package:vyuh_node_flow/src/editor/resizer_widget.dart';
 import 'package:vyuh_node_flow/src/graph/coordinates.dart';
