@@ -935,7 +935,7 @@ void main() {
   group('ResizerWidget', () {
     test('creates with required parameters', () {
       final widget = ResizerWidget(
-        onResizeStart: (_, __) {},
+        onResizeStart: (_, _) {},
         onResizeUpdate: (_) {},
         onResizeEnd: () {},
         child: Container(),
@@ -953,7 +953,7 @@ void main() {
 
     test('creates with custom parameters', () {
       final widget = ResizerWidget(
-        onResizeStart: (_, __) {},
+        onResizeStart: (_, _) {},
         onResizeUpdate: (_) {},
         onResizeEnd: () {},
         handleSize: 12.0,
@@ -982,7 +982,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: ResizerWidget(
-              onResizeStart: (_, __) {},
+              onResizeStart: (_, _) {},
               onResizeUpdate: (_) {},
               onResizeEnd: () {},
               child: const Text('Test Content'),
@@ -1003,7 +1003,7 @@ void main() {
                 width: 200,
                 height: 150,
                 child: ResizerWidget(
-                  onResizeStart: (_, __) {},
+                  onResizeStart: (_, _) {},
                   onResizeUpdate: (_) {},
                   onResizeEnd: () {},
                   child: Container(color: Colors.grey),

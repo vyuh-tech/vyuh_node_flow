@@ -905,6 +905,8 @@ void main() {
     test('viewport is not equal to non-viewport', () {
       const viewport = GraphViewport(x: 100, y: 200, zoom: 1.5);
 
+      // Intentionally comparing to unrelated type to test equality operator
+      // ignore: unrelated_type_equality_checks
       expect(viewport == 'not a viewport', isFalse);
     });
   });

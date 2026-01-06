@@ -656,7 +656,7 @@ void main() {
         painter.paint(canvas, const Size(100, 100));
 
         final fillPaint = canvas.drawnPaints.first;
-        expect(fillPaint.color.value, equals(Colors.red.value));
+        expect(fillPaint.color.toARGB32(), equals(Colors.red.toARGB32()));
         expect(fillPaint.style, equals(PaintingStyle.fill));
       });
 
@@ -673,7 +673,7 @@ void main() {
         painter.paint(canvas, const Size(100, 100));
 
         final fillPaint = canvas.drawnPaints.first;
-        expect(fillPaint.color.value, equals(Colors.green.value));
+        expect(fillPaint.color.toARGB32(), equals(Colors.green.toARGB32()));
       });
     });
 
@@ -692,7 +692,7 @@ void main() {
 
         // Second paint is border
         final borderPaint = canvas.drawnPaints[1];
-        expect(borderPaint.color.value, equals(Colors.blue.value));
+        expect(borderPaint.color.toARGB32(), equals(Colors.blue.toARGB32()));
         expect(borderPaint.style, equals(PaintingStyle.stroke));
         expect(borderPaint.strokeWidth, equals(3.0));
       });
@@ -710,7 +710,7 @@ void main() {
         painter.paint(canvas, const Size(100, 100));
 
         final borderPaint = canvas.drawnPaints[1];
-        expect(borderPaint.color.value, equals(Colors.purple.value));
+        expect(borderPaint.color.toARGB32(), equals(Colors.purple.toARGB32()));
       });
 
       test('uses shape strokeWidth when provided', () {
@@ -884,7 +884,7 @@ void main() {
 
       // First paint is shadow
       final shadowPaint = canvas.drawnPaints.first;
-      expect(shadowPaint.color.value, equals(shadowColor.value));
+      expect(shadowPaint.color.toARGB32(), equals(shadowColor.toARGB32()));
     });
 
     test('shadow paint has mask filter for blur', () {
@@ -1606,11 +1606,11 @@ void main() {
       // Verify fill uses shape's color
       final fillPaint =
           canvas.drawnPaints[2]; // Third paint is fill (after 2 shadows)
-      expect(fillPaint.color.value, equals(Colors.amber.value));
+      expect(fillPaint.color.toARGB32(), equals(Colors.amber.toARGB32()));
 
       // Verify border uses shape's color and width
       final borderPaint = canvas.drawnPaints[3];
-      expect(borderPaint.color.value, equals(Colors.orange.value));
+      expect(borderPaint.color.toARGB32(), equals(Colors.orange.toARGB32()));
       expect(borderPaint.strokeWidth, equals(3.0));
     });
 

@@ -527,21 +527,25 @@ void main() {
 
     group('Type Guards', () {
       test('can check if node is GroupNode', () {
-        final regularNode = createTestNode();
-        final groupNode = createTestGroupNode<String>(data: 'test');
+        final Node<String> regularNode = createTestNode();
+        final Node<String> groupNode = createTestGroupNode<String>(
+          data: 'test',
+        );
 
-        expect(regularNode is GroupNode, isFalse);
-        expect(groupNode is GroupNode, isTrue);
-        expect(groupNode is GroupNode<String>, isTrue);
+        expect(regularNode, isNot(isA<GroupNode>()));
+        expect(groupNode, isA<GroupNode>());
+        expect(groupNode, isA<GroupNode<String>>());
       });
 
       test('can check if node is CommentNode', () {
-        final regularNode = createTestNode();
-        final commentNode = createTestCommentNode<String>(data: 'test');
+        final Node<String> regularNode = createTestNode();
+        final Node<String> commentNode = createTestCommentNode<String>(
+          data: 'test',
+        );
 
-        expect(regularNode is CommentNode, isFalse);
-        expect(commentNode is CommentNode, isTrue);
-        expect(commentNode is CommentNode<String>, isTrue);
+        expect(regularNode, isNot(isA<CommentNode>()));
+        expect(commentNode, isA<CommentNode>());
+        expect(commentNode, isA<CommentNode<String>>());
       });
 
       test('can cast node to specific type', () {
@@ -556,23 +560,23 @@ void main() {
       });
 
       test('nodes with different generic types are different types', () {
-        final stringNode = Node<String>(
+        final Node<String> stringNode = Node<String>(
           id: 'string',
           type: 'test',
           position: Offset.zero,
           data: 'test',
         );
-        final intNode = Node<int>(
+        final Node<int> intNode = Node<int>(
           id: 'int',
           type: 'test',
           position: Offset.zero,
           data: 42,
         );
 
-        expect(stringNode is Node<String>, isTrue);
-        expect(intNode is Node<int>, isTrue);
-        expect(stringNode is Node<int>, isFalse);
-        expect(intNode is Node<String>, isFalse);
+        expect(stringNode, isA<Node<String>>());
+        expect(intNode, isA<Node<int>>());
+        expect(stringNode, isNot(isA<Node<int>>()));
+        expect(intNode, isNot(isA<Node<String>>()));
       });
     });
 
@@ -1010,8 +1014,6 @@ void main() {
     });
 
     test('controller handles mixed data types', () {
-      final personData = PersonData(name: 'Test', age: 30);
-
       // Using dynamic to allow mixed types in the same controller
       final controller = NodeFlowController<dynamic, dynamic>();
 

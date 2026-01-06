@@ -371,13 +371,12 @@ void main() {
         effect.paint(canvas, path, basePaint, 0.5);
 
         // With 0 opacity, base path should not be drawn
-        // Only gradient segment should be drawn
-        final pathOps = canvas.operations.whereType<DrawPathOperation>();
-        for (final op in pathOps) {
-          // Any visible paths should have shader (gradient) or be the gradient segment
-          // The base path with 0 opacity should not be drawn
-        }
-        expect(canvas.operations, isNotEmpty);
+        // Only gradient segment should be drawn - verify we have path operations
+        expect(
+          canvas.operations.whereType<DrawPathOperation>(),
+          isNotEmpty,
+          reason: 'Gradient segment should still be drawn',
+        );
       });
 
       test('connectionOpacity 1 shows full base connection', () {
@@ -871,7 +870,10 @@ void main() {
             .whereType<DrawCircleOperation>()
             .toList();
         // Compare Color values (MaterialColor wraps a Color)
-        expect(circleOps[0].paint.color.value, equals(Colors.red.value));
+        expect(
+          circleOps[0].paint.color.toARGB32(),
+          equals(Colors.red.toARGB32()),
+        );
       });
 
       test('uses base paint color when no custom color', () {
@@ -889,7 +891,10 @@ void main() {
             .whereType<DrawCircleOperation>()
             .toList();
         // Compare Color values (MaterialColor wraps a Color)
-        expect(circleOps[0].paint.color.value, equals(Colors.green.value));
+        expect(
+          circleOps[0].paint.color.toARGB32(),
+          equals(Colors.green.toARGB32()),
+        );
       });
 
       test('circle particle size is correct', () {
@@ -977,7 +982,10 @@ void main() {
             .toList();
         // Last path op should be the arrow
         // Compare Color values (MaterialColor wraps a Color)
-        expect(pathOps.last.paint.color.value, equals(Colors.purple.value));
+        expect(
+          pathOps.last.paint.color.toARGB32(),
+          equals(Colors.purple.toARGB32()),
+        );
       });
 
       test('arrow particle size reflects dimensions', () {

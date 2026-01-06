@@ -852,7 +852,6 @@ void main() {
           :final bounds,
         ) =>
           'Port $portId on $nodeId, output=$isOutput, bounds=$bounds',
-        _ => 'other',
       };
 
       expect(result, contains('test-port'));

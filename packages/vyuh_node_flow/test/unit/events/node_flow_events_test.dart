@@ -601,9 +601,9 @@ void main() {
 
   group('Events Integration', () {
     test('controller setEvents applies events correctly', () {
-      Node<String>? tappedNode;
+      var tapCount = 0;
       void onTap(Node<String> node) {
-        tappedNode = node;
+        tapCount++;
       }
 
       final controller = createTestController();
@@ -612,6 +612,10 @@ void main() {
       );
 
       expect(controller.events.node?.onTap, isNotNull);
+      // Verify the callback is wired correctly by invoking it
+      final testNode = createTestNode(id: 'test');
+      controller.events.node?.onTap?.call(testNode);
+      expect(tapCount, equals(1));
     });
 
     test('node events fire correctly', () {

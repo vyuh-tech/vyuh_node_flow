@@ -1093,7 +1093,6 @@ void main() {
   group('Port buildWidget', () {
     test('buildWidget returns null when no widgetBuilder set', () {
       final port = Port(id: 'port', name: 'Port');
-      final node = createTestNode();
 
       // We can't call buildWidget without BuildContext, but we can verify the builder is null
       expect(port.widgetBuilder, isNull);

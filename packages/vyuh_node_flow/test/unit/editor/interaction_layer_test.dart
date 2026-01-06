@@ -7,6 +7,7 @@
 /// - InteractionLayerPainter shouldRepaint logic
 /// - Canvas transform application
 /// - Edge cases and null states
+// ignore_for_file: deprecated_member_use
 @Tags(['unit'])
 library;
 
@@ -1491,10 +1492,8 @@ void main() {
       final startNode = controller.nodes['node-a'];
       expect(startNode, isNotNull);
 
-      final isStartFromOutput = true;
-      final portList = isStartFromOutput
-          ? startNode!.outputPorts
-          : startNode!.inputPorts;
+      // Starting from output - use output ports
+      final portList = startNode!.outputPorts;
 
       Port? startPort;
       for (final port in portList) {
@@ -1523,10 +1522,8 @@ void main() {
       final startNode = controller.nodes['node-b'];
       expect(startNode, isNotNull);
 
-      final isStartFromOutput = false;
-      final portList = isStartFromOutput
-          ? startNode!.outputPorts
-          : startNode!.inputPorts;
+      // Starting from input - use input ports
+      final portList = startNode!.inputPorts;
 
       Port? startPort;
       for (final port in portList) {
@@ -1559,17 +1556,14 @@ void main() {
       final controller = createTestController(nodes: [nodeA, nodeB]);
 
       // Simulate painter logic for finding hovered port
-      final isStartFromOutput = true;
       final targetNodeId = 'node-b';
       final targetPortId = 'input-1';
 
       final hoveredNode = controller.nodes[targetNodeId];
       expect(hoveredNode, isNotNull);
 
-      // Hovered port is the opposite type of start port
-      final portList = isStartFromOutput
-          ? hoveredNode!.inputPorts
-          : hoveredNode!.outputPorts;
+      // Starting from output, so hovered port should be an input
+      final portList = hoveredNode!.inputPorts;
 
       Port? hoveredPort;
       for (final port in portList) {
@@ -1602,17 +1596,14 @@ void main() {
       final controller = createTestController(nodes: [nodeA, nodeB]);
 
       // Simulate starting from input (node-b), hovering over output (node-a)
-      final isStartFromOutput = false;
       final targetNodeId = 'node-a';
       final targetPortId = 'output-1';
 
       final hoveredNode = controller.nodes[targetNodeId];
       expect(hoveredNode, isNotNull);
 
-      // Hovered port is the opposite type of start port (input -> output)
-      final portList = isStartFromOutput
-          ? hoveredNode!.inputPorts
-          : hoveredNode!.outputPorts;
+      // Starting from input, so hovered port should be an output
+      final portList = hoveredNode!.outputPorts;
 
       Port? hoveredPort;
       for (final port in portList) {

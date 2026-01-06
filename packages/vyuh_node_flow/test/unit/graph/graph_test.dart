@@ -796,7 +796,8 @@ void main() {
         final groupNodes = mixedGraph.getGroupNodes();
 
         expect(groupNodes.length, equals(2));
-        expect(groupNodes.every((n) => n is GroupNode<String>), isTrue);
+        // getGroupNodes returns List<GroupNode<T>>, so all elements are GroupNodes
+        expect(groupNodes, everyElement(isA<GroupNode<String>>()));
         expect(
           groupNodes.map((n) => n.id),
           containsAll(['group-1', 'group-2']),
@@ -819,7 +820,8 @@ void main() {
         final commentNodes = mixedGraph.getCommentNodes();
 
         expect(commentNodes.length, equals(1));
-        expect(commentNodes.every((n) => n is CommentNode<String>), isTrue);
+        // getCommentNodes returns List<CommentNode<T>>, so all elements are CommentNodes
+        expect(commentNodes, everyElement(isA<CommentNode<String>>()));
         expect(commentNodes.first.id, equals('comment-1'));
       });
 

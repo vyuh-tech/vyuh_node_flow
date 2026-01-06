@@ -221,6 +221,10 @@ void main() {
       // (or at least different paths - we verify paths are non-empty)
       expect(pathWithout.getBounds().isEmpty, isFalse);
       expect(pathWith.getBounds().isEmpty, isFalse);
+
+      // Verify hit test rects were generated for both paths
+      expect(rectsWithout, isNotEmpty);
+      expect(rectsWith, isNotEmpty);
     });
 
     test('moving control point updates path accordingly', () {

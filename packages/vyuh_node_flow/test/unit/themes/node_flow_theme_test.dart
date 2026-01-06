@@ -258,8 +258,9 @@ void main() {
 
       test('themes have semi-transparent fill colors', () {
         // The alpha channel of the fill colors should be non-255 (semi-transparent)
-        expect(SelectionTheme.light.color.alpha, lessThan(255));
-        expect(SelectionTheme.dark.color.alpha, lessThan(255));
+        // Using new API: (color.a * 255).round() instead of deprecated color.alpha
+        expect((SelectionTheme.light.color.a * 255).round(), lessThan(255));
+        expect((SelectionTheme.dark.color.a * 255).round(), lessThan(255));
       });
     });
 

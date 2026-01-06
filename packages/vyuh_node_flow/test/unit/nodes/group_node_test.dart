@@ -1911,7 +1911,7 @@ void main() {
           dataFromJson: (json) => json as String,
         );
 
-        expect(group.currentColor.value, equals(Colors.green.value));
+        expect(group.currentColor.toARGB32(), equals(Colors.green.toARGB32()));
       });
 
       test('deserializes behavior from name', () {
@@ -1999,7 +1999,7 @@ void main() {
 
         expect(group.currentTitle, isEmpty);
         expect(group.behavior, equals(GroupBehavior.bounds));
-        expect(group.currentColor.value, equals(Colors.blue.value));
+        expect(group.currentColor.toARGB32(), equals(Colors.blue.toARGB32()));
         expect(group.size.value.width, equals(200.0));
         expect(group.size.value.height, equals(150.0));
         expect(group.zIndex.value, equals(-1));
@@ -2070,8 +2070,8 @@ void main() {
         expect(reconstructed.currentTitle, equals(original.currentTitle));
         expect(reconstructed.data, equals(original.data));
         expect(
-          reconstructed.currentColor.value,
-          equals(original.currentColor.value),
+          reconstructed.currentColor.toARGB32(),
+          equals(original.currentColor.toARGB32()),
         );
         expect(reconstructed.behavior, equals(original.behavior));
         expect(reconstructed.nodeIds, equals(original.nodeIds));

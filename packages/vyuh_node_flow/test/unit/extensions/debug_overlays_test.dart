@@ -5,6 +5,7 @@
 /// - SpatialIndexDebugPainter properties and shouldRepaint logic
 /// - AutopanZoneDebugLayer construction and conditional rendering
 /// - DebugTheme integration with painters
+// ignore_for_file: deprecated_member_use
 @Tags(['unit'])
 library;
 

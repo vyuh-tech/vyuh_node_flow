@@ -868,13 +868,11 @@ void main() {
 
   group('Connection Style Builder', () {
     test('connectionStyleBuilder is called for each connection', () {
-      var callCount = 0;
       ConnectionStyle? styleBuilder(
         Connection connection,
         Node sourceNode,
         Node targetNode,
       ) {
-        callCount++;
         return ConnectionStyles.bezier;
       }
 

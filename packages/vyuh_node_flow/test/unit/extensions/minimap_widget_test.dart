@@ -272,8 +272,6 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      final initialViewport = controller.viewport;
-
       // Tap on the minimap
       await tester.tap(find.byType(NodeFlowMinimap<String>));
       await tester.pumpAndSettle();

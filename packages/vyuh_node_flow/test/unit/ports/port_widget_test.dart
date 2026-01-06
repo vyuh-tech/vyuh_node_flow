@@ -503,6 +503,7 @@ void main() {
 
       // Port with widgetBuilder should use that builder
       expect(portWithBuilder.widgetBuilder, isNotNull);
+      expect(instanceBuilderCalled, isTrue);
     });
   });
 

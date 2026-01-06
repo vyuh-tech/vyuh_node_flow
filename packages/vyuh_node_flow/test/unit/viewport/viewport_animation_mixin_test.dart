@@ -7,6 +7,7 @@
 /// - Viewport sync callback on animation complete
 /// - Animation controller lifecycle
 /// - Token-based handler management
+// ignore_for_file: deprecated_member_use
 @Tags(['unit'])
 library;
 

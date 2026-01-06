@@ -977,7 +977,7 @@ void main() {
       final nodeItems = index.nodeItems.toList();
 
       expect(nodeItems.length, equals(2));
-      expect(nodeItems.every((item) => item is NodeSpatialItem), isTrue);
+      expect(nodeItems, everyElement(isA<NodeSpatialItem>()));
     });
 
     test('portItems returns all port spatial items', () {
@@ -986,7 +986,7 @@ void main() {
       final portItems = index.portItems.toList();
 
       expect(portItems.length, equals(2));
-      expect(portItems.every((item) => item is PortSpatialItem), isTrue);
+      expect(portItems, everyElement(isA<PortSpatialItem>()));
     });
 
     test('connectionSegmentItems returns all segment items', () {
@@ -1002,10 +1002,7 @@ void main() {
       final segmentItems = index.connectionSegmentItems.toList();
 
       expect(segmentItems.length, equals(2));
-      expect(
-        segmentItems.every((item) => item is ConnectionSegmentItem),
-        isTrue,
-      );
+      expect(segmentItems, everyElement(isA<ConnectionSegmentItem>()));
     });
   });
 

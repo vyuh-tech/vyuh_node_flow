@@ -332,7 +332,8 @@ void main() {
     });
 
     test('pulse calculation is mathematically correct', () {
-      final effect = PulseEffect(minOpacity: 0.0, maxOpacity: 1.0);
+      // This test verifies the math used in PulseEffect for calculating pulse progress
+      // The effect uses: pulseProgress = (sin(animationValue * 2 * pi) + 1) / 2
 
       // pulseProgress at animationValue 0:
       // (sin(0) + 1) / 2 = (0 + 1) / 2 = 0.5

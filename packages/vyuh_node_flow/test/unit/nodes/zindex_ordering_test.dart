@@ -316,7 +316,6 @@ void main() {
       controller.bringNodeForward('node-1');
 
       // After normalization and swap, node-1 should have moved forward
-      final node1 = controller.getNode('node-1')!;
       final sorted = controller.sortedNodes;
 
       // node-1 should not be at the very bottom after moving forward

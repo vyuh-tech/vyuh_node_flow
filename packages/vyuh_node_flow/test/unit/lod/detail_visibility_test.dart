@@ -537,13 +537,15 @@ void main() {
     test('not equal to null', () {
       const visibility = DetailVisibility.full;
 
-      // ignore: unrelated_type_equality_checks
+      // Test that non-nullable type is not null (compile-time guaranteed)
+      // ignore: unnecessary_null_comparison
       expect(visibility == null, isFalse);
     });
 
     test('not equal to different type', () {
       const visibility = DetailVisibility.full;
 
+      // ignore: unrelated_type_equality_checks
       expect(visibility == 'not a visibility', isFalse);
     });
   });
@@ -590,7 +592,11 @@ void main() {
       const visibility2 = DetailVisibility.full;
       const visibility3 = DetailVisibility.minimal;
 
-      final set = <DetailVisibility>{visibility1, visibility2, visibility3};
+      // Create set by adding elements to test deduplication
+      final set = <DetailVisibility>{}
+        ..add(visibility1)
+        ..add(visibility2)
+        ..add(visibility3);
 
       // visibility1 and visibility2 are equal, so set should have 2 elements
       expect(set.length, equals(2));

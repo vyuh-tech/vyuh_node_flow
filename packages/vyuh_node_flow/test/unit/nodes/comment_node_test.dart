@@ -1535,10 +1535,6 @@ void main() {
     });
 
     test('widgetBuilder can be set per instance', () {
-      Widget customBuilder(BuildContext context, CommentNode<String> node) {
-        return Container();
-      }
-
       final comment = CommentNode<String>(
         id: 'custom-builder',
         position: Offset.zero,

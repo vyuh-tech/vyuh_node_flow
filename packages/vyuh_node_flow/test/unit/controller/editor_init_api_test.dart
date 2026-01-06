@@ -214,7 +214,8 @@ void main() {
           theme: NodeFlowTheme.light,
           portSizeResolver: (port) => const Size(10, 10),
           connectionHitTesterBuilder: (painter) {
-            receivedPainterWasNotNull = painter != null;
+            // painter is non-nullable, so this callback being invoked means we received a valid painter
+            receivedPainterWasNotNull = true;
             return (connection, point) => false;
           },
         );
@@ -699,6 +700,7 @@ void main() {
       expect(controller.isEditorInitialized, isTrue);
       expect(controller.theme, equals(NodeFlowTheme.light));
       expect(controller.events, equals(events));
+      expect(shapeBuilderCalled, isTrue);
       expect(hitTesterCalled, isTrue);
       expect(segmentCalculatorCalled, isTrue);
     });
