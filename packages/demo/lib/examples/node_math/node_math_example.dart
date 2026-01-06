@@ -61,7 +61,6 @@ class _NodeMathExampleState extends State<NodeMathExample> {
       child: MathCanvas(state: _state, theme: _theme),
       children: [
         MathToolbox(state: _state),
-        const Spacer(),
         ConnectionStyleSelector(theme: _theme, onThemeChanged: _updateTheme),
         const SectionTitle('Instructions'),
         const SectionContent(

@@ -248,13 +248,32 @@ class _MathCanvasState extends State<MathCanvas> {
   }
 
   /// Propagates connection deletions from controller to MathState.
+  ///
+  /// Only removes from state if the connection is not being recreated during sync.
+  /// During data sync operations, connections are temporarily removed and recreated,
+  /// but they still exist in state - we should not remove them in that case.
   void _handleConnectionDeleted(Connection connection) {
-    state.removeConnection(connection.id);
+    // Check if connection still exists in state - if it does, we're recreating it
+    // during a sync operation, so don't remove it from state
+    final connectionExistsInState =
+        state.connections.any((c) => c.id == connection.id);
+    if (!connectionExistsInState) {
+      state.removeConnection(connection.id);
+    }
   }
 
   /// Propagates node deletions from controller to MathState.
+  ///
+  /// Only removes from state if the node is not being recreated during sync.
+  /// During data sync operations, nodes are temporarily removed and recreated,
+  /// but they still exist in state - we should not remove them in that case.
   void _handleNodeDeleted(Node<MathNodeData> node) {
-    state.removeNode(node.id);
+    // Check if node still exists in state - if it does, we're recreating it
+    // during a sync operation, so don't remove it from state
+    final nodeExistsInState = state.nodes.any((n) => n.id == node.id);
+    if (!nodeExistsInState) {
+      state.removeNode(node.id);
+    }
   }
 
   /// Validates a pending connection before it's created.

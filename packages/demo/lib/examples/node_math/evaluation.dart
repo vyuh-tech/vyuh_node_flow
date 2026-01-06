@@ -10,6 +10,7 @@
 /// 2. Evaluator runs independently without controller access
 /// 3. Cycle check feeds directly into topological sort (same pass optimization)
 /// 4. Domain-specific: only considers valid math connections
+library;
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import 'constants.dart';
