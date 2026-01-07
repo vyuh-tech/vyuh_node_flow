@@ -88,7 +88,6 @@ extension GroupApi<T, C> on NodeFlowController<T, C> {
       moveNodes: _moveNodesByDelta,
       findNodesInBounds: _findNodesInBounds,
       getNode: (nodeId) => _nodes[nodeId],
-      selectedNodeIds: _selectedNodeIds,
     );
   }
 
@@ -102,7 +101,6 @@ extension GroupApi<T, C> on NodeFlowController<T, C> {
       findNodesInBounds: _findNodesInBounds,
       getNode: (nodeId) => _nodes[nodeId],
       shouldSkipUpdates: () => _isMovingGroupNodes,
-      selectedNodeIds: _selectedNodeIds,
     );
   }
 

@@ -41,7 +41,6 @@ class NodeDragContext<T> {
     required this.findNodesInBounds,
     required this.getNode,
     this.shouldSkipUpdates,
-    this.selectedNodeIds = const {},
   });
 
   /// Moves a set of nodes by the given delta.
@@ -68,10 +67,4 @@ class NodeDragContext<T> {
   /// during batch operations like group drag moves.
   /// Optional - only needed for monitoring operations.
   final bool Function()? shouldSkipUpdates;
-
-  /// The IDs of currently selected nodes.
-  ///
-  /// Used by group nodes to avoid double-moving nodes that are already
-  /// being moved as part of the selection drag.
-  final Set<String> selectedNodeIds;
 }

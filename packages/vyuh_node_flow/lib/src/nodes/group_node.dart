@@ -74,6 +74,7 @@ typedef NodeLookup = Node? Function(String nodeId);
 /// - Customizable title and color
 /// - When moved, automatically moves contained/linked nodes
 /// - Typically rendered behind nodes (background layer)
+/// - Not included in marquee selection (`selectable: false`)
 ///
 /// ## Example
 ///
@@ -140,7 +141,7 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
          layer: NodeRenderLayer.background,
          initialZIndex: zIndex,
          visible: isVisible,
-         selectable: true,
+         selectable: false,
        );
 
   final Observable<String> _observableTitle;
@@ -678,15 +679,9 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
 
   @override
   void onDragMove(Offset delta, NodeDragContext context) {
-    // Move all contained nodes along with this group,
-    // excluding nodes that are already selected (they're being moved by selection drag)
+    // Move all contained nodes along with this group
     if (_containedNodeIds != null && _containedNodeIds!.isNotEmpty) {
-      final nodesToMove = _containedNodeIds!.difference(
-        context.selectedNodeIds,
-      );
-      if (nodesToMove.isNotEmpty) {
-        context.moveNodes(nodesToMove, delta);
-      }
+      context.moveNodes(_containedNodeIds!, delta);
     }
   }
 

@@ -1,7 +1,3 @@
-## 0.23.2
-
- - **FEAT**: make GroupNode and CommentNode selectable, refine group drag logic to avoid double movement of selected nodes.
-
 ## 0.23.1
 
  - **FEAT**: added lots of tests across the board to increase coverage to 90%.
