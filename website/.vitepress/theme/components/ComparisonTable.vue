@@ -214,7 +214,6 @@ defineProps<{
 .pro-icon-box {
   @apply bg-amber-200/80 text-amber-600;
   @apply dark:bg-amber-800/50 dark:text-amber-400;
-  box-shadow: 0 0 20px theme('colors.amber.400/25');
 }
 
 .plan-details {
