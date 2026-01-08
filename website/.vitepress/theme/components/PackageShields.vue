@@ -12,7 +12,7 @@ withDefaults(
   {
     package: 'vyuh_node_flow',
     github: 'vyuh-tech/vyuh_node_flow',
-    showLikes: false,
+    showLikes: true,
     showLicense: true,
     showIssues: false,
   }
@@ -29,7 +29,7 @@ withDefaults(
       class="shield-link"
     >
       <img
-        :src="`https://img.shields.io/github/stars/${github}?style=for-the-badge&logo=github&label=${encodeURIComponent(github)}`"
+        :src="`https://img.shields.io/github/stars/${github}?style=for-the-badge&logo=github&label=${encodeURIComponent(github)}&color=000000`"
         alt="GitHub Stars"
         class="shield-badge"
       />
@@ -58,7 +58,7 @@ withDefaults(
       class="shield-link"
     >
       <img
-        :src="`https://img.shields.io/pub/likes/${package}?style=for-the-badge&logo=dart&logoColor=white&label=likes&color=00b4ab`"
+        :src="`https://img.shields.io/pub/likes/${package}?style=for-the-badge&logo=dart&logoColor=white&label=likes&color=0175C2`"
         alt="Pub Likes"
         class="shield-badge"
       />
@@ -93,6 +93,15 @@ withDefaults(
         class="shield-badge"
       />
     </a>
+
+    <a href="https://codecov.io/gh/vyuh-tech/vyuh_node_flow"
+       target="_blank"
+       rel="noopener noreferrer"
+       class="shield-link"
+    >
+      <img alt="Codecov" src="https://img.shields.io/codecov/c/github/vyuh-tech/vyuh_node_flow?token=IXKTYE4ENW&style=for-the-badge&logo=codecov">
+    </a>
+
   </div>
 </template>
 

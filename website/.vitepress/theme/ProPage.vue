@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import Badge from './components/Badge.vue';
+import CodePreview, { type CodeMarker } from './components/CodePreview.vue';
 import ComparisonTable, {
   type ComparisonRow,
 } from './components/ComparisonTable.vue';
@@ -19,6 +20,49 @@ import SelectProgramCard from './components/SelectProgramCard.vue';
 import SiteFooter from './components/SiteFooter.vue';
 import TitleBadge from './components/TitleBadge.vue';
 import { SELECT_PROGRAM_FORM_URL } from './constants';
+
+// Import code sample for Dart Executors
+import validateDataExecutorCode from './code-samples/validate-data-executor.dart?raw';
+
+// Code markers for the executor sample
+const executorCodeMarkers: CodeMarker[] = [
+  {
+    line: 7,
+    title: 'Typed Input',
+    description:
+      'Define your input structure with full type safety. Implement fromJson for deserialization.',
+  },
+  {
+    line: 16,
+    title: 'Typed Output',
+    description:
+      'Output is also strongly typed. Implement toJson for serialization to workflow variables.',
+  },
+  {
+    line: 29,
+    title: 'TypedTaskExecutor',
+    description:
+      'Extend TypedTaskExecutor<TInput, TOutput> for compile-time type safety. The base class handles error wrapping automatically.',
+  },
+  {
+    line: 34,
+    title: 'TypeDescriptor',
+    description:
+      'Register with a TypeDescriptor for JSON-driven workflows. Defines how to deserialize this executor from workflow definitions.',
+  },
+  {
+    line: 55,
+    title: 'executeTyped',
+    description:
+      'Implement your business logic here with full access to typed input and ExecutionContext.',
+  },
+  {
+    line: 74,
+    title: 'Registration',
+    description:
+      'Register your executor with the WorkflowDescriptor to make it available to the workflow engine.',
+  },
+];
 
 // Form dialog state
 const ctaDialogOpen = ref(false);
@@ -69,7 +113,11 @@ const workflowFeatures = [
       'Built-in retry policies and error handling',
       'Custom executor plugins for specialized tasks',
     ],
-    video: '/videos/executors.webm',
+    code: {
+      source: validateDataExecutorCode,
+      filename: 'validate_data_executor.dart',
+      markers: executorCodeMarkers,
+    },
   },
   {
     tag: 'Observability',
@@ -288,19 +336,38 @@ const comparisonRows: ComparisonRow[] = [
       </SectionHeader>
 
       <div class="mt-16">
-        <FeatureSection
-          v-for="(feature, index) in workflowFeatures"
-          :key="index"
-          :tag="feature.tag"
-          :tag-icon="feature.tagIcon"
-          :tag-color="feature.tagColor"
-          :title="feature.title"
-          :subtitle="feature.subtitle"
-          :bullets="feature.bullets"
-          :video="feature.video"
-          :placeholder="feature.placeholder"
-          :reverse="index % 2 === 1"
-        />
+        <template v-for="(feature, index) in workflowFeatures" :key="index">
+          <FeatureSection
+            v-if="feature.code"
+            :tag="feature.tag"
+            :tag-icon="feature.tagIcon"
+            :tag-color="feature.tagColor"
+            :title="feature.title"
+            :subtitle="feature.subtitle"
+            :bullets="feature.bullets"
+            :reverse="index % 2 === 1"
+          >
+            <CodePreview
+              :code="feature.code.source"
+              :filename="feature.code.filename"
+              lang="dart"
+              :markers="feature.code.markers"
+              class="executor-code-preview"
+            />
+          </FeatureSection>
+          <FeatureSection
+            v-else
+            :tag="feature.tag"
+            :tag-icon="feature.tagIcon"
+            :tag-color="feature.tagColor"
+            :title="feature.title"
+            :subtitle="feature.subtitle"
+            :bullets="feature.bullets"
+            :video="feature.video"
+            :placeholder="feature.placeholder"
+            :reverse="index % 2 === 1"
+          />
+        </template>
       </div>
     </Section>
 
@@ -415,5 +482,35 @@ const comparisonRows: ComparisonRow[] = [
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Code preview styling for executor sample */
+.executor-code-preview {
+  @apply w-full h-full flex flex-col;
+  height: 500px;
+  box-shadow:
+    0 0 60px -15px rgba(99, 102, 241, 0.4),
+    0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+:root.dark .executor-code-preview {
+  box-shadow:
+    0 0 80px -15px rgba(129, 140, 248, 0.3),
+    0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Same approach as TabbedCodePreview */
+.executor-code-preview .code-body-wrapper {
+  @apply flex-1 overflow-hidden;
+}
+
+.executor-code-preview .code-scroll-container {
+  @apply h-full overflow-y-auto overflow-x-auto;
+}
+
+@media (max-width: 768px) {
+  .executor-code-preview {
+    height: 400px;
+  }
 }
 </style>
