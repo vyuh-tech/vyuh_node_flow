@@ -23,4 +23,4 @@ and interactive diagrams.
   semantic widgets for better composability and readability.
 - Use semantic naming conventions for variables, functions, and classes to
   improve code readability and maintainability.
--
+- After any code change, run `melos analyze` to check for code quality and linting issues

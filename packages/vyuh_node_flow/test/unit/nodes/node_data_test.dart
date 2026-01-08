@@ -456,14 +456,14 @@ void main() {
         expect(node.selectable, isFalse);
       });
 
-      test('GroupNode is not selectable by default', () {
+      test('GroupNode is selectable by default', () {
         final group = createTestGroupNode<String>(data: 'test');
-        expect(group.selectable, isFalse);
+        expect(group.selectable, isTrue);
       });
 
-      test('CommentNode is not selectable by default', () {
+      test('CommentNode is selectable by default', () {
         final comment = createTestCommentNode<String>(data: 'test');
-        expect(comment.selectable, isFalse);
+        expect(comment.selectable, isTrue);
       });
     });
 

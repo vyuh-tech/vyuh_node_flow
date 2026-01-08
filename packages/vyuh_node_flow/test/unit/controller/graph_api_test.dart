@@ -828,16 +828,22 @@ void main() {
       test('does not select non-selectable nodes', () {
         final controller = createTestController();
         controller.addNode(createTestNode(id: 'normal'));
-        // GroupNode has selectable: false by default
+        // Explicitly create a non-selectable node
         controller.addNode(
-          createTestGroupNode<String>(id: 'group', data: 'data'),
+          Node<String>(
+            id: 'non-selectable',
+            type: 'test',
+            position: Offset.zero,
+            data: 'test',
+            selectable: false,
+          ),
         );
 
         controller.selectAllNodes();
 
-        // Only normal node should be selected
+        // Only selectable nodes should be selected
         expect(controller.selectedNodeIds, contains('normal'));
-        expect(controller.selectedNodeIds, isNot(contains('group')));
+        expect(controller.selectedNodeIds, isNot(contains('non-selectable')));
       });
 
       test('handles empty graph', () {
