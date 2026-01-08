@@ -175,15 +175,15 @@ defineProps<{
   background: linear-gradient(
     to bottom,
     theme('colors.amber.50'),
-    theme('colors.amber.50/50')
+    color-mix(in srgb, theme('colors.amber.50') 50%, transparent)
   );
 }
 
 .dark .pro-header {
   background: linear-gradient(
     to bottom,
-    theme('colors.amber.900/30'),
-    theme('colors.amber.900/15')
+    color-mix(in srgb, theme('colors.amber.900') 30%, transparent),
+    color-mix(in srgb, theme('colors.amber.900') 15%, transparent)
   );
 }
 
