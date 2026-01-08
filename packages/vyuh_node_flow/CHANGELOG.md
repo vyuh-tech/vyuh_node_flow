@@ -1,3 +1,7 @@
+## 0.23.3
+
+ - **FEAT**: update default selectability for GroupNode and CommentNode, refine drag behavior for consistency with selection logic.
+
 ## 0.23.2
 
  - **FEAT**: make GroupNode and CommentNode selectable, refine group drag logic to avoid double movement of selected nodes.
