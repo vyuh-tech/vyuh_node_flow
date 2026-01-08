@@ -61,7 +61,7 @@ void main() {
         expect(group.isVisible, isTrue);
         expect(group.locked, isFalse);
         expect(group.layer, equals(NodeRenderLayer.background));
-        expect(group.selectable, isFalse);
+        expect(group.selectable, isTrue);
       });
 
       test('allows custom zIndex', () {
@@ -2079,6 +2079,415 @@ void main() {
         expect(reconstructed.zIndex.value, equals(original.zIndex.value));
         expect(reconstructed.isVisible, equals(original.isVisible));
         expect(reconstructed.locked, equals(original.locked));
+      });
+    });
+  });
+
+  // ==========================================================================
+  // Drag Behavior Tests
+  // ==========================================================================
+  group('Drag Behavior', () {
+    group('onDragStart', () {
+      test('captures nodes inside bounds for bounds behavior', () {
+        final group = createTestGroupNode<String>(
+          position: const Offset(0, 0),
+          size: const Size(300, 200),
+          behavior: GroupBehavior.bounds,
+          data: 'test',
+        );
+
+        // Create nodes at different positions
+        final nodeInside = createTestNode(
+          id: 'inside',
+          position: const Offset(50, 50),
+          size: const Size(100, 80),
+        );
+        final nodeOutside = createTestNode(
+          id: 'outside',
+          position: const Offset(500, 500),
+          size: const Size(100, 80),
+        );
+
+        final nodeMap = {'inside': nodeInside, 'outside': nodeOutside};
+
+        final capturedNodes = <Set<String>>[];
+
+        final context = NodeDragContext<String>(
+          moveNodes: (nodeIds, delta) {},
+          findNodesInBounds: (bounds) {
+            // Return nodes that are inside the bounds
+            final result = <String>{};
+            for (final entry in nodeMap.entries) {
+              final nodeRect = Rect.fromLTWH(
+                entry.value.position.value.dx,
+                entry.value.position.value.dy,
+                entry.value.size.value.width,
+                entry.value.size.value.height,
+              );
+              if (bounds.contains(nodeRect.topLeft) &&
+                  bounds.contains(nodeRect.bottomRight)) {
+                result.add(entry.key);
+              }
+            }
+            capturedNodes.add(result);
+            return result;
+          },
+          getNode: (id) => nodeMap[id],
+          selectedNodeIds: const {},
+        );
+
+        group.onDragStart(context);
+
+        expect(capturedNodes.length, equals(1));
+        expect(capturedNodes.first, contains('inside'));
+        expect(capturedNodes.first, isNot(contains('outside')));
+      });
+
+      test('uses nodeIds for explicit behavior', () {
+        final group = createTestGroupNode<String>(
+          behavior: GroupBehavior.explicit,
+          nodeIds: {'member-1', 'member-2'},
+          data: 'test',
+        );
+
+        var findNodesInBoundsCalled = false;
+
+        final context = NodeDragContext<String>(
+          moveNodes: (nodeIds, delta) {},
+          findNodesInBounds: (bounds) {
+            findNodesInBoundsCalled = true;
+            return {};
+          },
+          getNode: (id) => null,
+          selectedNodeIds: const {},
+        );
+
+        group.onDragStart(context);
+
+        // For explicit behavior, findNodesInBounds should NOT be called
+        // because membership is explicit, not spatial
+        expect(findNodesInBoundsCalled, isFalse);
+      });
+
+      test('uses nodeIds for parent behavior', () {
+        final group = createTestGroupNode<String>(
+          behavior: GroupBehavior.parent,
+          nodeIds: {'child-1', 'child-2'},
+          data: 'test',
+        );
+
+        var findNodesInBoundsCalled = false;
+
+        final context = NodeDragContext<String>(
+          moveNodes: (nodeIds, delta) {},
+          findNodesInBounds: (bounds) {
+            findNodesInBoundsCalled = true;
+            return {};
+          },
+          getNode: (id) => null,
+          selectedNodeIds: const {},
+        );
+
+        group.onDragStart(context);
+
+        // For parent behavior, findNodesInBounds should NOT be called
+        expect(findNodesInBoundsCalled, isFalse);
+      });
+    });
+
+    group('onDragMove', () {
+      test('moves all contained nodes when none are selected', () {
+        final group = createTestGroupNode<String>(
+          behavior: GroupBehavior.explicit,
+          nodeIds: {'node-1', 'node-2', 'node-3'},
+          data: 'test',
+        );
+
+        Set<String>? movedNodeIds;
+        Offset? movedDelta;
+
+        final context = NodeDragContext<String>(
+          moveNodes: (nodeIds, delta) {
+            movedNodeIds = nodeIds;
+            movedDelta = delta;
+          },
+          findNodesInBounds: (bounds) => {},
+          getNode: (id) => null,
+          selectedNodeIds: const {}, // No selected nodes
+        );
+
+        // Start drag to capture contained nodes
+        group.onDragStart(context);
+
+        // Move the group
+        const delta = Offset(50, 30);
+        group.onDragMove(delta, context);
+
+        // All contained nodes should be moved
+        expect(movedNodeIds, isNotNull);
+        expect(movedNodeIds, containsAll(['node-1', 'node-2', 'node-3']));
+        expect(movedNodeIds!.length, equals(3));
+        expect(movedDelta, equals(delta));
+      });
+
+      test('excludes selected nodes from being moved', () {
+        final group = createTestGroupNode<String>(
+          behavior: GroupBehavior.explicit,
+          nodeIds: {'node-1', 'node-2', 'node-3'},
+          data: 'test',
+        );
+
+        Set<String>? movedNodeIds;
+
+        // Create context with some nodes already selected
+        final context = NodeDragContext<String>(
+          moveNodes: (nodeIds, delta) {
+            movedNodeIds = nodeIds;
+          },
+          findNodesInBounds: (bounds) => {},
+          getNode: (id) => null,
+          selectedNodeIds: const {'node-1', 'node-3'}, // These are selected
+        );
+
+        // Start drag
+        group.onDragStart(context);
+
+        // Move the group
+        group.onDragMove(const Offset(50, 30), context);
+
+        // Only node-2 should be moved (node-1 and node-3 are already selected)
+        expect(movedNodeIds, isNotNull);
+        expect(movedNodeIds, equals({'node-2'}));
+        expect(movedNodeIds, isNot(contains('node-1')));
+        expect(movedNodeIds, isNot(contains('node-3')));
+      });
+
+      test('does not call moveNodes when all contained nodes are selected', () {
+        final group = createTestGroupNode<String>(
+          behavior: GroupBehavior.explicit,
+          nodeIds: {'node-1', 'node-2'},
+          data: 'test',
+        );
+
+        var moveNodesCalled = false;
+
+        final context = NodeDragContext<String>(
+          moveNodes: (nodeIds, delta) {
+            moveNodesCalled = true;
+          },
+          findNodesInBounds: (bounds) => {},
+          getNode: (id) => null,
+          selectedNodeIds: const {'node-1', 'node-2'}, // All nodes selected
+        );
+
+        // Start drag
+        group.onDragStart(context);
+
+        // Move the group
+        group.onDragMove(const Offset(50, 30), context);
+
+        // moveNodes should NOT be called since all contained nodes are selected
+        expect(moveNodesCalled, isFalse);
+      });
+
+      test('does not call moveNodes when no contained nodes', () {
+        final group = createTestGroupNode<String>(
+          behavior: GroupBehavior.explicit,
+          nodeIds: {}, // Empty
+          data: 'test',
+        );
+
+        var moveNodesCalled = false;
+
+        final context = NodeDragContext<String>(
+          moveNodes: (nodeIds, delta) {
+            moveNodesCalled = true;
+          },
+          findNodesInBounds: (bounds) => {},
+          getNode: (id) => null,
+          selectedNodeIds: const {},
+        );
+
+        // Start drag
+        group.onDragStart(context);
+
+        // Move the group
+        group.onDragMove(const Offset(50, 30), context);
+
+        // moveNodes should NOT be called since no contained nodes
+        expect(moveNodesCalled, isFalse);
+      });
+
+      test('works correctly with bounds behavior', () {
+        final group = createTestGroupNode<String>(
+          position: const Offset(0, 0),
+          size: const Size(400, 300),
+          behavior: GroupBehavior.bounds,
+          data: 'test',
+        );
+
+        Set<String>? movedNodeIds;
+
+        // Create mock nodes
+        final insideNode = createTestNode(
+          id: 'inside-node',
+          position: const Offset(50, 50),
+          size: const Size(100, 80),
+        );
+
+        final context = NodeDragContext<String>(
+          moveNodes: (nodeIds, delta) {
+            movedNodeIds = nodeIds;
+          },
+          findNodesInBounds: (bounds) {
+            // Simulate finding the inside node
+            return {'inside-node'};
+          },
+          getNode: (id) => id == 'inside-node' ? insideNode : null,
+          selectedNodeIds: const {}, // No selection
+        );
+
+        // Start drag
+        group.onDragStart(context);
+
+        // Move the group
+        group.onDragMove(const Offset(50, 30), context);
+
+        // The inside node should be moved
+        expect(movedNodeIds, equals({'inside-node'}));
+      });
+
+      test('excludes selected nodes with bounds behavior', () {
+        final group = createTestGroupNode<String>(
+          position: const Offset(0, 0),
+          size: const Size(400, 300),
+          behavior: GroupBehavior.bounds,
+          data: 'test',
+        );
+
+        Set<String>? movedNodeIds;
+
+        final context = NodeDragContext<String>(
+          moveNodes: (nodeIds, delta) {
+            movedNodeIds = nodeIds;
+          },
+          findNodesInBounds: (bounds) {
+            // Simulate finding multiple nodes
+            return {'node-a', 'node-b', 'node-c'};
+          },
+          getNode: (id) => null,
+          selectedNodeIds: const {'node-b'}, // node-b is selected
+        );
+
+        // Start drag
+        group.onDragStart(context);
+
+        // Move the group
+        group.onDragMove(const Offset(50, 30), context);
+
+        // node-a and node-c should be moved, but NOT node-b
+        expect(movedNodeIds, containsAll(['node-a', 'node-c']));
+        expect(movedNodeIds, isNot(contains('node-b')));
+        expect(movedNodeIds!.length, equals(2));
+      });
+
+      test('handles selectedNodeIds containing nodes not in group', () {
+        final group = createTestGroupNode<String>(
+          behavior: GroupBehavior.explicit,
+          nodeIds: {'member-1', 'member-2'},
+          data: 'test',
+        );
+
+        Set<String>? movedNodeIds;
+
+        final context = NodeDragContext<String>(
+          moveNodes: (nodeIds, delta) {
+            movedNodeIds = nodeIds;
+          },
+          findNodesInBounds: (bounds) => {},
+          getNode: (id) => null,
+          // selected nodes include both group members and external nodes
+          selectedNodeIds: const {'member-1', 'external-node'},
+        );
+
+        // Start drag
+        group.onDragStart(context);
+
+        // Move the group
+        group.onDragMove(const Offset(50, 30), context);
+
+        // Only member-2 should be moved
+        // (member-1 is selected, external-node is irrelevant)
+        expect(movedNodeIds, equals({'member-2'}));
+      });
+    });
+
+    group('onDragEnd', () {
+      test('clears contained node cache', () {
+        final group = createTestGroupNode<String>(
+          behavior: GroupBehavior.explicit,
+          nodeIds: {'node-1', 'node-2'},
+          data: 'test',
+        );
+
+        var moveNodesCallCount = 0;
+
+        final context = NodeDragContext<String>(
+          moveNodes: (nodeIds, delta) {
+            moveNodesCallCount++;
+          },
+          findNodesInBounds: (bounds) => {},
+          getNode: (id) => null,
+          selectedNodeIds: const {},
+        );
+
+        // Start drag
+        group.onDragStart(context);
+
+        // Move (should call moveNodes)
+        group.onDragMove(const Offset(50, 30), context);
+        expect(moveNodesCallCount, equals(1));
+
+        // End drag
+        group.onDragEnd();
+
+        // Move again without starting drag (should NOT call moveNodes)
+        group.onDragMove(const Offset(50, 30), context);
+        expect(moveNodesCallCount, equals(1)); // Still 1, not 2
+      });
+    });
+
+    group('drag lifecycle integration', () {
+      test('complete drag cycle with partial selection', () {
+        final group = createTestGroupNode<String>(
+          behavior: GroupBehavior.explicit,
+          nodeIds: {'a', 'b', 'c', 'd'},
+          data: 'test',
+        );
+
+        final movedNodeHistory = <Set<String>>[];
+
+        final context = NodeDragContext<String>(
+          moveNodes: (nodeIds, delta) {
+            movedNodeHistory.add(Set.from(nodeIds));
+          },
+          findNodesInBounds: (bounds) => {},
+          getNode: (id) => null,
+          selectedNodeIds: const {'a', 'c'}, // a and c are selected
+        );
+
+        // Complete drag cycle
+        group.onDragStart(context);
+        group.onDragMove(const Offset(10, 0), context);
+        group.onDragMove(const Offset(20, 0), context);
+        group.onDragMove(const Offset(30, 0), context);
+        group.onDragEnd();
+
+        // Should have 3 move calls, each with {b, d}
+        expect(movedNodeHistory.length, equals(3));
+        for (final moved in movedNodeHistory) {
+          expect(moved, equals({'b', 'd'}));
+        }
       });
     });
   });

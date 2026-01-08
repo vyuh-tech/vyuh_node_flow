@@ -125,9 +125,9 @@ void main() {
         expect(comment.layer, equals(NodeRenderLayer.foreground));
       });
 
-      test('selectable is always false', () {
+      test('selectable is true by default', () {
         final comment = createTestCommentNode<String>(data: 'test');
-        expect(comment.selectable, isFalse);
+        expect(comment.selectable, isTrue);
       });
 
       test('has no input ports', () {
@@ -983,7 +983,7 @@ void main() {
         expect(json['isVisible'], equals(false));
         expect(json['locked'], equals(true));
         expect(json['layer'], equals('foreground'));
-        expect(json['selectable'], equals(false));
+        expect(json['selectable'], equals(true));
       });
 
       test('toJson handles empty text', () {

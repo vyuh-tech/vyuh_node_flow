@@ -150,10 +150,10 @@ void main() {
         expect(group.layer, equals(NodeRenderLayer.background));
       });
 
-      test('creates group node not selectable by default', () {
+      test('creates group node selectable by default', () {
         final group = createTestGroupNode<String>(data: 'test');
 
-        expect(group.selectable, isFalse);
+        expect(group.selectable, isTrue);
       });
     });
 
@@ -619,10 +619,10 @@ void main() {
         expect(comment.layer, equals(NodeRenderLayer.foreground));
       });
 
-      test('creates comment node not selectable by default', () {
+      test('creates comment node selectable by default', () {
         final comment = createTestCommentNode<String>(data: 'test');
 
-        expect(comment.selectable, isFalse);
+        expect(comment.selectable, isTrue);
       });
 
       test('creates comment node with no ports', () {
