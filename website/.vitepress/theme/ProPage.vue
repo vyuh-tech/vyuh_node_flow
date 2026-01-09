@@ -84,34 +84,34 @@ const generateBlinkCells = (count: number, seed: number) => {
 
 const proBlinkCells = generateBlinkCells(18, 91);
 
-const workflowFeatures = [
+const editorSdkFeatures = [
   {
-    tag: 'Visual Design',
+    tag: 'Visual Editor',
     tagIcon: 'ph:flow-arrow-fill',
     tagColor: 'purple' as const,
     title: 'BPMN-Style Workflow Editor',
     subtitle:
-      'Design complex workflows visually with an intuitive drag-and-drop interface inspired by industry-standard BPMN notation.',
+      'Build workflow editors with BPMN-inspired notation. Complete with node palette, property panels, and drag-and-drop composition.',
     bullets: [
-      'Visual canvas for designing workflow processes',
-      'Pre-built activity, gateway, and event nodes',
+      'Node palette with categorized workflow nodes',
+      'Property panels for configuring node behavior',
       'Conditional branching and parallel execution paths',
-      'Simulation mode with step-through debugging',
+      'Pre-built activity, gateway, and event nodes',
     ],
     video: '/videos/editor.webm',
   },
   {
-    tag: 'Dart Execution',
-    tagIcon: 'simple-icons:dart',
-    tagColor: 'blue' as const,
-    title: 'Native Dart Executors',
+    tag: 'Simulation',
+    tagIcon: 'ph:play-circle-fill',
+    tagColor: 'teal' as const,
+    title: 'Embedded Simulation Engine',
     subtitle:
-      'Run workflows on the server with type-safe Dart executors. Full control over execution logic with native performance.',
+      'Test workflows directly in the editor with a lightweight embedded engine. Step through execution, inspect variables, and debug logic.',
     bullets: [
-      'Type-safe activity implementations in Dart',
-      'Async/await support for non-blocking execution',
-      'Built-in retry policies and error handling',
-      'Custom executor plugins for specialized tasks',
+      'Step-through execution with breakpoints',
+      'Variable inspection at each node',
+      'Simulate different input scenarios',
+      'Validate workflow logic before deployment',
     ],
     code: {
       source: validateDataExecutorCode,
@@ -120,65 +120,47 @@ const workflowFeatures = [
     },
   },
   {
-    tag: 'Observability',
+    tag: 'Monitoring',
     tagIcon: 'ph:chart-line-fill',
     tagColor: 'amber' as const,
-    title: 'Real-Time Monitoring',
+    title: 'Real-Time Monitoring Dashboard',
     subtitle:
-      'Track every workflow execution with comprehensive monitoring, event streams, and detailed analytics dashboards.',
+      'Build monitoring interfaces that track workflow execution in real-time. Visualize progress, inspect state, and debug issues.',
     bullets: [
-      'Live execution status and progress tracking',
-      'Complete event history and audit trails',
-      'Performance metrics and bottleneck detection',
-      'Alerting and notification integrations',
+      'Live execution status visualization',
+      'Node-by-node progress tracking',
+      'Execution history and audit trails',
+      'Error highlighting and stack traces',
     ],
     video: '/videos/monitoring.webm',
   },
-  {
-    tag: 'Enterprise Ready',
-    tagIcon: 'ph:buildings-fill',
-    tagColor: 'blue' as const,
-    title: 'Production-Grade Infrastructure',
-    subtitle:
-      'Deploy workflows with confidence using enterprise features designed for reliability, scalability, and security.',
-    bullets: [
-      'Distributed execution across multiple workers',
-      'Workflow versioning and migration support',
-      'Role-based access control for workflows',
-      'Integration with external systems and APIs',
-    ],
-    placeholder: {
-      title: 'Infrastructure Overview',
-      description: 'Scalable workflow architecture (coming soon)',
-    },
-  },
 ];
 
-// Marquee content for Pro features
+// Marquee content for Editor SDK features
 const marqueeLines = [
   {
     items: [
       'Unlimited Undo/Redo',
-      'Step-through Debugging',
-      'Workflow Versioning',
-      'Custom Tasks',
-      'Task Libraries',
+      'Copy & Paste',
+      'Node Palette',
+      'Property Panels',
+      'Custom Layouts',
       'Auto-Save',
-      'Collaboration',
+      'Keyboard Shortcuts',
     ],
     color: 'purple' as const,
     duration: 40,
   },
   {
     items: [
+      'Step-through Debugging',
+      'Breakpoints',
+      'Variable Inspection',
       'BPMN Activities',
-      'Saga Patterns',
-      'Retry Policies',
-      'Error Handling',
-      'Async Execution',
-      'Event Streams',
-      'Audit Trails',
-      'Worker Pools',
+      'Simulation Engine',
+      'Execution Tracing',
+      'Error Highlighting',
+      'State Snapshots',
     ],
     color: 'teal' as const,
     reverse: true,
@@ -187,58 +169,75 @@ const marqueeLines = [
   {
     items: [
       'Priority Support',
-      'Custom Integrations',
-      'SSO Authentication',
+      'Custom Extensions',
+      'Architecture Guidance',
       'Role-Based Access',
-      'API Access',
-      'Webhooks',
-      'Custom Branding',
-      'SLA Guarantee',
+      'Export & Import',
+      'JSON Serialization',
+      'Custom Theming',
+      'Expert Consultation',
     ],
     color: 'purple' as const,
     duration: 35, // Faster
   },
 ];
 
-// Comparison table data - merged Pro Features + Plan Comparison
+// Comparison table data - Editor SDK Features
 const comparisonRows: ComparisonRow[] = [
-  // Core features (both editions)
-  { category: 'Core Editor Features', openSource: true, pro: true },
+  // Core Editor section
+  {
+    category: 'Core Editor',
+    isSection: true,
+    icon: 'ph:frame-corners-fill',
+  },
+  { category: 'Visual Node Graph Canvas', openSource: true, pro: true },
   { category: 'Theming & Customization', openSource: true, pro: true },
   { category: 'Connection Effects', openSource: true, pro: true },
-  { category: 'Serialization', openSource: true, pro: true },
-  // Pro-exclusive editor features
-  { category: 'History & Undo/Redo', openSource: false, pro: true },
-  { category: 'Advanced Grouping', openSource: false, pro: true },
+  { category: 'Serialization (JSON)', openSource: true, pro: true },
   {
     category: 'Extension System',
     openSource: true,
     pro: 'Many more custom extensions',
   },
-  { category: 'Custom Node & Graph Layouts', openSource: false, pro: true },
-  { category: 'Export & Import', openSource: false, pro: true },
-  { category: 'Copy & Paste', openSource: false, pro: true },
-  { category: 'Access Control', openSource: false, pro: true },
-  // Workflow Engine section
+  // Editor SDK Features section
   {
-    category: 'Workflow Engine',
+    category: 'Editor SDK Features',
     isSection: true,
-    icon: 'ph:git-branch-fill',
+    icon: 'ph:code-fill',
+  },
+  { category: 'History & Undo/Redo', openSource: false, pro: true },
+  { category: 'Copy & Paste', openSource: false, pro: true },
+  { category: 'Node Palette', openSource: false, pro: true },
+  { category: 'Property Panels', openSource: false, pro: true },
+  { category: 'Export & Import', openSource: false, pro: true },
+  { category: 'Custom Node & Graph Layouts', openSource: false, pro: true },
+  { category: 'Advanced Grouping', openSource: false, pro: true },
+  { category: 'Access Control', openSource: false, pro: true },
+  // Simulation & Debugging section
+  {
+    category: 'Simulation & Debugging',
+    isSection: true,
+    icon: 'ph:play-circle-fill',
   },
   {
-    category: 'Visual Workflow Editor',
+    category: 'Embedded Simulation Engine',
     openSource: false,
-    pro: 'See details below',
+    pro: 'See examples below',
   },
   {
-    category: 'Server-Side Workflow Engine',
+    category: 'Step-through Debugging',
     openSource: false,
-    pro: 'See details below',
+    pro: 'See examples below',
   },
   {
     category: 'Real-Time Monitoring',
     openSource: false,
-    pro: 'See details below',
+    pro: 'See examples below',
+  },
+  {
+    category: 'Breakpoints & Inspection',
+    openSource: false,
+    pro: 'See examples below',
   },
   // Support section
   {
@@ -287,8 +286,9 @@ const comparisonRows: ComparisonRow[] = [
         <TitleBadge color="amber">Pro</TitleBadge>
       </h1>
       <p class="pro-subtitle">
-        Enterprise-grade features for building sophisticated visual editors,
-        workflow engines, and BPMN-style automation.
+        A comprehensive Editor SDK for building enterprise-grade workflow
+        editors with undo/redo, copy-paste, node palettes, property panels, and
+        an embedded simulation engine.
       </p>
       <div class="mt-12">
         <SelectProgramCard />
@@ -304,7 +304,7 @@ const comparisonRows: ComparisonRow[] = [
         badge="Compare Plans"
         badge-icon="ph:scales-fill"
         badge-color="purple"
-        subtitle="See what's included in each edition and choose the right fit for your project."
+        subtitle="The Editor SDK provides everything you need to build professional workflow editors. Compare editions below."
         centered
       >
         <template #title>
@@ -315,28 +315,28 @@ const comparisonRows: ComparisonRow[] = [
       <ComparisonTable :rows="comparisonRows" />
     </Section>
 
-    <!-- Connector: Comparison to Workflow -->
+    <!-- Connector: Comparison to Editor SDK Examples -->
     <SectionConnector color="purple" />
 
-    <!-- Workflow Engine Section -->
+    <!-- Editor SDK Examples Section -->
     <Section border-top border-bottom background variant="teal">
       <SectionHeader
-        badge="Workflow Engine"
-        badge-icon="ph:git-branch-fill"
+        badge="Editor SDK Examples"
+        badge-icon="ph:code-fill"
         badge-color="teal"
-        subtitle="Design, execute, and monitor BPMN-style workflows with native Dart executors and real-time observability."
+        subtitle="Build professional workflow editors with BPMN-style nodes, embedded simulation, step-through debugging, and real-time monitoring."
         centered
         large-title
       >
         <template #title>
           <span class="workflow-title-gradient"
-            >Server-Side Workflow Automation</span
+            >Build Enterprise Workflow Editors</span
           >
         </template>
       </SectionHeader>
 
       <div class="mt-16">
-        <template v-for="(feature, index) in workflowFeatures" :key="index">
+        <template v-for="(feature, index) in editorSdkFeatures" :key="index">
           <FeatureSection
             v-if="feature.code"
             :tag="feature.tag"
@@ -371,7 +371,7 @@ const comparisonRows: ComparisonRow[] = [
       </div>
     </Section>
 
-    <!-- Connector: Workflow to Marquee -->
+    <!-- Connector: Editor SDK Examples to Marquee -->
     <SectionConnector color="teal" />
 
     <!-- Marquee -->
