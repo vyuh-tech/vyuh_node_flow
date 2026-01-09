@@ -328,7 +328,7 @@ const comparisonRows: ComparisonRow[] = [
         {
           href: '/docs/start/installation',
           icon: 'ph:github-logo-fill',
-          label: 'Try Free Version',
+          label: 'Use Open Source',
         },
       ]"
     >
