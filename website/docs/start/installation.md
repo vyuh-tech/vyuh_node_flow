@@ -20,24 +20,9 @@ Get Vyuh Node Flow running in your Flutter project in under 5 minutes.
 
 ### Add the Dependency
 
-Add `vyuh_node_flow` to your `pubspec.yaml`. The current version is <PubVersion />.
+Add `vyuh_node_flow` to your `pubspec.yaml`.
 
-::: code-group
-
-```yaml title="pubspec.yaml" [pub.dev]
-dependencies:
-  vyuh_node_flow: ^0.19.0  # See pub.dev for latest version
-```
-
-```yaml title="pubspec.yaml" [Git]
-dependencies:
-  vyuh_node_flow:
-    git:
-      url: https://github.com/vyuh-tech/vyuh_node_flow.git
-      path: packages/vyuh_node_flow
-```
-
-:::
+<PubspecCodeBlock />
 
 Run the install command:
 
