@@ -356,7 +356,7 @@ class InteractionState {
 
   /// Finishes the current selection operation.
   ///
-  /// Clears the selection rectangle and resets tracking state.
+  /// Clears the selection rectangle, resets tracking state, and unlocks the canvas.
   /// Should be called when the user releases the mouse button after
   /// drag-selecting nodes.
   void finishSelection() {
@@ -364,6 +364,8 @@ class InteractionState {
       selectionStart.value = null;
       selectionRect.value = null;
       _previouslyIntersecting.clear();
+      // Unlock canvas after selection drag completes
+      canvasLocked.value = false;
     });
   }
 

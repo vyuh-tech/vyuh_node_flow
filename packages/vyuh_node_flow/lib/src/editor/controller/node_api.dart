@@ -177,6 +177,13 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
         .toList();
 
     runInAction(() {
+      // Clear drag state if the deleted node is currently being dragged.
+      // This prevents canvas from staying locked after node deletion.
+      if (interaction.draggedNodeId.value == nodeId) {
+        interaction.draggedNodeId.value = null;
+        interaction.canvasLocked.value = false;
+      }
+
       // Detach context for nodes with GroupableMixin before removal
       // This disposes MobX reactions and cleans up the context
       if (nodeToDelete is GroupableMixin<T>) {
