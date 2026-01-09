@@ -1,3 +1,7 @@
+## 0.23.4
+
+ - **FEAT**: add unit tests for selection and interaction state in vyuh_node_flow package.
+
 ## 0.23.3
 
  - **FEAT**: update default selectability for GroupNode and CommentNode, refine drag behavior for consistency with selection logic.
