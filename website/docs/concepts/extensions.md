@@ -124,7 +124,7 @@ class LoggingExtension extends NodeFlowExtension {
         print('Node added: ${node.id}');
       case NodeMoved(:final node, :final previousPosition):
         print('Node ${node.id} moved from $previousPosition');
-      case ConnectionCreated(:final connection):
+      case ConnectionAdded(:final connection):
         print('Connection: ${connection.sourceNodeId} → ${connection.targetNodeId}');
       default:
         // Ignore other events
@@ -144,38 +144,91 @@ class LoggingExtension extends NodeFlowExtension {
 
 ### Event Types
 
-Extensions receive all graph events:
+Extensions receive all graph events. The event system uses a sealed class hierarchy for exhaustive pattern matching:
 
 ```dart
 @override
 void onEvent(GraphEvent event) {
   switch (event) {
-    // Node events
+    // Node lifecycle events
     case NodeAdded(:final node): ...
     case NodeRemoved(:final node): ...
     case NodeMoved(:final node, :final previousPosition): ...
     case NodeResized(:final node, :final previousSize): ...
     case NodeDataChanged(:final node, :final previousData): ...
-    case NodeSelected(:final nodeIds): ...
-    case NodeDeselected(:final nodeIds): ...
+    case NodeVisibilityChanged(:final node, :final wasVisible): ...
+    case NodeZIndexChanged(:final node, :final previousZIndex): ...
+    case NodeLockChanged(:final node, :final wasLocked): ...
+    case NodeGroupChanged(:final node, :final previousGroupId, :final currentGroupId): ...
 
     // Connection events
-    case ConnectionCreated(:final connection): ...
+    case ConnectionAdded(:final connection): ...
     case ConnectionRemoved(:final connection): ...
-    case ConnectionSelected(:final connectionIds): ...
-    case ConnectionDeselected(:final connectionIds): ...
+
+    // Selection events
+    case SelectionChanged(:final selectedNodeIds, :final selectedConnectionIds): ...
 
     // Viewport events
-    case ViewportChanged(:final viewport): ...
+    case ViewportChanged(:final viewport, :final previousViewport): ...
+
+    // Drag events (for tracking drag operations)
+    case NodeDragStarted(:final nodeIds, :final startPosition): ...
+    case NodeDragEnded(:final nodeIds, :final originalPositions): ...
+    case ConnectionDragStarted(:final sourceNodeId, :final sourcePortId): ...
+    case ConnectionDragEnded(:final wasConnected, :final connection): ...
+    case ResizeStarted(:final nodeId, :final initialSize): ...
+    case ResizeEnded(:final nodeId, :final initialSize, :final finalSize): ...
+
+    // Hover events
+    case NodeHoverChanged(:final nodeId, :final isHovered): ...
+    case ConnectionHoverChanged(:final connectionId, :final isHovered): ...
+    case PortHoverChanged(:final nodeId, :final portId, :final isHovered): ...
+
+    // Lifecycle events
+    case GraphCleared(:final previousNodeCount, :final previousConnectionCount): ...
+    case GraphLoaded(:final nodeCount, :final connectionCount): ...
 
     // Batch events (for undo/redo grouping)
     case BatchStarted(:final reason): ...
     case BatchEnded(): ...
 
-    default: break;
+    // LOD (Level of Detail) events
+    case LODLevelChanged(:final previousVisibility, :final currentVisibility): ...
   }
 }
 ```
+
+### Event Reference
+
+| Category | Event | Key Properties | Purpose |
+|----------|-------|----------------|---------|
+| **Node** | `NodeAdded` | `node` | Node created |
+| | `NodeRemoved` | `node` | Node deleted |
+| | `NodeMoved` | `node`, `previousPosition` | Position changed |
+| | `NodeResized` | `node`, `previousSize` | Size changed |
+| | `NodeDataChanged` | `node`, `previousData` | Data payload changed |
+| | `NodeVisibilityChanged` | `node`, `wasVisible` | Visibility toggled |
+| | `NodeZIndexChanged` | `node`, `previousZIndex` | Layer order changed |
+| | `NodeLockChanged` | `node`, `wasLocked` | Lock state toggled |
+| | `NodeGroupChanged` | `node`, `previousGroupId`, `currentGroupId` | Group membership changed |
+| **Connection** | `ConnectionAdded` | `connection` | Connection created |
+| | `ConnectionRemoved` | `connection` | Connection deleted |
+| **Selection** | `SelectionChanged` | `selectedNodeIds`, `selectedConnectionIds`, `previousNodeIds`, `previousConnectionIds` | Selection state changed |
+| **Viewport** | `ViewportChanged` | `viewport`, `previousViewport` | Pan/zoom changed |
+| **Drag** | `NodeDragStarted` | `nodeIds`, `startPosition` | Drag operation began |
+| | `NodeDragEnded` | `nodeIds`, `originalPositions` | Drag operation ended |
+| | `ConnectionDragStarted` | `sourceNodeId`, `sourcePortId`, `isOutput` | Connection drag began |
+| | `ConnectionDragEnded` | `wasConnected`, `connection` | Connection drag ended |
+| | `ResizeStarted` | `nodeId`, `initialSize` | Resize operation began |
+| | `ResizeEnded` | `nodeId`, `initialSize`, `finalSize` | Resize operation ended |
+| **Hover** | `NodeHoverChanged` | `nodeId`, `isHovered` | Node hover state changed |
+| | `ConnectionHoverChanged` | `connectionId`, `isHovered` | Connection hover state changed |
+| | `PortHoverChanged` | `nodeId`, `portId`, `isHovered`, `isOutput` | Port hover state changed |
+| **Lifecycle** | `GraphCleared` | `previousNodeCount`, `previousConnectionCount` | Graph was cleared |
+| | `GraphLoaded` | `nodeCount`, `connectionCount` | Graph was loaded |
+| **Batch** | `BatchStarted` | `reason` | Batch operation began |
+| | `BatchEnded` | — | Batch operation ended |
+| **LOD** | `LODLevelChanged` | `previousVisibility`, `currentVisibility`, `normalizedZoom` | Detail level changed |
 
 ### Stateful Extensions
 
@@ -209,14 +262,12 @@ class SelectionTrackerExtension extends NodeFlowExtension {
   @override
   void onEvent(GraphEvent event) {
     switch (event) {
-      case NodeSelected(:final nodeIds):
+      case SelectionChanged(:final selectedNodeIds, :final previousNodeIds):
         runInAction(() {
-          _selectionCount.value += nodeIds.length;
-          _lastSelectionTime.value = DateTime.now();
-        });
-      case NodeDeselected(:final nodeIds):
-        runInAction(() {
-          _selectionCount.value -= nodeIds.length;
+          _selectionCount.value = selectedNodeIds.length;
+          if (selectedNodeIds.length > previousNodeIds.length) {
+            _lastSelectionTime.value = DateTime.now();
+          }
         });
       default:
         break;
@@ -272,7 +323,7 @@ class UndoRedoExtension extends NodeFlowExtension {
     switch (event) {
       case NodeMoved():
       case NodeResized():
-      case ConnectionCreated():
+      case ConnectionAdded():
       case ConnectionRemoved():
         _undoStack.add(event);
         _redoStack.clear(); // Clear redo on new action
@@ -341,7 +392,7 @@ class AutoSaveExtension extends NodeFlowExtension {
       case NodeAdded():
       case NodeRemoved():
       case NodeMoved():
-      case ConnectionCreated():
+      case ConnectionAdded():
       case ConnectionRemoved():
         _scheduleSave();
       default:
