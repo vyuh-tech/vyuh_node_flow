@@ -1,3 +1,7 @@
+## 0.23.5
+
+ - **FEAT**: add inspect mode to NodeFlowBehavior and enhance node drag logic with behavior checks.
+
 ## 0.23.4
 
  - **FEAT**: add unit tests for selection and interaction state in vyuh_node_flow package.
