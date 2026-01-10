@@ -25,9 +25,10 @@ void main() {
 
   group('NodeFlowBehavior Enum', () {
     test('has all expected behavior modes', () {
-      expect(NodeFlowBehavior.values, hasLength(3));
+      expect(NodeFlowBehavior.values, hasLength(4));
       expect(NodeFlowBehavior.values, contains(NodeFlowBehavior.design));
       expect(NodeFlowBehavior.values, contains(NodeFlowBehavior.preview));
+      expect(NodeFlowBehavior.values, contains(NodeFlowBehavior.inspect));
       expect(NodeFlowBehavior.values, contains(NodeFlowBehavior.present));
     });
   });
@@ -82,6 +83,31 @@ void main() {
     });
   });
 
+  group('NodeFlowBehavior.inspect', () {
+    const behavior = NodeFlowBehavior.inspect;
+
+    test('disallows structural changes', () {
+      expect(behavior.canCreate, isFalse);
+      expect(behavior.canUpdate, isFalse);
+      expect(behavior.canDelete, isFalse);
+    });
+
+    test('allows selection and navigation but not dragging', () {
+      expect(behavior.canDrag, isFalse);
+      expect(behavior.canSelect, isTrue);
+      expect(behavior.canPan, isTrue);
+      expect(behavior.canZoom, isTrue);
+    });
+
+    test('canModify returns false', () {
+      expect(behavior.canModify, isFalse);
+    });
+
+    test('isInteractive returns true', () {
+      expect(behavior.isInteractive, isTrue);
+    });
+  });
+
   group('NodeFlowBehavior.present', () {
     const behavior = NodeFlowBehavior.present;
 
@@ -112,15 +138,17 @@ void main() {
       // design has all true, so canModify is true
       expect(NodeFlowBehavior.design.canModify, isTrue);
 
-      // preview and present have all false, so canModify is false
+      // preview, inspect, and present have all false, so canModify is false
       expect(NodeFlowBehavior.preview.canModify, isFalse);
+      expect(NodeFlowBehavior.inspect.canModify, isFalse);
       expect(NodeFlowBehavior.present.canModify, isFalse);
     });
 
     test('isInteractive is true when any interaction is allowed', () {
-      // design and preview allow interactions
+      // design, preview, and inspect allow interactions
       expect(NodeFlowBehavior.design.isInteractive, isTrue);
       expect(NodeFlowBehavior.preview.isInteractive, isTrue);
+      expect(NodeFlowBehavior.inspect.isInteractive, isTrue);
 
       // present allows no interactions
       expect(NodeFlowBehavior.present.isInteractive, isFalse);

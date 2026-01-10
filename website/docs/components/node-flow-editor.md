@@ -373,6 +373,7 @@ Controls what interactions are allowed. See [Behavior Modes](#behavior-modes) be
 |------|-------------|
 | `NodeFlowBehavior.design` | Full editing - create, modify, delete, drag, select, pan, zoom (default) |
 | `NodeFlowBehavior.preview` | Navigate and rearrange - drag, select, pan, zoom but no structural changes |
+| `NodeFlowBehavior.inspect` | View and select - select, pan, zoom but no dragging or structural changes |
 | `NodeFlowBehavior.present` | Display only - no interaction at all |
 
 ### scrollToZoom
@@ -408,6 +409,12 @@ NodeFlowEditor(
   // ...
 )
 
+// Inspect mode - view and select, no dragging or editing
+NodeFlowEditor(
+  behavior: NodeFlowBehavior.inspect,
+  // ...
+)
+
 // Presentation mode - display only
 NodeFlowEditor(
   behavior: NodeFlowBehavior.present,
@@ -417,15 +424,15 @@ NodeFlowEditor(
 
 Each behavior mode has specific capabilities:
 
-| Capability | design | preview | present |
-|------------|:------:|:-------:|:-------:|
-| `canCreate` | Yes | No | No |
-| `canUpdate` | Yes | No | No |
-| `canDelete` | Yes | No | No |
-| `canDrag` | Yes | Yes | No |
-| `canSelect` | Yes | Yes | No |
-| `canPan` | Yes | Yes | No |
-| `canZoom` | Yes | Yes | No |
+| Capability | design | preview | inspect | present |
+|------------|:------:|:-------:|:-------:|:-------:|
+| `canCreate` | Yes | No | No | No |
+| `canUpdate` | Yes | No | No | No |
+| `canDelete` | Yes | No | No | No |
+| `canDrag` | Yes | Yes | No | No |
+| `canSelect` | Yes | Yes | Yes | No |
+| `canPan` | Yes | Yes | Yes | No |
+| `canZoom` | Yes | Yes | Yes | No |
 
 You can check capabilities programmatically using the behavior enum:
 
@@ -621,7 +628,7 @@ See [Keyboard Shortcuts](/docs/advanced/keyboard-shortcuts) for the complete lis
 4. **Error Handling**: Wrap operations in try-catch blocks
 5. **Performance**: Keep node widgets lightweight
 6. **State Management**: Use controller APIs instead of directly modifying graph
-7. **Behavior Modes**: Use `preview` mode for run/debug views, `present` for thumbnails
+7. **Behavior Modes**: Use `inspect` mode for run/debug views (select nodes but no dragging), `preview` for layout adjustments, `present` for thumbnails
 
 ## See Also
 

@@ -105,7 +105,7 @@ The `vyuh_node_flow` package exports everything you need:
 |--------|---------|
 | `NodeFlowController` | Central controller for state management, graph operations, and viewport control |
 | `NodeFlowConfig` | Behavioral configuration (grid snapping, zoom limits) |
-| `NodeFlowBehavior` | Presets for editor modes: `design`, `preview`, `present` |
+| `NodeFlowBehavior` | Presets for editor modes: `design`, `preview`, `inspect`, `present` |
 | `NodeFlowEvents` | Event callbacks for nodes, ports, connections, viewport, and annotations |
 
 ::: tip Extensions
