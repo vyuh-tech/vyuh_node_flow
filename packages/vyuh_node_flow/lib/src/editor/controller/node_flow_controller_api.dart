@@ -308,18 +308,33 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
 
     // Notify monitoring nodes of drag start
     final context = _createDragContext();
-    for (final id
-        in selectedNodeIds.contains(nodeId)
-            ? selectedNodeIds.toList()
-            : [nodeId]) {
+    final nodeIds = selectedNodeIds.contains(nodeId)
+        ? selectedNodeIds.toList()
+        : [nodeId];
+    for (final id in nodeIds) {
       _nodes[id]?.onDragStart(context);
     }
+
+    // Capture original positions for extension events
+    final originalPositions = <String, Offset>{};
+    for (final id in nodeIds) {
+      final n = _nodes[id];
+      if (n != null) {
+        originalPositions[id] = n.position.value;
+      }
+    }
+    interaction.captureDragStartPositions(originalPositions);
 
     // Fire drag start event
     final node = _nodes[nodeId];
     if (node != null) {
       events.node?.onDragStart?.call(node);
     }
+
+    // Emit extension event
+    _emitEvent(
+      NodeDragStarted(nodeIds.toSet(), node?.position.value ?? Offset.zero),
+    );
   }
 
   /// Moves nodes during a drag operation.
@@ -384,6 +399,11 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
       }
     }
 
+    // Capture original positions before clearing them
+    final originalPositions = Map<String, Offset>.from(
+      interaction.dragStartPositions,
+    );
+
     // Notify nodes of drag end
     for (final node in draggedNodes) {
       node.onDragEnd();
@@ -405,6 +425,9 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
       // Note: Canvas unlocking is now handled by DragSession
     });
 
+    // Clear original positions tracking
+    interaction.clearDragStartPositions();
+
     // Rebuild connection segments with accurate path bounds after drag ends
     if (draggedNodeIds.isNotEmpty) {
       rebuildConnectionSegmentsForNodes(draggedNodeIds);
@@ -413,6 +436,11 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
     // Fire drag stop event for all dragged nodes
     for (final node in draggedNodes) {
       events.node?.onDragStop?.call(node);
+    }
+
+    // Emit extension event with original positions for undo/redo
+    if (draggedNodeIds.isNotEmpty) {
+      _emitEvent(NodeDragEnded(draggedNodeIds.toSet(), originalPositions));
     }
   }
 

@@ -20,17 +20,19 @@ class NodeDragStarted extends GraphEvent {
 
 /// Emitted when a node drag operation ends.
 class NodeDragEnded extends GraphEvent {
-  const NodeDragEnded(this.nodeIds, this.totalDelta);
+  const NodeDragEnded(this.nodeIds, this.originalPositions);
 
   /// The IDs of nodes that were dragged.
   final Set<String> nodeIds;
 
-  /// Total movement delta from start to end.
-  final Offset totalDelta;
+  /// Original positions of nodes before the drag started.
+  ///
+  /// Used by extensions to implement undo/redo for drag operations.
+  final Map<String, Offset> originalPositions;
 
   @override
   String toString() =>
-      'NodeDragEnded(${nodeIds.length} nodes, delta: $totalDelta)';
+      'NodeDragEnded(${nodeIds.length} nodes, originalPositions: ${originalPositions.length})';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

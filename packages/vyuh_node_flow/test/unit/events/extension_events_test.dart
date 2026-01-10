@@ -739,39 +739,57 @@ void main() {
   });
 
   group('NodeDragEnded', () {
-    test('creates event with node IDs and total delta', () {
-      final event = NodeDragEnded({'node-1', 'node-2'}, const Offset(150, 75));
+    test('creates event with node IDs and original positions', () {
+      final event = NodeDragEnded(
+        {'node-1', 'node-2'},
+        {'node-1': const Offset(0, 0), 'node-2': const Offset(100, 100)},
+      );
 
       expect(event.nodeIds, equals({'node-1', 'node-2'}));
-      expect(event.totalDelta, equals(const Offset(150, 75)));
+      expect(event.originalPositions['node-1'], equals(const Offset(0, 0)));
+      expect(event.originalPositions['node-2'], equals(const Offset(100, 100)));
     });
 
-    test('handles zero delta (click without movement)', () {
-      final event = NodeDragEnded({'node'}, Offset.zero);
+    test('handles single node drag', () {
+      final event = NodeDragEnded({'node'}, {'node': const Offset(50, 75)});
 
-      expect(event.totalDelta, equals(Offset.zero));
+      expect(event.nodeIds.length, equals(1));
+      expect(event.originalPositions['node'], equals(const Offset(50, 75)));
     });
 
-    test('handles negative delta', () {
-      final event = NodeDragEnded({'node'}, const Offset(-100, -50));
+    test('handles empty original positions (click without movement)', () {
+      final event = NodeDragEnded({'node'}, {});
 
-      expect(event.totalDelta.dx, equals(-100));
-      expect(event.totalDelta.dy, equals(-50));
+      expect(event.originalPositions, isEmpty);
     });
 
-    test('toString contains node count and delta', () {
-      final event = NodeDragEnded({'a', 'b'}, const Offset(100, 50));
+    test('toString contains node count and positions info', () {
+      final event = NodeDragEnded(
+        {'a', 'b'},
+        {'a': const Offset(0, 0), 'b': const Offset(10, 10)},
+      );
 
       final str = event.toString();
       expect(str, contains('NodeDragEnded'));
       expect(str, contains('2')); // 2 nodes
-      expect(str, contains('delta'));
+      expect(str, contains('originalPositions'));
     });
 
     test('is a GraphEvent', () {
-      final event = NodeDragEnded({'node'}, Offset.zero);
+      final event = NodeDragEnded({'node'}, {});
 
       expect(event, isA<GraphEvent>());
+    });
+
+    test('supports undo by storing original positions', () {
+      final event = NodeDragEnded(
+        {'node-1', 'node-2'},
+        {'node-1': const Offset(10, 20), 'node-2': const Offset(30, 40)},
+      );
+
+      // Can use originalPositions to restore state
+      expect(event.originalPositions['node-1'], equals(const Offset(10, 20)));
+      expect(event.originalPositions['node-2'], equals(const Offset(30, 40)));
     });
   });
 
@@ -1435,7 +1453,7 @@ void main() {
         ),
         ViewportChanged(viewport, viewport),
         NodeDragStarted({'node'}, Offset.zero),
-        NodeDragEnded({'node'}, Offset.zero),
+        NodeDragEnded({'node'}, {'node': Offset.zero}),
         ConnectionDragStarted(
           sourceNodeId: 'node',
           sourcePortId: 'port',

@@ -511,4 +511,38 @@ class InteractionState {
       setCursorOverride(null);
     });
   }
+
+  // ===========================================================================
+  // Drag Position Tracking (for extension events)
+  // ===========================================================================
+
+  /// Original positions of nodes when drag started.
+  ///
+  /// Used to emit [NodeDragEnded] with the original positions so extensions
+  /// can implement undo/redo for drag operations.
+  Map<String, Offset> _dragStartPositions = {};
+
+  /// Gets the original positions of nodes when drag started.
+  ///
+  /// Returns an empty map if no drag operation is in progress.
+  Map<String, Offset> get dragStartPositions =>
+      Map.unmodifiable(_dragStartPositions);
+
+  /// Captures the starting positions of nodes for drag tracking.
+  ///
+  /// Called when a node drag operation starts to record original positions.
+  /// These positions are used to calculate total movement and enable undo.
+  ///
+  /// Parameters:
+  /// * [positions] - Map of node ID to original position
+  void captureDragStartPositions(Map<String, Offset> positions) {
+    _dragStartPositions = Map.from(positions);
+  }
+
+  /// Clears the drag start positions.
+  ///
+  /// Called when a drag operation ends.
+  void clearDragStartPositions() {
+    _dragStartPositions = {};
+  }
 }

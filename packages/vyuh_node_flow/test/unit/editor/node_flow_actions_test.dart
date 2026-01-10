@@ -67,7 +67,7 @@ void main() {
 
       // Verify expected categories exist
       expect(categories, contains('Selection'));
-      expect(categories, contains('Editing'));
+      expect(categories, contains('Edit'));
       expect(categories, contains('Navigation'));
       expect(categories, contains('Arrangement'));
       expect(categories, contains('Alignment'));
@@ -239,7 +239,7 @@ void main() {
 
       expect(delete.id, equals('delete_selected'));
       expect(delete.label, equals('Delete'));
-      expect(delete.category, equals('Editing'));
+      expect(delete.category, equals('Edit'));
     });
 
     test('canExecute returns false when nothing selected', () {
@@ -315,7 +315,7 @@ void main() {
 
       expect(duplicate.id, equals('duplicate_selected'));
       expect(duplicate.label, equals('Duplicate'));
-      expect(duplicate.category, equals('Editing'));
+      expect(duplicate.category, equals('Edit'));
     });
 
     test('canExecute returns false when nothing selected', () {
@@ -364,7 +364,7 @@ void main() {
 
       expect(cut.id, equals('cut_selected'));
       expect(cut.label, equals('Cut'));
-      expect(cut.category, equals('Editing'));
+      expect(cut.category, equals('Edit'));
     });
 
     test('canExecute returns false when nothing selected', () {
@@ -411,7 +411,7 @@ void main() {
 
       expect(copy.id, equals('copy_selected'));
       expect(copy.label, equals('Copy'));
-      expect(copy.category, equals('Editing'));
+      expect(copy.category, equals('Edit'));
     });
 
     test('canExecute returns false when nothing selected', () {
@@ -446,7 +446,7 @@ void main() {
 
       expect(paste.id, equals('paste'));
       expect(paste.label, equals('Paste'));
-      expect(paste.category, equals('Editing'));
+      expect(paste.category, equals('Edit'));
     });
 
     test('canExecute returns true by default', () {
@@ -950,7 +950,7 @@ void main() {
 
       expect(toggleMinimap.id, equals('toggle_minimap'));
       expect(toggleMinimap.label, equals('Toggle Minimap'));
-      expect(toggleMinimap.category, equals('View'));
+      expect(toggleMinimap.category, equals('Navigation'));
     });
 
     test('execute returns false when minimap extension not registered', () {
@@ -992,7 +992,7 @@ void main() {
 
       expect(toggleSnapping.id, equals('toggle_snapping'));
       expect(toggleSnapping.label, equals('Toggle Snapping'));
-      expect(toggleSnapping.category, equals('Editing'));
+      expect(toggleSnapping.category, equals('Edit'));
     });
 
     test('execute toggles snapping state', () {
@@ -1076,7 +1076,7 @@ void main() {
       final byCategory = manager.getActionsByCategory();
 
       expect(byCategory.containsKey('Selection'), isTrue);
-      expect(byCategory.containsKey('Editing'), isTrue);
+      expect(byCategory.containsKey('Edit'), isTrue);
       expect(byCategory['Selection'], isNotEmpty);
     });
 

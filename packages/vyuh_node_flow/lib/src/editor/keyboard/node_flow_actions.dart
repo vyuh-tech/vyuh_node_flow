@@ -657,7 +657,7 @@ class _DeleteSelectedAction<T> extends NodeFlowAction<T> {
         id: 'delete_selected',
         label: 'Delete',
         description: 'Delete selected nodes and connections',
-        category: 'Editing',
+        category: 'Edit',
       );
 
   @override
@@ -690,7 +690,7 @@ class _DuplicateSelectedAction<T> extends NodeFlowAction<T> {
         id: 'duplicate_selected',
         label: 'Duplicate',
         description: 'Duplicate selected nodes',
-        category: 'Editing',
+        category: 'Edit',
       );
 
   @override
@@ -716,7 +716,7 @@ class _CutSelectedAction<T> extends NodeFlowAction<T> {
         id: 'cut_selected',
         label: 'Cut',
         description: 'Cut selected nodes to clipboard',
-        category: 'Editing',
+        category: 'Edit',
       );
 
   @override
@@ -740,7 +740,7 @@ class _CopySelectedAction<T> extends NodeFlowAction<T> {
         id: 'copy_selected',
         label: 'Copy',
         description: 'Copy selected nodes to clipboard',
-        category: 'Editing',
+        category: 'Edit',
       );
 
   @override
@@ -764,7 +764,7 @@ class _PasteAction<T> extends NodeFlowAction<T> {
         id: 'paste',
         label: 'Paste',
         description: 'Paste nodes from clipboard',
-        category: 'Editing',
+        category: 'Edit',
       );
 
   @override
@@ -1192,7 +1192,7 @@ class _ToggleMinimapAction<T> extends NodeFlowAction<T> {
         id: 'toggle_minimap',
         label: 'Toggle Minimap',
         description: 'Show or hide the minimap overlay',
-        category: 'View',
+        category: 'Navigation',
       );
 
   @override
@@ -1213,7 +1213,7 @@ class _ToggleSnappingAction<T> extends NodeFlowAction<T> {
         id: 'toggle_snapping',
         label: 'Toggle Snapping',
         description: 'Toggle grid snapping for nodes',
-        category: 'Editing',
+        category: 'Edit',
       );
 
   @override
