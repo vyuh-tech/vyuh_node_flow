@@ -1,29 +1,18 @@
 <script setup lang="ts">
-import { usePubVersion } from '../composables/usePubVersion';
+import { data as pubData } from '../data/pubVersion.data';
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
-    package?: string;
     prefix?: string;
   }>(),
   {
-    package: 'vyuh_node_flow',
     prefix: '^',
   }
 );
-
-const { version, loading } = usePubVersion(props.package);
 </script>
 
 <template>
-  <code class="pub-version">
-    <template v-if="loading">
-      <span class="version-loading">{{ prefix }}...</span>
-    </template>
-    <template v-else>
-      {{ prefix }}{{ version }}
-    </template>
-  </code>
+  <code class="pub-version">{{ prefix }}{{ pubData.version }}</code>
 </template>
 
 <style scoped>
@@ -34,14 +23,5 @@ const { version, loading } = usePubVersion(props.package);
   background-color: var(--vp-c-brand-soft);
   border-radius: 4px;
   padding: 0.15em 0.4em;
-}
-
-.version-loading {
-  animation: pulse 1s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
 }
 </style>

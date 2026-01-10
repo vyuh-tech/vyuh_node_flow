@@ -3,13 +3,10 @@ import { computed } from 'vue';
 import Section from './Section.vue';
 import SectionHeader from './SectionHeader.vue';
 import TabbedCodePreview, { type CodeTab } from './TabbedCodePreview.vue';
-import { usePubVersion } from '../composables/usePubVersion';
+import { data as pubData } from '../data/pubVersion.data';
 
 // Import code sample as raw text
 import mainDartCode from '../code-samples/quick-start.dart?raw';
-
-// Fetch latest version from pub.dev
-const { version, loading } = usePubVersion('vyuh_node_flow');
 
 // Code markers for main.dart
 const mainDartMarkers = [
@@ -41,10 +38,6 @@ const mainDartMarkers = [
 
 // Dynamic pubspec.yaml with fetched version
 const pubspecCode = computed(() => {
-  const versionStr = loading.value
-    ? '^x.x.x  # Loading...'
-    : `^${version.value || '0.20.0'}`;
-
   return `name: my_flow_app
 description: A node-based flow editor app
 
@@ -56,7 +49,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  vyuh_node_flow: ${versionStr}  # [!code focus]
+  vyuh_node_flow: ${pubData.versionWithCaret}  # [!code focus]
 
 dev_dependencies:
   flutter_test:

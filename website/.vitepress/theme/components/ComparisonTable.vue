@@ -175,15 +175,15 @@ defineProps<{
   background: linear-gradient(
     to bottom,
     theme('colors.amber.50'),
-    theme('colors.amber.50/50')
+    color-mix(in srgb, theme('colors.amber.50') 50%, transparent)
   );
 }
 
 .dark .pro-header {
   background: linear-gradient(
     to bottom,
-    theme('colors.amber.900/30'),
-    theme('colors.amber.900/15')
+    color-mix(in srgb, theme('colors.amber.900') 30%, transparent),
+    color-mix(in srgb, theme('colors.amber.900') 15%, transparent)
   );
 }
 
@@ -214,7 +214,6 @@ defineProps<{
 .pro-icon-box {
   @apply bg-amber-200/80 text-amber-600;
   @apply dark:bg-amber-800/50 dark:text-amber-400;
-  box-shadow: 0 0 20px theme('colors.amber.400/25');
 }
 
 .plan-details {

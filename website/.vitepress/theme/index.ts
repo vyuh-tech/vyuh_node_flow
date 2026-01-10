@@ -5,6 +5,7 @@ import ProPage from './ProPage.vue';
 import NavProBadge from './components/NavProBadge.vue';
 import PackageShields from './components/PackageShields.vue';
 import PubVersion from './components/PubVersion.vue';
+import PubspecCodeBlock from './components/PubspecCodeBlock.vue';
 import './style.css';
 
 export default {
@@ -15,5 +16,6 @@ export default {
     app.component('NavProBadge', NavProBadge);
     app.component('PackageShields', PackageShields);
     app.component('PubVersion', PubVersion);
+    app.component('PubspecCodeBlock', PubspecCodeBlock);
   },
 } satisfies Theme;
