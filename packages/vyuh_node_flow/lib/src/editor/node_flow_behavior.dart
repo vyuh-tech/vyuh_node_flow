@@ -50,6 +50,21 @@ enum NodeFlowBehavior {
     canZoom: true,
   ),
 
+  /// Inspect mode - view and select, but no modifications or rearrangement.
+  ///
+  /// Use this for runtime inspection where you want to select nodes to view
+  /// their state but prevent any layout changes. Ideal for execution/run modes
+  /// where the graph layout should remain stable.
+  inspect(
+    canCreate: false,
+    canUpdate: false,
+    canDelete: false,
+    canDrag: false,
+    canSelect: true,
+    canPan: true,
+    canZoom: true,
+  ),
+
   /// Presentation mode - display only, no interaction.
   ///
   /// Use this for embedded displays, thumbnails, or presentation contexts

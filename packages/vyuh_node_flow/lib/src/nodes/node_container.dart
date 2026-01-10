@@ -151,7 +151,8 @@ class NodeContainer<T> extends StatelessWidget {
                     createSession: () =>
                         controller.createSession(DragSessionType.nodeDrag),
                     // Drag lifecycle - unified for all node types
-                    isDraggable: !node.locked,
+                    // Check both node lock state AND behavior mode
+                    isDraggable: !node.locked && controller.behavior.canDrag,
                     onDragStart: (_) => controller.startNodeDrag(node.id),
                     onDragUpdate: (details) =>
                         controller.moveNodeDrag(details.delta),
