@@ -1,3 +1,7 @@
+## 0.23.7
+
+ - **FEAT**: export NodeDragContext to enhance node dragging integration.
+
 ## 0.23.6
 
  - **FEAT**: refine action categories, add event emission for drag and resize, and enhance undo/redo support.
