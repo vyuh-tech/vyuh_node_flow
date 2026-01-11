@@ -160,6 +160,7 @@ class MathEvaluator {
   /// - No inputs: returns "?" placeholder
   ///
   /// Detects division by zero and returns error.
+  /// Ensures expressions only reference nodes that exist in nodeIds.
   static EvalResult _evaluateOperator(
     String nodeId,
     MathOperator operator,
@@ -171,6 +172,7 @@ class MathEvaluator {
     final portAId = MathPortIds.inputA(nodeId);
     final portBId = MathPortIds.inputB(nodeId);
 
+    // Find inputs, ensuring source nodes exist
     final inputA = connections
         .where(
           (c) =>
@@ -188,26 +190,32 @@ class MathEvaluator {
         )
         .firstOrNull;
 
-    final hasA =
-        inputA != null &&
+    // Verify both connection and node existence, and that value was computed
+    final hasA = inputA != null &&
         nodeIds.contains(inputA.sourceNodeId) &&
         values.containsKey(inputA.sourceNodeId);
-    final hasB =
-        inputB != null &&
+    final hasB = inputB != null &&
         nodeIds.contains(inputB.sourceNodeId) &&
         values.containsKey(inputB.sourceNodeId);
 
+    // Partial connections - show only available input
     if (hasA && !hasB) {
-      final aExpr =
-          expressions[inputA.sourceNodeId] ??
-          MathFormatters.formatNumber(values[inputA.sourceNodeId]!);
+      // Only use expression if source node still exists and has value
+      final aExpr = nodeIds.contains(inputA.sourceNodeId) &&
+              values.containsKey(inputA.sourceNodeId)
+          ? (expressions[inputA.sourceNodeId] ??
+              MathFormatters.formatNumber(values[inputA.sourceNodeId]!))
+          : '?';
       return EvalResult.success(0.0, expression: aExpr);
     }
 
     if (!hasA && hasB) {
-      final bExpr =
-          expressions[inputB.sourceNodeId] ??
-          MathFormatters.formatNumber(values[inputB.sourceNodeId]!);
+      // Only use expression if source node still exists and has value
+      final bExpr = nodeIds.contains(inputB.sourceNodeId) &&
+              values.containsKey(inputB.sourceNodeId)
+          ? (expressions[inputB.sourceNodeId] ??
+              MathFormatters.formatNumber(values[inputB.sourceNodeId]!))
+          : '?';
       return EvalResult.success(0.0, expression: bExpr);
     }
 
@@ -215,8 +223,17 @@ class MathEvaluator {
       return EvalResult.success(0.0, expression: '?');
     }
 
-    final aValue = values[inputA!.sourceNodeId]!;
-    final bValue = values[inputB!.sourceNodeId]!;
+    // Both inputs available - build full expression
+    // Double-check nodes exist before using their expressions
+    if (!nodeIds.contains(inputA!.sourceNodeId) ||
+        !values.containsKey(inputA.sourceNodeId) ||
+        !nodeIds.contains(inputB!.sourceNodeId) ||
+        !values.containsKey(inputB.sourceNodeId)) {
+      return EvalResult.success(0.0, expression: '?');
+    }
+
+    final aValue = values[inputA.sourceNodeId]!;
+    final bValue = values[inputB.sourceNodeId]!;
     final aExpr =
         expressions[inputA.sourceNodeId] ?? MathFormatters.formatNumber(aValue);
     final bExpr =
@@ -241,6 +258,7 @@ class MathEvaluator {
   /// Applies mathematical function (sin, cos, sqrt) to input value.
   /// Returns error for invalid inputs (e.g., sqrt of negative number).
   /// Builds expression string in function notation (e.g., "sin(45)").
+  /// Ensures input node exists before using its expression.
   static EvalResult _evaluateFunction(
     String nodeId,
     MathFunction function,
@@ -255,13 +273,15 @@ class MathEvaluator {
         )
         .firstOrNull;
 
+    // No valid input connection or source node doesn't exist
     if (input == null || !nodeIds.contains(input.sourceNodeId)) {
-      return EvalResult.success(0.0, expression: '${function.symbol}(0)');
+      return EvalResult.success(0.0, expression: '${function.symbol}(?)');
     }
 
+    // Source node exists but value wasn't computed (shouldn't happen, but be safe)
     final inputValue = values[input.sourceNodeId];
-    if (inputValue == null) {
-      return EvalResult.success(0.0, expression: '${function.symbol}(0)');
+    if (inputValue == null || !nodeIds.contains(input.sourceNodeId)) {
+      return EvalResult.success(0.0, expression: '${function.symbol}(?)');
     }
 
     final result = function.apply(inputValue);
@@ -270,9 +290,12 @@ class MathEvaluator {
       return EvalResult.error('Invalid input');
     }
 
-    final inputExpr =
-        expressions[input.sourceNodeId] ??
-        MathFormatters.formatNumber(inputValue);
+    // Only use expression if source node still exists
+    final inputExpr = nodeIds.contains(input.sourceNodeId) &&
+            values.containsKey(input.sourceNodeId)
+        ? (expressions[input.sourceNodeId] ??
+            MathFormatters.formatNumber(inputValue))
+        : '?';
 
     return EvalResult.success(
       result,
@@ -284,6 +307,7 @@ class MathEvaluator {
   ///
   /// Passes through the input value and expression unchanged.
   /// Shows "?" when not connected, indicating awaiting input.
+  /// Ensures source node exists before using its expression.
   static EvalResult _evaluateResult(
     String nodeId,
     List<Connection> connections,
@@ -297,18 +321,23 @@ class MathEvaluator {
         )
         .firstOrNull;
 
+    // No valid input connection or source node doesn't exist
     if (input == null || !nodeIds.contains(input.sourceNodeId)) {
       return EvalResult.success(0.0, expression: '?');
     }
 
+    // Source node exists but value wasn't computed
     final inputValue = values[input.sourceNodeId];
-    if (inputValue == null) {
+    if (inputValue == null || !nodeIds.contains(input.sourceNodeId)) {
       return EvalResult.success(0.0, expression: '?');
     }
 
-    final inputExpr =
-        expressions[input.sourceNodeId] ??
-        MathFormatters.formatNumber(inputValue);
+    // Only use expression if source node still exists and has value
+    final inputExpr = nodeIds.contains(input.sourceNodeId) &&
+            values.containsKey(input.sourceNodeId)
+        ? (expressions[input.sourceNodeId] ??
+            MathFormatters.formatNumber(inputValue))
+        : '?';
 
     return EvalResult.success(inputValue, expression: inputExpr);
   }

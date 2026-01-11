@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../shared/ui_widgets.dart';
+import 'models.dart';
 import 'state.dart';
 import 'theme.dart';
 import 'widgets/math_canvas.dart';
@@ -27,13 +28,25 @@ class NodeMathExample extends StatefulWidget {
 }
 
 class _NodeMathExampleState extends State<NodeMathExample> {
-  final _state = MathState();
+  late final MathState _state;
   late NodeFlowTheme _theme;
 
   @override
   void initState() {
     super.initState();
     _theme = MathTheme.nodeFlowTheme;
+    
+    // Create controller (source of truth, like other demos)
+    final controller = NodeFlowController<MathNodeData, dynamic>(
+      config: NodeFlowConfig(
+        snapToGrid: false,
+        gridSize: 20.0,
+        minZoom: 0.25,
+        maxZoom: 2.0,
+      ),
+    );
+    
+    _state = MathState(controller);
   }
 
   @override
