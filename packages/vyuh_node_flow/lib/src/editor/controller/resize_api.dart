@@ -55,6 +55,9 @@ extension ResizeApi<T, C> on NodeFlowController<T, C> {
     );
 
     interaction.startResize(nodeId, handle, graphPos.offset, originalBounds);
+
+    // Emit extension event
+    _emitEvent(ResizeStarted(nodeId, node.size.value));
   }
 
   /// Updates the size of the currently resizing node during a resize operation.
@@ -110,7 +113,21 @@ extension ResizeApi<T, C> on NodeFlowController<T, C> {
   ///
   /// Clears resize state and re-enables panning.
   void endResize() {
+    final nodeId = interaction.currentResizingNodeId;
+    final originalBounds = interaction.currentOriginalNodeBounds;
+
+    // Capture final size before clearing state
+    Size? finalSize;
+    if (nodeId != null) {
+      finalSize = _nodes[nodeId]?.size.value;
+    }
+
     interaction.endResize();
+
+    // Emit extension event with original and final sizes
+    if (nodeId != null && originalBounds != null && finalSize != null) {
+      _emitEvent(ResizeEnded(nodeId, originalBounds.size, finalSize));
+    }
   }
 
   /// Cancels a resize operation and reverts to original position/size.

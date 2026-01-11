@@ -1,3 +1,12 @@
+## 0.23.6
+
+ - **FEAT**: refine action categories, add event emission for drag and resize, and enhance undo/redo support.
+ - **FEAT**: document inspect mode in NodeFlowBehavior, update examples, and add comparison tables.
+
+## 0.23.5
+
+ - **FEAT**: add inspect mode to NodeFlowBehavior and enhance node drag logic with behavior checks.
+
 ## 0.23.4
 
  - **FEAT**: add unit tests for selection and interaction state in vyuh_node_flow package.

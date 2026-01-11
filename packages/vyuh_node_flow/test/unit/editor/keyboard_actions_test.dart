@@ -551,7 +551,7 @@ void main() {
 
       // Should have well-defined categories
       expect(categories.contains('Selection'), isTrue);
-      expect(categories.contains('Editing'), isTrue);
+      expect(categories.contains('Edit'), isTrue);
       expect(categories.contains('Navigation'), isTrue);
       expect(categories.contains('Arrangement'), isTrue);
       expect(categories.contains('Alignment'), isTrue);

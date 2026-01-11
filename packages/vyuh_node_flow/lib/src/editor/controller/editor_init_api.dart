@@ -172,7 +172,19 @@ extension EditorInitApi<T, C> on NodeFlowController<T, C> {
     }
 
     // =========================================================================
-    // Step 10: Initialize spatial indexes and node infrastructure
+    // Step 10: Auto-attach all config extensions
+    // =========================================================================
+    // Extensions from NodeFlowConfig.extensions are stored in the ExtensionRegistry
+    // but NOT automatically added to the controller's _extensions list. We need to
+    // attach them here so they receive GraphEvents via _emitEvent().
+    for (final extension in _config.extensionRegistry.all) {
+      if (!_extensions.any((e) => e.id == extension.id)) {
+        addExtension(extension);
+      }
+    }
+
+    // =========================================================================
+    // Step 11: Initialize spatial indexes and node infrastructure
     // =========================================================================
     // If nodes were pre-loaded (e.g., from loadDocument before editor mounted),
     // we need to set up their infrastructure and rebuild spatial indexes now.

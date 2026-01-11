@@ -199,17 +199,21 @@ When using `withData`, the controller is created internally. You won't have dire
 
 ## Comparison with NodeFlowEditor
 
-| Feature | NodeFlowViewer | NodeFlowEditor (design) | NodeFlowEditor (present) |
-|---------|:--------------:|:-----------------------:|:------------------------:|
-| Pan | Yes | Yes | No |
-| Zoom | Yes | Yes | No |
-| Select | Yes | Yes | No |
-| Drag nodes | Yes | Yes | No |
-| Create nodes | No | Yes | No |
-| Delete nodes | No | Yes | No |
-| Create connections | No | Yes | No |
-| Delete connections | No | Yes | No |
-| Edit annotations | No | Yes | No |
+| Feature | NodeFlowViewer | NodeFlowEditor (design) | NodeFlowEditor (inspect) | NodeFlowEditor (present) |
+|---------|:--------------:|:-----------------------:|:------------------------:|:------------------------:|
+| Pan | Yes | Yes | Yes | No |
+| Zoom | Yes | Yes | Yes | No |
+| Select | Yes | Yes | Yes | No |
+| Drag nodes | Yes | Yes | No | No |
+| Create nodes | No | Yes | No | No |
+| Delete nodes | No | Yes | No | No |
+| Create connections | No | Yes | No | No |
+| Delete connections | No | Yes | No | No |
+| Edit annotations | No | Yes | No | No |
+
+::: tip When to use inspect mode
+Use `NodeFlowBehavior.inspect` for run/debug views where you want users to select nodes to view their state, but prevent any layout changes. This keeps the graph layout stable during workflow execution.
+:::
 
 ## Complete Example
 
