@@ -52,7 +52,9 @@ class _MathValidatorWidgetState extends State<MathValidatorWidget> {
               ),
               if (_isExpanded && hasMultiple) ...[
                 const SizedBox(height: 8),
-                ...messages.skip(1).map(
+                ...messages
+                    .skip(1)
+                    .map(
                       (msg) => Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: _ValidationCard(
@@ -144,9 +146,7 @@ class _ValidationCard extends StatelessWidget {
                   ),
                   if (onToggle != null)
                     Icon(
-                      isExpanded
-                          ? Icons.expand_less
-                          : Icons.expand_more,
+                      isExpanded ? Icons.expand_less : Icons.expand_more,
                       size: 20,
                       color: color.withValues(alpha: 0.7),
                     ),
