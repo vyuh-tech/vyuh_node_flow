@@ -8,8 +8,8 @@ import 'dart:async';
 import 'package:mobx/mobx.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
-import 'evaluation.dart';
-import 'models.dart';
+import '../core/models.dart';
+import 'evaluator.dart';
 
 /// Service that manages evaluation results by reacting to controller changes.
 ///

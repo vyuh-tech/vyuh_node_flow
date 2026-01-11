@@ -14,9 +14,10 @@ library;
 
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
-import 'constants.dart';
-import 'models.dart';
-import 'utils.dart';
+import '../core/constants.dart';
+import '../core/models.dart';
+import '../utils/connection_utils.dart';
+import '../utils/formatters.dart';
 
 /// Represents the evaluation outcome for a single math node.
 ///

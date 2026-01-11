@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../constants.dart';
-import '../models.dart';
-import '../theme.dart';
+import '../../core/constants.dart';
+import '../../core/models.dart';
+import '../../presentation/theme.dart';
 
 /// Content widget displaying a row of operator buttons (+, -, ×, ÷).
 ///

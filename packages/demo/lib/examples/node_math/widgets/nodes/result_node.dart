@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../evaluation.dart';
-import '../models.dart';
-import '../theme.dart';
-import '../utils.dart';
+import '../../evaluation/evaluator.dart';
+import '../../core/models.dart';
+import '../../presentation/theme.dart';
+import '../../utils/formatters.dart';
 
 /// Content widget displaying the computed expression and final value.
 ///

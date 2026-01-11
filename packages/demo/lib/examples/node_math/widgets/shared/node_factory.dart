@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
-import '../constants.dart';
-import '../evaluation.dart';
-import '../models.dart';
-import '../theme.dart';
-import 'function_node.dart';
-import 'number_node.dart';
-import 'operator_node.dart';
-import 'result_node.dart';
+import '../../core/constants.dart';
+import '../../evaluation/evaluator.dart';
+import '../../core/models.dart';
+import '../../presentation/theme.dart';
+import '../nodes/function_node.dart';
+import '../nodes/number_node.dart';
+import '../nodes/operator_node.dart';
+import '../nodes/result_node.dart';
 import 'rounded_rectangle_marker_shape.dart';
 
 /// Factory for creating math nodes and their content widgets.

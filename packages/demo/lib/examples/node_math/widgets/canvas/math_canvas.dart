@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
-import '../models.dart';
-import '../state.dart';
-import 'node_factory.dart';
+import '../../core/models.dart';
+import '../../presentation/state.dart';
+import '../shared/node_factory.dart';
 
 /// The primary canvas widget for the math node graph editor.
 ///

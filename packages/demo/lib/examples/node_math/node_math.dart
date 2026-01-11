@@ -16,15 +16,23 @@
 /// // Use the main widget
 /// NodeMathExample()
 /// ```
-library node_math;
+library;
 
 // Core
-export 'constants.dart';
-export 'evaluation.dart';
-export 'models.dart';
-export 'state.dart';
-export 'theme.dart';
-export 'utils.dart';
+export 'core/constants.dart';
+export 'core/models.dart';
+
+// Evaluation
+export 'evaluation/evaluator.dart';
+export 'evaluation/evaluation_service.dart';
+
+// Presentation
+export 'presentation/state.dart';
+export 'presentation/theme.dart';
+
+// Utils
+export 'utils/connection_utils.dart';
+export 'utils/formatters.dart';
 
 // Main widget
 export 'node_math_example.dart';

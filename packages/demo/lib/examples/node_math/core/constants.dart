@@ -1,6 +1,3 @@
-/// Constants and enums for the Node Math Calculator.
-///
-/// Centralizes all configuration values to avoid magic numbers throughout the codebase.
 import 'dart:math' as math;
 
 /// String identifiers for node types, used for type-based lookups and serialization.

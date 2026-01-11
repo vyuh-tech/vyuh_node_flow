@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../shared/ui_widgets.dart';
-import 'models.dart';
-import 'state.dart';
-import 'theme.dart';
-import 'widgets/math_canvas.dart';
-import 'widgets/math_toolbox.dart';
+import 'core/models.dart';
+import 'presentation/state.dart';
+import 'presentation/theme.dart';
+import 'widgets/canvas/math_canvas.dart';
+import 'widgets/toolbox/math_toolbox.dart';
 
 /// Visual math expression editor demonstrating vyuh_node_flow capabilities.
 ///

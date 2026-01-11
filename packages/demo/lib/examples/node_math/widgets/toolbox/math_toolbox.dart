@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
-import '../../../shared/ui_widgets.dart';
-import '../constants.dart';
-import '../models.dart';
-import '../state.dart';
-import '../theme.dart';
-import 'node_factory.dart';
+import '../../../../shared/ui_widgets.dart';
+import '../../core/constants.dart';
+import '../../core/models.dart';
+import '../../presentation/state.dart';
+import '../../presentation/theme.dart';
+import '../shared/node_factory.dart';
 
 /// Side panel containing buttons to add new nodes to the canvas.
 ///

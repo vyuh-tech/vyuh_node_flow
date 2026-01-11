@@ -9,9 +9,9 @@ library;
 import 'package:mobx/mobx.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
-import 'evaluation.dart';
-import 'evaluation_service.dart';
-import 'models.dart';
+import '../core/models.dart';
+import '../evaluation/evaluator.dart';
+import '../evaluation/evaluation_service.dart';
 
 /// Simplified state that wraps controller and evaluation service.
 ///

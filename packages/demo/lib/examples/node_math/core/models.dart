@@ -1,6 +1,3 @@
-/// Data models for the Node Math Calculator.
-///
-/// Uses a sealed class hierarchy for exhaustive pattern matching in switch expressions.
 import 'package:flutter/material.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 

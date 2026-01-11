@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../models.dart';
-import '../theme.dart';
-import '../utils.dart';
+import '../../core/models.dart';
+import '../../presentation/theme.dart';
+import '../../utils/formatters.dart';
 
 /// Content widget for a number input node with editable text field.
 ///
