@@ -5,6 +5,7 @@
 /// - Evaluation service reacts to controller changes
 /// - No separate state layer - direct controller usage
 library;
+
 import 'package:mobx/mobx.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
@@ -17,7 +18,8 @@ import 'models.dart';
 /// Follows the pattern of other demos where controller is the source of truth.
 /// Evaluation is handled by a reactive service that watches the controller.
 class MathState {
-  MathState(this.controller) : evaluationService = MathEvaluationService(controller);
+  MathState(this.controller)
+    : evaluationService = MathEvaluationService(controller);
 
   /// Controller is the source of truth for nodes and connections.
   final NodeFlowController<MathNodeData, dynamic> controller;

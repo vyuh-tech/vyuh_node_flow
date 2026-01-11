@@ -11,6 +11,7 @@
 /// 3. Cycle check feeds directly into topological sort (same pass optimization)
 /// 4. Domain-specific: only considers valid math connections
 library;
+
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import 'constants.dart';
@@ -191,30 +192,34 @@ class MathEvaluator {
         .firstOrNull;
 
     // Verify both connection and node existence, and that value was computed
-    final hasA = inputA != null &&
+    final hasA =
+        inputA != null &&
         nodeIds.contains(inputA.sourceNodeId) &&
         values.containsKey(inputA.sourceNodeId);
-    final hasB = inputB != null &&
+    final hasB =
+        inputB != null &&
         nodeIds.contains(inputB.sourceNodeId) &&
         values.containsKey(inputB.sourceNodeId);
 
     // Partial connections - show only available input
     if (hasA && !hasB) {
       // Only use expression if source node still exists and has value
-      final aExpr = nodeIds.contains(inputA.sourceNodeId) &&
+      final aExpr =
+          nodeIds.contains(inputA.sourceNodeId) &&
               values.containsKey(inputA.sourceNodeId)
           ? (expressions[inputA.sourceNodeId] ??
-              MathFormatters.formatNumber(values[inputA.sourceNodeId]!))
+                MathFormatters.formatNumber(values[inputA.sourceNodeId]!))
           : '?';
       return EvalResult.success(0.0, expression: aExpr);
     }
 
     if (!hasA && hasB) {
       // Only use expression if source node still exists and has value
-      final bExpr = nodeIds.contains(inputB.sourceNodeId) &&
+      final bExpr =
+          nodeIds.contains(inputB.sourceNodeId) &&
               values.containsKey(inputB.sourceNodeId)
           ? (expressions[inputB.sourceNodeId] ??
-              MathFormatters.formatNumber(values[inputB.sourceNodeId]!))
+                MathFormatters.formatNumber(values[inputB.sourceNodeId]!))
           : '?';
       return EvalResult.success(0.0, expression: bExpr);
     }
@@ -291,10 +296,11 @@ class MathEvaluator {
     }
 
     // Only use expression if source node still exists
-    final inputExpr = nodeIds.contains(input.sourceNodeId) &&
+    final inputExpr =
+        nodeIds.contains(input.sourceNodeId) &&
             values.containsKey(input.sourceNodeId)
         ? (expressions[input.sourceNodeId] ??
-            MathFormatters.formatNumber(inputValue))
+              MathFormatters.formatNumber(inputValue))
         : '?';
 
     return EvalResult.success(
@@ -333,10 +339,11 @@ class MathEvaluator {
     }
 
     // Only use expression if source node still exists and has value
-    final inputExpr = nodeIds.contains(input.sourceNodeId) &&
+    final inputExpr =
+        nodeIds.contains(input.sourceNodeId) &&
             values.containsKey(input.sourceNodeId)
         ? (expressions[input.sourceNodeId] ??
-            MathFormatters.formatNumber(inputValue))
+              MathFormatters.formatNumber(inputValue))
         : '?';
 
     return EvalResult.success(inputValue, expression: inputExpr);
