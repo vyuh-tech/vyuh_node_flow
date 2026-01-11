@@ -28,6 +28,7 @@ import 'examples/viewer.dart' deferred as viewer;
 import 'examples/viewport_animations.dart' deferred as viewport_animations;
 import 'examples/visibility.dart' deferred as visibility;
 import 'examples/workbench.dart' deferred as workbench;
+import 'examples/node_math/node_math_example.dart' deferred as node_math;
 
 class ExampleRegistry {
   static List<ExampleCategory> get all => [
@@ -376,6 +377,17 @@ class ExampleRegistry {
           loader: () async {
             await hero_showcase.loadLibrary();
             return (_) => hero_showcase.HeroShowcaseExample();
+          },
+        ),
+        Example(
+          id: 'node-math',
+          title: 'Node Math Calculator',
+          description:
+              'Build mathematical expressions visually with live evaluation',
+          icon: Icons.calculate_outlined,
+          loader: () async {
+            await node_math.loadLibrary();
+            return (_) => node_math.NodeMathExample();
           },
         ),
       ],
