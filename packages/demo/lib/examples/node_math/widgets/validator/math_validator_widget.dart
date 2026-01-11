@@ -19,9 +19,6 @@ class MathValidatorWidget extends StatefulWidget {
 }
 
 class _MathValidatorWidgetState extends State<MathValidatorWidget> {
-  // Always expanded to provide continuous guidance
-  bool _isExpanded = true;
-
   @override
   Widget build(BuildContext context) {
     return Observer(
@@ -31,44 +28,29 @@ class _MathValidatorWidgetState extends State<MathValidatorWidget> {
           widget.state.results,
         );
 
-        // Always show at least one message for guidance
-        final topMessage = messages.first;
-        final hasMultiple = messages.length > 1;
+        if (messages.isEmpty) {
+          return const SizedBox.shrink();
+        }
 
         return SectionContent(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _ValidationCard(
-                message: topMessage,
-                isExpanded: _isExpanded,
-                onToggle: hasMultiple
-                    ? () => setState(() => _isExpanded = !_isExpanded)
-                    : null,
-                onNodeHighlight: (nodeId) {
-                  widget.state.controller.selectNode(nodeId);
-                },
-                state: widget.state,
-              ),
-              if (_isExpanded && hasMultiple) ...[
-                const SizedBox(height: 8),
-                ...messages
-                    .skip(1)
-                    .map(
-                      (msg) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: _ValidationCard(
-                          message: msg,
-                          isExpanded: true,
-                          onNodeHighlight: (nodeId) {
-                            widget.state.controller.selectNode(nodeId);
-                          },
-                          state: widget.state,
-                        ),
-                      ),
-                    ),
-              ],
-            ],
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 200),
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const ClampingScrollPhysics(),
+              itemCount: messages.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 4),
+              itemBuilder: (context, index) {
+                return _ValidationListItem(
+                  message: messages[index],
+                  onFocus: messages[index].nodeId != null
+                      ? () {
+                          widget.state.controller.selectNode(messages[index].nodeId!);
+                        }
+                      : null,
+                );
+              },
+            ),
           ),
         );
       },
@@ -76,27 +58,27 @@ class _MathValidatorWidgetState extends State<MathValidatorWidget> {
   }
 }
 
-class _ValidationCard extends StatelessWidget {
+class _ValidationListItem extends StatelessWidget {
   final ValidationMessage message;
-  final bool isExpanded;
-  final VoidCallback? onToggle;
-  final void Function(String)? onNodeHighlight;
-  final MathState? state;
+  final VoidCallback? onFocus;
 
-  const _ValidationCard({
+  const _ValidationListItem({
     required this.message,
-    required this.isExpanded,
-    this.onToggle,
-    this.onNodeHighlight,
-    this.state,
+    this.onFocus,
   });
 
-  Color _getColor(BuildContext context, ValidationLevel level) {
-    return switch (level) {
-      ValidationLevel.info => DemoTheme.info,
-      ValidationLevel.warning => Colors.orange,
-      ValidationLevel.error => Colors.red,
-    };
+  Color _getColor(BuildContext context, ValidationLevel level, String title) {
+    if (level == ValidationLevel.error) {
+      return Colors.red;
+    }
+    
+    // Blue theme for "Get Started" and "Expression Complete" messages
+    if (title == 'Get Started' || title == 'Expression Complete') {
+      return DemoTheme.info;
+    }
+    
+    // Orange/amber for all other info and warning messages
+    return Colors.orange;
   }
 
   IconData _getIcon(ValidationLevel level) {
@@ -111,114 +93,66 @@ class _ValidationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = context.isDark;
-    final color = _getColor(context, message.level);
+    final color = _getColor(context, message.level, message.title);
     final icon = _getIcon(message.level);
 
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: isDark ? 0.12 : 0.08),
-        borderRadius: BorderRadius.circular(8),
+        color: color.withValues(alpha: isDark ? 0.08 : 0.06),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: color.withValues(alpha: isDark ? 0.3 : 0.2),
-          width: 1.5,
+          color: color.withValues(alpha: isDark ? 0.2 : 0.15),
+          width: 1,
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          InkWell(
-            onTap: onToggle,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  Icon(icon, size: 18, color: color),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      message.title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: color,
-                      ),
-                    ),
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  message.title,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: color,
                   ),
-                  if (onToggle != null)
-                    Icon(
-                      isExpanded ? Icons.expand_less : Icons.expand_more,
-                      size: 20,
-                      color: color.withValues(alpha: 0.7),
-                    ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  message.message,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: context.textSecondaryColor,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
             ),
           ),
-          if (isExpanded) ...[
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: color.withValues(alpha: isDark ? 0.2 : 0.15),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    message.message,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: context.textSecondaryColor,
-                      height: 1.5,
-                    ),
+          if (onFocus != null) ...[
+            const SizedBox(width: 6),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onFocus,
+                borderRadius: BorderRadius.circular(4),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: isDark ? 0.15 : 0.1),
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                  if (message.nodeId != null && onNodeHighlight != null) ...[
-                    const SizedBox(height: 8),
-                    InkWell(
-                      onTap: () {
-                        if (onNodeHighlight != null) {
-                          onNodeHighlight!(message.nodeId!);
-                        }
-                        if (state != null) {
-                          state!.controller.selectNode(message.nodeId!);
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(6),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: isDark ? 0.15 : 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: color.withValues(alpha: 0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.location_on_outlined,
-                              size: 14,
-                              color: color,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Highlight Node',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: color,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
+                  child: Icon(
+                    Icons.lightbulb_outline,
+                    size: 14,
+                    color: color,
+                  ),
+                ),
               ),
             ),
           ],

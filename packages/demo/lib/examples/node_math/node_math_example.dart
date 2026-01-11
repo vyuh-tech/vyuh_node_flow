@@ -6,6 +6,7 @@ import 'core/models.dart';
 import 'presentation/state.dart';
 import 'presentation/theme.dart';
 import 'widgets/canvas/math_canvas.dart';
+import 'widgets/stats/math_stats_widget.dart';
 import 'widgets/toolbox/math_toolbox.dart';
 import 'widgets/validator/math_validator_widget.dart';
 
@@ -62,6 +63,7 @@ class _NodeMathExampleState extends State<NodeMathExample> {
         MathValidatorWidget(state: _state),
         MathToolbox(state: _state),
         ConnectionStyleSelector(theme: _theme, onThemeChanged: _updateTheme),
+        MathStatsWidget(state: _state),
       ],
     );
   }
