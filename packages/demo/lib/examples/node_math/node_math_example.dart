@@ -8,18 +8,6 @@ import 'presentation/theme.dart';
 import 'widgets/canvas/math_canvas.dart';
 import 'widgets/toolbox/math_toolbox.dart';
 
-/// Visual math expression editor demonstrating vyuh_node_flow capabilities.
-///
-/// **Key Features:**
-/// - Number nodes: editable numeric constants
-/// - Operator nodes: binary arithmetic (+, -, ×, ÷)
-/// - Function nodes: unary math functions (sin, cos, √)
-/// - Result nodes: display computed expression and value
-///
-/// **Architecture:**
-/// - [MathState]: MobX store owning nodes, connections, and evaluation results
-/// - [MathCanvas]: bridges MathState with NodeFlowController, handles sync
-/// - [MathEvaluator]: stateless graph evaluation with topological sort
 class NodeMathExample extends StatefulWidget {
   const NodeMathExample({super.key});
 
@@ -36,7 +24,6 @@ class _NodeMathExampleState extends State<NodeMathExample> {
     super.initState();
     _theme = MathTheme.nodeFlowTheme;
     
-    // Create controller (source of truth, like other demos)
     final controller = NodeFlowController<MathNodeData, dynamic>(
       config: NodeFlowConfig(
         snapToGrid: false,
@@ -55,12 +42,10 @@ class _NodeMathExampleState extends State<NodeMathExample> {
     super.dispose();
   }
 
-  /// Clears all nodes and connections from the canvas.
   void _handleReset() {
     _state.clearAll();
   }
 
-  /// Updates the connection style theme (straight, bezier, smoothstep).
   void _updateTheme(NodeFlowTheme newTheme) {
     setState(() {
       _theme = newTheme;

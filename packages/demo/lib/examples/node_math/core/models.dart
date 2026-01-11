@@ -3,13 +3,6 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import 'constants.dart';
 
-/// Base sealed class for all math node data types.
-///
-/// Sealed hierarchy enables exhaustive switch matching:
-/// - [NumberData] - numeric constant input
-/// - [OperatorData] - binary arithmetic operation
-/// - [FunctionData] - unary mathematical function
-/// - [ResultData] - output display node
 sealed class MathNodeData implements NodeData {
   final String id;
   final String type;
@@ -19,19 +12,13 @@ sealed class MathNodeData implements NodeData {
   @override
   MathNodeData clone();
 
-  /// Unique signature combining id and mutable state for change detection.
-  ///
-  /// Used by MobX reactions to detect when node data (not just identity) changes.
+  /// Combines id and mutable state for change detection in MobX reactions.
   String get signature;
 
-  /// Canvas position if already placed, null for newly created nodes.
   Offset? get position;
-
-  /// Creates a copy with updated position for canvas synchronization.
   MathNodeData copyWithPosition(Offset position);
 }
 
-/// Numeric constant node that outputs a user-editable value.
 class NumberData extends MathNodeData {
   final double value;
   @override
@@ -85,7 +72,6 @@ class OperatorData extends MathNodeData {
       );
 }
 
-/// Unary mathematical function node with one input and one output.
 class FunctionData extends MathNodeData {
   final MathFunction function;
   @override
@@ -113,7 +99,6 @@ class FunctionData extends MathNodeData {
       );
 }
 
-/// Terminal output node that displays the computed expression and value.
 class ResultData extends MathNodeData {
   final String label;
   @override

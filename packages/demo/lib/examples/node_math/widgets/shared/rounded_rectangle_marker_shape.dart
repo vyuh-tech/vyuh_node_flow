@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
-/// Custom port marker shape with rounded corners on all sides.
-///
-/// Used for the math calculator's vertical bar-style ports (10x22px).
-/// Provides a softer appearance compared to the default rectangle marker.
 class RoundedRectangleMarkerShape extends MarkerShape {
   final double borderRadius;
 
@@ -13,7 +9,6 @@ class RoundedRectangleMarkerShape extends MarkerShape {
   @override
   String get typeName => 'roundedRectangle';
 
-  /// Renders the rounded rectangle with optional border.
   @override
   void paint(
     Canvas canvas,

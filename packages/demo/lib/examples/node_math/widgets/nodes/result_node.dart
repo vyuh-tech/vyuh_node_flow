@@ -5,10 +5,6 @@ import '../../core/models.dart';
 import '../../presentation/theme.dart';
 import '../../utils/formatters.dart';
 
-/// Content widget displaying the computed expression and final value.
-///
-/// Auto-resizes horizontally to fit long expressions (up to [MathNodeSizes.resultMaxWidth]).
-/// Notifies parent of size changes via [onSizeChanged] callback.
 class ResultNodeContent extends StatefulWidget {
   final ResultData data;
   final EvalResult? result;
@@ -50,7 +46,6 @@ class _ResultNodeContentState extends State<ResultNodeContent> {
     });
   }
 
-  /// Compares current expression size with cached size, notifying parent on change.
   void _checkAndUpdateSize() {
     final expression = widget.result?.expression ?? '';
     final newSize = _calculateRequiredSize(expression);
@@ -61,10 +56,6 @@ class _ResultNodeContentState extends State<ResultNodeContent> {
     }
   }
 
-  /// Measures expression text width and returns clamped node size.
-  ///
-  /// Uses TextPainter for accurate measurement. Width is clamped between
-  /// min (80px) and max (300px) to prevent extreme sizes.
   Size _calculateRequiredSize(String expression) {
     if (expression.isEmpty || expression == '?') {
       return Size(MathNodeSizes.resultMinWidth, MathNodeSizes.resultHeight);
@@ -138,7 +129,6 @@ class _ResultNodeContentState extends State<ResultNodeContent> {
     );
   }
 
-  /// Formats the display value, showing "?" for error/unconnected states.
   String _getDisplayValue(double? value, bool hasError, bool isUnconnected) {
     if (isUnconnected || hasError || value == null) return '?';
     return MathFormatters.formatNumber(value);

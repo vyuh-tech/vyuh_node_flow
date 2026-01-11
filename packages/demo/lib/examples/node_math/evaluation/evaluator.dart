@@ -1,15 +1,3 @@
-/// Graph evaluation logic for the math calculator.
-///
-/// This module provides standalone evaluation that works directly on
-/// [MathNodeData] lists, independent of the NodeFlowController.
-///
-/// ### Why Custom Cycle Detection?
-/// While the core package provides `controller.hasCycles()`, this evaluator
-/// implements its own cycle detection because:
-/// 1. It operates on [MathNodeData] lists, not controller nodes
-/// 2. Evaluator runs independently without controller access
-/// 3. Cycle check feeds directly into topological sort (same pass optimization)
-/// 4. Domain-specific: only considers valid math connections
 library;
 
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
@@ -40,23 +28,7 @@ class EvalResult {
   bool get hasError => error != null;
 }
 
-/// Evaluates a math node graph using topological sort.
-///
-/// Performs a complete evaluation pass:
-/// 1. Validates connections (filters orphaned references)
-/// 2. Detects cycles (fails fast if found)
-/// 3. Topologically sorts nodes (dependency order)
-/// 4. Evaluates each node in order
 class MathEvaluator {
-  /// Evaluates the entire node graph and returns results for each node.
-  ///
-  /// Algorithm:
-  /// 1. Filter orphaned connections (references to deleted nodes)
-  /// 2. Detect cycles - returns error for all nodes if found
-  /// 3. Topologically sort nodes (guarantees inputs evaluated before outputs)
-  /// 4. Evaluate each node in dependency order, building expressions
-  ///
-  /// Returns a map of nodeId → [EvalResult] with computed values.
   static Map<String, EvalResult> evaluate(
     List<MathNodeData> nodes,
     List<Connection> connections,
@@ -154,15 +126,6 @@ class MathEvaluator {
     }
   }
 
-  /// Evaluates a binary operator node (A op B).
-  ///
-  /// Handles partial connections gracefully:
-  /// - Both inputs connected: computes result and builds expression (e.g. "5+3")
-  /// - Only one input: shows partial expression, returns 0
-  /// - No inputs: returns "?" placeholder
-  ///
-  /// Detects division by zero and returns error.
-  /// Ensures expressions only reference nodes that exist in nodeIds.
   static EvalResult _evaluateOperator(
     String nodeId,
     MathOperator operator,
@@ -192,7 +155,6 @@ class MathEvaluator {
         )
         .firstOrNull;
 
-    // Verify both connection and node existence, and that value was computed
     final hasA =
         inputA != null &&
         nodeIds.contains(inputA.sourceNodeId) &&
@@ -202,9 +164,7 @@ class MathEvaluator {
         nodeIds.contains(inputB.sourceNodeId) &&
         values.containsKey(inputB.sourceNodeId);
 
-    // Partial connections - show only available input
     if (hasA && !hasB) {
-      // Only use expression if source node still exists and has value
       final aExpr =
           nodeIds.contains(inputA.sourceNodeId) &&
               values.containsKey(inputA.sourceNodeId)
@@ -215,7 +175,6 @@ class MathEvaluator {
     }
 
     if (!hasA && hasB) {
-      // Only use expression if source node still exists and has value
       final bExpr =
           nodeIds.contains(inputB.sourceNodeId) &&
               values.containsKey(inputB.sourceNodeId)
@@ -259,12 +218,6 @@ class MathEvaluator {
     );
   }
 
-  /// Evaluates a unary function node (fn(x)).
-  ///
-  /// Applies mathematical function (sin, cos, sqrt) to input value.
-  /// Returns error for invalid inputs (e.g., sqrt of negative number).
-  /// Builds expression string in function notation (e.g., "sin(45)").
-  /// Ensures input node exists before using its expression.
   static EvalResult _evaluateFunction(
     String nodeId,
     MathFunction function,
@@ -284,7 +237,6 @@ class MathEvaluator {
       return EvalResult.success(0.0, expression: '${function.symbol}(?)');
     }
 
-    // Source node exists but value wasn't computed (shouldn't happen, but be safe)
     final inputValue = values[input.sourceNodeId];
     if (inputValue == null || !nodeIds.contains(input.sourceNodeId)) {
       return EvalResult.success(0.0, expression: '${function.symbol}(?)');
@@ -310,11 +262,6 @@ class MathEvaluator {
     );
   }
 
-  /// Evaluates a result/display node.
-  ///
-  /// Passes through the input value and expression unchanged.
-  /// Shows "?" when not connected, indicating awaiting input.
-  /// Ensures source node exists before using its expression.
   static EvalResult _evaluateResult(
     String nodeId,
     List<Connection> connections,
@@ -328,18 +275,15 @@ class MathEvaluator {
         )
         .firstOrNull;
 
-    // No valid input connection or source node doesn't exist
     if (input == null || !nodeIds.contains(input.sourceNodeId)) {
       return EvalResult.success(0.0, expression: '?');
     }
 
-    // Source node exists but value wasn't computed
     final inputValue = values[input.sourceNodeId];
     if (inputValue == null || !nodeIds.contains(input.sourceNodeId)) {
       return EvalResult.success(0.0, expression: '?');
     }
 
-    // Only use expression if source node still exists and has value
     final inputExpr =
         nodeIds.contains(input.sourceNodeId) &&
             values.containsKey(input.sourceNodeId)
@@ -350,13 +294,6 @@ class MathEvaluator {
     return EvalResult.success(inputValue, expression: inputExpr);
   }
 
-  /// Detects cycles in the graph using DFS with three-color marking.
-  ///
-  /// Uses the "visiting" set to track nodes in the current DFS path.
-  /// If we encounter a node already in "visiting", we've found a back edge (cycle).
-  ///
-  /// Separate from controller.hasCycles() because this evaluator operates on
-  /// raw MathNodeData lists and needs cycle detection as part of evaluation.
   static bool _hasCycle(
     List<MathNodeData> nodes,
     List<Connection> connections,
@@ -389,16 +326,6 @@ class MathEvaluator {
     return false;
   }
 
-  /// Sorts nodes in dependency order using Kahn's algorithm.
-  ///
-  /// Guarantees that when evaluating node N, all nodes that N depends on
-  /// have already been evaluated. This enables single-pass evaluation.
-  ///
-  /// Algorithm:
-  /// 1. Count incoming edges (in-degree) for each node
-  /// 2. Start with nodes that have no dependencies (in-degree = 0)
-  /// 3. Process each node, decrementing in-degrees of its neighbors
-  /// 4. Add neighbors to queue when their in-degree becomes 0
   static List<MathNodeData> _topologicalSort(
     List<MathNodeData> nodes,
     List<Connection> connections,

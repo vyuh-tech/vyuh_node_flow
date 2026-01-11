@@ -8,16 +8,11 @@ import '../../presentation/state.dart';
 import '../../presentation/theme.dart';
 import '../shared/node_factory.dart';
 
-/// Side panel containing buttons to add new nodes to the canvas.
-///
-/// Organized into sections: Inputs (Number), Operators, Functions, Output (Result).
-/// Each button creates a new node with default values and adds it to the graph.
 class MathToolbox extends StatelessWidget {
   final MathState state;
 
   const MathToolbox({super.key, required this.state});
 
-  /// Creates a number node with default value of 10.
   void _addNumber() {
     final controller = state.controller;
     final id = state.generateNodeId();
@@ -28,7 +23,6 @@ class MathToolbox extends StatelessWidget {
     controller.addNode(node);
   }
 
-  /// Creates an operator node defaulting to addition.
   void _addOperator() {
     final controller = state.controller;
     final id = state.generateNodeId();
@@ -39,7 +33,6 @@ class MathToolbox extends StatelessWidget {
     controller.addNode(node);
   }
 
-  /// Creates a function node with the specified mathematical function.
   void _addFunction(MathFunction func) {
     final controller = state.controller;
     final id = state.generateNodeId();
@@ -50,7 +43,6 @@ class MathToolbox extends StatelessWidget {
     controller.addNode(node);
   }
 
-  /// Creates a result node for displaying computed output.
   void _addResult() {
     final controller = state.controller;
     final id = state.generateNodeId();
@@ -61,7 +53,6 @@ class MathToolbox extends StatelessWidget {
     controller.addNode(node);
   }
 
-  /// Calculates position for new nodes in a grid layout.
   Offset _calculateNewNodePosition() {
     final nodeCount = state.controller.nodes.length;
     final row = nodeCount ~/ 3;
@@ -149,7 +140,6 @@ class MathToolbox extends StatelessWidget {
   }
 }
 
-/// Styled button for the toolbox with icon, label, and semantic color.
 class _ToolboxButton extends StatelessWidget {
   final String label;
   final IconData icon;

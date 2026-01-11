@@ -1,7 +1,3 @@
-/// Widget components for the Node Math Calculator.
-///
-/// Each node type has its own content widget, plus supporting widgets
-/// for the canvas and toolbox.
 library;
 
 export 'canvas/math_canvas.dart';

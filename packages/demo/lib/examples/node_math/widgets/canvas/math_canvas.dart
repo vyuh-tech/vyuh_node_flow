@@ -6,13 +6,6 @@ import '../../core/models.dart';
 import '../../presentation/state.dart';
 import '../shared/node_factory.dart';
 
-/// The primary canvas widget for the math node graph editor.
-///
-/// Follows the pattern of other demos:
-/// - Controller is the source of truth
-/// - Evaluation service reacts to controller changes
-/// - No bidirectional sync needed
-/// - Connection validation for cycles and port limits
 class MathCanvas extends StatefulWidget {
   final MathState state;
   final NodeFlowTheme theme;
@@ -34,12 +27,6 @@ class _MathCanvasState extends State<MathCanvas> {
     super.initState();
   }
 
-  /// Validates a pending connection before it's created.
-  ///
-  /// Rejects connections that would:
-  /// - Connect a node to itself (self-loop)
-  /// - Create a cycle in the graph
-  /// - Connect to an input port that already has a connection
   ConnectionValidationResult _validateConnection(
     ConnectionCompleteContext<MathNodeData> context,
   ) {
@@ -57,7 +44,6 @@ class _MathCanvasState extends State<MathCanvas> {
       );
     }
 
-    // Check if target port already has a connection
     final nodeIds = controller.nodes.keys.toSet();
     final existingConnection = controller.connections.any(
       (c) =>
@@ -108,7 +94,6 @@ class _MathCanvasState extends State<MathCanvas> {
     return hasPath(targetId, sourceId);
   }
 
-  /// Centers and scales the view to fit all nodes on first load.
   void _handleInit() {
     if (!_isInitialized && controller.nodes.isNotEmpty) {
       _isInitialized = true;
@@ -153,9 +138,6 @@ class _MathCanvasState extends State<MathCanvas> {
     );
   }
 
-  /// Updates node data in the controller.
-  ///
-  /// Since ports are derived from node data, we need to recreate the node.
   void _updateNodeData(String nodeId, MathNodeData newData) {
     final existingNode = controller.nodes[nodeId];
     if (existingNode == null) return;
@@ -168,12 +150,10 @@ class _MathCanvasState extends State<MathCanvas> {
         )
         .toList();
 
-    // Remove and recreate node with new data
     controller.removeNode(nodeId);
     final newNode = MathNodeFactory.createNode(newData, position);
     controller.addNode(newNode);
 
-    // Restore connections
     for (final conn in connectionsToRestore) {
       final sourceExists = controller.nodes.containsKey(conn.sourceNodeId);
       final targetExists = controller.nodes.containsKey(conn.targetNodeId);

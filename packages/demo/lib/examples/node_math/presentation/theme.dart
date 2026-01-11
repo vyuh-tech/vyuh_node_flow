@@ -3,12 +3,6 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../core/constants.dart';
 
-/// Color palette for the math calculator UI.
-///
-/// Port colors are semantically meaningful:
-/// - Pink: number inputs (sources of data)
-/// - Blue: operators and functions (transformations)
-/// - Green: results (final outputs)
 abstract final class MathColors {
   static const canvas = Color(0xFFF8F9FA);
   static const nodeBackground = Colors.white;
@@ -26,7 +20,6 @@ abstract final class MathColors {
   static const textResult = Color(0xFF4CAF50);
   static const textError = Color(0xFFF44336);
 
-  /// Maps node type to its semantic port color.
   static Color portColorFor(String nodeType) => switch (nodeType) {
     MathNodeTypes.number => portNumber,
     MathNodeTypes.operator || MathNodeTypes.function => portOperator,
@@ -35,7 +28,6 @@ abstract final class MathColors {
   };
 }
 
-/// Reusable BoxDecoration styles for node content widgets.
 abstract final class MathNodeStyles {
   static const double borderRadius = 10.0;
   static const double borderWidth = 1.0;
@@ -49,7 +41,6 @@ abstract final class MathNodeStyles {
     ),
   ];
 
-  /// Standard decoration with visible border (number, operator nodes).
   static BoxDecoration get nodeDecoration => BoxDecoration(
     color: MathColors.nodeBackground,
     borderRadius: BorderRadius.circular(borderRadius),
@@ -65,20 +56,17 @@ abstract final class MathNodeStyles {
   );
 }
 
-/// Default and constraint sizes for each node type.
 abstract final class MathNodeSizes {
   static const number = Size(140, 48);
   static const operator = Size(200, 60);
   static const function = Size(90, 56);
   static const result = Size(100, 90);
 
-  /// Result node expands horizontally to fit expression text.
   static const resultMinWidth = 80.0;
   static const resultMaxWidth = 300.0;
   static const resultHeight = 90.0;
   static const resultPadding = 24.0;
 
-  /// Returns the default size for a node type.
   static Size forType(String nodeType) => switch (nodeType) {
     MathNodeTypes.number => number,
     MathNodeTypes.operator => operator,
@@ -88,14 +76,7 @@ abstract final class MathNodeSizes {
   };
 }
 
-/// Provides the complete NodeFlowTheme configuration for the math calculator.
-///
-/// Customizes the base light theme with:
-/// - Animated dashed connections with arrow endpoints
-/// - Vertical rectangular port shapes
-/// - Transparent node backgrounds (content widgets handle their own decoration)
 class MathTheme {
-  /// Generates the NodeFlowTheme with all customizations applied.
   static NodeFlowTheme get nodeFlowTheme {
     final base = NodeFlowTheme.light;
 

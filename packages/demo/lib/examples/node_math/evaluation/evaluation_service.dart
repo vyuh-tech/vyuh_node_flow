@@ -1,7 +1,3 @@
-/// Reactive evaluation service that watches the controller and computes results.
-///
-/// This service reacts to controller changes and automatically evaluates the graph.
-/// Uses incremental evaluation - only re-evaluates nodes affected by changes.
 library;
 import 'dart:async';
 
@@ -11,13 +7,6 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 import '../core/models.dart';
 import 'evaluator.dart';
 
-/// Service that manages evaluation results by reacting to controller changes.
-///
-/// Architecture:
-/// - Watches controller nodes and connections via MobX reactions
-/// - Uses incremental evaluation (only re-evaluates affected nodes)
-/// - Maintains dependency graph for efficient invalidation
-/// - Debounced to prevent excessive computation during rapid edits
 class MathEvaluationService {
   MathEvaluationService(this.controller) {
     _setupReactions();
@@ -25,21 +14,10 @@ class MathEvaluationService {
 
   final NodeFlowController<MathNodeData, dynamic> controller;
 
-  /// Evaluation results, keyed by node ID.
-  /// Observable so UI can react to changes.
   final results = ObservableMap<String, EvalResult>();
-
-  /// Dependency graph: sourceNodeId → Set of nodes that depend on it.
-  /// Used for incremental invalidation.
   final _dependencyGraph = <String, Set<String>>{};
-
-  /// Set of node IDs that need re-evaluation.
   final _dirtyNodes = ObservableSet<String>();
-
-  /// Debounce timer to coalesce rapid changes.
   Timer? _evalDebouncer;
-
-  /// List of reaction disposers for cleanup.
   final List<ReactionDisposer> _reactions = [];
 
   /// Sets up MobX reactions to watch controller changes.
@@ -61,7 +39,6 @@ class MathEvaluationService {
       ),
     );
 
-    // React to connection changes
     _reactions.add(
       reaction(
         (_) => controller.connections.map((c) => c.id).toList()..sort(),
@@ -73,7 +50,6 @@ class MathEvaluationService {
       ),
     );
 
-    // React to node data changes (signature changes)
     _reactions.add(
       reaction(
         (_) => controller.nodes.values
@@ -112,7 +88,6 @@ class MathEvaluationService {
     _dirtyNodes.addAll(controller.nodes.keys);
   }
 
-  /// Schedules evaluation after debounce.
   void _scheduleEvaluation() {
     _evalDebouncer?.cancel();
     _evalDebouncer = Timer(const Duration(milliseconds: 50), _evaluate);
@@ -147,7 +122,6 @@ class MathEvaluationService {
     });
   }
 
-  /// Releases resources.
   void dispose() {
     for (final reaction in _reactions) {
       reaction();
