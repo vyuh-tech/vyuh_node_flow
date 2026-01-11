@@ -565,6 +565,28 @@ controller.animateToNode('node-123', zoom: 1.5);
 controller.animateToNode('node-123', zoom: null);
 ```
 
+### animateToNodes
+
+Animate to show all specified nodes. For a single node, behaves like `animateToNode`. For multiple nodes, calculates their combined bounding box and centers on them.
+
+```dart
+void animateToNodes(
+  List<String> nodeIds, {
+  double padding = 60.0,
+  Duration duration = const Duration(milliseconds: 400),
+  Curve curve = Curves.easeInOut,
+})
+```
+
+**Example:**
+```dart
+// Animate to show multiple nodes
+controller.animateToNodes(['node-1', 'node-2', 'node-3']);
+
+// Focus on selected nodes
+controller.animateToNodes(controller.selectedNodeIds.toList());
+```
+
 ### animateToPosition
 
 Animate to center on a specific graph position.

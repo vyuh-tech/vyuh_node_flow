@@ -774,6 +774,62 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
     );
   }
 
+  /// Animates the viewport to show all specified nodes.
+  ///
+  /// For a single node, this behaves like [animateToNode].
+  /// For multiple nodes, calculates their combined bounding box and uses
+  /// [animateToBounds] to show them all.
+  ///
+  /// Parameters:
+  /// - [nodeIds]: List of node IDs to show
+  /// - [padding]: Padding around the combined bounds (default: 60.0)
+  /// - [duration]: Animation duration (default: 400ms)
+  /// - [curve]: Animation curve (default: easeInOut)
+  ///
+  /// Does nothing if no valid nodes are found.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.animateToNodes(['node-1', 'node-2', 'node-3']);
+  /// controller.animateToNodes(['task-a', 'task-b'], padding: 100);
+  /// ```
+  void animateToNodes(
+    List<String> nodeIds, {
+    double padding = 60.0,
+    Duration duration = const Duration(milliseconds: 400),
+    Curve curve = Curves.easeInOut,
+  }) {
+    if (nodeIds.isEmpty || _screenSize.value == Size.zero) return;
+
+    // Single node - use direct animation
+    if (nodeIds.length == 1) {
+      animateToNode(nodeIds.first, duration: duration, curve: curve);
+      return;
+    }
+
+    // Multiple nodes - calculate combined bounding box
+    Rect? bounds;
+    for (final nodeId in nodeIds) {
+      final node = _nodes[nodeId];
+      if (node == null) continue;
+
+      final pos = node.position.value;
+      final size = node.size.value;
+      final nodeRect = Rect.fromLTWH(pos.dx, pos.dy, size.width, size.height);
+
+      bounds = bounds?.expandToInclude(nodeRect) ?? nodeRect;
+    }
+
+    if (bounds != null) {
+      // Center on the bounding box center without changing zoom
+      animateToPosition(
+        GraphOffset.fromXY(bounds.center.dx, bounds.center.dy),
+        duration: duration,
+        curve: curve,
+      );
+    }
+  }
+
   /// Animates the viewport to center on a specific position in graph coordinates.
   ///
   /// The current zoom level is preserved unless [zoom] is specified.
