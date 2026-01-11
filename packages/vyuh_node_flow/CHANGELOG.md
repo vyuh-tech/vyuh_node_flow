@@ -1,3 +1,7 @@
+## 0.23.8
+
+ - **FEAT**: add `animateToNodes` method to viewport API for animating to multiple nodes.
+
 ## 0.23.7
 
  - **FEAT**: export NodeDragContext to enhance node dragging integration.
