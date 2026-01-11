@@ -7,6 +7,7 @@ import 'presentation/state.dart';
 import 'presentation/theme.dart';
 import 'widgets/canvas/math_canvas.dart';
 import 'widgets/toolbox/math_toolbox.dart';
+import 'widgets/validator/math_validator_widget.dart';
 
 class NodeMathExample extends StatefulWidget {
   const NodeMathExample({super.key});
@@ -58,20 +59,9 @@ class _NodeMathExampleState extends State<NodeMathExample> {
       onReset: _handleReset,
       child: MathCanvas(state: _state, theme: _theme),
       children: [
+        MathValidatorWidget(state: _state),
         MathToolbox(state: _state),
         ConnectionStyleSelector(theme: _theme, onThemeChanged: _updateTheme),
-        const SectionTitle('Instructions'),
-        const SectionContent(
-          child: InfoCard(
-            title: 'How to Use',
-            content: '''
-1. Add nodes from the toolbox
-2. Connect output ports to input ports
-3. Edit number values directly
-4. Click operator buttons to change operation
-5. Result node shows live computation''',
-          ),
-        ),
       ],
     );
   }
