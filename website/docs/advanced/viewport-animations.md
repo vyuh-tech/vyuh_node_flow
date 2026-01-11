@@ -15,6 +15,9 @@ All animation methods are available on the controller:
 // Animate to center on a node
 controller.animateToNode('node-123');
 
+// Animate to show multiple nodes
+controller.animateToNodes(['node-1', 'node-2', 'node-3']);
+
 // Animate to a specific position
 controller.animateToPosition(GraphOffset.fromXY(500, 300));
 
@@ -57,6 +60,41 @@ controller.animateToNode(
 | `zoom` | `double?` | `1.0` | Target zoom level. `null` preserves current |
 | `duration` | `Duration` | `400ms` | Animation duration |
 | `curve` | `Curve` | `easeInOut` | Animation curve |
+
+### animateToNodes
+
+Animates the viewport to show all specified nodes. For a single node, this behaves like `animateToNode`. For multiple nodes, it calculates their combined bounding box and centers on them.
+
+```dart
+// Show multiple nodes
+controller.animateToNodes(['node-1', 'node-2', 'node-3']);
+
+// Show selected nodes with more padding
+controller.animateToNodes(
+  controller.selectedNodeIds.toList(),
+  padding: 100,
+);
+
+// Custom duration and curve
+controller.animateToNodes(
+  ['task-a', 'task-b', 'task-c'],
+  duration: Duration(milliseconds: 600),
+  curve: Curves.easeOutQuart,
+);
+```
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `nodeIds` | `List<String>` | required | List of node IDs to show |
+| `padding` | `double` | `60.0` | Padding around combined bounds |
+| `duration` | `Duration` | `400ms` | Animation duration |
+| `curve` | `Curve` | `easeInOut` | Animation curve |
+
+::: tip
+`animateToNodes` is particularly useful for focusing on the current selection. It automatically handles the single vs. multiple node case, so you don't need conditional logic.
+:::
 
 ### animateToPosition
 
@@ -194,20 +232,32 @@ controller.animateToPosition(
 
 ### Focus on Selection
 
-Animate to show all selected nodes:
+Animate to show all selected nodes using `animateToNodes`:
 
 ```dart
 void focusOnSelection() {
+  final selectedIds = controller.selectedNodeIds.toList();
+  if (selectedIds.isEmpty) return;
+
+  // Handles both single and multiple nodes automatically
+  controller.animateToNodes(selectedIds);
+}
+```
+
+For more control over single vs. multiple node behavior:
+
+```dart
+void focusOnSelectionCustom() {
   final selectedIds = controller.selectedNodeIds;
   if (selectedIds.isEmpty) return;
 
   if (selectedIds.length == 1) {
-    // Single node: center with zoom
-    controller.animateToNode(selectedIds.first);
+    // Single node: center with specific zoom
+    controller.animateToNode(selectedIds.first, zoom: 1.5);
   } else {
-    // Multiple nodes: fit bounds
+    // Multiple nodes: fit bounds with padding
     final bounds = controller.getNodesBounds(selectedIds);
-    controller.animateToBounds(bounds);
+    controller.animateToBounds(bounds, padding: 80);
   }
 }
 ```
@@ -461,15 +511,10 @@ class ViewportControls extends StatelessWidget {
   }
 
   void _focusSelection() {
-    final ids = controller.selectedNodeIds;
+    final ids = controller.selectedNodeIds.toList();
     if (ids.isEmpty) return;
 
-    if (ids.length == 1) {
-      controller.animateToNode(ids.first);
-    } else {
-      final bounds = controller.getNodesBounds(ids);
-      controller.animateToBounds(bounds);
-    }
+    controller.animateToNodes(ids);
   }
 }
 
@@ -528,7 +573,8 @@ controller.panBy(Offset(100, 50));
 | Method | Description |
 |--------|-------------|
 | `animateToViewport(target, {duration, curve})` | Animate to exact viewport state |
-| `animateToNode(nodeId, {zoom, duration, curve})` | Center on node |
+| `animateToNode(nodeId, {zoom, duration, curve})` | Center on a single node |
+| `animateToNodes(nodeIds, {padding, duration, curve})` | Center on multiple nodes |
 | `animateToPosition(position, {zoom, duration, curve})` | Center on position |
 | `animateToBounds(bounds, {padding, duration, curve})` | Fit bounds in view |
 | `animateToScale(scale, {duration, curve})` | Animate zoom level |
