@@ -45,7 +45,9 @@ class _MathValidatorWidgetState extends State<MathValidatorWidget> {
                   message: messages[index],
                   onFocus: messages[index].nodeId != null
                       ? () {
-                          widget.state.controller.selectNode(messages[index].nodeId!);
+                          widget.state.controller.selectNode(
+                            messages[index].nodeId!,
+                          );
                         }
                       : null,
                 );
@@ -62,21 +64,18 @@ class _ValidationListItem extends StatelessWidget {
   final ValidationMessage message;
   final VoidCallback? onFocus;
 
-  const _ValidationListItem({
-    required this.message,
-    this.onFocus,
-  });
+  const _ValidationListItem({required this.message, this.onFocus});
 
   Color _getColor(BuildContext context, ValidationLevel level, String title) {
     if (level == ValidationLevel.error) {
       return Colors.red;
     }
-    
+
     // Blue theme for "Get Started" and "Expression Complete" messages
     if (title == 'Get Started' || title == 'Expression Complete') {
       return DemoTheme.info;
     }
-    
+
     // Orange/amber for all other info and warning messages
     return Colors.orange;
   }
@@ -147,11 +146,7 @@ class _ValidationListItem extends StatelessWidget {
                     color: color.withValues(alpha: isDark ? 0.15 : 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Icon(
-                    Icons.lightbulb_outline,
-                    size: 14,
-                    color: color,
-                  ),
+                  child: Icon(Icons.lightbulb_outline, size: 14, color: color),
                 ),
               ),
             ),

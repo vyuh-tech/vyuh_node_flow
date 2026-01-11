@@ -24,7 +24,7 @@ class EvalResult {
 
   factory EvalResult.error(String message) => EvalResult._(error: message);
 
-  bool get hasValue => value != null && !value!.isNaN;
+  bool get hasValue => value != null && !value!.isNaN && !value!.isInfinite;
   bool get hasError => error != null;
 }
 
@@ -206,7 +206,7 @@ class MathEvaluator {
 
     final result = operator.apply(aValue, bValue);
 
-    if (result.isNaN) {
+    if (result.isNaN || result.isInfinite) {
       return EvalResult.error(
         operator == MathOperator.divide ? 'Division by zero' : 'Invalid result',
       );
@@ -244,7 +244,7 @@ class MathEvaluator {
 
     final result = function.apply(inputValue);
 
-    if (result.isNaN) {
+    if (result.isNaN || result.isInfinite) {
       return EvalResult.error('Invalid input');
     }
 
