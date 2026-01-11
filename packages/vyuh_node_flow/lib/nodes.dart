@@ -5,6 +5,7 @@ export 'src/nodes/comment_node.dart';
 export 'src/nodes/group_node.dart';
 export 'src/nodes/node.dart';
 export 'src/nodes/node_data.dart';
+export 'src/nodes/node_drag_context.dart';
 export 'src/nodes/node_shape.dart';
 export 'src/nodes/node_theme.dart';
 export 'src/nodes/node_widget.dart';
