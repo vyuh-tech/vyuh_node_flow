@@ -386,8 +386,7 @@ extension GraphApi<T, C> on NodeFlowController<T, C> {
 
   /// Selects all selectable nodes in the graph.
   ///
-  /// Only nodes with `selectable: true` are included. GroupNode and CommentNode
-  /// have `selectable: false` by default and won't be selected.
+  /// Only nodes with `selectable: true` are included.
   ///
   /// This is a convenience method for selecting everything. Use Cmd+A / Ctrl+A
   /// keyboard shortcut to trigger this.

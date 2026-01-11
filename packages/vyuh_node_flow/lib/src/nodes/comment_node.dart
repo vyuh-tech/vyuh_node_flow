@@ -17,8 +17,7 @@ import 'node.dart';
 /// - Resizing via drag handles
 /// - Auto-grow height when text exceeds current bounds
 ///
-/// Comment nodes render in the foreground layer (above regular nodes) and
-/// do not participate in marquee selection (`selectable: false`).
+/// Comment nodes render in the foreground layer (above regular nodes).
 ///
 /// ## Example
 ///
@@ -54,7 +53,7 @@ class CommentNode<T> extends Node<T> with ResizableMixin<T> {
          layer: NodeRenderLayer.foreground,
          initialZIndex: zIndex,
          visible: isVisible,
-         selectable: false, // Comments don't participate in marquee selection
+         selectable: true,
          inputPorts: const [],
          outputPorts: const [],
        );
