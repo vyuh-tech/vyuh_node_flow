@@ -205,6 +205,7 @@ When using `withData`, the controller is created internally. You won't have dire
 | Zoom | Yes | Yes | Yes | No |
 | Select | Yes | Yes | Yes | No |
 | Drag nodes | Yes | Yes | No | No |
+| Resize nodes | No | Yes | No | No |
 | Create nodes | No | Yes | No | No |
 | Delete nodes | No | Yes | No | No |
 | Create connections | No | Yes | No | No |
