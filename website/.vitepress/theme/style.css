@@ -89,6 +89,13 @@ body {
   z-index: 50;
 }
 
+/* Mobile navigation menu spacing improvements */
+.VPNavScreen .nav-pro-link {
+  display: block;
+  margin-top: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    NAV DROPDOWN ICONS
    ═══════════════════════════════════════════════════════════════════ */
