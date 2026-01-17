@@ -32,6 +32,7 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+/build_short/
 
 # Symbolication related
 app.*.symbols
