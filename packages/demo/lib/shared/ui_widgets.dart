@@ -388,6 +388,66 @@ class Grid2Cols extends StatelessWidget {
   }
 }
 
+/// Reusable widget for selecting connection styles in the sidebar
+class ConnectionStyleSelector extends StatelessWidget {
+  final NodeFlowTheme theme;
+  final ValueChanged<NodeFlowTheme> onThemeChanged;
+
+  const ConnectionStyleSelector({
+    super.key,
+    required this.theme,
+    required this.onThemeChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle('Connection Style'),
+        SectionContent(
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: ConnectionStyles.all
+                .where((style) => style != ConnectionStyles.customBezier)
+                .map((style) {
+                  final isSelected = theme.connectionTheme.style == style;
+                  return StyledChip(
+                    label: style.displayName,
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      if (selected) {
+                        final currentAnimationEffect =
+                            theme.connectionTheme.animationEffect;
+                        final currentTempAnimationEffect =
+                            theme.temporaryConnectionTheme.animationEffect;
+                        onThemeChanged(
+                          theme.copyWith(
+                            connectionTheme: theme.connectionTheme.copyWith(
+                              style: style,
+                              animationEffect: currentAnimationEffect,
+                            ),
+                            temporaryConnectionTheme: theme
+                                .temporaryConnectionTheme
+                                .copyWith(
+                                  style: style,
+                                  animationEffect: currentTempAnimationEffect,
+                                ),
+                          ),
+                        );
+                      }
+                    },
+                  );
+                })
+                .toList(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// Control panel container (right-side panel) with optional header
 class ControlPanel extends StatelessWidget {
   final List<Widget> children;
