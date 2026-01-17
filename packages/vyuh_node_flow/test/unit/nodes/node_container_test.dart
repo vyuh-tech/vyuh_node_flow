@@ -15,8 +15,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
-// Import NodeContainer directly as it's not part of the public API
+// Import NodeContainer and ResizerWidget directly as they're not part of the public API
 import 'package:vyuh_node_flow/src/nodes/node_container.dart';
+import 'package:vyuh_node_flow/src/editor/resizer_widget.dart';
 
 import '../../helpers/test_factories.dart';
 import '../../helpers/test_utils.dart';
@@ -577,6 +578,119 @@ void main() {
       // Resizer should be shown when node is selected and resizable
       expect(container.node.isSelected, isTrue);
       expect(container.node.isResizable, isTrue);
+    });
+  });
+
+  // ==========================================================================
+  // Behavior Mode and Resize Handle Visibility Tests
+  // ==========================================================================
+  group('Behavior Mode and Resize Handle Visibility', () {
+    test('design mode allows resize handles (canUpdate: true)', () {
+      final group = createTestGroupNode<String>(
+        behavior: GroupBehavior.bounds,
+        data: 'test',
+      );
+      group.isSelected = true;
+      final controller = createTestController(nodes: [group]);
+
+      // Design mode is the default
+      expect(controller.behavior, equals(NodeFlowBehavior.design));
+      expect(controller.behavior.canUpdate, isTrue);
+
+      // Node is resizable and selected
+      expect(group.isSelected, isTrue);
+      expect(group.isResizable, isTrue);
+    });
+
+    test('preview mode hides resize handles (canUpdate: false)', () {
+      final group = createTestGroupNode<String>(
+        behavior: GroupBehavior.bounds,
+        data: 'test',
+      );
+      group.isSelected = true;
+      final controller = createTestController(nodes: [group]);
+
+      controller.setBehavior(NodeFlowBehavior.preview);
+
+      expect(controller.behavior, equals(NodeFlowBehavior.preview));
+      expect(controller.behavior.canUpdate, isFalse);
+      expect(controller.behavior.canDrag, isTrue); // Can still drag
+
+      // Node is still resizable (intrinsic property), but handles won't show
+      expect(group.isResizable, isTrue);
+    });
+
+    test('inspect mode hides resize handles (canUpdate: false)', () {
+      final group = createTestGroupNode<String>(
+        behavior: GroupBehavior.bounds,
+        data: 'test',
+      );
+      group.isSelected = true;
+      final controller = createTestController(nodes: [group]);
+
+      controller.setBehavior(NodeFlowBehavior.inspect);
+
+      expect(controller.behavior, equals(NodeFlowBehavior.inspect));
+      expect(controller.behavior.canUpdate, isFalse);
+      expect(controller.behavior.canDrag, isFalse); // Cannot drag either
+
+      // Node is still resizable (intrinsic property), but handles won't show
+      expect(group.isResizable, isTrue);
+    });
+
+    test('present mode hides resize handles (canUpdate: false)', () {
+      final group = createTestGroupNode<String>(
+        behavior: GroupBehavior.bounds,
+        data: 'test',
+      );
+      group.isSelected = true;
+      final controller = createTestController(nodes: [group]);
+
+      controller.setBehavior(NodeFlowBehavior.present);
+
+      expect(controller.behavior, equals(NodeFlowBehavior.present));
+      expect(controller.behavior.canUpdate, isFalse);
+
+      // Node is still resizable (intrinsic property), but handles won't show
+      expect(group.isResizable, isTrue);
+    });
+
+    test('switching back to design mode restores resize handles', () {
+      final group = createTestGroupNode<String>(
+        behavior: GroupBehavior.bounds,
+        data: 'test',
+      );
+      group.isSelected = true;
+      final controller = createTestController(nodes: [group]);
+
+      // Start in design mode
+      expect(controller.behavior.canUpdate, isTrue);
+
+      // Switch to preview
+      controller.setBehavior(NodeFlowBehavior.preview);
+      expect(controller.behavior.canUpdate, isFalse);
+
+      // Switch back to design
+      controller.setBehavior(NodeFlowBehavior.design);
+      expect(controller.behavior.canUpdate, isTrue);
+    });
+
+    test('CommentNode respects behavior mode for resize handles', () {
+      final comment = createTestCommentNode<String>(data: 'test');
+      comment.isSelected = true;
+      final controller = createTestController(nodes: [comment]);
+
+      // In design mode
+      expect(controller.behavior.canUpdate, isTrue);
+      expect(comment.isResizable, isTrue);
+
+      // In preview mode
+      controller.setBehavior(NodeFlowBehavior.preview);
+      expect(controller.behavior.canUpdate, isFalse);
+      expect(
+        comment.isResizable,
+        isTrue,
+      ); // Still resizable, just handles hidden
     });
   });
 
@@ -1352,6 +1466,161 @@ void main() {
 
       // Widget should still be rendered (just moved)
       expect(find.byKey(const Key('move-content')), findsOneWidget);
+    });
+
+    testWidgets('resizable node shows ResizerWidget in design mode', (
+      tester,
+    ) async {
+      final group = GroupNode<String>(
+        id: 'resizable-group',
+        position: const Offset(50, 50),
+        size: const Size(200, 150),
+        title: 'Test Group',
+        data: 'test',
+      );
+      group.isSelected = true;
+      controller.addNode(group);
+
+      // Controller defaults to design mode
+      expect(controller.behavior, equals(NodeFlowBehavior.design));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Stack(
+            children: [
+              NodeContainer<String>(
+                node: group,
+                controller: controller,
+                child: Container(color: Colors.blue),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // ResizerWidget should be present in design mode
+      expect(find.byType(ResizerWidget), findsOneWidget);
+    });
+
+    testWidgets('resizable node hides ResizerWidget in preview mode', (
+      tester,
+    ) async {
+      final group = GroupNode<String>(
+        id: 'resizable-group',
+        position: const Offset(50, 50),
+        size: const Size(200, 150),
+        title: 'Test Group',
+        data: 'test',
+      );
+      group.isSelected = true;
+      controller.addNode(group);
+
+      // Set to preview mode
+      controller.setBehavior(NodeFlowBehavior.preview);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Stack(
+            children: [
+              NodeContainer<String>(
+                node: group,
+                controller: controller,
+                child: Container(color: Colors.blue),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // ResizerWidget should NOT be present in preview mode
+      expect(find.byType(ResizerWidget), findsNothing);
+    });
+
+    testWidgets('resizable node hides ResizerWidget in inspect mode', (
+      tester,
+    ) async {
+      final group = GroupNode<String>(
+        id: 'resizable-group',
+        position: const Offset(50, 50),
+        size: const Size(200, 150),
+        title: 'Test Group',
+        data: 'test',
+      );
+      group.isSelected = true;
+      controller.addNode(group);
+
+      // Set to inspect mode
+      controller.setBehavior(NodeFlowBehavior.inspect);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Stack(
+            children: [
+              NodeContainer<String>(
+                node: group,
+                controller: controller,
+                child: Container(color: Colors.blue),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // ResizerWidget should NOT be present in inspect mode
+      expect(find.byType(ResizerWidget), findsNothing);
+    });
+
+    testWidgets('switching behavior mode updates ResizerWidget visibility', (
+      tester,
+    ) async {
+      final group = GroupNode<String>(
+        id: 'resizable-group',
+        position: const Offset(50, 50),
+        size: const Size(200, 150),
+        title: 'Test Group',
+        data: 'test',
+      );
+      group.isSelected = true;
+      controller.addNode(group);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Stack(
+            children: [
+              NodeContainer<String>(
+                node: group,
+                controller: controller,
+                child: Container(color: Colors.blue),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Design mode - ResizerWidget visible
+      expect(find.byType(ResizerWidget), findsOneWidget);
+
+      // Switch to preview mode
+      controller.setBehavior(NodeFlowBehavior.preview);
+      await tester.pumpAndSettle();
+
+      // ResizerWidget should disappear
+      expect(find.byType(ResizerWidget), findsNothing);
+
+      // Switch back to design mode
+      controller.setBehavior(NodeFlowBehavior.design);
+      await tester.pumpAndSettle();
+
+      // ResizerWidget should reappear
+      expect(find.byType(ResizerWidget), findsOneWidget);
     });
   });
 }

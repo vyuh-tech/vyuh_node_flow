@@ -1,3 +1,7 @@
+## 0.23.9
+
+ - **FEAT**: add resize handle visibility logic based on behavior modes, update documentation, and enhance tests.
+
 ## 0.23.8
 
  - **FEAT**: add `animateToNodes` method to viewport API for animating to multiple nodes.

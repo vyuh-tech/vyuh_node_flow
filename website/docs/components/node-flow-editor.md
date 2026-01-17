@@ -434,6 +434,10 @@ Each behavior mode has specific capabilities:
 | `canPan` | Yes | Yes | Yes | No |
 | `canZoom` | Yes | Yes | Yes | No |
 
+::: info Resize Handles
+Resize handles for resizable nodes (like `GroupNode` and `CommentNode`) are only shown when `canUpdate` is `true`. This means resize handles are hidden in `preview`, `inspect`, and `present` modes since resizing is a form of node modification.
+:::
+
 You can check capabilities programmatically using the behavior enum:
 
 ```dart

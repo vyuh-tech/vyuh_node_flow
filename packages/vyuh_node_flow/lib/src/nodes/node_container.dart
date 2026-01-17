@@ -131,9 +131,13 @@ class NodeContainer<T> extends StatelessWidget {
         final lodVisibility =
             controller.lod?.currentVisibility ?? DetailVisibility.full;
 
-        // Show resize handles when node is selected, resizable, AND LOD allows
+        // Show resize handles when node is selected, resizable, LOD allows,
+        // AND behavior mode permits updates (resize is a form of modification)
         final showResizer =
-            isSelected && node.isResizable && lodVisibility.showResizeHandles;
+            isSelected &&
+            node.isResizable &&
+            lodVisibility.showResizeHandles &&
+            controller.behavior.canUpdate;
 
         return Positioned(
           left: position.dx,
