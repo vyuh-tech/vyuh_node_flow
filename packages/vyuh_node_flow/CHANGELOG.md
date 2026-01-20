@@ -1,3 +1,7 @@
+## 0.23.10
+
+ - **FEAT**: add `notifyNodeDataChanged` API for emitting node update events and update `NodeDataChanged` class with nullable `previousData`.
+
 ## 0.23.9
 
  - **FEAT**: add resize handle visibility logic based on behavior modes, update documentation, and enhance tests.
