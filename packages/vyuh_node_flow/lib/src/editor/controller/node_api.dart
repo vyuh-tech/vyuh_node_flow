@@ -1126,4 +1126,31 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
       );
     });
   }
+
+  // ============================================================================
+  // Notification APIs - User-controlled data changes
+  // ============================================================================
+
+  /// Notifies extensions that a node's data has changed.
+  ///
+  /// Since node data is controlled by the user (not the controller), this method
+  /// allows the user to emit [NodeDataChanged] events when they modify node data
+  /// directly. This enables extensions like auto-save to react to property changes.
+  ///
+  /// The [previousData] parameter should contain the data value before the change,
+  /// which can be useful for undo/redo implementations.
+  ///
+  /// Example:
+  /// ```dart
+  /// // When editing a node's properties in a property panel:
+  /// final previousData = node.data;
+  /// node.data = updatedData;
+  /// controller.notifyNodeDataChanged(nodeId, previousData);
+  /// ```
+  void notifyNodeDataChanged(String nodeId, [T? previousData]) {
+    final node = _nodes[nodeId];
+    if (node == null) return;
+
+    _emitEvent(NodeDataChanged<T>(node, previousData));
+  }
 }

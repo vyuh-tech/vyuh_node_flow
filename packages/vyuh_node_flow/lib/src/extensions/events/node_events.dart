@@ -59,13 +59,14 @@ class NodeResized<T> extends GraphEvent {
 
 /// Emitted when a node's data changes.
 class NodeDataChanged<T> extends GraphEvent {
-  const NodeDataChanged(this.node, this.previousData);
+  const NodeDataChanged(this.node, [this.previousData]);
 
   /// The node whose data changed.
   final Node<T> node;
 
   /// The data before the change (for undo capability).
-  final T previousData;
+  /// Can be null if the previous data is not available.
+  final T? previousData;
 
   @override
   String toString() => 'NodeDataChanged(${node.id})';
