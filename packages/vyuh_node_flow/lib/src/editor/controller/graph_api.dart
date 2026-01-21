@@ -257,6 +257,110 @@ extension GraphApi<T, C> on NodeFlowController<T, C> {
     return null;
   }
 
+  /// Gets all connections whose segment bounds intersect with the given bounds.
+  ///
+  /// Uses spatial index for fast candidate filtering, then precise segment
+  /// bounds check on candidates.
+  ///
+  /// Parameters:
+  /// - [bounds]: The rectangular area to test in graph/world coordinates
+  /// - [excludeNodeId]: Optional node ID to exclude connections involving this node
+  ///
+  /// Returns list of matching connections.
+  ///
+  /// Example:
+  /// ```dart
+  /// final connections = controller.getConnectionsInBounds(selectionRect);
+  /// ```
+  List<Connection<C>> getConnectionsInBounds(Rect bounds, {
+    String? excludeNodeId,
+  }) {
+    // Use spatial index for O(log n) candidate filtering
+    final candidates = _spatialIndex.connectionsIn(bounds);
+    if (candidates.isEmpty) return [];
+
+    final cache = connectionPathCache;
+    final results = <Connection<C>>[];
+
+    for (final connection in candidates) {
+      // Skip connections involving the excluded node
+      if (excludeNodeId != null &&
+          (connection.sourceNodeId == excludeNodeId ||
+              connection.targetNodeId == excludeNodeId)) {
+        continue;
+      }
+
+      final sourceNode = getNode(connection.sourceNodeId);
+      final targetNode = getNode(connection.targetNodeId);
+      if (sourceNode == null || targetNode == null) continue;
+
+      // Precise segment bounds check using cache (data layer)
+      if (cache.connectionIntersectsBounds(
+        connection: connection,
+        sourceNode: sourceNode,
+        targetNode: targetNode,
+        bounds: bounds,
+      )) {
+        results.add(connection);
+      }
+    }
+
+    return results;
+  }
+
+  /// Finds the first connection whose segment bounds intersect with the given bounds.
+  ///
+  /// Same as [getConnectionsInBounds] but returns only the first match.
+  /// More efficient when you only need one result.
+  ///
+  /// Parameters:
+  /// - [bounds]: The rectangular area to test in graph/world coordinates
+  /// - [excludeNodeId]: Optional node ID to exclude connections involving this node
+  ///
+  /// Returns the connection if found, `null` otherwise.
+  ///
+  /// Example:
+  /// ```dart
+  /// final connection = controller.getFirstConnectionInBounds(
+  ///   nodeBounds,
+  ///   excludeNodeId: draggedNode.id,
+  /// );
+  /// ```
+  Connection<C>? getFirstConnectionInBounds(Rect bounds, {
+    String? excludeNodeId,
+  }) {
+    // Use spatial index for O(log n) candidate filtering
+    final candidates = _spatialIndex.connectionsIn(bounds);
+    if (candidates.isEmpty) return null;
+
+    final cache = connectionPathCache;
+
+    for (final connection in candidates) {
+      // Skip connections involving the excluded node
+      if (excludeNodeId != null &&
+          (connection.sourceNodeId == excludeNodeId ||
+              connection.targetNodeId == excludeNodeId)) {
+        continue;
+      }
+
+      final sourceNode = getNode(connection.sourceNodeId);
+      final targetNode = getNode(connection.targetNodeId);
+      if (sourceNode == null || targetNode == null) continue;
+
+      // Precise segment bounds check using cache (data layer)
+      if (cache.connectionIntersectsBounds(
+        connection: connection,
+        sourceNode: sourceNode,
+        targetNode: targetNode,
+        bounds: bounds,
+      )) {
+        return connection;
+      }
+    }
+
+    return null;
+  }
+
   /// Hit test for a port at the given graph position.
   ///
   /// Returns a record containing (nodeId, portId, isOutput) if a port is found

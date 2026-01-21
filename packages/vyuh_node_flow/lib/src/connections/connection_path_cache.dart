@@ -457,6 +457,36 @@ class ConnectionPathCache {
     return newCachedPath?.segmentBounds ?? [];
   }
 
+  /// Test if a connection's segment bounds intersect with the given bounds.
+  ///
+  /// Uses rect-to-rect intersection on the connection's hit test segments.
+  /// Will create/update the cache on demand if not cached or stale.
+  ///
+  /// Returns true if any segment bound overlaps with [bounds].
+  bool connectionIntersectsBounds({
+    required Connection connection,
+    required Node sourceNode,
+    required Node targetNode,
+    required Rect bounds,
+  }) {
+    final segmentBounds = getOrCreateSegmentBounds(
+      connection: connection,
+      sourceNode: sourceNode,
+      targetNode: targetNode,
+      connectionStyle: theme.connectionTheme.style,
+    );
+
+    if (segmentBounds.isEmpty) return false;
+
+    for (final segmentBound in segmentBounds) {
+      if (bounds.overlaps(segmentBound)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   /// Get cache statistics
   Map<String, dynamic> getStats() {
     return {

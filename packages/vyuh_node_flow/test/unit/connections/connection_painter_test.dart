@@ -16,7 +16,6 @@
 library;
 
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'dart:ui'
     show
         BlendMode,
@@ -34,13 +33,13 @@ import 'dart:ui'
         RSuperellipse,
         Rect,
         Vertices;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart' hide Image;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vyuh_node_flow/vyuh_node_flow.dart';
-
-// Import internal classes that are not part of the public API
+// Import internal classes for type declarations
 import 'package:vyuh_node_flow/src/connections/connection_painter.dart';
+import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../helpers/test_factories.dart';
 
@@ -55,14 +54,14 @@ void main() {
 
   group('ConnectionPainter Construction', () {
     test('creates with light theme', () {
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       expect(painter.theme, same(NodeFlowTheme.light));
       expect(painter.nodeShape, isNull);
     });
 
     test('creates with dark theme', () {
-      final painter = ConnectionPainter(theme: NodeFlowTheme.dark);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.dark);
 
       expect(painter.theme, same(NodeFlowTheme.dark));
     });
@@ -70,7 +69,7 @@ void main() {
     test('creates with custom node shape getter', () {
       NodeShape? shapeGetter(Node node) => const DiamondShape();
 
-      final painter = ConnectionPainter(
+      final painter = createTestConnectionPainter(
         theme: NodeFlowTheme.light,
         nodeShape: shapeGetter,
       );
@@ -79,7 +78,7 @@ void main() {
     });
 
     test('exposes pathCache', () {
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       expect(painter.pathCache, isNotNull);
     });
@@ -91,7 +90,7 @@ void main() {
 
   group('Theme Management', () {
     test('updateTheme changes theme', () {
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       expect(painter.theme, same(NodeFlowTheme.light));
 
@@ -101,7 +100,7 @@ void main() {
     });
 
     test('updateTheme invalidates cache when style changes', () {
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       // Create connected nodes to populate the cache
       final sourceNode = createTestNodeWithOutputPort(
@@ -148,7 +147,7 @@ void main() {
     });
 
     test('updateTheme invalidates cache when curvature changes', () {
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       final newTheme = NodeFlowTheme.light.copyWith(
         connectionTheme: ConnectionTheme.light.copyWith(bezierCurvature: 0.8),
@@ -166,7 +165,7 @@ void main() {
 
   group('Node Shape Management', () {
     test('updateNodeShape changes shape getter', () {
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       expect(painter.nodeShape, isNull);
 
@@ -177,7 +176,7 @@ void main() {
     });
 
     test('updateNodeShape invalidates cache', () {
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       // Create connected nodes to populate the cache
       final sourceNode = createTestNodeWithOutputPort(
@@ -230,7 +229,7 @@ void main() {
     late Connection connection;
 
     setUp(() {
-      painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       sourceNode = createTestNodeWithOutputPort(
         id: 'node-a',
@@ -352,7 +351,7 @@ void main() {
     late Connection connection;
 
     setUp(() {
-      painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       // Position source at (0, 0) with size 100x50
       // Output port on right: at (100, 25)
@@ -490,7 +489,7 @@ void main() {
     late Connection connection;
 
     setUp(() {
-      painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       // Position nodes with different Y values to ensure non-degenerate paths
       sourceNode = createTestNodeWithOutputPort(
@@ -644,7 +643,7 @@ void main() {
     late ConnectionPainter painter;
 
     setUp(() {
-      painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
     });
 
     test('handles connection where target is behind source', () {
@@ -833,7 +832,7 @@ void main() {
     late Connection connection;
 
     setUp(() {
-      painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       sourceNode = createTestNodeWithOutputPort(
         id: 'node-a',
@@ -927,7 +926,7 @@ void main() {
     late Connection connection;
 
     setUp(() {
-      painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       sourceNode = createTestNodeWithOutputPort(
         id: 'node-a',
@@ -1012,7 +1011,7 @@ void main() {
     late ConnectionPainter painter;
 
     setUp(() {
-      painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
     });
 
     test('handles connection with missing source port gracefully', () {
@@ -1222,7 +1221,7 @@ void main() {
     late Connection connection;
 
     setUp(() {
-      painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       sourceNode = createTestNode(
         id: 'node-a',
@@ -1293,7 +1292,7 @@ void main() {
     late Node<String> targetNode;
 
     setUp(() {
-      painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       sourceNode = createTestNodeWithOutputPort(
         id: 'node-a',
@@ -1402,7 +1401,7 @@ void main() {
 
     setUp(() {
       mockCanvas = MockCanvas();
-      painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       sourceNode = createTestNodeWithOutputPort(
         id: 'node-a',
@@ -1535,7 +1534,7 @@ void main() {
       final dashedTheme = NodeFlowTheme.light.copyWith(
         connectionTheme: ConnectionTheme.light.copyWith(dashPattern: [5, 5]),
       );
-      final dashedPainter = ConnectionPainter(theme: dashedTheme);
+      final dashedPainter = createTestConnectionPainter(theme: dashedTheme);
 
       dashedPainter.paintConnection(
         mockCanvas,
@@ -1600,7 +1599,7 @@ void main() {
 
     setUp(() {
       mockCanvas = MockCanvas();
-      painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       sourceNode = createTestNodeWithOutputPort(
         id: 'node-a',
@@ -1717,7 +1716,8 @@ void main() {
             animationEffect: PulseEffect(),
           ),
         );
-        final animatedPainter = ConnectionPainter(theme: animatedTheme);
+        final animatedPainter = createTestConnectionPainter(
+            theme: animatedTheme);
 
         animatedPainter.paintConnection(
           mockCanvas,
@@ -1757,7 +1757,7 @@ void main() {
 
     setUp(() {
       mockCanvas = MockCanvas();
-      painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
     });
 
     test('paints temporary connection from start to end point', () {
@@ -1858,7 +1858,7 @@ void main() {
           dashPattern: [10, 5],
         ),
       );
-      final customPainter = ConnectionPainter(theme: customTheme);
+      final customPainter = createTestConnectionPainter(theme: customTheme);
 
       customPainter.paintTemporaryConnection(
         mockCanvas,
@@ -1949,7 +1949,7 @@ void main() {
           endPoint: ConnectionEndPoint.triangle,
         ),
       );
-      painter = ConnectionPainter(theme: triangleTheme);
+      painter = createTestConnectionPainter(theme: triangleTheme);
 
       painter.paintConnection(mockCanvas, connection, sourceNode, targetNode);
 
@@ -1963,7 +1963,7 @@ void main() {
           endPoint: ConnectionEndPoint.circle,
         ),
       );
-      painter = ConnectionPainter(theme: circleTheme);
+      painter = createTestConnectionPainter(theme: circleTheme);
 
       painter.paintConnection(mockCanvas, connection, sourceNode, targetNode);
 
@@ -1977,7 +1977,7 @@ void main() {
           endPoint: ConnectionEndPoint.diamond,
         ),
       );
-      painter = ConnectionPainter(theme: diamondTheme);
+      painter = createTestConnectionPainter(theme: diamondTheme);
 
       painter.paintConnection(mockCanvas, connection, sourceNode, targetNode);
 
@@ -1991,7 +1991,7 @@ void main() {
           endPoint: ConnectionEndPoint.rectangle,
         ),
       );
-      painter = ConnectionPainter(theme: rectangleTheme);
+      painter = createTestConnectionPainter(theme: rectangleTheme);
 
       painter.paintConnection(mockCanvas, connection, sourceNode, targetNode);
 
@@ -2005,7 +2005,7 @@ void main() {
           endPoint: ConnectionEndPoint.none,
         ),
       );
-      painter = ConnectionPainter(theme: noneTheme);
+      painter = createTestConnectionPainter(theme: noneTheme);
 
       painter.paintConnection(mockCanvas, connection, sourceNode, targetNode);
 
@@ -2020,7 +2020,7 @@ void main() {
           endPoint: ConnectionEndPoint.capsuleHalf,
         ),
       );
-      painter = ConnectionPainter(theme: capsuleTheme);
+      painter = createTestConnectionPainter(theme: capsuleTheme);
 
       painter.paintConnection(mockCanvas, connection, sourceNode, targetNode);
 
@@ -2034,7 +2034,7 @@ void main() {
           endPoint: ConnectionEndPoint.triangle,
         ),
       );
-      painter = ConnectionPainter(theme: asymmetricTheme);
+      painter = createTestConnectionPainter(theme: asymmetricTheme);
 
       painter.paintConnection(mockCanvas, connection, sourceNode, targetNode);
 
@@ -2042,7 +2042,7 @@ void main() {
     });
 
     test('connection-specific endpoints override theme', () {
-      painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       final connectionWithEndpoints = Connection(
         id: 'conn-custom-endpoints',
@@ -2072,7 +2072,7 @@ void main() {
           endpointBorderWidth: 2.0,
         ),
       );
-      painter = ConnectionPainter(theme: coloredEndpoints);
+      painter = createTestConnectionPainter(theme: coloredEndpoints);
 
       painter.paintConnection(mockCanvas, connection, sourceNode, targetNode);
 
@@ -2090,7 +2090,7 @@ void main() {
 
     setUp(() {
       mockCanvas = MockCanvas();
-      painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
     });
 
     test('paints right to left connection', () {
@@ -2259,7 +2259,7 @@ void main() {
     late Connection connection;
 
     setUp(() {
-      painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       sourceNode = createTestNodeWithOutputPort(
         id: 'node-a',

@@ -13,10 +13,18 @@ import 'endpoint_painter.dart';
 import 'styles/connection_style_base.dart';
 import 'styles/endpoint_position_calculator.dart';
 
+/// Paints connections on a canvas.
+///
+/// This is the UI layer - it only handles painting.
+/// The [ConnectionPathCache] (data layer) handles geometry and queries.
 class ConnectionPainter {
-  ConnectionPainter({required NodeFlowTheme theme, this.nodeShape})
-    : _theme = theme,
-      _pathCache = ConnectionPathCache(theme: theme, nodeShape: nodeShape);
+  ConnectionPainter({
+    required NodeFlowTheme theme,
+    required ConnectionPathCache pathCache,
+    this.nodeShape,
+  })
+      : _theme = theme,
+        _pathCache = pathCache;
 
   NodeFlowTheme _theme;
 
@@ -24,8 +32,7 @@ class ConnectionPainter {
 
   final ConnectionPathCache _pathCache;
 
-  /// Gets the connection path cache
-  /// Used by label calculator to leverage cached paths
+  /// Gets the connection path cache (data layer)
   ConnectionPathCache get pathCache => _pathCache;
 
   /// Optional function to get the shape for a node.

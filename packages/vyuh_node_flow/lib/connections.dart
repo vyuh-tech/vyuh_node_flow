@@ -12,3 +12,4 @@ export 'src/connections/styles/connection_style_base.dart';
 export 'src/connections/styles/connection_styles.dart';
 export 'src/connections/styles/editable_path_connection_style.dart';
 export 'src/connections/styles/editable_smooth_step_connection_style.dart';
+export 'src/connections/temporary_connection.dart';

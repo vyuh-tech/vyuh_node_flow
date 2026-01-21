@@ -125,15 +125,27 @@ extension EditorInitApi<T, C> on NodeFlowController<T, C> {
     _spatialIndex.nodeShapeBuilder = nodeShapeBuilder;
 
     // =========================================================================
-    // Step 4: Create connection painter
+    // Step 4: Create connection path cache (data layer)
     // =========================================================================
-    // The connection painter handles rendering and hit testing of connections.
-    // It needs the theme and optionally the node shape builder.
+    // The cache stores connection geometry and handles queries.
+    // Controller owns this; painter uses it for rendering.
+    final shapeGetter = nodeShapeBuilder != null
+        ? (Node node) => nodeShapeBuilder(node as Node<T>)
+        : null;
+
+    _connectionPathCache = ConnectionPathCache(
+      theme: theme,
+      nodeShape: shapeGetter,
+    );
+
+    // =========================================================================
+    // Step 5: Create connection painter (UI layer)
+    // =========================================================================
+    // The painter handles rendering. It uses the cache for path data.
     _connectionPainter = ConnectionPainter(
       theme: theme,
-      nodeShape: nodeShapeBuilder != null
-          ? (node) => nodeShapeBuilder(node as Node<T>)
-          : null,
+      pathCache: _connectionPathCache!,
+      nodeShape: shapeGetter,
     );
 
     // =========================================================================

@@ -5,6 +5,7 @@ import 'package:mobx/mobx.dart';
 
 import '../../connections/connection.dart';
 import '../../connections/connection_painter.dart';
+import '../../connections/connection_path_cache.dart';
 import '../../connections/connection_validation.dart';
 import '../../connections/temporary_connection.dart';
 import '../../extensions/debug/debug_extension.dart';
@@ -153,9 +154,8 @@ class NodeFlowController<T, C> {
       _connections.addAll(connections);
     });
 
-    // Note: Full infrastructure setup (_setupLoadedGraphInfrastructure)
-    // happens when setTheme is called by the editor, since we need the
-    // theme for proper spatial index setup.
+    // Note: Full infrastructure setup happens when initController is called
+    // by the editor widget, since we need the theme for proper spatial index setup.
   }
 
   // Behavioral configuration
@@ -347,6 +347,10 @@ class NodeFlowController<T, C> {
 
   // Connection painting and hit-testing
   ConnectionPainter? _connectionPainter;
+
+  /// Connection path cache - the data layer for connection geometry.
+  /// Controller owns this; painter uses it for rendering.
+  ConnectionPathCache? _connectionPathCache;
 
   // Connection segment calculator for spatial index (set by _initController)
   List<Rect> Function(Connection connection)? _connectionSegmentCalculator;
@@ -731,14 +735,15 @@ class NodeFlowController<T, C> {
 
   /// Gets the connection painter used for rendering and hit-testing connections.
   ///
-  /// The connection painter must be initialized by calling `setTheme` first,
-  /// which is typically done automatically by the editor widget.
+  /// The connection painter is initialized during [initController], which is
+  /// typically called automatically by the editor widget during its initState.
   ///
   /// Throws `StateError` if accessed before initialization.
   ConnectionPainter get connectionPainter {
     if (_connectionPainter == null) {
       throw StateError(
-        'ConnectionPainter not initialized. Call setTheme first.',
+        'ConnectionPainter not initialized. '
+            'Ensure the controller is used with a NodeFlowEditor widget.',
       );
     }
     return _connectionPainter!;
@@ -747,6 +752,20 @@ class NodeFlowController<T, C> {
   /// Whether the connection painter has been initialized.
   /// Use this to guard access to [connectionPainter] during initialization.
   bool get isConnectionPainterInitialized => _connectionPainter != null;
+
+  /// Gets the connection path cache (data layer).
+  ///
+  /// Use this for geometry queries (hit testing, bounds intersection).
+  /// Throws `StateError` if accessed before initialization.
+  ConnectionPathCache get connectionPathCache {
+    if (_connectionPathCache == null) {
+      throw StateError(
+        'ConnectionPathCache not initialized. '
+            'Ensure the controller is used with a NodeFlowEditor widget.',
+      );
+    }
+    return _connectionPathCache!;
+  }
 
   /// Disposes of the controller and releases resources.
   ///

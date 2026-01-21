@@ -55,6 +55,10 @@ class InteractionLayer<T> extends StatelessWidget {
               tempConnection.targetPortId;
             }
 
+            // Observe preview connections (for edge insertion preview etc.)
+            final previewConnections =
+            controller.interaction.previewConnections.toList();
+
             // Get theme from context - this ensures automatic rebuilds when theme changes
             final theme =
                 Theme.of(builderContext).extension<NodeFlowTheme>() ??
@@ -66,6 +70,7 @@ class InteractionLayer<T> extends StatelessWidget {
                 theme: theme,
                 selectionRect: selectionRect,
                 temporaryConnection: tempConnection,
+                previewConnections: previewConnections,
                 transformationController: transformationController,
                 animation: animation,
               ),
@@ -91,6 +96,7 @@ class InteractionLayerPainter<T> extends CustomPainter {
     required this.theme,
     required this.selectionRect,
     required this.temporaryConnection,
+    this.previewConnections = const [],
     required this.transformationController,
     this.animation,
   }) : super(
@@ -108,6 +114,10 @@ class InteractionLayerPainter<T> extends CustomPainter {
   /// for accurate hit testing during selection drag operations.
   final GraphRect? selectionRect;
   final TemporaryConnection? temporaryConnection;
+
+  /// Preview connections for visualization (e.g., edge insertion preview).
+  /// Rendered with the same styling as temporary connections.
+  final List<TemporaryConnection> previewConnections;
 
   /// The transformation controller to read the current transform from.
   final TransformationController transformationController;
@@ -218,6 +228,18 @@ class InteractionLayerPainter<T> extends CustomPainter {
       );
     }
 
+    // Draw preview connections (for edge insertion preview, etc.)
+    for (final preview in previewConnections) {
+      controller.connectionPainter.paintTemporaryConnection(
+        canvas,
+        preview.startPoint,
+        preview.currentPoint,
+        sourceNodeBounds: preview.startNodeBounds,
+        targetNodeBounds: preview.targetNodeBounds,
+        animationValue: animation?.value,
+      );
+    }
+
     canvas.restore();
   }
 
@@ -226,6 +248,12 @@ class InteractionLayerPainter<T> extends CustomPainter {
     // Always repaint if we have a temporary connection to ensure real-time updates
     if (temporaryConnection != null ||
         oldDelegate.temporaryConnection != null) {
+      return true;
+    }
+
+    // Repaint if preview connections changed
+    if (previewConnections.isNotEmpty ||
+        oldDelegate.previewConnections.isNotEmpty) {
       return true;
     }
 

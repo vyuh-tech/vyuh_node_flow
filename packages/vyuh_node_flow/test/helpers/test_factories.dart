@@ -5,6 +5,9 @@
 library;
 
 import 'package:flutter/material.dart';
+// Import internal classes needed for test factories
+import 'package:vyuh_node_flow/src/connections/connection_painter.dart';
+import 'package:vyuh_node_flow/src/connections/connection_path_cache.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 // =============================================================================
@@ -168,6 +171,28 @@ Connection createTestConnection({
 }
 
 int _connectionCounter = 1;
+
+// =============================================================================
+// ConnectionPainter Factory
+// =============================================================================
+
+/// Creates a test ConnectionPainter with its required ConnectionPathCache.
+///
+/// This factory handles the dependency relationship between painter and cache,
+/// creating the cache first and passing it to the painter.
+ConnectionPainter createTestConnectionPainter({
+  NodeFlowTheme? theme,
+  NodeShape? Function(Node node)? nodeShape,
+}) {
+  final effectiveTheme = theme ?? NodeFlowTheme.light;
+  final cache = ConnectionPathCache(
+      theme: effectiveTheme, nodeShape: nodeShape);
+  return ConnectionPainter(
+    theme: effectiveTheme,
+    pathCache: cache,
+    nodeShape: nodeShape,
+  );
+}
 
 // =============================================================================
 // Controller Factory

@@ -13,12 +13,10 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vyuh_node_flow/vyuh_node_flow.dart';
-
 // Import internal classes for testing
 import 'package:vyuh_node_flow/src/connections/connections_canvas.dart';
-import 'package:vyuh_node_flow/src/connections/connection_painter.dart';
 import 'package:vyuh_node_flow/src/editor/layers/connections_layer.dart';
+import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../helpers/test_factories.dart';
 
@@ -108,7 +106,7 @@ void main() {
   group('ConnectionsCanvas Construction', () {
     test('creates with required parameters', () {
       final controller = createTestController();
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       final canvas = ConnectionsCanvas<String, dynamic>(
         store: controller,
@@ -126,7 +124,7 @@ void main() {
 
     test('creates with specific connections list', () {
       final controller = createTestController();
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
       final connections = <Connection>[];
 
       final canvas = ConnectionsCanvas<String, dynamic>(
@@ -141,7 +139,7 @@ void main() {
 
     test('creates with animation', () {
       final controller = createTestController();
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
       final animationController = AnimationController(
         vsync: const TestVSync(),
         duration: const Duration(seconds: 1),
@@ -161,7 +159,7 @@ void main() {
 
     test('creates with connectionStyleBuilder', () {
       final controller = createTestController();
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
       ConnectionStyle? styleBuilder(
         Connection connection,
         Node sourceNode,
@@ -186,7 +184,7 @@ void main() {
   group('ConnectionsCanvas shouldRepaint', () {
     test('shouldRepaint always returns true', () {
       final controller = createTestController();
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       final canvas1 = ConnectionsCanvas<String, dynamic>(
         store: controller,
@@ -206,7 +204,7 @@ void main() {
 
     test('shouldRepaint returns true even with same references', () {
       final controller = createTestController();
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       final canvas = ConnectionsCanvas<String, dynamic>(
         store: controller,
@@ -220,7 +218,7 @@ void main() {
 
     test('shouldRepaint returns true with different themes', () {
       final controller = createTestController();
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       final canvas1 = ConnectionsCanvas<String, dynamic>(
         store: controller,
@@ -240,7 +238,7 @@ void main() {
     test('shouldRepaint returns true with different controllers', () {
       final controller1 = createTestController();
       final controller2 = createTestController();
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       final canvas1 = ConnectionsCanvas<String, dynamic>(
         store: controller1,
@@ -265,7 +263,7 @@ void main() {
   group('ConnectionsCanvas shouldRebuildSemantics', () {
     test('shouldRebuildSemantics always returns false', () {
       final controller = createTestController();
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       final canvas1 = ConnectionsCanvas<String, dynamic>(
         store: controller,
@@ -684,7 +682,7 @@ void main() {
   group('Theme Integration', () {
     test('canvas uses provided theme for rendering', () {
       final controller = createTestController();
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       final canvas = ConnectionsCanvas<String, dynamic>(
         store: controller,
@@ -719,7 +717,7 @@ void main() {
   group('Connection Painter Integration', () {
     test('connectionPainter is used for rendering', () {
       final controller = createTestController();
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       final canvas = ConnectionsCanvas<String, dynamic>(
         store: controller,
@@ -745,7 +743,7 @@ void main() {
 
     test('standalone connection painter caches paths', () {
       // Create a standalone ConnectionPainter for testing
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       // Initially no paths cached
       expect(painter.getCacheStats()['cachedPaths'], equals(0));
@@ -759,7 +757,7 @@ void main() {
   group('Edge Cases', () {
     test('handles controller with no nodes or connections', () {
       final controller = createTestController();
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       final canvas = ConnectionsCanvas<String, dynamic>(
         store: controller,
@@ -826,7 +824,7 @@ void main() {
         duration: const Duration(seconds: 1),
         value: 0.0,
       );
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       final canvas = ConnectionsCanvas<String, dynamic>(
         store: controller,
@@ -847,7 +845,7 @@ void main() {
         duration: const Duration(seconds: 1),
         value: 1.0,
       );
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       final canvas = ConnectionsCanvas<String, dynamic>(
         store: controller,
@@ -877,7 +875,7 @@ void main() {
       }
 
       final controller = createConnectedNodesController();
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       final canvas = ConnectionsCanvas<String, dynamic>(
         store: controller,
@@ -904,7 +902,7 @@ void main() {
         }
 
         final controller = createTestController();
-        final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+        final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
         final canvas = ConnectionsCanvas<String, dynamic>(
           store: controller,
@@ -927,7 +925,7 @@ void main() {
       }
 
       final controller = createTestController();
-      final painter = ConnectionPainter(theme: NodeFlowTheme.light);
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
       final canvas = ConnectionsCanvas<String, dynamic>(
         store: controller,

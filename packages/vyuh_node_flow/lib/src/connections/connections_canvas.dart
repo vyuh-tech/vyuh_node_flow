@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../editor/controller/node_flow_controller.dart';
-import '../extensions/lod/lod_extension.dart';
 import '../editor/themes/node_flow_theme.dart';
+import '../extensions/lod/lod_extension.dart';
 import 'connection.dart';
 import 'connection_painter.dart';
 import 'styles/connection_style_base.dart';
@@ -111,6 +111,9 @@ class ConnectionsCanvas<T, C> extends CustomPainter {
     // Paint only connection lines and endpoints (no labels)
     // Labels are now rendered in a separate layer for better performance
     for (final connection in connectionsToRender) {
+      // Skip hidden connections (e.g., during edge insertion preview)
+      if (!connection.visible) continue;
+
       final sourceNode = store.getNode(connection.sourceNodeId);
       final targetNode = store.getNode(connection.targetNodeId);
 

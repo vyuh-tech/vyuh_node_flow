@@ -99,6 +99,7 @@ class Connection<C> {
   /// - [selectedColor]: Optional custom color when the connection is selected (overrides theme)
   /// - [strokeWidth]: Optional custom stroke width for the connection line (overrides theme)
   /// - [selectedStrokeWidth]: Optional custom stroke width when selected (overrides theme)
+  /// - [visible]: Whether this connection is visible (default: true)
   Connection({
     required this.id,
     required this.sourceNodeId,
@@ -107,6 +108,7 @@ class Connection<C> {
     required this.targetPortId,
     bool animated = false,
     bool selected = false,
+    bool visible = true,
     this.data,
     this.style,
     ConnectionLabel? startLabel,
@@ -124,6 +126,7 @@ class Connection<C> {
     this.selectedStrokeWidth,
   }) : _animated = Observable(animated),
        _selected = Observable(selected),
+        _visible = Observable(visible),
        _startLabel = Observable(startLabel),
        _label = Observable(label),
        _endLabel = Observable(endLabel),
@@ -146,6 +149,7 @@ class Connection<C> {
 
   final Observable<bool> _animated;
   final Observable<bool> _selected;
+  final Observable<bool> _visible;
   final Observable<ConnectionLabel?> _startLabel;
   final Observable<ConnectionLabel?> _label;
   final Observable<ConnectionLabel?> _endLabel;
@@ -282,6 +286,17 @@ class Connection<C> {
 
   /// Sets whether the connection is currently selected.
   set selected(bool value) => runInAction(() => _selected.value = value);
+
+  /// Whether the connection is currently visible.
+  ///
+  /// When false, the connection will not be rendered but remains in the graph.
+  /// Useful for temporarily hiding connections during preview operations
+  /// (e.g., edge insertion preview).
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  bool get visible => _visible.value;
+
+  /// Sets whether the connection is currently visible.
+  set visible(bool value) => runInAction(() => _visible.value = value);
 
   /// The label at the start of the connection (anchor 0.0).
   ///

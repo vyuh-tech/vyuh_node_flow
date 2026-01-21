@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:mobx/mobx.dart';
 
 import '../connections/temporary_connection.dart';
-import '../graph/coordinates.dart';
 import '../editor/resizer_widget.dart';
+import '../graph/coordinates.dart';
 
 /// Contains all interaction-related state for the node flow editor.
 ///
@@ -59,6 +59,14 @@ class InteractionState {
   /// Non-null when the user is dragging from a port to create a connection.
   final Observable<TemporaryConnection?> temporaryConnection =
       Observable<TemporaryConnection?>(null);
+
+  /// Preview connections for visualization during drag operations.
+  ///
+  /// Used for features like edge insertion preview where we need to show
+  /// multiple potential connections (e.g., source→drop point, drop point→target).
+  /// Rendered with the same styling as temporary connections.
+  final ObservableList<TemporaryConnection> previewConnections =
+  ObservableList<TemporaryConnection>();
 
   /// Observable starting point of a selection rectangle in graph coordinates.
   ///
@@ -390,6 +398,7 @@ class InteractionState {
       draggedNodeId.value = null;
       lastPointerPosition.value = null;
       temporaryConnection.value = null;
+      previewConnections.clear();
       selectionStart.value = null;
       selectionRect.value = null;
       canvasLocked.value = false;
@@ -402,6 +411,15 @@ class InteractionState {
       resizeStartPosition.value = null;
       originalNodeBounds.value = null;
       handleDrift.value = Offset.zero;
+    });
+  }
+
+  /// Clears all preview connections.
+  ///
+  /// Used to reset preview state after an operation completes or is cancelled.
+  void clearPreviewConnections() {
+    runInAction(() {
+      previewConnections.clear();
     });
   }
 
