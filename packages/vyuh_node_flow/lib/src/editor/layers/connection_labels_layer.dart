@@ -8,8 +8,8 @@ import '../../connections/connection.dart';
 import '../../connections/connection_label.dart';
 import '../../connections/label_theme.dart';
 import '../../connections/styles/label_calculator.dart';
-import '../controller/node_flow_controller.dart';
 import '../../extensions/lod/lod_extension.dart';
+import '../controller/node_flow_controller.dart';
 import '../themes/node_flow_theme.dart';
 import '../unbounded_widgets.dart';
 
@@ -161,6 +161,12 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
 
         // Skip rendering if either node is hidden
         if (!sourceNode.isVisible || !targetNode.isVisible) {
+          return const SizedBox.shrink();
+        }
+
+        // Skip rendering if connection is hidden (e.g., during edge insertion preview)
+        // Reading the observable value ensures reactivity when visibility changes
+        if (!connection.visible) {
           return const SizedBox.shrink();
         }
 
