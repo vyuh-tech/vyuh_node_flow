@@ -1,3 +1,7 @@
+## 0.23.12
+
+ - **FEAT**: skip rendering connection labels when connection is hidden to support edge insertion previews.
+
 ## 0.23.11
 
  - **FEAT**: add preview connections and visibility support for edge insertion operations.
