@@ -1,3 +1,7 @@
+## 0.23.11
+
+ - **FEAT**: add preview connections and visibility support for edge insertion operations.
+
 ## 0.23.10
 
  - **FEAT**: add `notifyNodeDataChanged` API for emitting node update events and update `NodeDataChanged` class with nullable `previousData`.
