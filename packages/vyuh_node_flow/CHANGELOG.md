@@ -1,3 +1,7 @@
+## 0.24.2
+
+ - **FEAT**: simplify SnapExtension configuration and tests by replacing internal delegate toggles with a master enabled switch.
+
 ## 0.24.1
 
  - **FEAT**: add shift-drag canvas selection and extend SnapExtension with custom rendering layer support.
