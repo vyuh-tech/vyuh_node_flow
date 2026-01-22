@@ -1,3 +1,7 @@
+## 0.24.0
+
+ - **FEAT**: rearchitect the extensions to include layers for custom rendering, moved the grid-snapping to be part of the SnapExtension that is built into NodeFlowEditor.
+
 ## 0.23.12
 
  - **FEAT**: skip rendering connection labels when connection is hidden to support edge insertion previews.
