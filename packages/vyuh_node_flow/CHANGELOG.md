@@ -1,3 +1,7 @@
+## 0.24.1
+
+ - **FEAT**: add shift-drag canvas selection and extend SnapExtension with custom rendering layer support.
+
 ## 0.24.0
 
  - **FEAT**: rearchitect the extensions to include layers for custom rendering, moved the grid-snapping to be part of the SnapExtension that is built into NodeFlowEditor.
