@@ -260,6 +260,8 @@ class NodeFlowController<T, C> {
     // First try the attached delegate
     final delegate = _snapDelegate;
     if (delegate is SnapExtension) {
+      // Only snap if extension is enabled
+      if (!delegate.enabled) return position;
       return delegate.gridSnapDelegate?.snapPoint(position) ?? position;
     }
     if (delegate is GridSnapDelegate) {
@@ -269,6 +271,8 @@ class NodeFlowController<T, C> {
     // Fall back to extension registry (for unit tests without initController)
     final snapExt = _config.extensionRegistry.get<SnapExtension>();
     if (snapExt != null) {
+      // Only snap if extension is enabled
+      if (!snapExt.enabled) return position;
       return snapExt.gridSnapDelegate?.snapPoint(position) ?? position;
     }
 

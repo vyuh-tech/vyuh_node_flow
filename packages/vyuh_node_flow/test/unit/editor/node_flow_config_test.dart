@@ -72,8 +72,8 @@ void main() {
       final snapExt = config.extensionRegistry.get<SnapExtension>();
 
       expect(snapExt, isNotNull);
-      expect(snapExt!.gridSnapDelegate, isNotNull);
-      expect(snapExt.gridSnapDelegate!.enabled, isFalse); // Disabled by default
+      expect(snapExt!.enabled, isFalse); // Disabled by default
+      expect(snapExt.gridSnapDelegate, isNotNull);
       expect(snapExt.gridSnapDelegate!.gridSize, equals(20.0));
     });
   });
@@ -156,14 +156,14 @@ void main() {
     test('accepts custom SnapExtension with configured GridSnapDelegate', () {
       final config = NodeFlowConfig(
         extensions: [
-          SnapExtension([GridSnapDelegate(gridSize: 50.0, enabled: true)]),
+          SnapExtension([GridSnapDelegate(gridSize: 50.0)], enabled: true),
         ],
       );
 
       final snapExt = config.extensionRegistry.get<SnapExtension>();
       expect(snapExt, isNotNull);
-      expect(snapExt!.gridSnapDelegate!.gridSize, equals(50.0));
-      expect(snapExt.gridSnapDelegate!.enabled, isTrue);
+      expect(snapExt!.enabled, isTrue);
+      expect(snapExt.gridSnapDelegate!.gridSize, equals(50.0));
     });
   });
 
@@ -484,8 +484,8 @@ void main() {
           .whereType<SnapExtension>()
           .first;
 
+      expect(snapExt.enabled, isFalse); // Extension disabled by default
       expect(snapExt.gridSnapDelegate, isNotNull);
-      expect(snapExt.gridSnapDelegate!.enabled, isFalse);
       expect(snapExt.gridSnapDelegate!.gridSize, equals(20.0));
     });
   });

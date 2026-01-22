@@ -1,5 +1,5 @@
-
 import 'package:flutter/widgets.dart';
+import 'package:mobx/mobx.dart';
 
 import '../../editor/controller/node_flow_controller.dart';
 import '../../editor/snap_delegate.dart';
@@ -12,6 +12,17 @@ import '../node_flow_extension.dart';
 /// This extension wraps a [SnapDelegateChain] and registers itself as the
 /// controller's snap delegate. Delegates are processed in order, with the
 /// first delegate to snap an axis "winning" that axis.
+///
+/// ## Master Enable Switch
+///
+/// The extension has an [enabled] property that acts as a master switch for
+/// all snapping. When disabled (the default), no snapping occurs. Toggle with
+/// the 'N' key or programmatically:
+///
+/// ```dart
+/// snapExtension.toggle();  // Toggle with N key
+/// snapExtension.enabled = true;  // Enable programmatically
+/// ```
 ///
 /// ## Default Setup
 ///
@@ -33,45 +44,48 @@ import '../node_flow_extension.dart';
 ///   GridSnapDelegate(gridSize: 20.0), // Priority 2: grid snap fallback
 /// ])
 /// ```
-///
-/// ## Accessing Delegates
-///
-/// Use [gridSnapDelegate] to access the grid snap delegate for toggling:
-///
-/// ```dart
-/// // N key shortcut
-/// snapExtension.gridSnapDelegate?.toggle();
-/// ```
 class SnapExtension extends NodeFlowExtension
     implements SnapDelegate, LayerProvider {
-  SnapExtension(List<SnapDelegate> delegates)
-      : _chain = SnapDelegateChain(delegates),
-        _delegates = delegates;
+  SnapExtension(List<SnapDelegate> delegates, {bool enabled = false})
+    : _chain = SnapDelegateChain(delegates),
+      _delegates = delegates,
+      _enabled = Observable(enabled);
 
   final SnapDelegateChain _chain;
   final List<SnapDelegate> _delegates;
+  final Observable<bool> _enabled;
 
   NodeFlowController? _controller;
+
+  /// Whether snapping is enabled globally.
+  ///
+  /// When false, all snapping (grid snap, alignment guides, etc.) is disabled.
+  /// Toggle with the 'N' key or programmatically.
+  bool get enabled => _enabled.value;
+
+  set enabled(bool value) => runInAction(() => _enabled.value = value);
+
+  /// Toggles the enabled state.
+  ///
+  /// Convenience method for keyboard shortcuts and UI controls.
+  void toggle() => runInAction(() => _enabled.value = !_enabled.value);
 
   /// The delegates in this extension's chain.
   List<SnapDelegate> get delegates => List.unmodifiable(_delegates);
 
   /// Gets the [GridSnapDelegate] from the chain, if present.
   ///
-  /// Useful for toggling grid snap via keyboard shortcuts:
+  /// Useful for accessing grid snap settings:
   /// ```dart
-  /// snapExtension.gridSnapDelegate?.toggle();
+  /// snapExtension.gridSnapDelegate?.gridSize = 10.0;
+  /// snapExtension.gridSnapDelegate?.snapPoint(position);
   /// ```
   GridSnapDelegate? get gridSnapDelegate =>
-      _delegates
-          .whereType<GridSnapDelegate>()
-          .firstOrNull;
+      _delegates.whereType<GridSnapDelegate>().firstOrNull;
 
   /// Gets the first [SnapLayerDelegate] from the delegate chain, if any.
   SnapLayerDelegate? get _snapLayerDelegate =>
-      _delegates
-          .whereType<SnapLayerDelegate>()
-          .firstOrNull;
+      _delegates.whereType<SnapLayerDelegate>().firstOrNull;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // NodeFlowExtension Implementation
@@ -126,6 +140,11 @@ class SnapExtension extends NodeFlowExtension
     required Offset intendedPosition,
     required Rect visibleBounds,
   }) {
+    // Return no snapping if extension is disabled
+    if (!_enabled.value) {
+      return SnapResult.none(intendedPosition);
+    }
+
     return _chain.snapPosition(
       draggedNodeIds: draggedNodeIds,
       intendedPosition: intendedPosition,

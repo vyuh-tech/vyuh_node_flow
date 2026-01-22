@@ -1139,7 +1139,7 @@ void main() {
       test('snaps position to grid when enabled', () {
         final config = NodeFlowConfig(
           extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+            SnapExtension([GridSnapDelegate(gridSize: 20.0)], enabled: true),
           ],
         );
         controller = createTestController(config: config);
@@ -1180,7 +1180,7 @@ void main() {
       test('respects grid size configuration', () {
         final config = NodeFlowConfig(
           extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 16.0, enabled: true)]),
+            SnapExtension([GridSnapDelegate(gridSize: 16.0)], enabled: true),
           ],
         );
         controller = createTestController(config: config);
@@ -1198,7 +1198,7 @@ void main() {
       test('snapping works with negative coordinates', () {
         final config = NodeFlowConfig(
           extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+            SnapExtension([GridSnapDelegate(gridSize: 20.0)], enabled: true),
           ],
         );
         controller = createTestController(config: config);
@@ -1216,7 +1216,7 @@ void main() {
       test('actual position differs from visual position when snapping', () {
         final config = NodeFlowConfig(
           extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+            SnapExtension([GridSnapDelegate(gridSize: 20.0)], enabled: true),
           ],
         );
         controller = createTestController(config: config);
@@ -1236,7 +1236,7 @@ void main() {
       test('snapping preserves multi-node relative positions', () {
         final config = NodeFlowConfig(
           extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+            SnapExtension([GridSnapDelegate(gridSize: 20.0)], enabled: true),
           ],
         );
         controller = createTestController(config: config);

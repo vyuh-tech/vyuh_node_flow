@@ -819,7 +819,7 @@ void main() {
     testWidgets('withData accepts custom config', (tester) async {
       final config = NodeFlowConfig(
         extensions: [
-          SnapExtension([GridSnapDelegate(gridSize: 32.0, enabled: true)]),
+          SnapExtension([GridSnapDelegate(gridSize: 32.0)], enabled: true),
         ],
       );
 

@@ -304,11 +304,14 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo>
       ),
     );
 
-    // Update GridSnapDelegate for snap behavior during drag
-    final gridSnap = _controller.snapExtension?.gridSnapDelegate;
-    if (gridSnap != null) {
-      gridSnap.enabled = _themeControl._snapToGrid.value;
-      gridSnap.gridSize = _themeControl._gridSize.value;
+    // Update snap behavior during drag
+    final snapExt = _controller.snapExtension;
+    if (snapExt != null) {
+      snapExt.enabled = _themeControl._snapToGrid.value;
+      final gridSnap = snapExt.gridSnapDelegate;
+      if (gridSnap != null) {
+        gridSnap.gridSize = _themeControl._gridSize.value;
+      }
     }
 
     setState(() {

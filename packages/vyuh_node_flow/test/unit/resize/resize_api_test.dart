@@ -278,7 +278,7 @@ void main() {
         nodes: [group],
         config: NodeFlowConfig(
           extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+            SnapExtension([GridSnapDelegate(gridSize: 20.0)], enabled: true),
           ],
         ),
       );
@@ -483,7 +483,7 @@ void main() {
         nodes: [group],
         config: NodeFlowConfig(
           extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+            SnapExtension([GridSnapDelegate(gridSize: 20.0)], enabled: true),
           ],
         ),
       );

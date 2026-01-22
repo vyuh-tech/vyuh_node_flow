@@ -1,4 +1,3 @@
-
 import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart';
 
@@ -16,9 +15,7 @@ class SnapResult {
   });
 
   /// Creates a "no snapping" result - use the intended position as-is.
-  const SnapResult.none(this.position)
-      : snappingX = false,
-        snappingY = false;
+  const SnapResult.none(this.position) : snappingX = false, snappingY = false;
 
   /// The snapped visual position.
   final Offset position;
@@ -144,56 +141,38 @@ abstract interface class SnapDelegate {
 
 /// A snap delegate that snaps positions to a grid.
 ///
-/// This is the built-in grid snapping behavior extracted as a delegate.
+/// This is a pure delegate that snaps positions to a configurable grid.
 /// It can be combined with other delegates using [SnapDelegateChain].
+///
+/// The parent [SnapExtension] controls when snapping is active via its
+/// [enabled] property (toggled with the 'N' key). This delegate simply
+/// performs the grid snap calculation when called.
 ///
 /// ## Configuration
 ///
-/// Both [gridSize] and [enabled] are observable and can be changed at runtime.
-/// Use [toggle] to flip the enabled state (useful for keyboard shortcuts).
+/// The [gridSize] is observable and can be changed at runtime:
 ///
 /// ```dart
 /// final gridSnap = GridSnapDelegate(gridSize: 20.0);
-///
-/// // Toggle with N key
-/// gridSnap.toggle();
-///
-/// // Or set directly
-/// gridSnap.enabled = false;
-/// gridSnap.gridSize = 10.0;
+/// gridSnap.gridSize = 10.0;  // Change grid size dynamically
 /// ```
 class GridSnapDelegate implements SnapDelegate {
-  GridSnapDelegate({double gridSize = 20.0, bool enabled = true})
-      : _gridSize = Observable(gridSize),
-        _enabled = Observable(enabled);
+  GridSnapDelegate({double gridSize = 20.0}) : _gridSize = Observable(gridSize);
 
   final Observable<double> _gridSize;
-  final Observable<bool> _enabled;
 
   /// The grid size to snap to.
   double get gridSize => _gridSize.value;
 
   set gridSize(double value) => runInAction(() => _gridSize.value = value);
 
-  /// Whether grid snapping is enabled.
-  bool get enabled => _enabled.value;
-
-  set enabled(bool value) => runInAction(() => _enabled.value = value);
-
-  /// Toggles the enabled state.
-  ///
-  /// Convenience method for keyboard shortcuts and UI controls.
-  void toggle() => runInAction(() => _enabled.value = !_enabled.value);
-
-  /// Snaps a point to the grid if enabled.
+  /// Snaps a point to the grid.
   ///
   /// This is a general-purpose method for snapping any position to the grid,
   /// independent of drag operations. Use this for snapping positions when
   /// adding nodes, pasting, or other programmatic position updates.
-  ///
-  /// Returns the position unchanged if snapping is disabled.
   Offset snapPoint(Offset position) {
-    if (!enabled || gridSize <= 0) {
+    if (gridSize <= 0) {
       return position;
     }
 
@@ -213,7 +192,7 @@ class GridSnapDelegate implements SnapDelegate {
     required Offset intendedPosition,
     required Rect visibleBounds,
   }) {
-    if (!enabled || gridSize <= 0) {
+    if (gridSize <= 0) {
       return SnapResult.none(intendedPosition);
     }
 

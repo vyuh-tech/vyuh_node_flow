@@ -560,10 +560,12 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
     bool skipX = false,
     bool skipY = false,
   }) {
-    // Get grid delegate from snap extension
+    // Get snap extension and grid delegate
+    SnapExtension? snapExt;
     GridSnapDelegate? gridDelegate;
     final delegate = _snapDelegate;
     if (delegate is SnapExtension) {
+      snapExt = delegate;
       gridDelegate = delegate.gridSnapDelegate;
     } else if (delegate is GridSnapDelegate) {
       gridDelegate = delegate;
@@ -571,12 +573,13 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
 
     // Fall back to extension registry (for unit tests without initController)
     if (gridDelegate == null) {
-      final snapExt = _config.extensionRegistry.get<SnapExtension>();
+      snapExt = _config.extensionRegistry.get<SnapExtension>();
       gridDelegate = snapExt?.gridSnapDelegate;
     }
 
-    // If no grid delegate or not enabled, return unchanged
-    if (gridDelegate == null || !gridDelegate.enabled) return position;
+    // If no grid delegate or snap extension not enabled, return unchanged
+    if (gridDelegate == null) return position;
+    if (snapExt != null && !snapExt.enabled) return position;
 
     final grid = gridDelegate.gridSize;
     final snappedX = skipX ? position.dx : (position.dx / grid).round() * grid;

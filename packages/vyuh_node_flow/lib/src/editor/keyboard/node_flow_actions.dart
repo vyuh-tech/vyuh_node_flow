@@ -1213,7 +1213,7 @@ class _ToggleSnappingAction<T> extends NodeFlowAction<T> {
     : super(
         id: 'toggle_snapping',
         label: 'Toggle Snapping',
-        description: 'Toggle grid snapping for nodes',
+        description: 'Toggle snapping for nodes (grid and alignment guides)',
         category: 'Edit',
       );
 
@@ -1222,10 +1222,10 @@ class _ToggleSnappingAction<T> extends NodeFlowAction<T> {
     NodeFlowController<T, dynamic> controller,
     BuildContext? context,
   ) {
-    // Toggle grid snapping via SnapExtension
-    final gridSnap = controller.snapExtension?.gridSnapDelegate;
-    if (gridSnap != null) {
-      gridSnap.toggle();
+    // Toggle snapping via SnapExtension master switch
+    final snapExtension = controller.snapExtension;
+    if (snapExtension != null) {
+      snapExtension.toggle();
     }
     return true;
   }

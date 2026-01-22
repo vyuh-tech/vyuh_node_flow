@@ -347,7 +347,7 @@ void main() {
       final node = createTestNode(id: 'node-1');
       final config = NodeFlowConfig(
         extensions: [
-          SnapExtension([GridSnapDelegate(gridSize: 50.0, enabled: true)]),
+          SnapExtension([GridSnapDelegate(gridSize: 50.0)], enabled: true),
           DebugExtension(mode: DebugMode.all),
           ...NodeFlowConfig.defaultExtensions().where(
                 (e) => e is! DebugExtension && e is! SnapExtension,
@@ -361,7 +361,7 @@ void main() {
       );
 
       expect(controller.nodeCount, equals(1));
-      expect(controller.snapExtension?.gridSnapDelegate?.enabled, isTrue);
+      expect(controller.snapExtension?.enabled, isTrue);
       expect(controller.snapExtension?.gridSnapDelegate?.gridSize, equals(50));
       expect(controller.debug!.mode, equals(DebugMode.all));
     });

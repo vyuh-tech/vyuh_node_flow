@@ -42,23 +42,27 @@ export '../extensions/debug/debug_extension.dart' show DebugMode;
 /// - [DebugExtension] - debug overlays (disabled by default)
 /// - [LodExtension] - level of detail (disabled by default)
 /// - [MinimapExtension] - minimap overlay
-/// - [SnapExtension] - grid snapping via [GridSnapDelegate]
+/// - [SnapExtension] - grid and alignment snapping (disabled by default)
 /// - [StatsExtension] - graph statistics (nodeCount, connectionCount, etc.)
 ///
-/// ## Grid Snapping
+/// ## Snapping
 ///
-/// Grid snapping is now configured through [SnapExtension] with [GridSnapDelegate]:
+/// Snapping is configured through [SnapExtension] with snap delegates:
 ///
 /// ```dart
-/// // Access via controller
-/// controller.snapExtension?.gridSnapDelegate?.toggle();
+/// // Toggle snapping with 'N' key or programmatically
+/// controller.snapExtension?.toggle();
+/// controller.snapExtension?.enabled = true;
+///
+/// // Access grid snap settings
 /// controller.snapExtension?.gridSnapDelegate?.gridSize = 10.0;
 ///
-/// // Or configure in extensions
+/// // Configure in extensions
 /// NodeFlowConfig(
 ///   extensions: [
 ///     SnapExtension([
-///       GridSnapDelegate(gridSize: 10.0, enabled: true),
+///       SnapLinesDelegate(),              // Alignment guides
+///       GridSnapDelegate(gridSize: 10.0), // Grid snap fallback
 ///     ]),
 ///     // ... other extensions
 ///   ],
@@ -84,13 +88,16 @@ class NodeFlowConfig {
   }
 
   /// Default extensions for a new config.
+  ///
+  /// Note: [SnapExtension] is disabled by default and can be toggled
+  /// with the 'N' key.
   static List<NodeFlowExtension> defaultExtensions() {
     return [
       AutoPanExtension(),
       DebugExtension(),
       LodExtension(),
       MinimapExtension(),
-      SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: false)]),
+      SnapExtension([GridSnapDelegate(gridSize: 20.0)]),
       StatsExtension(),
     ];
   }

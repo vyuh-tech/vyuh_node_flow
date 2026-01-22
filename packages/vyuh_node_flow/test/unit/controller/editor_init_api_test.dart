@@ -522,7 +522,7 @@ void main() {
       final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(
           extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+            SnapExtension([GridSnapDelegate(gridSize: 20.0)], enabled: true),
           ],
         ),
       );

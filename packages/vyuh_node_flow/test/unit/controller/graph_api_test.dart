@@ -643,7 +643,7 @@ void main() {
         final controller = createTestController(
           config: NodeFlowConfig(
             extensions: [
-              SnapExtension([GridSnapDelegate(gridSize: 10.0, enabled: true)]),
+              SnapExtension([GridSnapDelegate(gridSize: 10.0)], enabled: true),
             ],
           ),
         );

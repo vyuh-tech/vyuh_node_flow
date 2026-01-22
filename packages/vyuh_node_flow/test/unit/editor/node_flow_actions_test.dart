@@ -995,18 +995,18 @@ void main() {
       expect(toggleSnapping.category, equals('Edit'));
     });
 
-    test('execute toggles snapping state via SnapExtension', () {
-      // Create controller with SnapExtension containing GridSnapDelegate
+    test('execute toggles SnapExtension enabled state', () {
+      // Create controller with SnapExtension (disabled by default)
       final controller = createTestController(
         config: NodeFlowConfig(
           extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: false)]),
+            SnapExtension([GridSnapDelegate(gridSize: 20.0)]),
           ],
         ),
       );
-      final gridSnap = controller.snapExtension?.gridSnapDelegate;
-      expect(gridSnap, isNotNull);
-      expect(gridSnap!.enabled, isFalse);
+      final snapExt = controller.snapExtension;
+      expect(snapExt, isNotNull);
+      expect(snapExt!.enabled, isFalse);
 
       final actions = DefaultNodeFlowActions.createDefaultActions<String>();
       final toggleSnapping = actions.firstWhere(
@@ -1015,11 +1015,11 @@ void main() {
       final result = toggleSnapping.execute(controller, null);
 
       expect(result, isTrue);
-      expect(gridSnap.enabled, isTrue);
+      expect(snapExt.enabled, isTrue);
 
       // Toggle again
       toggleSnapping.execute(controller, null);
-      expect(gridSnap.enabled, isFalse);
+      expect(snapExt.enabled, isFalse);
     });
   });
 
