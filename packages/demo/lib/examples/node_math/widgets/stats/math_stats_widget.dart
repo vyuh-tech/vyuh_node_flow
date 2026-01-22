@@ -121,7 +121,11 @@ class _MathStatsSection extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(Icons.open_with, size: 10, color: context.textTertiaryColor),
+                Icon(
+                  Icons.open_with,
+                  size: 10,
+                  color: context.textTertiaryColor,
+                ),
                 const SizedBox(width: 4),
                 Observer(
                   builder: (_) {

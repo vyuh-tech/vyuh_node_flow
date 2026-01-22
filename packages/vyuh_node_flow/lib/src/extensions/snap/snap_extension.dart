@@ -1,8 +1,10 @@
-import 'dart:ui';
+
+import 'package:flutter/widgets.dart';
 
 import '../../editor/controller/node_flow_controller.dart';
 import '../../editor/snap_delegate.dart';
 import '../events/events.dart';
+import '../layer_provider.dart';
 import '../node_flow_extension.dart';
 
 /// An extension that manages snap behavior through a delegate chain.
@@ -40,7 +42,8 @@ import '../node_flow_extension.dart';
 /// // N key shortcut
 /// snapExtension.gridSnapDelegate?.toggle();
 /// ```
-class SnapExtension extends NodeFlowExtension implements SnapDelegate {
+class SnapExtension extends NodeFlowExtension
+    implements SnapDelegate, LayerProvider {
   SnapExtension(List<SnapDelegate> delegates)
       : _chain = SnapDelegateChain(delegates),
         _delegates = delegates;
@@ -62,6 +65,12 @@ class SnapExtension extends NodeFlowExtension implements SnapDelegate {
   GridSnapDelegate? get gridSnapDelegate =>
       _delegates
           .whereType<GridSnapDelegate>()
+          .firstOrNull;
+
+  /// Gets the first [SnapLayerDelegate] from the delegate chain, if any.
+  SnapLayerDelegate? get _snapLayerDelegate =>
+      _delegates
+          .whereType<SnapLayerDelegate>()
           .firstOrNull;
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -127,6 +136,19 @@ class SnapExtension extends NodeFlowExtension implements SnapDelegate {
   @override
   void onDragEnd() {
     _chain.onDragEnd();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LayerProvider Implementation (delegates to SnapLayerDelegate)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  LayerPosition get layerPosition => NodeFlowLayer.foregroundNodes.after;
+
+  @override
+  Widget? buildLayer(BuildContext context) {
+    // Delegate to the first SnapLayerDelegate in the chain
+    return _snapLayerDelegate?.buildSnapLayer(context);
   }
 }
 

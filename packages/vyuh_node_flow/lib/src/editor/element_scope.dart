@@ -1,11 +1,12 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../extensions/autopan/auto_pan_extension.dart';
+import '../graph/coordinates.dart';
 import 'auto_pan/auto_pan_mixin.dart';
 import 'drag_session.dart';
 import 'non_trackpad_pan_gesture_recognizer.dart';
-import '../extensions/autopan/auto_pan_extension.dart';
-import '../graph/coordinates.dart';
 
 /// A unified interaction scope for draggable elements (nodes, ports).
 ///
@@ -340,6 +341,11 @@ class _ElementScopeState extends State<ElementScope> with AutoPanMixin {
   /// which automatically locks the canvas.
   void _startDrag(DragStartDetails details) {
     if (_isDragging) return;
+
+    // If shift is pressed, canvas-level shift-drag selection takes priority.
+    // Don't start node drag - let the selection drag handle this pointer.
+    if (HardwareKeyboard.instance.isShiftPressed) return;
+
     _isDragging = true;
     _dragPointerId = _pendingPointerId;
     resetAutoPanState(); // Reset drift at drag start (from mixin)
@@ -473,6 +479,12 @@ class _ElementScopeState extends State<ElementScope> with AutoPanMixin {
       onPointerDown: (event) {
         // If already dragging, don't let another pointer interfere
         if (_isDragging) {
+          return;
+        }
+
+        // If shift is pressed, canvas-level shift-drag selection takes priority.
+        // Don't capture pointer or fire tap - let the selection drag handle this.
+        if (HardwareKeyboard.instance.isShiftPressed) {
           return;
         }
 

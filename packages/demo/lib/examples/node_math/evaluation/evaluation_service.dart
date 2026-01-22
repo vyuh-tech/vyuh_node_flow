@@ -1,4 +1,5 @@
 library;
+
 import 'dart:async';
 
 import 'package:mobx/mobx.dart';
@@ -29,14 +30,13 @@ class MathEvaluationService {
   void _setupReactions() {
     // React to node list changes
     _reactions.add(
-      reaction(
-        (_) => controller.nodes.keys.toList()..sort(),
-        (_) {
-          _rebuildDependencyGraph();
-          _markAllDirty();
-          _scheduleEvaluation();
-        },
-      ),
+      reaction((_) =>
+      controller.nodes.keys.toList()
+        ..sort(), (_) {
+        _rebuildDependencyGraph();
+        _markAllDirty();
+        _scheduleEvaluation();
+      }),
     );
 
     _reactions.add(
@@ -52,7 +52,8 @@ class MathEvaluationService {
 
     _reactions.add(
       reaction(
-        (_) => controller.nodes.values
+            (_) =>
+        controller.nodes.values
             .map((n) => '${n.id}:${n.data.signature}')
             .toList()
           ..sort(),
@@ -71,8 +72,7 @@ class MathEvaluationService {
     final nodeIds = controller.nodes.keys.toSet();
     final validConnections = controller.connections.where(
       (c) =>
-          nodeIds.contains(c.sourceNodeId) &&
-          nodeIds.contains(c.targetNodeId),
+      nodeIds.contains(c.sourceNodeId) && nodeIds.contains(c.targetNodeId),
     );
 
     for (final conn in validConnections) {
@@ -107,10 +107,10 @@ class MathEvaluationService {
 
       // Update results - clear removed nodes, update existing
       final currentNodeIds = controller.nodes.keys.toSet();
-      
+
       // Remove results for deleted nodes
       results.removeWhere((nodeId, _) => !currentNodeIds.contains(nodeId));
-      
+
       // Update/add results for existing nodes
       for (final entry in evalResults.entries) {
         if (currentNodeIds.contains(entry.key)) {

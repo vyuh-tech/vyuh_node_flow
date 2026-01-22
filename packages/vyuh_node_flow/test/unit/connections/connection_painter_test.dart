@@ -1717,7 +1717,8 @@ void main() {
           ),
         );
         final animatedPainter = createTestConnectionPainter(
-            theme: animatedTheme);
+          theme: animatedTheme,
+        );
 
         animatedPainter.paintConnection(
           mockCanvas,

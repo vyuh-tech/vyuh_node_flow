@@ -237,10 +237,7 @@ void main() {
     });
 
     test('partially updates only specified properties', () {
-      final config = NodeFlowConfig(
-        portSnapDistance: 8.0,
-        minZoom: 0.5,
-      );
+      final config = NodeFlowConfig(portSnapDistance: 8.0, minZoom: 0.5);
 
       config.update(minZoom: 0.1);
 
@@ -323,10 +320,7 @@ void main() {
     test('creates copy with multiple new values', () {
       final config = NodeFlowConfig();
 
-      final copy = config.copyWith(
-        maxZoom: 10.0,
-        showAttribution: false,
-      );
+      final copy = config.copyWith(maxZoom: 10.0, showAttribution: false);
 
       expect(
         copy.portSnapDistance.value,
@@ -670,10 +664,7 @@ void main() {
     test('update with same values does not break observables', () {
       final config = NodeFlowConfig(portSnapDistance: 20.0);
 
-      expect(
-            () => config.update(portSnapDistance: 20.0),
-        returnsNormally,
-      );
+      expect(() => config.update(portSnapDistance: 20.0), returnsNormally);
 
       expect(config.portSnapDistance.value, equals(20.0));
     });

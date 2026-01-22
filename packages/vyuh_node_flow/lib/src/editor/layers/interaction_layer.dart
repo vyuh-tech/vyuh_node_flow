@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../connections/temporary_connection.dart';
-import '../../ports/port.dart';
 import '../../graph/coordinates.dart';
+import '../../ports/port.dart';
 import '../controller/node_flow_controller.dart';
 import '../themes/node_flow_theme.dart';
 
@@ -56,8 +56,8 @@ class InteractionLayer<T> extends StatelessWidget {
             }
 
             // Observe preview connections (for edge insertion preview etc.)
-            final previewConnections =
-            controller.interaction.previewConnections.toList();
+            final previewConnections = controller.interaction.previewConnections
+                .toList();
 
             // Get theme from context - this ensures automatic rebuilds when theme changes
             final theme =

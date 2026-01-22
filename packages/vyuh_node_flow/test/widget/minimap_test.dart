@@ -467,7 +467,9 @@ void main() {
       // The built-in minimap overlay renders NodeFlowMinimap when visible
       // Note: Type parameter is dynamic due to extension system type erasure
       expect(
-          find.byWidgetPredicate((w) => w is NodeFlowMinimap), findsOneWidget);
+        find.byWidgetPredicate((w) => w is NodeFlowMinimap),
+        findsOneWidget,
+      );
 
       visibleController.dispose();
     });

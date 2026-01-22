@@ -252,11 +252,7 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
   }
 
   NodeFlowConfig _buildInitialConfig() {
-    return NodeFlowConfig(
-      minZoom: 0.25,
-      maxZoom: 4.0,
-      scrollToZoom: false,
-    );
+    return NodeFlowConfig(minZoom: 0.25, maxZoom: 4.0, scrollToZoom: false);
   }
 
   List<Widget> _buildControlPanelChildren() {

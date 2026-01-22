@@ -25,14 +25,11 @@ class _NodeMathExampleState extends State<NodeMathExample> {
   void initState() {
     super.initState();
     _theme = MathTheme.nodeFlowTheme;
-    
+
     final controller = NodeFlowController<MathNodeData, dynamic>(
-      config: NodeFlowConfig(
-        minZoom: 0.25,
-        maxZoom: 2.0,
-      ),
+      config: NodeFlowConfig(minZoom: 0.25, maxZoom: 2.0),
     );
-    
+
     _state = MathState(controller);
   }
 

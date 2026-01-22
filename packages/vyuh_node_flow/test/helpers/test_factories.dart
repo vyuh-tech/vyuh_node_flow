@@ -186,7 +186,9 @@ ConnectionPainter createTestConnectionPainter({
 }) {
   final effectiveTheme = theme ?? NodeFlowTheme.light;
   final cache = ConnectionPathCache(
-      theme: effectiveTheme, nodeShape: nodeShape);
+    theme: effectiveTheme,
+    nodeShape: nodeShape,
+  );
   return ConnectionPainter(
     theme: effectiveTheme,
     pathCache: cache,

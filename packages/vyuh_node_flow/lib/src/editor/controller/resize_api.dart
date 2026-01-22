@@ -144,9 +144,7 @@ extension ResizeApi<T, C> on NodeFlowController<T, C> {
     if (node != null && node.isResizable) {
       runInAction(() {
         node.position.value = originalBounds.topLeft;
-        node.setVisualPosition(
-          snapToGrid(originalBounds.topLeft),
-        );
+        node.setVisualPosition(snapToGrid(originalBounds.topLeft));
         (node as ResizableMixin<T>).setSize(originalBounds.size);
       });
       _markNodeDirty(nodeId);

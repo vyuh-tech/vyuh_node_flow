@@ -90,9 +90,7 @@ class NodeFlowConfig {
       DebugExtension(),
       LodExtension(),
       MinimapExtension(),
-      SnapExtension([
-        GridSnapDelegate(gridSize: 20.0, enabled: false),
-      ]),
+      SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: false)]),
       StatsExtension(),
     ];
   }

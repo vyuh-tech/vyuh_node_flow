@@ -145,9 +145,7 @@ class _MathCanvasState extends State<MathCanvas> {
     // Preserve position and connections
     final position = existingNode.position.value;
     final connectionsToRestore = controller.connections
-        .where(
-          (c) => c.sourceNodeId == nodeId || c.targetNodeId == nodeId,
-        )
+        .where((c) => c.sourceNodeId == nodeId || c.targetNodeId == nodeId)
         .toList();
 
     controller.removeNode(nodeId);

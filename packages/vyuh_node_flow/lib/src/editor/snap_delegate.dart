@@ -1,5 +1,5 @@
-import 'dart:ui';
 
+import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart';
 
 import 'controller/node_flow_controller.dart';
@@ -33,11 +33,7 @@ class SnapResult {
   bool get isSnapping => snappingX || snappingY;
 
   /// Creates a copy with fields replaced.
-  SnapResult copyWith({
-    Offset? position,
-    bool? snappingX,
-    bool? snappingY,
-  }) {
+  SnapResult copyWith({Offset? position, bool? snappingX, bool? snappingY}) {
     return SnapResult(
       position: position ?? this.position,
       snappingX: snappingX ?? this.snappingX,
@@ -54,6 +50,20 @@ class SnapResult {
 abstract interface class ControllerAwareDelegate {
   /// Called when the extension is attached to a controller.
   void setController(NodeFlowController? controller);
+}
+
+/// Interface for snap delegates that can provide a visual layer.
+///
+/// Implement this if your snap delegate needs to render visual feedback
+/// (e.g., alignment guides). The [SnapExtension] will delegate layer
+/// building to the first delegate that implements this interface.
+///
+/// The layer is built by [SnapExtension] via the [LayerProvider] interface.
+abstract interface class SnapLayerDelegate {
+  /// Builds a layer widget for visual feedback during snapping.
+  ///
+  /// Return null if no layer should be rendered.
+  Widget? buildSnapLayer(BuildContext context);
 }
 
 /// Delegate interface for snap-to behavior during node drag operations.
@@ -153,10 +163,7 @@ abstract interface class SnapDelegate {
 /// gridSnap.gridSize = 10.0;
 /// ```
 class GridSnapDelegate implements SnapDelegate {
-  GridSnapDelegate({
-    double gridSize = 20.0,
-    bool enabled = true,
-  })
+  GridSnapDelegate({double gridSize = 20.0, bool enabled = true})
       : _gridSize = Observable(gridSize),
         _enabled = Observable(enabled);
 

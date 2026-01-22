@@ -10,10 +10,7 @@ import 'node_flow_minimap.dart';
 /// Uses [MinimapExtension] for positioning, styling, and state.
 /// Theme, position, and margin are all configured via the extension.
 class MinimapOverlay<T> extends StatelessWidget {
-  const MinimapOverlay({
-    super.key,
-    required this.controller,
-  });
+  const MinimapOverlay({super.key, required this.controller});
 
   final NodeFlowController<T, dynamic> controller;
 
