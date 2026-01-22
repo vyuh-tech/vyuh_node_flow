@@ -44,11 +44,9 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
   /// }
   /// ```
   Connection<C>? getConnection(String connectionId) {
-    try {
-      return _connections.firstWhere((c) => c.id == connectionId);
-    } catch (_) {
-      return null;
-    }
+    return _connections
+        .where((c) => c.id == connectionId)
+        .firstOrNull;
   }
 
   /// Gets all connection IDs in the graph.
@@ -427,12 +425,13 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
   /// - [toggle]: If `true`, toggles the connection's selection state. If `false`
   ///   (default), clears other connection selections and selects only this connection.
   void selectConnection(String connectionId, {bool toggle = false}) {
+    // Find the connection - if it doesn't exist, we can't select it
+    final connection = getConnection(connectionId);
+    if (connection == null) return;
+
     runInAction(() {
       // Clear other element types' selections
       clearNodeSelection();
-
-      // Find the connection - if it doesn't exist, we can't select it
-      final connection = _connections.firstWhere((c) => c.id == connectionId);
 
       if (toggle) {
         if (_selectedConnectionIds.contains(connectionId)) {
@@ -454,7 +453,7 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
 
     // Fire selection callback with current selection state
     final selectedConnection = _selectedConnectionIds.contains(connectionId)
-        ? _connections.firstWhere((c) => c.id == connectionId)
+        ? connection
         : null;
     events.connection?.onSelected?.call(selectedConnection);
 

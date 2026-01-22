@@ -344,7 +344,7 @@ extension EditorInitApi<T, C> on NodeFlowController<T, C> {
   void _initializeLoadedNodes() {
     for (final node in _nodes.values) {
       // Set visual position with snapping
-      node.setVisualPosition(_config.snapToGridIfEnabled(node.position.value));
+      node.setVisualPosition(snapToGrid(node.position.value));
 
       // Attach context for nodes with GroupableMixin (e.g., GroupNode)
       if (node is GroupableMixin<T>) {

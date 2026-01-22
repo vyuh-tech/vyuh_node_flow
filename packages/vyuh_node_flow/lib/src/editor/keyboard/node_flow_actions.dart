@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../extensions/minimap/minimap_extension.dart';
+import '../../extensions/snap/snap_extension.dart';
 import '../controller/node_flow_controller.dart';
 
 /// Base class for actions that can be triggered in the node flow editor.
@@ -1221,7 +1222,11 @@ class _ToggleSnappingAction<T> extends NodeFlowAction<T> {
     NodeFlowController<T, dynamic> controller,
     BuildContext? context,
   ) {
-    controller.config.toggleSnapping();
+    // Toggle grid snapping via SnapExtension
+    final gridSnap = controller.snapExtension?.gridSnapDelegate;
+    if (gridSnap != null) {
+      gridSnap.toggle();
+    }
     return true;
   }
 }

@@ -641,7 +641,11 @@ void main() {
 
       test('updates visual position with snapping', () {
         final controller = createTestController(
-          config: NodeFlowConfig(snapToGrid: true, gridSize: 10),
+          config: NodeFlowConfig(
+            extensions: [
+              SnapExtension([GridSnapDelegate(gridSize: 10.0, enabled: true)]),
+            ],
+          ),
         );
         controller.addNode(createTestNode(id: 'node-1'));
 

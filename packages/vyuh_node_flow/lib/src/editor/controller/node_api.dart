@@ -94,7 +94,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
     runInAction(() {
       _nodes[node.id] = node;
       // Initialize visual position with snapping
-      node.setVisualPosition(_config.snapToGridIfEnabled(node.position.value));
+      node.setVisualPosition(snapToGrid(node.position.value));
       // Note: Spatial index is auto-synced via MobX reaction
 
       // Attach context for nodes with GroupableMixin (e.g., GroupNode)
@@ -512,7 +512,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
         final newPosition = previousPosition + delta;
         node.position.value = newPosition;
         // Update visual position with snapping
-        node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
+        node.setVisualPosition(snapToGrid(newPosition));
       });
       _markNodeDirty(nodeId);
       // Emit extension event
@@ -543,7 +543,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
           final newPosition = node.position.value + delta;
           node.position.value = newPosition;
           // Update visual position with snapping
-          node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
+          node.setVisualPosition(snapToGrid(newPosition));
         }
       }
     });
@@ -574,7 +574,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
       final previousPosition = node.position.value;
       runInAction(() {
         node.position.value = position;
-        node.setVisualPosition(_config.snapToGridIfEnabled(position));
+        node.setVisualPosition(snapToGrid(position));
       });
       _markNodeDirty(nodeId);
       // Emit extension event
@@ -999,7 +999,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
 
         final newPosition = Offset(newX, newY);
         node.position.value = newPosition;
-        node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
+        node.setVisualPosition(snapToGrid(newPosition));
       }
     });
 
@@ -1028,7 +1028,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
         final targetX = leftmost + spacing * i;
         final newPosition = Offset(targetX, nodes[i].position.value.dy);
         nodes[i].position.value = newPosition;
-        nodes[i].setVisualPosition(_config.snapToGridIfEnabled(newPosition));
+        nodes[i].setVisualPosition(snapToGrid(newPosition));
       }
     });
 
@@ -1057,7 +1057,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
         final targetY = topmost + spacing * i;
         final newPosition = Offset(nodes[i].position.value.dx, targetY);
         nodes[i].position.value = newPosition;
-        nodes[i].setVisualPosition(_config.snapToGridIfEnabled(newPosition));
+        nodes[i].setVisualPosition(snapToGrid(newPosition));
       }
     });
 

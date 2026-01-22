@@ -61,7 +61,9 @@ extension GroupApi<T, C> on NodeFlowController<T, C> {
             .toList();
 
         final selectedConnections = _selectedConnectionIds
-            .map((id) => _connections.firstWhere((c) => c.id == id))
+            .map((id) => getConnection(id))
+            .where((conn) => conn != null)
+            .cast<Connection<C>>()
             .toList();
 
         final selectionState = SelectionState<T, C>(
@@ -131,7 +133,7 @@ extension GroupApi<T, C> on NodeFlowController<T, C> {
 
             // Update both position and visual position
             node.position.value = newPosition;
-            final snappedPosition = _config.snapToGridIfEnabled(newPosition);
+            final snappedPosition = snapToGrid(newPosition);
             node.setVisualPosition(snappedPosition);
           }
         }

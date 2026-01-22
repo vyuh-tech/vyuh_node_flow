@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
 import '../../editor/controller/node_flow_controller.dart';
-import 'minimap_theme.dart';
 import '../../graph/coordinates.dart';
 import '../events/events.dart';
+import '../layer_provider.dart';
 import '../node_flow_extension.dart';
+import 'minimap_overlay.dart';
+import 'minimap_theme.dart';
 
 // Re-export MinimapPosition for convenience
 export 'minimap_theme.dart' show MinimapPosition;
@@ -33,7 +35,7 @@ export 'minimap_theme.dart' show MinimapPosition;
 /// // Highlight nodes (e.g., search results)
 /// controller.minimap?.highlightNodes({'node-1', 'node-3'});
 /// ```
-class MinimapExtension extends NodeFlowExtension {
+class MinimapExtension extends NodeFlowExtension implements LayerProvider {
   /// Creates a minimap extension.
   ///
   /// Parameters:
@@ -261,6 +263,21 @@ class MinimapExtension extends NodeFlowExtension {
           break;
       }
     }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LayerProvider Implementation
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  LayerPosition get layerPosition => NodeFlowLayer.overlays.before;
+
+  @override
+  Widget? buildLayer(BuildContext context) {
+    final controller = _controller;
+    if (controller == null) return null;
+
+    return MinimapOverlay(controller: controller);
   }
 }
 

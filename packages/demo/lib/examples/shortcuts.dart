@@ -32,7 +32,6 @@ class _ShortcutsExampleState extends State<ShortcutsExample> {
 
   void _initializeController() {
     final config = NodeFlowConfig(
-      snapToGrid: false,
       extensions: [
         MinimapExtension(visible: true),
         StatsExtension(),

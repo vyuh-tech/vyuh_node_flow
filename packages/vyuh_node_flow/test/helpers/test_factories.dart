@@ -262,17 +262,23 @@ GraphViewport createTestViewport({
 ///
 /// Extensions can be customized by passing them explicitly.
 /// By default, uses [NodeFlowConfig.defaultExtensions].
+///
+/// Grid snapping is now configured through [SnapExtension] with [GridSnapDelegate].
+/// To enable grid snapping in tests, include a configured SnapExtension:
+/// ```dart
+/// createTestConfig(
+///   extensions: [
+///     SnapExtension([GridSnapDelegate(gridSize: 16.0, enabled: true)]),
+///   ],
+/// )
+/// ```
 NodeFlowConfig createTestConfig({
-  bool snapToGrid = false,
-  double gridSize = 16.0,
   double portSnapDistance = 8.0,
   double minZoom = 0.1,
   double maxZoom = 4.0,
   List<NodeFlowExtension>? extensions,
 }) {
   return NodeFlowConfig(
-    snapToGrid: snapToGrid,
-    gridSize: gridSize,
     portSnapDistance: portSnapDistance,
     minZoom: minZoom,
     maxZoom: maxZoom,

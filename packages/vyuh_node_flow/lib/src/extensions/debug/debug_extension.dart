@@ -3,7 +3,9 @@ import 'package:mobx/mobx.dart';
 
 import '../../editor/controller/node_flow_controller.dart';
 import '../events/events.dart';
+import '../layer_provider.dart';
 import '../node_flow_extension.dart';
+import 'debug_layers_stack.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Debug Theme
@@ -227,7 +229,7 @@ enum DebugMode {
 /// // Set specific mode
 /// controller.debug.setMode(DebugMode.all);
 /// ```
-class DebugExtension extends NodeFlowExtension {
+class DebugExtension extends NodeFlowExtension implements LayerProvider {
   /// Creates a debug extension.
   ///
   /// Defaults to [DebugMode.none] (no debug overlays) and [DebugTheme.light].
@@ -239,6 +241,12 @@ class DebugExtension extends NodeFlowExtension {
 
   final Observable<DebugMode> _mode;
   final DebugTheme _theme;
+
+  // Controller reference for building the layer
+  NodeFlowController? _controller;
+
+  // Transformation controller for viewport tracking in debug layers
+  TransformationController? _transformationController;
 
   @override
   String get id => 'debug';
@@ -312,17 +320,55 @@ class DebugExtension extends NodeFlowExtension {
 
   @override
   void attach(NodeFlowController controller) {
-    // No-op - debug layers observe the extension state directly
+    _controller = controller;
   }
 
   @override
   void detach() {
-    // No-op
+    _controller = null;
+    _transformationController = null;
   }
 
   @override
   void onEvent(GraphEvent event) {
     // No event handling needed
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Configuration
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Sets the transformation controller for viewport tracking in debug layers.
+  ///
+  /// This is called by NodeFlowEditor during initialization to provide the
+  /// transformation controller needed by debug visualizations like the spatial
+  /// index grid.
+  void setTransformationController(TransformationController? controller) {
+    _transformationController = controller;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LayerProvider Implementation
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  @override
+  LayerPosition get layerPosition => NodeFlowLayer.foregroundNodes.after;
+
+  @override
+  Widget? buildLayer(BuildContext context) {
+    final controller = _controller;
+    final transformationController = _transformationController;
+
+    // Can't build without controller or transformation controller
+    if (controller == null || transformationController == null) {
+      return null;
+    }
+
+    // Return the debug layers stack widget
+    return DebugLayersStack(
+      controller: controller,
+      transformationController: transformationController,
+    );
   }
 }
 

@@ -817,7 +817,11 @@ void main() {
     });
 
     testWidgets('withData accepts custom config', (tester) async {
-      final config = createTestConfig(snapToGrid: true, gridSize: 32.0);
+      final config = NodeFlowConfig(
+        extensions: [
+          SnapExtension([GridSnapDelegate(gridSize: 32.0, enabled: true)]),
+        ],
+      );
 
       await tester.pumpWidget(
         MaterialApp(

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
-import 'minimap_extension.dart';
 import '../../editor/controller/node_flow_controller.dart';
+import 'minimap_extension.dart';
 import 'node_flow_minimap.dart';
 
 /// Minimap overlay widget that renders the minimap in the specified corner.
@@ -13,13 +13,9 @@ class MinimapOverlay<T> extends StatelessWidget {
   const MinimapOverlay({
     super.key,
     required this.controller,
-    required this.transformationController,
-    required this.canvasSize,
   });
 
   final NodeFlowController<T, dynamic> controller;
-  final TransformationController transformationController;
-  final Size canvasSize;
 
   @override
   Widget build(BuildContext context) {

@@ -335,6 +335,9 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
     _emitEvent(
       NodeDragStarted(nodeIds.toSet(), node?.position.value ?? Offset.zero),
     );
+
+    // Notify snap delegate
+    _snapDelegate?.onDragStart(nodeIds.toSet());
   }
 
   /// Moves nodes during a drag operation.
@@ -343,36 +346,85 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
   /// is already in graph coordinates since GestureDetector is inside
   /// InteractiveViewer's transformed space - no conversion needed.
   ///
+  /// ## Position Model
+  ///
+  /// This method uses a two-position model:
+  /// - **position**: The user's intended position (accumulates raw deltas)
+  /// - **visualPosition**: The displayed position (may be snapped)
+  ///
+  /// The snap delegate transforms intended → visual position. This prevents
+  /// "sticky snap" behavior where small movements can't escape a snap point.
+  ///
+  /// The method applies snapping in this order:
+  /// 1. Snap delegate (alignment guides to other nodes)
+  /// 2. Snap-to-grid (quantizes final position if enabled in config)
+  ///
   /// Parameters:
   /// - [graphDelta]: The movement delta in graph coordinates
   void moveNodeDrag(Offset graphDelta) {
     final draggedNodeId = interaction.draggedNodeId.value;
     if (draggedNodeId == null) return;
 
-    // Collect nodes that will be moved for event firing
-    final movedNodes = <Node<T>>[];
-
     // Get nodes to move
     final nodeIdsToMove = selectedNodeIds.contains(draggedNodeId)
-        ? selectedNodeIds.toList()
-        : [draggedNodeId];
+        ? selectedNodeIds.toSet()
+        : {draggedNodeId};
 
+    // Collect nodes that will be moved for event firing
+    final movedNodes = <Node<T>>[];
     final context = _createDragContext();
 
+    // First pass: Update all nodes' intended positions (raw movement)
     runInAction(() {
-      // Update node positions and visual positions
       for (final nodeId in nodeIdsToMove) {
         final node = _nodes[nodeId];
         if (node != null) {
-          final newPosition = node.position.value + graphDelta;
-          node.position.value = newPosition;
-          // Update visual position with snapping
-          node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
+          node.position.value = node.position.value + graphDelta;
           movedNodes.add(node);
-
-          // Notify the node of its own drag move
-          node.onDragMove(graphDelta, context);
         }
+      }
+    });
+
+    // Get the primary node's intended position for snap calculation
+    final primaryNode = _nodes[draggedNodeId];
+    final intendedPosition = primaryNode?.position.value ?? Offset.zero;
+
+    // Calculate snap adjustment
+    var snappingX = false;
+    var snappingY = false;
+    var snapDelta = Offset.zero;
+
+    if (_snapDelegate != null) {
+      final snapResult = _snapDelegate!.snapPosition(
+        draggedNodeIds: nodeIdsToMove,
+        intendedPosition: intendedPosition,
+        visibleBounds: visibleGraphBounds,
+      );
+
+      // Calculate the delta between intended and snapped positions
+      // This delta will be applied to all selected nodes to maintain relative positions
+      snapDelta = snapResult.position - intendedPosition;
+      snappingX = snapResult.snappingX;
+      snappingY = snapResult.snappingY;
+    }
+
+    // Second pass: Apply visual positions to all moved nodes
+    runInAction(() {
+      for (final node in movedNodes) {
+        // Visual position = intended position + snap delta
+        final snappedPosition = node.position.value + snapDelta;
+
+        // Apply grid snapping only to axes not handled by snap delegate
+        // This allows alignment snap (when active) to take priority over grid snap
+        final visualPosition = _applyGridSnapPerAxis(
+          snappedPosition,
+          skipX: snappingX,
+          skipY: snappingY,
+        );
+        node.setVisualPosition(visualPosition);
+
+        // Notify the node of its own drag move
+        node.onDragMove(graphDelta, context);
       }
     });
 
@@ -442,6 +494,9 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
     if (draggedNodeIds.isNotEmpty) {
       _emitEvent(NodeDragEnded(draggedNodeIds.toSet(), originalPositions));
     }
+
+    // Notify snap delegate
+    _snapDelegate?.onDragEnd();
   }
 
   /// Cancels a node drag operation and reverts to original positions.
@@ -467,7 +522,7 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
         final node = _nodes[entry.key];
         if (node != null) {
           node.position.value = entry.value;
-          node.setVisualPosition(_config.snapToGridIfEnabled(entry.value));
+          node.setVisualPosition(snapToGrid(entry.value));
         }
       }
 
@@ -492,6 +547,42 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
     for (final node in draggedNodes) {
       events.node?.onDragCancel?.call(node);
     }
+
+    // Notify snap delegate
+    _snapDelegate?.onDragEnd();
+  }
+
+  /// Applies grid snapping per-axis, allowing some axes to be skipped.
+  ///
+  /// This enables alignment snapping to take priority on specific axes
+  /// while still applying grid snap to the remaining axes.
+  Offset _applyGridSnapPerAxis(Offset position, {
+    bool skipX = false,
+    bool skipY = false,
+  }) {
+    // Get grid delegate from snap extension
+    GridSnapDelegate? gridDelegate;
+    final delegate = _snapDelegate;
+    if (delegate is SnapExtension) {
+      gridDelegate = delegate.gridSnapDelegate;
+    } else if (delegate is GridSnapDelegate) {
+      gridDelegate = delegate;
+    }
+
+    // Fall back to extension registry (for unit tests without initController)
+    if (gridDelegate == null) {
+      final snapExt = _config.extensionRegistry.get<SnapExtension>();
+      gridDelegate = snapExt?.gridSnapDelegate;
+    }
+
+    // If no grid delegate or not enabled, return unchanged
+    if (gridDelegate == null || !gridDelegate.enabled) return position;
+
+    final grid = gridDelegate.gridSize;
+    final snappedX = skipX ? position.dx : (position.dx / grid).round() * grid;
+    final snappedY = skipY ? position.dy : (position.dy / grid).round() * grid;
+
+    return Offset(snappedX.toDouble(), snappedY.toDouble());
   }
 
   /// Ensures dragged groups that are now inside other groups have proper z-ordering.

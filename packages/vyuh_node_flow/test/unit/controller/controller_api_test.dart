@@ -934,7 +934,11 @@ void main() {
 
     test('updates visual position with snap-to-grid', () {
       final controller = createTestController(
-        config: NodeFlowConfig(snapToGrid: true, gridSize: 20),
+        config: NodeFlowConfig(
+          extensions: [
+            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+          ],
+        ),
       );
       controller.addNode(
         createTestNode(id: 'node-1', position: const Offset(100, 100)),
@@ -1080,7 +1084,11 @@ void main() {
 
     test('updates visual position with snap-to-grid on revert', () {
       final controller = createTestController(
-        config: NodeFlowConfig(snapToGrid: true, gridSize: 20),
+        config: NodeFlowConfig(
+          extensions: [
+            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+          ],
+        ),
       );
       controller.addNode(createTestNode(id: 'node-1'));
       controller.startNodeDrag('node-1');

@@ -24,16 +24,16 @@
 /// - [StatsExtension] - Reactive graph statistics
 library;
 
-// Core extension interface and registry
-export 'src/extensions/node_flow_extension.dart';
-export 'src/extensions/extension_registry.dart';
-
-// Events (organized by category)
-export 'src/extensions/events/events.dart';
-
 // Built-in extensions (each in its own subdirectory)
 export 'src/extensions/autopan/auto_pan_extension.dart';
 export 'src/extensions/debug/debug_extension.dart';
+// Events (organized by category)
+export 'src/extensions/events/events.dart';
+export 'src/extensions/extension_registry.dart';
 export 'src/extensions/lod/lod_extension.dart';
 export 'src/extensions/minimap/minimap_extension.dart';
+export 'src/extensions/node_flow_extension.dart';
+// Core extension interface and registry
+export 'src/extensions/node_flowders/node_flow_extension.dart';
+export 'src/extensions/snap/snap_extension.dart';
 export 'src/extensions/stats/stats_extension.dart';

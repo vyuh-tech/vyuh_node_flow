@@ -1137,7 +1137,11 @@ void main() {
   group('Drag Constraints', () {
     group('Snap-to-Grid', () {
       test('snaps position to grid when enabled', () {
-        final config = createTestConfig(snapToGrid: true, gridSize: 20.0);
+        final config = NodeFlowConfig(
+          extensions: [
+            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+          ],
+        );
         controller = createTestController(config: config);
 
         final node = createTestNode(
@@ -1156,7 +1160,9 @@ void main() {
       });
 
       test('does not snap when snap-to-grid is disabled', () {
-        final config = createTestConfig(snapToGrid: false, gridSize: 20.0);
+        final config = NodeFlowConfig(
+          extensions: [], // No snap extension = no grid snapping
+        );
         controller = createTestController(config: config);
 
         final node = createTestNode(
@@ -1172,7 +1178,11 @@ void main() {
       });
 
       test('respects grid size configuration', () {
-        final config = createTestConfig(snapToGrid: true, gridSize: 16.0);
+        final config = NodeFlowConfig(
+          extensions: [
+            SnapExtension([GridSnapDelegate(gridSize: 16.0, enabled: true)]),
+          ],
+        );
         controller = createTestController(config: config);
 
         final node = createTestNode(id: 'node1', position: Offset.zero);
@@ -1186,7 +1196,11 @@ void main() {
       });
 
       test('snapping works with negative coordinates', () {
-        final config = createTestConfig(snapToGrid: true, gridSize: 20.0);
+        final config = NodeFlowConfig(
+          extensions: [
+            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+          ],
+        );
         controller = createTestController(config: config);
 
         final node = createTestNode(id: 'node1', position: Offset.zero);
@@ -1200,7 +1214,11 @@ void main() {
       });
 
       test('actual position differs from visual position when snapping', () {
-        final config = createTestConfig(snapToGrid: true, gridSize: 20.0);
+        final config = NodeFlowConfig(
+          extensions: [
+            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+          ],
+        );
         controller = createTestController(config: config);
 
         final node = createTestNode(id: 'node1', position: Offset.zero);
@@ -1216,7 +1234,11 @@ void main() {
       });
 
       test('snapping preserves multi-node relative positions', () {
-        final config = createTestConfig(snapToGrid: true, gridSize: 20.0);
+        final config = NodeFlowConfig(
+          extensions: [
+            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+          ],
+        );
         controller = createTestController(config: config);
 
         final node1 = createTestNode(id: 'node1', position: const Offset(0, 0));

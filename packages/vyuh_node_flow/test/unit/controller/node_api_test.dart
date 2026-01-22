@@ -129,7 +129,11 @@ void main() {
 
     test('addNode with snap-to-grid enabled snaps position', () {
       final controller = createTestController(
-        config: NodeFlowConfig(snapToGrid: true, gridSize: 20),
+        config: NodeFlowConfig(
+          extensions: [
+            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+          ],
+        ),
       );
       final node = createTestNode(position: const Offset(15, 25));
 
@@ -836,7 +840,11 @@ void main() {
 
     test('setNodePosition with snap-to-grid snaps visual position', () {
       final controller = createTestController(
-        config: NodeFlowConfig(snapToGrid: true, gridSize: 20),
+        config: NodeFlowConfig(
+          extensions: [
+            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+          ],
+        ),
       );
       controller.addNode(createTestNode(id: 'node-1'));
 

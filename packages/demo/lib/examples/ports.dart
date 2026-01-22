@@ -304,9 +304,12 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo>
       ),
     );
 
-    // Update controller config for snap to grid
-    _controller.config.snapToGrid.value = _themeControl._snapToGrid.value;
-    _controller.config.gridSize.value = _themeControl._gridSize.value;
+    // Update GridSnapDelegate for snap behavior during drag
+    final gridSnap = _controller.snapExtension?.gridSnapDelegate;
+    if (gridSnap != null) {
+      gridSnap.enabled = _themeControl._snapToGrid.value;
+      gridSnap.gridSize = _themeControl._gridSize.value;
+    }
 
     setState(() {
       _currentTheme = newTheme;

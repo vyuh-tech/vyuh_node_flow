@@ -710,7 +710,11 @@ void main() {
   group('Visual Position with Snap-to-Grid', () {
     test('visual position snaps to grid during drag', () {
       final controller = createTestController(
-        config: NodeFlowConfig(snapToGrid: true, gridSize: 20),
+        config: NodeFlowConfig(
+          extensions: [
+            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+          ],
+        ),
       );
       controller.addNode(
         createTestNode(id: 'node-1', position: const Offset(100, 100)),
@@ -727,7 +731,9 @@ void main() {
 
     test('visual position matches actual position without snap-to-grid', () {
       final controller = createTestController(
-        config: NodeFlowConfig(snapToGrid: false),
+        config: NodeFlowConfig(
+          extensions: [], // No snap extension = no grid snapping
+        ),
       );
       controller.addNode(
         createTestNode(id: 'node-1', position: const Offset(100, 100)),
@@ -743,7 +749,11 @@ void main() {
 
     test('cancel drag reverts visual position correctly', () {
       final controller = createTestController(
-        config: NodeFlowConfig(snapToGrid: true, gridSize: 20),
+        config: NodeFlowConfig(
+          extensions: [
+            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+          ],
+        ),
       );
       controller.addNode(
         createTestNode(id: 'node-1', position: const Offset(100, 100)),

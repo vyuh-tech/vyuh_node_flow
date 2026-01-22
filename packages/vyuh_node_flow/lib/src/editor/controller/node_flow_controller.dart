@@ -11,6 +11,7 @@ import '../../connections/temporary_connection.dart';
 import '../../extensions/debug/debug_extension.dart';
 import '../../extensions/events/events.dart';
 import '../../extensions/node_flow_extension.dart';
+import '../../extensions/snap/snap_extension.dart';
 import '../../graph/coordinates.dart';
 import '../../graph/graph.dart';
 import '../../graph/viewport.dart';
@@ -30,6 +31,7 @@ import '../node_flow_behavior.dart';
 import '../node_flow_config.dart';
 import '../node_flow_events.dart';
 import '../resizer_widget.dart';
+import '../snap_delegate.dart';
 import '../themes/node_flow_theme.dart';
 import '../viewport_animation_mixin.dart';
 
@@ -214,6 +216,63 @@ class NodeFlowController<T, C> {
     _connectionPainter?.updateNodeShape(
       builder != null ? (node) => builder(node as Node<T>) : null,
     );
+  }
+
+  // Snap delegate for alignment/snap behavior during drag
+  SnapDelegate? _snapDelegate;
+
+  /// Gets the current snap delegate for alignment/snap behavior.
+  ///
+  /// Returns `null` if no snap delegate is set, which means no snapping
+  /// behavior during node drag operations.
+  SnapDelegate? get snapDelegate => _snapDelegate;
+
+  /// Sets the snap delegate for alignment/snap behavior during drag.
+  ///
+  /// The delegate is called during node drag operations to adjust the
+  /// drag delta for snapping to alignment guides or other targets.
+  ///
+  /// Example:
+  /// ```dart
+  /// controller.setSnapDelegate(MySnapDelegate());
+  /// ```
+  void setSnapDelegate(SnapDelegate? delegate) {
+    _snapDelegate = delegate;
+  }
+
+  /// Snaps a position to the grid if grid snapping is enabled.
+  ///
+  /// This is a convenience method that accesses the [GridSnapDelegate]
+  /// through the snap delegate chain. Returns the position unchanged if:
+  /// - No snap delegate is set
+  /// - The snap delegate doesn't contain a [GridSnapDelegate]
+  /// - Grid snapping is disabled
+  ///
+  /// Use this for snapping positions when adding nodes, pasting, or other
+  /// programmatic position updates.
+  ///
+  /// Example:
+  /// ```dart
+  /// final snappedPos = controller.snapToGrid(position);
+  /// node.setPosition(snappedPos);
+  /// ```
+  Offset snapToGrid(Offset position) {
+    // First try the attached delegate
+    final delegate = _snapDelegate;
+    if (delegate is SnapExtension) {
+      return delegate.gridSnapDelegate?.snapPoint(position) ?? position;
+    }
+    if (delegate is GridSnapDelegate) {
+      return delegate.snapPoint(position);
+    }
+
+    // Fall back to extension registry (for unit tests without initController)
+    final snapExt = _config.extensionRegistry.get<SnapExtension>();
+    if (snapExt != null) {
+      return snapExt.gridSnapDelegate?.snapPoint(position) ?? position;
+    }
+
+    return position;
   }
 
   // Structured events system

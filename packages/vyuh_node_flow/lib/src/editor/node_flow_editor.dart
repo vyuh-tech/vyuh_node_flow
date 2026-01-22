@@ -7,6 +7,9 @@ import 'package:vector_math/vector_math_64.dart' hide Colors;
 
 import '../connections/connection.dart';
 import '../connections/styles/connection_style_base.dart';
+import '../extensions/autopan/autopan_zone_debug_layer.dart';
+import '../extensions/debug/debug_extension.dart';
+import '../extensions/layer_provider.dart';
 import '../graph/coordinates.dart';
 import '../graph/viewport.dart';
 import '../nodes/node.dart';
@@ -22,17 +25,14 @@ import 'layers/connection_labels_layer.dart';
 import 'layers/connections_layer.dart';
 import 'layers/grid_layer.dart';
 import 'layers/interaction_layer.dart';
+import 'layers/nodes_layer.dart';
 import 'node_flow_behavior.dart';
 import 'node_flow_events.dart';
+import 'node_flow_scope.dart';
 import 'themes/cursor_theme.dart';
 import 'themes/node_flow_theme.dart';
 import 'unbounded_widgets.dart';
 import 'viewport_animation_mixin.dart';
-import '../extensions/minimap/minimap_overlay.dart';
-import 'layers/nodes_layer.dart';
-import '../extensions/autopan/autopan_zone_debug_layer.dart';
-import '../extensions/debug/debug_layers_stack.dart';
-import 'node_flow_scope.dart';
 
 part 'controller/node_flow_controller_extensions.dart';
 part 'node_flow_editor_hit_testing.dart';
@@ -410,6 +410,11 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     // Register keyboard handler for shift key cursor changes
     HardwareKeyboard.instance.addHandler(_handleKeyEvent);
 
+    // Provide transformation controller to debug extension for layer rendering
+    widget.controller.debug?.setTransformationController(
+      _transformationController,
+    );
+
     // Fire onInit event after initialization completes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.controller.events.onInit?.call();
@@ -430,6 +435,12 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
         transformationController: _transformationController,
         controller: widget.controller,
         onAnimationComplete: widget.controller.setViewport,
+      );
+
+      // Update debug extension transformation controller reference
+      oldWidget.controller.debug?.setTransformationController(null);
+      widget.controller.debug?.setTransformationController(
+        _transformationController,
       );
     }
 
@@ -469,6 +480,29 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
         widget.theme.connectionTheme.animationEffect) {
       _updateAnimationController();
     }
+  }
+
+  /// Collects extension layers for the given position relative to a core layer.
+  ///
+  /// Returns all widgets from extensions that implement [LayerProvider] and
+  /// have their [LayerPosition] matching the given [anchor] and [relation].
+  List<Widget> _getExtensionLayers(BuildContext context,
+      NodeFlowLayer anchor,
+      LayerRelation relation,) {
+    final layers = <Widget>[];
+    for (final extension in widget.controller.extensions) {
+      if (extension is LayerProvider) {
+        final provider = extension as LayerProvider;
+        if (provider.layerPosition.anchor == anchor &&
+            provider.layerPosition.relation == relation) {
+          final layer = provider.buildLayer(context);
+          if (layer != null) {
+            layers.add(layer);
+          }
+        }
+      }
+    }
+    return layers;
   }
 
   @override
@@ -549,11 +583,30 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                             child: UnboundedStack(
                               clipBehavior: Clip.none,
                               children: [
+                                // Extension layers: before grid
+                                ..._getExtensionLayers(
+                                  context,
+                                  NodeFlowLayer.grid,
+                                  LayerRelation.before,
+                                ),
+
                                 // Background grid
                                 GridLayer(
                                   theme: theme,
                                   transformationController:
                                       _transformationController,
+                                ),
+
+                                // Extension layers: after grid, before backgroundNodes
+                                ..._getExtensionLayers(
+                                  context,
+                                  NodeFlowLayer.grid,
+                                  LayerRelation.after,
+                                ),
+                                ..._getExtensionLayers(
+                                  context,
+                                  NodeFlowLayer.backgroundNodes,
+                                  LayerRelation.before,
                                 ),
 
                                 // Background nodes (GroupNode) - drag handled via NodeWidget
@@ -575,6 +628,18 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                       .value,
                                 ),
 
+                                // Extension layers: after backgroundNodes, before connections
+                                ..._getExtensionLayers(
+                                  context,
+                                  NodeFlowLayer.backgroundNodes,
+                                  LayerRelation.after,
+                                ),
+                                ..._getExtensionLayers(
+                                  context,
+                                  NodeFlowLayer.connections,
+                                  LayerRelation.before,
+                                ),
+
                                 // Connections
                                 ConnectionsLayer<T, C>(
                                   controller: widget.controller,
@@ -583,10 +648,34 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                       widget.connectionStyleBuilder,
                                 ),
 
+                                // Extension layers: after connections, before connectionLabels
+                                ..._getExtensionLayers(
+                                  context,
+                                  NodeFlowLayer.connections,
+                                  LayerRelation.after,
+                                ),
+                                ..._getExtensionLayers(
+                                  context,
+                                  NodeFlowLayer.connectionLabels,
+                                  LayerRelation.before,
+                                ),
+
                                 // Connection labels
                                 ConnectionLabelsLayer<T>(
                                   controller: widget.controller,
                                   labelBuilder: widget.labelBuilder,
+                                ),
+
+                                // Extension layers: after connectionLabels, before middleNodes
+                                ..._getExtensionLayers(
+                                  context,
+                                  NodeFlowLayer.connectionLabels,
+                                  LayerRelation.after,
+                                ),
+                                ..._getExtensionLayers(
+                                  context,
+                                  NodeFlowLayer.middleNodes,
+                                  LayerRelation.before,
                                 ),
 
                                 // Middle layer nodes (regular nodes)
@@ -608,6 +697,18 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                       .value,
                                 ),
 
+                                // Extension layers: after middleNodes, before foregroundNodes
+                                ..._getExtensionLayers(
+                                  context,
+                                  NodeFlowLayer.middleNodes,
+                                  LayerRelation.after,
+                                ),
+                                ..._getExtensionLayers(
+                                  context,
+                                  NodeFlowLayer.foregroundNodes,
+                                  LayerRelation.before,
+                                ),
+
                                 // Foreground nodes (CommentNode) - drag handled via NodeWidget
                                 NodesLayer.foreground(
                                   widget.controller,
@@ -627,17 +728,24 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                       .value,
                                 ),
 
-                                // Debug visualization layers (when config.debugMode is enabled)
-                                // Placed on top of all content for full visibility
-                                // Uses IgnorePointer internally so interactions pass through
-                                DebugLayersStack<T>(
-                                  controller: widget.controller,
-                                  transformationController:
-                                      _transformationController,
+                                // Extension layers: after foregroundNodes
+                                // Note: SnapLinesLayer and DebugLayersStack are now provided
+                                // via LayerProvider by their respective extensions
+                                ..._getExtensionLayers(
+                                  context,
+                                  NodeFlowLayer.foregroundNodes,
+                                  LayerRelation.after,
                                 ),
                               ],
                             ),
                           ),
+                        ),
+
+                        // Extension layers: before interaction
+                        ..._getExtensionLayers(
+                          context,
+                          NodeFlowLayer.interaction,
+                          LayerRelation.before,
                         ),
 
                         // Interaction layer - renders temporary connections and selection rectangles
@@ -651,16 +759,31 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                           ),
                         ),
 
-                        // Minimap overlay - topmost layer, outside InteractiveViewer
-                        MinimapOverlay<T>(
-                          controller: widget.controller,
-                          transformationController: _transformationController,
-                          canvasSize: constraints.biggest,
+                        // Extension layers: after interaction, before overlays
+                        ..._getExtensionLayers(
+                          context,
+                          NodeFlowLayer.interaction,
+                          LayerRelation.after,
+                        ),
+                        // Extension layers: before overlays
+                        // Note: MinimapOverlay is now provided via LayerProvider
+                        // by MinimapExtension
+                        ..._getExtensionLayers(
+                          context,
+                          NodeFlowLayer.overlays,
+                          LayerRelation.before,
                         ),
 
                         // Attribution overlay - bottom center
                         AttributionOverlay(
                           show: widget.controller.config.showAttribution,
+                        ),
+
+                        // Extension layers: after overlays
+                        ..._getExtensionLayers(
+                          context,
+                          NodeFlowLayer.overlays,
+                          LayerRelation.after,
                         ),
                       ],
                     ),

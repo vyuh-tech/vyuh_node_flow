@@ -276,7 +276,11 @@ void main() {
       );
       final controller = createTestController(
         nodes: [group],
-        config: createTestConfig(snapToGrid: true, gridSize: 20),
+        config: NodeFlowConfig(
+          extensions: [
+            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+          ],
+        ),
       );
 
       controller.startResize(
@@ -477,7 +481,11 @@ void main() {
       );
       final controller = createTestController(
         nodes: [group],
-        config: createTestConfig(snapToGrid: true, gridSize: 20),
+        config: NodeFlowConfig(
+          extensions: [
+            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+          ],
+        ),
       );
 
       controller.startResize(

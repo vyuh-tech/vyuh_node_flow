@@ -938,23 +938,29 @@ void main() {
     });
 
     group('General Actions', () {
-      test('toggle_snapping toggles snap-to-grid', () {
+      test('toggle_snapping toggles snap-to-grid via SnapExtension', () {
         final manager = NodeFlowShortcutManager<String>();
         manager.registerActions(
           DefaultNodeFlowActions.createDefaultActions<String>(),
         );
 
-        final controller = createTestController();
-        final initialSnapping = controller.config.snapToGrid.value;
+        // Create controller with SnapExtension containing GridSnapDelegate
+        final controller = createTestController(
+          config: NodeFlowConfig(
+            extensions: [
+              SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: false)]),
+            ],
+          ),
+        );
+        final gridSnap = controller.snapExtension?.gridSnapDelegate;
+        expect(gridSnap, isNotNull);
+        final initialSnapping = gridSnap!.enabled;
 
         final action = manager.getAction('toggle_snapping')!;
         final result = action.execute(controller, null);
 
         expect(result, isTrue);
-        expect(
-          controller.config.snapToGrid.value,
-          isNot(equals(initialSnapping)),
-        );
+        expect(gridSnap.enabled, isNot(equals(initialSnapping)));
       });
     });
   });

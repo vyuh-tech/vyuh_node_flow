@@ -101,7 +101,7 @@ extension ResizeApi<T, C> on NodeFlowController<T, C> {
     // Apply the resize
     runInAction(() {
       resizableNode.applyBounds(result.newBounds);
-      node.setVisualPosition(_config.snapToGridIfEnabled(node.position.value));
+      node.setVisualPosition(snapToGrid(node.position.value));
     });
     _markNodeDirty(nodeId);
 
@@ -145,7 +145,7 @@ extension ResizeApi<T, C> on NodeFlowController<T, C> {
       runInAction(() {
         node.position.value = originalBounds.topLeft;
         node.setVisualPosition(
-          _config.snapToGridIfEnabled(originalBounds.topLeft),
+          snapToGrid(originalBounds.topLeft),
         );
         (node as ResizableMixin<T>).setSize(originalBounds.size);
       });

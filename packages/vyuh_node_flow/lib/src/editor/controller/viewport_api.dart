@@ -61,6 +61,29 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
     });
   }
 
+  /// Gets the currently visible area of the graph in graph coordinates.
+  ///
+  /// This returns a [Rect] representing the portion of the graph that is
+  /// currently visible in the viewport, accounting for pan and zoom.
+  ///
+  /// Useful for:
+  /// - Determining which nodes are visible
+  /// - Snap line calculations (to limit candidates to visible nodes)
+  /// - Viewport culling optimizations
+  Rect get visibleGraphBounds {
+    final v = _viewport.value;
+    final s = _screenSize.value;
+
+    if (s.isEmpty) return Rect.zero;
+
+    return Rect.fromLTWH(
+      -v.x / v.zoom,
+      -v.y / v.zoom,
+      s.width / v.zoom,
+      s.height / v.zoom,
+    );
+  }
+
   // ============================================================================
   // Coordinate Transformations
   // ============================================================================

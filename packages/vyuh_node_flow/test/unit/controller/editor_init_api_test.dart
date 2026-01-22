@@ -520,7 +520,11 @@ void main() {
 
     test('applies grid snapping to pre-loaded nodes', () {
       final controller = NodeFlowController<String, dynamic>(
-        config: NodeFlowConfig(snapToGrid: true, gridSize: 20),
+        config: NodeFlowConfig(
+          extensions: [
+            SnapExtension([GridSnapDelegate(gridSize: 20.0, enabled: true)]),
+          ],
+        ),
       );
 
       // Add node at non-grid-aligned position

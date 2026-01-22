@@ -1,13 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
 import '../extensions/autopan/auto_pan_extension.dart';
 import '../extensions/debug/debug_extension.dart';
 import '../extensions/extension_registry.dart';
+import '../extensions/lod/lod.dart';
 import '../extensions/minimap/minimap_extension.dart';
 import '../extensions/node_flow_extension.dart';
+import '../extensions/snap/snap_extension.dart';
 import '../extensions/stats/stats_extension.dart';
-import '../extensions/lod/lod.dart';
+import 'snap_delegate.dart';
 
 // Re-export DebugMode for convenience
 export '../extensions/debug/debug_extension.dart' show DebugMode;
@@ -41,11 +42,30 @@ export '../extensions/debug/debug_extension.dart' show DebugMode;
 /// - [DebugExtension] - debug overlays (disabled by default)
 /// - [LodExtension] - level of detail (disabled by default)
 /// - [MinimapExtension] - minimap overlay
+/// - [SnapExtension] - grid snapping via [GridSnapDelegate]
 /// - [StatsExtension] - graph statistics (nodeCount, connectionCount, etc.)
+///
+/// ## Grid Snapping
+///
+/// Grid snapping is now configured through [SnapExtension] with [GridSnapDelegate]:
+///
+/// ```dart
+/// // Access via controller
+/// controller.snapExtension?.gridSnapDelegate?.toggle();
+/// controller.snapExtension?.gridSnapDelegate?.gridSize = 10.0;
+///
+/// // Or configure in extensions
+/// NodeFlowConfig(
+///   extensions: [
+///     SnapExtension([
+///       GridSnapDelegate(gridSize: 10.0, enabled: true),
+///     ]),
+///     // ... other extensions
+///   ],
+/// );
+/// ```
 class NodeFlowConfig {
   NodeFlowConfig({
-    bool snapToGrid = false,
-    double gridSize = 20.0,
     double portSnapDistance = 8.0,
     double minZoom = 0.5,
     double maxZoom = 2.0,
@@ -56,8 +76,6 @@ class NodeFlowConfig {
          extensions ?? defaultExtensions(),
        ) {
     runInAction(() {
-      this.snapToGrid.value = snapToGrid;
-      this.gridSize.value = gridSize;
       this.portSnapDistance.value = portSnapDistance;
       this.minZoom.value = minZoom;
       this.maxZoom.value = maxZoom;
@@ -72,6 +90,9 @@ class NodeFlowConfig {
       DebugExtension(),
       LodExtension(),
       MinimapExtension(),
+      SnapExtension([
+        GridSnapDelegate(gridSize: 20.0, enabled: false),
+      ]),
       StatsExtension(),
     ];
   }
@@ -81,12 +102,6 @@ class NodeFlowConfig {
   /// Extensions are attached when first accessed via the controller's
   /// getters (e.g., `controller.minimap`, `controller.autoPan`).
   final ExtensionRegistry extensionRegistry;
-
-  /// Whether to snap node positions to grid
-  final snapToGrid = Observable<bool>(false);
-
-  /// Grid size for snapping calculations
-  final gridSize = Observable<double>(20.0);
 
   /// Distance threshold for port snapping during connection
   final portSnapDistance = Observable<double>(8.0);
@@ -106,25 +121,14 @@ class NodeFlowConfig {
   /// Whether to show attribution label
   final bool showAttribution;
 
-  /// Toggle grid snapping for nodes
-  void toggleSnapping() {
-    runInAction(() {
-      snapToGrid.value = !snapToGrid.value;
-    });
-  }
-
   /// Update multiple properties at once
   void update({
-    bool? snapToGrid,
-    double? gridSize,
     double? portSnapDistance,
     double? minZoom,
     double? maxZoom,
     bool? scrollToZoom,
   }) {
     runInAction(() {
-      if (snapToGrid != null) this.snapToGrid.value = snapToGrid;
-      if (gridSize != null) this.gridSize.value = gridSize;
       if (portSnapDistance != null) {
         this.portSnapDistance.value = portSnapDistance;
       }
@@ -134,24 +138,11 @@ class NodeFlowConfig {
     });
   }
 
-  /// Helper method to snap coordinates to grid if enabled
-  Offset snapToGridIfEnabled(Offset position) {
-    if (!snapToGrid.value) return position;
-
-    final grid = gridSize.value;
-    final snappedX = (position.dx / grid).round() * grid;
-    final snappedY = (position.dy / grid).round() * grid;
-
-    return Offset(snappedX, snappedY);
-  }
-
   /// Default configuration factory
   static NodeFlowConfig get defaultConfig => NodeFlowConfig();
 
   /// Create a copy with different initial values
   NodeFlowConfig copyWith({
-    bool? snapToGrid,
-    double? gridSize,
     double? portSnapDistance,
     double? minZoom,
     double? maxZoom,
@@ -159,8 +150,6 @@ class NodeFlowConfig {
     bool? showAttribution,
   }) {
     return NodeFlowConfig(
-      snapToGrid: snapToGrid ?? this.snapToGrid.value,
-      gridSize: gridSize ?? this.gridSize.value,
       portSnapDistance: portSnapDistance ?? this.portSnapDistance.value,
       minZoom: minZoom ?? this.minZoom.value,
       maxZoom: maxZoom ?? this.maxZoom.value,

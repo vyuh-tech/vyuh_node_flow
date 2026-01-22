@@ -416,7 +416,7 @@ extension GraphApi<T, C> on NodeFlowController<T, C> {
         final newPosition = Offset(col * spacing, row * spacing);
         nodeList[i].position.value = newPosition;
         // Update visual position with snapping
-        nodeList[i].setVisualPosition(_config.snapToGridIfEnabled(newPosition));
+        nodeList[i].setVisualPosition(snapToGrid(newPosition));
       }
     });
 
@@ -449,7 +449,7 @@ extension GraphApi<T, C> on NodeFlowController<T, C> {
           final newPosition = Offset(x, y);
           node.position.value = newPosition;
           // Update visual position with snapping
-          node.setVisualPosition(_config.snapToGridIfEnabled(newPosition));
+          node.setVisualPosition(snapToGrid(newPosition));
           x += 200;
         }
         y += 150;

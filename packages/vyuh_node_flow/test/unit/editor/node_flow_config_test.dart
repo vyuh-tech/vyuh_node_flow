@@ -4,13 +4,15 @@
 /// - Default configuration values
 /// - Custom configuration with constructor parameters
 /// - Reactive property updates via update() method
-/// - toggleSnapping() method
-/// - snapToGridIfEnabled() helper method
 /// - copyWith() method for creating modified copies
 /// - defaultConfig factory
 /// - defaultExtensions() static method
 /// - Extension registry integration
 /// - Edge cases and boundary conditions
+///
+/// Note: Grid snapping functionality (snapToGrid, gridSize, toggleSnapping,
+/// snapToGridIfEnabled) has been moved to SnapExtension with GridSnapDelegate.
+/// See snap_delegate_test.dart for grid snapping tests.
 @Tags(['unit'])
 library;
 
@@ -24,18 +26,6 @@ void main() {
   // ===========================================================================
 
   group('NodeFlowConfig - Default Values', () {
-    test('snapToGrid defaults to false', () {
-      final config = NodeFlowConfig();
-
-      expect(config.snapToGrid.value, isFalse);
-    });
-
-    test('gridSize defaults to 20.0', () {
-      final config = NodeFlowConfig();
-
-      expect(config.gridSize.value, equals(20.0));
-    });
-
     test('portSnapDistance defaults to 8.0', () {
       final config = NodeFlowConfig();
 
@@ -74,6 +64,17 @@ void main() {
       expect(config.extensionRegistry.get<LodExtension>(), isNotNull);
       expect(config.extensionRegistry.get<MinimapExtension>(), isNotNull);
       expect(config.extensionRegistry.get<StatsExtension>(), isNotNull);
+      expect(config.extensionRegistry.get<SnapExtension>(), isNotNull);
+    });
+
+    test('default SnapExtension contains GridSnapDelegate', () {
+      final config = NodeFlowConfig();
+      final snapExt = config.extensionRegistry.get<SnapExtension>();
+
+      expect(snapExt, isNotNull);
+      expect(snapExt!.gridSnapDelegate, isNotNull);
+      expect(snapExt.gridSnapDelegate!.enabled, isFalse); // Disabled by default
+      expect(snapExt.gridSnapDelegate!.gridSize, equals(20.0));
     });
   });
 
@@ -82,18 +83,6 @@ void main() {
   // ===========================================================================
 
   group('NodeFlowConfig - Custom Configuration', () {
-    test('accepts custom snapToGrid value', () {
-      final config = NodeFlowConfig(snapToGrid: true);
-
-      expect(config.snapToGrid.value, isTrue);
-    });
-
-    test('accepts custom gridSize value', () {
-      final config = NodeFlowConfig(gridSize: 50.0);
-
-      expect(config.gridSize.value, equals(50.0));
-    });
-
     test('accepts custom portSnapDistance value', () {
       final config = NodeFlowConfig(portSnapDistance: 16.0);
 
@@ -126,8 +115,6 @@ void main() {
 
     test('accepts all custom values simultaneously', () {
       final config = NodeFlowConfig(
-        snapToGrid: true,
-        gridSize: 32.0,
         portSnapDistance: 12.0,
         minZoom: 0.25,
         maxZoom: 4.0,
@@ -135,8 +122,6 @@ void main() {
         showAttribution: false,
       );
 
-      expect(config.snapToGrid.value, isTrue);
-      expect(config.gridSize.value, equals(32.0));
       expect(config.portSnapDistance.value, equals(12.0));
       expect(config.minZoom.value, equals(0.25));
       expect(config.maxZoom.value, equals(4.0));
@@ -165,41 +150,20 @@ void main() {
       expect(config.extensionRegistry.get<LodExtension>(), isNull);
       expect(config.extensionRegistry.get<MinimapExtension>(), isNull);
       expect(config.extensionRegistry.get<StatsExtension>(), isNull);
-    });
-  });
-
-  // ===========================================================================
-  // toggleSnapping Method
-  // ===========================================================================
-
-  group('NodeFlowConfig - toggleSnapping', () {
-    test('toggles from false to true', () {
-      final config = NodeFlowConfig(snapToGrid: false);
-
-      config.toggleSnapping();
-
-      expect(config.snapToGrid.value, isTrue);
+      expect(config.extensionRegistry.get<SnapExtension>(), isNull);
     });
 
-    test('toggles from true to false', () {
-      final config = NodeFlowConfig(snapToGrid: true);
+    test('accepts custom SnapExtension with configured GridSnapDelegate', () {
+      final config = NodeFlowConfig(
+        extensions: [
+          SnapExtension([GridSnapDelegate(gridSize: 50.0, enabled: true)]),
+        ],
+      );
 
-      config.toggleSnapping();
-
-      expect(config.snapToGrid.value, isFalse);
-    });
-
-    test('multiple toggles work correctly', () {
-      final config = NodeFlowConfig(snapToGrid: false);
-
-      config.toggleSnapping();
-      expect(config.snapToGrid.value, isTrue);
-
-      config.toggleSnapping();
-      expect(config.snapToGrid.value, isFalse);
-
-      config.toggleSnapping();
-      expect(config.snapToGrid.value, isTrue);
+      final snapExt = config.extensionRegistry.get<SnapExtension>();
+      expect(snapExt, isNotNull);
+      expect(snapExt!.gridSnapDelegate!.gridSize, equals(50.0));
+      expect(snapExt.gridSnapDelegate!.enabled, isTrue);
     });
   });
 
@@ -208,22 +172,6 @@ void main() {
   // ===========================================================================
 
   group('NodeFlowConfig - update', () {
-    test('updates snapToGrid when provided', () {
-      final config = NodeFlowConfig(snapToGrid: false);
-
-      config.update(snapToGrid: true);
-
-      expect(config.snapToGrid.value, isTrue);
-    });
-
-    test('updates gridSize when provided', () {
-      final config = NodeFlowConfig(gridSize: 20.0);
-
-      config.update(gridSize: 40.0);
-
-      expect(config.gridSize.value, equals(40.0));
-    });
-
     test('updates portSnapDistance when provided', () {
       final config = NodeFlowConfig(portSnapDistance: 8.0);
 
@@ -260,16 +208,12 @@ void main() {
       final config = NodeFlowConfig();
 
       config.update(
-        snapToGrid: true,
-        gridSize: 64.0,
         portSnapDistance: 32.0,
         minZoom: 0.2,
         maxZoom: 8.0,
         scrollToZoom: false,
       );
 
-      expect(config.snapToGrid.value, isTrue);
-      expect(config.gridSize.value, equals(64.0));
       expect(config.portSnapDistance.value, equals(32.0));
       expect(config.minZoom.value, equals(0.2));
       expect(config.maxZoom.value, equals(8.0));
@@ -278,8 +222,6 @@ void main() {
 
     test('does not change properties when null is provided', () {
       final config = NodeFlowConfig(
-        snapToGrid: true,
-        gridSize: 30.0,
         portSnapDistance: 10.0,
         minZoom: 0.3,
         maxZoom: 3.0,
@@ -288,8 +230,6 @@ void main() {
 
       config.update();
 
-      expect(config.snapToGrid.value, isTrue);
-      expect(config.gridSize.value, equals(30.0));
       expect(config.portSnapDistance.value, equals(10.0));
       expect(config.minZoom.value, equals(0.3));
       expect(config.maxZoom.value, equals(3.0));
@@ -298,108 +238,14 @@ void main() {
 
     test('partially updates only specified properties', () {
       final config = NodeFlowConfig(
-        snapToGrid: false,
-        gridSize: 20.0,
         portSnapDistance: 8.0,
+        minZoom: 0.5,
       );
 
-      config.update(gridSize: 50.0);
+      config.update(minZoom: 0.1);
 
-      expect(config.snapToGrid.value, isFalse);
-      expect(config.gridSize.value, equals(50.0));
-      expect(config.portSnapDistance.value, equals(8.0));
-    });
-  });
-
-  // ===========================================================================
-  // snapToGridIfEnabled Method
-  // ===========================================================================
-
-  group('NodeFlowConfig - snapToGridIfEnabled', () {
-    test('returns unchanged position when snapping is disabled', () {
-      final config = NodeFlowConfig(snapToGrid: false, gridSize: 20.0);
-      const position = Offset(15.0, 27.0);
-
-      final result = config.snapToGridIfEnabled(position);
-
-      expect(result, equals(position));
-    });
-
-    test('snaps to nearest grid intersection when enabled', () {
-      final config = NodeFlowConfig(snapToGrid: true, gridSize: 20.0);
-      const position = Offset(15.0, 27.0);
-
-      final result = config.snapToGridIfEnabled(position);
-
-      expect(result, equals(const Offset(20.0, 20.0)));
-    });
-
-    test('snaps position exactly on grid line correctly', () {
-      final config = NodeFlowConfig(snapToGrid: true, gridSize: 20.0);
-      const position = Offset(40.0, 60.0);
-
-      final result = config.snapToGridIfEnabled(position);
-
-      expect(result, equals(const Offset(40.0, 60.0)));
-    });
-
-    test('snaps position at midpoint to nearest', () {
-      final config = NodeFlowConfig(snapToGrid: true, gridSize: 20.0);
-      const position = Offset(10.0, 10.0);
-
-      final result = config.snapToGridIfEnabled(position);
-
-      // 10 / 20 = 0.5, rounded = 1, * 20 = 20
-      expect(result, equals(const Offset(20.0, 20.0)));
-    });
-
-    test('snaps negative coordinates correctly', () {
-      final config = NodeFlowConfig(snapToGrid: true, gridSize: 20.0);
-      const position = Offset(-15.0, -27.0);
-
-      final result = config.snapToGridIfEnabled(position);
-
-      // -15 / 20 = -0.75, rounded = -1, * 20 = -20
-      // -27 / 20 = -1.35, rounded = -1, * 20 = -20
-      expect(result, equals(const Offset(-20.0, -20.0)));
-    });
-
-    test('respects custom grid size', () {
-      final config = NodeFlowConfig(snapToGrid: true, gridSize: 50.0);
-      const position = Offset(67.0, 118.0);
-
-      final result = config.snapToGridIfEnabled(position);
-
-      // 67 / 50 = 1.34, rounded = 1, * 50 = 50
-      // 118 / 50 = 2.36, rounded = 2, * 50 = 100
-      expect(result, equals(const Offset(50.0, 100.0)));
-    });
-
-    test('handles origin position', () {
-      final config = NodeFlowConfig(snapToGrid: true, gridSize: 20.0);
-      const position = Offset(0.0, 0.0);
-
-      final result = config.snapToGridIfEnabled(position);
-
-      expect(result, equals(const Offset(0.0, 0.0)));
-    });
-
-    test('handles very small grid size', () {
-      final config = NodeFlowConfig(snapToGrid: true, gridSize: 1.0);
-      const position = Offset(15.7, 27.3);
-
-      final result = config.snapToGridIfEnabled(position);
-
-      expect(result, equals(const Offset(16.0, 27.0)));
-    });
-
-    test('handles large coordinates', () {
-      final config = NodeFlowConfig(snapToGrid: true, gridSize: 20.0);
-      const position = Offset(10015.0, 20027.0);
-
-      final result = config.snapToGridIfEnabled(position);
-
-      expect(result, equals(const Offset(10020.0, 20020.0)));
+      expect(config.portSnapDistance.value, equals(8.0)); // Unchanged
+      expect(config.minZoom.value, equals(0.1));
     });
   });
 
@@ -410,8 +256,6 @@ void main() {
   group('NodeFlowConfig - copyWith', () {
     test('creates copy with same values when no arguments provided', () {
       final config = NodeFlowConfig(
-        snapToGrid: true,
-        gridSize: 30.0,
         portSnapDistance: 10.0,
         minZoom: 0.3,
         maxZoom: 3.0,
@@ -421,8 +265,6 @@ void main() {
 
       final copy = config.copyWith();
 
-      expect(copy.snapToGrid.value, equals(config.snapToGrid.value));
-      expect(copy.gridSize.value, equals(config.gridSize.value));
       expect(
         copy.portSnapDistance.value,
         equals(config.portSnapDistance.value),
@@ -431,24 +273,6 @@ void main() {
       expect(copy.maxZoom.value, equals(config.maxZoom.value));
       expect(copy.scrollToZoom.value, equals(config.scrollToZoom.value));
       expect(copy.showAttribution, equals(config.showAttribution));
-    });
-
-    test('creates copy with new snapToGrid value', () {
-      final config = NodeFlowConfig(snapToGrid: false);
-
-      final copy = config.copyWith(snapToGrid: true);
-
-      expect(copy.snapToGrid.value, isTrue);
-      expect(config.snapToGrid.value, isFalse); // Original unchanged
-    });
-
-    test('creates copy with new gridSize value', () {
-      final config = NodeFlowConfig(gridSize: 20.0);
-
-      final copy = config.copyWith(gridSize: 100.0);
-
-      expect(copy.gridSize.value, equals(100.0));
-      expect(config.gridSize.value, equals(20.0)); // Original unchanged
     });
 
     test('creates copy with new portSnapDistance value', () {
@@ -500,14 +324,10 @@ void main() {
       final config = NodeFlowConfig();
 
       final copy = config.copyWith(
-        snapToGrid: true,
-        gridSize: 64.0,
         maxZoom: 10.0,
         showAttribution: false,
       );
 
-      expect(copy.snapToGrid.value, isTrue);
-      expect(copy.gridSize.value, equals(64.0));
       expect(
         copy.portSnapDistance.value,
         equals(8.0),
@@ -519,13 +339,13 @@ void main() {
     });
 
     test('copy is independent from original', () {
-      final config = NodeFlowConfig(gridSize: 20.0);
+      final config = NodeFlowConfig(portSnapDistance: 20.0);
       final copy = config.copyWith();
 
-      config.update(gridSize: 100.0);
+      config.update(portSnapDistance: 100.0);
 
-      expect(copy.gridSize.value, equals(20.0)); // Copy unchanged
-      expect(config.gridSize.value, equals(100.0));
+      expect(copy.portSnapDistance.value, equals(20.0)); // Copy unchanged
+      expect(config.portSnapDistance.value, equals(100.0));
     });
 
     test('copy creates new extension registry with default extensions', () {
@@ -539,6 +359,7 @@ void main() {
       expect(copy.extensionRegistry.get<LodExtension>(), isNotNull);
       expect(copy.extensionRegistry.get<MinimapExtension>(), isNotNull);
       expect(copy.extensionRegistry.get<StatsExtension>(), isNotNull);
+      expect(copy.extensionRegistry.get<SnapExtension>(), isNotNull);
     });
 
     test('copy does not preserve custom extensions', () {
@@ -569,8 +390,6 @@ void main() {
     test('has all default values', () {
       final config = NodeFlowConfig.defaultConfig;
 
-      expect(config.snapToGrid.value, isFalse);
-      expect(config.gridSize.value, equals(20.0));
       expect(config.portSnapDistance.value, equals(8.0));
       expect(config.minZoom.value, equals(0.5));
       expect(config.maxZoom.value, equals(2.0));
@@ -586,6 +405,7 @@ void main() {
       expect(config.extensionRegistry.get<LodExtension>(), isNotNull);
       expect(config.extensionRegistry.get<MinimapExtension>(), isNotNull);
       expect(config.extensionRegistry.get<StatsExtension>(), isNotNull);
+      expect(config.extensionRegistry.get<SnapExtension>(), isNotNull);
     });
 
     test('returns different instance each call', () {
@@ -601,10 +421,10 @@ void main() {
   // ===========================================================================
 
   group('NodeFlowConfig - defaultExtensions', () {
-    test('returns five extensions', () {
+    test('returns six extensions', () {
       final extensions = NodeFlowConfig.defaultExtensions();
 
-      expect(extensions, hasLength(5));
+      expect(extensions, hasLength(6));
     });
 
     test('contains AutoPanExtension', () {
@@ -637,6 +457,12 @@ void main() {
       expect(extensions.whereType<StatsExtension>(), hasLength(1));
     });
 
+    test('contains SnapExtension', () {
+      final extensions = NodeFlowConfig.defaultExtensions();
+
+      expect(extensions.whereType<SnapExtension>(), hasLength(1));
+    });
+
     test('returns new list each call', () {
       final extensions1 = NodeFlowConfig.defaultExtensions();
       final extensions2 = NodeFlowConfig.defaultExtensions();
@@ -656,6 +482,17 @@ void main() {
       final minimapExt = extensions.whereType<MinimapExtension>().first;
 
       expect(minimapExt.isVisible, isFalse);
+    });
+
+    test('SnapExtension contains GridSnapDelegate disabled by default', () {
+      final extensions = NodeFlowConfig.defaultExtensions();
+      final snapExt = extensions
+          .whereType<SnapExtension>()
+          .first;
+
+      expect(snapExt.gridSnapDelegate, isNotNull);
+      expect(snapExt.gridSnapDelegate!.enabled, isFalse);
+      expect(snapExt.gridSnapDelegate!.gridSize, equals(20.0));
     });
   });
 
@@ -711,6 +548,7 @@ void main() {
       expect(ids, contains('lod'));
       expect(ids, contains('minimap'));
       expect(ids, contains('stats'));
+      expect(ids, contains('snap'));
     });
 
     test('all extensions are accessible', () {
@@ -718,7 +556,7 @@ void main() {
 
       final extensions = config.extensionRegistry.all.toList();
 
-      expect(extensions, hasLength(5));
+      expect(extensions, hasLength(6));
     });
   });
 
@@ -727,38 +565,6 @@ void main() {
   // ===========================================================================
 
   group('NodeFlowConfig - Observable Reactivity', () {
-    test('snapToGrid is observable', () {
-      final config = NodeFlowConfig(snapToGrid: false);
-      var reactionCount = 0;
-
-      final dispose = reaction(
-        (_) => config.snapToGrid.value,
-        (_) => reactionCount++,
-      );
-
-      config.update(snapToGrid: true);
-
-      expect(reactionCount, equals(1));
-
-      dispose();
-    });
-
-    test('gridSize is observable', () {
-      final config = NodeFlowConfig(gridSize: 20.0);
-      var reactionCount = 0;
-
-      final dispose = reaction(
-        (_) => config.gridSize.value,
-        (_) => reactionCount++,
-      );
-
-      config.update(gridSize: 40.0);
-
-      expect(reactionCount, equals(1));
-
-      dispose();
-    });
-
     test('portSnapDistance is observable', () {
       final config = NodeFlowConfig(portSnapDistance: 8.0);
       var reactionCount = 0;
@@ -822,22 +628,6 @@ void main() {
 
       dispose();
     });
-
-    test('toggleSnapping triggers reaction', () {
-      final config = NodeFlowConfig(snapToGrid: false);
-      var reactionCount = 0;
-
-      final dispose = reaction(
-        (_) => config.snapToGrid.value,
-        (_) => reactionCount++,
-      );
-
-      config.toggleSnapping();
-
-      expect(reactionCount, equals(1));
-
-      dispose();
-    });
   });
 
   // ===========================================================================
@@ -845,18 +635,6 @@ void main() {
   // ===========================================================================
 
   group('NodeFlowConfig - Edge Cases', () {
-    test('handles zero gridSize', () {
-      final config = NodeFlowConfig(gridSize: 0.0);
-
-      expect(config.gridSize.value, equals(0.0));
-    });
-
-    test('handles negative gridSize', () {
-      final config = NodeFlowConfig(gridSize: -10.0);
-
-      expect(config.gridSize.value, equals(-10.0));
-    });
-
     test('handles very small minZoom', () {
       final config = NodeFlowConfig(minZoom: 0.001);
 
@@ -889,47 +667,25 @@ void main() {
       expect(config.minZoom.value, equals(-1.0));
     });
 
-    test('snapToGridIfEnabled throws with zero grid size', () {
-      final config = NodeFlowConfig(snapToGrid: true, gridSize: 0.0);
-
-      // Division by zero in rounding operation causes UnsupportedError
-      expect(
-        () => config.snapToGridIfEnabled(const Offset(10.0, 20.0)),
-        throwsUnsupportedError,
-      );
-    });
-
     test('update with same values does not break observables', () {
-      final config = NodeFlowConfig(snapToGrid: true, gridSize: 20.0);
+      final config = NodeFlowConfig(portSnapDistance: 20.0);
 
       expect(
-        () => config.update(snapToGrid: true, gridSize: 20.0),
+            () => config.update(portSnapDistance: 20.0),
         returnsNormally,
       );
 
-      expect(config.snapToGrid.value, isTrue);
-      expect(config.gridSize.value, equals(20.0));
+      expect(config.portSnapDistance.value, equals(20.0));
     });
 
     test('multiple rapid updates work correctly', () {
       final config = NodeFlowConfig();
 
       for (var i = 0; i < 100; i++) {
-        config.update(gridSize: i.toDouble());
+        config.update(portSnapDistance: i.toDouble());
       }
 
-      expect(config.gridSize.value, equals(99.0));
-    });
-
-    test('multiple rapid toggles work correctly', () {
-      final config = NodeFlowConfig(snapToGrid: false);
-
-      for (var i = 0; i < 100; i++) {
-        config.toggleSnapping();
-      }
-
-      // 100 toggles from false should end at false (even number)
-      expect(config.snapToGrid.value, isFalse);
+      expect(config.portSnapDistance.value, equals(99.0));
     });
   });
 
@@ -946,7 +702,7 @@ void main() {
       expect(config.showAttribution, isTrue);
 
       // Even after updates to other properties
-      config.update(snapToGrid: true);
+      config.update(minZoom: 0.1);
 
       expect(config.showAttribution, isTrue);
     });

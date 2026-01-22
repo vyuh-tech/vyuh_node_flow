@@ -28,8 +28,6 @@ class _NodeMathExampleState extends State<NodeMathExample> {
     
     final controller = NodeFlowController<MathNodeData, dynamic>(
       config: NodeFlowConfig(
-        snapToGrid: false,
-        gridSize: 20.0,
         minZoom: 0.25,
         maxZoom: 2.0,
       ),

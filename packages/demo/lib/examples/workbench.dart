@@ -255,8 +255,6 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
     return NodeFlowConfig(
       minZoom: 0.25,
       maxZoom: 4.0,
-      snapToGrid: false,
-      gridSize: 20.0,
       scrollToZoom: false,
     );
   }
