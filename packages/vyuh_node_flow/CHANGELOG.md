@@ -1,3 +1,7 @@
+## 0.25.0
+
+ - **FEAT**: **BREAKING** Rename NodeFlowExtension to NodeFlowPlugin.
+
 ## 0.24.2
 
  - **FEAT**: simplify SnapExtension configuration and tests by replacing internal delegate toggles with a master enabled switch.
