@@ -85,8 +85,37 @@ body {
   display: none !important;
 }
 
+/* Demo banner height offset for fixed VitePress elements */
+:root {
+  --demo-banner-height: 28px;
+}
+
+@media (max-width: 639px) {
+  /* Banner is hidden on mobile, so no offset needed */
+  :root {
+    --demo-banner-height: 0px;
+  }
+}
+
+/* Offset VitePress fixed nav to sit below banner */
 .VPNav {
   z-index: 50;
+  top: var(--demo-banner-height) !important;
+}
+
+/* Offset sidebar and content for the nav displacement */
+.VPSidebar {
+  padding-top: calc(var(--vp-nav-height) + var(--demo-banner-height) + 32px) !important;
+  top: 0 !important;
+  height: 100vh !important;
+}
+
+.VPContent.has-sidebar {
+  padding-top: calc(var(--vp-nav-height) + var(--demo-banner-height)) !important;
+}
+
+.VPDoc {
+  padding-top: calc(32px + var(--demo-banner-height)) !important;
 }
 
 /* Mobile navigation menu spacing improvements */

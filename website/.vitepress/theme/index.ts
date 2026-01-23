@@ -1,5 +1,6 @@
 import DefaultTheme from 'vitepress/theme';
-import type { Theme } from 'vitepress';
+import type {Theme} from 'vitepress';
+import Layout from './Layout.vue';
 import HomePage from './HomePage.vue';
 import ProPage from './ProPage.vue';
 import NavProBadge from './components/NavProBadge.vue';
@@ -10,6 +11,7 @@ import './style.css';
 
 export default {
   extends: DefaultTheme,
+    Layout,
   enhanceApp({ app }) {
     app.component('HomePage', HomePage);
     app.component('ProPage', ProPage);
