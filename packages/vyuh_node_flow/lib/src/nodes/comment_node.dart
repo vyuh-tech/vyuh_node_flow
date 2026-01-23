@@ -109,6 +109,52 @@ class CommentNode<T> extends Node<T> with ResizableMixin<T> {
     return _CommentContent<T>(node: this);
   }
 
+  @override
+  void paintThumbnail(
+    Canvas canvas,
+    Rect bounds, {
+    required Color color,
+    required bool isSelected,
+    Color? selectedBorderColor,
+    double borderRadius = 4.0,
+  }) {
+    // Use the comment's own color - outline only, no fill
+    final commentColor = this.color;
+    final rrect = RRect.fromRectAndRadius(
+      bounds,
+      Radius.circular(borderRadius),
+    );
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = isSelected ? 2.0 : 1.0
+      ..color = isSelected
+          ? (selectedBorderColor ?? commentColor)
+          : commentColor;
+    canvas.drawRRect(rrect, paint);
+  }
+
+  @override
+  void paintMinimapThumbnail(
+    Canvas canvas,
+    Rect bounds, {
+    required Color defaultColor,
+    double borderRadius = 2.0,
+  }) {
+    // Use the comment's own color - outline only, no fill
+    final commentColor = color;
+    final rrect = RRect.fromRectAndRadius(
+      bounds,
+      Radius.circular(borderRadius),
+    );
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0
+      ..color = commentColor;
+    canvas.drawRRect(rrect, paint);
+  }
+
   /// Creates a copy of this comment node with optional property overrides.
   ///
   /// This is useful for creating variations of an existing comment or

@@ -232,6 +232,19 @@ class LodPlugin extends NodeFlowPlugin {
   /// - [maxVisibility] when normalizedZoom >= midThreshold
   DetailVisibility get currentVisibility => _currentVisibility.value;
 
+  /// Whether to use thumbnail (paint) mode instead of widget mode.
+  ///
+  /// Returns `true` when:
+  /// 1. LOD is enabled
+  /// 2. Zoom is below minThreshold (very zoomed out)
+  ///
+  /// When true, NodesLayer should switch to NodesThumbnailLayer
+  /// for maximum performance.
+  bool get useThumbnailMode {
+    if (!_enabled.value) return false;
+    return _normalizedZoom.value < _minThreshold.value;
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // Convenience Accessors
   // ═══════════════════════════════════════════════════════════════════════════

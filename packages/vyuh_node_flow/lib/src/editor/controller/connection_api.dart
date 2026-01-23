@@ -70,6 +70,23 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
         .toList();
   }
 
+  /// Checks if a node has any connections (as source or target).
+  ///
+  /// This is an O(1) operation using the internal connection index.
+  /// Use this instead of `getConnectionsForNode(nodeId).isNotEmpty`
+  /// for better performance.
+  ///
+  /// Example:
+  /// ```dart
+  /// if (controller.hasConnectionsForNode('node1')) {
+  ///   print('Node has connections');
+  /// }
+  /// ```
+  bool hasConnectionsForNode(String nodeId) {
+    final connectionIds = _connectionsByNodeId[nodeId];
+    return connectionIds != null && connectionIds.isNotEmpty;
+  }
+
   /// Gets all connections originating from a specific port.
   ///
   /// Returns connections where the specified port is the source.

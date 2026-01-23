@@ -3,6 +3,7 @@ import 'package:mobx/mobx.dart';
 
 import '../../editor/controller/node_flow_controller.dart';
 import '../../graph/coordinates.dart';
+import '../../nodes/node.dart';
 import '../events/events.dart';
 import '../layer_provider.dart';
 import '../node_flow_plugin.dart';
@@ -11,6 +12,40 @@ import 'minimap_theme.dart';
 
 // Re-export MinimapPosition for convenience
 export 'minimap_theme.dart' show MinimapPosition;
+
+/// Builder function for custom minimap node rendering.
+///
+/// This callback allows applications to customize how nodes appear in the minimap.
+/// Return `true` if you handled the painting, `false` to use the node's default
+/// [Node.paintMinimapThumbnail] method.
+///
+/// ## Parameters
+/// - [canvas]: The canvas to paint on (already transformed to graph coordinates)
+/// - [node]: The node being painted (cast to your data type as needed)
+/// - [bounds]: The rectangle to paint within (node position and size in graph coords)
+/// - [defaultColor]: The default color from minimap theme
+///
+/// ## Example
+/// ```dart
+/// MinimapPlugin(
+///   thumbnailBuilder: (canvas, node, bounds, defaultColor) {
+///     // Cast node.data to your type
+///     final data = node.data as MyNodeData;
+///     final color = data.color ?? defaultColor;
+///     final paint = Paint()
+///       ..style = PaintingStyle.fill
+///       ..color = color;
+///     canvas.drawRect(bounds, paint);
+///     return true; // We handled painting
+///   },
+/// );
+/// ```
+typedef MinimapThumbnailBuilder = bool Function(
+  Canvas canvas,
+  Node<dynamic> node,
+  Rect bounds,
+  Color defaultColor,
+);
 
 /// Minimap plugin for managing minimap state and behavior.
 ///
@@ -46,6 +81,7 @@ class MinimapPlugin extends NodeFlowPlugin implements LayerProvider {
   /// - [margin]: Distance from the edge (default: 20.0)
   /// - [autoHighlightSelection]: Auto-highlight selected nodes (default: true)
   /// - [theme]: Visual theme for the minimap (default: MinimapTheme.light)
+  /// - [thumbnailBuilder]: Optional custom node painting callback
   MinimapPlugin({
     bool visible = false,
     bool interactive = true,
@@ -54,6 +90,7 @@ class MinimapPlugin extends NodeFlowPlugin implements LayerProvider {
     this.margin = 20.0,
     bool autoHighlightSelection = true,
     MinimapTheme theme = MinimapTheme.light,
+    this.thumbnailBuilder,
   }) : _theme = theme,
        _size = Observable(size),
        _isVisible = Observable(visible),
@@ -62,6 +99,13 @@ class MinimapPlugin extends NodeFlowPlugin implements LayerProvider {
        _autoHighlightSelection = Observable(autoHighlightSelection);
 
   final MinimapTheme _theme;
+
+  /// Optional custom builder for minimap node painting.
+  ///
+  /// When provided, this builder is called for each node. Return `true` if
+  /// you handled the painting, `false` to fall back to the node's default
+  /// [Node.paintMinimapThumbnail] method.
+  final MinimapThumbnailBuilder? thumbnailBuilder;
 
   /// The visual theme for the minimap.
   ///

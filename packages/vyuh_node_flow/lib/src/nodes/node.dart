@@ -466,6 +466,76 @@ class Node<T> {
   }
 
   // ===========================================================================
+  // Thumbnail Painting
+  // ===========================================================================
+
+  /// Paints a simplified thumbnail representation of this node.
+  ///
+  /// Called when the editor is in thumbnail mode (very zoomed out).
+  /// Override in subclasses to provide custom thumbnail rendering.
+  ///
+  /// Parameters:
+  /// - [canvas]: The canvas to paint on
+  /// - [bounds]: The rectangle to paint within (node position and size)
+  /// - [color]: The node's theme color
+  /// - [isSelected]: Whether the node is currently selected
+  ///
+  /// Default implementation paints a rounded rectangle with the node color.
+  void paintThumbnail(
+    Canvas canvas,
+    Rect bounds, {
+    required Color color,
+    required bool isSelected,
+    Color? selectedBorderColor,
+    double borderRadius = 4.0,
+  }) {
+    final rrect = RRect.fromRectAndRadius(bounds, Radius.circular(borderRadius));
+    final paint = Paint();
+
+    // Fill with background color (no alpha reduction)
+    paint
+      ..style = PaintingStyle.fill
+      ..color = color;
+    canvas.drawRRect(rrect, paint);
+
+    // Outline with a darker/contrasting color for visibility
+    final outlineColor = isSelected
+        ? (selectedBorderColor ?? Colors.blue)
+        : HSLColor.fromColor(color).withLightness(0.3).toColor();
+    paint
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = isSelected ? 2.0 : 1.0
+      ..color = outlineColor;
+    canvas.drawRRect(rrect, paint);
+  }
+
+  /// Paints a simplified minimap representation of this node.
+  ///
+  /// Called by the minimap plugin to render a bird's-eye view of nodes.
+  /// Override in subclasses to provide custom minimap rendering with
+  /// node-specific colors.
+  ///
+  /// Parameters:
+  /// - [canvas]: The canvas to paint on
+  /// - [bounds]: The rectangle to paint within (scaled node position and size)
+  /// - [defaultColor]: The default color from minimap theme (used if no custom color)
+  /// - [borderRadius]: Corner radius for the rectangle (ignored in default impl)
+  ///
+  /// Default implementation paints a simple filled rectangle.
+  void paintMinimapThumbnail(
+    Canvas canvas,
+    Rect bounds, {
+    required Color defaultColor,
+    double borderRadius = 2.0,
+  }) {
+    final paint = Paint()
+      ..style = PaintingStyle.fill
+      ..color = defaultColor;
+
+    canvas.drawRect(bounds, paint);
+  }
+
+  // ===========================================================================
   // Drag Lifecycle Hooks
   // ===========================================================================
 

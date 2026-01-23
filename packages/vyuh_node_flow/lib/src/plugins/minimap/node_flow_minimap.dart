@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../editor/controller/node_flow_controller.dart';
+import '../../nodes/node.dart';
+import 'minimap_plugin.dart';
 import 'minimap_theme.dart';
 
 /// A minimap widget that provides an overview of the entire node flow graph.
@@ -39,6 +41,7 @@ class NodeFlowMinimap<T> extends StatefulWidget {
     required this.size,
     this.theme = MinimapTheme.light,
     this.interactive = true,
+    this.thumbnailBuilder,
   });
 
   /// The controller managing the node flow graph.
@@ -64,6 +67,13 @@ class NodeFlowMinimap<T> extends StatefulWidget {
   /// When true, users can click to jump to a location or drag to pan the
   /// viewport. When false, the minimap is display-only. Defaults to true.
   final bool interactive;
+
+  /// Optional custom builder for minimap node painting.
+  ///
+  /// When provided, this builder is called for each node. Return `true` if
+  /// you handled the painting, `false` to fall back to the node's default
+  /// [Node.paintMinimapThumbnail] method.
+  final MinimapThumbnailBuilder? thumbnailBuilder;
 
   @override
   State<NodeFlowMinimap<T>> createState() => _NodeFlowMinimapState<T>();
@@ -106,6 +116,7 @@ class _NodeFlowMinimapState<T> extends State<NodeFlowMinimap<T>> {
                     painter: MinimapPainter<T>(
                       controller: widget.controller,
                       theme: minimapTheme,
+                      thumbnailBuilder: widget.thumbnailBuilder,
                     ),
                     size: Size.infinite,
                   );
@@ -262,13 +273,20 @@ class _NodeFlowMinimapState<T> extends State<NodeFlowMinimap<T>> {
 /// The painter automatically scales and centers the graph to fit within
 /// the minimap bounds while maintaining aspect ratio.
 class MinimapPainter<T> extends CustomPainter {
-  const MinimapPainter({required this.controller, required this.theme});
+  const MinimapPainter({
+    required this.controller,
+    required this.theme,
+    this.thumbnailBuilder,
+  });
 
   /// The controller providing access to graph data.
   final NodeFlowController<T, dynamic> controller;
 
   /// Theme configuration for minimap appearance.
   final MinimapTheme theme;
+
+  /// Optional custom builder for minimap node painting.
+  final MinimapThumbnailBuilder? thumbnailBuilder;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -303,11 +321,12 @@ class MinimapPainter<T> extends CustomPainter {
   }
 
   void _drawNodes(Canvas canvas) {
-    final paint = Paint()
-      ..color = theme.nodeColor
-      ..style = PaintingStyle.fill;
+    // Sort nodes by layer: background → middle → foreground
+    // This ensures groups are drawn first, then regular nodes, then comments
+    final sortedNodes = controller.nodes.values.toList()
+      ..sort((a, b) => a.layer.index.compareTo(b.layer.index));
 
-    for (final node in controller.nodes.values) {
+    for (final node in sortedNodes) {
       final rect = Rect.fromLTWH(
         node.position.value.dx,
         node.position.value.dy,
@@ -315,9 +334,23 @@ class MinimapPainter<T> extends CustomPainter {
         node.size.value.height,
       );
 
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, Radius.circular(theme.nodeBorderRadius)),
-        paint,
+      // Try custom thumbnail builder first
+      if (thumbnailBuilder != null) {
+        final handled = thumbnailBuilder!(
+          canvas,
+          node,
+          rect,
+          theme.nodeColor,
+        );
+        if (handled) continue;
+      }
+
+      // Fall back to node's paintMinimapThumbnail
+      node.paintMinimapThumbnail(
+        canvas,
+        rect,
+        defaultColor: theme.nodeColor,
+        borderRadius: theme.nodeBorderRadius,
       );
     }
   }

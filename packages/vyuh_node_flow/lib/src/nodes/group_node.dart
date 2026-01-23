@@ -478,6 +478,50 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
     return _GroupContent<T>(node: this);
   }
 
+  @override
+  void paintThumbnail(
+    Canvas canvas,
+    Rect bounds, {
+    required Color color,
+    required bool isSelected,
+    Color? selectedBorderColor,
+    double borderRadius = 4.0,
+  }) {
+    // Use the group's own color - outline only, no fill
+    final groupColor = currentColor;
+    final rrect = RRect.fromRectAndRadius(
+      bounds,
+      Radius.circular(borderRadius),
+    );
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = isSelected ? 2.0 : 1.0
+      ..color = isSelected ? (selectedBorderColor ?? groupColor) : groupColor;
+    canvas.drawRRect(rrect, paint);
+  }
+
+  @override
+  void paintMinimapThumbnail(
+    Canvas canvas,
+    Rect bounds, {
+    required Color defaultColor,
+    double borderRadius = 2.0,
+  }) {
+    // Use the group's own color - outline only, no fill
+    final groupColor = currentColor;
+    final rrect = RRect.fromRectAndRadius(
+      bounds,
+      Radius.circular(borderRadius),
+    );
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0
+      ..color = groupColor;
+    canvas.drawRRect(rrect, paint);
+  }
+
   /// Creates a copy of this group node with optional property overrides.
   ///
   /// This is useful for creating variations of an existing group or

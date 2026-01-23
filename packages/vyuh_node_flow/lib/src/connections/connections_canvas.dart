@@ -18,6 +18,7 @@ import 'styles/connection_style_base.dart';
 /// - Relies on InteractiveViewer for viewport clipping (no manual culling)
 /// - Separates connection rendering from label rendering for better performance
 /// - Supports animated connections via [Animation] parameter
+/// - Uses fingerprint-based shouldRepaint for efficient repaint detection
 ///
 /// ## Usage
 /// This painter is used internally by the node flow rendering system and
@@ -45,16 +46,19 @@ class ConnectionsCanvas<T, C> extends CustomPainter {
   /// - [theme]: The visual theme for rendering
   /// - [connectionPainter]: Shared painter instance for path caching
   /// - [connections]: specific connections to render (defaults to all store.connections)
+  /// - [selectedIds]: Set of selected connection IDs for highlighting
   /// - [animation]: Optional animation for animated connections
   /// - [connectionStyleBuilder]: Optional builder for dynamic path style selection
-  const ConnectionsCanvas({
+  ConnectionsCanvas({
     required this.store,
     required this.theme,
     required this.connectionPainter,
     this.connections,
+    this.selectedIds,
     this.animation,
     this.connectionStyleBuilder,
-  }) : super(repaint: animation);
+  }) : _fingerprint = _computeFingerprint(store, connections, selectedIds),
+       super(repaint: animation);
 
   /// The node flow controller containing all connection data.
   final NodeFlowController<T, C> store;
@@ -72,6 +76,9 @@ class ConnectionsCanvas<T, C> extends CustomPainter {
   /// If null, renders all connections from the store.
   final List<Connection<C>>? connections;
 
+  /// Set of selected connection IDs for efficient selection checking.
+  final Set<String>? selectedIds;
+
   /// Optional animation for animated connections.
   ///
   /// When provided, the animation value will be passed to animated connections
@@ -83,6 +90,45 @@ class ConnectionsCanvas<T, C> extends CustomPainter {
   /// When provided, this builder is called for each connection to determine
   /// which [ConnectionStyle] (path renderer) to use.
   final ConnectionStyleBuilder<T, C>? connectionStyleBuilder;
+
+  /// Cached fingerprint for efficient shouldRepaint comparison.
+  final int _fingerprint;
+
+  /// Computes a fingerprint based on connection IDs and their endpoint positions.
+  static int _computeFingerprint<T, C>(
+    NodeFlowController<T, C> store,
+    List<Connection<C>>? connections,
+    Set<String>? selectedIds,
+  ) {
+    final connectionsToHash = connections ?? store.connections;
+    var hash = connectionsToHash.length;
+
+    // Hash connection IDs and their source/target node positions
+    for (final connection in connectionsToHash) {
+      final sourceNode = store.getNode(connection.sourceNodeId);
+      final targetNode = store.getNode(connection.targetNodeId);
+
+      hash = Object.hash(
+        hash,
+        connection.id,
+        connection.visible,
+        sourceNode?.position.value.dx.toInt() ?? 0,
+        sourceNode?.position.value.dy.toInt() ?? 0,
+        targetNode?.position.value.dx.toInt() ?? 0,
+        targetNode?.position.value.dy.toInt() ?? 0,
+      );
+    }
+
+    // Include selected IDs count and contents
+    if (selectedIds != null) {
+      hash = Object.hash(hash, selectedIds.length);
+      for (final id in selectedIds) {
+        hash = Object.hash(hash, id);
+      }
+    }
+
+    return hash;
+  }
 
   /// Paints all connections in the node flow.
   ///
@@ -147,9 +193,11 @@ class ConnectionsCanvas<T, C> extends CustomPainter {
 
   @override
   bool shouldRepaint(ConnectionsCanvas<T, C> oldDelegate) {
-    // Always repaint when Observer rebuilds this painter
-    // This is necessary because MobX observables may have changed
-    return true;
+    // Fast fingerprint check for connection content changes
+    if (_fingerprint != oldDelegate._fingerprint) return true;
+    // Check theme reference (theme changes are rare)
+    if (theme != oldDelegate.theme) return true;
+    return false;
   }
 
   @override

@@ -62,6 +62,7 @@ class MinimapOverlay<T> extends StatelessWidget {
             theme: minimapTheme,
             size: minimap.size,
             interactive: minimap.isInteractive,
+            thumbnailBuilder: minimap.thumbnailBuilder,
           ),
         );
       },

@@ -38,6 +38,17 @@ part 'controller/node_flow_controller_plugins.dart';
 part 'node_flow_editor_hit_testing.dart';
 part 'node_flow_editor_widget_handlers.dart';
 
+/// Builder for custom node thumbnail painting.
+///
+/// Called for each node when rendering in thumbnail mode.
+/// Return `true` if you handled the painting, `false` to use default.
+typedef ThumbnailBuilder<T> = bool Function(
+  Canvas canvas,
+  Node<T> node,
+  Rect bounds,
+  bool isSelected,
+);
+
 /// Node flow editor widget using MobX for reactive state management.
 ///
 /// This is the main widget for displaying and interacting with a node-based graph.
@@ -72,6 +83,7 @@ class NodeFlowEditor<T, C> extends StatefulWidget {
     this.portBuilder,
     this.connectionStyleBuilder,
     this.labelBuilder,
+    this.thumbnailBuilder,
     this.events,
     this.behavior = NodeFlowBehavior.design,
   });
@@ -195,6 +207,13 @@ class NodeFlowEditor<T, C> extends StatefulWidget {
   /// }
   /// ```
   final LabelBuilder? labelBuilder;
+
+  /// Optional custom thumbnail painter for nodes.
+  ///
+  /// When provided, called for each node in thumbnail mode.
+  /// Return `true` to indicate custom painting was done,
+  /// `false` to fall back to the node's default `paintThumbnail`.
+  final ThumbnailBuilder<T>? thumbnailBuilder;
 
   /// Optional builder for dynamic connection styling.
   ///
@@ -617,6 +636,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                   widget.nodeBuilder,
                                   widget.controller.connections,
                                   portBuilder: widget.portBuilder,
+                                  thumbnailBuilder: widget.thumbnailBuilder,
                                   onNodeTap: _handleNodeTap,
                                   onNodeDoubleTap: _handleNodeDoubleTap,
                                   onNodeContextMenu: _handleNodeContextMenu,
@@ -686,6 +706,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                   widget.nodeBuilder,
                                   widget.controller.connections,
                                   portBuilder: widget.portBuilder,
+                                  thumbnailBuilder: widget.thumbnailBuilder,
                                   onNodeTap: _handleNodeTap,
                                   onNodeDoubleTap: _handleNodeDoubleTap,
                                   onNodeContextMenu: _handleNodeContextMenu,
@@ -717,6 +738,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                   widget.nodeBuilder,
                                   widget.controller.connections,
                                   portBuilder: widget.portBuilder,
+                                  thumbnailBuilder: widget.thumbnailBuilder,
                                   onNodeTap: _handleNodeTap,
                                   onNodeDoubleTap: _handleNodeDoubleTap,
                                   onNodeContextMenu: _handleNodeContextMenu,

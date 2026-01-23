@@ -81,15 +81,15 @@ class DetailVisibility {
   /// Use this when zoomed out to maximum distance where detail is
   /// not visible anyway. Provides the best performance for large graphs.
   ///
-  /// Visible: Node shapes (colored rectangles/shapes)
-  /// Hidden: Content, ports, connections, labels, resize handles
+  /// Visible: Node shapes (colored rectangles/shapes), connection lines with endpoints
+  /// Hidden: Content, ports, labels, resize handles
   static const DetailVisibility minimal = DetailVisibility(
     showNodeContent: false,
     showPorts: false,
     showPortLabels: false,
     showConnectionLines: true,
     showConnectionLabels: false,
-    showConnectionEndpoints: false,
+    showConnectionEndpoints: true,
     showResizeHandles: false,
   );
 
@@ -106,7 +106,7 @@ class DetailVisibility {
     showPortLabels: false,
     showConnectionLines: true,
     showConnectionLabels: false,
-    showConnectionEndpoints: false,
+    showConnectionEndpoints: true,
     showResizeHandles: false,
   );
 

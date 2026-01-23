@@ -9,8 +9,10 @@ import '../../nodes/node_widget.dart';
 import '../../plugins/lod/lod_plugin.dart';
 import '../../ports/port_widget.dart';
 import '../controller/node_flow_controller.dart';
+import '../node_flow_editor.dart';
 import '../themes/node_flow_theme.dart';
 import '../unbounded_widgets.dart';
+import 'nodes_thumbnail_layer.dart';
 
 /// Nodes layer widget that renders all nodes with optimized reactivity.
 ///
@@ -45,6 +47,7 @@ class NodesLayer<T> extends StatelessWidget {
     this.onNodeMouseLeave,
     this.onPortContextMenu,
     this.portSnapDistance = 8.0,
+    this.thumbnailBuilder,
   });
 
   /// Creates a background nodes layer.
@@ -56,6 +59,7 @@ class NodesLayer<T> extends StatelessWidget {
     Widget Function(BuildContext context, Node<T> node) nodeBuilder,
     List<Connection> connections, {
     PortBuilder<T>? portBuilder,
+    ThumbnailBuilder<T>? thumbnailBuilder,
     void Function(Node<T> node)? onNodeTap,
     void Function(Node<T> node)? onNodeDoubleTap,
     void Function(Node<T> node, ScreenPosition screenPosition)?
@@ -71,6 +75,7 @@ class NodesLayer<T> extends StatelessWidget {
       nodeBuilder: nodeBuilder,
       connections: connections,
       portBuilder: portBuilder,
+      thumbnailBuilder: thumbnailBuilder,
       layerFilter: NodeRenderLayer.background,
       onNodeTap: onNodeTap,
       onNodeDoubleTap: onNodeDoubleTap,
@@ -91,6 +96,7 @@ class NodesLayer<T> extends StatelessWidget {
     Widget Function(BuildContext context, Node<T> node) nodeBuilder,
     List<Connection> connections, {
     PortBuilder<T>? portBuilder,
+    ThumbnailBuilder<T>? thumbnailBuilder,
     void Function(Node<T> node)? onNodeTap,
     void Function(Node<T> node)? onNodeDoubleTap,
     void Function(Node<T> node, ScreenPosition screenPosition)?
@@ -106,6 +112,7 @@ class NodesLayer<T> extends StatelessWidget {
       nodeBuilder: nodeBuilder,
       connections: connections,
       portBuilder: portBuilder,
+      thumbnailBuilder: thumbnailBuilder,
       layerFilter: NodeRenderLayer.middle,
       onNodeTap: onNodeTap,
       onNodeDoubleTap: onNodeDoubleTap,
@@ -126,6 +133,7 @@ class NodesLayer<T> extends StatelessWidget {
     Widget Function(BuildContext context, Node<T> node) nodeBuilder,
     List<Connection> connections, {
     PortBuilder<T>? portBuilder,
+    ThumbnailBuilder<T>? thumbnailBuilder,
     void Function(Node<T> node)? onNodeTap,
     void Function(Node<T> node)? onNodeDoubleTap,
     void Function(Node<T> node, ScreenPosition screenPosition)?
@@ -141,6 +149,7 @@ class NodesLayer<T> extends StatelessWidget {
       nodeBuilder: nodeBuilder,
       connections: connections,
       portBuilder: portBuilder,
+      thumbnailBuilder: thumbnailBuilder,
       layerFilter: NodeRenderLayer.foreground,
       onNodeTap: onNodeTap,
       onNodeDoubleTap: onNodeDoubleTap,
@@ -199,8 +208,32 @@ class NodesLayer<T> extends StatelessWidget {
   /// Distance around ports that expands the hit area for easier targeting.
   final double portSnapDistance;
 
+  /// Optional custom thumbnail painter for nodes.
+  final ThumbnailBuilder<T>? thumbnailBuilder;
+
   @override
   Widget build(BuildContext context) {
+    return Observer(
+      builder: (_) {
+        // Check if we should use thumbnail mode
+        final useThumbnailMode = controller.lod?.useThumbnailMode ?? false;
+
+        if (useThumbnailMode) {
+          // Paint mode: single CustomPaint for all nodes
+          return NodesThumbnailLayer<T>(
+            controller: controller,
+            thumbnailBuilder: thumbnailBuilder,
+            layerFilter: layerFilter,
+          );
+        }
+
+        // Widget mode: individual widgets per node
+        return _buildWidgetLayer(context);
+      },
+    );
+  }
+
+  Widget _buildWidgetLayer(BuildContext context) {
     return UnboundedPositioned.fill(
       child: UnboundedRepaintBoundary(
         child: Observer(
@@ -208,7 +241,6 @@ class NodesLayer<T> extends StatelessWidget {
             // Use cached sorted visible nodes - huge performance optimization
             var nodesList = controller.visibleNodes;
 
-            // Apply layer filter if specified
             if (layerFilter != null) {
               nodesList = nodesList
                   .where((node) => node.layer == layerFilter)
