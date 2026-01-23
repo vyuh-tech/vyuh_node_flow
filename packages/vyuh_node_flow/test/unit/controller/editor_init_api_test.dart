@@ -521,8 +521,8 @@ void main() {
     test('applies grid snapping to pre-loaded nodes', () {
       final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(
-          extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 20.0)], enabled: true),
+          plugins: [
+            SnapPlugin([GridSnapDelegate(gridSize: 20.0)], enabled: true),
           ],
         ),
       );

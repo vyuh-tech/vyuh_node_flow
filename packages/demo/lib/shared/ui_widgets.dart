@@ -599,7 +599,7 @@ class ControlPanelFooter extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Comprehensive stats section (uses StatsExtension)
+          // Comprehensive stats section (uses StatsPlugin)
           if (controller?.stats != null)
             _ComprehensiveStats(stats: controller!.stats!),
           // Reset button
@@ -611,7 +611,7 @@ class ControlPanelFooter extends StatelessWidget {
 }
 
 class _ComprehensiveStats extends StatelessWidget {
-  final StatsExtension stats;
+  final StatsPlugin stats;
 
   const _ComprehensiveStats({required this.stats});
 
@@ -699,7 +699,7 @@ class _ComprehensiveStats extends StatelessWidget {
 /// Viewport info display showing zoom, pan, and bounds
 /// Each reactive property is wrapped in its own Observer for granular updates.
 class _ViewportInfo extends StatelessWidget {
-  final StatsExtension stats;
+  final StatsPlugin stats;
 
   const _ViewportInfo({required this.stats});
 
@@ -883,7 +883,7 @@ class ResponsiveControlPanel extends StatefulWidget {
   final Widget child;
 
   /// The controller for stats display in footer (optional).
-  /// Must have StatsExtension attached to show graph statistics.
+  /// Must have StatsPlugin attached to show graph statistics.
   final NodeFlowController? controller;
 
   /// Callback for reset button (optional - if provided, shows reset button)

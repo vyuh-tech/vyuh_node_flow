@@ -17,8 +17,8 @@ library;
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 import 'package:vyuh_node_flow/src/connections/styles/waypoint_builder.dart';
+import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../helpers/test_factories.dart';
 
@@ -1452,7 +1452,7 @@ void main() {
         targetExtension: 50.0,
       );
 
-      // Control point 2 should use targetExtension
+      // Control point 2 should use targetPlugin
       expect(segment.controlPoint2.dx, lessThanOrEqualTo(150));
     });
 
@@ -1467,7 +1467,7 @@ void main() {
         targetExtension: 0.0,
       );
 
-      // With targetExtension=0, the control point calculation uses
+      // With targetPlugin=0, the control point calculation uses
       // max(0, distance * curvature) = max(0, 200 * 0.5) = 100
       // So cp2 should be at end.dx - 100 = 100
       // For left port, the control point is at anchor.dx - offset

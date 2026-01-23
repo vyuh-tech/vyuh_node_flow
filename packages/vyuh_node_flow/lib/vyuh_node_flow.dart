@@ -116,13 +116,12 @@ export 'connections.dart';
 export 'controller.dart';
 export 'debug.dart';
 export 'editor.dart';
-export 'extensions.dart';
 export 'nodes.dart';
+export 'plugins.dart';
 export 'ports.dart';
 export 'spatial.dart';
+// Additional exports that need specific show clauses
+export 'src/editor/layers/connection_labels_layer.dart' show LabelBuilder;
 export 'themes.dart';
 export 'utilities.dart';
 export 'viewport.dart';
-
-// Additional exports that need specific show clauses
-export 'src/editor/layers/connection_labels_layer.dart' show LabelBuilder;

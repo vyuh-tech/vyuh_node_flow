@@ -48,12 +48,10 @@ class _ViewportAnimationsExampleState extends State<ViewportAnimationsExample> {
     super.initState();
     _controller = NodeFlowController<String, dynamic>(
       config: NodeFlowConfig(
-        extensions: [
-          AutoPanExtension(), // Uses normal preset by default
-          StatsExtension(),
-          ...NodeFlowConfig.defaultExtensions().where(
-            (e) => e is! AutoPanExtension,
-          ),
+        plugins: [
+          AutoPanPlugin(), // Uses normal preset by default
+          StatsPlugin(),
+          ...NodeFlowConfig.defaultPlugins().where((e) => e is! AutoPanPlugin),
         ],
       ),
     );

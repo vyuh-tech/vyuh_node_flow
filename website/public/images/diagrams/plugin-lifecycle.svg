@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 520" fill="none">
+  <style>
+    .box { fill: #f8fafc; stroke: #6366f1; stroke-width: 2; rx: 8; }
+    .box-text { font-family: system-ui, sans-serif; font-size: 12px; fill: #374151; }
+    .box-title { font-family: system-ui, sans-serif; font-size: 11px; fill: #6366f1; font-weight: 600; }
+    .arrow { stroke: #94a3b8; stroke-width: 1.5; fill: none; marker-end: url(#arrowhead); }
+    .step-num { font-family: system-ui, sans-serif; font-size: 10px; fill: #9ca3af; font-weight: 600; }
+  </style>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
+      <polygon points="0 0, 6 2.5, 0 5" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <!-- Step 1 -->
+  <text x="30" y="35" class="step-num">1</text>
+  <rect x="50" y="15" width="400" height="55" class="box"/>
+  <text x="70" y="38" class="box-title">Create plugin with configuration</text>
+  <text x="70" y="55" class="box-text">AutoPanPlugin(panAmount: 15.0)</text>
+
+  <!-- Arrow 1→2 -->
+  <path d="M 250 70 L 250 110" class="arrow"/>
+
+  <!-- Step 2 -->
+  <text x="30" y="135" class="step-num">2</text>
+  <rect x="50" y="115" width="400" height="55" class="box"/>
+  <text x="70" y="138" class="box-title">Register in NodeFlowConfig</text>
+  <text x="70" y="155" class="box-text">NodeFlowConfig(plugins: [plugin])</text>
+
+  <!-- Arrow 2→3 -->
+  <path d="M 250 170 L 250 210" class="arrow"/>
+
+  <!-- Step 3 -->
+  <text x="30" y="235" class="step-num">3</text>
+  <rect x="50" y="215" width="400" height="55" class="box"/>
+  <text x="70" y="238" class="box-title">attach() called with controller reference</text>
+  <text x="70" y="255" class="box-text">Plugin can now access nodes, connections, etc</text>
+
+  <!-- Arrow 3→4 -->
+  <path d="M 250 270 L 250 310" class="arrow"/>
+
+  <!-- Step 4 -->
+  <text x="30" y="335" class="step-num">4</text>
+  <rect x="50" y="315" width="400" height="55" class="box"/>
+  <text x="70" y="338" class="box-title">onEvent() called for each graph event</text>
+  <text x="70" y="355" class="box-text">Plugin reacts to node moves, zoom, etc.</text>
+
+  <!-- Arrow 4→5 -->
+  <path d="M 250 370 L 250 410" class="arrow"/>
+
+  <!-- Step 5 -->
+  <text x="30" y="435" class="step-num">5</text>
+  <rect x="50" y="415" width="400" height="55" class="box"/>
+  <text x="70" y="438" class="box-title">detach() called when controller disposed</text>
+  <text x="70" y="455" class="box-text">Plugin cleans up resources</text>
+</svg>

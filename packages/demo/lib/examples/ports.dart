@@ -31,12 +31,10 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo>
   late final NodeFlowController _controller = NodeFlowController(
     initialViewport: const GraphViewport(x: 0, y: 200, zoom: 1.0),
     config: NodeFlowConfig(
-      extensions: [
-        DebugExtension(mode: _themeControl.debugMode),
-        StatsExtension(),
-        ...NodeFlowConfig.defaultExtensions().where(
-          (e) => e is! DebugExtension,
-        ),
+      plugins: [
+        DebugPlugin(mode: _themeControl.debugMode),
+        StatsPlugin(),
+        ...NodeFlowConfig.defaultPlugins().where((e) => e is! DebugPlugin),
       ],
     ),
   );
@@ -305,7 +303,7 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo>
     );
 
     // Update snap behavior during drag
-    final snapExt = _controller.snapExtension;
+    final snapExt = _controller.snap;
     if (snapExt != null) {
       snapExt.enabled = _themeControl._snapToGrid.value;
       final gridSnap = snapExt.gridSnapDelegate;

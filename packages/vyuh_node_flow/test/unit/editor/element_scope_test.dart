@@ -17,7 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vyuh_node_flow/src/editor/drag_session.dart';
 import 'package:vyuh_node_flow/src/editor/element_scope.dart';
-import 'package:vyuh_node_flow/src/extensions/autopan/auto_pan_extension.dart';
+import 'package:vyuh_node_flow/src/plugins/autopan/auto_pan_plugin.dart';
 
 import '../../helpers/test_factories.dart';
 
@@ -57,7 +57,7 @@ void main() {
     });
 
     test('creates with all optional parameters', () {
-      final autoPan = AutoPanExtension();
+      final autoPan = AutoPanPlugin();
 
       final scope = ElementScope(
         onDragStart: _noOpDragStart,
@@ -1269,7 +1269,7 @@ void main() {
 
   group('ElementScope AutoPan Configuration', () {
     test('autoPan parameters are properly stored', () {
-      final autoPan = AutoPanExtension(enabled: true);
+      final autoPan = AutoPanPlugin(enabled: true);
 
       final scope = ElementScope(
         onDragStart: _noOpDragStart,

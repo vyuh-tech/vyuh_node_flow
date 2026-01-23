@@ -7,9 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 void main() {
-  group('AutoPanExtension - Creation', () {
+  group('AutoPanPlugin - Creation', () {
     test('creates with default values', () {
-      final extension = AutoPanExtension();
+      final extension = AutoPanPlugin();
 
       expect(extension.edgePadding, equals(const EdgeInsets.all(50.0)));
       expect(extension.panAmount, equals(10.0));
@@ -19,9 +19,7 @@ void main() {
     });
 
     test('creates with custom uniform edge padding', () {
-      final extension = AutoPanExtension(
-        edgePadding: const EdgeInsets.all(80.0),
-      );
+      final extension = AutoPanPlugin(edgePadding: const EdgeInsets.all(80.0));
 
       expect(extension.edgePadding.left, equals(80.0));
       expect(extension.edgePadding.right, equals(80.0));
@@ -30,7 +28,7 @@ void main() {
     });
 
     test('creates with custom per-edge padding', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: const EdgeInsets.only(
           left: 30.0,
           right: 40.0,
@@ -46,7 +44,7 @@ void main() {
     });
 
     test('creates with symmetric padding', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: const EdgeInsets.symmetric(
           horizontal: 40.0,
           vertical: 60.0,
@@ -60,24 +58,24 @@ void main() {
     });
 
     test('creates with custom pan amount', () {
-      final extension = AutoPanExtension(panAmount: 25.0);
+      final extension = AutoPanPlugin(panAmount: 25.0);
       expect(extension.panAmount, equals(25.0));
     });
 
     test('creates with custom pan interval', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panInterval: const Duration(milliseconds: 32),
       );
       expect(extension.panInterval, equals(const Duration(milliseconds: 32)));
     });
 
     test('creates with proximity scaling enabled', () {
-      final extension = AutoPanExtension(useProximityScaling: true);
+      final extension = AutoPanPlugin(useProximityScaling: true);
       expect(extension.useProximityScaling, isTrue);
     });
 
     test('creates with speed curve', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         useProximityScaling: true,
         speedCurve: Curves.easeIn,
       );
@@ -85,9 +83,9 @@ void main() {
     });
   });
 
-  group('AutoPanExtension - Presets', () {
+  group('AutoPanPlugin - Presets', () {
     test('useNormal applies balanced settings', () {
-      final extension = AutoPanExtension();
+      final extension = AutoPanPlugin();
       extension.useNormal();
 
       expect(extension.edgePadding, equals(const EdgeInsets.all(50.0)));
@@ -97,7 +95,7 @@ void main() {
     });
 
     test('useFast applies larger pan amounts', () {
-      final extension = AutoPanExtension();
+      final extension = AutoPanPlugin();
       extension.useFast();
 
       expect(extension.edgePadding, equals(const EdgeInsets.all(60.0)));
@@ -106,7 +104,7 @@ void main() {
     });
 
     test('usePrecise applies smaller pan amounts and narrower zone', () {
-      final extension = AutoPanExtension();
+      final extension = AutoPanPlugin();
       extension.usePrecise();
 
       expect(extension.edgePadding, equals(const EdgeInsets.all(30.0)));
@@ -115,14 +113,14 @@ void main() {
     });
   });
 
-  group('AutoPanExtension - isEnabled', () {
+  group('AutoPanPlugin - isEnabled', () {
     test('isEnabled returns true for default extension', () {
-      final extension = AutoPanExtension();
+      final extension = AutoPanPlugin();
       expect(extension.isEnabled, isTrue);
     });
 
     test('isEnabled returns false when all edge padding is zero', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: EdgeInsets.zero,
         panAmount: 10.0,
       );
@@ -130,7 +128,7 @@ void main() {
     });
 
     test('isEnabled returns false when pan amount is zero', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: const EdgeInsets.all(50.0),
         panAmount: 0.0,
       );
@@ -138,7 +136,7 @@ void main() {
     });
 
     test('isEnabled returns false when pan amount is negative', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: const EdgeInsets.all(50.0),
         panAmount: -5.0,
       );
@@ -146,7 +144,7 @@ void main() {
     });
 
     test('isEnabled returns true with only one edge having padding', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: const EdgeInsets.only(left: 50.0),
         panAmount: 10.0,
       );
@@ -154,7 +152,7 @@ void main() {
     });
 
     test('isEnabled returns false when all edges are negative', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: const EdgeInsets.all(-10.0),
         panAmount: 10.0,
       );
@@ -162,14 +160,14 @@ void main() {
     });
 
     test('isEnabled returns false when explicitly disabled', () {
-      final extension = AutoPanExtension(enabled: false);
+      final extension = AutoPanPlugin(enabled: false);
       expect(extension.isEnabled, isFalse);
     });
   });
 
-  group('AutoPanExtension - calculatePanAmount', () {
+  group('AutoPanPlugin - calculatePanAmount', () {
     test('returns base pan amount when proximity scaling disabled', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: false,
       );
@@ -183,7 +181,7 @@ void main() {
     });
 
     test('returns base pan amount when edge padding is zero', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
       );
@@ -197,7 +195,7 @@ void main() {
     });
 
     test('scales pan amount with linear proximity when enabled', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
         speedCurve: null, // linear
@@ -223,7 +221,7 @@ void main() {
     });
 
     test('clamps proximity to 0-1 range', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
       );
@@ -244,7 +242,7 @@ void main() {
     });
 
     test('applies speed curve when provided', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
         speedCurve: Curves.easeIn,
@@ -264,9 +262,9 @@ void main() {
     });
   });
 
-  group('AutoPanExtension - Enable/Disable', () {
+  group('AutoPanPlugin - Enable/Disable', () {
     test('enable() enables autopan', () {
-      final extension = AutoPanExtension(enabled: false);
+      final extension = AutoPanPlugin(enabled: false);
       expect(extension.isEnabled, isFalse);
 
       extension.enable();
@@ -274,7 +272,7 @@ void main() {
     });
 
     test('disable() disables autopan', () {
-      final extension = AutoPanExtension(enabled: true);
+      final extension = AutoPanPlugin(enabled: true);
       expect(extension.isEnabled, isTrue);
 
       extension.disable();
@@ -282,7 +280,7 @@ void main() {
     });
 
     test('toggle() toggles enabled state', () {
-      final extension = AutoPanExtension(enabled: true);
+      final extension = AutoPanPlugin(enabled: true);
 
       extension.toggle();
       expect(extension.isEnabled, isFalse);
@@ -292,41 +290,41 @@ void main() {
     });
   });
 
-  group('AutoPanExtension - Property Setters', () {
+  group('AutoPanPlugin - Property Setters', () {
     test('setEdgePadding updates edge padding', () {
-      final extension = AutoPanExtension();
+      final extension = AutoPanPlugin();
       extension.setEdgePadding(const EdgeInsets.all(100.0));
       expect(extension.edgePadding, equals(const EdgeInsets.all(100.0)));
     });
 
     test('setPanAmount updates pan amount', () {
-      final extension = AutoPanExtension();
+      final extension = AutoPanPlugin();
       extension.setPanAmount(25.0);
       expect(extension.panAmount, equals(25.0));
     });
 
     test('setPanInterval updates pan interval', () {
-      final extension = AutoPanExtension();
+      final extension = AutoPanPlugin();
       extension.setPanInterval(const Duration(milliseconds: 32));
       expect(extension.panInterval, equals(const Duration(milliseconds: 32)));
     });
 
     test('setUseProximityScaling updates proximity scaling', () {
-      final extension = AutoPanExtension();
+      final extension = AutoPanPlugin();
       extension.setUseProximityScaling(true);
       expect(extension.useProximityScaling, isTrue);
     });
 
     test('setSpeedCurve updates speed curve', () {
-      final extension = AutoPanExtension();
+      final extension = AutoPanPlugin();
       extension.setSpeedCurve(Curves.easeIn);
       expect(extension.speedCurve, equals(Curves.easeIn));
     });
   });
 
-  group('AutoPanExtension - Edge Cases', () {
+  group('AutoPanPlugin - Edge Cases', () {
     test('handles very small pan amounts', () {
-      final extension = AutoPanExtension(panAmount: 0.001);
+      final extension = AutoPanPlugin(panAmount: 0.001);
       expect(extension.isEnabled, isTrue);
 
       final scaled = extension.calculatePanAmount(25.0, edgePaddingValue: 50.0);
@@ -334,7 +332,7 @@ void main() {
     });
 
     test('handles very large edge padding', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: const EdgeInsets.all(10000.0),
         panAmount: 10.0,
       );
@@ -343,7 +341,7 @@ void main() {
     });
 
     test('handles very small edge padding', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: const EdgeInsets.all(1.0),
         panAmount: 10.0,
       );
@@ -352,7 +350,7 @@ void main() {
     });
 
     test('handles asymmetric edge padding', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: const EdgeInsets.only(left: 100.0, right: 10.0, top: 50.0),
         panAmount: 10.0,
         useProximityScaling: true,

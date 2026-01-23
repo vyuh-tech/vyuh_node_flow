@@ -1,70 +1,70 @@
 import 'package:mobx/mobx.dart';
 
-import '../extensions/autopan/auto_pan_extension.dart';
-import '../extensions/debug/debug_extension.dart';
-import '../extensions/extension_registry.dart';
-import '../extensions/lod/lod.dart';
-import '../extensions/minimap/minimap_extension.dart';
-import '../extensions/node_flow_extension.dart';
-import '../extensions/snap/snap_extension.dart';
-import '../extensions/stats/stats_extension.dart';
+import '../plugins/autopan/auto_pan_plugin.dart';
+import '../plugins/debug/debug_plugin.dart';
+import '../plugins/lod/lod.dart';
+import '../plugins/minimap/minimap_plugin.dart';
+import '../plugins/node_flow_plugin.dart';
+import '../plugins/plugin_registry.dart';
+import '../plugins/snap/snap_plugin.dart';
+import '../plugins/stats/stats_plugin.dart';
 import 'snap_delegate.dart';
 
 // Re-export DebugMode for convenience
-export '../extensions/debug/debug_extension.dart' show DebugMode;
+export '../plugins/debug/debug_plugin.dart' show DebugMode;
 
 /// Reactive configuration class for NodeFlow behavioral properties.
 ///
 /// Visual properties like minimap appearance, colors, and styling are
 /// configured through [NodeFlowTheme] and [MinimapTheme].
 ///
-/// ## Extension Configuration
+/// ## Plugin Configuration
 ///
-/// Extensions are passed pre-configured. Built-in extensions are included
-/// by default. Customize or add extensions via the [extensions] parameter:
+/// Plugins are passed pre-configured. Built-in plugins are included
+/// by default. Customize or add plugins via the [plugins] parameter:
 ///
 /// ```dart
 /// NodeFlowConfig(
-///   extensions: [
-///     MinimapExtension(visible: true, interactive: true),
-///     LodExtension(enabled: false),
-///     AutoPanExtension(config: AutoPanConfig.fast),
-///     DebugExtension(mode: DebugMode.spatialIndex),
-///     StatsExtension(),
+///   plugins: [
+///     MinimapPlugin(visible: true, interactive: true),
+///     LodPlugin(enabled: false),
+///     AutoPanPlugin(config: AutoPanConfig.fast),
+///     DebugPlugin(mode: DebugMode.spatialIndex),
+///     StatsPlugin(),
 ///   ],
 /// );
 /// ```
 ///
-/// ## Default Extensions
+/// ## Default Plugins
 ///
-/// If no extensions are provided, these defaults are used:
-/// - [AutoPanExtension] - autopan near edges (normal mode)
-/// - [DebugExtension] - debug overlays (disabled by default)
-/// - [LodExtension] - level of detail (disabled by default)
-/// - [MinimapExtension] - minimap overlay
-/// - [SnapExtension] - grid and alignment snapping (disabled by default)
-/// - [StatsExtension] - graph statistics (nodeCount, connectionCount, etc.)
+/// If no plugins are provided, these defaults are used:
+/// - [AutoPanPlugin] - autopan near edges (normal mode)
+/// - [DebugPlugin] - debug overlays (disabled by default)
+/// - [LodPlugin] - level of detail (disabled by default)
+/// - [MinimapPlugin] - minimap overlay
+/// - [SnapPlugin] - grid and alignment snapping (disabled by default)
+/// - [StatsPlugin] - graph statistics (nodeCount, connectionCount, etc.)
 ///
 /// ## Snapping
 ///
-/// Snapping is configured through [SnapExtension] with snap delegates:
+/// Snapping is configured through [SnapPlugin] with snap delegates:
 ///
 /// ```dart
 /// // Toggle snapping with 'N' key or programmatically
-/// controller.snapExtension?.toggle();
-/// controller.snapExtension?.enabled = true;
+/// controller.snap?.toggle();
+/// controller.snap?.enabled = true;
 ///
 /// // Access grid snap settings
-/// controller.snapExtension?.gridSnapDelegate?.gridSize = 10.0;
+/// controller.snap?.gridSnapDelegate?.gridSize = 10.0;
 ///
-/// // Configure in extensions
+/// // Configure in plugins
 /// NodeFlowConfig(
-///   extensions: [
-///     SnapExtension([
+///   plugins: [
+///     SnapPlugin([
 ///       SnapLinesDelegate(),              // Alignment guides
 ///       GridSnapDelegate(gridSize: 10.0), // Grid snap fallback
 ///     ]),
-///     // ... other extensions
+///     // ... other plugins
 ///   ],
 /// );
 /// ```
@@ -75,10 +75,8 @@ class NodeFlowConfig {
     double maxZoom = 2.0,
     bool scrollToZoom = true,
     this.showAttribution = true,
-    List<NodeFlowExtension>? extensions,
-  }) : extensionRegistry = ExtensionRegistry(
-         extensions ?? defaultExtensions(),
-       ) {
+    List<NodeFlowPlugin>? plugins,
+  }) : pluginRegistry = PluginRegistry(plugins ?? defaultPlugins()) {
     runInAction(() {
       this.portSnapDistance.value = portSnapDistance;
       this.minZoom.value = minZoom;
@@ -87,26 +85,26 @@ class NodeFlowConfig {
     });
   }
 
-  /// Default extensions for a new config.
+  /// Default plugins for a new config.
   ///
-  /// Note: [SnapExtension] is disabled by default and can be toggled
+  /// Note: [SnapPlugin] is disabled by default and can be toggled
   /// with the 'N' key.
-  static List<NodeFlowExtension> defaultExtensions() {
+  static List<NodeFlowPlugin> defaultPlugins() {
     return [
-      AutoPanExtension(),
-      DebugExtension(),
-      LodExtension(),
-      MinimapExtension(),
-      SnapExtension([GridSnapDelegate(gridSize: 20.0)]),
-      StatsExtension(),
+      AutoPanPlugin(),
+      DebugPlugin(),
+      LodPlugin(),
+      MinimapPlugin(),
+      SnapPlugin([GridSnapDelegate(gridSize: 20.0)]),
+      StatsPlugin(),
     ];
   }
 
-  /// Registry of extensions.
+  /// Registry of plugins.
   ///
-  /// Extensions are attached when first accessed via the controller's
+  /// Plugins are attached when first accessed via the controller's
   /// getters (e.g., `controller.minimap`, `controller.autoPan`).
-  final ExtensionRegistry extensionRegistry;
+  final PluginRegistry pluginRegistry;
 
   /// Distance threshold for port snapping during connection
   final portSnapDistance = Observable<double>(8.0);

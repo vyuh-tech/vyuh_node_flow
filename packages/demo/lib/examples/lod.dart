@@ -22,12 +22,12 @@ class _LODExampleState extends State<LODExample> {
     super.initState();
     _controller = NodeFlowController<Map<String, dynamic>, dynamic>(
       config: NodeFlowConfig(
-        extensions: [
-          LodExtension(),
-          AutoPanExtension(),
-          DebugExtension(),
-          MinimapExtension(),
-          StatsExtension(),
+        plugins: [
+          LodPlugin(),
+          AutoPanPlugin(),
+          DebugPlugin(),
+          MinimapPlugin(),
+          StatsPlugin(),
         ],
       ),
       nodes: _createNodes(),

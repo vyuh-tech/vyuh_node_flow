@@ -262,15 +262,15 @@ GraphViewport createTestViewport({
 
 /// Creates a test config with sensible defaults.
 ///
-/// Extensions can be customized by passing them explicitly.
-/// By default, uses [NodeFlowConfig.defaultExtensions].
+/// Plugins can be customized by passing them explicitly.
+/// By default, uses [NodeFlowConfig.defaultPlugins].
 ///
-/// Grid snapping is now configured through [SnapExtension] with [GridSnapDelegate].
-/// To enable grid snapping in tests, include a configured SnapExtension:
+/// Grid snapping is now configured through [SnapPlugin] with [GridSnapDelegate].
+/// To enable grid snapping in tests, include a configured SnapPlugin:
 /// ```dart
 /// createTestConfig(
-///   extensions: [
-///     SnapExtension([GridSnapDelegate(gridSize: 16.0, enabled: true)]),
+///   plugins: [
+///     SnapPlugin([GridSnapDelegate(gridSize: 16.0, enabled: true)]),
 ///   ],
 /// )
 /// ```
@@ -278,13 +278,13 @@ NodeFlowConfig createTestConfig({
   double portSnapDistance = 8.0,
   double minZoom = 0.1,
   double maxZoom = 4.0,
-  List<NodeFlowExtension>? extensions,
+  List<NodeFlowPlugin>? plugins,
 }) {
   return NodeFlowConfig(
     portSnapDistance: portSnapDistance,
     minZoom: minZoom,
     maxZoom: maxZoom,
-    extensions: extensions,
+    plugins: plugins,
   );
 }
 

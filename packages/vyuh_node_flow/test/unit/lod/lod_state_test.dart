@@ -2,8 +2,8 @@
 ///
 /// Tests cover:
 /// - DetailVisibility configuration class and factory presets
-/// - LodExtension threshold configuration and visibility resolution
-/// - LodExtension reactive state and normalized zoom calculations
+/// - LodPlugin threshold configuration and visibility resolution
+/// - LodPlugin reactive state and normalized zoom calculations
 /// - Integration with NodeFlowConfig
 @Tags(['unit'])
 library;
@@ -99,10 +99,10 @@ void main() {
   });
 
   // ===========================================================================
-  // LodExtension - Threshold Configuration
+  // LodPlugin - Threshold Configuration
   // ===========================================================================
 
-  group('LodExtension - Threshold Configuration', () {
+  group('LodPlugin - Threshold Configuration', () {
     test('default thresholds have sensible values', () {
       final controller = NodeFlowController<String, dynamic>();
       final lod = controller.lod!;
@@ -144,11 +144,9 @@ void main() {
         config: NodeFlowConfig(
           minZoom: 0.0,
           maxZoom: 1.0,
-          extensions: [
-            LodExtension(enabled: true),
-            ...NodeFlowConfig.defaultExtensions().where(
-              (e) => e is! LodExtension,
-            ),
+          plugins: [
+            LodPlugin(enabled: true),
+            ...NodeFlowConfig.defaultPlugins().where((e) => e is! LodPlugin),
           ],
         ),
         initialViewport: const GraphViewport(zoom: 0.5),
@@ -168,20 +166,18 @@ void main() {
   });
 
   // ===========================================================================
-  // LodExtension - Visibility Resolution
+  // LodPlugin - Visibility Resolution
   // ===========================================================================
 
-  group('LodExtension - Visibility Resolution', () {
+  group('LodPlugin - Visibility Resolution', () {
     test('returns correct visibility for each zoom zone', () {
       final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(
           minZoom: 0.0,
           maxZoom: 1.0,
-          extensions: [
-            LodExtension(enabled: true, minThreshold: 0.25, midThreshold: 0.60),
-            ...NodeFlowConfig.defaultExtensions().where(
-              (e) => e is! LodExtension,
-            ),
+          plugins: [
+            LodPlugin(enabled: true, minThreshold: 0.25, midThreshold: 0.60),
+            ...NodeFlowConfig.defaultPlugins().where((e) => e is! LodPlugin),
           ],
         ),
         initialViewport: const GraphViewport(zoom: 0.0),
@@ -224,11 +220,9 @@ void main() {
         config: NodeFlowConfig(
           minZoom: 0.0,
           maxZoom: 1.0,
-          extensions: [
-            LodExtension(enabled: true, minThreshold: 0.0, midThreshold: 0.0),
-            ...NodeFlowConfig.defaultExtensions().where(
-              (e) => e is! LodExtension,
-            ),
+          plugins: [
+            LodPlugin(enabled: true, minThreshold: 0.0, midThreshold: 0.0),
+            ...NodeFlowConfig.defaultPlugins().where((e) => e is! LodPlugin),
           ],
         ),
         initialViewport: const GraphViewport(zoom: 0.0),
@@ -243,11 +237,9 @@ void main() {
         config: NodeFlowConfig(
           minZoom: 0.0,
           maxZoom: 1.0,
-          extensions: [
-            LodExtension(enabled: true, minThreshold: 1.0, midThreshold: 1.0),
-            ...NodeFlowConfig.defaultExtensions().where(
-              (e) => e is! LodExtension,
-            ),
+          plugins: [
+            LodPlugin(enabled: true, minThreshold: 1.0, midThreshold: 1.0),
+            ...NodeFlowConfig.defaultPlugins().where((e) => e is! LodPlugin),
           ],
         ),
         initialViewport: const GraphViewport(zoom: 0.0),
@@ -268,10 +260,10 @@ void main() {
   });
 
   // ===========================================================================
-  // LodExtension - Normalized Zoom Calculation
+  // LodPlugin - Normalized Zoom Calculation
   // ===========================================================================
 
-  group('LodExtension - Normalized Zoom Calculation', () {
+  group('LodPlugin - Normalized Zoom Calculation', () {
     test('calculates normalized zoom correctly', () {
       final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(minZoom: 0.5, maxZoom: 2.0),
@@ -327,10 +319,10 @@ void main() {
   });
 
   // ===========================================================================
-  // LodExtension - Current Visibility
+  // LodPlugin - Current Visibility
   // ===========================================================================
 
-  group('LodExtension - Current Visibility', () {
+  group('LodPlugin - Current Visibility', () {
     test('returns visibility based on normalized zoom and thresholds', () {
       NodeFlowConfig configWithLod({
         double minThreshold = 0.25,
@@ -338,15 +330,13 @@ void main() {
       }) => NodeFlowConfig(
         minZoom: 0.0,
         maxZoom: 1.0,
-        extensions: [
-          LodExtension(
+        plugins: [
+          LodPlugin(
             enabled: true,
             minThreshold: minThreshold,
             midThreshold: midThreshold,
           ),
-          ...NodeFlowConfig.defaultExtensions().where(
-            (e) => e is! LodExtension,
-          ),
+          ...NodeFlowConfig.defaultPlugins().where((e) => e is! LodPlugin),
         ],
       );
 
@@ -383,20 +373,18 @@ void main() {
   });
 
   // ===========================================================================
-  // LodExtension - Convenience Accessors
+  // LodPlugin - Convenience Accessors
   // ===========================================================================
 
-  group('LodExtension - Convenience Accessors', () {
+  group('LodPlugin - Convenience Accessors', () {
     test('convenience accessors match currentVisibility', () {
       final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(
           minZoom: 0.0,
           maxZoom: 1.0,
-          extensions: [
-            LodExtension(enabled: true, minThreshold: 0.25, midThreshold: 0.60),
-            ...NodeFlowConfig.defaultExtensions().where(
-              (e) => e is! LodExtension,
-            ),
+          plugins: [
+            LodPlugin(enabled: true, minThreshold: 0.25, midThreshold: 0.60),
+            ...NodeFlowConfig.defaultPlugins().where((e) => e is! LodPlugin),
           ],
         ),
         initialViewport: const GraphViewport(zoom: 0.8), // Full visibility
@@ -421,20 +409,18 @@ void main() {
   });
 
   // ===========================================================================
-  // LodExtension - Enable/Disable
+  // LodPlugin - Enable/Disable
   // ===========================================================================
 
-  group('LodExtension - Enable/Disable', () {
+  group('LodPlugin - Enable/Disable', () {
     test('disable() changes visibility behavior', () {
       final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(
           minZoom: 0.0,
           maxZoom: 1.0,
-          extensions: [
-            LodExtension(enabled: true, minThreshold: 0.25, midThreshold: 0.60),
-            ...NodeFlowConfig.defaultExtensions().where(
-              (e) => e is! LodExtension,
-            ),
+          plugins: [
+            LodPlugin(enabled: true, minThreshold: 0.25, midThreshold: 0.60),
+            ...NodeFlowConfig.defaultPlugins().where((e) => e is! LodPlugin),
           ],
         ),
         initialViewport: const GraphViewport(zoom: 0.5), // Mid-range
@@ -460,11 +446,9 @@ void main() {
         config: NodeFlowConfig(
           minZoom: 0.0,
           maxZoom: 1.0,
-          extensions: [
-            LodExtension(enabled: true, minThreshold: 0.25, midThreshold: 0.60),
-            ...NodeFlowConfig.defaultExtensions().where(
-              (e) => e is! LodExtension,
-            ),
+          plugins: [
+            LodPlugin(enabled: true, minThreshold: 0.25, midThreshold: 0.60),
+            ...NodeFlowConfig.defaultPlugins().where((e) => e is! LodPlugin),
           ],
         ),
         initialViewport: const GraphViewport(zoom: 0.1),
@@ -491,20 +475,18 @@ void main() {
   });
 
   // ===========================================================================
-  // LodExtension - Reactivity
+  // LodPlugin - Reactivity
   // ===========================================================================
 
-  group('LodExtension - Reactivity', () {
+  group('LodPlugin - Reactivity', () {
     test('visibility updates when viewport zoom changes', () {
       final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(
           minZoom: 0.0,
           maxZoom: 1.0,
-          extensions: [
-            LodExtension(enabled: true, minThreshold: 0.25, midThreshold: 0.60),
-            ...NodeFlowConfig.defaultExtensions().where(
-              (e) => e is! LodExtension,
-            ),
+          plugins: [
+            LodPlugin(enabled: true, minThreshold: 0.25, midThreshold: 0.60),
+            ...NodeFlowConfig.defaultPlugins().where((e) => e is! LodPlugin),
           ],
         ),
         initialViewport: const GraphViewport(zoom: 0.1),
@@ -533,10 +515,10 @@ void main() {
   });
 
   // ===========================================================================
-  // LodExtension - Extension Lifecycle
+  // LodPlugin - Plugin Lifecycle
   // ===========================================================================
 
-  group('LodExtension - Extension Lifecycle', () {
+  group('LodPlugin - Plugin Lifecycle', () {
     test('lod getter returns the same extension instance', () {
       final controller = NodeFlowController<String, dynamic>();
 
@@ -554,7 +536,7 @@ void main() {
       // Access lod to trigger lazy registration
       controller.lod;
 
-      expect(controller.hasExtension('lod'), isTrue);
+      expect(controller.hasPlugin('lod'), isTrue);
 
       controller.dispose();
     });

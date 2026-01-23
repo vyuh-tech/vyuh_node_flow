@@ -32,12 +32,10 @@ class _ShortcutsExampleState extends State<ShortcutsExample> {
 
   void _initializeController() {
     final config = NodeFlowConfig(
-      extensions: [
-        MinimapExtension(visible: true),
-        StatsExtension(),
-        ...NodeFlowConfig.defaultExtensions().where(
-          (e) => e is! MinimapExtension,
-        ),
+      plugins: [
+        MinimapPlugin(visible: true),
+        StatsPlugin(),
+        ...NodeFlowConfig.defaultPlugins().where((e) => e is! MinimapPlugin),
       ],
     );
 

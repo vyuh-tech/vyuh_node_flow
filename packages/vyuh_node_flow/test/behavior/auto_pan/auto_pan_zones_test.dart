@@ -21,7 +21,7 @@ void main() {
 
   group('Auto-Pan Zone Configuration', () {
     test('default extension defines 50px edge zones', () {
-      final extension = AutoPanExtension();
+      final extension = AutoPanPlugin();
 
       expect(extension.edgePadding.left, equals(50.0));
       expect(extension.edgePadding.right, equals(50.0));
@@ -30,7 +30,7 @@ void main() {
     });
 
     test('useFast applies 60px edge zones', () {
-      final extension = AutoPanExtension();
+      final extension = AutoPanPlugin();
       extension.useFast();
 
       expect(extension.edgePadding.left, equals(60.0));
@@ -40,7 +40,7 @@ void main() {
     });
 
     test('usePrecise applies 30px edge zones', () {
-      final extension = AutoPanExtension();
+      final extension = AutoPanPlugin();
       extension.usePrecise();
 
       expect(extension.edgePadding.left, equals(30.0));
@@ -50,7 +50,7 @@ void main() {
     });
 
     test('asymmetric zones can be configured', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: const EdgeInsets.only(
           left: 40.0,
           right: 60.0,
@@ -85,7 +85,7 @@ void main() {
     });
 
     test('edge zone width equals edge padding', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: const EdgeInsets.only(
           left: 40.0,
           right: 60.0,
@@ -101,7 +101,7 @@ void main() {
     });
 
     test('zero padding on one edge disables that zone', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: const EdgeInsets.only(
           left: 50.0,
           right: 0.0, // disabled
@@ -111,7 +111,7 @@ void main() {
       );
 
       expect(extension.edgePadding.right, equals(0.0));
-      // Extension is still enabled because other edges have padding
+      // Plugin is still enabled because other edges have padding
       expect(extension.isEnabled, isTrue);
     });
   });
@@ -264,9 +264,7 @@ void main() {
       // Edge padding is always in screen pixels
       // This is by design - the visual trigger zone stays constant
       // regardless of zoom level
-      final extension = AutoPanExtension(
-        edgePadding: const EdgeInsets.all(50.0),
-      );
+      final extension = AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0));
 
       // At zoom 0.5, 1.0, or 2.0, the edge padding is still 50 screen pixels
       expect(extension.edgePadding.left, equals(50.0));
@@ -289,7 +287,7 @@ void main() {
 
   group('Disabled Zones', () {
     test('zero edge padding disables autopan', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: EdgeInsets.zero,
         panAmount: 10.0,
       );
@@ -298,7 +296,7 @@ void main() {
     });
 
     test('zero pan amount disables autopan', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: const EdgeInsets.all(50.0),
         panAmount: 0.0,
       );
@@ -307,7 +305,7 @@ void main() {
     });
 
     test('negative pan amount disables autopan', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: const EdgeInsets.all(50.0),
         panAmount: -5.0,
       );
@@ -316,7 +314,7 @@ void main() {
     });
 
     test('partially disabled zones still enable autopan', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: const EdgeInsets.only(left: 50.0), // only left enabled
         panAmount: 10.0,
       );

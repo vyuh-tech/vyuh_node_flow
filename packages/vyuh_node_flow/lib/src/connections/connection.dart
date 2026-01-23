@@ -126,7 +126,7 @@ class Connection<C> {
     this.selectedStrokeWidth,
   }) : _animated = Observable(animated),
        _selected = Observable(selected),
-        _visible = Observable(visible),
+       _visible = Observable(visible),
        _startLabel = Observable(startLabel),
        _label = Observable(label),
        _endLabel = Observable(endLabel),

@@ -642,8 +642,8 @@ void main() {
       test('updates visual position with snapping', () {
         final controller = createTestController(
           config: NodeFlowConfig(
-            extensions: [
-              SnapExtension([GridSnapDelegate(gridSize: 10.0)], enabled: true),
+            plugins: [
+              SnapPlugin([GridSnapDelegate(gridSize: 10.0)], enabled: true),
             ],
           ),
         );
@@ -1143,7 +1143,7 @@ void main() {
       final events = <GraphEvent>[];
 
       // Add a simple extension to capture events
-      controller.addExtension(_TestEventCapture(events));
+      controller.addPlugin(_TestEventCapture(events));
 
       controller.batch('test-batch', () {
         controller.addNode(createTestNode(id: 'node-1'));
@@ -1158,7 +1158,7 @@ void main() {
     test('nested batches only emit outer batch events', () {
       final controller = createTestController();
       final events = <GraphEvent>[];
-      controller.addExtension(_TestEventCapture(events));
+      controller.addPlugin(_TestEventCapture(events));
 
       controller.batch('outer', () {
         controller.addNode(createTestNode(id: 'node-1'));
@@ -1179,7 +1179,7 @@ void main() {
     test('batch emits BatchEnded even if operations throw', () {
       final controller = createTestController();
       final events = <GraphEvent>[];
-      controller.addExtension(_TestEventCapture(events));
+      controller.addPlugin(_TestEventCapture(events));
 
       try {
         controller.batch('error-batch', () {
@@ -1299,7 +1299,7 @@ void main() {
 }
 
 /// Test extension to capture events.
-class _TestEventCapture extends NodeFlowExtension {
+class _TestEventCapture extends NodeFlowPlugin {
   _TestEventCapture(this.events);
 
   final List<GraphEvent> events;

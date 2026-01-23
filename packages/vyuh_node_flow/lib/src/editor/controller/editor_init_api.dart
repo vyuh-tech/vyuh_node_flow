@@ -184,14 +184,14 @@ extension EditorInitApi<T, C> on NodeFlowController<T, C> {
     }
 
     // =========================================================================
-    // Step 10: Auto-attach all config extensions
+    // Step 10: Auto-attach all config plugins
     // =========================================================================
-    // Extensions from NodeFlowConfig.extensions are stored in the ExtensionRegistry
-    // but NOT automatically added to the controller's _extensions list. We need to
+    // Plugins from NodeFlowConfig.plugins are stored in the PluginRegistry
+    // but NOT automatically added to the controller's _plugins list. We need to
     // attach them here so they receive GraphEvents via _emitEvent().
-    for (final extension in _config.extensionRegistry.all) {
-      if (!_extensions.any((e) => e.id == extension.id)) {
-        addExtension(extension);
+    for (final plugin in _config.pluginRegistry.all) {
+      if (!_plugins.any((e) => e.id == plugin.id)) {
+        addPlugin(plugin);
       }
     }
 

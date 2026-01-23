@@ -246,7 +246,7 @@ Example: Moving a node
 
 ## Extensibility Points
 
-The architecture provides several extension points:
+The architecture provides several plugin points:
 
 ### Core Customization
 
@@ -281,7 +281,7 @@ hexagon with ports. :::
 1. **Separation of Concerns**: Clear boundaries between layers
 2. **Reactive**: Automatic UI updates via MobX
 3. **Type Safety**: Generic types for compile-time safety
-4. **Extensibility**: Multiple extension points
+4. **Extensibility**: Multiple plugin points
 5. **Performance**: Optimized for large graphs
 6. **Flutter-native**: Built with Flutter best practices
 

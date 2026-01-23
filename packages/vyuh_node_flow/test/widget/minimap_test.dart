@@ -427,16 +427,14 @@ void main() {
   });
 
   group('Minimap - Integration with Editor', () {
-    testWidgets('minimap shows via MinimapExtension visibility', (
-      tester,
-    ) async {
+    testWidgets('minimap shows via MinimapPlugin visibility', (tester) async {
       // Create controller with minimap visible via extension
       final visibleController = createTestController(
         config: NodeFlowConfig(
-          extensions: [
-            MinimapExtension(visible: true),
-            ...NodeFlowConfig.defaultExtensions().where(
-              (e) => e is! MinimapExtension,
+          plugins: [
+            MinimapPlugin(visible: true),
+            ...NodeFlowConfig.defaultPlugins().where(
+              (e) => e is! MinimapPlugin,
             ),
           ],
         ),
@@ -474,16 +472,14 @@ void main() {
       visibleController.dispose();
     });
 
-    testWidgets('minimap hidden via MinimapExtension visibility', (
-      tester,
-    ) async {
+    testWidgets('minimap hidden via MinimapPlugin visibility', (tester) async {
       // Create controller with minimap hidden via extension
       final hiddenController = createTestController(
         config: NodeFlowConfig(
-          extensions: [
-            MinimapExtension(visible: false),
-            ...NodeFlowConfig.defaultExtensions().where(
-              (e) => e is! MinimapExtension,
+          plugins: [
+            MinimapPlugin(visible: false),
+            ...NodeFlowConfig.defaultPlugins().where(
+              (e) => e is! MinimapPlugin,
             ),
           ],
         ),

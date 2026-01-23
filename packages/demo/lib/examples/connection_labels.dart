@@ -127,7 +127,7 @@ class _ConnectionLabelsStore {
   _ConnectionLabelsStore() {
     controller = NodeFlowController<Map<String, dynamic>, dynamic>(
       config: NodeFlowConfig(
-        extensions: [StatsExtension(), ...NodeFlowConfig.defaultExtensions()],
+        plugins: [StatsPlugin(), ...NodeFlowConfig.defaultPlugins()],
       ),
     );
   }

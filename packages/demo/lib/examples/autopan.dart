@@ -35,14 +35,14 @@ class _AutoPanExampleState extends State<AutoPanExample> {
     super.initState();
     _controller = NodeFlowController<String, dynamic>(
       config: NodeFlowConfig(
-        extensions: [
-          AutoPanExtension(), // Uses defaults (normal preset values)
-          DebugExtension(
+        plugins: [
+          AutoPanPlugin(), // Uses defaults (normal preset values)
+          DebugPlugin(
             mode: DebugMode.autoPanZone,
           ), // Show edge zones overlay by default
-          LodExtension(),
-          MinimapExtension(),
-          StatsExtension(),
+          LodPlugin(),
+          MinimapPlugin(),
+          StatsPlugin(),
         ],
       ),
     );

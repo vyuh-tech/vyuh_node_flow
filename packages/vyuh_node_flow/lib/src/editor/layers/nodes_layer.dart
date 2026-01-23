@@ -6,9 +6,9 @@ import '../../graph/coordinates.dart';
 import '../../nodes/node.dart';
 import '../../nodes/node_container.dart';
 import '../../nodes/node_widget.dart';
+import '../../plugins/lod/lod_plugin.dart';
 import '../../ports/port_widget.dart';
 import '../controller/node_flow_controller.dart';
-import '../../extensions/lod/lod_extension.dart';
 import '../themes/node_flow_theme.dart';
 import '../unbounded_widgets.dart';
 

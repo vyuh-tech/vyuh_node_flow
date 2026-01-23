@@ -935,8 +935,8 @@ void main() {
     test('updates visual position with snap-to-grid', () {
       final controller = createTestController(
         config: NodeFlowConfig(
-          extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 20.0)], enabled: true),
+          plugins: [
+            SnapPlugin([GridSnapDelegate(gridSize: 20.0)], enabled: true),
           ],
         ),
       );
@@ -1085,8 +1085,8 @@ void main() {
     test('updates visual position with snap-to-grid on revert', () {
       final controller = createTestController(
         config: NodeFlowConfig(
-          extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 20.0)], enabled: true),
+          plugins: [
+            SnapPlugin([GridSnapDelegate(gridSize: 20.0)], enabled: true),
           ],
         ),
       );

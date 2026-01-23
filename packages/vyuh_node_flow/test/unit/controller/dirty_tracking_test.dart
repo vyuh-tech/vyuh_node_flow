@@ -711,8 +711,8 @@ void main() {
     test('visual position snaps to grid during drag', () {
       final controller = createTestController(
         config: NodeFlowConfig(
-          extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 20.0)], enabled: true),
+          plugins: [
+            SnapPlugin([GridSnapDelegate(gridSize: 20.0)], enabled: true),
           ],
         ),
       );
@@ -732,7 +732,7 @@ void main() {
     test('visual position matches actual position without snap-to-grid', () {
       final controller = createTestController(
         config: NodeFlowConfig(
-          extensions: [], // No snap extension = no grid snapping
+          plugins: [], // No snap extension = no grid snapping
         ),
       );
       controller.addNode(
@@ -750,8 +750,8 @@ void main() {
     test('cancel drag reverts visual position correctly', () {
       final controller = createTestController(
         config: NodeFlowConfig(
-          extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 20.0)], enabled: true),
+          plugins: [
+            SnapPlugin([GridSnapDelegate(gridSize: 20.0)], enabled: true),
           ],
         ),
       );
@@ -931,18 +931,16 @@ void main() {
   });
 
   // ===========================================================================
-  // Debug Extension Interaction Tests
+  // Debug Plugin Interaction Tests
   // ===========================================================================
 
-  group('Debug Extension Interaction', () {
+  group('Debug Plugin Interaction', () {
     test(
       '_shouldDeferSpatialUpdates returns false when debug extension is enabled',
       () {
         // Create controller with debug extension enabled
         final controller = createTestController(
-          config: createTestConfig(
-            extensions: [DebugExtension(mode: DebugMode.all)],
-          ),
+          config: createTestConfig(plugins: [DebugPlugin(mode: DebugMode.all)]),
         );
 
         final nodeA = createTestNodeWithOutputPort(
@@ -987,9 +985,7 @@ void main() {
     test('debug extension disabled still allows deferred updates', () {
       // Create controller with debug extension disabled
       final controller = createTestController(
-        config: createTestConfig(
-          extensions: [DebugExtension(mode: DebugMode.none)],
-        ),
+        config: createTestConfig(plugins: [DebugPlugin(mode: DebugMode.none)]),
       );
 
       controller.addNode(

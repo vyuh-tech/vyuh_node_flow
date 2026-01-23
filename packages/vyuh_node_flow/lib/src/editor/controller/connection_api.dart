@@ -44,9 +44,7 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
   /// }
   /// ```
   Connection<C>? getConnection(String connectionId) {
-    return _connections
-        .where((c) => c.id == connectionId)
-        .firstOrNull;
+    return _connections.where((c) => c.id == connectionId).firstOrNull;
   }
 
   /// Gets all connection IDs in the graph.

@@ -463,7 +463,7 @@ final customTheme = PortTheme.light.copyWith(
 ```dart
 // Use a custom PortBuilder to differentiate port types visually
 PortBuilder myPortBuilder = (context, controller, node, port, isOutput, isConnected, nodeBounds) {
-  final theme = Theme.of(context).extension<NodeFlowTheme>()!.portTheme;
+  final theme = Theme.of(context).plugin<NodeFlowTheme>()!.portTheme;
 
   // Different colors based on port type
   final color = port.type == PortType.output ? Colors.green : Colors.blue;
@@ -594,7 +594,8 @@ theme: NodeFlowTheme(
 )
 ```
 
-Note: Port label visibility at different zoom levels is controlled by the LOD (Level of Detail) system via `LodExtension`. See [Level of Detail](/docs/extensions/lod) for details.
+Note: Port label visibility at different zoom levels is controlled by the LOD (Level of Detail) system via `LodPlugin`.
+See [Level of Detail](/docs/plugins/lod) for details.
 
 ## Best Practices
 

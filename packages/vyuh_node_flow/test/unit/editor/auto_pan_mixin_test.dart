@@ -32,7 +32,7 @@ void main() {
     testWidgets('updates last pointer position', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -60,7 +60,7 @@ void main() {
 
         await tester.pumpWidget(
           _TestHarness(
-            autoPan: AutoPanExtension(
+            autoPan: AutoPanPlugin(
               edgePadding: const EdgeInsets.all(50.0),
               panAmount: 10.0,
               panInterval: const Duration(milliseconds: 16),
@@ -110,7 +110,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             enabled: false,
             edgePadding: const EdgeInsets.all(50.0),
           ),
@@ -136,7 +136,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -170,7 +170,7 @@ void main() {
     testWidgets('returns delta unchanged when inside bounds', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -191,7 +191,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -210,7 +210,7 @@ void main() {
     testWidgets('freezes element at edge when outside bounds', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -230,7 +230,7 @@ void main() {
     testWidgets('accumulates offset and snaps on re-entry', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -259,7 +259,7 @@ void main() {
     testWidgets('clears accumulated offset after snap', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -284,7 +284,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: null,
           onAutoPan: (_) {},
         ),
@@ -305,7 +305,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -323,7 +323,7 @@ void main() {
     testWidgets('handles rapid in/out transitions', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -370,7 +370,7 @@ void main() {
     testWidgets('clears pointer position', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -390,7 +390,7 @@ void main() {
     testWidgets('clears accumulated offset', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -416,7 +416,7 @@ void main() {
     testWidgets('clears wasOutsideBounds flag', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -441,7 +441,7 @@ void main() {
     testWidgets('can be called when already in clean state', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -466,7 +466,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -500,7 +500,7 @@ void main() {
     testWidgets('can be called when timer is not running', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -515,7 +515,7 @@ void main() {
     testWidgets('can be called multiple times safely', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -533,7 +533,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -573,7 +573,7 @@ void main() {
     testWidgets('returns false when inside all bounds', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -594,7 +594,7 @@ void main() {
     testWidgets('returns true when left of left bound', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -610,7 +610,7 @@ void main() {
     testWidgets('returns true when right of right bound', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -626,7 +626,7 @@ void main() {
     testWidgets('returns true when above top bound', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -642,7 +642,7 @@ void main() {
     testWidgets('returns true when below bottom bound', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -658,7 +658,7 @@ void main() {
     testWidgets('returns false when exactly at boundary', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(0, 0, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -678,7 +678,7 @@ void main() {
     testWidgets('handles viewport with non-zero origin', (tester) async {
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(edgePadding: const EdgeInsets.all(50.0)),
+          autoPan: AutoPanPlugin(edgePadding: const EdgeInsets.all(50.0)),
           getViewportBounds: () => const Rect.fromLTWH(100, 50, 800, 600),
           onAutoPan: (_) {},
         ),
@@ -709,7 +709,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -736,7 +736,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -763,7 +763,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -790,7 +790,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -817,7 +817,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -842,7 +842,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -868,7 +868,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.only(
               left: 0, // Disabled
               right: 50,
@@ -900,7 +900,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -934,7 +934,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -959,7 +959,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -986,7 +986,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -1011,7 +1011,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -1039,7 +1039,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -1064,7 +1064,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -1090,7 +1090,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             useProximityScaling: true,
@@ -1119,7 +1119,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -1146,7 +1146,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -1182,7 +1182,7 @@ void main() {
           home: Scaffold(
             body: _TestElementScope(
               key: key,
-              autoPan: AutoPanExtension(
+              autoPan: AutoPanPlugin(
                 edgePadding: const EdgeInsets.all(50.0),
                 panAmount: 10.0,
                 panInterval: const Duration(milliseconds: 16),
@@ -1228,7 +1228,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -1255,7 +1255,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 10.0,
             panInterval: const Duration(milliseconds: 16),
@@ -1282,7 +1282,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.all(50.0),
             panAmount: 0.0, // Disabled
             panInterval: const Duration(milliseconds: 16),
@@ -1308,7 +1308,7 @@ void main() {
 
       await tester.pumpWidget(
         _TestHarness(
-          autoPan: AutoPanExtension(
+          autoPan: AutoPanPlugin(
             edgePadding: const EdgeInsets.only(
               left: 100,
               right: 20,
@@ -1363,7 +1363,7 @@ class _TestHarness extends StatelessWidget {
     this.onDragUpdate,
   });
 
-  final AutoPanExtension? autoPan;
+  final AutoPanPlugin? autoPan;
   final Rect Function()? getViewportBounds;
   final void Function(Offset delta)? onAutoPan;
   final void Function(DragUpdateDetails details)? onDragUpdate;
@@ -1395,7 +1395,7 @@ class _TestElementScope extends StatefulWidget {
     required this.child,
   });
 
-  final AutoPanExtension? autoPan;
+  final AutoPanPlugin? autoPan;
   final Rect Function()? getViewportBounds;
   final void Function(Offset delta)? onAutoPan;
   final void Function(DragUpdateDetails details) onDragUpdate;

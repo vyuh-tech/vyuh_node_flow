@@ -277,8 +277,8 @@ void main() {
       final controller = createTestController(
         nodes: [group],
         config: NodeFlowConfig(
-          extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 20.0)], enabled: true),
+          plugins: [
+            SnapPlugin([GridSnapDelegate(gridSize: 20.0)], enabled: true),
           ],
         ),
       );
@@ -482,8 +482,8 @@ void main() {
       final controller = createTestController(
         nodes: [group],
         config: NodeFlowConfig(
-          extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 20.0)], enabled: true),
+          plugins: [
+            SnapPlugin([GridSnapDelegate(gridSize: 20.0)], enabled: true),
           ],
         ),
       );

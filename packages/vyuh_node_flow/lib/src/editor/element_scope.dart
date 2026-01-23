@@ -2,8 +2,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../extensions/autopan/auto_pan_extension.dart';
 import '../graph/coordinates.dart';
+import '../plugins/autopan/auto_pan_plugin.dart';
 import 'auto_pan/auto_pan_mixin.dart';
 import 'drag_session.dart';
 import 'non_trackpad_pan_gesture_recognizer.dart';
@@ -242,13 +242,13 @@ class ElementScope extends StatefulWidget {
   // Autopan Parameters
   // ---------------------------------------------------------------------------
 
-  /// The autopan extension for autopan behavior during drag operations.
+  /// The autopan plugin for autopan behavior during drag operations.
   ///
   /// When provided (non-null) and enabled, autopan is active. The viewport will
   /// automatically pan when the pointer approaches the edges during a drag.
   ///
   /// Requires [onAutoPan] and [getViewportBounds] to also be provided.
-  final AutoPanExtension? autoPan;
+  final AutoPanPlugin? autoPan;
 
   /// Callback invoked when autopan triggers during a drag.
   ///

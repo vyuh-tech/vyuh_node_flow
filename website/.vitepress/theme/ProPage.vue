@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import {ref} from 'vue';
 import Badge from './components/Badge.vue';
-import ComparisonTable, {
-  type ComparisonRow,
-} from './components/ComparisonTable.vue';
+import ComparisonTable, {type ComparisonRow,} from './components/ComparisonTable.vue';
 import CtaSection from './components/CtaSection.vue';
 import FeatureSection from './components/FeatureSection.vue';
 import FloatingNodes from './components/FloatingNodes.vue';
@@ -18,7 +16,7 @@ import SectionHeader from './components/SectionHeader.vue';
 import SelectProgramCard from './components/SelectProgramCard.vue';
 import SiteFooter from './components/SiteFooter.vue';
 import TitleBadge from './components/TitleBadge.vue';
-import { SELECT_PROGRAM_FORM_URL } from './constants';
+import {SELECT_PROGRAM_FORM_URL} from './constants';
 
 // Form dialog state
 const ctaDialogOpen = ref(false);
@@ -121,7 +119,7 @@ const marqueeLines = [
   {
     items: [
       'Priority Support',
-      'Custom Extensions',
+      'Custom Plugins',
       'Architecture Guidance',
       'Role-Based Access',
       'Export & Import',
@@ -147,9 +145,9 @@ const comparisonRows: ComparisonRow[] = [
   { category: 'Connection Effects', openSource: true, pro: true },
   { category: 'Serialization (JSON)', openSource: true, pro: true },
   {
-    category: 'Extension System',
+    category: 'Plugin System',
     openSource: true,
-    pro: 'Many more custom extensions',
+    pro: 'Many more custom plugins',
   },
   // Editor SDK Features section
   {
@@ -165,6 +163,9 @@ const comparisonRows: ComparisonRow[] = [
   { category: 'Custom Node & Graph Layouts', openSource: false, pro: true },
   { category: 'Advanced Grouping', openSource: false, pro: true },
   { category: 'Access Control', openSource: false, pro: true },
+  {category: 'Advanced Snapping', openSource: false, pro: true},
+  {category: 'Alignment Guides', openSource: false, pro: true},
+  {category: 'Auto-Save', openSource: false, pro: true},
   // Simulation & Debugging section
   {
     category: 'Simulation & Debugging',
@@ -212,7 +213,7 @@ const comparisonRows: ComparisonRow[] = [
   {
     category: 'Custom Development',
     openSource: false,
-    pro: 'Nodes, plugins & extensions',
+    pro: 'Nodes & custom plugins',
   },
   {
     category: 'Bespoke Features',

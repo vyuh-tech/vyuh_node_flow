@@ -46,7 +46,7 @@ NodeFlowEditor<MyData, dynamic>(
   portBuilder: (context, controller, node, port, isOutput, isConnected, nodeBounds) {
     // Custom port appearance based on port data
     final color = _getColorForPortType(port.name);
-    final theme = Theme.of(context).extension<NodeFlowTheme>()!;
+    final theme = Theme.of(context).plugin<NodeFlowTheme>()!;
 
     return PortWidget(
       port: port,
@@ -330,7 +330,7 @@ class CustomPortNode extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context).extension<NodeFlowTheme>()!;
+    final theme = Theme.of(context).plugin<NodeFlowTheme>()!;
     final size = node.size.value;
 
     return Stack(

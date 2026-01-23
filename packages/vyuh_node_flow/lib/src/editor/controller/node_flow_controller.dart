@@ -8,10 +8,6 @@ import '../../connections/connection_painter.dart';
 import '../../connections/connection_path_cache.dart';
 import '../../connections/connection_validation.dart';
 import '../../connections/temporary_connection.dart';
-import '../../extensions/debug/debug_extension.dart';
-import '../../extensions/events/events.dart';
-import '../../extensions/node_flow_extension.dart';
-import '../../extensions/snap/snap_extension.dart';
 import '../../graph/coordinates.dart';
 import '../../graph/graph.dart';
 import '../../graph/viewport.dart';
@@ -23,6 +19,10 @@ import '../../nodes/mixins/resizable_mixin.dart';
 import '../../nodes/node.dart';
 import '../../nodes/node_data.dart';
 import '../../nodes/node_shape.dart';
+import '../../plugins/debug/debug_plugin.dart';
+import '../../plugins/events/events.dart';
+import '../../plugins/node_flow_plugin.dart';
+import '../../plugins/snap/snap_plugin.dart';
 import '../../ports/port.dart';
 import '../../shared/spatial/graph_spatial_index.dart';
 import '../drag_session.dart';
@@ -259,8 +259,8 @@ class NodeFlowController<T, C> {
   Offset snapToGrid(Offset position) {
     // First try the attached delegate
     final delegate = _snapDelegate;
-    if (delegate is SnapExtension) {
-      // Only snap if extension is enabled
+    if (delegate is SnapPlugin) {
+      // Only snap if plugin is enabled
       if (!delegate.enabled) return position;
       return delegate.gridSnapDelegate?.snapPoint(position) ?? position;
     }
@@ -268,10 +268,10 @@ class NodeFlowController<T, C> {
       return delegate.snapPoint(position);
     }
 
-    // Fall back to extension registry (for unit tests without initController)
-    final snapExt = _config.extensionRegistry.get<SnapExtension>();
+    // Fall back to plugin registry (for unit tests without initController)
+    final snapExt = _config.pluginRegistry.get<SnapPlugin>();
     if (snapExt != null) {
-      // Only snap if extension is enabled
+      // Only snap if plugin is enabled
       if (!snapExt.enabled) return position;
       return snapExt.gridSnapDelegate?.snapPoint(position) ?? position;
     }
@@ -806,7 +806,7 @@ class NodeFlowController<T, C> {
     if (_connectionPainter == null) {
       throw StateError(
         'ConnectionPainter not initialized. '
-            'Ensure the controller is used with a NodeFlowEditor widget.',
+        'Ensure the controller is used with a NodeFlowEditor widget.',
       );
     }
     return _connectionPainter!;
@@ -824,7 +824,7 @@ class NodeFlowController<T, C> {
     if (_connectionPathCache == null) {
       throw StateError(
         'ConnectionPathCache not initialized. '
-            'Ensure the controller is used with a NodeFlowEditor widget.',
+        'Ensure the controller is used with a NodeFlowEditor widget.',
       );
     }
     return _connectionPathCache!;
@@ -847,11 +847,11 @@ class NodeFlowController<T, C> {
     _canvasFocusNode.dispose();
     _connectionPainter?.dispose();
 
-    // Detach all extensions
-    for (final extension in _extensions.toList()) {
-      extension.detach();
+    // Detach all plugins
+    for (final plugin in _plugins.toList()) {
+      plugin.detach();
     }
-    _extensions.clear();
+    _plugins.clear();
 
     // Detach context from all groupable nodes to clean up their reactions
     for (final node in _nodes.values) {
@@ -862,126 +862,126 @@ class NodeFlowController<T, C> {
   }
 
   // ============================================================
-  // Extension System
+  // Plugin System
   // ============================================================
 
-  /// Registered extensions for this controller.
-  final List<NodeFlowExtension> _extensions = [];
+  /// Registered plugins for this controller.
+  final List<NodeFlowPlugin> _plugins = [];
 
   /// Current batch nesting depth.
   /// When > 0, we're inside a batch operation.
   int _batchDepth = 0;
 
-  /// Registers an extension with this controller.
+  /// Registers a plugin with this controller.
   ///
-  /// The extension's [NodeFlowExtension.attach] method is called immediately.
-  /// Throws a [StateError] if an extension with the same ID is already registered.
+  /// The plugin's [NodeFlowPlugin.attach] method is called immediately.
+  /// Throws a [StateError] if a plugin with the same ID is already registered.
   ///
   /// Example:
   /// ```dart
-  /// controller.addExtension(UndoRedoExtension<MyData>());
+  /// controller.addPlugin(UndoRedoPlugin<MyData>());
   /// ```
-  void addExtension(NodeFlowExtension extension) {
-    if (_extensions.any((e) => e.id == extension.id)) {
+  void addPlugin(NodeFlowPlugin plugin) {
+    if (_plugins.any((e) => e.id == plugin.id)) {
       throw StateError(
-        'Extension "${extension.id}" is already registered. '
+        'Plugin "${plugin.id}" is already registered. '
         'Remove it first before adding a new instance.',
       );
     }
-    _extensions.add(extension);
-    extension.attach(this);
+    _plugins.add(plugin);
+    plugin.attach(this);
   }
 
-  /// Removes an extension by its ID.
+  /// Removes a plugin by its ID.
   ///
-  /// The extension's [NodeFlowExtension.detach] method is called before removal.
-  /// Does nothing if no extension with the given ID is registered.
+  /// The plugin's [NodeFlowPlugin.detach] method is called before removal.
+  /// Does nothing if no plugin with the given ID is registered.
   ///
   /// Example:
   /// ```dart
-  /// controller.removeExtension('undo-redo');
+  /// controller.removePlugin('undo-redo');
   /// ```
-  void removeExtension(String id) {
-    final index = _extensions.indexWhere((e) => e.id == id);
+  void removePlugin(String id) {
+    final index = _plugins.indexWhere((e) => e.id == id);
     if (index == -1) return;
 
-    final extension = _extensions.removeAt(index);
-    extension.detach();
+    final plugin = _plugins.removeAt(index);
+    plugin.detach();
   }
 
-  /// Gets an extension by its type.
+  /// Gets a plugin by its type.
   ///
-  /// Returns `null` if no extension of the given type is registered.
-  /// Useful for extensions that expose additional capabilities.
+  /// Returns `null` if no plugin of the given type is registered.
+  /// Useful for plugins that expose additional capabilities.
   ///
   /// Example:
   /// ```dart
-  /// final history = controller.getExtension<HistoryExtension>();
+  /// final history = controller.getPlugin<HistoryPlugin>();
   /// if (history?.canUndo ?? false) {
   ///   history!.undo();
   /// }
   /// ```
-  E? getExtension<E extends NodeFlowExtension>() {
-    for (final ext in _extensions) {
+  E? getPlugin<E extends NodeFlowPlugin>() {
+    for (final ext in _plugins) {
       if (ext is E) return ext;
     }
     return null;
   }
 
-  /// Resolves an extension by type.
+  /// Resolves a plugin by type.
   ///
-  /// Checks the controller's attached extensions first, then falls back to
-  /// the config's extension registry.
+  /// Checks the controller's attached plugins first, then falls back to
+  /// the config's plugin registry.
   ///
-  /// Returns `null` if the extension is not found.
+  /// Returns `null` if the plugin is not found.
   ///
   /// Example:
   /// ```dart
-  /// final minimap = controller.resolveExtension<MinimapExtension>();
+  /// final minimap = controller.resolvePlugin<MinimapPlugin>();
   /// minimap?.toggle();
   /// ```
-  E? resolveExtension<E extends NodeFlowExtension>() {
+  E? resolvePlugin<E extends NodeFlowPlugin>() {
     // First check if already attached
-    var ext = getExtension<E>();
+    var ext = getPlugin<E>();
     if (ext != null) return ext;
 
     // Try to get from registry and attach
-    ext = config.extensionRegistry.get<E>();
+    ext = config.pluginRegistry.get<E>();
     if (ext != null) {
-      addExtension(ext);
+      addPlugin(ext);
     }
     return ext;
   }
 
-  /// Checks if an extension with the given ID is registered.
+  /// Checks if a plugin with the given ID is registered.
   ///
   /// Example:
   /// ```dart
-  /// if (controller.hasExtension('undo-redo')) {
+  /// if (controller.hasPlugin('undo-redo')) {
   ///   // Undo/redo is available
   /// }
   /// ```
-  bool hasExtension(String id) => _extensions.any((e) => e.id == id);
+  bool hasPlugin(String id) => _plugins.any((e) => e.id == id);
 
-  /// Gets all registered extensions.
+  /// Gets all registered plugins.
   ///
-  /// Returns an unmodifiable view of the extensions list.
-  List<NodeFlowExtension> get extensions => List.unmodifiable(_extensions);
+  /// Returns an unmodifiable view of the plugins list.
+  List<NodeFlowPlugin> get plugins => List.unmodifiable(_plugins);
 
-  /// Emits an event to all registered extensions.
+  /// Emits an event to all registered plugins.
   ///
-  /// Called internally by mutation methods. Extensions receive events
+  /// Called internally by mutation methods. Plugins receive events
   /// in the order they were registered.
   void _emitEvent(GraphEvent event) {
-    for (final extension in _extensions) {
-      extension.onEvent(event);
+    for (final plugin in _plugins) {
+      plugin.onEvent(event);
     }
   }
 
   /// Wraps multiple operations in a batch.
   ///
-  /// Extensions will see [BatchStarted] before the operations and
-  /// [BatchEnded] after. This allows extensions like undo/redo to
+  /// Plugins will see [BatchStarted] before the operations and
+  /// [BatchEnded] after. This allows plugins like undo/redo to
   /// group multiple operations into a single undoable action.
   ///
   /// Batches can be nested. Only the outermost batch emits events.
@@ -1011,7 +1011,7 @@ class NodeFlowController<T, C> {
   }
 }
 
-// NOTE: DirtyTrackingExtension is defined in dirty_tracking_api.dart.
+// NOTE: DirtyTrackingPlugin is defined in dirty_tracking_api.dart.
 
 /// Private implementation of [DragSession].
 ///

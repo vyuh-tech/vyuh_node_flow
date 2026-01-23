@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../editor/controller/node_flow_controller.dart';
 import '../editor/themes/node_flow_theme.dart';
-import '../extensions/lod/lod_extension.dart';
+import '../plugins/lod/lod_plugin.dart';
 import 'connection.dart';
 import 'connection_painter.dart';
 import 'styles/connection_style_base.dart';

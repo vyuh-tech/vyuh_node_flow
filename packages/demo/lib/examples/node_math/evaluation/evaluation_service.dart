@@ -30,9 +30,7 @@ class MathEvaluationService {
   void _setupReactions() {
     // React to node list changes
     _reactions.add(
-      reaction((_) =>
-      controller.nodes.keys.toList()
-        ..sort(), (_) {
+      reaction((_) => controller.nodes.keys.toList()..sort(), (_) {
         _rebuildDependencyGraph();
         _markAllDirty();
         _scheduleEvaluation();
@@ -52,11 +50,11 @@ class MathEvaluationService {
 
     _reactions.add(
       reaction(
-            (_) =>
-        controller.nodes.values
-            .map((n) => '${n.id}:${n.data.signature}')
-            .toList()
-          ..sort(),
+        (_) =>
+            controller.nodes.values
+                .map((n) => '${n.id}:${n.data.signature}')
+                .toList()
+              ..sort(),
         (_) {
           _markAllDirty();
           _scheduleEvaluation();
@@ -72,7 +70,7 @@ class MathEvaluationService {
     final nodeIds = controller.nodes.keys.toSet();
     final validConnections = controller.connections.where(
       (c) =>
-      nodeIds.contains(c.sourceNodeId) && nodeIds.contains(c.targetNodeId),
+          nodeIds.contains(c.sourceNodeId) && nodeIds.contains(c.targetNodeId),
     );
 
     for (final conn in validConnections) {

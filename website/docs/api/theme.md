@@ -9,7 +9,7 @@ Complete reference for all theming classes in Vyuh Node Flow.
 
 ## NodeFlowTheme
 
-The top-level theme configuration. Extends Flutter's `ThemeExtension` for
+The top-level theme configuration. Extends Flutter's `ThemePlugin` for
 integration with the theming system.
 
 ```dart
@@ -32,7 +32,7 @@ NodeFlowTheme({
 `NodeFlowTheme.dark` as starting points.
 
 Feature-specific themes like minimap and debug visualization are configured via
-their respective extensions (e.g., `MinimapExtension`, `DebugExtension`) rather
+their respective plugins (e.g., `MinimapPlugin`, `DebugPlugin`) rather
 than this central theme. :::
 
 ### Properties
@@ -159,7 +159,7 @@ ConnectionTheme({
   ConnectionEffect? animationEffect,
   required double bezierCurvature,
   required double cornerRadius,
-  required double portExtension,
+  required double portPlugin,
   required double backEdgeGap,
   required double hitTolerance,
   double startGap = 0.0,
@@ -168,7 +168,7 @@ ConnectionTheme({
 ```
 
 | Property               | Type                 | Description                            |
-| ---------------------- | -------------------- | -------------------------------------- |
+|------------------------|----------------------|----------------------------------------|
 | `style`                | `ConnectionStyle`    | Line style (bezier, smoothstep, etc.)  |
 | `color`                | `Color`              | Default line color                     |
 | `selectedColor`        | `Color`              | Color when selected                    |
@@ -185,7 +185,7 @@ ConnectionTheme({
 | `animationEffect`      | `ConnectionEffect?`  | Default animation effect               |
 | `bezierCurvature`      | `double`             | Bezier curve factor (0-1)              |
 | `cornerRadius`         | `double`             | Step connection corner radius          |
-| `portExtension`        | `double`             | Straight distance from port            |
+| `portPlugin`           | `double`             | Straight distance from port            |
 | `backEdgeGap`          | `double`             | Gap for loopback routing               |
 | `hitTolerance`         | `double`             | Click/tap hit area tolerance           |
 | `startGap`             | `double`             | Gap from source port                   |
@@ -480,13 +480,13 @@ Access theme from Flutter's theme system:
 // In your Theme widget
 Theme(
   data: ThemeData.light().copyWith(
-    extensions: [NodeFlowTheme.light],
+    plugins: [NodeFlowTheme.light],
   ),
   child: MyApp(),
 )
 
 // Access in widgets
-final flowTheme = Theme.of(context).extension<NodeFlowTheme>()!;
+final flowTheme = Theme.of(context).plugin<NodeFlowTheme>()!;
 ```
 
 ## See Also

@@ -9,39 +9,39 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 void main() {
   group('Auto-Pan Speed - Preset Configurations', () {
     test('normal preset pan amount is 10 graph units', () {
-      final extension = AutoPanExtension()..useNormal();
+      final extension = AutoPanPlugin()..useNormal();
       expect(extension.panAmount, equals(10.0));
     });
 
     test('fast preset pan amount is 20 graph units', () {
-      final extension = AutoPanExtension()..useFast();
+      final extension = AutoPanPlugin()..useFast();
       expect(extension.panAmount, equals(20.0));
     });
 
     test('precise preset pan amount is 5 graph units', () {
-      final extension = AutoPanExtension()..usePrecise();
+      final extension = AutoPanPlugin()..usePrecise();
       expect(extension.panAmount, equals(5.0));
     });
 
     test('normal preset interval is ~60fps (16ms)', () {
-      final extension = AutoPanExtension()..useNormal();
+      final extension = AutoPanPlugin()..useNormal();
       expect(extension.panInterval, equals(const Duration(milliseconds: 16)));
     });
 
     test('fast preset interval is ~83fps (12ms)', () {
-      final extension = AutoPanExtension()..useFast();
+      final extension = AutoPanPlugin()..useFast();
       expect(extension.panInterval, equals(const Duration(milliseconds: 12)));
     });
 
     test('precise preset interval is ~50fps (20ms)', () {
-      final extension = AutoPanExtension()..usePrecise();
+      final extension = AutoPanPlugin()..usePrecise();
       expect(extension.panInterval, equals(const Duration(milliseconds: 20)));
     });
   });
 
   group('Auto-Pan Speed - Effective Speed Calculation', () {
     test('normal preset speed: 10 units * 60 ticks/sec = 600 units/sec', () {
-      final extension = AutoPanExtension()..useNormal();
+      final extension = AutoPanPlugin()..useNormal();
       final ticksPerSecond = 1000 / extension.panInterval.inMilliseconds;
       final unitsPerSecond = extension.panAmount * ticksPerSecond;
 
@@ -50,7 +50,7 @@ void main() {
     });
 
     test('fast preset speed: 20 units * 83 ticks/sec ≈ 1667 units/sec', () {
-      final extension = AutoPanExtension()..useFast();
+      final extension = AutoPanPlugin()..useFast();
       final ticksPerSecond = 1000 / extension.panInterval.inMilliseconds;
       final unitsPerSecond = extension.panAmount * ticksPerSecond;
 
@@ -59,7 +59,7 @@ void main() {
     });
 
     test('precise preset speed: 5 units * 50 ticks/sec = 250 units/sec', () {
-      final extension = AutoPanExtension()..usePrecise();
+      final extension = AutoPanPlugin()..usePrecise();
       final ticksPerSecond = 1000 / extension.panInterval.inMilliseconds;
       final unitsPerSecond = extension.panAmount * ticksPerSecond;
 
@@ -70,7 +70,7 @@ void main() {
 
   group('Auto-Pan Speed - Proximity Scaling', () {
     test('without proximity scaling, speed is constant', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: false,
       );
@@ -92,7 +92,7 @@ void main() {
     });
 
     test('with proximity scaling, speed varies from 0.3x to 1.5x', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
       );
@@ -110,7 +110,7 @@ void main() {
     });
 
     test('proximity scaling with linear curve', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
         speedCurve: Curves.linear,
@@ -140,7 +140,7 @@ void main() {
     });
 
     test('proximity scaling with easeIn curve (slow start)', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
         speedCurve: Curves.easeIn,
@@ -161,7 +161,7 @@ void main() {
     });
 
     test('proximity scaling with easeOut curve (fast start)', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
         speedCurve: Curves.easeOut,
@@ -182,7 +182,7 @@ void main() {
     });
 
     test('proximity scaling with easeInOut curve', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
         speedCurve: Curves.easeInOut,
@@ -201,7 +201,7 @@ void main() {
 
   group('Auto-Pan Speed - Minimum and Maximum', () {
     test('minimum speed is 0.3x base (at zone boundary)', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
       );
@@ -214,7 +214,7 @@ void main() {
     });
 
     test('maximum speed is 1.5x base (at viewport edge)', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
       );
@@ -227,7 +227,7 @@ void main() {
     });
 
     test('speed beyond edge padding clamps to maximum', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
       );
@@ -241,7 +241,7 @@ void main() {
     });
 
     test('negative proximity clamps to minimum', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
       );
@@ -257,7 +257,7 @@ void main() {
 
   group('Auto-Pan Speed - Per-Edge Asymmetry', () {
     test('different edges can have different pan zones', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         edgePadding: const EdgeInsets.only(
           left: 30.0, // narrow zone
           right: 80.0, // wide zone
@@ -291,13 +291,13 @@ void main() {
     });
 
     test('wider zone provides more precision at edges', () {
-      final narrowExtension = AutoPanExtension(
+      final narrowPlugin = AutoPanPlugin(
         edgePadding: const EdgeInsets.all(30.0),
         panAmount: 10.0,
         useProximityScaling: true,
       );
 
-      final wideExtension = AutoPanExtension(
+      final widePlugin = AutoPanPlugin(
         edgePadding: const EdgeInsets.all(100.0),
         panAmount: 10.0,
         useProximityScaling: true,
@@ -306,12 +306,12 @@ void main() {
       // 10px from viewport edge
       // In narrow zone: 10/30 = 33% from edge
       // In wide zone: 10/100 = 10% from edge
-      final narrowSpeed = narrowExtension.calculatePanAmount(
+      final narrowSpeed = narrowPlugin.calculatePanAmount(
         30.0 - 10.0,
         edgePaddingValue: 30.0,
       );
 
-      final wideSpeed = wideExtension.calculatePanAmount(
+      final wideSpeed = widePlugin.calculatePanAmount(
         100.0 - 10.0,
         edgePaddingValue: 100.0,
       );
@@ -325,7 +325,7 @@ void main() {
 
   group('Auto-Pan Speed - Edge Cases', () {
     test('zero edge padding returns base pan amount', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
       );
@@ -335,7 +335,7 @@ void main() {
     });
 
     test('very small pan amount still works', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 0.1,
         useProximityScaling: true,
       );
@@ -345,7 +345,7 @@ void main() {
     });
 
     test('very large pan amount still works', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 1000.0,
         useProximityScaling: true,
       );
@@ -355,7 +355,7 @@ void main() {
     });
 
     test('fractional proximity calculates correctly', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
       );
@@ -389,12 +389,12 @@ void main() {
 
     test('effective speed compensates for different intervals', () {
       // Two extensions with same effective speed
-      final fastTicks = AutoPanExtension(
+      final fastTicks = AutoPanPlugin(
         panAmount: 5.0,
         panInterval: const Duration(milliseconds: 8), // 125 fps
       );
 
-      final slowTicks = AutoPanExtension(
+      final slowTicks = AutoPanPlugin(
         panAmount: 20.0,
         panInterval: const Duration(milliseconds: 32), // ~31 fps
       );
@@ -412,7 +412,7 @@ void main() {
 
   group('Auto-Pan Speed - Custom Curves', () {
     test('custom cubic curve affects speed progression', () {
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
         speedCurve: const Cubic(0.2, 0.0, 0.4, 1.0), // Custom bezier
@@ -431,7 +431,7 @@ void main() {
 
     test('step curve creates discrete speed levels', () {
       // Using a curve that approximates step function
-      final extension = AutoPanExtension(
+      final extension = AutoPanPlugin(
         panAmount: 10.0,
         useProximityScaling: true,
         speedCurve: const Threshold(0.5), // Jump at 50%
@@ -449,7 +449,7 @@ void main() {
 
   group('Auto-Pan Speed - Preset Switching', () {
     test('can switch between presets dynamically', () {
-      final extension = AutoPanExtension();
+      final extension = AutoPanPlugin();
 
       // Start with normal
       extension.useNormal();
@@ -472,7 +472,7 @@ void main() {
     });
 
     test('custom settings override presets', () {
-      final extension = AutoPanExtension()..useFast();
+      final extension = AutoPanPlugin()..useFast();
 
       // Verify fast preset
       expect(extension.panAmount, equals(20.0));

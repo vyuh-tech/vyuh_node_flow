@@ -159,7 +159,7 @@ NodeFlowTheme.light.copyWith(
     // Geometry
     bezierCurvature: 0.5,
     cornerRadius: 4.0,
-    portExtension: 20.0,
+    portPlugin: 20.0,
   ),
 )
 ```

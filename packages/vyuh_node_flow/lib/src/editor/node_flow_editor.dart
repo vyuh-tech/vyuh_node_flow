@@ -7,13 +7,13 @@ import 'package:vector_math/vector_math_64.dart' hide Colors;
 
 import '../connections/connection.dart';
 import '../connections/styles/connection_style_base.dart';
-import '../extensions/autopan/autopan_zone_debug_layer.dart';
-import '../extensions/debug/debug_extension.dart';
-import '../extensions/layer_provider.dart';
 import '../graph/coordinates.dart';
 import '../graph/viewport.dart';
 import '../nodes/node.dart';
 import '../nodes/node_shape.dart';
+import '../plugins/autopan/autopan_zone_debug_layer.dart';
+import '../plugins/debug/debug_plugin.dart';
+import '../plugins/layer_provider.dart';
 import '../ports/port.dart';
 import '../ports/port_widget.dart';
 import '../shared/spatial/graph_spatial_index.dart';
@@ -34,7 +34,7 @@ import 'themes/node_flow_theme.dart';
 import 'unbounded_widgets.dart';
 import 'viewport_animation_mixin.dart';
 
-part 'controller/node_flow_controller_extensions.dart';
+part 'controller/node_flow_controller_plugins.dart';
 part 'node_flow_editor_hit_testing.dart';
 part 'node_flow_editor_widget_handlers.dart';
 
@@ -482,17 +482,19 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     }
   }
 
-  /// Collects extension layers for the given position relative to a core layer.
+  /// Collects plugin layers for the given position relative to a core layer.
   ///
-  /// Returns all widgets from extensions that implement [LayerProvider] and
+  /// Returns all widgets from plugins that implement [LayerProvider] and
   /// have their [LayerPosition] matching the given [anchor] and [relation].
-  List<Widget> _getExtensionLayers(BuildContext context,
-      NodeFlowLayer anchor,
-      LayerRelation relation,) {
+  List<Widget> _getPluginLayers(
+    BuildContext context,
+    NodeFlowLayer anchor,
+    LayerRelation relation,
+  ) {
     final layers = <Widget>[];
-    for (final extension in widget.controller.extensions) {
-      if (extension is LayerProvider) {
-        final provider = extension as LayerProvider;
+    for (final plugin in widget.controller.plugins) {
+      if (plugin is LayerProvider) {
+        final provider = plugin as LayerProvider;
         if (provider.layerPosition.anchor == anchor &&
             provider.layerPosition.relation == relation) {
           final layer = provider.buildLayer(context);
@@ -584,7 +586,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                               clipBehavior: Clip.none,
                               children: [
                                 // Extension layers: before grid
-                                ..._getExtensionLayers(
+                                ..._getPluginLayers(
                                   context,
                                   NodeFlowLayer.grid,
                                   LayerRelation.before,
@@ -598,12 +600,12 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                 ),
 
                                 // Extension layers: after grid, before backgroundNodes
-                                ..._getExtensionLayers(
+                                ..._getPluginLayers(
                                   context,
                                   NodeFlowLayer.grid,
                                   LayerRelation.after,
                                 ),
-                                ..._getExtensionLayers(
+                                ..._getPluginLayers(
                                   context,
                                   NodeFlowLayer.backgroundNodes,
                                   LayerRelation.before,
@@ -629,12 +631,12 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                 ),
 
                                 // Extension layers: after backgroundNodes, before connections
-                                ..._getExtensionLayers(
+                                ..._getPluginLayers(
                                   context,
                                   NodeFlowLayer.backgroundNodes,
                                   LayerRelation.after,
                                 ),
-                                ..._getExtensionLayers(
+                                ..._getPluginLayers(
                                   context,
                                   NodeFlowLayer.connections,
                                   LayerRelation.before,
@@ -649,12 +651,12 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                 ),
 
                                 // Extension layers: after connections, before connectionLabels
-                                ..._getExtensionLayers(
+                                ..._getPluginLayers(
                                   context,
                                   NodeFlowLayer.connections,
                                   LayerRelation.after,
                                 ),
-                                ..._getExtensionLayers(
+                                ..._getPluginLayers(
                                   context,
                                   NodeFlowLayer.connectionLabels,
                                   LayerRelation.before,
@@ -667,12 +669,12 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                 ),
 
                                 // Extension layers: after connectionLabels, before middleNodes
-                                ..._getExtensionLayers(
+                                ..._getPluginLayers(
                                   context,
                                   NodeFlowLayer.connectionLabels,
                                   LayerRelation.after,
                                 ),
-                                ..._getExtensionLayers(
+                                ..._getPluginLayers(
                                   context,
                                   NodeFlowLayer.middleNodes,
                                   LayerRelation.before,
@@ -698,12 +700,12 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                 ),
 
                                 // Extension layers: after middleNodes, before foregroundNodes
-                                ..._getExtensionLayers(
+                                ..._getPluginLayers(
                                   context,
                                   NodeFlowLayer.middleNodes,
                                   LayerRelation.after,
                                 ),
-                                ..._getExtensionLayers(
+                                ..._getPluginLayers(
                                   context,
                                   NodeFlowLayer.foregroundNodes,
                                   LayerRelation.before,
@@ -731,7 +733,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                 // Extension layers: after foregroundNodes
                                 // Note: SnapLinesLayer and DebugLayersStack are now provided
                                 // via LayerProvider by their respective extensions
-                                ..._getExtensionLayers(
+                                ..._getPluginLayers(
                                   context,
                                   NodeFlowLayer.foregroundNodes,
                                   LayerRelation.after,
@@ -742,7 +744,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                         ),
 
                         // Extension layers: before interaction
-                        ..._getExtensionLayers(
+                        ..._getPluginLayers(
                           context,
                           NodeFlowLayer.interaction,
                           LayerRelation.before,
@@ -760,7 +762,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                         ),
 
                         // Extension layers: after interaction, before overlays
-                        ..._getExtensionLayers(
+                        ..._getPluginLayers(
                           context,
                           NodeFlowLayer.interaction,
                           LayerRelation.after,
@@ -768,7 +770,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                         // Extension layers: before overlays
                         // Note: MinimapOverlay is now provided via LayerProvider
                         // by MinimapExtension
-                        ..._getExtensionLayers(
+                        ..._getPluginLayers(
                           context,
                           NodeFlowLayer.overlays,
                           LayerRelation.before,
@@ -780,7 +782,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                         ),
 
                         // Extension layers: after overlays
-                        ..._getExtensionLayers(
+                        ..._getPluginLayers(
                           context,
                           NodeFlowLayer.overlays,
                           LayerRelation.after,

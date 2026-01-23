@@ -108,8 +108,11 @@ The `vyuh_node_flow` package exports everything you need:
 | `NodeFlowBehavior` | Presets for editor modes: `design`, `preview`, `inspect`, `present` |
 | `NodeFlowEvents` | Event callbacks for nodes, ports, connections, viewport, and annotations |
 
-::: tip Extensions
-Additional features like **minimap**, **autopan**, **debug overlays**, **level-of-detail (LOD)**, and **statistics** are managed via **Extensions**. Most extensions take direct parameters (e.g., `MinimapExtension`, `DebugExtension`, `LodExtension`), while `AutoPanExtension` accepts an `AutoPanConfig` object. See the [Configuration](/docs/concepts/configuration) guide for details.
+::: tip Plugins
+Additional features like **minimap**, **autopan**, **debug overlays**, **level-of-detail (LOD)**, and **statistics** are
+managed via **Plugins**. Most plugins take direct parameters (e.g., `MinimapPlugin`, `DebugPlugin`, `LodPlugin`), while
+`AutoPanPlugin` accepts an `AutoPanConfig` object. See the [Configuration](/docs/concepts/configuration) guide for
+details.
 :::
 
 ### Core Data Models
@@ -138,8 +141,9 @@ Additional features like **minimap**, **autopan**, **debug overlays**, **level-o
 | `CursorTheme` | Mouse cursors |
 | `ResizerTheme` | Resize handles |
 
-::: tip Extension Themes
-Themes for extensions like `MinimapTheme` and `DebugTheme` are configured via their respective extensions (e.g., `MinimapExtension`), not directly on `NodeFlowTheme`.
+::: tip Plugin Themes
+Themes for plugins like `MinimapTheme` and `DebugTheme` are configured via their respective plugins (e.g.,
+`MinimapPlugin`), not directly on `NodeFlowTheme`.
 :::
 
 ### Visual Customization

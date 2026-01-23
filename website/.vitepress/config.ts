@@ -177,7 +177,7 @@ export default defineConfig({
                         {text: 'Nodes', link: '/docs/concepts/nodes'},
                         {text: 'Ports', link: '/docs/concepts/ports'},
                         {text: 'Connections', link: '/docs/concepts/connections'},
-                        {text: 'Extensions', link: '/docs/concepts/extensions'},
+                        {text: 'Plugins', link: '/docs/concepts/plugins'},
                     ],
                 },
                 {
@@ -204,13 +204,14 @@ export default defineConfig({
                     ],
                 },
                 {
-                    text: 'Extensions',
+                    text: 'Plugins',
                     items: [
-                        {text: 'Minimap', link: '/docs/extensions/minimap'},
-                        {text: 'AutoPan', link: '/docs/extensions/autopan'},
-                        {text: 'Level of Detail (LOD)', link: '/docs/extensions/lod'},
-                        {text: 'Debug', link: '/docs/extensions/debug'},
-                        {text: 'Stats', link: '/docs/extensions/stats'},
+                        {text: 'Minimap', link: '/docs/plugins/minimap'},
+                        {text: 'AutoPan', link: '/docs/plugins/autopan'},
+                        {text: 'Snap', link: '/docs/plugins/snap'},
+                        {text: 'Level of Detail (LOD)', link: '/docs/plugins/lod'},
+                        {text: 'Debug', link: '/docs/plugins/debug'},
+                        {text: 'Stats', link: '/docs/plugins/stats'},
                     ],
                 },
                 {

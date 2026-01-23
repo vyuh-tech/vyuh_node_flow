@@ -39,9 +39,9 @@ class MathValidator {
           level: ValidationLevel.info,
           title: 'Get Started',
           message:
-          'Add nodes from the toolbox to begin building your expression.',
+              'Add nodes from the toolbox to begin building your expression.',
           suggestion:
-          'Start by adding a Number node, then connect it to an Operator.',
+              'Start by adding a Number node, then connect it to an Operator.',
         ),
       );
       return messages;
@@ -50,7 +50,7 @@ class MathValidator {
     final nodeIds = controller.nodes.keys.toSet();
     final validConnections = controller.connections.where(
       (c) =>
-      nodeIds.contains(c.sourceNodeId) && nodeIds.contains(c.targetNodeId),
+          nodeIds.contains(c.sourceNodeId) && nodeIds.contains(c.targetNodeId),
     );
 
     for (final nodeEntry in controller.nodes.entries) {
@@ -116,8 +116,7 @@ class MathValidator {
     final hasConnectedResult = resultNodes.any((resultNode) {
       final inputPortId = MathPortIds.input(resultNode.id);
       return validConnections.any(
-            (c) =>
-        c.targetNodeId == resultNode.id && c.targetPortId == inputPortId,
+        (c) => c.targetNodeId == resultNode.id && c.targetPortId == inputPortId,
       );
     });
 
@@ -126,7 +125,7 @@ class MathValidator {
         level: ValidationLevel.info,
         title: 'Get Started',
         message:
-        'Click on "Number" in the toolbox to add a number node and start building your expression.',
+            'Click on "Number" in the toolbox to add a number node and start building your expression.',
       );
     }
 
@@ -135,7 +134,7 @@ class MathValidator {
         level: ValidationLevel.info,
         title: 'Add an Operator or Function',
         message:
-        'Add an Operator or Function node from the toolbox to perform calculations.',
+            'Add an Operator or Function node from the toolbox to perform calculations.',
       );
     }
 
@@ -144,7 +143,7 @@ class MathValidator {
         level: ValidationLevel.info,
         title: 'Add a Result Node',
         message:
-        'Add a Result node from the toolbox to see the final calculation result.',
+            'Add a Result node from the toolbox to see the final calculation result.',
       );
     }
 
@@ -153,7 +152,7 @@ class MathValidator {
         level: ValidationLevel.info,
         title: 'Connect to Result',
         message:
-        'Connect an operator or function output to the Result node to see the calculation.',
+            'Connect an operator or function output to the Result node to see the calculation.',
       );
     }
 
@@ -162,7 +161,7 @@ class MathValidator {
       level: ValidationLevel.info,
       title: 'Expression Complete',
       message:
-      'Your expression is complete! Try adding more nodes to build complex calculations.',
+          'Your expression is complete! Try adding more nodes to build complex calculations.',
     );
   }
 
@@ -191,9 +190,9 @@ class MathValidator {
           level: ValidationLevel.warning,
           title: 'Operator Needs Inputs',
           message:
-          'This operator requires 2 inputs (A and B). Connect number nodes to both input ports.',
+              'This operator requires 2 inputs (A and B). Connect number nodes to both input ports.',
           suggestion:
-          'Connect two Number nodes: one to port A (top) and one to port B (bottom).',
+              'Connect two Number nodes: one to port A (top) and one to port B (bottom).',
           nodeId: nodeId,
         ),
       );
@@ -203,9 +202,9 @@ class MathValidator {
           level: ValidationLevel.warning,
           title: 'Operator Missing Input A',
           message:
-          'Operator needs input A (top port). Connect a number or operator output.',
+              'Operator needs input A (top port). Connect a number or operator output.',
           suggestion:
-          'Connect a Number node or another Operator\'s output to the top input port.',
+              'Connect a Number node or another Operator\'s output to the top input port.',
           nodeId: nodeId,
         ),
       );
@@ -215,9 +214,9 @@ class MathValidator {
           level: ValidationLevel.warning,
           title: 'Operator Missing Input B',
           message:
-          'Operator needs input B (bottom port). Connect a number or operator output.',
+              'Operator needs input B (bottom port). Connect a number or operator output.',
           suggestion:
-          'Connect a Number node or another Operator\'s output to the bottom input port.',
+              'Connect a Number node or another Operator\'s output to the bottom input port.',
           nodeId: nodeId,
         ),
       );
@@ -239,7 +238,7 @@ class MathValidator {
             level: ValidationLevel.info,
             title: 'Connect to Result',
             message:
-            'Connect the output to a Result node to see the calculation result.',
+                'Connect the output to a Result node to see the calculation result.',
             nodeId: nodeId,
           ),
         );
@@ -279,9 +278,9 @@ class MathValidator {
           level: ValidationLevel.warning,
           title: 'Function Needs Input',
           message:
-          '${data.function.symbol}() function requires an input value.',
+              '${data.function.symbol}() function requires an input value.',
           suggestion:
-          'Connect a Number node or Operator output to the function input.',
+              'Connect a Number node or Operator output to the function input.',
           nodeId: nodeId,
         ),
       );
@@ -302,7 +301,7 @@ class MathValidator {
             level: ValidationLevel.info,
             title: 'Connect to Result',
             message:
-            'Connect the output to a Result node to see the calculation result.',
+                'Connect the output to a Result node to see the calculation result.',
             nodeId: nodeId,
           ),
         );
@@ -340,7 +339,7 @@ class MathValidator {
           title: 'Result Node Unconnected',
           message: 'Connect an operator or function output to see the result.',
           suggestion:
-          'Connect the output port of an Operator or Function to this Result node.',
+              'Connect the output port of an Operator or Function to this Result node.',
           nodeId: nodeId,
         ),
       );
@@ -366,7 +365,7 @@ class MathValidator {
     final hasOutput = validConnections
         .where(
           (c) => c.sourceNodeId == nodeId && c.sourcePortId == outputPortId,
-    )
+        )
         .isNotEmpty;
 
     if (!hasOutput) {
@@ -376,7 +375,7 @@ class MathValidator {
           title: 'Number Node Unused',
           message: 'This number node isn\'t connected to anything.',
           suggestion:
-          'Connect its output to an Operator or Function input to use it in calculations.',
+              'Connect its output to an Operator or Function input to use it in calculations.',
           nodeId: nodeId,
         ),
       );
@@ -390,13 +389,10 @@ class MathValidator {
     final nodes = controller.nodes.values.map((n) => n.data).toList();
     final connections = controller.connections.toList();
 
-    final hasCycle = MathEvaluator
-        .evaluate(
+    final hasCycle = MathEvaluator.evaluate(
       nodes,
       connections,
-    )
-        .values
-        .any((r) => r.hasError && r.error == 'Cycle detected');
+    ).values.any((r) => r.hasError && r.error == 'Cycle detected');
 
     if (hasCycle) {
       messages.add(
@@ -404,9 +400,9 @@ class MathValidator {
           level: ValidationLevel.error,
           title: 'Cycle Detected',
           message:
-          'Your graph contains a circular dependency. Remove the circular connection.',
+              'Your graph contains a circular dependency. Remove the circular connection.',
           suggestion:
-          'Find and remove the connection that creates a loop in your graph.',
+              'Find and remove the connection that creates a loop in your graph.',
         ),
       );
     }
@@ -452,8 +448,8 @@ class MathValidator {
 
       // Get all connections from this node's output port
       final outputConnections = validConnections.where(
-            (c) =>
-        c.sourceNodeId == currentNodeId &&
+        (c) =>
+            c.sourceNodeId == currentNodeId &&
             c.sourcePortId == nodeOutputPortId,
       );
 
@@ -469,8 +465,7 @@ class MathValidator {
 
     // Start DFS from all nodes connected to the source node's output
     final outputConnections = validConnections.where(
-          (c) =>
-      c.sourceNodeId == sourceNodeId && c.sourcePortId == outputPortId,
+      (c) => c.sourceNodeId == sourceNodeId && c.sourcePortId == outputPortId,
     );
 
     for (final conn in outputConnections) {

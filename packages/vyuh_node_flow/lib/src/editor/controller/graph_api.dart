@@ -272,7 +272,8 @@ extension GraphApi<T, C> on NodeFlowController<T, C> {
   /// ```dart
   /// final connections = controller.getConnectionsInBounds(selectionRect);
   /// ```
-  List<Connection<C>> getConnectionsInBounds(Rect bounds, {
+  List<Connection<C>> getConnectionsInBounds(
+    Rect bounds, {
     String? excludeNodeId,
   }) {
     // Use spatial index for O(log n) candidate filtering
@@ -326,7 +327,8 @@ extension GraphApi<T, C> on NodeFlowController<T, C> {
   ///   excludeNodeId: draggedNode.id,
   /// );
   /// ```
-  Connection<C>? getFirstConnectionInBounds(Rect bounds, {
+  Connection<C>? getFirstConnectionInBounds(
+    Rect bounds, {
     String? excludeNodeId,
   }) {
     // Use spatial index for O(log n) candidate filtering

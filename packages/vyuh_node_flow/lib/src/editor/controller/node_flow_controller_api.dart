@@ -556,30 +556,31 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
   ///
   /// This enables alignment snapping to take priority on specific axes
   /// while still applying grid snap to the remaining axes.
-  Offset _applyGridSnapPerAxis(Offset position, {
+  Offset _applyGridSnapPerAxis(
+    Offset position, {
     bool skipX = false,
     bool skipY = false,
   }) {
-    // Get snap extension and grid delegate
-    SnapExtension? snapExt;
+    // Get snap plugin and grid delegate
+    SnapPlugin? snapPlugin;
     GridSnapDelegate? gridDelegate;
     final delegate = _snapDelegate;
-    if (delegate is SnapExtension) {
-      snapExt = delegate;
+    if (delegate is SnapPlugin) {
+      snapPlugin = delegate;
       gridDelegate = delegate.gridSnapDelegate;
     } else if (delegate is GridSnapDelegate) {
       gridDelegate = delegate;
     }
 
-    // Fall back to extension registry (for unit tests without initController)
+    // Fall back to plugin registry (for unit tests without initController)
     if (gridDelegate == null) {
-      snapExt = _config.extensionRegistry.get<SnapExtension>();
-      gridDelegate = snapExt?.gridSnapDelegate;
+      snapPlugin = _config.pluginRegistry.get<SnapPlugin>();
+      gridDelegate = snapPlugin?.gridSnapDelegate;
     }
 
-    // If no grid delegate or snap extension not enabled, return unchanged
+    // If no grid delegate or snap plugin not enabled, return unchanged
     if (gridDelegate == null) return position;
-    if (snapExt != null && !snapExt.enabled) return position;
+    if (snapPlugin != null && !snapPlugin.enabled) return position;
 
     final grid = gridDelegate.gridSize;
     final snappedX = skipX ? position.dx : (position.dx / grid).round() * grid;

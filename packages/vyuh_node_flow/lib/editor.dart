@@ -10,4 +10,4 @@ export 'src/editor/node_flow_scope.dart';
 export 'src/editor/node_flow_viewer.dart';
 export 'src/editor/resizer_widget.dart' show ResizeHandle;
 export 'src/editor/snap_delegate.dart';
-export 'src/extensions/lod/lod.dart';
+export 'src/plugins/lod/lod.dart';

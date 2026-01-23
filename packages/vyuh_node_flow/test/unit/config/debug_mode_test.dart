@@ -1,9 +1,9 @@
-/// Unit tests for the DebugMode enum and DebugExtension functionality.
+/// Unit tests for the DebugMode enum and DebugPlugin functionality.
 ///
 /// Tests cover:
 /// - DebugMode enum values and helper properties
 /// - DebugMode helper methods (isEnabled, showSpatialIndex, showAutoPanZone)
-/// - DebugExtension operations (toggle, set, cycle)
+/// - DebugPlugin operations (toggle, set, cycle)
 /// - Observable debug mode behavior
 @Tags(['unit'])
 library;
@@ -123,54 +123,54 @@ void main() {
   });
 
   // ===========================================================================
-  // DebugExtension - Constructor
+  // DebugPlugin - Constructor
   // ===========================================================================
 
-  group('DebugExtension - Constructor', () {
+  group('DebugPlugin - Constructor', () {
     test('defaults to DebugMode.none', () {
-      final ext = DebugExtension();
+      final ext = DebugPlugin();
 
       expect(ext.mode, equals(DebugMode.none));
     });
 
     test('accepts mode parameter', () {
-      final ext = DebugExtension(mode: DebugMode.all);
+      final ext = DebugPlugin(mode: DebugMode.all);
 
       expect(ext.mode, equals(DebugMode.all));
     });
 
     test('accepts spatialIndex debug mode', () {
-      final ext = DebugExtension(mode: DebugMode.spatialIndex);
+      final ext = DebugPlugin(mode: DebugMode.spatialIndex);
 
       expect(ext.mode, equals(DebugMode.spatialIndex));
     });
 
     test('accepts autoPanZone debug mode', () {
-      final ext = DebugExtension(mode: DebugMode.autoPanZone);
+      final ext = DebugPlugin(mode: DebugMode.autoPanZone);
 
       expect(ext.mode, equals(DebugMode.autoPanZone));
     });
 
     test('has correct id', () {
-      final ext = DebugExtension();
+      final ext = DebugPlugin();
 
       expect(ext.id, equals('debug'));
     });
 
     test('mode returns current mode', () {
-      final ext = DebugExtension(mode: DebugMode.all);
+      final ext = DebugPlugin(mode: DebugMode.all);
 
       expect(ext.mode, equals(DebugMode.all));
     });
   });
 
   // ===========================================================================
-  // DebugExtension - toggle
+  // DebugPlugin - toggle
   // ===========================================================================
 
-  group('DebugExtension - toggle', () {
+  group('DebugPlugin - toggle', () {
     test('toggles from none to all', () {
-      final ext = DebugExtension(mode: DebugMode.none);
+      final ext = DebugPlugin(mode: DebugMode.none);
 
       ext.toggle();
 
@@ -178,7 +178,7 @@ void main() {
     });
 
     test('toggles from all to none', () {
-      final ext = DebugExtension(mode: DebugMode.all);
+      final ext = DebugPlugin(mode: DebugMode.all);
 
       ext.toggle();
 
@@ -186,7 +186,7 @@ void main() {
     });
 
     test('toggles from spatialIndex to none', () {
-      final ext = DebugExtension(mode: DebugMode.spatialIndex);
+      final ext = DebugPlugin(mode: DebugMode.spatialIndex);
 
       ext.toggle();
 
@@ -194,7 +194,7 @@ void main() {
     });
 
     test('toggles from autoPanZone to none', () {
-      final ext = DebugExtension(mode: DebugMode.autoPanZone);
+      final ext = DebugPlugin(mode: DebugMode.autoPanZone);
 
       ext.toggle();
 
@@ -203,12 +203,12 @@ void main() {
   });
 
   // ===========================================================================
-  // DebugExtension - setMode
+  // DebugPlugin - setMode
   // ===========================================================================
 
-  group('DebugExtension - setMode', () {
+  group('DebugPlugin - setMode', () {
     test('sets specific debug mode', () {
-      final ext = DebugExtension(mode: DebugMode.none);
+      final ext = DebugPlugin(mode: DebugMode.none);
 
       ext.setMode(DebugMode.spatialIndex);
 
@@ -216,7 +216,7 @@ void main() {
     });
 
     test('can set to same mode', () {
-      final ext = DebugExtension(mode: DebugMode.all);
+      final ext = DebugPlugin(mode: DebugMode.all);
 
       ext.setMode(DebugMode.all);
 
@@ -224,7 +224,7 @@ void main() {
     });
 
     test('can set each debug mode value', () {
-      final ext = DebugExtension();
+      final ext = DebugPlugin();
 
       for (final mode in DebugMode.values) {
         ext.setMode(mode);
@@ -234,12 +234,12 @@ void main() {
   });
 
   // ===========================================================================
-  // DebugExtension - cycle
+  // DebugPlugin - cycle
   // ===========================================================================
 
-  group('DebugExtension - cycle', () {
+  group('DebugPlugin - cycle', () {
     test('cycles through all modes in order', () {
-      final ext = DebugExtension(mode: DebugMode.none);
+      final ext = DebugPlugin(mode: DebugMode.none);
 
       // none -> all
       ext.cycle();
@@ -260,7 +260,7 @@ void main() {
 
     test('completes full cycle starting from any mode', () {
       for (final startMode in DebugMode.values) {
-        final ext = DebugExtension(mode: startMode);
+        final ext = DebugPlugin(mode: startMode);
 
         // Cycle through all 4 modes to get back to start
         ext.cycle();
@@ -278,12 +278,12 @@ void main() {
   });
 
   // ===========================================================================
-  // DebugExtension - Convenience Methods
+  // DebugPlugin - Convenience Methods
   // ===========================================================================
 
-  group('DebugExtension - Convenience Methods', () {
+  group('DebugPlugin - Convenience Methods', () {
     test('showAll sets mode to all', () {
-      final ext = DebugExtension(mode: DebugMode.none);
+      final ext = DebugPlugin(mode: DebugMode.none);
 
       ext.showAll();
 
@@ -291,7 +291,7 @@ void main() {
     });
 
     test('hide sets mode to none', () {
-      final ext = DebugExtension(mode: DebugMode.all);
+      final ext = DebugPlugin(mode: DebugMode.all);
 
       ext.hide();
 
@@ -300,12 +300,12 @@ void main() {
   });
 
   // ===========================================================================
-  // DebugExtension - Reactive Getters
+  // DebugPlugin - Reactive Getters
   // ===========================================================================
 
-  group('DebugExtension - Reactive Getters', () {
+  group('DebugPlugin - Reactive Getters', () {
     test('isEnabled reflects current mode', () {
-      final ext = DebugExtension(mode: DebugMode.none);
+      final ext = DebugPlugin(mode: DebugMode.none);
       expect(ext.isEnabled, isFalse);
 
       ext.setMode(DebugMode.all);
@@ -319,7 +319,7 @@ void main() {
     });
 
     test('showSpatialIndex reflects current mode', () {
-      final ext = DebugExtension(mode: DebugMode.none);
+      final ext = DebugPlugin(mode: DebugMode.none);
       expect(ext.showSpatialIndex, isFalse);
 
       ext.setMode(DebugMode.all);
@@ -333,7 +333,7 @@ void main() {
     });
 
     test('showAutoPanZone reflects current mode', () {
-      final ext = DebugExtension(mode: DebugMode.none);
+      final ext = DebugPlugin(mode: DebugMode.none);
       expect(ext.showAutoPanZone, isFalse);
 
       ext.setMode(DebugMode.all);
@@ -348,15 +348,15 @@ void main() {
   });
 
   // ===========================================================================
-  // Integration - DebugExtension with Config
+  // Integration - DebugPlugin with Config
   // ===========================================================================
 
-  group('DebugExtension - Integration with NodeFlowConfig', () {
+  group('DebugPlugin - Integration with NodeFlowConfig', () {
     test('can be added to extensions list', () {
-      final debugExt = DebugExtension(mode: DebugMode.all);
-      final config = NodeFlowConfig(extensions: [debugExt]);
+      final debugExt = DebugPlugin(mode: DebugMode.all);
+      final config = NodeFlowConfig(plugins: [debugExt]);
 
-      final retrieved = config.extensionRegistry.get<DebugExtension>();
+      final retrieved = config.pluginRegistry.get<DebugPlugin>();
       expect(retrieved, isNotNull);
       expect(retrieved!.mode, equals(DebugMode.all));
     });
@@ -364,21 +364,21 @@ void main() {
     test('is included in default extensions', () {
       final config = NodeFlowConfig();
 
-      final debugExt = config.extensionRegistry.get<DebugExtension>();
+      final debugExt = config.pluginRegistry.get<DebugPlugin>();
       expect(debugExt, isNotNull);
       expect(debugExt!.mode, equals(DebugMode.none));
     });
 
     test('can override default extension', () {
-      final customDebug = DebugExtension(mode: DebugMode.spatialIndex);
+      final customDebug = DebugPlugin(mode: DebugMode.spatialIndex);
       final config = NodeFlowConfig(
-        extensions: [
+        plugins: [
           customDebug,
           // Other default extensions would go here...
         ],
       );
 
-      final retrieved = config.extensionRegistry.get<DebugExtension>();
+      final retrieved = config.pluginRegistry.get<DebugPlugin>();
       expect(retrieved, isNotNull);
       expect(retrieved!.mode, equals(DebugMode.spatialIndex));
     });

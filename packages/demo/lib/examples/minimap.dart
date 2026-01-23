@@ -21,17 +21,15 @@ class _MinimapExampleState extends State<MinimapExample> {
     super.initState();
     _controller = NodeFlowController<Map<String, dynamic>, dynamic>(
       config: NodeFlowConfig(
-        extensions: [
-          MinimapExtension(
+        plugins: [
+          MinimapPlugin(
             visible: true,
             interactive: true,
             position: MinimapPosition.bottomRight,
             theme: MinimapTheme.light,
           ),
-          StatsExtension(),
-          ...NodeFlowConfig.defaultExtensions().where(
-            (e) => e is! MinimapExtension,
-          ),
+          StatsPlugin(),
+          ...NodeFlowConfig.defaultPlugins().where((e) => e is! MinimapPlugin),
         ],
       ),
     );

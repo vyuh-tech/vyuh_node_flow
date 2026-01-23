@@ -301,32 +301,32 @@ void main() {
   });
 
   // ===========================================================================
-  // Auto-Pan Extension Integration Tests
+  // Auto-Pan Plugin Integration Tests
   // ===========================================================================
 
-  group('AutoPanExtension Integration', () {
+  group('AutoPanPlugin Integration', () {
     test('controller can have autopan extension attached', () {
       final controller = createTestController();
-      final autoPan = AutoPanExtension();
+      final autoPan = AutoPanPlugin();
 
-      controller.addExtension(autoPan);
+      controller.addPlugin(autoPan);
 
-      expect(controller.hasExtension('auto-pan'), isTrue);
+      expect(controller.hasPlugin('auto-pan'), isTrue);
     });
 
     test('autopan extension is retrievable by type', () {
       final controller = createTestController();
-      final autoPan = AutoPanExtension();
+      final autoPan = AutoPanPlugin();
 
-      controller.addExtension(autoPan);
+      controller.addPlugin(autoPan);
 
-      final retrieved = controller.getExtension<AutoPanExtension>();
+      final retrieved = controller.getPlugin<AutoPanPlugin>();
       expect(retrieved, isNotNull);
       expect(retrieved, equals(autoPan));
     });
 
     test('autopan can be enabled and disabled', () {
-      final autoPan = AutoPanExtension(enabled: true);
+      final autoPan = AutoPanPlugin(enabled: true);
 
       expect(autoPan.isEnabled, isTrue);
 
@@ -338,7 +338,7 @@ void main() {
     });
 
     test('autopan presets work correctly', () {
-      final autoPan = AutoPanExtension();
+      final autoPan = AutoPanPlugin();
 
       autoPan.useNormal();
       expect(autoPan.panAmount, equals(10.0));
@@ -354,7 +354,7 @@ void main() {
     });
 
     test('autopan can toggle state', () {
-      final autoPan = AutoPanExtension(enabled: true);
+      final autoPan = AutoPanPlugin(enabled: true);
 
       expect(autoPan.isEnabled, isTrue);
 
@@ -366,7 +366,7 @@ void main() {
     });
 
     test('autopan can have custom configuration', () {
-      final autoPan = AutoPanExtension(
+      final autoPan = AutoPanPlugin(
         enabled: true,
         panAmount: 15.0,
         edgePadding: const EdgeInsets.all(40.0),
@@ -378,7 +378,7 @@ void main() {
     });
 
     test('individual setters update settings', () {
-      final autoPan = AutoPanExtension();
+      final autoPan = AutoPanPlugin();
 
       autoPan.setPanAmount(25.0);
       autoPan.setEdgePadding(const EdgeInsets.all(75.0));
@@ -388,54 +388,54 @@ void main() {
     });
 
     test('extension ID is auto-pan', () {
-      final autoPan = AutoPanExtension();
+      final autoPan = AutoPanPlugin();
       expect(autoPan.id, equals('auto-pan'));
     });
   });
 
   // ===========================================================================
-  // Extension System Tests
+  // Plugin System Tests
   // ===========================================================================
 
-  group('Extension System', () {
+  group('Plugin System', () {
     test('cannot add same extension twice', () {
       final controller = createTestController();
-      final autoPan = AutoPanExtension();
+      final autoPan = AutoPanPlugin();
 
-      controller.addExtension(autoPan);
+      controller.addPlugin(autoPan);
 
-      expect(() => controller.addExtension(autoPan), throwsStateError);
+      expect(() => controller.addPlugin(autoPan), throwsStateError);
     });
 
-    test('removeExtension removes by ID', () {
+    test('removePlugin removes by ID', () {
       final controller = createTestController();
-      final autoPan = AutoPanExtension();
+      final autoPan = AutoPanPlugin();
 
-      controller.addExtension(autoPan);
-      expect(controller.hasExtension('auto-pan'), isTrue);
+      controller.addPlugin(autoPan);
+      expect(controller.hasPlugin('auto-pan'), isTrue);
 
-      controller.removeExtension('auto-pan');
-      expect(controller.hasExtension('auto-pan'), isFalse);
+      controller.removePlugin('auto-pan');
+      expect(controller.hasPlugin('auto-pan'), isFalse);
     });
 
-    test('getExtension returns null for non-existent extension', () {
+    test('getPlugin returns null for non-existent extension', () {
       final controller = createTestController();
 
-      final retrieved = controller.getExtension<AutoPanExtension>();
+      final retrieved = controller.getPlugin<AutoPanPlugin>();
       expect(retrieved, isNull);
     });
 
     test('extensions getter returns list of all extensions', () {
       final controller = createTestController();
-      final autoPan = AutoPanExtension();
-      final debug = DebugExtension();
+      final autoPan = AutoPanPlugin();
+      final debug = DebugPlugin();
 
-      controller.addExtension(autoPan);
-      controller.addExtension(debug);
+      controller.addPlugin(autoPan);
+      controller.addPlugin(debug);
 
-      expect(controller.extensions, hasLength(2));
-      expect(controller.extensions, contains(autoPan));
-      expect(controller.extensions, contains(debug));
+      expect(controller.plugins, hasLength(2));
+      expect(controller.plugins, contains(autoPan));
+      expect(controller.plugins, contains(debug));
     });
   });
 

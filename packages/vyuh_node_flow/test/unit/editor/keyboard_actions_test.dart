@@ -938,21 +938,21 @@ void main() {
     });
 
     group('General Actions', () {
-      test('toggle_snapping toggles SnapExtension enabled state', () {
+      test('toggle_snapping toggles SnapPlugin enabled state', () {
         final manager = NodeFlowShortcutManager<String>();
         manager.registerActions(
           DefaultNodeFlowActions.createDefaultActions<String>(),
         );
 
-        // Create controller with SnapExtension (disabled by default)
+        // Create controller with SnapPlugin (disabled by default)
         final controller = createTestController(
           config: NodeFlowConfig(
-            extensions: [
-              SnapExtension([GridSnapDelegate(gridSize: 20.0)]),
+            plugins: [
+              SnapPlugin([GridSnapDelegate(gridSize: 20.0)]),
             ],
           ),
         );
-        final snapExt = controller.snapExtension;
+        final snapExt = controller.snap;
         expect(snapExt, isNotNull);
         final initialEnabled = snapExt!.enabled;
 

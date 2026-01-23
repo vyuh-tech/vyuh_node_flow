@@ -288,7 +288,7 @@ void main() {
   group('LOD Visibility Calculations', () {
     test('LOD extension can be attached to controller', () {
       final controller = createTestController(
-        config: NodeFlowConfig(extensions: [LodExtension(enabled: true)]),
+        config: NodeFlowConfig(plugins: [LodPlugin(enabled: true)]),
       );
 
       expect(controller.lod, isNotNull);
@@ -297,7 +297,7 @@ void main() {
 
     test('LOD defaults to showing connection lines when disabled', () {
       final controller = createTestController(
-        config: NodeFlowConfig(extensions: [LodExtension(enabled: false)]),
+        config: NodeFlowConfig(plugins: [LodPlugin(enabled: false)]),
       );
 
       expect(controller.lod, isNotNull);
@@ -306,7 +306,7 @@ void main() {
 
     test('LOD returns null when no LOD extension configured', () {
       final controller = createTestController(
-        config: NodeFlowConfig(extensions: []),
+        config: NodeFlowConfig(plugins: []),
       );
 
       expect(controller.lod, isNull);
@@ -314,7 +314,7 @@ void main() {
 
     test('showConnectionEndpoints depends on LOD state', () {
       final controller = createTestController(
-        config: NodeFlowConfig(extensions: [LodExtension(enabled: false)]),
+        config: NodeFlowConfig(plugins: [LodPlugin(enabled: false)]),
       );
 
       expect(controller.lod!.showConnectionEndpoints, isTrue);

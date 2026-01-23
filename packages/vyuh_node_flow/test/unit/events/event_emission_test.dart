@@ -13,7 +13,7 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 import '../../helpers/test_factories.dart';
 
 /// Test extension that captures events for verification.
-class EventCaptureExtension extends NodeFlowExtension {
+class EventCapturePlugin extends NodeFlowPlugin {
   @override
   String get id => 'event-capture';
 
@@ -38,13 +38,13 @@ class EventCaptureExtension extends NodeFlowExtension {
 
 void main() {
   late NodeFlowController<String, dynamic> controller;
-  late EventCaptureExtension captureExtension;
+  late EventCapturePlugin capturePlugin;
 
   setUp(() {
     resetTestCounters();
-    captureExtension = EventCaptureExtension();
+    capturePlugin = EventCapturePlugin();
     controller = createTestController();
-    controller.addExtension(captureExtension);
+    controller.addPlugin(capturePlugin);
   });
 
   tearDown(() {
@@ -64,7 +64,7 @@ void main() {
 
       controller.startNodeDrag('node1');
 
-      final events = captureExtension.eventsOfType<NodeDragStarted>();
+      final events = capturePlugin.eventsOfType<NodeDragStarted>();
       expect(events.length, equals(1));
       expect(events.first.nodeIds, contains('node1'));
     });
@@ -81,7 +81,7 @@ void main() {
 
       controller.startNodeDrag('node1');
 
-      final events = captureExtension.eventsOfType<NodeDragStarted>();
+      final events = capturePlugin.eventsOfType<NodeDragStarted>();
       expect(events.length, equals(1));
       expect(events.first.nodeIds, containsAll(['node1', 'node2']));
     });
@@ -95,11 +95,11 @@ void main() {
 
       controller.startNodeDrag('node1');
       controller.moveNodeDrag(const Offset(50, 50));
-      captureExtension.clear(); // Clear previous events
+      capturePlugin.clear(); // Clear previous events
 
       controller.endNodeDrag();
 
-      final events = captureExtension.eventsOfType<NodeDragEnded>();
+      final events = capturePlugin.eventsOfType<NodeDragEnded>();
       expect(events.length, equals(1));
       expect(events.first.nodeIds, contains('node1'));
     });
@@ -113,11 +113,11 @@ void main() {
 
       controller.startNodeDrag('node1');
       controller.moveNodeDrag(const Offset(50, 50));
-      captureExtension.clear();
+      capturePlugin.clear();
 
       controller.endNodeDrag();
 
-      final events = captureExtension.eventsOfType<NodeDragEnded>();
+      final events = capturePlugin.eventsOfType<NodeDragEnded>();
       expect(events.length, equals(1));
       expect(
         events.first.originalPositions['node1'],
@@ -142,11 +142,11 @@ void main() {
 
       controller.startNodeDrag('node1');
       controller.moveNodeDrag(const Offset(50, 50));
-      captureExtension.clear();
+      capturePlugin.clear();
 
       controller.endNodeDrag();
 
-      final events = captureExtension.eventsOfType<NodeDragEnded>();
+      final events = capturePlugin.eventsOfType<NodeDragEnded>();
       expect(events.length, equals(1));
       expect(
         events.first.originalPositions['node1'],
@@ -166,8 +166,8 @@ void main() {
       controller.moveNodeDrag(const Offset(100, 100));
       controller.endNodeDrag();
 
-      final startEvents = captureExtension.eventsOfType<NodeDragStarted>();
-      final endEvents = captureExtension.eventsOfType<NodeDragEnded>();
+      final startEvents = capturePlugin.eventsOfType<NodeDragStarted>();
+      final endEvents = capturePlugin.eventsOfType<NodeDragEnded>();
 
       expect(startEvents.length, equals(1));
       expect(endEvents.length, equals(1));
@@ -177,7 +177,7 @@ void main() {
       // End drag without starting
       controller.endNodeDrag();
 
-      final events = captureExtension.eventsOfType<NodeDragEnded>();
+      final events = capturePlugin.eventsOfType<NodeDragEnded>();
       expect(events, isEmpty);
     });
   });
@@ -202,7 +202,7 @@ void main() {
         const Offset(200, 150),
       );
 
-      final events = captureExtension.eventsOfType<ResizeStarted>();
+      final events = capturePlugin.eventsOfType<ResizeStarted>();
       expect(events.length, equals(1));
       expect(events.first.nodeId, equals('group1'));
       expect(events.first.initialSize, equals(const Size(200, 150)));
@@ -223,11 +223,11 @@ void main() {
         const Offset(200, 150),
       );
       controller.updateResize(const Offset(250, 200));
-      captureExtension.clear();
+      capturePlugin.clear();
 
       controller.endResize();
 
-      final events = captureExtension.eventsOfType<ResizeEnded>();
+      final events = capturePlugin.eventsOfType<ResizeEnded>();
       expect(events.length, equals(1));
       expect(events.first.nodeId, equals('group1'));
     });
@@ -247,11 +247,11 @@ void main() {
         const Offset(200, 150),
       );
       controller.updateResize(const Offset(250, 200));
-      captureExtension.clear();
+      capturePlugin.clear();
 
       controller.endResize();
 
-      final events = captureExtension.eventsOfType<ResizeEnded>();
+      final events = capturePlugin.eventsOfType<ResizeEnded>();
       expect(events.length, equals(1));
       expect(events.first.initialSize, equals(const Size(200, 150)));
       // Final size depends on resize logic, just verify it's different
@@ -275,8 +275,8 @@ void main() {
       controller.updateResize(const Offset(250, 200));
       controller.endResize();
 
-      final startEvents = captureExtension.eventsOfType<ResizeStarted>();
-      final endEvents = captureExtension.eventsOfType<ResizeEnded>();
+      final startEvents = capturePlugin.eventsOfType<ResizeStarted>();
+      final endEvents = capturePlugin.eventsOfType<ResizeEnded>();
 
       expect(startEvents.length, equals(1));
       expect(endEvents.length, equals(1));
@@ -292,7 +292,7 @@ void main() {
 
       controller.addNode(node);
 
-      final events = captureExtension.eventsOfType<NodeAdded>();
+      final events = capturePlugin.eventsOfType<NodeAdded>();
       expect(events.length, equals(1));
       expect(events.first.node.id, equals('node1'));
     });
@@ -300,11 +300,11 @@ void main() {
     test('emits NodeRemoved when node is removed', () {
       final node = createTestNode(id: 'node1');
       controller.addNode(node);
-      captureExtension.clear();
+      capturePlugin.clear();
 
       controller.removeNode('node1');
 
-      final events = captureExtension.eventsOfType<NodeRemoved>();
+      final events = capturePlugin.eventsOfType<NodeRemoved>();
       expect(events.length, equals(1));
       expect(events.first.node.id, equals('node1'));
     });
@@ -323,7 +323,7 @@ void main() {
       );
       controller.addNode(source);
       controller.addNode(target);
-      captureExtension.clear();
+      capturePlugin.clear();
 
       final connection = createTestConnection(
         sourceNodeId: 'source',
@@ -333,7 +333,7 @@ void main() {
       );
       controller.addConnection(connection);
 
-      final events = captureExtension.eventsOfType<ConnectionAdded>();
+      final events = capturePlugin.eventsOfType<ConnectionAdded>();
       expect(events.length, equals(1));
       expect(events.first.connection.sourceNodeId, equals('source'));
       expect(events.first.connection.targetNodeId, equals('target'));
@@ -357,11 +357,11 @@ void main() {
         targetPortId: 'in1',
       );
       controller.addConnection(connection);
-      captureExtension.clear();
+      capturePlugin.clear();
 
       controller.removeConnection('conn1');
 
-      final events = captureExtension.eventsOfType<ConnectionRemoved>();
+      final events = capturePlugin.eventsOfType<ConnectionRemoved>();
       expect(events.length, equals(1));
       expect(events.first.connection.id, equals('conn1'));
     });
@@ -377,11 +377,11 @@ void main() {
         position: const Offset(100, 100),
       );
       controller.addNode(node);
-      captureExtension.clear();
+      capturePlugin.clear();
 
       controller.setNodePosition('node1', const Offset(200, 200));
 
-      final events = captureExtension.eventsOfType<NodeMoved>();
+      final events = capturePlugin.eventsOfType<NodeMoved>();
       expect(events.length, equals(1));
       expect(events.first.node.id, equals('node1'));
       expect(events.first.previousPosition, equals(const Offset(100, 100)));
@@ -396,11 +396,11 @@ void main() {
         data: 'test',
       );
       controller.addNode(node);
-      captureExtension.clear();
+      capturePlugin.clear();
 
       controller.setNodeSize('group1', const Size(300, 250));
 
-      final events = captureExtension.eventsOfType<NodeResized>();
+      final events = capturePlugin.eventsOfType<NodeResized>();
       expect(events.length, equals(1));
       expect(events.first.node.id, equals('group1'));
       expect(events.first.previousSize, equals(const Size(200, 150)));
@@ -419,11 +419,11 @@ void main() {
       controller.addNode(node2);
       controller.selectNode('node1');
       controller.selectNode('node2', toggle: true);
-      captureExtension.clear();
+      capturePlugin.clear();
 
       controller.moveSelectedNodes(const Offset(50, 50));
 
-      final events = captureExtension.eventsOfType<NodeMoved>();
+      final events = capturePlugin.eventsOfType<NodeMoved>();
       expect(events.length, equals(2));
     });
   });

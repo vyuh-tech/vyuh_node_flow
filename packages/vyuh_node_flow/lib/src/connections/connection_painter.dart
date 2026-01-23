@@ -22,9 +22,8 @@ class ConnectionPainter {
     required NodeFlowTheme theme,
     required ConnectionPathCache pathCache,
     this.nodeShape,
-  })
-      : _theme = theme,
-        _pathCache = pathCache;
+  }) : _theme = theme,
+       _pathCache = pathCache;
 
   NodeFlowTheme _theme;
 

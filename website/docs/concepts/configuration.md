@@ -1,11 +1,12 @@
 ---
 title: Configuration
-description: Configure editor behavior with NodeFlowConfig and extensions
+description: Configure editor behavior with NodeFlowConfig and plugins
 ---
 
 # Configuration
 
-Node Flow uses a configuration system with two components: `NodeFlowConfig` for core behavioral settings and an extension system for features like minimap, autopan, and debug visualization.
+Node Flow uses a configuration system with two components: `NodeFlowConfig` for core behavioral settings and an plugin
+system for features like minimap, autopan, and debug visualization.
 
 ## NodeFlowConfig
 
@@ -22,36 +23,36 @@ NodeFlowConfig({
   double minZoom = 0.5,
   double maxZoom = 2.0,
   bool showAttribution = true,
-  List<NodeFlowExtension>? extensions,
+  List<NodeFlowPlugin>? plugins,
 })
 ```
 
 ### Properties
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `snapToGrid` | `Observable<bool>` | `false` | Snap node positions to grid when dragging |
-| `snapAnnotationsToGrid` | `Observable<bool>` | `false` | Snap annotation positions to grid |
-| `gridSize` | `Observable<double>` | `20.0` | Grid cell size in pixels for snapping |
-| `portSnapDistance` | `Observable<double>` | `8.0` | Distance threshold for port snapping during connection |
-| `minZoom` | `Observable<double>` | `0.5` | Minimum zoom level (0.5 = 50%) |
-| `maxZoom` | `Observable<double>` | `2.0` | Maximum zoom level (2.0 = 200%) |
-| `showAttribution` | `bool` | `true` | Whether to show the attribution label |
-| `extensions` | `List<NodeFlowExtension>?` | default extensions | Extensions for minimap, autopan, debug, etc. |
+| Property                | Type                    | Default         | Description                                            |
+|-------------------------|-------------------------|-----------------|--------------------------------------------------------|
+| `snapToGrid`            | `Observable<bool>`      | `false`         | Snap node positions to grid when dragging              |
+| `snapAnnotationsToGrid` | `Observable<bool>`      | `false`         | Snap annotation positions to grid                      |
+| `gridSize`              | `Observable<double>`    | `20.0`          | Grid cell size in pixels for snapping                  |
+| `portSnapDistance`      | `Observable<double>`    | `8.0`           | Distance threshold for port snapping during connection |
+| `minZoom`               | `Observable<double>`    | `0.5`           | Minimum zoom level (0.5 = 50%)                         |
+| `maxZoom`               | `Observable<double>`    | `2.0`           | Maximum zoom level (2.0 = 200%)                        |
+| `showAttribution`       | `bool`                  | `true`          | Whether to show the attribution label                  |
+| `plugins`               | `List<NodeFlowPlugin>?` | default plugins | Plugins for minimap, autopan, debug, etc.              |
 
 ::: details Snap-to-Grid Behavior
 Split-screen animation: left side shows free-form node dragging (smooth movement), right side shows snap-to-grid enabled (nodes jump to grid intersections). Visual grid overlay shows the 20px grid cells.
 :::
 
-### Default Extensions
+### Default Plugins
 
-If no extensions are provided, the following defaults are used:
+If no plugins are provided, the following defaults are used:
 
-- `AutoPanExtension` - autopan near viewport edges (enabled by default)
-- `DebugExtension` - debug overlays (disabled by default)
-- `LodExtension` - level of detail (disabled by default)
-- `MinimapExtension` - minimap overlay
-- `StatsExtension` - performance statistics display (disabled by default)
+- `AutoPanPlugin` - autopan near viewport edges (enabled by default)
+- `DebugPlugin` - debug overlays (disabled by default)
+- `LodPlugin` - level of detail (disabled by default)
+- `MinimapPlugin` - minimap overlay
+- `StatsPlugin` - performance statistics display (disabled by default)
 
 ### Basic Usage
 
@@ -61,9 +62,9 @@ final controller = NodeFlowController<MyData, dynamic>(
   config: NodeFlowConfig(
     snapToGrid: true,
     gridSize: 20.0,
-    extensions: [
-      MinimapExtension(visible: true),
-      AutoPanExtension(),
+    plugins: [
+      MinimapPlugin(visible: true),
+      AutoPanPlugin(),
     ],
   ),
 );
@@ -103,8 +104,8 @@ controller.config.toggleNodeSnapping();
 controller.config.toggleAnnotationSnapping();
 ```
 
-```dart [Extension Access]
-// Access extensions via controller
+```dart [Plugin Access]
+// Access plugins via controller
 controller.minimap?.toggle();
 controller.minimap?.setPosition(MinimapPosition.topRight);
 
@@ -117,18 +118,18 @@ controller.debug?.setMode(DebugMode.spatialIndex);
 
 :::
 
-## AutoPanExtension
+## AutoPanPlugin
 
-The `AutoPanExtension` manages automatic viewport panning when dragging elements near the edges of the viewport.
+The `AutoPanPlugin` manages automatic viewport panning when dragging elements near the edges of the viewport.
 
 ### How Autopan Works
 
 When you drag an element near the edge of the viewport, the canvas automatically pans to reveal more space. This allows seamless dragging across large canvases without manually panning.
 
-### AutoPanExtension Constructor
+### AutoPanPlugin Constructor
 
 ```dart
-AutoPanExtension({
+AutoPanPlugin({
   bool enabled = true,
   EdgeInsets edgePadding = const EdgeInsets.all(50.0),
   double panAmount = 10.0,
@@ -151,14 +152,14 @@ AutoPanExtension({
 
 ### Preset Configurations
 
-AutoPanExtension provides three preset methods for common use cases:
+AutoPanPlugin provides three preset methods for common use cases:
 
 ::: code-group
 
 ```dart [Normal]
 // Balanced settings for most use cases (default)
-final extension = AutoPanExtension();
-extension.useNormal();
+final plugin = AutoPanPlugin();
+plugin.useNormal();
 // Sets:
 //   edgePadding: EdgeInsets.all(50.0)
 //   panAmount: 10.0
@@ -167,8 +168,8 @@ extension.useNormal();
 
 ```dart [Fast]
 // Faster panning for large canvases
-final extension = AutoPanExtension();
-extension.useFast();
+final plugin = AutoPanPlugin();
+plugin.useFast();
 // Sets:
 //   edgePadding: EdgeInsets.all(60.0)
 //   panAmount: 20.0
@@ -177,8 +178,8 @@ extension.useFast();
 
 ```dart [Precise]
 // Slower, more controlled panning
-final extension = AutoPanExtension();
-extension.usePrecise();
+final plugin = AutoPanPlugin();
+plugin.usePrecise();
 // Sets:
 //   edgePadding: EdgeInsets.all(30.0)
 //   panAmount: 5.0
@@ -190,7 +191,7 @@ extension.usePrecise();
 You can specify different padding for each edge:
 
 ```dart
-AutoPanExtension(
+AutoPanPlugin(
   edgePadding: EdgeInsets.only(
     left: 50.0,
     right: 50.0,
@@ -206,7 +207,7 @@ AutoPanExtension(
 Enable proximity scaling for gradual speed increase as the pointer approaches the edge:
 
 ```dart
-AutoPanExtension(
+AutoPanPlugin(
   edgePadding: EdgeInsets.all(50.0),
   panAmount: 15.0,
   useProximityScaling: true,
@@ -224,17 +225,17 @@ Available curves:
 ```dart [Disabling Autopan]
 // Option 1: Disable in constructor
 NodeFlowConfig(
-  extensions: [
-    AutoPanExtension(enabled: false),
+  plugins: [
+    AutoPanPlugin(enabled: false),
   ],
 )
 
-// Option 2: Disable at runtime via extension
+// Option 2: Disable at runtime via plugin
 controller.autoPan?.disable();
 ```
 
 ```dart [Checking Autopan State]
-// Access via controller extension
+// Access via controller plugin
 if (controller.autoPan?.isEnabled ?? false) {
   // Autopan is active
 }
@@ -269,16 +270,16 @@ controller.autoPan?.disable();
 controller.autoPan?.toggle();
 ```
 
-## DebugExtension
+## DebugPlugin
 
-The `DebugExtension` provides debug visualization overlays for understanding internal editor state.
+The `DebugPlugin` provides debug visualization overlays for understanding internal editor state.
 
-Enable debug mode via extension configuration:
+Enable debug mode via plugin configuration:
 
 ```dart
 NodeFlowConfig(
-  extensions: [
-    DebugExtension(mode: DebugMode.all),
+  plugins: [
+    DebugPlugin(mode: DebugMode.all),
   ],
 )
 ```
@@ -296,7 +297,7 @@ Debug mode shows:
 - **Spatial index grid**: Visualization of the spatial partitioning used for hit testing
 - **Autopan edge zones**: Highlighted areas where autopan activates
 
-Toggle at runtime via extension:
+Toggle at runtime via plugin:
 
 ```dart
 // Toggle between none and all
@@ -342,20 +343,20 @@ class _ConfigurableEditorState extends State<ConfigurableEditor> {
         // Port connection snapping
         portSnapDistance: 12.0,
 
-        // Extensions for additional features
-        extensions: [
+        // Plugins for additional features
+        plugins: [
           // Minimap with custom settings
-          MinimapExtension(
+          MinimapPlugin(
             visible: true,
             interactive: true,
             position: MinimapPosition.bottomRight,
           ),
 
           // Autopan enabled with default settings
-          AutoPanExtension(),
+          AutoPanPlugin(),
 
           // Debug visualization (disabled by default)
-          DebugExtension(mode: DebugMode.none),
+          DebugPlugin(mode: DebugMode.none),
         ],
       ),
     );
@@ -411,5 +412,5 @@ class _ConfigurableEditorState extends State<ConfigurableEditor> {
 ## See Also
 
 - [NodeFlowEditor](/docs/components/node-flow-editor) - Main editor widget
-- [Minimap](/docs/extensions/minimap) - Minimap component
+- [Minimap](/docs/plugins/minimap) - Minimap component
 - [Theming](/docs/theming/overview) - Visual customization

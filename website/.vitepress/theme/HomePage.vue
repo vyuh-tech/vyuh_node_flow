@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { Icon } from '@iconify/vue';
+import {computed} from 'vue';
+import {Icon} from '@iconify/vue';
 import Badge from './components/Badge.vue';
 import BentoGrid from './components/BentoGrid.vue';
 import CtaButton from './components/CtaButton.vue';
@@ -168,8 +168,8 @@ const capabilities = [
   },
   {
     icon: 'ph:puzzle-piece-fill',
-    title: 'Extension System',
-    desc: 'Modular architecture with plug-and-play extensions for adding features without modifying core.',
+    title: 'Plugin System',
+    desc: 'Modular architecture with plug-and-play plugins for adding features without modifying core.',
     color: 'blue' as const,
   },
   {

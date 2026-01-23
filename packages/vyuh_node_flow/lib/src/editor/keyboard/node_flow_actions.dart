@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../extensions/minimap/minimap_extension.dart';
-import '../../extensions/snap/snap_extension.dart';
+import '../../plugins/minimap/minimap_plugin.dart';
+import '../../plugins/snap/snap_plugin.dart';
 import '../controller/node_flow_controller.dart';
 
 /// Base class for actions that can be triggered in the node flow editor.
@@ -1222,10 +1222,10 @@ class _ToggleSnappingAction<T> extends NodeFlowAction<T> {
     NodeFlowController<T, dynamic> controller,
     BuildContext? context,
   ) {
-    // Toggle snapping via SnapExtension master switch
-    final snapExtension = controller.snapExtension;
-    if (snapExtension != null) {
-      snapExtension.toggle();
+    // Toggle snapping via SnapPlugin master switch
+    final snapPlugin = controller.snap;
+    if (snapPlugin != null) {
+      snapPlugin.toggle();
     }
     return true;
   }

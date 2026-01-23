@@ -16,7 +16,7 @@ Vyuh Node Flow provides a comprehensive theming system that allows you to custom
 The `NodeFlowTheme` is the main configuration object:
 
 ```dart
-class NodeFlowTheme extends ThemeExtension<NodeFlowTheme> {
+class NodeFlowTheme extends ThemePlugin<NodeFlowTheme> {
   final NodeTheme nodeTheme;
   final ConnectionTheme connectionTheme;
   final ConnectionTheme temporaryConnectionTheme;
@@ -128,7 +128,7 @@ connectionTheme: ConnectionTheme(
   endpointBorderWidth: 0.0,
   bezierCurvature: 0.5,
   cornerRadius: 4.0,
-  portExtension: 20.0,
+  portPlugin: 20.0,
   backEdgeGap: 20.0,
   hitTolerance: 8.0,
 )

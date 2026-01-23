@@ -8,7 +8,7 @@ import '../../connections/connection.dart';
 import '../../connections/connection_label.dart';
 import '../../connections/label_theme.dart';
 import '../../connections/styles/label_calculator.dart';
-import '../../extensions/lod/lod_extension.dart';
+import '../../plugins/lod/lod_plugin.dart';
 import '../controller/node_flow_controller.dart';
 import '../themes/node_flow_theme.dart';
 import '../unbounded_widgets.dart';

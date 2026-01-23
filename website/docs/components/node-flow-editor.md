@@ -262,7 +262,7 @@ portBuilder: (context, node, port, isOutput, isConnected) {
 
   return PortWidget(
     port: port,
-    theme: Theme.of(context).extension<NodeFlowTheme>()!.portTheme,
+    theme: Theme.of(context).plugin<NodeFlowTheme>()!.portTheme,
     isConnected: isConnected,
     color: color,
   );
@@ -637,6 +637,6 @@ See [Keyboard Shortcuts](/docs/advanced/keyboard-shortcuts) for the complete lis
 ## See Also
 
 - [NodeFlowViewer](/docs/components/node-flow-viewer) - Read-only view
-- [NodeFlowMinimap](/docs/extensions/minimap) - Overview minimap
+- [NodeFlowMinimap](/docs/plugins/minimap) - Overview minimap
 - [Configuration](/docs/concepts/configuration) - NodeFlowConfig and AutoPanConfig
 - [Theming](/docs/theming/overview) - Customization guide

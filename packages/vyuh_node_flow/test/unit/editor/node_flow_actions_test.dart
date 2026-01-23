@@ -955,7 +955,7 @@ void main() {
 
     test('execute returns false when minimap extension not registered', () {
       final controller = createTestController(
-        config: NodeFlowConfig(extensions: []),
+        config: NodeFlowConfig(plugins: []),
       );
 
       final actions = DefaultNodeFlowActions.createDefaultActions<String>();
@@ -969,17 +969,17 @@ void main() {
       final controller = createTestController();
 
       // Add minimap extension
-      final minimapExtension = MinimapExtension(visible: false);
-      controller.addExtension(minimapExtension);
+      final minimapPlugin = MinimapPlugin(visible: false);
+      controller.addPlugin(minimapPlugin);
 
-      expect(minimapExtension.isVisible, isFalse);
+      expect(minimapPlugin.isVisible, isFalse);
 
       final actions = DefaultNodeFlowActions.createDefaultActions<String>();
       final toggleMinimap = actions.firstWhere((a) => a.id == 'toggle_minimap');
       final result = toggleMinimap.execute(controller, null);
 
       expect(result, isTrue);
-      expect(minimapExtension.isVisible, isTrue);
+      expect(minimapPlugin.isVisible, isTrue);
     });
   });
 
@@ -995,16 +995,16 @@ void main() {
       expect(toggleSnapping.category, equals('Edit'));
     });
 
-    test('execute toggles SnapExtension enabled state', () {
-      // Create controller with SnapExtension (disabled by default)
+    test('execute toggles SnapPlugin enabled state', () {
+      // Create controller with SnapPlugin (disabled by default)
       final controller = createTestController(
         config: NodeFlowConfig(
-          extensions: [
-            SnapExtension([GridSnapDelegate(gridSize: 20.0)]),
+          plugins: [
+            SnapPlugin([GridSnapDelegate(gridSize: 20.0)]),
           ],
         ),
       );
-      final snapExt = controller.snapExtension;
+      final snapExt = controller.snap;
       expect(snapExt, isNotNull);
       expect(snapExt!.enabled, isFalse);
 

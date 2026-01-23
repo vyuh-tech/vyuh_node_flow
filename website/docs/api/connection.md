@@ -378,7 +378,7 @@ NodeFlowTheme(
     endpointBorderWidth: 0,
     bezierCurvature: 0.5,
     cornerRadius: 4.0,
-    portExtension: 20.0,
+    portPlugin: 20.0,
     backEdgeGap: 20.0,
     hitTolerance: 8.0,
     startGap: 0.0,

@@ -346,11 +346,11 @@ void main() {
     test('works with custom config', () {
       final node = createTestNode(id: 'node-1');
       final config = NodeFlowConfig(
-        extensions: [
-          SnapExtension([GridSnapDelegate(gridSize: 50.0)], enabled: true),
-          DebugExtension(mode: DebugMode.all),
-          ...NodeFlowConfig.defaultExtensions().where(
-                (e) => e is! DebugExtension && e is! SnapExtension,
+        plugins: [
+          SnapPlugin([GridSnapDelegate(gridSize: 50.0)], enabled: true),
+          DebugPlugin(mode: DebugMode.all),
+          ...NodeFlowConfig.defaultPlugins().where(
+            (e) => e is! DebugPlugin && e is! SnapPlugin,
           ),
         ],
       );
@@ -361,8 +361,8 @@ void main() {
       );
 
       expect(controller.nodeCount, equals(1));
-      expect(controller.snapExtension?.enabled, isTrue);
-      expect(controller.snapExtension?.gridSnapDelegate?.gridSize, equals(50));
+      expect(controller.snap?.enabled, isTrue);
+      expect(controller.snap?.gridSnapDelegate?.gridSize, equals(50));
       expect(controller.debug!.mode, equals(DebugMode.all));
     });
 
@@ -390,11 +390,9 @@ void main() {
         createTestConnection(sourceNodeId: 'node-a', targetNodeId: 'node-b'),
       ];
       final config = NodeFlowConfig(
-        extensions: [
-          DebugExtension(mode: DebugMode.spatialIndex),
-          ...NodeFlowConfig.defaultExtensions().where(
-            (e) => e is! DebugExtension,
-          ),
+        plugins: [
+          DebugPlugin(mode: DebugMode.spatialIndex),
+          ...NodeFlowConfig.defaultPlugins().where((e) => e is! DebugPlugin),
         ],
       );
       final viewport = GraphViewport(x: 50, y: 50, zoom: 0.8);

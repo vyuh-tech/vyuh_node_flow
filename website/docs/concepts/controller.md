@@ -296,7 +296,8 @@ final screenPos = controller.graphToScreen(GraphPosition(graphPoint));
 final graphPos = controller.globalToGraph(ScreenPosition(globalPoint));
 ```
 
-The library uses typed extension types (`ScreenPosition`, `GraphPosition`, `ScreenOffset`, `GraphOffset`, etc.) to prevent accidentally mixing coordinate spaces.
+The library uses typed plugin types (`ScreenPosition`, `GraphPosition`, `ScreenOffset`, `GraphOffset`, etc.) to prevent
+accidentally mixing coordinate spaces.
 
 ## Alignment Operations
 
@@ -409,12 +410,12 @@ Observer(
 )
 ```
 
-## Custom Controller Extensions
+## Custom Controller Plugins
 
 Extend the controller with your own methods:
 
 ```dart
-extension MyControllerExtensions on NodeFlowController<MyData, dynamic> {
+extension MyControllerPlugins on NodeFlowController<MyData, dynamic> {
   void addProcessNode(Offset position, String label) {
     final node = Node<MyData>(
       id: 'proc-${DateTime.now().millisecondsSinceEpoch}',

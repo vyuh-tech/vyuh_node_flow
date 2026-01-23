@@ -66,7 +66,7 @@ class InteractionState {
   /// multiple potential connections (e.g., source→drop point, drop point→target).
   /// Rendered with the same styling as temporary connections.
   final ObservableList<TemporaryConnection> previewConnections =
-  ObservableList<TemporaryConnection>();
+      ObservableList<TemporaryConnection>();
 
   /// Observable starting point of a selection rectangle in graph coordinates.
   ///

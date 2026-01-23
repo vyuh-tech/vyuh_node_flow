@@ -24,7 +24,7 @@ class MathStatsWidget extends StatelessWidget {
 }
 
 class _MathStatsSection extends StatelessWidget {
-  final StatsExtension stats;
+  final StatsPlugin stats;
 
   const _MathStatsSection({required this.stats});
 

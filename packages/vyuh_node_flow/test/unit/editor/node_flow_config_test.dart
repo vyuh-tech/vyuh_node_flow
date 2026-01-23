@@ -6,12 +6,12 @@
 /// - Reactive property updates via update() method
 /// - copyWith() method for creating modified copies
 /// - defaultConfig factory
-/// - defaultExtensions() static method
-/// - Extension registry integration
+/// - defaultPlugins() static method
+/// - Plugin registry integration
 /// - Edge cases and boundary conditions
 ///
 /// Note: Grid snapping functionality (snapToGrid, gridSize, toggleSnapping,
-/// snapToGridIfEnabled) has been moved to SnapExtension with GridSnapDelegate.
+/// snapToGridIfEnabled) has been moved to SnapPlugin with GridSnapDelegate.
 /// See snap_delegate_test.dart for grid snapping tests.
 @Tags(['unit'])
 library;
@@ -56,20 +56,20 @@ void main() {
       expect(config.showAttribution, isTrue);
     });
 
-    test('extensionRegistry is populated with default extensions', () {
+    test('pluginRegistry is populated with default extensions', () {
       final config = NodeFlowConfig();
 
-      expect(config.extensionRegistry.get<AutoPanExtension>(), isNotNull);
-      expect(config.extensionRegistry.get<DebugExtension>(), isNotNull);
-      expect(config.extensionRegistry.get<LodExtension>(), isNotNull);
-      expect(config.extensionRegistry.get<MinimapExtension>(), isNotNull);
-      expect(config.extensionRegistry.get<StatsExtension>(), isNotNull);
-      expect(config.extensionRegistry.get<SnapExtension>(), isNotNull);
+      expect(config.pluginRegistry.get<AutoPanPlugin>(), isNotNull);
+      expect(config.pluginRegistry.get<DebugPlugin>(), isNotNull);
+      expect(config.pluginRegistry.get<LodPlugin>(), isNotNull);
+      expect(config.pluginRegistry.get<MinimapPlugin>(), isNotNull);
+      expect(config.pluginRegistry.get<StatsPlugin>(), isNotNull);
+      expect(config.pluginRegistry.get<SnapPlugin>(), isNotNull);
     });
 
-    test('default SnapExtension contains GridSnapDelegate', () {
+    test('default SnapPlugin contains GridSnapDelegate', () {
       final config = NodeFlowConfig();
-      final snapExt = config.extensionRegistry.get<SnapExtension>();
+      final snapExt = config.pluginRegistry.get<SnapPlugin>();
 
       expect(snapExt, isNotNull);
       expect(snapExt!.enabled, isFalse); // Disabled by default
@@ -130,37 +130,37 @@ void main() {
     });
 
     test('accepts custom extensions list', () {
-      final customDebug = DebugExtension(mode: DebugMode.all);
-      final config = NodeFlowConfig(extensions: [customDebug]);
+      final customDebug = DebugPlugin(mode: DebugMode.all);
+      final config = NodeFlowConfig(plugins: [customDebug]);
 
-      expect(config.extensionRegistry.get<DebugExtension>(), isNotNull);
+      expect(config.pluginRegistry.get<DebugPlugin>(), isNotNull);
       expect(
-        config.extensionRegistry.get<DebugExtension>()!.mode,
+        config.pluginRegistry.get<DebugPlugin>()!.mode,
         equals(DebugMode.all),
       );
       // Only the provided extension should be in the registry
-      expect(config.extensionRegistry.get<MinimapExtension>(), isNull);
+      expect(config.pluginRegistry.get<MinimapPlugin>(), isNull);
     });
 
     test('accepts empty extensions list', () {
-      final config = NodeFlowConfig(extensions: []);
+      final config = NodeFlowConfig(plugins: []);
 
-      expect(config.extensionRegistry.get<AutoPanExtension>(), isNull);
-      expect(config.extensionRegistry.get<DebugExtension>(), isNull);
-      expect(config.extensionRegistry.get<LodExtension>(), isNull);
-      expect(config.extensionRegistry.get<MinimapExtension>(), isNull);
-      expect(config.extensionRegistry.get<StatsExtension>(), isNull);
-      expect(config.extensionRegistry.get<SnapExtension>(), isNull);
+      expect(config.pluginRegistry.get<AutoPanPlugin>(), isNull);
+      expect(config.pluginRegistry.get<DebugPlugin>(), isNull);
+      expect(config.pluginRegistry.get<LodPlugin>(), isNull);
+      expect(config.pluginRegistry.get<MinimapPlugin>(), isNull);
+      expect(config.pluginRegistry.get<StatsPlugin>(), isNull);
+      expect(config.pluginRegistry.get<SnapPlugin>(), isNull);
     });
 
-    test('accepts custom SnapExtension with configured GridSnapDelegate', () {
+    test('accepts custom SnapPlugin with configured GridSnapDelegate', () {
       final config = NodeFlowConfig(
-        extensions: [
-          SnapExtension([GridSnapDelegate(gridSize: 50.0)], enabled: true),
+        plugins: [
+          SnapPlugin([GridSnapDelegate(gridSize: 50.0)], enabled: true),
         ],
       );
 
-      final snapExt = config.extensionRegistry.get<SnapExtension>();
+      final snapExt = config.pluginRegistry.get<SnapPlugin>();
       expect(snapExt, isNotNull);
       expect(snapExt!.enabled, isTrue);
       expect(snapExt.gridSnapDelegate!.gridSize, equals(50.0));
@@ -348,23 +348,23 @@ void main() {
 
       // copyWith creates a new NodeFlowConfig which gets default extensions
       // since extensions parameter is not passed through copyWith
-      expect(copy.extensionRegistry.get<AutoPanExtension>(), isNotNull);
-      expect(copy.extensionRegistry.get<DebugExtension>(), isNotNull);
-      expect(copy.extensionRegistry.get<LodExtension>(), isNotNull);
-      expect(copy.extensionRegistry.get<MinimapExtension>(), isNotNull);
-      expect(copy.extensionRegistry.get<StatsExtension>(), isNotNull);
-      expect(copy.extensionRegistry.get<SnapExtension>(), isNotNull);
+      expect(copy.pluginRegistry.get<AutoPanPlugin>(), isNotNull);
+      expect(copy.pluginRegistry.get<DebugPlugin>(), isNotNull);
+      expect(copy.pluginRegistry.get<LodPlugin>(), isNotNull);
+      expect(copy.pluginRegistry.get<MinimapPlugin>(), isNotNull);
+      expect(copy.pluginRegistry.get<StatsPlugin>(), isNotNull);
+      expect(copy.pluginRegistry.get<SnapPlugin>(), isNotNull);
     });
 
     test('copy does not preserve custom extensions', () {
       // Note: copyWith does not preserve extensions - it creates fresh defaults
-      final customDebug = DebugExtension(mode: DebugMode.all);
-      final config = NodeFlowConfig(extensions: [customDebug]);
+      final customDebug = DebugPlugin(mode: DebugMode.all);
+      final config = NodeFlowConfig(plugins: [customDebug]);
 
       final copy = config.copyWith();
 
       // The copy gets default extensions, not the custom ones
-      final debugExt = copy.extensionRegistry.get<DebugExtension>();
+      final debugExt = copy.pluginRegistry.get<DebugPlugin>();
       expect(debugExt, isNotNull);
       expect(debugExt!.mode, equals(DebugMode.none)); // Default, not custom
     });
@@ -394,12 +394,12 @@ void main() {
     test('has default extensions', () {
       final config = NodeFlowConfig.defaultConfig;
 
-      expect(config.extensionRegistry.get<AutoPanExtension>(), isNotNull);
-      expect(config.extensionRegistry.get<DebugExtension>(), isNotNull);
-      expect(config.extensionRegistry.get<LodExtension>(), isNotNull);
-      expect(config.extensionRegistry.get<MinimapExtension>(), isNotNull);
-      expect(config.extensionRegistry.get<StatsExtension>(), isNotNull);
-      expect(config.extensionRegistry.get<SnapExtension>(), isNotNull);
+      expect(config.pluginRegistry.get<AutoPanPlugin>(), isNotNull);
+      expect(config.pluginRegistry.get<DebugPlugin>(), isNotNull);
+      expect(config.pluginRegistry.get<LodPlugin>(), isNotNull);
+      expect(config.pluginRegistry.get<MinimapPlugin>(), isNotNull);
+      expect(config.pluginRegistry.get<StatsPlugin>(), isNotNull);
+      expect(config.pluginRegistry.get<SnapPlugin>(), isNotNull);
     });
 
     test('returns different instance each call', () {
@@ -411,102 +411,100 @@ void main() {
   });
 
   // ===========================================================================
-  // defaultExtensions Static Method
+  // defaultPlugins Static Method
   // ===========================================================================
 
-  group('NodeFlowConfig - defaultExtensions', () {
+  group('NodeFlowConfig - defaultPlugins', () {
     test('returns six extensions', () {
-      final extensions = NodeFlowConfig.defaultExtensions();
+      final extensions = NodeFlowConfig.defaultPlugins();
 
       expect(extensions, hasLength(6));
     });
 
-    test('contains AutoPanExtension', () {
-      final extensions = NodeFlowConfig.defaultExtensions();
+    test('contains AutoPanPlugin', () {
+      final extensions = NodeFlowConfig.defaultPlugins();
 
-      expect(extensions.whereType<AutoPanExtension>(), hasLength(1));
+      expect(extensions.whereType<AutoPanPlugin>(), hasLength(1));
     });
 
-    test('contains DebugExtension', () {
-      final extensions = NodeFlowConfig.defaultExtensions();
+    test('contains DebugPlugin', () {
+      final extensions = NodeFlowConfig.defaultPlugins();
 
-      expect(extensions.whereType<DebugExtension>(), hasLength(1));
+      expect(extensions.whereType<DebugPlugin>(), hasLength(1));
     });
 
-    test('contains LodExtension', () {
-      final extensions = NodeFlowConfig.defaultExtensions();
+    test('contains LodPlugin', () {
+      final extensions = NodeFlowConfig.defaultPlugins();
 
-      expect(extensions.whereType<LodExtension>(), hasLength(1));
+      expect(extensions.whereType<LodPlugin>(), hasLength(1));
     });
 
-    test('contains MinimapExtension', () {
-      final extensions = NodeFlowConfig.defaultExtensions();
+    test('contains MinimapPlugin', () {
+      final extensions = NodeFlowConfig.defaultPlugins();
 
-      expect(extensions.whereType<MinimapExtension>(), hasLength(1));
+      expect(extensions.whereType<MinimapPlugin>(), hasLength(1));
     });
 
-    test('contains StatsExtension', () {
-      final extensions = NodeFlowConfig.defaultExtensions();
+    test('contains StatsPlugin', () {
+      final extensions = NodeFlowConfig.defaultPlugins();
 
-      expect(extensions.whereType<StatsExtension>(), hasLength(1));
+      expect(extensions.whereType<StatsPlugin>(), hasLength(1));
     });
 
-    test('contains SnapExtension', () {
-      final extensions = NodeFlowConfig.defaultExtensions();
+    test('contains SnapPlugin', () {
+      final extensions = NodeFlowConfig.defaultPlugins();
 
-      expect(extensions.whereType<SnapExtension>(), hasLength(1));
+      expect(extensions.whereType<SnapPlugin>(), hasLength(1));
     });
 
     test('returns new list each call', () {
-      final extensions1 = NodeFlowConfig.defaultExtensions();
-      final extensions2 = NodeFlowConfig.defaultExtensions();
+      final extensions1 = NodeFlowConfig.defaultPlugins();
+      final extensions2 = NodeFlowConfig.defaultPlugins();
 
       expect(identical(extensions1, extensions2), isFalse);
     });
 
-    test('DebugExtension defaults to DebugMode.none', () {
-      final extensions = NodeFlowConfig.defaultExtensions();
-      final debugExt = extensions.whereType<DebugExtension>().first;
+    test('DebugPlugin defaults to DebugMode.none', () {
+      final extensions = NodeFlowConfig.defaultPlugins();
+      final debugExt = extensions.whereType<DebugPlugin>().first;
 
       expect(debugExt.mode, equals(DebugMode.none));
     });
 
-    test('MinimapExtension defaults to not visible', () {
-      final extensions = NodeFlowConfig.defaultExtensions();
-      final minimapExt = extensions.whereType<MinimapExtension>().first;
+    test('MinimapPlugin defaults to not visible', () {
+      final extensions = NodeFlowConfig.defaultPlugins();
+      final minimapExt = extensions.whereType<MinimapPlugin>().first;
 
       expect(minimapExt.isVisible, isFalse);
     });
 
-    test('SnapExtension contains GridSnapDelegate disabled by default', () {
-      final extensions = NodeFlowConfig.defaultExtensions();
-      final snapExt = extensions
-          .whereType<SnapExtension>()
-          .first;
+    test('SnapPlugin contains GridSnapDelegate disabled by default', () {
+      final extensions = NodeFlowConfig.defaultPlugins();
+      final snapExt = extensions.whereType<SnapPlugin>().first;
 
-      expect(snapExt.enabled, isFalse); // Extension disabled by default
+      expect(snapExt.enabled, isFalse); // Plugin disabled by default
       expect(snapExt.gridSnapDelegate, isNotNull);
       expect(snapExt.gridSnapDelegate!.gridSize, equals(20.0));
     });
   });
 
   // ===========================================================================
-  // Extension Registry Integration
+  // Plugin Registry Integration
   // ===========================================================================
 
-  group('NodeFlowConfig - Extension Registry', () {
-    test('extensionRegistry is accessible', () {
+  group('NodeFlowConfig - Plugin Registry', () {
+    test('pluginRegistry is accessible', () {
       final config = NodeFlowConfig();
 
-      expect(config.extensionRegistry, isNotNull);
-      expect(config.extensionRegistry, isA<ExtensionRegistry>());
+      expect(config.pluginRegistry, isNotNull);
+      expect(config.pluginRegistry, isA<PluginRegistry>());
     });
 
     test('can retrieve extensions by type', () {
       final config = NodeFlowConfig();
 
-      final minimap = config.extensionRegistry.get<MinimapExtension>();
-      final debug = config.extensionRegistry.get<DebugExtension>();
+      final minimap = config.pluginRegistry.get<MinimapPlugin>();
+      final debug = config.pluginRegistry.get<DebugPlugin>();
 
       expect(minimap, isNotNull);
       expect(debug, isNotNull);
@@ -514,28 +512,26 @@ void main() {
 
     test('can register additional extensions', () {
       final config = NodeFlowConfig();
-      final customExt = DebugExtension(mode: DebugMode.spatialIndex);
+      final customExt = DebugPlugin(mode: DebugMode.spatialIndex);
 
-      config.extensionRegistry.register(customExt);
+      config.pluginRegistry.register(customExt);
 
-      final retrieved = config.extensionRegistry.get<DebugExtension>();
+      final retrieved = config.pluginRegistry.get<DebugPlugin>();
       expect(retrieved!.mode, equals(DebugMode.spatialIndex));
     });
 
     test('custom extensions override same-id extensions', () {
-      final customDebug = DebugExtension(mode: DebugMode.all);
-      final config = NodeFlowConfig(
-        extensions: [customDebug, MinimapExtension()],
-      );
+      final customDebug = DebugPlugin(mode: DebugMode.all);
+      final config = NodeFlowConfig(plugins: [customDebug, MinimapPlugin()]);
 
-      final debugExt = config.extensionRegistry.get<DebugExtension>();
+      final debugExt = config.pluginRegistry.get<DebugPlugin>();
       expect(debugExt!.mode, equals(DebugMode.all));
     });
 
     test('extension IDs are accessible', () {
       final config = NodeFlowConfig();
 
-      final ids = config.extensionRegistry.ids.toList();
+      final ids = config.pluginRegistry.ids.toList();
 
       expect(ids, contains('auto-pan'));
       expect(ids, contains('debug'));
@@ -548,7 +544,7 @@ void main() {
     test('all extensions are accessible', () {
       final config = NodeFlowConfig();
 
-      final extensions = config.extensionRegistry.all.toList();
+      final extensions = config.pluginRegistry.all.toList();
 
       expect(extensions, hasLength(6));
     });

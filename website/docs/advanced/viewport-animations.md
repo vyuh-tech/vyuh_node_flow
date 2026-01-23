@@ -591,5 +591,5 @@ controller.panBy(Offset(100, 50));
 ## See Also
 
 - [Controller](/docs/concepts/controller) - Viewport management methods
-- [Minimap](/docs/extensions/minimap) - Click-to-navigate feature
+- [Minimap](/docs/plugins/minimap) - Click-to-navigate feature
 - [Keyboard Shortcuts](/docs/advanced/keyboard-shortcuts) - Add navigation shortcuts

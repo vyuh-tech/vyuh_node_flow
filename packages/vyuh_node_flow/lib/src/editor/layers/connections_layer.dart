@@ -3,8 +3,8 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../connections/connections_canvas.dart';
 import '../../connections/styles/connection_style_base.dart';
+import '../../plugins/lod/lod_plugin.dart';
 import '../controller/node_flow_controller.dart';
-import '../../extensions/lod/lod_extension.dart';
 import '../themes/node_flow_theme.dart';
 
 /// Connections layer widget that renders all connections between nodes
