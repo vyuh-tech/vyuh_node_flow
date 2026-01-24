@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
@@ -37,8 +36,12 @@ class NodesThumbnailLayer<T> extends StatelessWidget {
               nodes = nodes.where((n) => n.layer == layerFilter).toList();
             }
 
-            // Get selected IDs for highlighting
-            final selectedIds = controller.selectedNodeIds;
+            // Build selected IDs by checking each node's isSelected property.
+            // This creates MobX dependencies on node.selected.value - same as widget layer.
+            final selectedIds = <String>{
+              for (final node in nodes)
+                if (node.isSelected) node.id,
+            };
 
             // Get theme for default colors
             final theme = controller.theme;
@@ -71,7 +74,7 @@ class _NodesThumbnailPainter<T> extends CustomPainter {
     required this.defaultColor,
     this.selectedBorderColor,
     this.thumbnailBuilder,
-  }) : _nodeFingerprint = _computeNodeFingerprint(nodes);
+  }) : _fingerprint = _computeFingerprint(nodes, selectedIds);
 
   final List<Node<T>> nodes;
   final Set<String> selectedIds;
@@ -79,15 +82,18 @@ class _NodesThumbnailPainter<T> extends CustomPainter {
   final Color? selectedBorderColor;
   final ThumbnailBuilder<T>? thumbnailBuilder;
 
-  /// Cached fingerprint of node states for efficient shouldRepaint.
-  final int _nodeFingerprint;
+  /// Fingerprint for efficient change detection
+  final int _fingerprint;
 
-  /// Computes a fingerprint based on node IDs, positions, and sizes.
-  /// This allows efficient content-based comparison without deep equality checks.
-  static int _computeNodeFingerprint<T>(List<Node<T>> nodes) {
+  /// Computes a fingerprint based on nodes and selection state
+  static int _computeFingerprint<T>(
+    List<Node<T>> nodes,
+    Set<String> selectedIds,
+  ) {
     var hash = nodes.length;
+
     for (final node in nodes) {
-      // Combine node ID, position, and size into the hash
+      // Include all visual properties in fingerprint
       hash = Object.hash(
         hash,
         node.id,
@@ -95,8 +101,11 @@ class _NodesThumbnailPainter<T> extends CustomPainter {
         node.position.value.dy.toInt(),
         node.size.value.width.toInt(),
         node.size.value.height.toInt(),
+        node.isVisible,
+        selectedIds.contains(node.id),
       );
     }
+
     return hash;
   }
 
@@ -133,10 +142,8 @@ class _NodesThumbnailPainter<T> extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _NodesThumbnailPainter<T> oldDelegate) {
-    // Fast fingerprint check for node content changes (position, size, add/remove)
-    if (_nodeFingerprint != oldDelegate._nodeFingerprint) return true;
-    // Check selection using set equality
-    if (!setEquals(selectedIds, oldDelegate.selectedIds)) return true;
+    // Repaint when fingerprint changes (nodes, positions, visibility, or selection)
+    if (_fingerprint != oldDelegate._fingerprint) return true;
     // Check theme colors
     if (defaultColor != oldDelegate.defaultColor) return true;
     if (selectedBorderColor != oldDelegate.selectedBorderColor) return true;
