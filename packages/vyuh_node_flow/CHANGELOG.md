@@ -1,3 +1,7 @@
+## 0.26.2
+
+ - **FEAT**(node rendering): update node styles to use filled color with 25% opacity instead of outlines.
+
 ## 0.26.1
 
  - **FEAT**: improve selected node tracking and fingerprinting logic.
