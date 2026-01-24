@@ -1,3 +1,7 @@
+## 0.26.1
+
+ - **FEAT**: improve selected node tracking and fingerprinting logic.
+
 ## 0.26.0
 
  - **FEAT**(node): improve node rendering with background color and enhanced outline styling.
