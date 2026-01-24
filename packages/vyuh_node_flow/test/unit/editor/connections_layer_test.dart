@@ -182,7 +182,7 @@ void main() {
   // ===========================================================================
 
   group('ConnectionsCanvas shouldRepaint', () {
-    test('shouldRepaint always returns true', () {
+    test('shouldRepaint returns false when fingerprint and theme match', () {
       final controller = createTestController();
       final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
@@ -198,11 +198,11 @@ void main() {
         connectionPainter: painter,
       );
 
-      // shouldRepaint should always return true for MobX reactivity
-      expect(canvas1.shouldRepaint(canvas2), isTrue);
+      // shouldRepaint returns false when fingerprint and theme are identical
+      expect(canvas1.shouldRepaint(canvas2), isFalse);
     });
 
-    test('shouldRepaint returns true even with same references', () {
+    test('shouldRepaint returns false with same canvas instance', () {
       final controller = createTestController();
       final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
 
@@ -212,8 +212,8 @@ void main() {
         connectionPainter: painter,
       );
 
-      // Same canvas instance
-      expect(canvas.shouldRepaint(canvas), isTrue);
+      // Same canvas instance has same fingerprint and theme
+      expect(canvas.shouldRepaint(canvas), isFalse);
     });
 
     test('shouldRepaint returns true with different themes', () {
@@ -235,7 +235,7 @@ void main() {
       expect(canvas1.shouldRepaint(canvas2), isTrue);
     });
 
-    test('shouldRepaint returns true with different controllers', () {
+    test('shouldRepaint returns false with different empty controllers', () {
       final controller1 = createTestController();
       final controller2 = createTestController();
       final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
@@ -252,6 +252,42 @@ void main() {
         connectionPainter: painter,
       );
 
+      // Empty controllers have the same fingerprint (no connections)
+      expect(canvas1.shouldRepaint(canvas2), isFalse);
+    });
+
+    test('shouldRepaint returns true when connections change', () {
+      final controller = createTestController();
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
+
+      // Add nodes with ports for connections
+      final node1 = createTestNodeWithPorts(id: 'n1');
+      final node2 = createTestNodeWithPorts(id: 'n2');
+      controller.addNode(node1);
+      controller.addNode(node2);
+
+      final canvas1 = ConnectionsCanvas<String, dynamic>(
+        store: controller,
+        theme: NodeFlowTheme.light,
+        connectionPainter: painter,
+      );
+
+      // Add a connection to change the fingerprint
+      controller.addConnection(Connection(
+        id: 'c1',
+        sourceNodeId: 'n1',
+        sourcePortId: node1.outputPorts.first.id,
+        targetNodeId: 'n2',
+        targetPortId: node2.inputPorts.first.id,
+      ));
+
+      final canvas2 = ConnectionsCanvas<String, dynamic>(
+        store: controller,
+        theme: NodeFlowTheme.light,
+        connectionPainter: painter,
+      );
+
+      // Fingerprint changed due to new connection
       expect(canvas1.shouldRepaint(canvas2), isTrue);
     });
   });

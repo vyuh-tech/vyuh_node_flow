@@ -28,7 +28,7 @@ void main() {
         isTrue,
       ); // Kept for graph structure
       expect(visibility.showConnectionLabels, isFalse);
-      expect(visibility.showConnectionEndpoints, isFalse);
+      expect(visibility.showConnectionEndpoints, isTrue); // Kept for visibility
       expect(visibility.showResizeHandles, isFalse);
     });
 
@@ -40,7 +40,7 @@ void main() {
       expect(visibility.showPortLabels, isFalse);
       expect(visibility.showConnectionLines, isTrue);
       expect(visibility.showConnectionLabels, isFalse);
-      expect(visibility.showConnectionEndpoints, isFalse);
+      expect(visibility.showConnectionEndpoints, isTrue); // Kept for visibility
       expect(visibility.showResizeHandles, isFalse);
     });
 

@@ -95,7 +95,10 @@ void main() {
         expect(visibility.showPorts, isFalse);
         expect(visibility.showPortLabels, isFalse);
         expect(visibility.showConnectionLabels, isFalse);
-        expect(visibility.showConnectionEndpoints, isFalse);
+        expect(
+          visibility.showConnectionEndpoints,
+          isTrue,
+        ); // Kept for visibility
         expect(visibility.showResizeHandles, isFalse);
       });
 
@@ -126,7 +129,10 @@ void main() {
         expect(visibility.showPorts, isFalse);
         expect(visibility.showPortLabels, isFalse);
         expect(visibility.showConnectionLabels, isFalse);
-        expect(visibility.showConnectionEndpoints, isFalse);
+        expect(
+          visibility.showConnectionEndpoints,
+          isTrue,
+        ); // Kept for visibility
         expect(visibility.showResizeHandles, isFalse);
       });
 
@@ -371,7 +377,7 @@ void main() {
       expect(copy.showPortLabels, isFalse); // Unchanged from minimal
       expect(copy.showConnectionLines, isTrue); // Unchanged from minimal
       expect(copy.showConnectionLabels, isFalse); // Unchanged from minimal
-      expect(copy.showConnectionEndpoints, isFalse); // Unchanged from minimal
+      expect(copy.showConnectionEndpoints, isTrue); // Unchanged from minimal
       expect(copy.showResizeHandles, isTrue);
     });
 
@@ -407,7 +413,8 @@ void main() {
         showPortLabels: false,
         showConnectionLines: true,
         showConnectionLabels: false,
-        showConnectionEndpoints: false,
+        showConnectionEndpoints: true,
+        // minimal keeps endpoints visible
         showResizeHandles: false,
       );
 
@@ -426,7 +433,7 @@ void main() {
       expect(result.showPortLabels, isFalse);
       expect(result.showConnectionLines, isTrue);
       expect(result.showConnectionLabels, isFalse);
-      expect(result.showConnectionEndpoints, isFalse);
+      expect(result.showConnectionEndpoints, isTrue); // minimal keeps endpoints
       expect(result.showResizeHandles, isTrue);
     });
   });
@@ -651,7 +658,10 @@ void main() {
       expect(string, contains('showPortLabels: false'));
       expect(string, contains('showConnectionLines: true'));
       expect(string, contains('showConnectionLabels: false'));
-      expect(string, contains('showConnectionEndpoints: false'));
+      expect(
+        string,
+        contains('showConnectionEndpoints: true'),
+      ); // minimal keeps endpoints
       expect(string, contains('showResizeHandles: false'));
     });
 
