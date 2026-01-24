@@ -40,12 +40,13 @@ export 'minimap_theme.dart' show MinimapPosition;
 ///   },
 /// );
 /// ```
-typedef MinimapThumbnailBuilder = bool Function(
-  Canvas canvas,
-  Node<dynamic> node,
-  Rect bounds,
-  Color defaultColor,
-);
+typedef MinimapThumbnailBuilder =
+    bool Function(
+      Canvas canvas,
+      Node<dynamic> node,
+      Rect bounds,
+      Color defaultColor,
+    );
 
 /// Minimap plugin for managing minimap state and behavior.
 ///

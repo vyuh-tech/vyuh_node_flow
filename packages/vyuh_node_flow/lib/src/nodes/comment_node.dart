@@ -118,19 +118,16 @@ class CommentNode<T> extends Node<T> with ResizableMixin<T> {
     Color? selectedBorderColor,
     double borderRadius = 4.0,
   }) {
-    // Use the comment's own color - outline only, no fill
-    final commentColor = this.color;
+    // Use the comment's own color with 25% opacity, filled, no outline
+    final commentColor = this.color.withValues(alpha: 0.25);
     final rrect = RRect.fromRectAndRadius(
       bounds,
       Radius.circular(borderRadius),
     );
 
     final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = isSelected ? 2.0 : 1.0
-      ..color = isSelected
-          ? (selectedBorderColor ?? commentColor)
-          : commentColor;
+      ..style = PaintingStyle.fill
+      ..color = commentColor;
     canvas.drawRRect(rrect, paint);
   }
 
@@ -141,16 +138,15 @@ class CommentNode<T> extends Node<T> with ResizableMixin<T> {
     required Color defaultColor,
     double borderRadius = 2.0,
   }) {
-    // Use the comment's own color - outline only, no fill
-    final commentColor = color;
+    // Use the comment's own color with 25% opacity, filled, no outline
+    final commentColor = color.withValues(alpha: 0.25);
     final rrect = RRect.fromRectAndRadius(
       bounds,
       Radius.circular(borderRadius),
     );
 
     final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0
+      ..style = PaintingStyle.fill
       ..color = commentColor;
     canvas.drawRRect(rrect, paint);
   }

@@ -489,7 +489,10 @@ class Node<T> {
     Color? selectedBorderColor,
     double borderRadius = 4.0,
   }) {
-    final rrect = RRect.fromRectAndRadius(bounds, Radius.circular(borderRadius));
+    final rrect = RRect.fromRectAndRadius(
+      bounds,
+      Radius.circular(borderRadius),
+    );
     final paint = Paint();
 
     // Fill with background color (no alpha reduction)

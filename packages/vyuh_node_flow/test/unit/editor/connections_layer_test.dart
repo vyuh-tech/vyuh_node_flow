@@ -273,13 +273,15 @@ void main() {
       );
 
       // Add a connection to change the fingerprint
-      controller.addConnection(Connection(
-        id: 'c1',
-        sourceNodeId: 'n1',
-        sourcePortId: node1.outputPorts.first.id,
-        targetNodeId: 'n2',
-        targetPortId: node2.inputPorts.first.id,
-      ));
+      controller.addConnection(
+        Connection(
+          id: 'c1',
+          sourceNodeId: 'n1',
+          sourcePortId: node1.outputPorts.first.id,
+          targetNodeId: 'n2',
+          targetPortId: node2.inputPorts.first.id,
+        ),
+      );
 
       final canvas2 = ConnectionsCanvas<String, dynamic>(
         store: controller,

@@ -42,12 +42,8 @@ part 'node_flow_editor_widget_handlers.dart';
 ///
 /// Called for each node when rendering in thumbnail mode.
 /// Return `true` if you handled the painting, `false` to use default.
-typedef ThumbnailBuilder<T> = bool Function(
-  Canvas canvas,
-  Node<T> node,
-  Rect bounds,
-  bool isSelected,
-);
+typedef ThumbnailBuilder<T> =
+    bool Function(Canvas canvas, Node<T> node, Rect bounds, bool isSelected);
 
 /// Node flow editor widget using MobX for reactive state management.
 ///

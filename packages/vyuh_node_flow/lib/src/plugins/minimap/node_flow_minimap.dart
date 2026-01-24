@@ -336,12 +336,7 @@ class MinimapPainter<T> extends CustomPainter {
 
       // Try custom thumbnail builder first
       if (thumbnailBuilder != null) {
-        final handled = thumbnailBuilder!(
-          canvas,
-          node,
-          rect,
-          theme.nodeColor,
-        );
+        final handled = thumbnailBuilder!(canvas, node, rect, theme.nodeColor);
         if (handled) continue;
       }
 

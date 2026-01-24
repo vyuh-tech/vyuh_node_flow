@@ -487,17 +487,16 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
     Color? selectedBorderColor,
     double borderRadius = 4.0,
   }) {
-    // Use the group's own color - outline only, no fill
-    final groupColor = currentColor;
+    // Use the group's own color with 25% opacity, filled, no outline
+    final groupColor = currentColor.withValues(alpha: 0.25);
     final rrect = RRect.fromRectAndRadius(
       bounds,
       Radius.circular(borderRadius),
     );
 
     final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = isSelected ? 2.0 : 1.0
-      ..color = isSelected ? (selectedBorderColor ?? groupColor) : groupColor;
+      ..style = PaintingStyle.fill
+      ..color = groupColor;
     canvas.drawRRect(rrect, paint);
   }
 
@@ -508,16 +507,15 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
     required Color defaultColor,
     double borderRadius = 2.0,
   }) {
-    // Use the group's own color - outline only, no fill
-    final groupColor = currentColor;
+    // Use the group's own color with 25% opacity, filled, no outline
+    final groupColor = currentColor.withValues(alpha: 0.25);
     final rrect = RRect.fromRectAndRadius(
       bounds,
       Radius.circular(borderRadius),
     );
 
     final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0
+      ..style = PaintingStyle.fill
       ..color = groupColor;
     canvas.drawRRect(rrect, paint);
   }
