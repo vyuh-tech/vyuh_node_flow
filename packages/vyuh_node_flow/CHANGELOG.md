@@ -1,3 +1,7 @@
+## 0.26.0
+
+ - **FEAT**(node): improve node rendering with background color and enhanced outline styling.
+
 ## 0.25.0
 
  - **FEAT**: **BREAKING** Rename NodeFlowExtension to NodeFlowPlugin.
