@@ -51,4 +51,8 @@ const _$PortPositionEnumMap = {
   PortPosition.bottom: 'bottom',
 };
 
-const _$PortTypeEnumMap = {PortType.input: 'input', PortType.output: 'output'};
+const _$PortTypeEnumMap = {
+  PortType.input: 'input',
+  PortType.output: 'output',
+  PortType.both: 'both',
+};

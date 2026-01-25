@@ -407,20 +407,26 @@ class Node<T> {
   // ===========================================================================
 
   /// Checks if a point is within the node's rectangular bounds.
+  ///
+  /// Uses [visualPosition] for accurate hit testing against where the node
+  /// is actually rendered (which may differ from [position] due to grid snapping).
   bool containsPoint(Offset point) {
     return Rect.fromLTWH(
-      position.value.dx,
-      position.value.dy,
+      visualPosition.value.dx,
+      visualPosition.value.dy,
       size.value.width,
       size.value.height,
     ).contains(point);
   }
 
   /// Gets the node's bounding rectangle.
+  ///
+  /// Uses [visualPosition] for accurate bounds that match where the node
+  /// is actually rendered (which may differ from [position] due to grid snapping).
   Rect getBounds() {
     return Rect.fromLTWH(
-      position.value.dx,
-      position.value.dy,
+      visualPosition.value.dx,
+      visualPosition.value.dy,
       size.value.width,
       size.value.height,
     );

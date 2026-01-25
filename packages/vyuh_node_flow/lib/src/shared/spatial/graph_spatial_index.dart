@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
 import '../../connections/connection.dart';
+import '../../nodes/group_node.dart';
 import '../../nodes/node.dart';
 import '../../nodes/node_shape.dart';
 import '../../ports/port.dart';
@@ -173,13 +174,15 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
     }
 
     // Add all input ports
+    // Use port.isOutput to respect PortType (input, output, both) rather than list membership
     for (final port in node.inputPorts) {
-      addPort(port, false);
+      addPort(port, port.isOutput);
     }
 
     // Add all output ports
+    // Use port.isOutput to respect PortType (input, output, both) rather than list membership
     for (final port in node.outputPorts) {
-      addPort(port, true);
+      addPort(port, port.isOutput);
     }
 
     _nodePortIds[node.id] = portIds;
@@ -633,6 +636,10 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
   /// - Background nodes (GroupNode) never cover middle layer nodes
   /// - Only nodes that are visually on top can block port hit testing
   ///
+  /// **Special case for GroupNodes**: Member nodes (children) inside a GroupNode
+  /// do not count as "covering" the group's ports. This allows connections to
+  /// GroupNode ports (like loop iteration ports) even when body nodes are nearby.
+  ///
   /// Used to ensure that ports visually obscured by overlapping nodes are not hit.
   bool _isPointCoveredByOtherNode(Offset point, Node<T> excludeNode) {
     final nodesAtPoint = _grid
@@ -643,7 +650,18 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
         .where((node) => node.id != excludeNode.id && node.isVisible)
         .toList();
 
+    // If excludeNode is a GroupNode, get its member node IDs
+    // Member nodes should not block the group's ports
+    final Set<String>? groupMemberIds = excludeNode is GroupNode
+        ? (excludeNode as GroupNode).nodeIds
+        : null;
+
     for (final node in nodesAtPoint) {
+      // Skip member nodes of a GroupNode - they shouldn't block their parent's ports
+      if (groupMemberIds != null && groupMemberIds.contains(node.id)) {
+        continue;
+      }
+
       // Check if this node renders above the excludeNode
       final rendersAbove = _nodeRendersAbove(node, excludeNode);
       if (!rendersAbove) continue;
@@ -651,7 +669,8 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
       final shape = nodeShapeBuilder?.call(node);
 
       if (shape != null) {
-        final relativePosition = point - node.position.value;
+        // Use visualPosition for accurate hit testing against rendered position
+        final relativePosition = point - node.visualPosition.value;
         if (shape.containsPoint(relativePosition, node.size.value)) {
           return true;
         }
@@ -737,7 +756,8 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
       final shape = nodeShapeBuilder?.call(node);
 
       if (shape != null) {
-        final relativePosition = point - node.position.value;
+        // Use visualPosition for accurate hit testing against rendered position
+        final relativePosition = point - node.visualPosition.value;
         if (shape.containsPoint(relativePosition, node.size.value)) {
           return HitTestResult(nodeId: node.id, hitType: HitTarget.node);
         }

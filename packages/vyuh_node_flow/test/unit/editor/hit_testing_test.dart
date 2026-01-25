@@ -15,8 +15,8 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 import 'package:vyuh_node_flow/src/shared/spatial/graph_spatial_index.dart';
+import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../helpers/test_factories.dart';
 
@@ -1587,9 +1587,11 @@ void main() {
         );
         spatialIndex.update(node);
 
-        // Rapid position updates
+        // Rapid position updates - update both position and visualPosition
         for (var i = 0; i < 100; i++) {
-          node.position.value = Offset(i.toDouble(), i.toDouble());
+          final newPos = Offset(i.toDouble(), i.toDouble());
+          node.position.value = newPos;
+          node.setVisualPosition(newPos);
           spatialIndex.update(node);
         }
 

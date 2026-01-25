@@ -113,34 +113,50 @@ extension GroupApi<T, C> on NodeFlowController<T, C> {
   // ============================================================================
 
   /// Moves nodes by a given delta, handling position and visual position with snapping.
+  ///
+  /// If any of the nodes being moved is a GroupNode, its children are also
+  /// moved recursively. This ensures nested groups work correctly - moving a
+  /// parent group moves all descendants.
   void _moveNodesByDelta(Set<String> nodeIds, Offset delta) {
-    // Check if already moving to prevent nested calls
-    if (_isMovingGroupNodes) {
-      return;
-    }
-
     if (nodeIds.isEmpty) return;
 
-    // Temporarily disable updates to prevent cycles
+    // Set flag to prevent MobX reactions during movement
     _isMovingGroupNodes = true;
+
+    // Track nodes we've already moved to prevent infinite loops
+    final movedNodes = <String>{};
+
+    void moveRecursively(Set<String> ids) {
+      for (final nodeId in ids) {
+        // Skip if already moved
+        if (movedNodes.contains(nodeId)) continue;
+        movedNodes.add(nodeId);
+
+        final node = _nodes[nodeId];
+        if (node == null) continue;
+
+        // Move this node
+        final newPosition = node.position.value + delta;
+        node.position.value = newPosition;
+        final snappedPosition = snapToGrid(newPosition);
+        node.setVisualPosition(snappedPosition);
+
+        // If this node is a GroupNode, recursively move its children
+        if (node is GroupableMixin<T>) {
+          if (node.isGroupable && node.groupedNodeIds.isNotEmpty) {
+            moveRecursively(node.groupedNodeIds);
+          }
+        }
+      }
+    }
 
     try {
       runInAction(() {
-        for (final nodeId in nodeIds) {
-          final node = _nodes[nodeId];
-          if (node != null) {
-            final newPosition = node.position.value + delta;
-
-            // Update both position and visual position
-            node.position.value = newPosition;
-            final snappedPosition = snapToGrid(newPosition);
-            node.setVisualPosition(snappedPosition);
-          }
-        }
+        moveRecursively(nodeIds);
       });
 
       // Mark nodes dirty (deferred during drag)
-      _markNodesDirty(nodeIds);
+      _markNodesDirty(movedNodes);
     } finally {
       _isMovingGroupNodes = false;
     }

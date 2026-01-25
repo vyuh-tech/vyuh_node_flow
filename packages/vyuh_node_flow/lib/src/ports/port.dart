@@ -69,11 +69,49 @@ const Size defaultPortSize = Size(9, 9);
 /// );
 /// ```
 enum PortType {
-  /// Port can only receive connections (input port)
+  /// Port can only receive connections (input port).
+  ///
+  /// Connections can terminate at this port but cannot originate from it.
+  /// Typically used for data inputs, triggers, or signals entering a node.
   input,
 
-  /// Port can only emit connections (output port)
+  /// Port can only emit connections (output port).
+  ///
+  /// Connections can originate from this port but cannot terminate at it.
+  /// Typically used for data outputs, results, or signals leaving a node.
   output,
+
+  /// Port can both receive and emit connections (bidirectional port).
+  ///
+  /// This port type allows connections to both originate from AND terminate at
+  /// the same port. Both [isInput] and [isOutput] return `true` for this type.
+  ///
+  /// **Connection Semantics:**
+  /// - When dragging FROM this port: acts as an output (source)
+  /// - When dragging TO this port: acts as an input (target)
+  /// - A single port instance can have both incoming and outgoing connections
+  ///
+  /// **Use Cases:**
+  /// - **Loop containers**: The entry port receives external workflow connections
+  ///   while also connecting to the first body node inside the loop
+  /// - **Bidirectional data flow**: Nodes that both send and receive on the
+
+  ///   same logical channel
+  /// - **Passthrough nodes**: Where data enters and exits through a unified port
+  ///
+  /// **Example:**
+  /// ```dart
+  /// // Loop entry port that receives external connections
+  /// // and connects to first body node
+  /// Port(
+  ///   id: 'entry',
+  ///   name: 'In',
+  ///   type: PortType.both,
+  ///   position: PortPosition.left,
+  ///   multiConnections: true,
+  /// )
+  /// ```
+  both,
 }
 
 /// Represents a connection point on a node in the flow editor.
@@ -328,15 +366,15 @@ class Port extends Equatable {
 
   /// Whether this port can act as an output for connections.
   ///
-  /// Returns true if the port type is [PortType.output].
+  /// Returns true if the port type is [PortType.output] or [PortType.both].
   /// Use this to determine if connections can originate from this port.
-  bool get isOutput => type == PortType.output;
+  bool get isOutput => type == PortType.output || type == PortType.both;
 
   /// Whether this port can act as an input for connections.
   ///
-  /// Returns true if the port type is [PortType.input].
+  /// Returns true if the port type is [PortType.input] or [PortType.both].
   /// Use this to determine if connections can terminate at this port.
-  bool get isInput => type == PortType.input;
+  bool get isInput => type == PortType.input || type == PortType.both;
 
   /// Creates a copy of this port with the specified properties replaced.
   ///

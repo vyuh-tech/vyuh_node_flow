@@ -187,15 +187,19 @@ class NodeContainer<T> extends StatelessWidget {
                 ),
 
                 // Input ports (only when LOD allows and ports exist)
+                // Use port.isOutput to respect PortType (input, output, both)
+                // rather than list membership
                 if (lodVisibility.showPorts && node.inputPorts.isNotEmpty)
                   ...node.inputPorts.map(
-                    (port) => _buildPort(context, port, false),
+                    (port) => _buildPort(context, port, port.isOutput),
                   ),
 
                 // Output ports (only when LOD allows and ports exist)
+                // Use port.isOutput to respect PortType (input, output, both)
+                // rather than list membership
                 if (lodVisibility.showPorts && node.outputPorts.isNotEmpty)
                   ...node.outputPorts.map(
-                    (port) => _buildPort(context, port, true),
+                    (port) => _buildPort(context, port, port.isOutput),
                   ),
 
                 // Resize handles (shown when selected and resizable)
@@ -227,7 +231,7 @@ class NodeContainer<T> extends StatelessWidget {
   Widget _buildPort(BuildContext context, Port port, bool isOutput) {
     final theme = controller.theme ?? NodeFlowTheme.light;
     final portTheme = theme.portTheme;
-    final isConnected = _isPortConnected(port.id, isOutput);
+    final isConnected = _isPortConnected(port);
 
     // Get the visual position from the Node model
     final effectivePortSize = port.size ?? portTheme.size;
@@ -281,15 +285,26 @@ class NodeContainer<T> extends StatelessWidget {
   }
 
   /// Checks if a port is connected by examining the connections list.
-  bool _isPortConnected(String portId, bool isOutput) {
+  ///
+  /// For [PortType.both] ports, checks both source and target connections
+  /// since these ports can act as either input or output.
+  bool _isPortConnected(Port port) {
     return connections.any((connection) {
-      if (isOutput) {
-        return connection.sourceNodeId == node.id &&
-            connection.sourcePortId == portId;
-      } else {
-        return connection.targetNodeId == node.id &&
-            connection.targetPortId == portId;
+      // For bidirectional ports (PortType.both), check both directions
+      if (port.isInput && port.isOutput) {
+        return (connection.sourceNodeId == node.id &&
+                connection.sourcePortId == port.id) ||
+            (connection.targetNodeId == node.id &&
+                connection.targetPortId == port.id);
       }
+      // For output-only ports, check as source
+      if (port.isOutput) {
+        return connection.sourceNodeId == node.id &&
+            connection.sourcePortId == port.id;
+      }
+      // For input-only ports, check as target
+      return connection.targetNodeId == node.id &&
+          connection.targetPortId == port.id;
     });
   }
 }

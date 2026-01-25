@@ -29,7 +29,7 @@ Node<String> createTestNode({
   int zIndex = 0,
   bool visible = true,
 }) {
-  return Node<String>(
+  final node = Node<String>(
     id: id ?? 'node-${_nodeCounter++}',
     type: type,
     position: position,
@@ -40,6 +40,10 @@ Node<String> createTestNode({
     initialZIndex: zIndex,
     visible: visible,
   );
+  // Initialize visual position to match logical position for tests
+  // (in production, the controller calls setVisualPosition with snapping)
+  node.setVisualPosition(position);
+  return node;
 }
 
 int _nodeCounter = 1;
@@ -383,7 +387,7 @@ CommentNode<T> createTestCommentNode<T>({
   bool isVisible = true,
   bool locked = false,
 }) {
-  return CommentNode<T>(
+  final node = CommentNode<T>(
     id: id ?? 'comment-${_specialNodeCounter++}',
     position: position,
     text: text,
@@ -395,6 +399,9 @@ CommentNode<T> createTestCommentNode<T>({
     isVisible: isVisible,
     locked: locked,
   );
+  // Initialize visual position to match logical position for tests
+  node.setVisualPosition(position);
+  return node;
 }
 
 /// Creates a test group node with sensible defaults.
@@ -414,7 +421,7 @@ GroupNode<T> createTestGroupNode<T>({
   bool isVisible = true,
   bool locked = false,
 }) {
-  return GroupNode<T>(
+  final node = GroupNode<T>(
     id: id ?? 'group-${_specialNodeCounter++}',
     position: position,
     size: size,
@@ -430,6 +437,9 @@ GroupNode<T> createTestGroupNode<T>({
     isVisible: isVisible,
     locked: locked,
   );
+  // Initialize visual position to match logical position for tests
+  node.setVisualPosition(position);
+  return node;
 }
 
 int _specialNodeCounter = 1;

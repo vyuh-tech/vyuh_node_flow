@@ -131,10 +131,15 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
     // Optional ports for subflow patterns
     super.inputPorts,
     super.outputPorts,
+    // Custom widget builder for subclass rendering (e.g., LoopNode)
+    super.widgetBuilder,
+    // Override default auto-delete behavior when group becomes empty
+    bool preserveWhenEmpty = false,
   }) : _nodeIds = ObservableSet.of(nodeIds ?? {}),
        _observableBehavior = Observable(behavior),
        _observableTitle = Observable(title),
        _observableColor = Observable(color),
+       _preserveWhenEmpty = preserveWhenEmpty,
        super(
          type: 'group',
          layer: NodeRenderLayer.background,
@@ -142,6 +147,13 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
          visible: isVisible,
          selectable: true,
        );
+
+  /// Whether to preserve this group when it becomes empty.
+  ///
+  /// By default, groups with [GroupBehavior.explicit] are auto-deleted when
+  /// all member nodes are removed. Set this to `true` to prevent auto-deletion.
+  /// Useful for loop containers that should persist even without body nodes.
+  final bool _preserveWhenEmpty;
 
   final Observable<String> _observableTitle;
   final Observable<Color> _observableColor;
@@ -321,7 +333,8 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
   bool get isEmpty => behavior != GroupBehavior.bounds && _nodeIds.isEmpty;
 
   @override
-  bool get shouldRemoveWhenEmpty => behavior == GroupBehavior.explicit;
+  bool get shouldRemoveWhenEmpty =>
+      behavior == GroupBehavior.explicit && !_preserveWhenEmpty;
 
   @override
   void onChildMoved(String nodeId, Offset newPosition) {
@@ -487,8 +500,8 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
     Color? selectedBorderColor,
     double borderRadius = 4.0,
   }) {
-    // Use the group's own color with 25% opacity, filled, no outline
-    final groupColor = currentColor.withValues(alpha: 0.25);
+    // Use the group's own color with 15% opacity for subtle appearance
+    final groupColor = currentColor.withValues(alpha: 0.15);
     final rrect = RRect.fromRectAndRadius(
       bounds,
       Radius.circular(borderRadius),
@@ -507,8 +520,8 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
     required Color defaultColor,
     double borderRadius = 2.0,
   }) {
-    // Use the group's own color with 25% opacity, filled, no outline
-    final groupColor = currentColor.withValues(alpha: 0.25);
+    // Use the group's own color with 15% opacity for subtle appearance
+    final groupColor = currentColor.withValues(alpha: 0.15);
     final rrect = RRect.fromRectAndRadius(
       bounds,
       Radius.circular(borderRadius),
@@ -539,6 +552,7 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
     bool? locked,
     List<Port>? inputPorts,
     List<Port>? outputPorts,
+    NodeWidgetBuilder<T>? widgetBuilder,
   }) {
     return GroupNode<T>(
       id: id ?? this.id,
@@ -555,6 +569,7 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
       locked: locked ?? this.locked,
       inputPorts: inputPorts ?? List.from(this.inputPorts),
       outputPorts: outputPorts ?? List.from(this.outputPorts),
+      widgetBuilder: widgetBuilder ?? this.widgetBuilder,
     );
   }
 

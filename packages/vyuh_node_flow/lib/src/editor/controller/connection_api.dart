@@ -800,18 +800,6 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
       );
     }
 
-    // Cannot connect same direction ports
-    final targetIsOutput = targetNode.outputPorts.any(
-      (p) => p.id == targetPortId,
-    );
-    if (temp.isStartFromOutput == targetIsOutput) {
-      return ConnectionValidationResult.deny(
-        reason: targetIsOutput
-            ? 'Cannot connect output to output'
-            : 'Cannot connect input to input',
-      );
-    }
-
     // Get source node and port
     final sourceNode = _nodes[temp.startNodeId];
     if (sourceNode == null) {
@@ -838,6 +826,25 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
       );
     }
 
+    // Cannot connect same direction ports
+    // Use the port's actual type (isInput/isOutput) rather than which list it's in,
+    // because PortType.both ports can act as either input or output.
+    if (temp.isStartFromOutput) {
+      // Connecting from output - target must accept input
+      if (!targetPort.isInput) {
+        return const ConnectionValidationResult.deny(
+          reason: 'Cannot connect output to output',
+        );
+      }
+    } else {
+      // Connecting from input - target must accept output
+      if (!targetPort.isOutput) {
+        return const ConnectionValidationResult.deny(
+          reason: 'Cannot connect input to input',
+        );
+      }
+    }
+
     // Both ports must be connectable
     if (!sourcePort.isConnectable) {
       return const ConnectionValidationResult.deny(
@@ -850,20 +857,8 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
       );
     }
 
-    // Direction compatibility
-    if (temp.isStartFromOutput) {
-      if (!targetPort.isInput) {
-        return const ConnectionValidationResult.deny(
-          reason: 'Target port cannot receive connections',
-        );
-      }
-    } else {
-      if (!targetPort.isOutput) {
-        return const ConnectionValidationResult.deny(
-          reason: 'Target port cannot emit connections',
-        );
-      }
-    }
+    // Note: Direction compatibility is already checked above using port.isInput/isOutput
+    // which correctly handles PortType.both ports.
 
     // Determine actual source/target
     final Node<T> actualSourceNode;

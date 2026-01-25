@@ -118,8 +118,8 @@ class CommentNode<T> extends Node<T> with ResizableMixin<T> {
     Color? selectedBorderColor,
     double borderRadius = 4.0,
   }) {
-    // Use the comment's own color with 25% opacity, filled, no outline
-    final commentColor = this.color.withValues(alpha: 0.25);
+    // Use the comment's own color (not the parameter) with 15% opacity
+    final commentColor = this.color.withValues(alpha: 0.15);
     final rrect = RRect.fromRectAndRadius(
       bounds,
       Radius.circular(borderRadius),
@@ -138,8 +138,8 @@ class CommentNode<T> extends Node<T> with ResizableMixin<T> {
     required Color defaultColor,
     double borderRadius = 2.0,
   }) {
-    // Use the comment's own color with 25% opacity, filled, no outline
-    final commentColor = color.withValues(alpha: 0.25);
+    // Use the comment's own color with 15% opacity for subtle appearance
+    final commentColor = color.withValues(alpha: 0.15);
     final rrect = RRect.fromRectAndRadius(
       bounds,
       Radius.circular(borderRadius),
