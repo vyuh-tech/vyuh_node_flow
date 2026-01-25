@@ -1,3 +1,7 @@
+## 0.26.3
+
+ - **FEAT**(spatial): enhance port handling and node hit-testing.
+
 ## 0.26.2
 
  - **FEAT**(node rendering): update node styles to use filled color with 25% opacity instead of outlines.
