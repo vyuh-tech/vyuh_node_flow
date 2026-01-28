@@ -39,10 +39,11 @@ class _CallbacksExampleState extends State<CallbacksExample> {
         position: const Offset(100, 150),
         size: const Size(120, 80),
         data: {'label': 'Start'},
-        outputPorts: [
+        ports: [
           Port(
             id: 'out',
             name: 'Output',
+            type: PortType.output,
             position: PortPosition.right,
             offset: Offset(2, 40),
           ),
@@ -54,18 +55,18 @@ class _CallbacksExampleState extends State<CallbacksExample> {
         position: const Offset(300, 150),
         size: const Size(120, 80),
         data: {'label': 'Process'},
-        inputPorts: [
+        ports: [
           Port(
             id: 'in',
             name: 'Input',
+            type: PortType.input,
             position: PortPosition.left,
             offset: Offset(-2, 40),
           ),
-        ],
-        outputPorts: [
           Port(
             id: 'out',
             name: 'Output',
+            type: PortType.output,
             position: PortPosition.right,
             offset: Offset(2, 40),
           ),
@@ -77,10 +78,11 @@ class _CallbacksExampleState extends State<CallbacksExample> {
         position: const Offset(500, 150),
         size: const Size(120, 80),
         data: {'label': 'End'},
-        inputPorts: [
+        ports: [
           Port(
             id: 'in',
             name: 'Input',
+            type: PortType.input,
             position: PortPosition.left,
             offset: Offset(-2, 40),
           ),
@@ -211,10 +213,11 @@ class _CallbacksExampleState extends State<CallbacksExample> {
             position: const Offset(100, 150),
             size: const Size(120, 80),
             data: {'label': 'Start'},
-            outputPorts: [
+            ports: [
               Port(
                 id: 'out',
                 name: 'Output',
+                type: PortType.output,
                 position: PortPosition.right,
                 offset: Offset(2, 40),
               ),
@@ -228,18 +231,18 @@ class _CallbacksExampleState extends State<CallbacksExample> {
             position: const Offset(300, 150),
             size: const Size(120, 80),
             data: {'label': 'Process'},
-            inputPorts: [
+            ports: [
               Port(
                 id: 'in',
                 name: 'Input',
+                type: PortType.input,
                 position: PortPosition.left,
                 offset: Offset(-2, 40),
               ),
-            ],
-            outputPorts: [
               Port(
                 id: 'out',
                 name: 'Output',
+                type: PortType.output,
                 position: PortPosition.right,
                 offset: Offset(2, 40),
               ),
@@ -253,10 +256,11 @@ class _CallbacksExampleState extends State<CallbacksExample> {
             position: const Offset(500, 150),
             size: const Size(120, 80),
             data: {'label': 'End'},
-            inputPorts: [
+            ports: [
               Port(
                 id: 'in',
                 name: 'Input',
+                type: PortType.input,
                 position: PortPosition.left,
                 offset: Offset(-2, 40),
               ),
@@ -611,18 +615,18 @@ class _CallbacksExampleState extends State<CallbacksExample> {
                       ),
                       size: const Size(120, 80),
                       data: {'label': 'Node ${_eventCounter + 1}'},
-                      inputPorts: [
+                      ports: [
                         Port(
                           id: 'in',
                           name: 'Input',
+                          type: PortType.input,
                           position: PortPosition.left,
                           offset: Offset(0, 40),
                         ),
-                      ],
-                      outputPorts: [
                         Port(
                           id: 'out',
                           name: 'Output',
+                          type: PortType.output,
                           position: PortPosition.right,
                           offset: Offset(0, 40),
                         ),

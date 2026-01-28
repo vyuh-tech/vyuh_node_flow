@@ -50,8 +50,7 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
         'colorType': config['colorType'],
       },
       size: config['size'] as Size,
-      inputPorts: config['inputPorts'] as List<Port>,
-      outputPorts: config['outputPorts'] as List<Port>,
+      ports: config['ports'] as List<Port>,
     );
   }
 
@@ -62,14 +61,13 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
           'label': 'Input',
           'colorType': 'primary',
           'size': const Size(120, 70),
-          'inputPorts': const <Port>[],
-          'outputPorts': [
+          'ports': [
             Port(
               id: 'output',
               name: 'Out',
+              type: PortType.output,
               position: PortPosition.right,
               offset: Offset(2, 35),
-              type: PortType.output,
             ),
           ],
         };
@@ -78,22 +76,20 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
           'label': 'Process',
           'colorType': 'primaryContainer',
           'size': const Size(150, 80),
-          'inputPorts': [
+          'ports': [
             Port(
               id: 'input',
               name: 'In',
+              type: PortType.input,
               position: PortPosition.left,
               offset: Offset(-2, 40),
-              type: PortType.input,
             ),
-          ],
-          'outputPorts': [
             Port(
               id: 'output',
               name: 'Out',
+              type: PortType.output,
               position: PortPosition.right,
               offset: Offset(2, 40),
-              type: PortType.output,
             ),
           ],
         };
@@ -102,24 +98,22 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
           'label': 'Output',
           'colorType': 'tertiaryContainer',
           'size': const Size(120, 70),
-          'inputPorts': [
+          'ports': [
             Port(
               id: 'input',
               name: 'In',
+              type: PortType.input,
               position: PortPosition.left,
               offset: Offset(-2, 35),
-              type: PortType.input,
             ),
           ],
-          'outputPorts': const <Port>[],
         };
       default:
         return {
           'label': 'Node',
           'colorType': 'surfaceContainerHighest',
           'size': const Size(150, 80),
-          'inputPorts': const <Port>[],
-          'outputPorts': const <Port>[],
+          'ports': const <Port>[],
         };
     }
   }
@@ -160,8 +154,7 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
         'colorType': config['colorType'],
       },
       size: config['size'] as Size,
-      inputPorts: config['inputPorts'] as List<Port>,
-      outputPorts: config['outputPorts'] as List<Port>,
+      ports: config['ports'] as List<Port>,
     );
   }
 
@@ -172,14 +165,13 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
           'label': 'Input',
           'colorType': 'primary',
           'size': const Size(120, 70),
-          'inputPorts': const <Port>[],
-          'outputPorts': [
+          'ports': [
             Port(
               id: 'output',
               name: 'Out',
+              type: PortType.output,
               position: PortPosition.right,
               offset: Offset(2, 35),
-              type: PortType.output,
             ),
           ],
         };
@@ -188,22 +180,20 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
           'label': 'Process',
           'colorType': 'primaryContainer',
           'size': const Size(150, 80),
-          'inputPorts': [
+          'ports': [
             Port(
               id: 'input',
               name: 'In',
+              type: PortType.input,
               position: PortPosition.left,
               offset: Offset(-2, 40),
-              type: PortType.input,
             ),
-          ],
-          'outputPorts': [
             Port(
               id: 'output',
               name: 'Out',
+              type: PortType.output,
               position: PortPosition.right,
               offset: Offset(2, 40),
-              type: PortType.output,
             ),
           ],
         };
@@ -212,36 +202,34 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
           'label': 'Decision',
           'colorType': 'secondaryContainer',
           'size': const Size(140, 100),
-          'inputPorts': [
+          'ports': [
             Port(
               id: 'input-left',
               name: 'In',
+              type: PortType.input,
               position: PortPosition.left,
               offset: Offset(-2, 50),
-              type: PortType.input,
             ),
             Port(
               id: 'input-top',
               name: 'In',
+              type: PortType.input,
               position: PortPosition.top,
               offset: Offset(70, -2),
-              type: PortType.input,
             ),
-          ],
-          'outputPorts': [
             Port(
               id: 'yes',
               name: 'Yes',
+              type: PortType.output,
               position: PortPosition.right,
               offset: Offset(2, 50),
-              type: PortType.output,
             ),
             Port(
               id: 'no',
               name: 'No',
+              type: PortType.output,
               position: PortPosition.bottom,
               offset: Offset(70, 2),
-              type: PortType.output,
             ),
           ],
         };
@@ -250,24 +238,22 @@ class _ControllingNodesExampleState extends State<ControllingNodesExample> {
           'label': 'Output',
           'colorType': 'tertiaryContainer',
           'size': const Size(120, 70),
-          'inputPorts': [
+          'ports': [
             Port(
               id: 'input',
               name: 'In',
+              type: PortType.input,
               position: PortPosition.left,
               offset: Offset(-2, 35),
-              type: PortType.input,
             ),
           ],
-          'outputPorts': const <Port>[],
         };
       default:
         return {
           'label': 'Node',
           'colorType': 'surfaceContainerHighest',
           'size': const Size(150, 80),
-          'inputPorts': const <Port>[],
-          'outputPorts': const <Port>[],
+          'ports': const <Port>[],
         };
     }
   }

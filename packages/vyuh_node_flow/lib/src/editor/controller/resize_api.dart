@@ -103,7 +103,7 @@ extension ResizeApi<T, C> on NodeFlowController<T, C> {
       resizableNode.applyBounds(result.newBounds);
       node.setVisualPosition(snapToGrid(node.position.value));
     });
-    _markNodeDirty(nodeId);
+    markNodeDirty(nodeId);
 
     // Track drift for debugging/analytics
     interaction.setHandleDrift(result.drift);
@@ -147,7 +147,7 @@ extension ResizeApi<T, C> on NodeFlowController<T, C> {
         node.setVisualPosition(snapToGrid(originalBounds.topLeft));
         (node as ResizableMixin<T>).setSize(originalBounds.size);
       });
-      _markNodeDirty(nodeId);
+      markNodeDirty(nodeId);
     }
 
     interaction.endResize();

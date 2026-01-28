@@ -10,7 +10,7 @@ part of 'node_flow_controller.dart';
 ///
 /// ## Port APIs
 /// - [getPort], [getPortWorldPosition] - Port lookup
-/// - [addInputPort], [addOutputPort], [removePort], [setNodePorts] - Port CRUD
+/// - [addPort], [removePort], [setNodePorts] - Port CRUD
 ///
 /// ## Visual Query APIs
 /// - [getNodeBounds] - Node bounds queries (graph bounds are in [GraphApi] and [ViewportApi])
@@ -95,13 +95,17 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
       _nodes[node.id] = node;
       // Initialize visual position with snapping
       node.setVisualPosition(snapToGrid(node.position.value));
-      // Note: Spatial index is auto-synced via MobX reaction
 
       // Attach context for nodes with GroupableMixin (e.g., GroupNode)
       // This enables the node to monitor child nodes, look up other nodes, etc.
       if (node is GroupableMixin<T>) {
         node.attachContext(_createGroupableContext());
       }
+
+      // Update spatial index immediately so ports are hit-testable right away.
+      // The MobX reaction for node add/remove has fireImmediately: false,
+      // which would delay the update and cause hit testing to fail.
+      _spatialIndex.update(node);
     });
     // Fire event after successful addition
     events.node?.onCreated?.call(node);
@@ -249,8 +253,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
       position: node.position.value + const Offset(50, 50),
       data: clonedData,
       size: node.size.value,
-      inputPorts: node.inputPorts,
-      outputPorts: node.outputPorts,
+      ports: node.ports.toList(),
     );
 
     addNode(duplicatedNode);
@@ -279,7 +282,6 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
 
   /// Gets a specific port from a node.
   ///
-  /// Searches both input and output ports.
   /// Returns `null` if the node or port doesn't exist.
   ///
   /// Example:
@@ -291,19 +293,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
   /// ```
   Port? getPort(String nodeId, String portId) {
     final node = _nodes[nodeId];
-    if (node == null) return null;
-
-    // Search input ports
-    for (final port in node.inputPorts) {
-      if (port.id == portId) return port;
-    }
-
-    // Search output ports
-    for (final port in node.outputPorts) {
-      if (port.id == portId) return port;
-    }
-
-    return null;
+    return node?.findPort(portId);
   }
 
   /// Gets the world position of a port.
@@ -361,24 +351,17 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
   // Port APIs - CRUD
   // ============================================================================
 
-  /// Adds an input port to an existing node.
+  /// Adds a port to an existing node.
+  ///
+  /// The port's [Port.type] determines whether it can receive connections
+  /// (input), emit connections (output), or both (bidirectional).
   ///
   /// Does nothing if the node with [nodeId] doesn't exist.
-  void addInputPort(String nodeId, Port port) {
+  void addPort(String nodeId, Port port) {
     final node = _nodes[nodeId];
     if (node == null) return;
 
-    node.addInputPort(port);
-  }
-
-  /// Adds an output port to an existing node.
-  ///
-  /// Does nothing if the node with [nodeId] doesn't exist.
-  void addOutputPort(String nodeId, Port port) {
-    final node = _nodes[nodeId];
-    if (node == null) return;
-
-    node.addOutputPort(port);
+    node.addPort(port);
   }
 
   /// Removes a port from a node and all connections involving that port.
@@ -420,37 +403,25 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
     });
   }
 
-  /// Sets the input and/or output ports of a node.
+  /// Sets the ports of a node.
   ///
-  /// This replaces the existing ports with the provided lists. Pass `null` to
-  /// leave a port type unchanged.
+  /// This replaces all existing ports with the provided list.
+  /// Each port's [Port.type] determines its behavior (input/output/both).
   ///
   /// Example:
   /// ```dart
-  /// controller.setNodePorts(
-  ///   'node1',
-  ///   inputPorts: [Port(id: 'in1', label: 'Input')],
-  ///   outputPorts: [Port(id: 'out1', label: 'Output')],
-  /// );
+  /// controller.setNodePorts('node1', [
+  ///   Port(id: 'in1', name: 'Input', type: PortType.input),
+  ///   Port(id: 'out1', name: 'Output', type: PortType.output),
+  /// ]);
   /// ```
-  void setNodePorts(
-    String nodeId, {
-    List<Port>? inputPorts,
-    List<Port>? outputPorts,
-  }) {
+  void setNodePorts(String nodeId, List<Port> ports) {
     final node = _nodes[nodeId];
     if (node == null) return;
 
     runInAction(() {
-      if (inputPorts != null) {
-        node.inputPorts.clear();
-        node.inputPorts.addAll(inputPorts);
-      }
-
-      if (outputPorts != null) {
-        node.outputPorts.clear();
-        node.outputPorts.addAll(outputPorts);
-      }
+      node.ports.clear();
+      node.ports.addAll(ports);
     });
   }
 
@@ -514,7 +485,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
         // Update visual position with snapping
         node.setVisualPosition(snapToGrid(newPosition));
       });
-      _markNodeDirty(nodeId);
+      markNodeDirty(nodeId);
       // Emit extension event
       _emitEvent(NodeMoved<T>(node, previousPosition));
     }
@@ -547,7 +518,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
         }
       }
     });
-    _markNodesDirty(nodeIds);
+    markNodesDirty(nodeIds);
 
     // Emit extension events for each moved node
     for (final nodeId in nodeIds) {
@@ -576,7 +547,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
         node.position.value = position;
         node.setVisualPosition(snapToGrid(position));
       });
-      _markNodeDirty(nodeId);
+      markNodeDirty(nodeId);
       // Emit extension event
       _emitEvent(NodeMoved<T>(node, previousPosition));
     }
@@ -603,7 +574,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
     runInAction(() {
       node.size.value = size;
     });
-    _markNodeDirty(nodeId);
+    markNodeDirty(nodeId);
     // Emit extension event
     _emitEvent(NodeResized<T>(node, previousSize));
   }
@@ -1003,7 +974,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
       }
     });
 
-    _markNodesDirty(nodeIds);
+    markNodesDirty(nodeIds);
     rebuildConnectionSegmentsForNodes(nodeIds);
   }
 
@@ -1032,7 +1003,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
       }
     });
 
-    _markNodesDirty(nodeIds);
+    markNodesDirty(nodeIds);
     rebuildConnectionSegmentsForNodes(nodeIds);
   }
 
@@ -1061,7 +1032,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
       }
     });
 
-    _markNodesDirty(nodeIds);
+    markNodesDirty(nodeIds);
     rebuildConnectionSegmentsForNodes(nodeIds);
   }
 

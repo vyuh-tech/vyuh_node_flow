@@ -5,29 +5,6 @@
       "type": "Supplier",
       "width": 140,
       "height": 170,
-      "inputPorts": [],
-      "outputPorts": [
-        {
-          "id": "material-out",
-          "name": "Steel Sheets",
-          "dataType": "material",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "cert-out",
-          "name": "Quality Cert",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        }
-      ],
       "data": {
         "name": "Steel Supplier",
         "material": "Steel Sheets",
@@ -40,24 +17,18 @@
       },
       "x": 100,
       "y": 100,
-      "zIndex": 1
-    },
-    {
-      "id": "raw-supplier-aluminum",
-      "type": "Supplier",
-      "width": 140,
-      "height": 170,
-      "inputPorts": [],
-      "outputPorts": [
+      "zIndex": 1,
+      "ports": [
         {
           "id": "material-out",
-          "name": "Aluminum",
+          "name": "Steel Sheets",
           "dataType": "material",
           "position": "right",
           "offset": {
             "x": 2,
             "y": 30
-          }
+          },
+          "type": "output"
         },
         {
           "id": "cert-out",
@@ -67,9 +38,16 @@
           "offset": {
             "x": 2,
             "y": 60
-          }
+          },
+          "type": "output"
         }
-      ],
+      ]
+    },
+    {
+      "id": "raw-supplier-aluminum",
+      "type": "Supplier",
+      "width": 140,
+      "height": 170,
       "data": {
         "name": "Aluminum Works",
         "material": "Aluminum Ingots",
@@ -82,36 +60,37 @@
       },
       "x": 100,
       "y": 300,
-      "zIndex": 1
+      "zIndex": 1,
+      "ports": [
+        {
+          "id": "material-out",
+          "name": "Aluminum",
+          "dataType": "material",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "cert-out",
+          "name": "Quality Cert",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "raw-supplier-plastic",
       "type": "Supplier",
       "width": 140,
       "height": 170,
-      "inputPorts": [],
-      "outputPorts": [
-        {
-          "id": "material-out",
-          "name": "Plastics",
-          "dataType": "material",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "cert-out",
-          "name": "Safety Cert",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        }
-      ],
       "data": {
         "name": "Polymer Industries",
         "material": "Engineering Plastics",
@@ -124,36 +103,37 @@
       },
       "x": 100,
       "y": 500,
-      "zIndex": 1
+      "zIndex": 1,
+      "ports": [
+        {
+          "id": "material-out",
+          "name": "Plastics",
+          "dataType": "material",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "cert-out",
+          "name": "Safety Cert",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "raw-supplier-electronics",
       "type": "Supplier",
       "width": 140,
       "height": 170,
-      "inputPorts": [],
-      "outputPorts": [
-        {
-          "id": "component-out",
-          "name": "Electronics",
-          "dataType": "component",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "spec-out",
-          "name": "Specifications",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        }
-      ],
       "data": {
         "name": "TechComponents Ltd",
         "material": "Electronic Components",
@@ -167,77 +147,37 @@
       },
       "x": 100,
       "y": 700,
-      "zIndex": 1
+      "zIndex": 1,
+      "ports": [
+        {
+          "id": "component-out",
+          "name": "Electronics",
+          "dataType": "component",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "spec-out",
+          "name": "Specifications",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "warehouse-raw-materials",
       "type": "Warehouse",
       "width": 160,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "steel-in",
-          "name": "Steel Input",
-          "dataType": "material",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 20
-          }
-        },
-        {
-          "id": "aluminum-in",
-          "name": "Aluminum Input",
-          "dataType": "material",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 50
-          }
-        },
-        {
-          "id": "plastic-in",
-          "name": "Plastic Input",
-          "dataType": "material",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 80
-          }
-        },
-        {
-          "id": "electronics-in",
-          "name": "Electronics Input",
-          "dataType": "component",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 110
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "material-out",
-          "name": "Materials",
-          "dataType": "material",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 50
-          }
-        },
-        {
-          "id": "inventory-data",
-          "name": "Inventory",
-          "dataType": "data",
-          "position": "bottom",
-          "offset": {
-            "x": 80,
-            "y": 2
-          }
-        }
-      ],
       "data": {
         "name": "Central Raw Materials Warehouse",
         "capacity": "50,000 sq ft",
@@ -247,67 +187,81 @@
       },
       "x": 350,
       "y": 400,
-      "zIndex": 2
+      "zIndex": 2,
+      "ports": [
+        {
+          "id": "steel-in",
+          "name": "Steel Input",
+          "dataType": "material",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 20
+          },
+          "type": "input"
+        },
+        {
+          "id": "aluminum-in",
+          "name": "Aluminum Input",
+          "dataType": "material",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 50
+          },
+          "type": "input"
+        },
+        {
+          "id": "plastic-in",
+          "name": "Plastic Input",
+          "dataType": "material",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 80
+          },
+          "type": "input"
+        },
+        {
+          "id": "electronics-in",
+          "name": "Electronics Input",
+          "dataType": "component",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 110
+          },
+          "type": "input"
+        },
+        {
+          "id": "material-out",
+          "name": "Materials",
+          "dataType": "material",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 50
+          },
+          "type": "output"
+        },
+        {
+          "id": "inventory-data",
+          "name": "Inventory",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 80,
+            "y": 2
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "quality-inspection-raw",
       "type": "QualityControl",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "material-in",
-          "name": "Raw Materials",
-          "dataType": "material",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 40
-          }
-        },
-        {
-          "id": "cert-in",
-          "name": "Certificates",
-          "dataType": "document",
-          "position": "top",
-          "offset": {
-            "x": 70,
-            "y": -2
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "approved-out",
-          "name": "Approved",
-          "dataType": "material",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "rejected-out",
-          "name": "Rejected",
-          "dataType": "material",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "report-out",
-          "name": "QC Report",
-          "dataType": "document",
-          "position": "bottom",
-          "offset": {
-            "x": 70,
-            "y": 2
-          }
-        }
-      ],
       "data": {
         "name": "Incoming Material QC",
         "inspection_type": "Statistical Sampling",
@@ -320,77 +274,70 @@
       },
       "x": 600,
       "y": 400,
-      "zIndex": 2
+      "zIndex": 2,
+      "ports": [
+        {
+          "id": "material-in",
+          "name": "Raw Materials",
+          "dataType": "material",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 40
+          },
+          "type": "input"
+        },
+        {
+          "id": "cert-in",
+          "name": "Certificates",
+          "dataType": "document",
+          "position": "top",
+          "offset": {
+            "x": 70,
+            "y": -2
+          },
+          "type": "input"
+        },
+        {
+          "id": "approved-out",
+          "name": "Approved",
+          "dataType": "material",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "rejected-out",
+          "name": "Rejected",
+          "dataType": "material",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "report-out",
+          "name": "QC Report",
+          "dataType": "document",
+          "position": "bottom",
+          "offset": {
+            "x": 70,
+            "y": 2
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "production-line-1",
       "type": "Production",
       "width": 180,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "material-in",
-          "name": "Materials",
-          "dataType": "material",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 40
-          }
-        },
-        {
-          "id": "components-in",
-          "name": "Components",
-          "dataType": "component",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 80
-          }
-        },
-        {
-          "id": "schedule-in",
-          "name": "Schedule",
-          "dataType": "data",
-          "position": "top",
-          "offset": {
-            "x": 90,
-            "y": -2
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "product-out",
-          "name": "Body Assembly",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "waste-out",
-          "name": "Waste",
-          "dataType": "waste",
-          "position": "bottom",
-          "offset": {
-            "x": 60,
-            "y": 2
-          }
-        },
-        {
-          "id": "metrics-out",
-          "name": "Metrics",
-          "dataType": "data",
-          "position": "bottom",
-          "offset": {
-            "x": 120,
-            "y": 2
-          }
-        }
-      ],
       "data": {
         "name": "Body Assembly Line",
         "type": "Automated Assembly",
@@ -402,14 +349,8 @@
       },
       "x": 850,
       "y": 100,
-      "zIndex": 3
-    },
-    {
-      "id": "production-line-2",
-      "type": "Production",
-      "width": 180,
-      "height": 170,
-      "inputPorts": [
+      "zIndex": 3,
+      "ports": [
         {
           "id": "material-in",
           "name": "Materials",
@@ -418,7 +359,8 @@
           "offset": {
             "x": -2,
             "y": 40
-          }
+          },
+          "type": "input"
         },
         {
           "id": "components-in",
@@ -428,7 +370,8 @@
           "offset": {
             "x": -2,
             "y": 80
-          }
+          },
+          "type": "input"
         },
         {
           "id": "schedule-in",
@@ -438,19 +381,19 @@
           "offset": {
             "x": 90,
             "y": -2
-          }
-        }
-      ],
-      "outputPorts": [
+          },
+          "type": "input"
+        },
         {
           "id": "product-out",
-          "name": "Powertrain",
+          "name": "Body Assembly",
           "dataType": "product",
           "position": "right",
           "offset": {
             "x": 2,
             "y": 60
-          }
+          },
+          "type": "output"
         },
         {
           "id": "waste-out",
@@ -460,7 +403,8 @@
           "offset": {
             "x": 60,
             "y": 2
-          }
+          },
+          "type": "output"
         },
         {
           "id": "metrics-out",
@@ -470,9 +414,16 @@
           "offset": {
             "x": 120,
             "y": 2
-          }
+          },
+          "type": "output"
         }
-      ],
+      ]
+    },
+    {
+      "id": "production-line-2",
+      "type": "Production",
+      "width": 180,
+      "height": 170,
       "data": {
         "name": "Powertrain Assembly",
         "type": "Precision Assembly",
@@ -484,14 +435,8 @@
       },
       "x": 850,
       "y": 300,
-      "zIndex": 3
-    },
-    {
-      "id": "production-line-3",
-      "type": "Production",
-      "width": 180,
-      "height": 170,
-      "inputPorts": [
+      "zIndex": 3,
+      "ports": [
         {
           "id": "material-in",
           "name": "Materials",
@@ -500,7 +445,8 @@
           "offset": {
             "x": -2,
             "y": 40
-          }
+          },
+          "type": "input"
         },
         {
           "id": "components-in",
@@ -510,7 +456,8 @@
           "offset": {
             "x": -2,
             "y": 80
-          }
+          },
+          "type": "input"
         },
         {
           "id": "schedule-in",
@@ -520,19 +467,19 @@
           "offset": {
             "x": 90,
             "y": -2
-          }
-        }
-      ],
-      "outputPorts": [
+          },
+          "type": "input"
+        },
         {
           "id": "product-out",
-          "name": "Interior",
+          "name": "Powertrain",
           "dataType": "product",
           "position": "right",
           "offset": {
             "x": 2,
             "y": 60
-          }
+          },
+          "type": "output"
         },
         {
           "id": "waste-out",
@@ -542,7 +489,8 @@
           "offset": {
             "x": 60,
             "y": 2
-          }
+          },
+          "type": "output"
         },
         {
           "id": "metrics-out",
@@ -552,9 +500,16 @@
           "offset": {
             "x": 120,
             "y": 2
-          }
+          },
+          "type": "output"
         }
-      ],
+      ]
+    },
+    {
+      "id": "production-line-3",
+      "type": "Production",
+      "width": 180,
+      "height": 170,
       "data": {
         "name": "Interior Assembly",
         "type": "Mixed Assembly",
@@ -566,14 +521,8 @@
       },
       "x": 850,
       "y": 500,
-      "zIndex": 3
-    },
-    {
-      "id": "production-line-4",
-      "type": "Production",
-      "width": 180,
-      "height": 170,
-      "inputPorts": [
+      "zIndex": 3,
+      "ports": [
         {
           "id": "material-in",
           "name": "Materials",
@@ -582,7 +531,8 @@
           "offset": {
             "x": -2,
             "y": 40
-          }
+          },
+          "type": "input"
         },
         {
           "id": "components-in",
@@ -592,7 +542,8 @@
           "offset": {
             "x": -2,
             "y": 80
-          }
+          },
+          "type": "input"
         },
         {
           "id": "schedule-in",
@@ -602,29 +553,30 @@
           "offset": {
             "x": 90,
             "y": -2
-          }
-        }
-      ],
-      "outputPorts": [
+          },
+          "type": "input"
+        },
         {
           "id": "product-out",
-          "name": "Electronics",
+          "name": "Interior",
           "dataType": "product",
           "position": "right",
           "offset": {
             "x": 2,
             "y": 60
-          }
+          },
+          "type": "output"
         },
         {
           "id": "waste-out",
-          "name": "E-Waste",
+          "name": "Waste",
           "dataType": "waste",
           "position": "bottom",
           "offset": {
             "x": 60,
             "y": 2
-          }
+          },
+          "type": "output"
         },
         {
           "id": "metrics-out",
@@ -634,9 +586,16 @@
           "offset": {
             "x": 120,
             "y": 2
-          }
+          },
+          "type": "output"
         }
-      ],
+      ]
+    },
+    {
+      "id": "production-line-4",
+      "type": "Production",
+      "width": 180,
+      "height": 170,
       "data": {
         "name": "Electronics Integration",
         "type": "Precision Electronics",
@@ -648,77 +607,81 @@
       },
       "x": 850,
       "y": 700,
-      "zIndex": 3
+      "zIndex": 3,
+      "ports": [
+        {
+          "id": "material-in",
+          "name": "Materials",
+          "dataType": "material",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 40
+          },
+          "type": "input"
+        },
+        {
+          "id": "components-in",
+          "name": "Components",
+          "dataType": "component",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 80
+          },
+          "type": "input"
+        },
+        {
+          "id": "schedule-in",
+          "name": "Schedule",
+          "dataType": "data",
+          "position": "top",
+          "offset": {
+            "x": 90,
+            "y": -2
+          },
+          "type": "input"
+        },
+        {
+          "id": "product-out",
+          "name": "Electronics",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "waste-out",
+          "name": "E-Waste",
+          "dataType": "waste",
+          "position": "bottom",
+          "offset": {
+            "x": 60,
+            "y": 2
+          },
+          "type": "output"
+        },
+        {
+          "id": "metrics-out",
+          "name": "Metrics",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 120,
+            "y": 2
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "final-assembly",
       "type": "Assembly",
       "width": 200,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "body-in",
-          "name": "Body",
-          "dataType": "product",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 30
-          }
-        },
-        {
-          "id": "powertrain-in",
-          "name": "Powertrain",
-          "dataType": "product",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        },
-        {
-          "id": "interior-in",
-          "name": "Interior",
-          "dataType": "product",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 90
-          }
-        },
-        {
-          "id": "electronics-in",
-          "name": "Electronics",
-          "dataType": "product",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 120
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "vehicle-out",
-          "name": "Complete Vehicle",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 75
-          }
-        },
-        {
-          "id": "defects-out",
-          "name": "Defects",
-          "dataType": "data",
-          "position": "bottom",
-          "offset": {
-            "x": 100,
-            "y": 2
-          }
-        }
-      ],
       "data": {
         "name": "Final Vehicle Assembly",
         "type": "Synchronized Assembly",
@@ -729,67 +692,81 @@
       },
       "x": 1150,
       "y": 400,
-      "zIndex": 4
+      "zIndex": 4,
+      "ports": [
+        {
+          "id": "body-in",
+          "name": "Body",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 30
+          },
+          "type": "input"
+        },
+        {
+          "id": "powertrain-in",
+          "name": "Powertrain",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "interior-in",
+          "name": "Interior",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 90
+          },
+          "type": "input"
+        },
+        {
+          "id": "electronics-in",
+          "name": "Electronics",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 120
+          },
+          "type": "input"
+        },
+        {
+          "id": "vehicle-out",
+          "name": "Complete Vehicle",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 75
+          },
+          "type": "output"
+        },
+        {
+          "id": "defects-out",
+          "name": "Defects",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 100,
+            "y": 2
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "quality-testing-final",
       "type": "QualityControl",
       "width": 160,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "vehicle-in",
-          "name": "Vehicles",
-          "dataType": "product",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 50
-          }
-        },
-        {
-          "id": "standards-in",
-          "name": "Standards",
-          "dataType": "document",
-          "position": "top",
-          "offset": {
-            "x": 80,
-            "y": -2
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "passed-out",
-          "name": "Passed",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "failed-out",
-          "name": "Failed",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
-        },
-        {
-          "id": "report-out",
-          "name": "Test Report",
-          "dataType": "document",
-          "position": "bottom",
-          "offset": {
-            "x": 80,
-            "y": 2
-          }
-        }
-      ],
       "data": {
         "name": "Final Quality Testing",
         "tests": [
@@ -804,57 +781,70 @@
       },
       "x": 1450,
       "y": 400,
-      "zIndex": 4
+      "zIndex": 4,
+      "ports": [
+        {
+          "id": "vehicle-in",
+          "name": "Vehicles",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 50
+          },
+          "type": "input"
+        },
+        {
+          "id": "standards-in",
+          "name": "Standards",
+          "dataType": "document",
+          "position": "top",
+          "offset": {
+            "x": 80,
+            "y": -2
+          },
+          "type": "input"
+        },
+        {
+          "id": "passed-out",
+          "name": "Passed",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "failed-out",
+          "name": "Failed",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        },
+        {
+          "id": "report-out",
+          "name": "Test Report",
+          "dataType": "document",
+          "position": "bottom",
+          "offset": {
+            "x": 80,
+            "y": 2
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "paint-shop",
       "type": "Processing",
       "width": 160,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "body-in",
-          "name": "Body Shell",
-          "dataType": "product",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 50
-          }
-        },
-        {
-          "id": "color-spec",
-          "name": "Color Spec",
-          "dataType": "data",
-          "position": "top",
-          "offset": {
-            "x": 80,
-            "y": -2
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "painted-out",
-          "name": "Painted Body",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 50
-          }
-        },
-        {
-          "id": "voc-out",
-          "name": "VOC Emissions",
-          "dataType": "waste",
-          "position": "bottom",
-          "offset": {
-            "x": 80,
-            "y": 2
-          }
-        }
-      ],
       "data": {
         "name": "Paint Shop",
         "process": "Electrostatic Spray",
@@ -865,57 +855,59 @@
       },
       "x": 1150,
       "y": 100,
-      "zIndex": 3
+      "zIndex": 3,
+      "ports": [
+        {
+          "id": "body-in",
+          "name": "Body Shell",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 50
+          },
+          "type": "input"
+        },
+        {
+          "id": "color-spec",
+          "name": "Color Spec",
+          "dataType": "data",
+          "position": "top",
+          "offset": {
+            "x": 80,
+            "y": -2
+          },
+          "type": "input"
+        },
+        {
+          "id": "painted-out",
+          "name": "Painted Body",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 50
+          },
+          "type": "output"
+        },
+        {
+          "id": "voc-out",
+          "name": "VOC Emissions",
+          "dataType": "waste",
+          "position": "bottom",
+          "offset": {
+            "x": 80,
+            "y": 2
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "warehouse-finished",
       "type": "Warehouse",
       "width": 160,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "vehicle-in",
-          "name": "Finished Vehicles",
-          "dataType": "product",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 50
-          }
-        },
-        {
-          "id": "docs-in",
-          "name": "Documentation",
-          "dataType": "document",
-          "position": "top",
-          "offset": {
-            "x": 80,
-            "y": -2
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "vehicle-out",
-          "name": "To Shipping",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 50
-          }
-        },
-        {
-          "id": "inventory-out",
-          "name": "Inventory",
-          "dataType": "data",
-          "position": "bottom",
-          "offset": {
-            "x": 80,
-            "y": 2
-          }
-        }
-      ],
       "data": {
         "name": "Finished Goods Warehouse",
         "capacity": "2,500 vehicles",
@@ -925,57 +917,59 @@
       },
       "x": 1750,
       "y": 400,
-      "zIndex": 5
+      "zIndex": 5,
+      "ports": [
+        {
+          "id": "vehicle-in",
+          "name": "Finished Vehicles",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 50
+          },
+          "type": "input"
+        },
+        {
+          "id": "docs-in",
+          "name": "Documentation",
+          "dataType": "document",
+          "position": "top",
+          "offset": {
+            "x": 80,
+            "y": -2
+          },
+          "type": "input"
+        },
+        {
+          "id": "vehicle-out",
+          "name": "To Shipping",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 50
+          },
+          "type": "output"
+        },
+        {
+          "id": "inventory-out",
+          "name": "Inventory",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 80,
+            "y": 2
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "shipping-domestic",
       "type": "Shipping",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "vehicle-in",
-          "name": "Vehicles",
-          "dataType": "product",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 40
-          }
-        },
-        {
-          "id": "orders-in",
-          "name": "Orders",
-          "dataType": "data",
-          "position": "top",
-          "offset": {
-            "x": 70,
-            "y": -2
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "shipped-out",
-          "name": "Shipped",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "tracking-out",
-          "name": "Tracking",
-          "dataType": "data",
-          "position": "bottom",
-          "offset": {
-            "x": 70,
-            "y": 2
-          }
-        }
-      ],
       "data": {
         "name": "Domestic Shipping",
         "carriers": [
@@ -988,14 +982,8 @@
       },
       "x": 2000,
       "y": 300,
-      "zIndex": 5
-    },
-    {
-      "id": "shipping-export",
-      "type": "Shipping",
-      "width": 140,
-      "height": 170,
-      "inputPorts": [
+      "zIndex": 5,
+      "ports": [
         {
           "id": "vehicle-in",
           "name": "Vehicles",
@@ -1004,41 +992,49 @@
           "offset": {
             "x": -2,
             "y": 40
-          }
+          },
+          "type": "input"
         },
         {
-          "id": "export-docs",
-          "name": "Export Docs",
-          "dataType": "document",
+          "id": "orders-in",
+          "name": "Orders",
+          "dataType": "data",
           "position": "top",
           "offset": {
             "x": 70,
             "y": -2
-          }
-        }
-      ],
-      "outputPorts": [
+          },
+          "type": "input"
+        },
         {
           "id": "shipped-out",
-          "name": "Exported",
+          "name": "Shipped",
           "dataType": "product",
           "position": "right",
           "offset": {
             "x": 2,
             "y": 40
-          }
+          },
+          "type": "output"
         },
         {
-          "id": "customs-out",
-          "name": "Customs",
-          "dataType": "document",
+          "id": "tracking-out",
+          "name": "Tracking",
+          "dataType": "data",
           "position": "bottom",
           "offset": {
             "x": 70,
             "y": 2
-          }
+          },
+          "type": "output"
         }
-      ],
+      ]
+    },
+    {
+      "id": "shipping-export",
+      "type": "Shipping",
+      "width": 140,
+      "height": 170,
       "data": {
         "name": "Export Shipping",
         "ports": [
@@ -1052,14 +1048,8 @@
       },
       "x": 2000,
       "y": 500,
-      "zIndex": 5
-    },
-    {
-      "id": "dealer-network",
-      "type": "Distribution",
-      "width": 140,
-      "height": 170,
-      "inputPorts": [
+      "zIndex": 5,
+      "ports": [
         {
           "id": "vehicle-in",
           "name": "Vehicles",
@@ -1068,31 +1058,49 @@
           "offset": {
             "x": -2,
             "y": 40
-          }
+          },
+          "type": "input"
         },
         {
-          "id": "allocation-in",
-          "name": "Allocation",
-          "dataType": "data",
+          "id": "export-docs",
+          "name": "Export Docs",
+          "dataType": "document",
           "position": "top",
           "offset": {
             "x": 70,
             "y": -2
-          }
-        }
-      ],
-      "outputPorts": [
+          },
+          "type": "input"
+        },
         {
-          "id": "sales-out",
-          "name": "Sales Data",
-          "dataType": "data",
+          "id": "shipped-out",
+          "name": "Exported",
+          "dataType": "product",
           "position": "right",
           "offset": {
             "x": 2,
-            "y": 60
-          }
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "customs-out",
+          "name": "Customs",
+          "dataType": "document",
+          "position": "bottom",
+          "offset": {
+            "x": 70,
+            "y": 2
+          },
+          "type": "output"
         }
-      ],
+      ]
+    },
+    {
+      "id": "dealer-network",
+      "type": "Distribution",
+      "width": 140,
+      "height": 170,
       "data": {
         "name": "Dealer Network",
         "dealers": 1250,
@@ -1107,57 +1115,48 @@
       },
       "x": 2250,
       "y": 400,
-      "zIndex": 6
+      "zIndex": 6,
+      "ports": [
+        {
+          "id": "vehicle-in",
+          "name": "Vehicles",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 40
+          },
+          "type": "input"
+        },
+        {
+          "id": "allocation-in",
+          "name": "Allocation",
+          "dataType": "data",
+          "position": "top",
+          "offset": {
+            "x": 70,
+            "y": -2
+          },
+          "type": "input"
+        },
+        {
+          "id": "sales-out",
+          "name": "Sales Data",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "erp-system",
       "type": "System",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "data-in",
-          "name": "All Data",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "reports-out",
-          "name": "Reports",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "analytics-out",
-          "name": "Analytics",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "alerts-out",
-          "name": "Alerts",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 90
-          }
-        }
-      ],
       "data": {
         "name": "SAP S/4HANA",
         "modules": [
@@ -1172,57 +1171,59 @@
       },
       "x": 1450,
       "y": 700,
-      "zIndex": 7
+      "zIndex": 7,
+      "ports": [
+        {
+          "id": "data-in",
+          "name": "All Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "reports-out",
+          "name": "Reports",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "analytics-out",
+          "name": "Analytics",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "alerts-out",
+          "name": "Alerts",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 90
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "mes-system",
       "type": "System",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "production-data",
-          "name": "Production Data",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "real-time-out",
-          "name": "Real-time Data",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "oee-out",
-          "name": "OEE Metrics",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "schedule-out",
-          "name": "Schedules",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 90
-          }
-        }
-      ],
       "data": {
         "name": "Manufacturing Execution System",
         "vendor": "Siemens Opcenter",
@@ -1232,57 +1233,59 @@
       },
       "x": 1450,
       "y": 900,
-      "zIndex": 7
+      "zIndex": 7,
+      "ports": [
+        {
+          "id": "production-data",
+          "name": "Production Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "real-time-out",
+          "name": "Real-time Data",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "oee-out",
+          "name": "OEE Metrics",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "schedule-out",
+          "name": "Schedules",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 90
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "scada-system",
       "type": "System",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "sensor-data",
-          "name": "Sensor Data",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "control-out",
-          "name": "Control Signals",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "alarms-out",
-          "name": "Alarms",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "historian-out",
-          "name": "Historical Data",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 90
-          }
-        }
-      ],
       "data": {
         "name": "SCADA Control System",
         "plc_count": 250,
@@ -1292,67 +1295,59 @@
       },
       "x": 1450,
       "y": 1100,
-      "zIndex": 7
+      "zIndex": 7,
+      "ports": [
+        {
+          "id": "sensor-data",
+          "name": "Sensor Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "control-out",
+          "name": "Control Signals",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "alarms-out",
+          "name": "Alarms",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "historian-out",
+          "name": "Historical Data",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 90
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "waste-management",
       "type": "WasteManagement",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "solid-waste",
-          "name": "Solid Waste",
-          "dataType": "waste",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 30
-          }
-        },
-        {
-          "id": "liquid-waste",
-          "name": "Liquid Waste",
-          "dataType": "waste",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        },
-        {
-          "id": "hazmat-waste",
-          "name": "Hazardous",
-          "dataType": "waste",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 90
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "recycled-out",
-          "name": "Recycled",
-          "dataType": "material",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "disposal-out",
-          "name": "Disposal",
-          "dataType": "waste",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
-        }
-      ],
       "data": {
         "name": "Waste Processing Center",
         "recycling_rate": "87%",
@@ -1369,67 +1364,70 @@
       },
       "x": 850,
       "y": 900,
-      "zIndex": 6
+      "zIndex": 6,
+      "ports": [
+        {
+          "id": "solid-waste",
+          "name": "Solid Waste",
+          "dataType": "waste",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 30
+          },
+          "type": "input"
+        },
+        {
+          "id": "liquid-waste",
+          "name": "Liquid Waste",
+          "dataType": "waste",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "hazmat-waste",
+          "name": "Hazardous",
+          "dataType": "waste",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 90
+          },
+          "type": "input"
+        },
+        {
+          "id": "recycled-out",
+          "name": "Recycled",
+          "dataType": "material",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "disposal-out",
+          "name": "Disposal",
+          "dataType": "waste",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "energy-management",
       "type": "Utility",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "grid-power",
-          "name": "Grid Power",
-          "dataType": "energy",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 30
-          }
-        },
-        {
-          "id": "solar-power",
-          "name": "Solar",
-          "dataType": "energy",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        },
-        {
-          "id": "demand-data",
-          "name": "Demand",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 90
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "power-out",
-          "name": "Distributed Power",
-          "dataType": "energy",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "metrics-out",
-          "name": "Energy Metrics",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
-        }
-      ],
       "data": {
         "name": "Energy Management System",
         "total_capacity": "50 MW",
@@ -1440,57 +1438,70 @@
       },
       "x": 850,
       "y": 1100,
-      "zIndex": 6
+      "zIndex": 6,
+      "ports": [
+        {
+          "id": "grid-power",
+          "name": "Grid Power",
+          "dataType": "energy",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 30
+          },
+          "type": "input"
+        },
+        {
+          "id": "solar-power",
+          "name": "Solar",
+          "dataType": "energy",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "demand-data",
+          "name": "Demand",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 90
+          },
+          "type": "input"
+        },
+        {
+          "id": "power-out",
+          "name": "Distributed Power",
+          "dataType": "energy",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "metrics-out",
+          "name": "Energy Metrics",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "water-treatment",
       "type": "Utility",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "water-in",
-          "name": "Raw Water",
-          "dataType": "water",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 40
-          }
-        },
-        {
-          "id": "wastewater-in",
-          "name": "Wastewater",
-          "dataType": "waste",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 80
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "process-water",
-          "name": "Process Water",
-          "dataType": "water",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "treated-water",
-          "name": "Treated Water",
-          "dataType": "water",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
-        }
-      ],
       "data": {
         "name": "Water Treatment Plant",
         "capacity": "2 million gallons/day",
@@ -1500,67 +1511,59 @@
       },
       "x": 850,
       "y": 1300,
-      "zIndex": 6
+      "zIndex": 6,
+      "ports": [
+        {
+          "id": "water-in",
+          "name": "Raw Water",
+          "dataType": "water",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 40
+          },
+          "type": "input"
+        },
+        {
+          "id": "wastewater-in",
+          "name": "Wastewater",
+          "dataType": "waste",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 80
+          },
+          "type": "input"
+        },
+        {
+          "id": "process-water",
+          "name": "Process Water",
+          "dataType": "water",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "treated-water",
+          "name": "Treated Water",
+          "dataType": "water",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "research-development",
       "type": "R&D",
       "width": 160,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "market-data",
-          "name": "Market Data",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 30
-          }
-        },
-        {
-          "id": "feedback-in",
-          "name": "Customer Feedback",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        },
-        {
-          "id": "regulations-in",
-          "name": "Regulations",
-          "dataType": "document",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 90
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "designs-out",
-          "name": "New Designs",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "prototypes-out",
-          "name": "Prototypes",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
-        }
-      ],
       "data": {
         "name": "R&D Center",
         "engineers": 250,
@@ -1571,57 +1574,70 @@
       },
       "x": 100,
       "y": 900,
-      "zIndex": 2
+      "zIndex": 2,
+      "ports": [
+        {
+          "id": "market-data",
+          "name": "Market Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 30
+          },
+          "type": "input"
+        },
+        {
+          "id": "feedback-in",
+          "name": "Customer Feedback",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "regulations-in",
+          "name": "Regulations",
+          "dataType": "document",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 90
+          },
+          "type": "input"
+        },
+        {
+          "id": "designs-out",
+          "name": "New Designs",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "prototypes-out",
+          "name": "Prototypes",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "supplier-portal",
       "type": "System",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "orders-in",
-          "name": "Purchase Orders",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "confirmations-out",
-          "name": "Confirmations",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "invoices-out",
-          "name": "Invoices",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "performance-out",
-          "name": "Performance",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 90
-          }
-        }
-      ],
       "data": {
         "name": "Supplier Collaboration Portal",
         "active_suppliers": 350,
@@ -1631,57 +1647,59 @@
       },
       "x": 100,
       "y": 1100,
-      "zIndex": 2
+      "zIndex": 2,
+      "ports": [
+        {
+          "id": "orders-in",
+          "name": "Purchase Orders",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "confirmations-out",
+          "name": "Confirmations",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "invoices-out",
+          "name": "Invoices",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "performance-out",
+          "name": "Performance",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 90
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "customer-portal",
       "type": "System",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "orders-in",
-          "name": "Customer Orders",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "status-out",
-          "name": "Order Status",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "tracking-out",
-          "name": "Tracking Info",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "support-out",
-          "name": "Support Tickets",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 90
-          }
-        }
-      ],
       "data": {
         "name": "Customer Experience Portal",
         "registered_users": "2.5M",
@@ -1696,57 +1714,59 @@
       },
       "x": 2250,
       "y": 700,
-      "zIndex": 6
+      "zIndex": 6,
+      "ports": [
+        {
+          "id": "orders-in",
+          "name": "Customer Orders",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "status-out",
+          "name": "Order Status",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "tracking-out",
+          "name": "Tracking Info",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "support-out",
+          "name": "Support Tickets",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 90
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "training-center",
       "type": "HumanResources",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "staff-in",
-          "name": "New Staff",
-          "dataType": "human",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 40
-          }
-        },
-        {
-          "id": "curriculum-in",
-          "name": "Training Plans",
-          "dataType": "document",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 80
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "certified-out",
-          "name": "Certified Staff",
-          "dataType": "human",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "skills-out",
-          "name": "Skills Matrix",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
-        }
-      ],
       "data": {
         "name": "Technical Training Center",
         "capacity": "500 trainees/month",
@@ -1757,57 +1777,59 @@
       },
       "x": 350,
       "y": 900,
-      "zIndex": 2
+      "zIndex": 2,
+      "ports": [
+        {
+          "id": "staff-in",
+          "name": "New Staff",
+          "dataType": "human",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 40
+          },
+          "type": "input"
+        },
+        {
+          "id": "curriculum-in",
+          "name": "Training Plans",
+          "dataType": "document",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 80
+          },
+          "type": "input"
+        },
+        {
+          "id": "certified-out",
+          "name": "Certified Staff",
+          "dataType": "human",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "skills-out",
+          "name": "Skills Matrix",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "maintenance-depot",
       "type": "Maintenance",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "equipment-in",
-          "name": "Equipment",
-          "dataType": "equipment",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 40
-          }
-        },
-        {
-          "id": "schedule-in",
-          "name": "Maint Schedule",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 80
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "serviced-out",
-          "name": "Serviced",
-          "dataType": "equipment",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "reports-out",
-          "name": "Maint Reports",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
-        }
-      ],
       "data": {
         "name": "Central Maintenance",
         "technicians": 75,
@@ -1818,47 +1840,59 @@
       },
       "x": 350,
       "y": 1100,
-      "zIndex": 2
+      "zIndex": 2,
+      "ports": [
+        {
+          "id": "equipment-in",
+          "name": "Equipment",
+          "dataType": "equipment",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 40
+          },
+          "type": "input"
+        },
+        {
+          "id": "schedule-in",
+          "name": "Maint Schedule",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 80
+          },
+          "type": "input"
+        },
+        {
+          "id": "serviced-out",
+          "name": "Serviced",
+          "dataType": "equipment",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "reports-out",
+          "name": "Maint Reports",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "tool-crib",
       "type": "Storage",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "tools-in",
-          "name": "New Tools",
-          "dataType": "equipment",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "tools-out",
-          "name": "Tools",
-          "dataType": "equipment",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "inventory-out",
-          "name": "Tool Inventory",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
-        }
-      ],
       "data": {
         "name": "Central Tool Crib",
         "tool_types": 2500,
@@ -1869,37 +1903,48 @@
       },
       "x": 350,
       "y": 1300,
-      "zIndex": 2
+      "zIndex": 2,
+      "ports": [
+        {
+          "id": "tools-in",
+          "name": "New Tools",
+          "dataType": "equipment",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "tools-out",
+          "name": "Tools",
+          "dataType": "equipment",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "inventory-out",
+          "name": "Tool Inventory",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "cafeteria",
       "type": "Facility",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "supplies-in",
-          "name": "Food Supplies",
-          "dataType": "material",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "meals-out",
-          "name": "Meals Served",
-          "dataType": "service",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        }
-      ],
       "data": {
         "name": "Employee Cafeteria",
         "capacity": 1000,
@@ -1915,47 +1960,37 @@
       },
       "x": 600,
       "y": 900,
-      "zIndex": 2
+      "zIndex": 2,
+      "ports": [
+        {
+          "id": "supplies-in",
+          "name": "Food Supplies",
+          "dataType": "material",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "meals-out",
+          "name": "Meals Served",
+          "dataType": "service",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "medical-center",
       "type": "Facility",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "patients-in",
-          "name": "Employees",
-          "dataType": "human",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "treated-out",
-          "name": "Treated",
-          "dataType": "human",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "records-out",
-          "name": "Medical Records",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
-        }
-      ],
       "data": {
         "name": "On-site Medical Center",
         "doctors": 3,
@@ -1970,47 +2005,48 @@
       },
       "x": 600,
       "y": 1100,
-      "zIndex": 2
+      "zIndex": 2,
+      "ports": [
+        {
+          "id": "patients-in",
+          "name": "Employees",
+          "dataType": "human",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "treated-out",
+          "name": "Treated",
+          "dataType": "human",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "records-out",
+          "name": "Medical Records",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "security-office",
       "type": "Facility",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "alerts-in",
-          "name": "Security Alerts",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "clearance-out",
-          "name": "Clearances",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "reports-out",
-          "name": "Incident Reports",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
-        }
-      ],
       "data": {
         "name": "Security Operations Center",
         "personnel": 50,
@@ -2021,57 +2057,48 @@
       },
       "x": 600,
       "y": 1300,
-      "zIndex": 2
+      "zIndex": 2,
+      "ports": [
+        {
+          "id": "alerts-in",
+          "name": "Security Alerts",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "clearance-out",
+          "name": "Clearances",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "reports-out",
+          "name": "Incident Reports",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "it-datacenter",
       "type": "System",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "data-in",
-          "name": "Data Streams",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "compute-out",
-          "name": "Computing",
-          "dataType": "service",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "storage-out",
-          "name": "Storage",
-          "dataType": "service",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "backup-out",
-          "name": "Backups",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 90
-          }
-        }
-      ],
       "data": {
         "name": "IT Data Center",
         "servers": 500,
@@ -2082,57 +2109,59 @@
       },
       "x": 1750,
       "y": 900,
-      "zIndex": 7
+      "zIndex": 7,
+      "ports": [
+        {
+          "id": "data-in",
+          "name": "Data Streams",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "compute-out",
+          "name": "Computing",
+          "dataType": "service",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "storage-out",
+          "name": "Storage",
+          "dataType": "service",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "backup-out",
+          "name": "Backups",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 90
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "ai-analytics",
       "type": "System",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "bigdata-in",
-          "name": "Big Data",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "predictions-out",
-          "name": "Predictions",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "insights-out",
-          "name": "Insights",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "optimization-out",
-          "name": "Optimization",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 90
-          }
-        }
-      ],
       "data": {
         "name": "AI & Analytics Platform",
         "models": 150,
@@ -2151,47 +2180,59 @@
       },
       "x": 1750,
       "y": 1100,
-      "zIndex": 7
+      "zIndex": 7,
+      "ports": [
+        {
+          "id": "bigdata-in",
+          "name": "Big Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "predictions-out",
+          "name": "Predictions",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "insights-out",
+          "name": "Insights",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "optimization-out",
+          "name": "Optimization",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 90
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "sustainability-office",
       "type": "Management",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "metrics-in",
-          "name": "Env Metrics",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "reports-out",
-          "name": "ESG Reports",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "targets-out",
-          "name": "Targets",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
-        }
-      ],
       "data": {
         "name": "Sustainability Office",
         "carbon_reduction": "25% by 2025",
@@ -2205,57 +2246,48 @@
       },
       "x": 1150,
       "y": 1300,
-      "zIndex": 5
+      "zIndex": 5,
+      "ports": [
+        {
+          "id": "metrics-in",
+          "name": "Env Metrics",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "reports-out",
+          "name": "ESG Reports",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "targets-out",
+          "name": "Targets",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "finance-office",
       "type": "Management",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "transactions-in",
-          "name": "Transactions",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "reports-out",
-          "name": "Financial Reports",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "budgets-out",
-          "name": "Budgets",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "forecasts-out",
-          "name": "Forecasts",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 90
-          }
-        }
-      ],
       "data": {
         "name": "Finance Department",
         "annual_revenue": "$5B",
@@ -2266,57 +2298,59 @@
       },
       "x": 2000,
       "y": 900,
-      "zIndex": 6
+      "zIndex": 6,
+      "ports": [
+        {
+          "id": "transactions-in",
+          "name": "Transactions",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "reports-out",
+          "name": "Financial Reports",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "budgets-out",
+          "name": "Budgets",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "forecasts-out",
+          "name": "Forecasts",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 90
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "hr-office",
       "type": "Management",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "applications-in",
-          "name": "Applications",
-          "dataType": "document",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "hires-out",
-          "name": "New Hires",
-          "dataType": "human",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "policies-out",
-          "name": "HR Policies",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "benefits-out",
-          "name": "Benefits",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 90
-          }
-        }
-      ],
       "data": {
         "name": "Human Resources",
         "employees": 15000,
@@ -2327,47 +2361,59 @@
       },
       "x": 2000,
       "y": 1100,
-      "zIndex": 6
+      "zIndex": 6,
+      "ports": [
+        {
+          "id": "applications-in",
+          "name": "Applications",
+          "dataType": "document",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "hires-out",
+          "name": "New Hires",
+          "dataType": "human",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "policies-out",
+          "name": "HR Policies",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "benefits-out",
+          "name": "Benefits",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 90
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "executive-dashboard",
       "type": "System",
       "width": 160,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "kpi-in",
-          "name": "All KPIs",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 50
-          }
-        },
-        {
-          "id": "alerts-in",
-          "name": "Critical Alerts",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 90
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "decisions-out",
-          "name": "Decisions",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 70
-          }
-        }
-      ],
       "data": {
         "name": "Executive Command Center",
         "displays": 20,
@@ -2378,7 +2424,42 @@
       },
       "x": 2250,
       "y": 1000,
-      "zIndex": 8
+      "zIndex": 8,
+      "ports": [
+        {
+          "id": "kpi-in",
+          "name": "All KPIs",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 50
+          },
+          "type": "input"
+        },
+        {
+          "id": "alerts-in",
+          "name": "Critical Alerts",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 90
+          },
+          "type": "input"
+        },
+        {
+          "id": "decisions-out",
+          "name": "Decisions",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 70
+          },
+          "type": "output"
+        }
+      ]
     }
   ],
   "connections": [

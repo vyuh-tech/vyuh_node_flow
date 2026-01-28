@@ -87,11 +87,9 @@ enum NodeRenderLayer {
 ///   type: 'processor',
 ///   position: Offset(100, 100),
 ///   data: MyData(value: 'example'),
-///   inputPorts: [
-///     Port(id: 'in-1', position: PortPosition.left),
-///   ],
-///   outputPorts: [
-///     Port(id: 'out-1', position: PortPosition.right),
+///   ports: [
+///     Port(id: 'in-1', position: PortPosition.left, type: PortType.input),
+///     Port(id: 'out-1', position: PortPosition.right, type: PortType.output),
 ///   ],
 /// );
 /// ```
@@ -110,8 +108,7 @@ class Node<T> {
   /// * [position] - Initial position in the graph coordinate space
   /// * [data] - Custom data associated with this node
   /// * [size] - Optional size, defaults to 150x100 if not specified
-  /// * [inputPorts] - List of input ports for incoming connections
-  /// * [outputPorts] - List of output ports for outgoing connections
+  /// * [ports] - List of ports for connections (use port.type for input/output/both)
   /// * [initialZIndex] - Initial stacking order, higher values appear on top
   /// * [visible] - Initial visibility state, defaults to true
   /// * [layer] - Rendering layer (background/middle/foreground), defaults to middle
@@ -123,8 +120,7 @@ class Node<T> {
     required Offset position,
     required this.data,
     Size? size,
-    List<Port> inputPorts = const [],
-    List<Port> outputPorts = const [],
+    List<Port> ports = const [],
     int initialZIndex = 0,
     bool visible = true,
     this.layer = NodeRenderLayer.middle,
@@ -140,8 +136,7 @@ class Node<T> {
        dragging = Observable(false),
        _isVisible = Observable(visible),
        _isEditing = Observable(false),
-       inputPorts = ObservableList.of(inputPorts),
-       outputPorts = ObservableList.of(outputPorts);
+       ports = ObservableList.of(ports);
 
   // ===========================================================================
   // Core Properties
@@ -156,11 +151,13 @@ class Node<T> {
   /// Observable size of the node.
   final Observable<Size> size;
 
-  /// Observable list of input ports for incoming connections.
-  final ObservableList<Port> inputPorts;
-
-  /// Observable list of output ports for outgoing connections.
-  final ObservableList<Port> outputPorts;
+  /// Observable list of ports for connections.
+  ///
+  /// Each port's [Port.type] determines its behavior:
+  /// - [PortType.input] - Can only receive connections
+  /// - [PortType.output] - Can only emit connections
+  /// - [PortType.both] - Can both receive and emit connections (bidirectional)
+  final ObservableList<Port> ports;
 
   /// Custom data associated with this node.
   final T data;
@@ -300,107 +297,61 @@ class Node<T> {
   // Port Management
   // ===========================================================================
 
-  /// Adds an input port to the node.
-  void addInputPort(Port port) {
+  /// Adds a port to the node.
+  void addPort(Port port) {
     runInAction(() {
-      inputPorts.add(port);
+      ports.add(port);
     });
   }
 
-  /// Adds an output port to the node.
-  void addOutputPort(Port port) {
-    runInAction(() {
-      outputPorts.add(port);
-    });
-  }
-
-  /// Removes an input port by ID.
+  /// Removes a port by ID.
   ///
   /// Returns true if the port was found and removed, false otherwise.
-  bool removeInputPort(String portId) {
-    return runInAction(() {
-      final index = inputPorts.indexWhere((port) => port.id == portId);
-      if (index >= 0) {
-        inputPorts.removeAt(index);
-        return true;
-      }
-      return false;
-    });
-  }
-
-  /// Removes an output port by ID.
-  ///
-  /// Returns true if the port was found and removed, false otherwise.
-  bool removeOutputPort(String portId) {
-    return runInAction(() {
-      final index = outputPorts.indexWhere((port) => port.id == portId);
-      if (index >= 0) {
-        outputPorts.removeAt(index);
-        return true;
-      }
-      return false;
-    });
-  }
-
-  /// Removes a port by ID from either input or output ports.
   bool removePort(String portId) {
-    return removeInputPort(portId) || removeOutputPort(portId);
-  }
-
-  /// Updates an existing input port by ID.
-  bool updateInputPort(String portId, Port updatedPort) {
     return runInAction(() {
-      final index = inputPorts.indexWhere((port) => port.id == portId);
+      final index = ports.indexWhere((port) => port.id == portId);
       if (index >= 0) {
-        inputPorts[index] = updatedPort;
+        ports.removeAt(index);
         return true;
       }
       return false;
     });
   }
 
-  /// Updates an existing output port by ID.
-  bool updateOutputPort(String portId, Port updatedPort) {
-    return runInAction(() {
-      final index = outputPorts.indexWhere((port) => port.id == portId);
-      if (index >= 0) {
-        outputPorts[index] = updatedPort;
-        return true;
-      }
-      return false;
-    });
-  }
-
-  /// Updates a port by ID in either input or output ports.
+  /// Updates an existing port by ID.
+  ///
+  /// Returns true if the port was found and updated, false otherwise.
   bool updatePort(String portId, Port updatedPort) {
-    return updateInputPort(portId, updatedPort) ||
-        updateOutputPort(portId, updatedPort);
+    return runInAction(() {
+      final index = ports.indexWhere((port) => port.id == portId);
+      if (index >= 0) {
+        ports[index] = updatedPort;
+        return true;
+      }
+      return false;
+    });
   }
 
-  /// Gets all ports (input and output combined).
-  List<Port> get allPorts => [...inputPorts, ...outputPorts];
+  /// Gets all ports. Alias for [ports] for API compatibility.
+  List<Port> get allPorts => ports.toList();
 
-  /// Finds a port by ID in either input or output ports.
+  /// Finds a port by ID.
   Port? findPort(String portId) {
-    for (final port in inputPorts) {
-      if (port.id == portId) return port;
-    }
-    for (final port in outputPorts) {
+    for (final port in ports) {
       if (port.id == portId) return port;
     }
     return null;
   }
 
-  /// Checks if a port is an output port of this node.
+  /// Gets all ports that can act as inputs (receive connections).
   ///
-  /// Returns `true` if the port exists in [outputPorts], `false` otherwise.
-  /// This is useful in builders to determine port direction.
-  bool isOutputPort(Port port) => outputPorts.contains(port);
+  /// Returns ports where [Port.isInput] is true (PortType.input or PortType.both).
+  Iterable<Port> get inputPorts => ports.where((p) => p.isInput);
 
-  /// Checks if a port is an input port of this node.
+  /// Gets all ports that can act as outputs (emit connections).
   ///
-  /// Returns `true` if the port exists in [inputPorts], `false` otherwise.
-  bool isInputPort(Port port) => inputPorts.contains(port);
+  /// Returns ports where [Port.isOutput] is true (PortType.output or PortType.both).
+  Iterable<Port> get outputPorts => ports.where((p) => p.isOutput);
 
   // ===========================================================================
   // Bounds and Containment
@@ -604,22 +555,20 @@ class Node<T> {
           )
         : null;
 
+    // Parse ports
+    final parsedPorts =
+        (json['ports'] as List<dynamic>?)
+            ?.map((e) => Port.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList() ??
+        const <Port>[];
+
     return Node<T>(
         id: json['id'] as String,
         type: json['type'] as String,
         position: position,
         data: fromJsonT(json['data']),
         size: size,
-        inputPorts:
-            (json['inputPorts'] as List<dynamic>?)
-                ?.map((e) => Port.fromJson(Map<String, dynamic>.from(e as Map)))
-                .toList() ??
-            const [],
-        outputPorts:
-            (json['outputPorts'] as List<dynamic>?)
-                ?.map((e) => Port.fromJson(Map<String, dynamic>.from(e as Map)))
-                .toList() ??
-            const [],
+        ports: parsedPorts,
         initialZIndex: (json['zIndex'] as num?)?.toInt() ?? 0,
         visible: (json['isVisible'] as bool?) ?? true,
         layer: layer,
@@ -640,8 +589,7 @@ class Node<T> {
     'y': position.value.dy,
     'width': size.value.width,
     'height': size.value.height,
-    'inputPorts': inputPorts.map((e) => e.toJson()).toList(),
-    'outputPorts': outputPorts.map((e) => e.toJson()).toList(),
+    'ports': ports.map((e) => e.toJson()).toList(),
     'data': toJsonT(data),
     'zIndex': zIndex.value,
     'selected': selected.value,

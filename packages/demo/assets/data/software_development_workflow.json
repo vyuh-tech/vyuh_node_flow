@@ -5,40 +5,6 @@
       "type": "Repository",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "commit-in",
-          "name": "Commits",
-          "dataType": "code",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 50
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "code-out",
-          "name": "Source Code",
-          "dataType": "code",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "webhook-out",
-          "name": "Webhook",
-          "dataType": "trigger",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        }
-      ],
       "data": {
         "name": "GitHub Repository",
         "branches": [
@@ -51,77 +17,48 @@
       },
       "x": 100,
       "y": 200,
-      "zIndex": 1
+      "zIndex": 1,
+      "ports": [
+        {
+          "id": "commit-in",
+          "name": "Commits",
+          "dataType": "code",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 50
+          },
+          "type": "input"
+        },
+        {
+          "id": "code-out",
+          "name": "Source Code",
+          "dataType": "code",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "webhook-out",
+          "name": "Webhook",
+          "dataType": "trigger",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "ci-pipeline",
       "type": "CI",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "trigger-in",
-          "name": "Trigger",
-          "dataType": "trigger",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 50
-          }
-        },
-        {
-          "id": "code-in",
-          "name": "Code",
-          "dataType": "code",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 90
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "build-out",
-          "name": "Build",
-          "dataType": "artifact",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "test-results",
-          "name": "Test Results",
-          "dataType": "report",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "coverage-out",
-          "name": "Coverage",
-          "dataType": "metrics",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 90
-          }
-        },
-        {
-          "id": "status-out",
-          "name": "Status",
-          "dataType": "notification",
-          "position": "bottom",
-          "offset": {
-            "x": 70,
-            "y": 2
-          }
-        }
-      ],
       "data": {
         "name": "Jenkins CI",
         "stages": [
@@ -135,14 +72,91 @@
       },
       "x": 350,
       "y": 200,
-      "zIndex": 2
+      "zIndex": 2,
+      "ports": [
+        {
+          "id": "trigger-in",
+          "name": "Trigger",
+          "dataType": "trigger",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 50
+          },
+          "type": "input"
+        },
+        {
+          "id": "code-in",
+          "name": "Code",
+          "dataType": "code",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 90
+          },
+          "type": "input"
+        },
+        {
+          "id": "build-out",
+          "name": "Build",
+          "dataType": "artifact",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "test-results",
+          "name": "Test Results",
+          "dataType": "report",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "coverage-out",
+          "name": "Coverage",
+          "dataType": "metrics",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 90
+          },
+          "type": "output"
+        },
+        {
+          "id": "status-out",
+          "name": "Status",
+          "dataType": "notification",
+          "position": "bottom",
+          "offset": {
+            "x": 70,
+            "y": 2
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "unit-tests",
       "type": "Testing",
       "width": 120,
       "height": 170,
-      "inputPorts": [
+      "data": {
+        "name": "Unit Tests",
+        "framework": "Jest",
+        "tests": 1250,
+        "coverage_target": "80%"
+      },
+      "x": 350,
+      "y": 50,
+      "zIndex": 2,
+      "ports": [
         {
           "id": "code-in",
           "name": "Code",
@@ -151,10 +165,9 @@
           "offset": {
             "x": -2,
             "y": 50
-          }
-        }
-      ],
-      "outputPorts": [
+          },
+          "type": "input"
+        },
         {
           "id": "results-out",
           "name": "Results",
@@ -163,7 +176,8 @@
           "offset": {
             "x": 2,
             "y": 30
-          }
+          },
+          "type": "output"
         },
         {
           "id": "passed-out",
@@ -173,68 +187,16 @@
           "offset": {
             "x": 2,
             "y": 60
-          }
+          },
+          "type": "output"
         }
-      ],
-      "data": {
-        "name": "Unit Tests",
-        "framework": "Jest",
-        "tests": 1250,
-        "coverage_target": "80%"
-      },
-      "x": 350,
-      "y": 50,
-      "zIndex": 2
+      ]
     },
     {
       "id": "code-quality",
       "type": "Analysis",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "code-in",
-          "name": "Code",
-          "dataType": "code",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "issues-out",
-          "name": "Issues",
-          "dataType": "report",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "metrics-out",
-          "name": "Metrics",
-          "dataType": "metrics",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "suggestions-out",
-          "name": "Suggestions",
-          "dataType": "recommendation",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 90
-          }
-        }
-      ],
       "data": {
         "name": "SonarQube",
         "rules": 450,
@@ -252,14 +214,8 @@
       },
       "x": 600,
       "y": 50,
-      "zIndex": 3
-    },
-    {
-      "id": "security-scan",
-      "type": "Security",
-      "width": 140,
-      "height": 170,
-      "inputPorts": [
+      "zIndex": 3,
+      "ports": [
         {
           "id": "code-in",
           "name": "Code",
@@ -267,42 +223,50 @@
           "position": "left",
           "offset": {
             "x": -2,
-            "y": 30
-          }
+            "y": 60
+          },
+          "type": "input"
         },
         {
-          "id": "deps-in",
-          "name": "Dependencies",
-          "dataType": "config",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "vulns-out",
-          "name": "Vulnerabilities",
+          "id": "issues-out",
+          "name": "Issues",
           "dataType": "report",
           "position": "right",
           "offset": {
             "x": 2,
             "y": 30
-          }
+          },
+          "type": "output"
         },
         {
-          "id": "safe-out",
-          "name": "Status",
-          "dataType": "status",
+          "id": "metrics-out",
+          "name": "Metrics",
+          "dataType": "metrics",
           "position": "right",
           "offset": {
             "x": 2,
             "y": 60
-          }
+          },
+          "type": "output"
+        },
+        {
+          "id": "suggestions-out",
+          "name": "Suggestions",
+          "dataType": "recommendation",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 90
+          },
+          "type": "output"
         }
-      ],
+      ]
+    },
+    {
+      "id": "security-scan",
+      "type": "Security",
+      "width": 140,
+      "height": 170,
       "data": {
         "name": "Security Scanner",
         "tools": [
@@ -315,14 +279,69 @@
       },
       "x": 600,
       "y": 200,
-      "zIndex": 3
+      "zIndex": 3,
+      "ports": [
+        {
+          "id": "code-in",
+          "name": "Code",
+          "dataType": "code",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 30
+          },
+          "type": "input"
+        },
+        {
+          "id": "deps-in",
+          "name": "Dependencies",
+          "dataType": "config",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "vulns-out",
+          "name": "Vulnerabilities",
+          "dataType": "report",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "safe-out",
+          "name": "Status",
+          "dataType": "status",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "artifact-registry",
       "type": "Registry",
       "width": 140,
       "height": 170,
-      "inputPorts": [
+      "data": {
+        "name": "Container Registry",
+        "type": "Docker Hub",
+        "namespace": "mycompany",
+        "retention": "Last 10 versions"
+      },
+      "x": 850,
+      "y": 200,
+      "zIndex": 4,
+      "ports": [
         {
           "id": "artifact-in",
           "name": "Artifacts",
@@ -331,10 +350,9 @@
           "offset": {
             "x": -2,
             "y": 50
-          }
-        }
-      ],
-      "outputPorts": [
+          },
+          "type": "input"
+        },
         {
           "id": "versioned-out",
           "name": "Versioned",
@@ -343,7 +361,8 @@
           "offset": {
             "x": 2,
             "y": 30
-          }
+          },
+          "type": "output"
         },
         {
           "id": "manifest-out",
@@ -353,78 +372,16 @@
           "offset": {
             "x": 2,
             "y": 60
-          }
+          },
+          "type": "output"
         }
-      ],
-      "data": {
-        "name": "Container Registry",
-        "type": "Docker Hub",
-        "namespace": "mycompany",
-        "retention": "Last 10 versions"
-      },
-      "x": 850,
-      "y": 200,
-      "zIndex": 4
+      ]
     },
     {
       "id": "staging-deploy",
       "type": "Deployment",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "artifact-in",
-          "name": "Artifact",
-          "dataType": "artifact",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 40
-          }
-        },
-        {
-          "id": "config-in",
-          "name": "Config",
-          "dataType": "config",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 80
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "url-out",
-          "name": "Endpoint",
-          "dataType": "url",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "health-out",
-          "name": "Health",
-          "dataType": "status",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "logs-out",
-          "name": "Logs",
-          "dataType": "logs",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 90
-          }
-        }
-      ],
       "data": {
         "name": "Staging Environment",
         "platform": "Kubernetes",
@@ -434,47 +391,70 @@
       },
       "x": 1100,
       "y": 100,
-      "zIndex": 5
+      "zIndex": 5,
+      "ports": [
+        {
+          "id": "artifact-in",
+          "name": "Artifact",
+          "dataType": "artifact",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 40
+          },
+          "type": "input"
+        },
+        {
+          "id": "config-in",
+          "name": "Config",
+          "dataType": "config",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 80
+          },
+          "type": "input"
+        },
+        {
+          "id": "url-out",
+          "name": "Endpoint",
+          "dataType": "url",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "health-out",
+          "name": "Health",
+          "dataType": "status",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "logs-out",
+          "name": "Logs",
+          "dataType": "logs",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 90
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "integration-tests",
       "type": "Testing",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "endpoint-in",
-          "name": "Endpoint",
-          "dataType": "url",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 50
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "results-out",
-          "name": "Results",
-          "dataType": "report",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "passed-out",
-          "name": "Status",
-          "dataType": "status",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        }
-      ],
       "data": {
         "name": "Integration Tests",
         "framework": "Cypress",
@@ -484,14 +464,8 @@
       },
       "x": 1350,
       "y": 100,
-      "zIndex": 6
-    },
-    {
-      "id": "performance-test",
-      "type": "Testing",
-      "width": 140,
-      "height": 170,
-      "inputPorts": [
+      "zIndex": 6,
+      "ports": [
         {
           "id": "endpoint-in",
           "name": "Endpoint",
@@ -500,19 +474,19 @@
           "offset": {
             "x": -2,
             "y": 50
-          }
-        }
-      ],
-      "outputPorts": [
+          },
+          "type": "input"
+        },
         {
-          "id": "metrics-out",
-          "name": "Metrics",
-          "dataType": "metrics",
+          "id": "results-out",
+          "name": "Results",
+          "dataType": "report",
           "position": "right",
           "offset": {
             "x": 2,
             "y": 30
-          }
+          },
+          "type": "output"
         },
         {
           "id": "passed-out",
@@ -522,9 +496,16 @@
           "offset": {
             "x": 2,
             "y": 60
-          }
+          },
+          "type": "output"
         }
-      ],
+      ]
+    },
+    {
+      "id": "performance-test",
+      "type": "Testing",
+      "width": 140,
+      "height": 170,
       "data": {
         "name": "Load Testing",
         "tool": "K6",
@@ -534,67 +515,48 @@
       },
       "x": 1350,
       "y": 250,
-      "zIndex": 6
+      "zIndex": 6,
+      "ports": [
+        {
+          "id": "endpoint-in",
+          "name": "Endpoint",
+          "dataType": "url",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 50
+          },
+          "type": "input"
+        },
+        {
+          "id": "metrics-out",
+          "name": "Metrics",
+          "dataType": "metrics",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "passed-out",
+          "name": "Status",
+          "dataType": "status",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "production-deploy",
       "type": "Deployment",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "artifact-in",
-          "name": "Artifact",
-          "dataType": "artifact",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 30
-          }
-        },
-        {
-          "id": "approval-in",
-          "name": "Approval",
-          "dataType": "approval",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        },
-        {
-          "id": "config-in",
-          "name": "Config",
-          "dataType": "config",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 90
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "url-out",
-          "name": "Live URL",
-          "dataType": "url",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "status-out",
-          "name": "Status",
-          "dataType": "status",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
-        }
-      ],
       "data": {
         "name": "Production Deploy",
         "strategy": "Blue-Green",
@@ -608,67 +570,70 @@
       },
       "x": 1100,
       "y": 350,
-      "zIndex": 5
+      "zIndex": 5,
+      "ports": [
+        {
+          "id": "artifact-in",
+          "name": "Artifact",
+          "dataType": "artifact",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 30
+          },
+          "type": "input"
+        },
+        {
+          "id": "approval-in",
+          "name": "Approval",
+          "dataType": "approval",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "config-in",
+          "name": "Config",
+          "dataType": "config",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 90
+          },
+          "type": "input"
+        },
+        {
+          "id": "url-out",
+          "name": "Live URL",
+          "dataType": "url",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "status-out",
+          "name": "Status",
+          "dataType": "status",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "monitoring",
       "type": "Monitoring",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "app-metrics",
-          "name": "App Metrics",
-          "dataType": "metrics",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 30
-          }
-        },
-        {
-          "id": "logs-in",
-          "name": "Logs",
-          "dataType": "logs",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        },
-        {
-          "id": "traces-in",
-          "name": "Traces",
-          "dataType": "traces",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 90
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "dashboard-out",
-          "name": "Dashboard",
-          "dataType": "visualization",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "alerts-out",
-          "name": "Alerts",
-          "dataType": "notification",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
-        }
-      ],
       "data": {
         "name": "Observability Stack",
         "tools": [
@@ -683,47 +648,70 @@
       },
       "x": 1350,
       "y": 450,
-      "zIndex": 6
+      "zIndex": 6,
+      "ports": [
+        {
+          "id": "app-metrics",
+          "name": "App Metrics",
+          "dataType": "metrics",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 30
+          },
+          "type": "input"
+        },
+        {
+          "id": "logs-in",
+          "name": "Logs",
+          "dataType": "logs",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "traces-in",
+          "name": "Traces",
+          "dataType": "traces",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 90
+          },
+          "type": "input"
+        },
+        {
+          "id": "dashboard-out",
+          "name": "Dashboard",
+          "dataType": "visualization",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "alerts-out",
+          "name": "Alerts",
+          "dataType": "notification",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "feedback-loop",
       "type": "Analytics",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "metrics-in",
-          "name": "All Metrics",
-          "dataType": "metrics",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 50
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "insights-out",
-          "name": "Insights",
-          "dataType": "recommendation",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "report-out",
-          "name": "Report",
-          "dataType": "report",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        }
-      ],
       "data": {
         "name": "DevOps Analytics",
         "metrics": [
@@ -737,37 +725,48 @@
       },
       "x": 850,
       "y": 450,
-      "zIndex": 4
+      "zIndex": 4,
+      "ports": [
+        {
+          "id": "metrics-in",
+          "name": "All Metrics",
+          "dataType": "metrics",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 50
+          },
+          "type": "input"
+        },
+        {
+          "id": "insights-out",
+          "name": "Insights",
+          "dataType": "recommendation",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "report-out",
+          "name": "Report",
+          "dataType": "report",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "rollback-system",
       "type": "Recovery",
       "width": 120,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "alert-in",
-          "name": "Alert",
-          "dataType": "notification",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 50
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "action-out",
-          "name": "Action",
-          "dataType": "command",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 50
-          }
-        }
-      ],
       "data": {
         "name": "Auto Rollback",
         "trigger": "Error rate > 5%",
@@ -776,7 +775,31 @@
       },
       "x": 1100,
       "y": 550,
-      "zIndex": 5
+      "zIndex": 5,
+      "ports": [
+        {
+          "id": "alert-in",
+          "name": "Alert",
+          "dataType": "notification",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 50
+          },
+          "type": "input"
+        },
+        {
+          "id": "action-out",
+          "name": "Action",
+          "dataType": "command",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 50
+          },
+          "type": "output"
+        }
+      ]
     }
   ],
   "connections": [

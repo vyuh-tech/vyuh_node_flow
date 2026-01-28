@@ -40,10 +40,11 @@ class _ThemingExampleState extends State<ThemingExample> {
         position: const Offset(100, 100),
         size: const Size(150, 100),
         data: {'label': 'Source'},
-        inputPorts: [
+        ports: [
           Port(
             id: 'in1',
             name: 'Input 1',
+            type: PortType.input,
             position: PortPosition.left,
             offset: const Offset(
               -2,
@@ -55,16 +56,16 @@ class _ThemingExampleState extends State<ThemingExample> {
           Port(
             id: 'in2',
             name: 'Input 2',
+            type: PortType.input,
             position: PortPosition.left,
             offset: const Offset(-2, 50), // Second input for loopback testing
             shape: portShape,
             showLabel: true,
           ),
-        ],
-        outputPorts: [
           Port(
             id: 'out1',
             name: 'Output 1',
+            type: PortType.output,
             position: PortPosition.right,
             offset: const Offset(2, 20), // Starting offset
             shape: portShape,
@@ -73,6 +74,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           Port(
             id: 'out2',
             name: 'Output 2',
+            type: PortType.output,
             position: PortPosition.right,
             offset: const Offset(2, 50), // 20 + 30 separation
             shape: portShape,
@@ -81,6 +83,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           Port(
             id: 'out-top',
             name: 'Top',
+            type: PortType.output,
             position: PortPosition.top,
             offset: const Offset(75, -2), // Horizontal center at mid-width
             shape: portShape,
@@ -89,6 +92,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           Port(
             id: 'out-bottom',
             name: 'Bottom',
+            type: PortType.output,
             position: PortPosition.bottom,
             offset: const Offset(75, 2), // Horizontal center at mid-width
             shape: portShape,
@@ -102,20 +106,20 @@ class _ThemingExampleState extends State<ThemingExample> {
         position: const Offset(350, 80),
         size: const Size(150, 100),
         data: {'label': 'Transform'},
-        inputPorts: [
+        ports: [
           Port(
             id: 'in1',
             name: 'Input',
+            type: PortType.input,
             position: PortPosition.left,
             offset: const Offset(-2, 50), // Vertical center at mid-height
             shape: portShape,
             showLabel: true,
           ),
-        ],
-        outputPorts: [
           Port(
             id: 'out1',
             name: 'Output',
+            type: PortType.output,
             position: PortPosition.right,
             offset: const Offset(2, 50), // Vertical center at mid-height
             shape: portShape,
@@ -129,10 +133,11 @@ class _ThemingExampleState extends State<ThemingExample> {
         position: const Offset(600, 100),
         size: const Size(150, 100),
         data: {'label': 'Sink'},
-        inputPorts: [
+        ports: [
           Port(
             id: 'in1',
             name: 'Input 1',
+            type: PortType.input,
             position: PortPosition.left,
             offset: const Offset(-2, 20), // Starting offset
             shape: portShape,
@@ -141,6 +146,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           Port(
             id: 'in2',
             name: 'Input 2',
+            type: PortType.input,
             position: PortPosition.left,
             offset: const Offset(-2, 50), // 20 + 30 separation
             shape: portShape,
@@ -149,6 +155,7 @@ class _ThemingExampleState extends State<ThemingExample> {
           Port(
             id: 'in-top',
             name: 'Top',
+            type: PortType.input,
             position: PortPosition.top,
             offset: const Offset(75, -2), // Horizontal center at mid-width
             shape: portShape,
@@ -290,7 +297,7 @@ class _ThemingExampleState extends State<ThemingExample> {
     Port port,
   ) {
     // Derive values using helper methods
-    final isOutput = node.isOutputPort(port);
+    final isOutput = port.isOutput;
     final nodeBounds = node.getBounds();
     final isConnected = _controller.connections.any(
       (conn) => isOutput

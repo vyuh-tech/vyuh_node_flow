@@ -54,8 +54,7 @@ class CommentNode<T> extends Node<T> with ResizableMixin<T> {
          initialZIndex: zIndex,
          visible: isVisible,
          selectable: true,
-         inputPorts: const [],
-         outputPorts: const [],
+         ports: const [],
        );
 
   /// Observable text content of the comment.

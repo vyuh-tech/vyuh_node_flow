@@ -80,26 +80,24 @@ class _AutoPanExampleState extends State<AutoPanExample> {
           position: positions[i],
           size: const Size(120, 80),
           data: 'Node ${i + 1}',
-          inputPorts: typeIndex > 0
-              ? [
-                  Port(
-                    id: 'in',
-                    name: 'Input',
-                    position: PortPosition.left,
-                    offset: const Offset(-2, 40),
-                  ),
-                ]
-              : [],
-          outputPorts: typeIndex < 2
-              ? [
-                  Port(
-                    id: 'out',
-                    name: 'Output',
-                    position: PortPosition.right,
-                    offset: const Offset(2, 40),
-                  ),
-                ]
-              : [],
+          ports: [
+            if (typeIndex > 0)
+              Port(
+                id: 'in',
+                name: 'Input',
+                type: PortType.input,
+                position: PortPosition.left,
+                offset: const Offset(-2, 40),
+              ),
+            if (typeIndex < 2)
+              Port(
+                id: 'out',
+                name: 'Output',
+                type: PortType.output,
+                position: PortPosition.right,
+                offset: const Offset(2, 40),
+              ),
+          ],
         ),
       );
     }

@@ -59,7 +59,7 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo>
         id: sourceNodeId,
         position: const Offset(400, 100),
         size: const Size(100, 100),
-        inputPorts: [
+        ports: [
           Port(
             id: 'source-left',
             position: PortPosition.left,
@@ -106,7 +106,7 @@ class _PortCombinationsDemoState extends State<PortCombinationsDemo>
         type: 'Target',
         position: const Offset(700, 300),
         size: const Size(100, 100),
-        outputPorts: [
+        ports: [
           Port(
             id: 'target-left',
             position: PortPosition.left,

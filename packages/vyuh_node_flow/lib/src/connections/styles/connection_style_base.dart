@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../../nodes/node.dart';
@@ -76,11 +74,11 @@ class ConnectionPathParameters {
 
   /// Get source port position.
   ///
-  /// When a source port is available, returns its position.
+  /// When a source port is available, returns its physical position.
   /// When no source port (e.g., temporary connection dragging FROM an input port),
   /// returns the opposite of the target port's position for smooth line flow.
   PortPosition get sourcePosition {
-    // If we have a source port, use its position
+    // If we have a source port, use its physical position
     if (sourcePort != null) {
       return sourcePort!.position;
     }
@@ -96,6 +94,44 @@ class ConnectionPathParameters {
     // Fallback (shouldn't happen in practice)
     return PortPosition.right;
   }
+
+  /// Whether the source port is bidirectional (can act as both input and output).
+  bool get isSourceBidirectional =>
+      sourcePort != null && sourcePort!.type == PortType.both;
+
+  /// Whether the target port is bidirectional (can act as both input and output).
+  bool get isTargetBidirectional =>
+      targetPort != null && targetPort!.type == PortType.both;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // EFFECTIVE POSITIONS - Simplified: Always use physical positions
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // SIMPLIFIED ROUTING: Bidi ports use the same direction as regular ports.
+  // The "bidirectional" aspect means the port CAN be source OR target,
+  // not that it dynamically changes direction based on spatial relationship.
+  //
+  // The waypoint builder handles all routing scenarios naturally:
+  // - Same-side connections → loopback routing
+  // - Back-edge (target behind source) → wrap-around routing
+  // - Normal forward connections → direct or L-shape routing
+  //
+  // Endpoint markers are always oriented based on physical port position,
+  // ensuring consistent visual appearance.
+
+  /// Get effective source position for routing.
+  ///
+  /// Returns the physical [sourcePosition].
+  /// Bidi ports use physical position - the "bidirectional" aspect just means
+  /// the port can be source or target, not that direction changes dynamically.
+  PortPosition get effectiveSourcePosition => sourcePosition;
+
+  /// Get effective target position for routing.
+  ///
+  /// Returns the physical [targetPosition].
+  /// Bidi ports use physical position - the "bidirectional" aspect just means
+  /// the port can be source or target, not that direction changes dynamically.
+  PortPosition get effectiveTargetPosition => targetPosition;
 
   /// Get target port position.
   ///

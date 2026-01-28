@@ -29,23 +29,21 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
         position: const Offset(150, 150),
         size: const Size(120, 100),
         data: {'label': 'Horizontal'},
-        inputPorts: [
+        ports: [
           Port(
             id: 'port-1',
             name: 'Input',
+            type: PortType.input,
             position: PortPosition.left,
             offset: Offset(-2, 50),
-            type: PortType.input,
             multiConnections: true,
           ),
-        ],
-        outputPorts: [
           Port(
             id: 'port-2',
             name: 'Output',
+            type: PortType.output,
             position: PortPosition.right,
             offset: Offset(2, 50),
-            type: PortType.output,
           ),
         ],
       ),
@@ -56,23 +54,21 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
         position: const Offset(400, 150),
         size: const Size(120, 100),
         data: {'label': 'Vertical'},
-        inputPorts: [
+        ports: [
           Port(
             id: 'port-3',
             name: 'Input',
+            type: PortType.input,
             position: PortPosition.top,
             offset: Offset(60, -2),
-            type: PortType.input,
             multiConnections: true,
           ),
-        ],
-        outputPorts: [
           Port(
             id: 'port-4',
             name: 'Output',
+            type: PortType.output,
             position: PortPosition.bottom,
             offset: Offset(60, 2),
-            type: PortType.output,
           ),
         ],
       ),
@@ -97,8 +93,7 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
       size: const Size(120, 80),
       // Initial size
       data: {'label': 'Node $_nodeCounter'},
-      inputPorts: [],
-      outputPorts: [],
+      ports: [],
     );
     _controller.addNode(node);
     _controller.selectNode(node.id);
@@ -155,11 +150,7 @@ class _DynamicPortsExampleState extends State<DynamicPortsExample> {
 
     // Update node size and ports using controller APIs
     _controller.setNodeSize(nodeId, newSize);
-    _controller.setNodePorts(
-      nodeId,
-      inputPorts: finalInputPorts,
-      outputPorts: finalOutputPorts,
-    );
+    _controller.setNodePorts(nodeId, [...finalInputPorts, ...finalOutputPorts]);
   }
 
   Offset _calculatePortOffset(PortPosition position, int index, Size nodeSize) {

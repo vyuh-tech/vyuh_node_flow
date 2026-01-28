@@ -106,11 +106,9 @@ typedef NodeLookup = Node? Function(String nodeId);
 ///   size: Size(500, 400),
 ///   title: 'Subflow',
 ///   data: 'subflow-data',
-///   inputPorts: [
-///     Port(id: 'in-1', name: 'Input', position: PortPosition.left),
-///   ],
-///   outputPorts: [
-///     Port(id: 'out-1', name: 'Output', position: PortPosition.right),
+///   ports: [
+///     Port(id: 'in-1', name: 'Input', type: PortType.input, position: PortPosition.left),
+///     Port(id: 'out-1', name: 'Output', type: PortType.output, position: PortPosition.right),
 ///   ],
 /// );
 /// ```
@@ -129,8 +127,7 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
     bool isVisible = true,
     super.locked,
     // Optional ports for subflow patterns
-    super.inputPorts,
-    super.outputPorts,
+    super.ports,
     // Custom widget builder for subclass rendering (e.g., LoopNode)
     super.widgetBuilder,
     // Override default auto-delete behavior when group becomes empty
@@ -550,8 +547,7 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
     int? zIndex,
     bool? isVisible,
     bool? locked,
-    List<Port>? inputPorts,
-    List<Port>? outputPorts,
+    List<Port>? ports,
     NodeWidgetBuilder<T>? widgetBuilder,
   }) {
     return GroupNode<T>(
@@ -567,8 +563,7 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
       zIndex: zIndex ?? this.zIndex.value,
       isVisible: isVisible ?? this.isVisible,
       locked: locked ?? this.locked,
-      inputPorts: inputPorts ?? List.from(this.inputPorts),
-      outputPorts: outputPorts ?? List.from(this.outputPorts),
+      ports: ports ?? this.ports.toList(),
       widgetBuilder: widgetBuilder ?? this.widgetBuilder,
     );
   }
@@ -606,17 +601,12 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
       }
     }
 
-    // Parse ports
-    final inputPorts =
-        (json['inputPorts'] as List<dynamic>?)
+    // Parse ports from single ports array
+    final parsedPorts =
+        (json['ports'] as List<dynamic>?)
             ?.map((e) => Port.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList() ??
-        const [];
-    final outputPorts =
-        (json['outputPorts'] as List<dynamic>?)
-            ?.map((e) => Port.fromJson(Map<String, dynamic>.from(e as Map)))
-            .toList() ??
-        const [];
+        const <Port>[];
 
     return GroupNode<T>(
       id: json['id'] as String,
@@ -641,8 +631,7 @@ class GroupNode<T> extends Node<T> with ResizableMixin<T>, GroupableMixin<T> {
       zIndex: json['zIndex'] as int? ?? -1,
       isVisible: json['isVisible'] as bool? ?? true,
       locked: json['locked'] as bool? ?? false,
-      inputPorts: inputPorts,
-      outputPorts: outputPorts,
+      ports: parsedPorts,
     );
   }
 

@@ -90,26 +90,24 @@ class _ViewportAnimationsExampleState extends State<ViewportAnimationsExample> {
           position: position,
           size: const Size(120, 80),
           data: label,
-          inputPorts: !isStart
-              ? [
-                  Port(
-                    id: 'in',
-                    name: 'Input',
-                    position: PortPosition.left,
-                    offset: const Offset(-2, 40),
-                  ),
-                ]
-              : [],
-          outputPorts: !isEnd
-              ? [
-                  Port(
-                    id: 'out',
-                    name: 'Output',
-                    position: PortPosition.right,
-                    offset: const Offset(2, 40),
-                  ),
-                ]
-              : [],
+          ports: [
+            if (!isStart)
+              Port(
+                id: 'in',
+                name: 'Input',
+                type: PortType.input,
+                position: PortPosition.left,
+                offset: const Offset(-2, 40),
+              ),
+            if (!isEnd)
+              Port(
+                id: 'out',
+                name: 'Output',
+                type: PortType.output,
+                position: PortPosition.right,
+                offset: const Offset(2, 40),
+              ),
+          ],
         ),
       );
     }

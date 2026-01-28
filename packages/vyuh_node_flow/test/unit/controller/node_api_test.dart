@@ -320,30 +320,30 @@ void main() {
       expect(ports, hasLength(2));
     });
 
-    test('addInputPort adds port to node', () {
+    test('addPort adds input port to node', () {
       final node = createTestNode(id: 'node-1');
       final controller = createTestController(nodes: [node]);
       final newPort = createInputPort(id: 'new-input');
 
-      controller.addInputPort('node-1', newPort);
+      controller.addPort('node-1', newPort);
 
       expect(controller.getPort('node-1', 'new-input'), isNotNull);
     });
 
-    test('addInputPort does nothing for non-existent node', () {
+    test('addPort does nothing for non-existent node', () {
       final controller = createTestController();
       final newPort = createInputPort(id: 'new-input');
 
       // Should not throw
-      controller.addInputPort('non-existent', newPort);
+      controller.addPort('non-existent', newPort);
     });
 
-    test('addOutputPort adds port to node', () {
+    test('addPort adds output port to node', () {
       final node = createTestNode(id: 'node-1');
       final controller = createTestController(nodes: [node]);
       final newPort = createOutputPort(id: 'new-output');
 
-      controller.addOutputPort('node-1', newPort);
+      controller.addPort('node-1', newPort);
 
       expect(controller.getPort('node-1', 'new-output'), isNotNull);
     });
@@ -379,7 +379,7 @@ void main() {
       expect(controller.connections, isEmpty);
     });
 
-    test('setNodePorts replaces input ports', () {
+    test('setNodePorts replaces all ports', () {
       final node = createTestNode(
         id: 'node-1',
         inputPorts: [createInputPort(id: 'old-in')],
@@ -390,13 +390,13 @@ void main() {
         createInputPort(id: 'new-in-2'),
       ];
 
-      controller.setNodePorts('node-1', inputPorts: newPorts);
+      controller.setNodePorts('node-1', newPorts);
 
       expect(controller.getInputPorts('node-1'), hasLength(2));
       expect(controller.getPort('node-1', 'old-in'), isNull);
     });
 
-    test('setNodePorts replaces output ports', () {
+    test('setNodePorts replaces with output ports', () {
       final node = createTestNode(
         id: 'node-1',
         outputPorts: [createOutputPort(id: 'old-out')],
@@ -404,7 +404,7 @@ void main() {
       final controller = createTestController(nodes: [node]);
       final newPorts = [createOutputPort(id: 'new-out')];
 
-      controller.setNodePorts('node-1', outputPorts: newPorts);
+      controller.setNodePorts('node-1', newPorts);
 
       expect(controller.getOutputPorts('node-1'), hasLength(1));
       expect(controller.getPort('node-1', 'new-out'), isNotNull);

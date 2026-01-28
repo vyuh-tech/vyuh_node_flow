@@ -29,10 +29,11 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
         position: const Offset(100, 100),
         data: {'label': 'Rectangle\n(Default)'},
         size: const Size(150, 100),
-        outputPorts: [
+        ports: [
           Port(
             id: 'output',
             name: 'Out',
+            type: PortType.output,
             position: PortPosition.right,
             offset: Offset(2, 50),
           ),
@@ -46,10 +47,11 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
         position: const Offset(300, 100),
         data: {'label': 'Circle\nStart/End'},
         size: const Size(120, 120),
-        inputPorts: [
+        ports: [
           Port(
             id: 'input',
             name: 'In',
+            type: PortType.input,
             position: PortPosition.left,
             multiConnections: true,
           ),
@@ -63,10 +65,25 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
         position: const Offset(100, 280),
         data: {'label': 'Diamond\nDecision'},
         size: const Size(140, 100),
-        inputPorts: [Port(id: 'input', name: 'In', position: PortPosition.top)],
-        outputPorts: [
-          Port(id: 'output-yes', name: 'Yes', position: PortPosition.right),
-          Port(id: 'output-no', name: 'No', position: PortPosition.bottom),
+        ports: [
+          Port(
+            id: 'input',
+            name: 'In',
+            type: PortType.input,
+            position: PortPosition.top,
+          ),
+          Port(
+            id: 'output-yes',
+            name: 'Yes',
+            type: PortType.output,
+            position: PortPosition.right,
+          ),
+          Port(
+            id: 'output-no',
+            name: 'No',
+            type: PortType.output,
+            position: PortPosition.bottom,
+          ),
         ],
       ),
       // Hexagon node - horizontal
@@ -77,11 +94,19 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
         position: const Offset(300, 280),
         data: {'label': 'Hexagon\nPreparation'},
         size: const Size(160, 100),
-        inputPorts: [
-          Port(id: 'input', name: 'In', position: PortPosition.left),
-        ],
-        outputPorts: [
-          Port(id: 'output', name: 'Out', position: PortPosition.right),
+        ports: [
+          Port(
+            id: 'input',
+            name: 'In',
+            type: PortType.input,
+            position: PortPosition.left,
+          ),
+          Port(
+            id: 'output',
+            name: 'Out',
+            type: PortType.output,
+            position: PortPosition.right,
+          ),
         ],
       ),
       // Vertical hexagon node
@@ -92,9 +117,19 @@ class _NodeShapesExampleState extends State<NodeShapesExample> {
         position: const Offset(500, 280),
         data: {'label': 'Vertical\nHexagon'},
         size: const Size(120, 150),
-        inputPorts: [Port(id: 'input', name: 'In', position: PortPosition.top)],
-        outputPorts: [
-          Port(id: 'output', name: 'Out', position: PortPosition.bottom),
+        ports: [
+          Port(
+            id: 'input',
+            name: 'In',
+            type: PortType.input,
+            position: PortPosition.top,
+          ),
+          Port(
+            id: 'output',
+            name: 'Out',
+            type: PortType.output,
+            position: PortPosition.bottom,
+          ),
         ],
       ),
     ];

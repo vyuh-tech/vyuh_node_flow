@@ -13,11 +13,10 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vyuh_node_flow/vyuh_node_flow.dart';
-
+import 'package:vyuh_node_flow/src/editor/resizer_widget.dart';
 // Import NodeContainer and ResizerWidget directly as they're not part of the public API
 import 'package:vyuh_node_flow/src/nodes/node_container.dart';
-import 'package:vyuh_node_flow/src/editor/resizer_widget.dart';
+import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../helpers/test_factories.dart';
 import '../../helpers/test_utils.dart';
@@ -368,7 +367,7 @@ void main() {
         type: 'test',
         position: Offset.zero,
         data: 'test',
-        outputPorts: [
+        ports: [
           createOutputPort(id: 'out-1'),
           createOutputPort(id: 'out-2'),
         ],
@@ -839,12 +838,10 @@ void main() {
         type: 'test',
         position: Offset.zero,
         data: 'test',
-        inputPorts: [
+        ports: [
           createInputPort(id: 'in-1'),
           createInputPort(id: 'in-2'),
           createInputPort(id: 'in-3'),
-        ],
-        outputPorts: [
           createOutputPort(id: 'out-1'),
           createOutputPort(id: 'out-2'),
         ],
@@ -1015,8 +1012,7 @@ void main() {
         size: const Size(400, 300),
         title: 'Subflow',
         data: 'test',
-        inputPorts: [inputPort],
-        outputPorts: [outputPort],
+        ports: [inputPort, outputPort],
       );
       final controller = createTestController(nodes: [group]);
 

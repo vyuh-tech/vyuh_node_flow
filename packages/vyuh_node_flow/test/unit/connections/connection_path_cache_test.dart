@@ -14,10 +14,9 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vyuh_node_flow/vyuh_node_flow.dart';
-
 // Import internal class for testing
 import 'package:vyuh_node_flow/src/connections/connection_path_cache.dart';
+import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../helpers/test_factories.dart';
 
@@ -2032,12 +2031,20 @@ void main() {
         connectionStyle: cache.theme.connectionTheme.style,
       );
 
-      // Hit test
+      // Use the actual source port connection point for hit testing - this is
+      // guaranteed to be on/near the path, unlike bounds.center which may miss
+      // curved paths when nodes have vertical offset
+      final sourcePort = sourceNode.findPort('output-1')!;
+      final sourcePoint = sourceNode.getConnectionPoint(
+        'output-1',
+        portSize: sourcePort.size ?? const Size(12, 12),
+      );
+
       final hitResult = cache.hitTest(
         connection: connection,
         sourceNode: sourceNode,
         targetNode: targetNode,
-        testPoint: path!.getBounds().center,
+        testPoint: sourcePoint,
         tolerance: 20.0,
       );
 

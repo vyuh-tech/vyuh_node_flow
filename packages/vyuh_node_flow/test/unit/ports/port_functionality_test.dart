@@ -1328,7 +1328,7 @@ void main() {
       expect(node.findPort('non-existent'), isNull);
     });
 
-    test('node isOutputPort and isInputPort work correctly', () {
+    test('port isOutput and isInput work correctly', () {
       final inputPort = createInputPort(id: 'input');
       final outputPort = createOutputPort(id: 'output');
 
@@ -1338,10 +1338,10 @@ void main() {
         outputPorts: [outputPort],
       );
 
-      expect(node.isOutputPort(outputPort), isTrue);
-      expect(node.isOutputPort(inputPort), isFalse);
-      expect(node.isInputPort(inputPort), isTrue);
-      expect(node.isInputPort(outputPort), isFalse);
+      expect(node.findPort('output')?.isOutput, isTrue);
+      expect(node.findPort('input')?.isOutput, isFalse);
+      expect(node.findPort('input')?.isInput, isTrue);
+      expect(node.findPort('output')?.isInput, isFalse);
     });
   });
 }

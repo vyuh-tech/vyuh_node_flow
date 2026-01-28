@@ -87,11 +87,11 @@ class _ViewerExampleState extends State<ViewerExample> {
         data: 'Input Node',
         position: const Offset(100, 100),
         size: const Size(150, 80),
-        inputPorts: [],
-        outputPorts: [
+        ports: [
           Port(
             id: 'out',
             name: 'Output',
+            type: PortType.output,
             position: PortPosition.right,
             offset: Offset(2, 20),
           ),
@@ -103,24 +103,25 @@ class _ViewerExampleState extends State<ViewerExample> {
         data: 'Processing Node',
         position: const Offset(300, 200),
         size: const Size(150, 100),
-        inputPorts: [
+        ports: [
           Port(
             id: 'in',
             name: 'Input',
+            type: PortType.input,
             position: PortPosition.left,
             offset: Offset(-2, 20),
           ),
-        ],
-        outputPorts: [
           Port(
             id: 'out1',
             name: 'Result',
+            type: PortType.output,
             position: PortPosition.right,
             offset: Offset(2, 20),
           ),
           Port(
             id: 'out2',
             name: 'Error',
+            type: PortType.output,
             position: PortPosition.right,
             offset: Offset(2, 20),
           ),
@@ -132,15 +133,15 @@ class _ViewerExampleState extends State<ViewerExample> {
         data: 'Output Node 1',
         position: const Offset(500, 150),
         size: const Size(150, 80),
-        inputPorts: [
+        ports: [
           Port(
             id: 'in',
             name: 'Input',
+            type: PortType.input,
             position: PortPosition.left,
             offset: Offset(-2, 20),
           ),
         ],
-        outputPorts: [],
       ),
       Node<String>(
         id: 'output2',
@@ -148,15 +149,15 @@ class _ViewerExampleState extends State<ViewerExample> {
         data: 'Output Node 2',
         position: const Offset(500, 280),
         size: const Size(150, 80),
-        inputPorts: [
+        ports: [
           Port(
             id: 'in',
             name: 'Input',
+            type: PortType.input,
             position: PortPosition.left,
             offset: Offset(-2, 20),
           ),
         ],
-        outputPorts: [],
       ),
     ];
   }

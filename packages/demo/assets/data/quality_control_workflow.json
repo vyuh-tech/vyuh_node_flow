@@ -5,8 +5,15 @@
       "type": "Intake",
       "width": 140,
       "height": 170,
-      "inputPorts": [],
-      "outputPorts": [
+      "data": {
+        "name": "Product Intake",
+        "capacity": "1000 units/hour",
+        "source": "Production Line A"
+      },
+      "x": 100,
+      "y": 100,
+      "zIndex": 1,
+      "ports": [
         {
           "id": "product-out",
           "name": "Products",
@@ -15,7 +22,8 @@
           "offset": {
             "x": 2,
             "y": 30
-          }
+          },
+          "type": "output"
         },
         {
           "id": "batch-info",
@@ -25,67 +33,16 @@
           "offset": {
             "x": 2,
             "y": 60
-          }
+          },
+          "type": "output"
         }
-      ],
-      "data": {
-        "name": "Product Intake",
-        "capacity": "1000 units/hour",
-        "source": "Production Line A"
-      },
-      "x": 100,
-      "y": 100,
-      "zIndex": 1
+      ]
     },
     {
       "id": "visual-inspection",
       "type": "Inspection",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "product-in",
-          "name": "Products",
-          "dataType": "product",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 40
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "passed-out",
-          "name": "Passed",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "failed-out",
-          "name": "Failed",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "report-out",
-          "name": "Report",
-          "dataType": "document",
-          "position": "bottom",
-          "offset": {
-            "x": 70,
-            "y": 2
-          }
-        }
-      ],
       "data": {
         "name": "Visual Inspection",
         "inspectors": 5,
@@ -98,14 +55,8 @@
       },
       "x": 350,
       "y": 100,
-      "zIndex": 2
-    },
-    {
-      "id": "dimensional-check",
-      "type": "Measurement",
-      "width": 140,
-      "height": 170,
-      "inputPorts": [
+      "zIndex": 2,
+      "ports": [
         {
           "id": "product-in",
           "name": "Products",
@@ -114,41 +65,49 @@
           "offset": {
             "x": -2,
             "y": 40
-          }
-        }
-      ],
-      "outputPorts": [
+          },
+          "type": "input"
+        },
         {
           "id": "passed-out",
-          "name": "In Spec",
+          "name": "Passed",
           "dataType": "product",
           "position": "right",
           "offset": {
             "x": 2,
             "y": 30
-          }
+          },
+          "type": "output"
         },
         {
           "id": "failed-out",
-          "name": "Out of Spec",
+          "name": "Failed",
           "dataType": "product",
           "position": "right",
           "offset": {
             "x": 2,
             "y": 60
-          }
+          },
+          "type": "output"
         },
         {
-          "id": "data-out",
-          "name": "Measurements",
-          "dataType": "data",
+          "id": "report-out",
+          "name": "Report",
+          "dataType": "document",
           "position": "bottom",
           "offset": {
             "x": 70,
             "y": 2
-          }
+          },
+          "type": "output"
         }
-      ],
+      ]
+    },
+    {
+      "id": "dimensional-check",
+      "type": "Measurement",
+      "width": 140,
+      "height": 170,
       "data": {
         "name": "3D Measurement",
         "equipment": "CMM Machine",
@@ -162,14 +121,8 @@
       },
       "x": 600,
       "y": 100,
-      "zIndex": 3
-    },
-    {
-      "id": "functional-test",
-      "type": "Testing",
-      "width": 140,
-      "height": 170,
-      "inputPorts": [
+      "zIndex": 3,
+      "ports": [
         {
           "id": "product-in",
           "name": "Products",
@@ -178,41 +131,49 @@
           "offset": {
             "x": -2,
             "y": 40
-          }
-        }
-      ],
-      "outputPorts": [
+          },
+          "type": "input"
+        },
         {
           "id": "passed-out",
-          "name": "Passed",
+          "name": "In Spec",
           "dataType": "product",
           "position": "right",
           "offset": {
             "x": 2,
             "y": 30
-          }
+          },
+          "type": "output"
         },
         {
           "id": "failed-out",
-          "name": "Failed",
+          "name": "Out of Spec",
           "dataType": "product",
           "position": "right",
           "offset": {
             "x": 2,
             "y": 60
-          }
+          },
+          "type": "output"
         },
         {
-          "id": "test-data",
-          "name": "Test Results",
+          "id": "data-out",
+          "name": "Measurements",
           "dataType": "data",
           "position": "bottom",
           "offset": {
             "x": 70,
             "y": 2
-          }
+          },
+          "type": "output"
         }
-      ],
+      ]
+    },
+    {
+      "id": "functional-test",
+      "type": "Testing",
+      "width": 140,
+      "height": 170,
       "data": {
         "name": "Functional Testing",
         "tests": [
@@ -226,57 +187,59 @@
       },
       "x": 850,
       "y": 100,
-      "zIndex": 4
+      "zIndex": 4,
+      "ports": [
+        {
+          "id": "product-in",
+          "name": "Products",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 40
+          },
+          "type": "input"
+        },
+        {
+          "id": "passed-out",
+          "name": "Passed",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "failed-out",
+          "name": "Failed",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "test-data",
+          "name": "Test Results",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 70,
+            "y": 2
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "chemical-analysis",
       "type": "Analysis",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "sample-in",
-          "name": "Samples",
-          "dataType": "product",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 40
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "passed-out",
-          "name": "Compliant",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "failed-out",
-          "name": "Non-Compliant",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "analysis-out",
-          "name": "Analysis",
-          "dataType": "document",
-          "position": "bottom",
-          "offset": {
-            "x": 70,
-            "y": 2
-          }
-        }
-      ],
       "data": {
         "name": "Chemical Analysis",
         "method": "Spectroscopy",
@@ -292,57 +255,59 @@
       },
       "x": 600,
       "y": 300,
-      "zIndex": 3
+      "zIndex": 3,
+      "ports": [
+        {
+          "id": "sample-in",
+          "name": "Samples",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 40
+          },
+          "type": "input"
+        },
+        {
+          "id": "passed-out",
+          "name": "Compliant",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "failed-out",
+          "name": "Non-Compliant",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "analysis-out",
+          "name": "Analysis",
+          "dataType": "document",
+          "position": "bottom",
+          "offset": {
+            "x": 70,
+            "y": 2
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "stress-test",
       "type": "Testing",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "product-in",
-          "name": "Products",
-          "dataType": "product",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 40
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "passed-out",
-          "name": "Passed",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "failed-out",
-          "name": "Failed",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "data-out",
-          "name": "Stress Data",
-          "dataType": "data",
-          "position": "bottom",
-          "offset": {
-            "x": 70,
-            "y": 2
-          }
-        }
-      ],
       "data": {
         "name": "Stress Testing",
         "tests": [
@@ -356,14 +321,69 @@
       },
       "x": 850,
       "y": 300,
-      "zIndex": 4
+      "zIndex": 4,
+      "ports": [
+        {
+          "id": "product-in",
+          "name": "Products",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 40
+          },
+          "type": "input"
+        },
+        {
+          "id": "passed-out",
+          "name": "Passed",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "failed-out",
+          "name": "Failed",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "data-out",
+          "name": "Stress Data",
+          "dataType": "data",
+          "position": "bottom",
+          "offset": {
+            "x": 70,
+            "y": 2
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "final-inspection",
       "type": "Inspection",
       "width": 160,
       "height": 170,
-      "inputPorts": [
+      "data": {
+        "name": "Final QC Approval",
+        "inspectors": 3,
+        "approval_criteria": "All tests passed",
+        "certification": "ISO 9001"
+      },
+      "x": 1100,
+      "y": 200,
+      "zIndex": 5,
+      "ports": [
         {
           "id": "visual-in",
           "name": "Visual Pass",
@@ -372,7 +392,8 @@
           "offset": {
             "x": -2,
             "y": 20
-          }
+          },
+          "type": "input"
         },
         {
           "id": "dimensional-in",
@@ -382,7 +403,8 @@
           "offset": {
             "x": -2,
             "y": 50
-          }
+          },
+          "type": "input"
         },
         {
           "id": "functional-in",
@@ -392,7 +414,8 @@
           "offset": {
             "x": -2,
             "y": 80
-          }
+          },
+          "type": "input"
         },
         {
           "id": "chemical-in",
@@ -402,10 +425,9 @@
           "offset": {
             "x": -2,
             "y": 110
-          }
-        }
-      ],
-      "outputPorts": [
+          },
+          "type": "input"
+        },
         {
           "id": "approved-out",
           "name": "Approved",
@@ -414,7 +436,8 @@
           "offset": {
             "x": 2,
             "y": 40
-          }
+          },
+          "type": "output"
         },
         {
           "id": "rejected-out",
@@ -424,48 +447,16 @@
           "offset": {
             "x": 2,
             "y": 80
-          }
+          },
+          "type": "output"
         }
-      ],
-      "data": {
-        "name": "Final QC Approval",
-        "inspectors": 3,
-        "approval_criteria": "All tests passed",
-        "certification": "ISO 9001"
-      },
-      "x": 1100,
-      "y": 200,
-      "zIndex": 5
+      ]
     },
     {
       "id": "packaging",
       "type": "Packaging",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "product-in",
-          "name": "Approved",
-          "dataType": "product",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 40
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "packed-out",
-          "name": "Packaged",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        }
-      ],
       "data": {
         "name": "Quality Packaging",
         "materials": "Anti-static, Cushioned",
@@ -474,67 +465,37 @@
       },
       "x": 1350,
       "y": 200,
-      "zIndex": 6
+      "zIndex": 6,
+      "ports": [
+        {
+          "id": "product-in",
+          "name": "Approved",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 40
+          },
+          "type": "input"
+        },
+        {
+          "id": "packed-out",
+          "name": "Packaged",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "rework-station",
       "type": "Rework",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "visual-fail",
-          "name": "Visual Fail",
-          "dataType": "product",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 20
-          }
-        },
-        {
-          "id": "dimensional-fail",
-          "name": "Dim Fail",
-          "dataType": "product",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 50
-          }
-        },
-        {
-          "id": "functional-fail",
-          "name": "Func Fail",
-          "dataType": "product",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 80
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "reworked-out",
-          "name": "Reworked",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "scrap-out",
-          "name": "Scrap",
-          "dataType": "waste",
-          "position": "bottom",
-          "offset": {
-            "x": 70,
-            "y": 2
-          }
-        }
-      ],
       "data": {
         "name": "Rework Station",
         "technicians": 10,
@@ -547,77 +508,70 @@
       },
       "x": 600,
       "y": 500,
-      "zIndex": 3
+      "zIndex": 3,
+      "ports": [
+        {
+          "id": "visual-fail",
+          "name": "Visual Fail",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 20
+          },
+          "type": "input"
+        },
+        {
+          "id": "dimensional-fail",
+          "name": "Dim Fail",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 50
+          },
+          "type": "input"
+        },
+        {
+          "id": "functional-fail",
+          "name": "Func Fail",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 80
+          },
+          "type": "input"
+        },
+        {
+          "id": "reworked-out",
+          "name": "Reworked",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "scrap-out",
+          "name": "Scrap",
+          "dataType": "waste",
+          "position": "bottom",
+          "offset": {
+            "x": 70,
+            "y": 2
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "data-analytics",
       "type": "Analytics",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "visual-data",
-          "name": "Visual Data",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 20
-          }
-        },
-        {
-          "id": "dimensional-data",
-          "name": "Dim Data",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 50
-          }
-        },
-        {
-          "id": "test-data",
-          "name": "Test Data",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 80
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "dashboard-out",
-          "name": "Dashboard",
-          "dataType": "visualization",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "alerts-out",
-          "name": "Alerts",
-          "dataType": "notification",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "trends-out",
-          "name": "Trends",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 90
-          }
-        }
-      ],
       "data": {
         "name": "QC Analytics Platform",
         "metrics": [
@@ -633,47 +587,81 @@
       },
       "x": 1100,
       "y": 500,
-      "zIndex": 5
+      "zIndex": 5,
+      "ports": [
+        {
+          "id": "visual-data",
+          "name": "Visual Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 20
+          },
+          "type": "input"
+        },
+        {
+          "id": "dimensional-data",
+          "name": "Dim Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 50
+          },
+          "type": "input"
+        },
+        {
+          "id": "test-data",
+          "name": "Test Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 80
+          },
+          "type": "input"
+        },
+        {
+          "id": "dashboard-out",
+          "name": "Dashboard",
+          "dataType": "visualization",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "alerts-out",
+          "name": "Alerts",
+          "dataType": "notification",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "trends-out",
+          "name": "Trends",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 90
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "calibration-lab",
       "type": "Calibration",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "equipment-in",
-          "name": "Equipment",
-          "dataType": "equipment",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 50
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "calibrated-out",
-          "name": "Calibrated",
-          "dataType": "equipment",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "certificate-out",
-          "name": "Certificate",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        }
-      ],
       "data": {
         "name": "Calibration Lab",
         "standards": "NIST Traceable",
@@ -686,37 +674,48 @@
       },
       "x": 100,
       "y": 400,
-      "zIndex": 1
+      "zIndex": 1,
+      "ports": [
+        {
+          "id": "equipment-in",
+          "name": "Equipment",
+          "dataType": "equipment",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 50
+          },
+          "type": "input"
+        },
+        {
+          "id": "calibrated-out",
+          "name": "Calibrated",
+          "dataType": "equipment",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "certificate-out",
+          "name": "Certificate",
+          "dataType": "document",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "sample-storage",
       "type": "Storage",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "samples-in",
-          "name": "Samples",
-          "dataType": "product",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 50
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "samples-out",
-          "name": "Retrieved",
-          "dataType": "product",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 50
-          }
-        }
-      ],
       "data": {
         "name": "Sample Archive",
         "retention": "5 years",
@@ -725,7 +724,31 @@
       },
       "x": 350,
       "y": 400,
-      "zIndex": 2
+      "zIndex": 2,
+      "ports": [
+        {
+          "id": "samples-in",
+          "name": "Samples",
+          "dataType": "product",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 50
+          },
+          "type": "input"
+        },
+        {
+          "id": "samples-out",
+          "name": "Retrieved",
+          "dataType": "product",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 50
+          },
+          "type": "output"
+        }
+      ]
     }
   ],
   "connections": [

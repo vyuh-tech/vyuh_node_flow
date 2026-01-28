@@ -312,8 +312,7 @@ void main() {
         position: Offset.zero,
         size: const Size(400, 300),
         data: 'data',
-        inputPorts: [inputPort],
-        outputPorts: [outputPort],
+        ports: [inputPort, outputPort],
       );
 
       expect(group.inputPorts, hasLength(1));
@@ -554,8 +553,10 @@ void main() {
         title: 'Subflow Group',
         nodeIds: {'node-1'},
         data: 'data',
-        inputPorts: [createInputPort(id: 'in-1')],
-        outputPorts: [createOutputPort(id: 'out-1')],
+        ports: [
+          createInputPort(id: 'in-1'),
+          createOutputPort(id: 'out-1'),
+        ],
       );
 
       expect(group.inputPorts, hasLength(1));

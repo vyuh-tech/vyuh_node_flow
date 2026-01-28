@@ -65,15 +65,13 @@ class WaypointBuilder {
   ///
   /// Loopback routing is required when:
   /// - Self-connection (same node)
-  /// - Same-side ports (e.g., right→right)
+  /// - Same-side ports (both on same edge)
   /// - Target is behind source relative to port direction
   ///
-  /// This method is shared by all connection styles since loopback detection
-  /// logic is independent of the visual style.
+  /// Note: Bidirectional ports use their physical positions for routing.
+  /// The "bidirectional" aspect means they CAN be source or target,
+  /// not that they change direction dynamically.
   static bool needsLoopbackRouting(ConnectionPathParameters params) {
-    final sourcePosition = params.sourcePosition;
-    final targetPosition = params.targetPosition;
-
     // Self-connection check
     if (params.sourceNodeBounds != null &&
         params.targetNodeBounds != null &&
@@ -81,7 +79,11 @@ class WaypointBuilder {
       return true;
     }
 
-    // Same-side ports always need loopback
+    // Use physical positions for routing (bidi ports use same routing as regular ports)
+    final sourcePosition = params.effectiveSourcePosition;
+    final targetPosition = params.effectiveTargetPosition;
+
+    // Same-side ports need loopback
     if (sourcePosition == targetPosition) {
       return true;
     }
@@ -111,11 +113,12 @@ class WaypointBuilder {
   static List<PathSegment> buildLoopbackSegments(
     ConnectionPathParameters params,
   ) {
+    // Use physical positions for routing (bidi ports use same routing as regular ports)
     final waypoints = calculateWaypoints(
       start: params.start,
       end: params.end,
-      sourcePosition: params.sourcePosition,
-      targetPosition: params.targetPosition,
+      sourcePosition: params.effectiveSourcePosition,
+      targetPosition: params.effectiveTargetPosition,
       offset: params.offset,
       sourceOffset: params.sourceOffset,
       targetOffset: params.targetOffset,
@@ -142,7 +145,13 @@ class WaypointBuilder {
   /// - L-shape connections (single bend)
   /// - Loop-back connections (routing around nodes)
   ///
+  /// All port types (including bidirectional) use their physical positions
+  /// for routing. The "bidirectional" aspect means the port CAN be source
+  /// or target, not that it changes routing direction dynamically.
+  ///
   /// Parameters:
+  /// - [sourcePosition]: The direction the connection exits from
+  /// - [targetPosition]: The direction the connection enters to
   /// - [offset]: Distance for port extension (straight segment from port).
   ///   Used as default for both source and target if specific offsets not provided.
   /// - [sourceOffset]: Specific offset for source end. If null, uses [offset].
@@ -166,8 +175,8 @@ class WaypointBuilder {
     final effectiveTargetOffset = targetOffset ?? offset;
     // Use backEdgeGap for loopback routing, default to offset if not specified
     final loopbackGap = backEdgeGap ?? offset;
-    // Calculate extended points (always outward from ports)
-    // For temporary connections, targetOffset will be 0, so endExtended == end
+
+    // Calculate extended points based on port positions
     final startExtended = getExtendedPoint(
       start,
       sourcePosition,
@@ -178,6 +187,10 @@ class WaypointBuilder {
       targetPosition,
       effectiveTargetOffset,
     );
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // ROUTING LOGIC
+    // ═══════════════════════════════════════════════════════════════════════
 
     // 1. Check for self-connection (same node)
     if (isSelfConnection(sourceNodeBounds, targetNodeBounds)) {
@@ -194,9 +207,7 @@ class WaypointBuilder {
     }
 
     // 2. Check for collinear points (straight line possible)
-    //    BUT only if the straight line doesn't intersect node bounds
     if (_arePointsCollinear(start, startExtended, endExtended, end)) {
-      // Check if the straight line would pass through either node
       final straightLineValid = _isCollinearPathClear(
         startExtended: startExtended,
         endExtended: endExtended,
@@ -206,10 +217,9 @@ class WaypointBuilder {
       if (straightLineValid) {
         return [start, startExtended, endExtended, end];
       }
-      // Collinear but blocked by nodes - fall through to routing logic
     }
 
-    // 3. Check for same-side ports (e.g., right→right)
+    // 3. Check for same-side ports
     if (_areSameSide(sourcePosition, targetPosition)) {
       return _calculateSameSideWaypoints(
         start: start,
@@ -223,24 +233,8 @@ class WaypointBuilder {
       );
     }
 
-    // 4. Check for opposite-facing ports (right↔left, top↔bottom)
-    //    These typically need S-bends, not L-shapes
-    if (_areOppositePorts(sourcePosition, targetPosition)) {
-      return _calculateOppositePortWaypoints(
-        start: start,
-        end: end,
-        startExtended: startExtended,
-        endExtended: endExtended,
-        sourcePosition: sourcePosition,
-        targetPosition: targetPosition,
-        backEdgeGap: loopbackGap,
-        sourceNodeBounds: sourceNodeBounds,
-        targetNodeBounds: targetNodeBounds,
-      );
-    }
-
-    // 5. Check for L-shape (single bend) - only for adjacent port combinations
-    //    (e.g., right→top, right→bottom, left→top, etc.)
+    // 4. Try L-shape FIRST (simplest path with single bend)
+    //    This is preferred over S-bends for cleaner connections
     if (_canFormLShape(
       startExtended: startExtended,
       endExtended: endExtended,
@@ -259,7 +253,23 @@ class WaypointBuilder {
       );
     }
 
-    // 6. Full routing with node avoidance (complex routing for adjacent ports)
+    // 5. Check for opposite-facing ports (right↔left, top↔bottom)
+    //    Uses S-bend routing when L-shape isn't possible
+    if (_areOppositePorts(sourcePosition, targetPosition)) {
+      return _calculateOppositePortWaypoints(
+        start: start,
+        end: end,
+        startExtended: startExtended,
+        endExtended: endExtended,
+        sourcePosition: sourcePosition,
+        targetPosition: targetPosition,
+        backEdgeGap: loopbackGap,
+        sourceNodeBounds: sourceNodeBounds,
+        targetNodeBounds: targetNodeBounds,
+      );
+    }
+
+    // 6. Full routing with node avoidance
     return _calculateFullRoutingWaypoints(
       start: start,
       end: end,
@@ -294,6 +304,7 @@ class WaypointBuilder {
     return sourcePosition == targetPosition;
   }
 
+  /// Checks if a same-side connection should use forward routing.
   /// Checks if ports are on opposite sides (left↔right, top↔bottom).
   /// These port combinations typically need S-bend routing.
   static bool _areOppositePorts(

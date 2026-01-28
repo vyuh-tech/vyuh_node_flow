@@ -205,8 +205,7 @@ void main() {
           size: const Size(400, 300),
           title: 'Subflow',
           data: 'test',
-          inputPorts: [inputPort],
-          outputPorts: [outputPort],
+          ports: [inputPort, outputPort],
         );
 
         expect(group.inputPorts.length, equals(1));
@@ -1738,8 +1737,7 @@ void main() {
       ];
 
       final copy = original.copyWith(
-        inputPorts: newInputPorts,
-        outputPorts: newOutputPorts,
+        ports: [...newInputPorts, ...newOutputPorts],
       );
 
       expect(copy.inputPorts.length, equals(2));
@@ -1859,17 +1857,21 @@ void main() {
 
       test('serializes ports', () {
         final group = createTestGroupNode<String>(
-          inputPorts: [createTestPort(id: 'in-1', type: PortType.input)],
-          outputPorts: [createTestPort(id: 'out-1', type: PortType.output)],
+          ports: [
+            createTestPort(id: 'in-1', type: PortType.input),
+            createTestPort(id: 'out-1', type: PortType.output),
+          ],
           data: 'test',
         );
 
         final json = group.toJson((data) => data);
 
-        expect(json['inputPorts'], isA<List>());
-        expect(json['outputPorts'], isA<List>());
-        expect((json['inputPorts'] as List).length, equals(1));
-        expect((json['outputPorts'] as List).length, equals(1));
+        expect(json['ports'], isA<List>());
+        expect((json['ports'] as List).length, equals(2));
+        // Verify the ports have correct types
+        final portsList = json['ports'] as List;
+        expect(portsList.any((p) => p['type'] == 'input'), isTrue);
+        expect(portsList.any((p) => p['type'] == 'output'), isTrue);
       });
     });
 
@@ -2013,15 +2015,13 @@ void main() {
           'x': 0.0,
           'y': 0.0,
           'data': 'test',
-          'inputPorts': [
+          'ports': [
             {
               'id': 'in-1',
               'name': 'Input',
               'type': 'input',
               'position': 'left',
             },
-          ],
-          'outputPorts': [
             {
               'id': 'out-1',
               'name': 'Output',

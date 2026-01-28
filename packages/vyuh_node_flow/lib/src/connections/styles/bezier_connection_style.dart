@@ -51,8 +51,10 @@ class BezierConnectionStyle extends ConnectionStyle {
   List<PathSegment> _buildForwardBezierSegments(
     ConnectionPathParameters params,
   ) {
-    final sourcePosition = params.sourcePort?.position ?? PortPosition.right;
-    final targetPosition = params.targetPort?.position ?? PortPosition.left;
+    // Use physical positions for routing
+    // Bidi ports use the same direction as regular ports
+    final sourcePosition = params.effectiveSourcePosition;
+    final targetPosition = params.effectiveTargetPosition;
 
     // Create bezier segment with control points
     // Use sourceOffset/targetOffset for proper temporary connection handling

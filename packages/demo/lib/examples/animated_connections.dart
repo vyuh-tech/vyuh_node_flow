@@ -263,22 +263,25 @@ class _AnimatedConnectionsExampleState
       position: const Offset(50, 180),
       size: const Size(150, 80),
       data: {'label': 'Data Source'},
-      outputPorts: [
+      ports: [
         Port(
           id: 'out_right',
           name: 'Output',
+          type: PortType.output,
           position: PortPosition.right,
           offset: Offset(2, 40),
         ),
         Port(
           id: 'out_top',
           name: 'Top',
+          type: PortType.output,
           position: PortPosition.top,
           offset: Offset(75, -2),
         ),
         Port(
           id: 'out_bottom',
           name: 'Bottom',
+          type: PortType.output,
           position: PortPosition.bottom,
           offset: Offset(75, 2),
         ),
@@ -291,18 +294,18 @@ class _AnimatedConnectionsExampleState
       position: const Offset(350, 180),
       size: const Size(150, 80),
       data: {'label': 'Processor Middle'},
-      inputPorts: [
+      ports: [
         Port(
           id: 'in_left',
           name: 'Input',
+          type: PortType.input,
           position: PortPosition.left,
           offset: Offset(-2, 40),
         ),
-      ],
-      outputPorts: [
         Port(
           id: 'out_right',
           name: 'Output',
+          type: PortType.output,
           position: PortPosition.right,
           offset: Offset(2, 40),
         ),
@@ -315,22 +318,25 @@ class _AnimatedConnectionsExampleState
       position: const Offset(650, 180),
       size: const Size(150, 80),
       data: {'label': 'Data Sync'},
-      inputPorts: [
+      ports: [
         Port(
           id: 'in_left',
           name: 'Input',
+          type: PortType.input,
           position: PortPosition.left,
           offset: Offset(-2, 40),
         ),
         Port(
           id: 'in_top',
           name: 'Top',
+          type: PortType.input,
           position: PortPosition.top,
           offset: Offset(75, -2),
         ),
         Port(
           id: 'in_bottom',
           name: 'Bottom',
+          type: PortType.input,
           position: PortPosition.bottom,
           offset: Offset(75, 2),
         ),
@@ -344,18 +350,18 @@ class _AnimatedConnectionsExampleState
       position: const Offset(350, 30),
       size: const Size(150, 80),
       data: {'label': 'Processor Top'},
-      inputPorts: [
+      ports: [
         Port(
           id: 'in_bottom',
           name: 'Input',
+          type: PortType.input,
           position: PortPosition.bottom,
           offset: Offset(75, 2),
         ),
-      ],
-      outputPorts: [
         Port(
           id: 'out_top',
           name: 'Output',
+          type: PortType.output,
           position: PortPosition.top,
           offset: Offset(75, -2),
         ),
@@ -368,18 +374,18 @@ class _AnimatedConnectionsExampleState
       position: const Offset(350, 330),
       size: const Size(150, 80),
       data: {'label': 'Processor Bottom'},
-      inputPorts: [
+      ports: [
         Port(
           id: 'in_top',
           name: 'Input',
+          type: PortType.input,
           position: PortPosition.top,
           offset: Offset(75, -2),
         ),
-      ],
-      outputPorts: [
         Port(
           id: 'out_bottom',
           name: 'Output',
+          type: PortType.output,
           position: PortPosition.bottom,
           offset: Offset(75, 2),
         ),

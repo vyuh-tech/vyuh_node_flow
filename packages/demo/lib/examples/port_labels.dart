@@ -31,7 +31,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
         position: const Offset(100, 100),
         size: const Size(180, 180),
         data: 'All Positions',
-        inputPorts: [
+        ports: [
           Port(
             id: 'input-left',
             name: 'Left Input',
@@ -48,8 +48,6 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
             offset: Offset(90, -2), // Horizontal center
             showLabel: true,
           ),
-        ],
-        outputPorts: [
           Port(
             id: 'output-right',
             name: 'Right Output',
@@ -75,7 +73,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
         position: const Offset(400, 100),
         size: const Size(160, 230),
         data: 'Port Shapes',
-        inputPorts: [
+        ports: [
           Port(
             id: 'circle-input',
             name: 'Circle',
@@ -112,8 +110,6 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
             shape: MarkerShapes.triangle,
             showLabel: true,
           ),
-        ],
-        outputPorts: [
           Port(
             id: 'capsule-output',
             name: 'Capsule',
@@ -132,28 +128,30 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
         position: const Offset(100, 350),
         size: const Size(180, 180),
         data: 'Multiple Ports',
-        inputPorts: List.generate(
-          3,
-          (i) => Port(
-            id: 'input-$i',
-            name: 'Input ${i + 1}',
-            position: PortPosition.left,
-            type: PortType.input,
-            offset: Offset(-2, 20 + (i * 30.0)), // Starting 20, separation 30
-            showLabel: true,
+        ports: [
+          ...List.generate(
+            3,
+            (i) => Port(
+              id: 'input-$i',
+              name: 'Input ${i + 1}',
+              position: PortPosition.left,
+              type: PortType.input,
+              offset: Offset(-2, 20 + (i * 30.0)),
+              showLabel: true,
+            ),
           ),
-        ),
-        outputPorts: List.generate(
-          3,
-          (i) => Port(
-            id: 'output-$i',
-            name: 'Out ${i + 1}',
-            position: PortPosition.right,
-            type: PortType.output,
-            offset: Offset(2, 20 + (i * 30.0)), // Starting 20, separation 30
-            showLabel: true,
+          ...List.generate(
+            3,
+            (i) => Port(
+              id: 'output-$i',
+              name: 'Out ${i + 1}',
+              position: PortPosition.right,
+              type: PortType.output,
+              offset: Offset(2, 20 + (i * 30.0)),
+              showLabel: true,
+            ),
           ),
-        ),
+        ],
       ),
       // Node 4: Mixed labels (some on, some off)
       Node<String>(
@@ -162,7 +160,7 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
         position: const Offset(400, 350),
         size: const Size(160, 140),
         data: 'Mixed Labels',
-        inputPorts: [
+        ports: [
           Port(
             id: 'labeled-input',
             name: 'With Label',
@@ -179,8 +177,6 @@ class _PortLabelsExampleState extends State<PortLabelsExample> {
             offset: Offset(-2, 50), // 20 + 30 separation
             showLabel: false, // Label disabled
           ),
-        ],
-        outputPorts: [
           Port(
             id: 'labeled-output',
             name: 'With Label',

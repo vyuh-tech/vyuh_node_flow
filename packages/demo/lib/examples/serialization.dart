@@ -61,10 +61,11 @@ class _SerializationExampleState extends State<SerializationExample> {
         position: const Offset(100, 150),
         size: const Size(150, 80),
         data: {'label': 'Input', 'value': 42},
-        outputPorts: [
+        ports: [
           Port(
             id: 'out',
             name: 'Output',
+            type: PortType.output,
             position: PortPosition.right,
             offset: Offset(2, 40), // Vertical center of 80 height
           ),
@@ -76,18 +77,18 @@ class _SerializationExampleState extends State<SerializationExample> {
         position: const Offset(350, 100),
         size: const Size(150, 100),
         data: {'label': 'Process A', 'operation': 'multiply'},
-        inputPorts: [
+        ports: [
           Port(
             id: 'in',
             name: 'Input',
+            type: PortType.input,
             position: PortPosition.left,
             offset: Offset(-2, 50), // Vertical center of 100 height
           ),
-        ],
-        outputPorts: [
           Port(
             id: 'out',
             name: 'Result',
+            type: PortType.output,
             position: PortPosition.right,
             offset: Offset(2, 50), // Vertical center of 100 height
           ),
@@ -99,18 +100,18 @@ class _SerializationExampleState extends State<SerializationExample> {
         position: const Offset(350, 250),
         size: const Size(150, 100),
         data: {'label': 'Process B', 'operation': 'add'},
-        inputPorts: [
+        ports: [
           Port(
             id: 'in',
             name: 'Input',
+            type: PortType.input,
             position: PortPosition.left,
             offset: Offset(-2, 50), // Vertical center of 100 height
           ),
-        ],
-        outputPorts: [
           Port(
             id: 'out',
             name: 'Result',
+            type: PortType.output,
             position: PortPosition.right,
             offset: Offset(2, 50), // Vertical center of 100 height
           ),
@@ -122,16 +123,18 @@ class _SerializationExampleState extends State<SerializationExample> {
         position: const Offset(600, 150),
         size: const Size(150, 80),
         data: {'label': 'Output', 'format': 'json'},
-        inputPorts: [
+        ports: [
           Port(
             id: 'in1',
             name: 'Input 1',
+            type: PortType.input,
             position: PortPosition.left,
             offset: Offset(-2, 20), // Multiple ports: starting offset 20
           ),
           Port(
             id: 'in2',
             name: 'Input 2',
+            type: PortType.input,
             position: PortPosition.left,
             offset: Offset(-2, 50), // Multiple ports: 20 + 30 separation
           ),

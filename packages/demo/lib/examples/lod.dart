@@ -47,10 +47,11 @@ class _LODExampleState extends State<LODExample> {
         position: const Offset(50, 50),
         size: const Size(140, 80),
         data: {'label': 'Data Source'},
-        outputPorts: [
+        ports: [
           Port(
             id: 'out',
             name: 'Output',
+            type: PortType.output,
             position: PortPosition.right,
             offset: const Offset(2, 40),
             shape: portShape,
@@ -64,10 +65,11 @@ class _LODExampleState extends State<LODExample> {
         position: const Offset(50, 200),
         size: const Size(140, 80),
         data: {'label': 'Config'},
-        outputPorts: [
+        ports: [
           Port(
             id: 'out',
             name: 'Settings',
+            type: PortType.output,
             position: PortPosition.right,
             offset: const Offset(2, 40),
             shape: portShape,
@@ -83,10 +85,11 @@ class _LODExampleState extends State<LODExample> {
         position: const Offset(280, 80),
         size: const Size(160, 100),
         data: {'label': 'Transform'},
-        inputPorts: [
+        ports: [
           Port(
             id: 'in-data',
             name: 'Data',
+            type: PortType.input,
             position: PortPosition.left,
             offset: const Offset(-2, 30),
             shape: portShape,
@@ -95,16 +98,16 @@ class _LODExampleState extends State<LODExample> {
           Port(
             id: 'in-config',
             name: 'Config',
+            type: PortType.input,
             position: PortPosition.left,
             offset: const Offset(-2, 70),
             shape: portShape,
             showLabel: true,
           ),
-        ],
-        outputPorts: [
           Port(
             id: 'out',
             name: 'Result',
+            type: PortType.output,
             position: PortPosition.right,
             offset: const Offset(2, 50),
             shape: portShape,
@@ -118,20 +121,20 @@ class _LODExampleState extends State<LODExample> {
         position: const Offset(280, 230),
         size: const Size(160, 100),
         data: {'label': 'Validate'},
-        inputPorts: [
+        ports: [
           Port(
             id: 'in',
             name: 'Input',
+            type: PortType.input,
             position: PortPosition.left,
             offset: const Offset(-2, 50),
             shape: portShape,
             showLabel: true,
           ),
-        ],
-        outputPorts: [
           Port(
             id: 'out-valid',
             name: 'Valid',
+            type: PortType.output,
             position: PortPosition.right,
             offset: const Offset(2, 30),
             shape: portShape,
@@ -140,6 +143,7 @@ class _LODExampleState extends State<LODExample> {
           Port(
             id: 'out-invalid',
             name: 'Invalid',
+            type: PortType.output,
             position: PortPosition.right,
             offset: const Offset(2, 70),
             shape: portShape,
@@ -155,10 +159,11 @@ class _LODExampleState extends State<LODExample> {
         position: const Offset(530, 120),
         size: const Size(140, 100),
         data: {'label': 'Merge'},
-        inputPorts: [
+        ports: [
           Port(
             id: 'in-1',
             name: 'Input A',
+            type: PortType.input,
             position: PortPosition.left,
             offset: const Offset(-2, 30),
             shape: portShape,
@@ -167,16 +172,16 @@ class _LODExampleState extends State<LODExample> {
           Port(
             id: 'in-2',
             name: 'Input B',
+            type: PortType.input,
             position: PortPosition.left,
             offset: const Offset(-2, 70),
             shape: portShape,
             showLabel: true,
           ),
-        ],
-        outputPorts: [
           Port(
             id: 'out',
             name: 'Merged',
+            type: PortType.output,
             position: PortPosition.right,
             offset: const Offset(2, 50),
             shape: portShape,
@@ -190,10 +195,11 @@ class _LODExampleState extends State<LODExample> {
         position: const Offset(760, 80),
         size: const Size(140, 80),
         data: {'label': 'Result'},
-        inputPorts: [
+        ports: [
           Port(
             id: 'in',
             name: 'Data',
+            type: PortType.input,
             position: PortPosition.left,
             offset: const Offset(-2, 40),
             shape: portShape,
@@ -207,10 +213,11 @@ class _LODExampleState extends State<LODExample> {
         position: const Offset(760, 200),
         size: const Size(140, 80),
         data: {'label': 'Errors'},
-        inputPorts: [
+        ports: [
           Port(
             id: 'in',
             name: 'Errors',
+            type: PortType.input,
             position: PortPosition.left,
             offset: const Offset(-2, 40),
             shape: portShape,

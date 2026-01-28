@@ -5,8 +5,15 @@
       "type": "DataSource",
       "width": 150,
       "height": 170,
-      "inputPorts": [],
-      "outputPorts": [
+      "data": {
+        "name": "CSV Data Source",
+        "format": "CSV",
+        "records": 10000
+      },
+      "x": 100,
+      "y": 200,
+      "zIndex": 1,
+      "ports": [
         {
           "id": "data-out",
           "name": "Data",
@@ -15,24 +22,24 @@
           "offset": {
             "x": 2,
             "y": 40
-          }
+          },
+          "type": "output"
         }
-      ],
-      "data": {
-        "name": "CSV Data Source",
-        "format": "CSV",
-        "records": 10000
-      },
-      "x": 100,
-      "y": 200,
-      "zIndex": 1
+      ]
     },
     {
       "id": "filter",
       "type": "Filter",
       "width": 150,
       "height": 170,
-      "inputPorts": [
+      "data": {
+        "name": "Age Filter",
+        "condition": "age > 18"
+      },
+      "x": 300,
+      "y": 200,
+      "zIndex": 2,
+      "ports": [
         {
           "id": "data-in",
           "name": "Input",
@@ -41,10 +48,9 @@
           "offset": {
             "x": -2,
             "y": 40
-          }
-        }
-      ],
-      "outputPorts": [
+          },
+          "type": "input"
+        },
         {
           "id": "filtered-out",
           "name": "Filtered",
@@ -53,23 +59,24 @@
           "offset": {
             "x": 2,
             "y": 40
-          }
+          },
+          "type": "output"
         }
-      ],
-      "data": {
-        "name": "Age Filter",
-        "condition": "age > 18"
-      },
-      "x": 300,
-      "y": 200,
-      "zIndex": 2
+      ]
     },
     {
       "id": "transform",
       "type": "Transform",
       "width": 150,
       "height": 170,
-      "inputPorts": [
+      "data": {
+        "name": "Normalize Data",
+        "operation": "normalize"
+      },
+      "x": 500,
+      "y": 200,
+      "zIndex": 3,
+      "ports": [
         {
           "id": "data-in",
           "name": "Input",
@@ -78,10 +85,9 @@
           "offset": {
             "x": -2,
             "y": 40
-          }
-        }
-      ],
-      "outputPorts": [
+          },
+          "type": "input"
+        },
         {
           "id": "transformed-out",
           "name": "Output",
@@ -90,23 +96,25 @@
           "offset": {
             "x": 2,
             "y": 40
-          }
+          },
+          "type": "output"
         }
-      ],
-      "data": {
-        "name": "Normalize Data",
-        "operation": "normalize"
-      },
-      "x": 500,
-      "y": 200,
-      "zIndex": 3
+      ]
     },
     {
       "id": "aggregate",
       "type": "Aggregate",
       "width": 150,
       "height": 170,
-      "inputPorts": [
+      "data": {
+        "name": "Sum by Category",
+        "groupBy": "category",
+        "operation": "sum"
+      },
+      "x": 700,
+      "y": 200,
+      "zIndex": 4,
+      "ports": [
         {
           "id": "data-in",
           "name": "Input",
@@ -115,10 +123,9 @@
           "offset": {
             "x": -2,
             "y": 40
-          }
-        }
-      ],
-      "outputPorts": [
+          },
+          "type": "input"
+        },
         {
           "id": "aggregated-out",
           "name": "Summary",
@@ -127,24 +134,24 @@
           "offset": {
             "x": 2,
             "y": 40
-          }
+          },
+          "type": "output"
         }
-      ],
-      "data": {
-        "name": "Sum by Category",
-        "groupBy": "category",
-        "operation": "sum"
-      },
-      "x": 700,
-      "y": 200,
-      "zIndex": 4
+      ]
     },
     {
       "id": "output",
       "type": "Output",
       "width": 150,
       "height": 170,
-      "inputPorts": [
+      "data": {
+        "name": "Export to Database",
+        "destination": "PostgreSQL"
+      },
+      "x": 900,
+      "y": 200,
+      "zIndex": 5,
+      "ports": [
         {
           "id": "data-in",
           "name": "Results",
@@ -153,17 +160,10 @@
           "offset": {
             "x": -2,
             "y": 40
-          }
+          },
+          "type": "input"
         }
-      ],
-      "outputPorts": [],
-      "data": {
-        "name": "Export to Database",
-        "destination": "PostgreSQL"
-      },
-      "x": 900,
-      "y": 200,
-      "zIndex": 5
+      ]
     }
   ],
   "connections": [

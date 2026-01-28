@@ -78,32 +78,24 @@ class _MinimapExampleState extends State<MinimapExample> {
             position: Offset(col * 250.0 + 100, row * 200.0 + 100),
             size: const Size(150, 80),
             data: {'label': 'Node $row-$col', 'row': row, 'col': col},
-            inputPorts: col > 0
-                ? [
-                    Port(
-                      id: 'in',
-                      name: 'Input',
-                      position: PortPosition.left,
-                      offset: const Offset(
-                        -2,
-                        40,
-                      ), // Vertical center of 80 height
-                    ),
-                  ]
-                : [],
-            outputPorts: col < 5
-                ? [
-                    Port(
-                      id: 'out',
-                      name: 'Output',
-                      position: PortPosition.right,
-                      offset: const Offset(
-                        2,
-                        40,
-                      ), // Vertical center of 80 height
-                    ),
-                  ]
-                : [],
+            ports: [
+              if (col > 0)
+                Port(
+                  id: 'in',
+                  name: 'Input',
+                  type: PortType.input,
+                  position: PortPosition.left,
+                  offset: const Offset(-2, 40),
+                ),
+              if (col < 5)
+                Port(
+                  id: 'out',
+                  name: 'Output',
+                  type: PortType.output,
+                  position: PortPosition.right,
+                  offset: const Offset(2, 40),
+                ),
+            ],
           ),
         );
 

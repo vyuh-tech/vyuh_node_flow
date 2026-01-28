@@ -48,18 +48,18 @@ class _VisibilityExampleState extends State<VisibilityExample> {
       position: const Offset(100, 100),
       size: const Size(140, 70),
       data: {'title': 'Node 1'},
-      outputPorts: [
+      ports: [
         Port(
           id: 'output1',
           name: 'Out',
+          type: PortType.output,
           position: PortPosition.right,
           offset: const Offset(2, 35),
         ),
-      ],
-      inputPorts: [
         Port(
           id: 'input1',
           name: 'In',
+          type: PortType.input,
           position: PortPosition.left,
           offset: const Offset(-2, 35),
         ),
@@ -72,18 +72,18 @@ class _VisibilityExampleState extends State<VisibilityExample> {
       position: const Offset(300, 100),
       size: const Size(140, 70),
       data: {'title': 'Node 2'},
-      outputPorts: [
+      ports: [
         Port(
           id: 'output1',
           name: 'Out',
+          type: PortType.output,
           position: PortPosition.right,
           offset: const Offset(2, 35),
         ),
-      ],
-      inputPorts: [
         Port(
           id: 'input1',
           name: 'In',
+          type: PortType.input,
           position: PortPosition.left,
           offset: const Offset(-2, 35),
         ),
@@ -96,18 +96,18 @@ class _VisibilityExampleState extends State<VisibilityExample> {
       position: const Offset(500, 100),
       size: const Size(140, 70),
       data: {'title': 'Node 3'},
-      outputPorts: [
+      ports: [
         Port(
           id: 'output1',
           name: 'Out',
+          type: PortType.output,
           position: PortPosition.right,
           offset: const Offset(2, 35),
         ),
-      ],
-      inputPorts: [
         Port(
           id: 'input1',
           name: 'In',
+          type: PortType.input,
           position: PortPosition.left,
           offset: const Offset(-2, 35),
         ),
@@ -120,18 +120,18 @@ class _VisibilityExampleState extends State<VisibilityExample> {
       position: const Offset(200, 250),
       size: const Size(140, 70),
       data: {'title': 'Node 4'},
-      outputPorts: [
+      ports: [
         Port(
           id: 'output1',
           name: 'Out',
+          type: PortType.output,
           position: PortPosition.right,
           offset: const Offset(2, 35),
         ),
-      ],
-      inputPorts: [
         Port(
           id: 'input1',
           name: 'In',
+          type: PortType.input,
           position: PortPosition.left,
           offset: const Offset(-2, 35),
         ),
@@ -144,18 +144,18 @@ class _VisibilityExampleState extends State<VisibilityExample> {
       position: const Offset(400, 250),
       size: const Size(140, 70),
       data: {'title': 'Node 5'},
-      outputPorts: [
+      ports: [
         Port(
           id: 'output1',
           name: 'Out',
+          type: PortType.output,
           position: PortPosition.right,
           offset: const Offset(2, 35),
         ),
-      ],
-      inputPorts: [
         Port(
           id: 'input1',
           name: 'In',
+          type: PortType.input,
           position: PortPosition.left,
           offset: const Offset(-2, 35),
         ),
@@ -223,18 +223,18 @@ class _VisibilityExampleState extends State<VisibilityExample> {
       position: Offset(x, y),
       size: const Size(140, 70),
       data: {'title': 'Node $_nodeCounter'},
-      outputPorts: [
+      ports: [
         Port(
           id: 'output1',
           name: 'Out',
+          type: PortType.output,
           position: PortPosition.right,
           offset: const Offset(2, 35),
         ),
-      ],
-      inputPorts: [
         Port(
           id: 'input1',
           name: 'In',
+          type: PortType.input,
           position: PortPosition.left,
           offset: const Offset(-2, 35),
         ),

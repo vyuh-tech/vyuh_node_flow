@@ -52,18 +52,18 @@ class _InteractiveWidgetsExampleState extends State<InteractiveWidgetsExample> {
       position: position,
       data: ButtonNodeData(),
       size: const Size(200, 150),
-      inputPorts: [
+      ports: [
         Port(
           id: 'input',
           name: 'In',
+          type: PortType.input,
           position: PortPosition.left,
           offset: Offset(-2, 75),
         ),
-      ],
-      outputPorts: [
         Port(
           id: 'output',
           name: 'Out',
+          type: PortType.output,
           position: PortPosition.right,
           offset: Offset(2, 75),
         ),
@@ -78,18 +78,18 @@ class _InteractiveWidgetsExampleState extends State<InteractiveWidgetsExample> {
       position: position,
       data: TextFieldNodeData(),
       size: const Size(220, 150),
-      inputPorts: [
+      ports: [
         Port(
           id: 'input',
           name: 'In',
+          type: PortType.input,
           position: PortPosition.left,
           offset: Offset(-2, 75),
         ),
-      ],
-      outputPorts: [
         Port(
           id: 'output',
           name: 'Out',
+          type: PortType.output,
           position: PortPosition.right,
           offset: Offset(2, 75),
         ),
@@ -104,18 +104,18 @@ class _InteractiveWidgetsExampleState extends State<InteractiveWidgetsExample> {
       position: position,
       data: SliderNodeData(),
       size: const Size(220, 150),
-      inputPorts: [
+      ports: [
         Port(
           id: 'input',
           name: 'In',
+          type: PortType.input,
           position: PortPosition.left,
           offset: Offset(-2, 75),
         ),
-      ],
-      outputPorts: [
         Port(
           id: 'output',
           name: 'Out',
+          type: PortType.output,
           position: PortPosition.right,
           offset: Offset(2, 75),
         ),

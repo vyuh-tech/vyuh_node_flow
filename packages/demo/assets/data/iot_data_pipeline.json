@@ -5,19 +5,6 @@
       "type": "Sensor",
       "width": 120,
       "height": 170,
-      "inputPorts": [],
-      "outputPorts": [
-        {
-          "id": "data-out",
-          "name": "Temperature",
-          "dataType": "telemetry",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        }
-      ],
       "data": {
         "name": "Temperature Sensor",
         "location": "Building A - Floor 1",
@@ -26,26 +13,26 @@
       },
       "x": 100,
       "y": 50,
-      "zIndex": 1
+      "zIndex": 1,
+      "ports": [
+        {
+          "id": "data-out",
+          "name": "Temperature",
+          "dataType": "telemetry",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "humidity-sensor-1",
       "type": "Sensor",
       "width": 120,
       "height": 170,
-      "inputPorts": [],
-      "outputPorts": [
-        {
-          "id": "data-out",
-          "name": "Humidity",
-          "dataType": "telemetry",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        }
-      ],
       "data": {
         "name": "Humidity Sensor",
         "location": "Building A - Floor 1",
@@ -54,26 +41,26 @@
       },
       "x": 100,
       "y": 150,
-      "zIndex": 1
+      "zIndex": 1,
+      "ports": [
+        {
+          "id": "data-out",
+          "name": "Humidity",
+          "dataType": "telemetry",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "motion-sensor-1",
       "type": "Sensor",
       "width": 120,
       "height": 170,
-      "inputPorts": [],
-      "outputPorts": [
-        {
-          "id": "data-out",
-          "name": "Motion",
-          "dataType": "telemetry",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        }
-      ],
       "data": {
         "name": "PIR Motion Sensor",
         "location": "Building A - Entrance",
@@ -82,26 +69,26 @@
       },
       "x": 100,
       "y": 250,
-      "zIndex": 1
+      "zIndex": 1,
+      "ports": [
+        {
+          "id": "data-out",
+          "name": "Motion",
+          "dataType": "telemetry",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "energy-meter-1",
       "type": "Sensor",
       "width": 120,
       "height": 170,
-      "inputPorts": [],
-      "outputPorts": [
-        {
-          "id": "data-out",
-          "name": "Power Usage",
-          "dataType": "telemetry",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        }
-      ],
       "data": {
         "name": "Smart Energy Meter",
         "location": "Building A - Main",
@@ -110,77 +97,26 @@
       },
       "x": 100,
       "y": 350,
-      "zIndex": 1
+      "zIndex": 1,
+      "ports": [
+        {
+          "id": "data-out",
+          "name": "Power Usage",
+          "dataType": "telemetry",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "edge-gateway",
       "type": "Gateway",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "temp-in",
-          "name": "Temp Data",
-          "dataType": "telemetry",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 20
-          }
-        },
-        {
-          "id": "humidity-in",
-          "name": "Humidity Data",
-          "dataType": "telemetry",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 50
-          }
-        },
-        {
-          "id": "motion-in",
-          "name": "Motion Data",
-          "dataType": "telemetry",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 80
-          }
-        },
-        {
-          "id": "energy-in",
-          "name": "Energy Data",
-          "dataType": "telemetry",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 110
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "aggregated-out",
-          "name": "Aggregated",
-          "dataType": "stream",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "alerts-out",
-          "name": "Local Alerts",
-          "dataType": "alert",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
-        }
-      ],
       "data": {
         "name": "IoT Edge Gateway",
         "protocol": "MQTT",
@@ -190,57 +126,81 @@
       },
       "x": 300,
       "y": 200,
-      "zIndex": 2
+      "zIndex": 2,
+      "ports": [
+        {
+          "id": "temp-in",
+          "name": "Temp Data",
+          "dataType": "telemetry",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 20
+          },
+          "type": "input"
+        },
+        {
+          "id": "humidity-in",
+          "name": "Humidity Data",
+          "dataType": "telemetry",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 50
+          },
+          "type": "input"
+        },
+        {
+          "id": "motion-in",
+          "name": "Motion Data",
+          "dataType": "telemetry",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 80
+          },
+          "type": "input"
+        },
+        {
+          "id": "energy-in",
+          "name": "Energy Data",
+          "dataType": "telemetry",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 110
+          },
+          "type": "input"
+        },
+        {
+          "id": "aggregated-out",
+          "name": "Aggregated",
+          "dataType": "stream",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "alerts-out",
+          "name": "Local Alerts",
+          "dataType": "alert",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "mqtt-broker",
       "type": "MessageBroker",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "messages-in",
-          "name": "Messages",
-          "dataType": "stream",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 50
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "topic-temp",
-          "name": "Temperature",
-          "dataType": "stream",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 20
-          }
-        },
-        {
-          "id": "topic-env",
-          "name": "Environment",
-          "dataType": "stream",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 50
-          }
-        },
-        {
-          "id": "topic-security",
-          "name": "Security",
-          "dataType": "stream",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
-        }
-      ],
       "data": {
         "name": "MQTT Message Broker",
         "qos_levels": [
@@ -254,67 +214,59 @@
       },
       "x": 550,
       "y": 200,
-      "zIndex": 3
+      "zIndex": 3,
+      "ports": [
+        {
+          "id": "messages-in",
+          "name": "Messages",
+          "dataType": "stream",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 50
+          },
+          "type": "input"
+        },
+        {
+          "id": "topic-temp",
+          "name": "Temperature",
+          "dataType": "stream",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 20
+          },
+          "type": "output"
+        },
+        {
+          "id": "topic-env",
+          "name": "Environment",
+          "dataType": "stream",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 50
+          },
+          "type": "output"
+        },
+        {
+          "id": "topic-security",
+          "name": "Security",
+          "dataType": "stream",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "stream-processor",
       "type": "StreamProcessing",
       "width": 160,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "temp-stream",
-          "name": "Temp Stream",
-          "dataType": "stream",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 30
-          }
-        },
-        {
-          "id": "env-stream",
-          "name": "Env Stream",
-          "dataType": "stream",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        },
-        {
-          "id": "rules-in",
-          "name": "Rules",
-          "dataType": "config",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 90
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "processed-out",
-          "name": "Processed",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 40
-          }
-        },
-        {
-          "id": "anomalies-out",
-          "name": "Anomalies",
-          "dataType": "alert",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
-        }
-      ],
       "data": {
         "name": "Apache Kafka Streams",
         "partitions": 12,
@@ -329,57 +281,70 @@
       },
       "x": 800,
       "y": 100,
-      "zIndex": 4
+      "zIndex": 4,
+      "ports": [
+        {
+          "id": "temp-stream",
+          "name": "Temp Stream",
+          "dataType": "stream",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 30
+          },
+          "type": "input"
+        },
+        {
+          "id": "env-stream",
+          "name": "Env Stream",
+          "dataType": "stream",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "rules-in",
+          "name": "Rules",
+          "dataType": "config",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 90
+          },
+          "type": "input"
+        },
+        {
+          "id": "processed-out",
+          "name": "Processed",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 40
+          },
+          "type": "output"
+        },
+        {
+          "id": "anomalies-out",
+          "name": "Anomalies",
+          "dataType": "alert",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "time-series-db",
       "type": "Database",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "data-in",
-          "name": "Time Series",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "query-out",
-          "name": "Query Results",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "metrics-out",
-          "name": "Metrics",
-          "dataType": "metrics",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "export-out",
-          "name": "Export",
-          "dataType": "data",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 90
-          }
-        }
-      ],
       "data": {
         "name": "InfluxDB",
         "retention": "90 days",
@@ -389,67 +354,59 @@
       },
       "x": 1050,
       "y": 200,
-      "zIndex": 5
+      "zIndex": 5,
+      "ports": [
+        {
+          "id": "data-in",
+          "name": "Time Series",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "query-out",
+          "name": "Query Results",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "metrics-out",
+          "name": "Metrics",
+          "dataType": "metrics",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "export-out",
+          "name": "Export",
+          "dataType": "data",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 90
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "ml-engine",
       "type": "MLProcessing",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "training-data",
-          "name": "Training Data",
-          "dataType": "data",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 40
-          }
-        },
-        {
-          "id": "live-data",
-          "name": "Live Data",
-          "dataType": "stream",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 80
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "predictions-out",
-          "name": "Predictions",
-          "dataType": "prediction",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 30
-          }
-        },
-        {
-          "id": "model-out",
-          "name": "Model",
-          "dataType": "model",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        },
-        {
-          "id": "insights-out",
-          "name": "Insights",
-          "dataType": "report",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 90
-          }
-        }
-      ],
       "data": {
         "name": "TensorFlow Serving",
         "models": [
@@ -462,57 +419,70 @@
       },
       "x": 800,
       "y": 350,
-      "zIndex": 4
+      "zIndex": 4,
+      "ports": [
+        {
+          "id": "training-data",
+          "name": "Training Data",
+          "dataType": "data",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 40
+          },
+          "type": "input"
+        },
+        {
+          "id": "live-data",
+          "name": "Live Data",
+          "dataType": "stream",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 80
+          },
+          "type": "input"
+        },
+        {
+          "id": "predictions-out",
+          "name": "Predictions",
+          "dataType": "prediction",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 30
+          },
+          "type": "output"
+        },
+        {
+          "id": "model-out",
+          "name": "Model",
+          "dataType": "model",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 60
+          },
+          "type": "output"
+        },
+        {
+          "id": "insights-out",
+          "name": "Insights",
+          "dataType": "report",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 90
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "dashboard",
       "type": "Visualization",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "metrics-in",
-          "name": "Metrics",
-          "dataType": "metrics",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 30
-          }
-        },
-        {
-          "id": "alerts-in",
-          "name": "Alerts",
-          "dataType": "alert",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        },
-        {
-          "id": "predictions-in",
-          "name": "Predictions",
-          "dataType": "prediction",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 90
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "report-out",
-          "name": "Reports",
-          "dataType": "document",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 60
-          }
-        }
-      ],
       "data": {
         "name": "Grafana Dashboard",
         "panels": 24,
@@ -522,33 +492,29 @@
       },
       "x": 1300,
       "y": 100,
-      "zIndex": 6
-    },
-    {
-      "id": "alert-manager",
-      "type": "AlertSystem",
-      "width": 140,
-      "height": 170,
-      "inputPorts": [
+      "zIndex": 6,
+      "ports": [
         {
-          "id": "anomalies-in",
-          "name": "Anomalies",
-          "dataType": "alert",
+          "id": "metrics-in",
+          "name": "Metrics",
+          "dataType": "metrics",
           "position": "left",
           "offset": {
             "x": -2,
             "y": 30
-          }
+          },
+          "type": "input"
         },
         {
-          "id": "thresholds-in",
-          "name": "Thresholds",
-          "dataType": "config",
+          "id": "alerts-in",
+          "name": "Alerts",
+          "dataType": "alert",
           "position": "left",
           "offset": {
             "x": -2,
             "y": 60
-          }
+          },
+          "type": "input"
         },
         {
           "id": "predictions-in",
@@ -558,41 +524,27 @@
           "offset": {
             "x": -2,
             "y": 90
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "email-out",
-          "name": "Email",
-          "dataType": "notification",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 20
-          }
+          },
+          "type": "input"
         },
         {
-          "id": "sms-out",
-          "name": "SMS",
-          "dataType": "notification",
+          "id": "report-out",
+          "name": "Reports",
+          "dataType": "document",
           "position": "right",
           "offset": {
             "x": 2,
-            "y": 50
-          }
-        },
-        {
-          "id": "webhook-out",
-          "name": "Webhook",
-          "dataType": "trigger",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 80
-          }
+            "y": 60
+          },
+          "type": "output"
         }
-      ],
+      ]
+    },
+    {
+      "id": "alert-manager",
+      "type": "AlertSystem",
+      "width": 140,
+      "height": 170,
       "data": {
         "name": "Alert Management",
         "rules": 45,
@@ -607,47 +559,81 @@
       },
       "x": 1050,
       "y": 450,
-      "zIndex": 5
+      "zIndex": 5,
+      "ports": [
+        {
+          "id": "anomalies-in",
+          "name": "Anomalies",
+          "dataType": "alert",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 30
+          },
+          "type": "input"
+        },
+        {
+          "id": "thresholds-in",
+          "name": "Thresholds",
+          "dataType": "config",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "predictions-in",
+          "name": "Predictions",
+          "dataType": "prediction",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 90
+          },
+          "type": "input"
+        },
+        {
+          "id": "email-out",
+          "name": "Email",
+          "dataType": "notification",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 20
+          },
+          "type": "output"
+        },
+        {
+          "id": "sms-out",
+          "name": "SMS",
+          "dataType": "notification",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 50
+          },
+          "type": "output"
+        },
+        {
+          "id": "webhook-out",
+          "name": "Webhook",
+          "dataType": "trigger",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 80
+          },
+          "type": "output"
+        }
+      ]
     },
     {
       "id": "automation-engine",
       "type": "Automation",
       "width": 140,
       "height": 170,
-      "inputPorts": [
-        {
-          "id": "triggers-in",
-          "name": "Triggers",
-          "dataType": "trigger",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 30
-          }
-        },
-        {
-          "id": "conditions-in",
-          "name": "Conditions",
-          "dataType": "config",
-          "position": "left",
-          "offset": {
-            "x": -2,
-            "y": 60
-          }
-        }
-      ],
-      "outputPorts": [
-        {
-          "id": "actions-out",
-          "name": "Actions",
-          "dataType": "command",
-          "position": "right",
-          "offset": {
-            "x": 2,
-            "y": 50
-          }
-        }
-      ],
       "data": {
         "name": "Automation Controller",
         "workflows": 25,
@@ -661,7 +647,42 @@
       },
       "x": 1300,
       "y": 350,
-      "zIndex": 6
+      "zIndex": 6,
+      "ports": [
+        {
+          "id": "triggers-in",
+          "name": "Triggers",
+          "dataType": "trigger",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 30
+          },
+          "type": "input"
+        },
+        {
+          "id": "conditions-in",
+          "name": "Conditions",
+          "dataType": "config",
+          "position": "left",
+          "offset": {
+            "x": -2,
+            "y": 60
+          },
+          "type": "input"
+        },
+        {
+          "id": "actions-out",
+          "name": "Actions",
+          "dataType": "command",
+          "position": "right",
+          "offset": {
+            "x": 2,
+            "y": 50
+          },
+          "type": "output"
+        }
+      ]
     }
   ],
   "connections": [

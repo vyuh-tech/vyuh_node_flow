@@ -104,4 +104,39 @@ class EndpointPositionCalculator {
         return (endpointPos: endpointPos, linePos: linePos);
     }
   }
+
+  /// Calculates endpoint positions for a bidirectional port.
+  ///
+  /// Bidirectional ports can connect in either direction. The endpoint position
+  /// is calculated based on the **effective direction** (the direction the line
+  /// should extend), not the physical port position.
+  ///
+  /// Parameters:
+  /// - [portPos]: The connection point at the port's physical location
+  /// - [physicalPosition]: The port's physical position on the node edge
+  /// - [effectiveDirection]: The direction the line should extend (toward target)
+  /// - [endpointSize]: Size of the endpoint marker
+  /// - [gap]: Gap between port and endpoint marker
+  static ({Offset endpointPos, Offset linePos})
+  calculateBidirectionalPortConnectionPoints(
+    Offset portPos,
+    PortPosition physicalPosition,
+    PortPosition effectiveDirection,
+    Size endpointSize, {
+    double gap = 0.0,
+  }) {
+    // Always use the EFFECTIVE direction for calculating endpoint positions.
+    // This ensures the endpoint marker and line position are oriented correctly
+    // based on where the connection is actually going, not where the port
+    // physically sits on the node.
+    //
+    // Example: A LEFT-side bidi port connecting to a target on the RIGHT
+    // should have its endpoint calculated as if exiting rightward.
+    return calculatePortConnectionPoints(
+      portPos,
+      effectiveDirection,
+      endpointSize,
+      gap: gap,
+    );
+  }
 }

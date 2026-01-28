@@ -18,25 +18,32 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 ///
 /// All parameters are optional and will use defaults if not provided.
 /// The node uses String as its data type for simplicity.
+///
+/// For backward compatibility, accepts both `ports` (preferred) and legacy
+/// `inputPorts`/`outputPorts` parameters. If `ports` is provided, it takes
+/// precedence. Otherwise, inputPorts and outputPorts are merged.
 Node<String> createTestNode({
   String? id,
   String type = 'test',
   Offset position = Offset.zero,
   Size? size,
   String data = 'test-data',
+  List<Port>? ports,
   List<Port>? inputPorts,
   List<Port>? outputPorts,
   int zIndex = 0,
   bool visible = true,
 }) {
+  // Use ports if provided, otherwise merge inputPorts and outputPorts
+  final effectivePorts = ports ?? [...?inputPorts, ...?outputPorts];
+
   final node = Node<String>(
     id: id ?? 'node-${_nodeCounter++}',
     type: type,
     position: position,
     size: size,
     data: data,
-    inputPorts: inputPorts ?? [],
-    outputPorts: outputPorts ?? [],
+    ports: effectivePorts,
     initialZIndex: zIndex,
     visible: visible,
   );
@@ -405,6 +412,10 @@ CommentNode<T> createTestCommentNode<T>({
 }
 
 /// Creates a test group node with sensible defaults.
+///
+/// For backward compatibility, accepts both `ports` (preferred) and legacy
+/// `inputPorts`/`outputPorts` parameters. If `ports` is provided, it takes
+/// precedence. Otherwise, inputPorts and outputPorts are merged.
 GroupNode<T> createTestGroupNode<T>({
   String? id,
   Offset position = Offset.zero,
@@ -415,12 +426,16 @@ GroupNode<T> createTestGroupNode<T>({
   GroupBehavior behavior = GroupBehavior.bounds,
   Set<String>? nodeIds,
   EdgeInsets padding = kGroupNodeDefaultPadding,
+  List<Port>? ports,
   List<Port> inputPorts = const [],
   List<Port> outputPorts = const [],
   int zIndex = -1,
   bool isVisible = true,
   bool locked = false,
 }) {
+  // Use ports if provided, otherwise merge inputPorts and outputPorts
+  final effectivePorts = ports ?? [...inputPorts, ...outputPorts];
+
   final node = GroupNode<T>(
     id: id ?? 'group-${_specialNodeCounter++}',
     position: position,
@@ -431,8 +446,7 @@ GroupNode<T> createTestGroupNode<T>({
     behavior: behavior,
     nodeIds: nodeIds,
     padding: padding,
-    inputPorts: inputPorts,
-    outputPorts: outputPorts,
+    ports: effectivePorts,
     zIndex: zIndex,
     isVisible: isVisible,
     locked: locked,

@@ -32,14 +32,17 @@ extension DirtyTrackingExtension<T, C> on NodeFlowController<T, C> {
       _isAnyDragInProgress && !(getPlugin<DebugPlugin>()?.isEnabled ?? false);
 
   // ============================================================================
-  // Internal API (library-private)
+  // Dirty Tracking API
   // ============================================================================
 
   /// Marks a node as needing spatial index update.
   ///
   /// If no drag is in progress (or debug mode is on), updates immediately.
   /// Otherwise, defers until drag ends.
-  void _markNodeDirty(String nodeId) {
+  ///
+  /// Call this when external code modifies a node's size or position and
+  /// needs the spatial index to reflect the change for hit testing.
+  void markNodeDirty(String nodeId) {
     if (_shouldDeferSpatialUpdates) {
       _pendingNodeUpdates.add(nodeId);
       // Also mark connected connections as dirty
@@ -58,7 +61,7 @@ extension DirtyTrackingExtension<T, C> on NodeFlowController<T, C> {
   }
 
   /// Marks multiple nodes as needing spatial index update.
-  void _markNodesDirty(Iterable<String> nodeIds) {
+  void markNodesDirty(Iterable<String> nodeIds) {
     if (_shouldDeferSpatialUpdates) {
       _pendingNodeUpdates.addAll(nodeIds);
       // Also mark connected connections as dirty

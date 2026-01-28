@@ -156,7 +156,7 @@ extension GroupApi<T, C> on NodeFlowController<T, C> {
       });
 
       // Mark nodes dirty (deferred during drag)
-      _markNodesDirty(movedNodes);
+      markNodesDirty(movedNodes);
     } finally {
       _isMovingGroupNodes = false;
     }

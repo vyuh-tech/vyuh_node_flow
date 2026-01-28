@@ -66,12 +66,13 @@ class EditableSmoothStepConnectionStyle extends EditablePathConnectionStyle {
     ConnectionPathParameters params,
   ) {
     // Use WaypointBuilder for all routing scenarios
+    // Use EFFECTIVE positions for bidirectional port support
     // Use sourceOffset/targetOffset for proper temporary connection handling
     final waypoints = WaypointBuilder.calculateWaypoints(
       start: params.start,
       end: params.end,
-      sourcePosition: params.sourcePosition,
-      targetPosition: params.targetPosition,
+      sourcePosition: params.effectiveSourcePosition,
+      targetPosition: params.effectiveTargetPosition,
       offset: params.offset,
       sourceOffset: params.sourceOffset,
       targetOffset: params.targetOffset,

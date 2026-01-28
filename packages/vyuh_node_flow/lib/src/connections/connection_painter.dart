@@ -138,6 +138,8 @@ class ConnectionPainter {
     final sourcePortSize = sourcePort.size ?? portTheme.size;
     final targetPortSize = targetPort.size ?? portTheme.size;
 
+    // SIMPLIFIED ROUTING: Always use PHYSICAL port position.
+    // Bidi ports use the same direction as regular ports.
     final sourcePortPosition = sourceNode.getConnectionPoint(
       connection.sourcePortId,
       portSize: sourcePortSize,
@@ -157,15 +159,19 @@ class ConnectionPainter {
         ? Size.zero
         : effectiveEndPoint.size;
 
+    // Calculate endpoint positions using PHYSICAL port positions.
+    // Endpoints are always at the port's actual location on the node edge.
+    // Path routing handles curving the line naturally between endpoints.
     final source = EndpointPositionCalculator.calculatePortConnectionPoints(
       sourcePortPosition,
-      sourcePort.position,
+      sourcePort.position, // Physical position
       startPointSize,
       gap: connection.startGap ?? connectionTheme.startGap,
     );
+
     final target = EndpointPositionCalculator.calculatePortConnectionPoints(
       targetConnectionPoint,
-      targetPort.position,
+      targetPort.position, // Physical position
       endPointSize,
       gap: connection.endGap ?? connectionTheme.endGap,
     );
@@ -219,6 +225,7 @@ class ConnectionPainter {
     }
 
     // Draw endpoints (if not skipped by LOD)
+    // Use physical port positions for endpoint orientation - the path handles routing
     if (!skipEndpoints) {
       _drawEndpoints(
         canvas,
@@ -248,7 +255,8 @@ class ConnectionPainter {
   }) {
     final connectionTheme = theme.temporaryConnectionTheme;
 
-    // Always use the full connection style machinery for consistent appearance
+    // SIMPLIFIED ROUTING: Always use physical port positions.
+    // Bidi ports are just ports that CAN be source or target - they don't change direction.
     // Calculate source endpoint positions (from the port we started dragging from)
     final ({Offset endpointPos, Offset linePos}) source;
     if (sourcePort != null) {
@@ -257,9 +265,10 @@ class ConnectionPainter {
       final startPointSize = startEndpoint.shape is NoneMarkerShape
           ? Size.zero
           : startEndpoint.size;
+
       source = EndpointPositionCalculator.calculatePortConnectionPoints(
         startPoint,
-        sourcePort.position,
+        sourcePort.position, // Always use physical position
         startPointSize,
         gap: connectionTheme.startGap,
       );
@@ -276,9 +285,10 @@ class ConnectionPainter {
       final endPointSize = endEndpoint.shape is NoneMarkerShape
           ? Size.zero
           : endEndpoint.size;
+
       target = EndpointPositionCalculator.calculatePortConnectionPoints(
         currentPoint,
-        targetPort.position,
+        targetPort.position, // Always use physical position
         endPointSize,
         gap: connectionTheme.endGap,
       );
@@ -411,7 +421,7 @@ class ConnectionPainter {
       canvas.drawPath(pathToDraw, paint);
     }
 
-    // Draw endpoints
+    // Draw endpoints using physical port positions
     _drawEndpoints(
       canvas,
       source: source,
@@ -426,6 +436,10 @@ class ConnectionPainter {
   }
 
   /// Draws the endpoint capsules for a connection
+  ///
+  /// Endpoints always use physical port positions for orientation.
+  /// The "bidirectional" aspect of ports means they CAN be source or target,
+  /// not that they change direction dynamically.
   void _drawEndpoints(
     Canvas canvas, {
     required ({Offset endpointPos, Offset linePos}) source,
@@ -446,7 +460,7 @@ class ConnectionPainter {
     final defaultBorderColor = connectionTheme.endpointBorderColor;
     final defaultBorderWidth = connectionTheme.endpointBorderWidth;
 
-    // Draw source endpoint (startPoint)
+    // Draw source endpoint (startPoint) - always use physical port position
     final sourcePortPosition = sourcePort?.position ?? PortPosition.left;
     final startFillPaint = Paint()
       ..color = startPoint.color ?? defaultFillColor
@@ -470,9 +484,9 @@ class ConnectionPainter {
       borderPaint: startBorderPaint,
     );
 
-    // Draw target endpoint (endPoint) if needed
+    // Draw target endpoint (endPoint) if needed - always use physical port position
     if (drawTargetEndpoint) {
-      final targetConnectionPoint = targetPort?.position ?? PortPosition.right;
+      final targetPortPosition = targetPort?.position ?? PortPosition.right;
       final endFillPaint = Paint()
         ..color = endPoint.color ?? defaultFillColor
         ..style = PaintingStyle.fill;
@@ -490,7 +504,7 @@ class ConnectionPainter {
         position: target.endpointPos,
         size: endPoint.size,
         shape: endPoint.shape,
-        portPosition: targetConnectionPoint,
+        portPosition: targetPortPosition,
         fillPaint: endFillPaint,
         borderPaint: endBorderPaint,
       );

@@ -32,16 +32,18 @@ class _ConnectionValidationExampleState
         position: const Offset(100, 100),
         size: const Size(120, 80),
         data: 'Input Node',
-        outputPorts: [
+        ports: [
           Port(
             id: 'out1',
             name: 'Output 1',
+            type: PortType.output,
             position: PortPosition.right,
             offset: Offset(2, 20), // Multiple ports: starting offset 20
           ),
           Port(
             id: 'out2',
             name: 'Output 2',
+            type: PortType.output,
             position: PortPosition.right,
             multiConnections: true,
             offset: Offset(2, 50), // Multiple ports: 20 + 30 separation
@@ -55,25 +57,26 @@ class _ConnectionValidationExampleState
         position: const Offset(300, 100),
         size: const Size(140, 100),
         data: 'Processing Node',
-        inputPorts: [
+        ports: [
           Port(
             id: 'in1',
             name: 'Input 1',
+            type: PortType.input,
             position: PortPosition.left,
             offset: Offset(-2, 20), // Multiple ports: starting offset 20
           ),
           Port(
             id: 'in2',
             name: 'Input 2',
+            type: PortType.input,
             position: PortPosition.left,
             multiConnections: true,
             offset: Offset(-2, 50), // Multiple ports: 20 + 30 separation
           ),
-        ],
-        outputPorts: [
           Port(
             id: 'out1',
             name: 'Result',
+            type: PortType.output,
             position: PortPosition.right,
             offset: Offset(2, 50), // Vertical center of 100 height
           ),
@@ -86,10 +89,11 @@ class _ConnectionValidationExampleState
         position: const Offset(500, 120),
         size: const Size(120, 80),
         data: 'Output Node',
-        inputPorts: [
+        ports: [
           Port(
             id: 'in1',
             name: 'Input',
+            type: PortType.input,
             position: PortPosition.left,
             offset: Offset(-2, 40), // Vertical center of 80 height
           ),
@@ -102,18 +106,18 @@ class _ConnectionValidationExampleState
         position: const Offset(300, 250),
         size: const Size(120, 80),
         data: 'Locked Node',
-        inputPorts: [
+        ports: [
           Port(
             id: 'in1',
             name: 'Locked In',
+            type: PortType.input,
             position: PortPosition.left,
             offset: Offset(-2, 40), // Vertical center of 80 height
           ),
-        ],
-        outputPorts: [
           Port(
             id: 'out1',
             name: 'Locked Out',
+            type: PortType.output,
             position: PortPosition.right,
             offset: Offset(2, 40), // Vertical center of 80 height
           ),

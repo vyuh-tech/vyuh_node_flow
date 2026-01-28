@@ -57,8 +57,9 @@ class StraightConnectionStyle extends ConnectionStyle {
   List<PathSegment> _buildForwardStraightSegments(
     ConnectionPathParameters params,
   ) {
-    final sourcePosition = params.sourcePort?.position ?? PortPosition.right;
-    final targetPosition = params.targetPort?.position ?? PortPosition.left;
+    // Use EFFECTIVE positions for bidirectional port support
+    final sourcePosition = params.effectiveSourcePosition;
+    final targetPosition = params.effectiveTargetPosition;
 
     // Use sourceOffset/targetOffset which are 0 when no port exists
     final sourceOffset = params.sourceOffset;

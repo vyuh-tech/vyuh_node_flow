@@ -119,10 +119,10 @@ class ConnectionStartContext<T> {
   final List<String> existingConnections;
 
   /// Whether this is an output port.
-  bool get isOutputPort => sourceNode.outputPorts.contains(sourcePort);
+  bool get isOutputPort => sourcePort.isOutput;
 
   /// Whether this is an input port.
-  bool get isInputPort => sourceNode.inputPorts.contains(sourcePort);
+  bool get isInputPort => sourcePort.isInput;
 }
 
 /// Context provided when attempting to complete a connection.
@@ -202,17 +202,13 @@ class ConnectionCompleteContext<T> {
   /// Whether this connection goes from an output port to an input port.
   ///
   /// This is the typical and recommended connection direction.
-  bool get isOutputToInput =>
-      sourceNode.outputPorts.contains(sourcePort) &&
-      targetNode.inputPorts.contains(targetPort);
+  bool get isOutputToInput => sourcePort.isOutput && targetPort.isInput;
 
   /// Whether this connection goes from an input port to an output port.
   ///
   /// This is the reverse of the typical direction. Some applications may
   /// allow or disallow this based on their requirements.
-  bool get isInputToOutput =>
-      sourceNode.inputPorts.contains(sourcePort) &&
-      targetNode.outputPorts.contains(targetPort);
+  bool get isInputToOutput => sourcePort.isInput && targetPort.isOutput;
 
   /// Whether this is a self-connection (connecting a node to itself).
   ///

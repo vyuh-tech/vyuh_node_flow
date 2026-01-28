@@ -3,6 +3,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../connections/temporary_connection.dart';
 import '../../graph/coordinates.dart';
+import '../../nodes/node.dart';
 import '../../ports/port.dart';
 import '../controller/node_flow_controller.dart';
 import '../themes/node_flow_theme.dart';
@@ -153,39 +154,38 @@ class InteractionLayerPainter<T> extends CustomPainter {
     if (temporaryConnection != null) {
       final temp = temporaryConnection!;
       final isStartFromOutput = temp.isStartFromOutput;
+      final portTheme = controller.theme?.portTheme;
 
-      // Get the starting port (where drag began)
+      // Get the starting port and node (where drag began)
       Port? startPort;
       final startNode = controller.nodes[temp.startNodeId];
       if (startNode != null) {
-        // Search in the appropriate port list based on port type
-        final portList = isStartFromOutput
-            ? startNode.outputPorts
-            : startNode.inputPorts;
-        for (final port in portList) {
-          if (port.id == temp.startPortId) {
-            startPort = port;
-            break;
-          }
+        startPort = startNode.findPort(temp.startPortId);
+      }
+
+      // Get the hovered port and node if available (where mouse is hovering)
+      Port? hoveredPort;
+      Node<T>? hoveredNode;
+      if (temp.targetNodeId != null && temp.targetPortId != null) {
+        hoveredNode = controller.nodes[temp.targetNodeId!];
+        if (hoveredNode != null) {
+          hoveredPort = hoveredNode.findPort(temp.targetPortId!);
         }
       }
 
-      // Get the hovered port if available (where mouse is hovering)
-      Port? hoveredPort;
-      if (temp.targetNodeId != null && temp.targetPortId != null) {
-        final hoveredNode = controller.nodes[temp.targetNodeId!];
-        if (hoveredNode != null) {
-          // Hovered port is the opposite type of start port
-          final portList = isStartFromOutput
-              ? hoveredNode.inputPorts
-              : hoveredNode.outputPorts;
-          for (final port in portList) {
-            if (port.id == temp.targetPortId) {
-              hoveredPort = port;
-              break;
-            }
-          }
-        }
+      // Calculate the hovered port's connection point if hovering over a valid port.
+      // This ensures the temporary connection snaps to the correct port position,
+      // matching the actual connection routing behavior.
+      Offset? hoveredPortPoint;
+      if (hoveredNode != null && hoveredPort != null) {
+        final portSize =
+            hoveredPort.size ?? portTheme?.size ?? const Size(12, 12);
+        final shape = controller.nodeShapeBuilder?.call(hoveredNode);
+        hoveredPortPoint = hoveredNode.getConnectionPoint(
+          hoveredPort.id,
+          portSize: portSize,
+          shape: shape,
+        );
       }
 
       // Determine actual source/target based on port direction:
@@ -203,14 +203,16 @@ class InteractionLayerPainter<T> extends CustomPainter {
         sourcePort = startPort;
         targetPort = hoveredPort;
         sourcePoint = temp.startPoint;
-        targetPoint = temp.currentPoint;
+        // Use calculated port position if hovering, otherwise raw mouse position
+        targetPoint = hoveredPortPoint ?? temp.currentPoint;
         sourceNodeBounds = temp.startNodeBounds;
         targetNodeBounds = temp.targetNodeBounds;
       } else {
         // Input ← Output: start is target, current point is source
         sourcePort = hoveredPort;
         targetPort = startPort;
-        sourcePoint = temp.currentPoint;
+        // Use calculated port position if hovering, otherwise raw mouse position
+        sourcePoint = hoveredPortPoint ?? temp.currentPoint;
         targetPoint = temp.startPoint;
         sourceNodeBounds = temp.targetNodeBounds;
         targetNodeBounds = temp.startNodeBounds;

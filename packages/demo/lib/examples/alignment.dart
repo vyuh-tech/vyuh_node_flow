@@ -65,18 +65,18 @@ class _AlignmentExampleState extends State<AlignmentExample> {
       position: position,
       data: {'label': 'Node $id'},
       size: size,
-      inputPorts: [
+      ports: [
         Port(
           id: 'input',
           name: 'In',
+          type: PortType.input,
           position: PortPosition.left,
           offset: Offset(-2, height / 2),
         ),
-      ],
-      outputPorts: [
         Port(
           id: 'output',
           name: 'Out',
+          type: PortType.output,
           position: PortPosition.right,
           offset: Offset(2, height / 2),
         ),

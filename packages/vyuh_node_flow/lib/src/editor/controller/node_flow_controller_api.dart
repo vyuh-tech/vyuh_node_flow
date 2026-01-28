@@ -73,8 +73,7 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
   /// - [behavior]: How the group manages node membership (default: bounds)
   /// - [nodeIds]: Initial set of node IDs for explicit/parent behavior
   /// - [padding]: Padding around member nodes (default: kGroupNodeDefaultPadding)
-  /// - [inputPorts]: Optional input ports for subflow patterns
-  /// - [outputPorts]: Optional output ports for subflow patterns
+  /// - [ports]: Optional ports for subflow patterns (can include input and output ports)
   ///
   /// Returns the created [GroupNode].
   ///
@@ -98,8 +97,7 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
     GroupBehavior behavior = GroupBehavior.bounds,
     Set<String>? nodeIds,
     EdgeInsets padding = kGroupNodeDefaultPadding,
-    List<Port> inputPorts = const [],
-    List<Port> outputPorts = const [],
+    List<Port> ports = const [],
   }) {
     final node = GroupNode<T>(
       id: id ?? 'group-${DateTime.now().millisecondsSinceEpoch}',
@@ -111,8 +109,7 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
       behavior: behavior,
       nodeIds: nodeIds,
       padding: padding,
-      inputPorts: inputPorts,
-      outputPorts: outputPorts,
+      ports: ports,
     );
     addNode(node);
     return node;
@@ -131,8 +128,7 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
   /// - [padding]: Space between the group boundary and the nodes (default: 20.0)
   /// - [color]: Background color of the group (default: blue)
   /// - [behavior]: How the group manages node membership (default: bounds)
-  /// - [inputPorts]: Optional input ports for subflow patterns
-  /// - [outputPorts]: Optional output ports for subflow patterns
+  /// - [ports]: Optional ports for subflow patterns (can include input and output ports)
   ///
   /// Returns the created [GroupNode].
   ///
@@ -154,8 +150,7 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
     EdgeInsets padding = const EdgeInsets.all(20.0),
     Color color = const Color(0xFF2196F3), // Blue
     GroupBehavior behavior = GroupBehavior.bounds,
-    List<Port> inputPorts = const [],
-    List<Port> outputPorts = const [],
+    List<Port> ports = const [],
   }) {
     final dependentNodes = nodeIds
         .map((nodeId) => _nodes[nodeId])
@@ -203,8 +198,7 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
       behavior: behavior,
       nodeIds: behavior != GroupBehavior.bounds ? nodeIds : null,
       padding: padding,
-      inputPorts: inputPorts,
-      outputPorts: outputPorts,
+      ports: ports,
     );
     addNode(node);
     return node;
@@ -429,7 +423,7 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
     });
 
     // Mark moved nodes dirty for spatial index
-    _markNodesDirty(movedNodes.map((n) => n.id));
+    markNodesDirty(movedNodes.map((n) => n.id));
 
     // Fire drag event for all moved nodes
     for (final node in movedNodes) {

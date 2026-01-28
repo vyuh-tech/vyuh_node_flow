@@ -134,8 +134,7 @@ void main() {
           size: const Size(400, 300),
           title: 'Subflow',
           data: 'test',
-          inputPorts: [inputPort],
-          outputPorts: [outputPort],
+          ports: [inputPort, outputPort],
         );
 
         expect(group.inputPorts.length, equals(1));

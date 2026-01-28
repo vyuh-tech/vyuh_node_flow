@@ -142,11 +142,11 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
           type: 'Source',
           position: const Offset(100, 100),
           data: {'label': 'Data Source'},
-          inputPorts: [],
-          outputPorts: [
+          ports: [
             Port(
               id: 'output',
               name: 'Out',
+              type: PortType.output,
               position: PortPosition.right,
               offset: Offset(2, 40),
             ),
@@ -157,20 +157,20 @@ class _WorkbenchExampleState extends State<WorkbenchExample> {
           type: 'Transform',
           position: const Offset(350, 100),
           data: {'label': 'Data Transform'},
-          inputPorts: [
+          ports: [
             Port(
               id: 'input',
               name: 'In',
 
+              type: PortType.input,
               position: PortPosition.left,
               offset: Offset(-2, 50),
             ),
-          ],
-          outputPorts: [
             Port(
               id: 'output',
               name: 'Out',
 
+              type: PortType.output,
               position: PortPosition.right,
               offset: Offset(2, 40),
             ),

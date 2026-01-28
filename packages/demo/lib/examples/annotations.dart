@@ -34,18 +34,18 @@ class _AnnotationExampleState extends State<AnnotationExample> {
       position: const Offset(100, 100),
       size: const Size(150, 80),
       data: {'title': 'Process A'},
-      outputPorts: [
+      ports: [
         Port(
           id: 'output1',
           name: 'Out',
+          type: PortType.output,
           position: PortPosition.right,
           offset: Offset(2, 40), // Vertical center of 80 height
         ),
-      ],
-      inputPorts: [
         Port(
           id: 'input1',
           name: 'In',
+          type: PortType.input,
           position: PortPosition.left,
           offset: Offset(-2, 40), // Vertical center of 80 height
         ),
@@ -58,18 +58,18 @@ class _AnnotationExampleState extends State<AnnotationExample> {
       position: const Offset(300, 100),
       size: const Size(150, 80),
       data: {'title': 'Process B'},
-      outputPorts: [
+      ports: [
         Port(
           id: 'output1',
           name: 'Out',
+          type: PortType.output,
           position: PortPosition.right,
           offset: Offset(2, 40), // Vertical center of 80 height
         ),
-      ],
-      inputPorts: [
         Port(
           id: 'input1',
           name: 'In',
+          type: PortType.input,
           position: PortPosition.left,
           offset: Offset(-2, 40), // Vertical center of 80 height
         ),
@@ -82,24 +82,25 @@ class _AnnotationExampleState extends State<AnnotationExample> {
       position: const Offset(200, 250),
       size: const Size(150, 80),
       data: {'title': 'Process C'},
-      outputPorts: [
+      ports: [
         Port(
           id: 'output1',
           name: 'Out',
+          type: PortType.output,
           position: PortPosition.right,
           offset: Offset(2, 40), // Vertical center of 80 height
         ),
-      ],
-      inputPorts: [
         Port(
           id: 'input1',
           name: 'In',
+          type: PortType.input,
           position: PortPosition.left,
           offset: Offset(-2, 20), // Multiple ports: starting offset 20
         ),
         Port(
           id: 'input2',
           name: 'In2',
+          type: PortType.input,
           position: PortPosition.left,
           offset: Offset(-2, 50), // Multiple ports: 20 + 30 separation
         ),

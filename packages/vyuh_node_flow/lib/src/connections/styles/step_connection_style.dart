@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'dart:ui';
 
 import 'connection_style_base.dart';
 import 'waypoint_builder.dart';
@@ -42,13 +42,14 @@ class StepConnectionStyle extends ConnectionStyle {
     ConnectionPathParameters params,
   ) {
     // Calculate waypoints for all routing scenarios (ONCE)
+    // Use EFFECTIVE positions for bidirectional port support
     // Use sourceOffset/targetOffset to handle temporary connections correctly
     // (mouse position should not be extended)
     final waypoints = WaypointBuilder.calculateWaypoints(
       start: params.start,
       end: params.end,
-      sourcePosition: params.sourcePosition,
-      targetPosition: params.targetPosition,
+      sourcePosition: params.effectiveSourcePosition,
+      targetPosition: params.effectiveTargetPosition,
       offset: params.offset,
       sourceOffset: params.sourceOffset,
       targetOffset: params.targetOffset,

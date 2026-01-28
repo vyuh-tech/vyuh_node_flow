@@ -181,63 +181,55 @@ void main() {
   });
 
   group('Port Management', () {
-    test('addInputPort adds port to inputPorts', () {
+    test('addPort adds input port', () {
       final node = createTestNode();
       final port = createTestPort(id: 'new-input', type: PortType.input);
 
-      node.addInputPort(port);
+      node.addPort(port);
 
       expect(node.inputPorts.length, equals(1));
       expect(node.inputPorts.first.id, equals('new-input'));
     });
 
-    test('addOutputPort adds port to outputPorts', () {
+    test('addPort adds output port', () {
       final node = createTestNode();
       final port = createTestPort(id: 'new-output', type: PortType.output);
 
-      node.addOutputPort(port);
+      node.addPort(port);
 
       expect(node.outputPorts.length, equals(1));
       expect(node.outputPorts.first.id, equals('new-output'));
     });
 
-    test('removeInputPort removes existing port', () {
+    test('removePort removes existing input port', () {
       final port = createTestPort(id: 'input-to-remove', type: PortType.input);
       final node = createTestNode(inputPorts: [port]);
 
-      final removed = node.removeInputPort('input-to-remove');
+      final removed = node.removePort('input-to-remove');
 
       expect(removed, isTrue);
       expect(node.inputPorts, isEmpty);
     });
 
-    test('removeInputPort returns false for non-existent port', () {
+    test('removePort returns false for non-existent port', () {
       final node = createTestNode();
 
-      final removed = node.removeInputPort('non-existent');
+      final removed = node.removePort('non-existent');
 
       expect(removed, isFalse);
     });
 
-    test('removeOutputPort removes existing port', () {
+    test('removePort removes existing output port', () {
       final port = createTestPort(
         id: 'output-to-remove',
         type: PortType.output,
       );
       final node = createTestNode(outputPorts: [port]);
 
-      final removed = node.removeOutputPort('output-to-remove');
+      final removed = node.removePort('output-to-remove');
 
       expect(removed, isTrue);
       expect(node.outputPorts, isEmpty);
-    });
-
-    test('removeOutputPort returns false for non-existent port', () {
-      final node = createTestNode();
-
-      final removed = node.removeOutputPort('non-existent');
-
-      expect(removed, isFalse);
     });
 
     test('removePort removes from either input or output ports', () {
@@ -254,7 +246,7 @@ void main() {
       expect(node.outputPorts, isEmpty);
     });
 
-    test('updateInputPort replaces existing port', () {
+    test('updatePort replaces existing input port', () {
       final originalPort = createTestPort(
         id: 'port-1',
         name: 'Original',
@@ -263,13 +255,13 @@ void main() {
       final node = createTestNode(inputPorts: [originalPort]);
       final updatedPort = originalPort.copyWith(name: 'Updated');
 
-      final updated = node.updateInputPort('port-1', updatedPort);
+      final updated = node.updatePort('port-1', updatedPort);
 
       expect(updated, isTrue);
       expect(node.inputPorts.first.name, equals('Updated'));
     });
 
-    test('updateOutputPort replaces existing port', () {
+    test('updatePort replaces existing output port', () {
       final originalPort = createTestPort(
         id: 'port-1',
         name: 'Original',
@@ -278,7 +270,7 @@ void main() {
       final node = createTestNode(outputPorts: [originalPort]);
       final updatedPort = originalPort.copyWith(name: 'Updated');
 
-      final updated = node.updateOutputPort('port-1', updatedPort);
+      final updated = node.updatePort('port-1', updatedPort);
 
       expect(updated, isTrue);
       expect(node.outputPorts.first.name, equals('Updated'));
@@ -508,8 +500,7 @@ void main() {
         data: 'restored-data',
         initialZIndex: 3,
         visible: true,
-        inputPorts: [],
-        outputPorts: [],
+        ports: [],
       );
 
       final json = originalNode.toJson((data) => data);
@@ -556,10 +547,9 @@ void main() {
 
       final json = node.toJson((data) => data);
 
-      expect(json['inputPorts'], isA<List>());
-      expect((json['inputPorts'] as List).length, equals(1));
-      expect(json['outputPorts'], isA<List>());
-      expect((json['outputPorts'] as List).length, equals(1));
+      // New format uses single 'ports' array
+      expect(json['ports'], isA<List>());
+      expect((json['ports'] as List).length, equals(2));
     });
 
     test('fromJson handles missing optional fields', () {

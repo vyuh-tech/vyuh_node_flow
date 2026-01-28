@@ -268,7 +268,10 @@ class ConnectionPathCache {
     final sourcePortSize = sourcePort.size ?? portTheme.size;
     final targetPortSize = targetPort.size ?? portTheme.size;
 
-    // Calculate port positions with shapes and effective sizes
+    // SIMPLIFIED ROUTING: Always use PHYSICAL port position.
+    // Bidi ports use the same direction as regular ports - the "bidirectional"
+    // aspect just means they can be source OR target, not that they change direction.
+    // The waypoint builder handles same-side and back-edge scenarios naturally.
     final sourcePortPosition = sourceNode.getConnectionPoint(
       connection.sourcePortId,
       portSize: sourcePortSize,
@@ -296,16 +299,20 @@ class ConnectionPathCache {
         ? Size.zero
         : effectiveEndPoint.size;
 
-    // Calculate connection points using passed gap values
+    // Calculate endpoint positions for connection line.
+    // ALWAYS use PHYSICAL port position for endpoint placement.
+    // The endpoint (arrow/marker) should be at the port's actual location.
+    // Path routing handles curving the line naturally to connect endpoints.
     final source = EndpointPositionCalculator.calculatePortConnectionPoints(
       sourcePortPosition,
-      sourcePort.position,
+      sourcePort.position, // Physical position
       startPointSize,
       gap: startGap,
     );
+
     final target = EndpointPositionCalculator.calculatePortConnectionPoints(
       targetConnectionPoint,
-      targetPort.position,
+      targetPort.position, // Physical position
       endPointSize,
       gap: endGap,
     );

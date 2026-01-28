@@ -154,10 +154,11 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
           images: _images,
         ),
         size: const Size(220, 180),
-        outputPorts: [
+        ports: [
           Port(
             id: 'image_out',
             name: 'Image',
+            type: PortType.output,
             position: PortPosition.right,
             offset: const Offset(2, 90),
             theme: _imagePortTheme,
@@ -180,10 +181,11 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
           colors: _colors,
         ),
         size: const Size(220, 150),
-        outputPorts: [
+        ports: [
           Port(
             id: 'color_out',
             name: 'Color',
+            type: PortType.output,
             position: PortPosition.right,
             offset: const Offset(2, 75),
             theme: _colorPortTheme,
@@ -205,10 +207,11 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
           saturation: _saturation,
         ),
         size: const Size(220, 150),
-        outputPorts: [
+        ports: [
           Port(
             id: 'effect_out',
             name: 'Effect',
+            type: PortType.output,
             position: PortPosition.right,
             offset: const Offset(2, 75),
             theme: _effectPortTheme,
@@ -235,10 +238,11 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
           images: _images,
         ),
         size: const Size(300, 300),
-        inputPorts: [
+        ports: [
           Port(
             id: 'image_in',
             name: 'Image',
+            type: PortType.input,
             position: PortPosition.left,
             offset: const Offset(-2, 70),
             theme: _imagePortTheme,
@@ -246,6 +250,7 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
           Port(
             id: 'color_in',
             name: 'Color',
+            type: PortType.input,
             position: PortPosition.left,
             offset: const Offset(-2, 130),
             theme: _colorPortTheme,
@@ -253,6 +258,7 @@ class _HeroShowcaseExampleState extends State<HeroShowcaseExample>
           Port(
             id: 'effect_in',
             name: 'Effect',
+            type: PortType.input,
             position: PortPosition.left,
             offset: const Offset(-2, 190),
             theme: _effectPortTheme,

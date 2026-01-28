@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../core/constants.dart';
-import '../../evaluation/evaluator.dart';
 import '../../core/models.dart';
+import '../../evaluation/evaluator.dart';
 import '../../presentation/theme.dart';
 import '../nodes/function_node.dart';
 import '../nodes/number_node.dart';
@@ -48,8 +48,10 @@ class MathNodeFactory {
       position: position,
       size: size,
       data: data,
-      inputPorts: _createInputPorts(data, size),
-      outputPorts: _createOutputPorts(data, size),
+      ports: [
+        ..._createInputPorts(data, size),
+        ..._createOutputPorts(data, size),
+      ],
       theme: baseTheme.copyWith(selectedBorderColor: portColor),
     );
   }
