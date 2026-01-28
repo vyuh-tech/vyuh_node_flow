@@ -1,3 +1,7 @@
+## 0.27.0
+
+ - **FEAT**(ports): consolidate input/output port fields into unified `ports` property.
+
 ## 0.26.3
 
  - **FEAT**(spatial): enhance port handling and node hit-testing.
