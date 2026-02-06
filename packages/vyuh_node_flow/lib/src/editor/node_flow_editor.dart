@@ -337,6 +337,17 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
   // ups from prematurely ending mouse drags.
   int? _dragPointerId;
 
+  // Touch-driven connection drag state (for mobile).
+  bool _isTouchConnecting = false;
+  int? _touchConnectionPointerId;
+  Offset _touchConnectionPointerOffset = Offset.zero;
+
+  bool _isTouchLike(PointerEvent event) {
+    return event.kind == PointerDeviceKind.touch ||
+        event.kind == PointerDeviceKind.stylus ||
+        event.kind == PointerDeviceKind.invertedStylus;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1047,6 +1058,49 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     // Note: Connection handling is done via GestureDetector in PortWidget.
     // PortWidget uses pan gestures to handle connection drag. Pan is disabled
     // above when pointer is on a port, preventing InteractiveViewer from competing.
+    //
+    // On touch devices, start connection drag here to ensure we keep receiving
+    // pointer updates even after leaving the port bounds.
+    if (hitResult.isPort &&
+        _isTouchLike(event) &&
+        widget.behavior.canCreate &&
+        !_isTouchConnecting) {
+      final node = widget.controller.getNode(hitResult.nodeId!);
+      if (node != null) {
+        final port = _findPort(node, hitResult.portId!);
+        if (port != null) {
+          final theme = widget.controller.theme ?? NodeFlowTheme.light;
+          final portTheme = theme.portTheme;
+          final effectivePortSize = port.size ?? portTheme.size;
+          final shape = widget.controller.nodeShapeBuilder?.call(node);
+
+          final startPoint = node.getConnectionPoint(
+            port.id,
+            portSize: effectivePortSize,
+            shape: shape,
+          );
+
+          final result = widget.controller.startConnectionDrag(
+            nodeId: node.id,
+            portId: port.id,
+            isOutput: hitResult.isOutput ?? false,
+            startPoint: startPoint,
+            nodeBounds: node.getBounds(),
+            initialScreenPosition: event.position,
+          );
+
+          if (result.allowed) {
+            _isTouchConnecting = true;
+            _touchConnectionPointerId = event.pointer;
+
+            final pointerGraphPos = widget.controller
+                .screenToGraph(ScreenPosition(event.position))
+                .offset;
+            _touchConnectionPointerOffset = startPoint - pointerGraphPos;
+          }
+        }
+      }
+    }
 
     switch (hitResult.hitType) {
       // Node selection is handled by widget-level handlers:
@@ -1095,6 +1149,31 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     );
     widget.controller.setMousePositionWorld(worldPosition);
 
+    // Touch-driven connection drag updates
+    if (_isTouchConnecting &&
+        _touchConnectionPointerId != null &&
+        event.pointer == _touchConnectionPointerId) {
+      final pointerGraphPos = widget.controller
+          .screenToGraph(ScreenPosition(event.position))
+          .offset;
+      final newEndPoint = pointerGraphPos + _touchConnectionPointerOffset;
+
+      final hitResult = widget.controller.hitTestPort(newEndPoint);
+      Rect? targetNodeBounds;
+      if (hitResult != null) {
+        final targetNode = widget.controller.getNode(hitResult.nodeId);
+        targetNodeBounds = targetNode?.getBounds();
+      }
+
+      widget.controller.updateConnectionDrag(
+        graphPosition: newEndPoint,
+        targetNodeId: hitResult?.nodeId,
+        targetPortId: hitResult?.portId,
+        targetNodeBounds: targetNodeBounds,
+      );
+      return;
+    }
+
     // Reset tap tracking if user moves significantly (they're dragging, not tapping)
     const dragThreshold = 5.0; // pixels
     if (_initialPointerPosition != null &&
@@ -1139,6 +1218,26 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
   }
 
   void _handlePointerUp(PointerUpEvent event) {
+    // Complete touch-driven connection drag
+    if (_isTouchConnecting &&
+        _touchConnectionPointerId != null &&
+        event.pointer == _touchConnectionPointerId) {
+      final temp = widget.controller.temporaryConnection;
+      if (temp != null &&
+          temp.targetNodeId != null &&
+          temp.targetPortId != null) {
+        widget.controller.completeConnectionDrag(
+          targetNodeId: temp.targetNodeId!,
+          targetPortId: temp.targetPortId!,
+        );
+      } else {
+        widget.controller.cancelConnectionDrag();
+      }
+      _isTouchConnecting = false;
+      _touchConnectionPointerId = null;
+      _touchConnectionPointerOffset = Offset.zero;
+    }
+
     // Check if this was a tap (minimal movement from initial position)
     const tapThreshold = 5.0; // pixels
     final wasTap =
