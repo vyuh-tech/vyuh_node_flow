@@ -157,6 +157,19 @@ class NodeContainer<T> extends StatelessWidget {
                     // Drag lifecycle - unified for all node types
                     // Check both node lock state AND behavior mode
                     isDraggable: !node.locked && controller.behavior.canDrag,
+                    // Don't start node drag while a connection drag is active
+                    canStartDrag: () => !controller.isConnecting,
+                    // On touch, don't capture if the pointer is over a port
+                    shouldCaptureTouch: (localPos) {
+                      if (!lodVisibility.showPorts) return true;
+                      return !_isLocalPositionOverPort(
+                        localPos,
+                        node,
+                        shape,
+                        portSnapDistance,
+                        theme,
+                      );
+                    },
                     onDragStart: (_) => controller.startNodeDrag(node.id),
                     onDragUpdate: (details) =>
                         controller.moveNodeDrag(details.delta),
@@ -306,5 +319,38 @@ class NodeContainer<T> extends StatelessWidget {
       return connection.targetNodeId == node.id &&
           connection.targetPortId == port.id;
     });
+  }
+
+  bool _isLocalPositionOverPort(
+    Offset localPosition,
+    Node<T> node,
+    NodeShape? shape,
+    double snapDistance,
+    NodeFlowTheme theme,
+  ) {
+    final portTheme = theme.portTheme;
+    final allPorts = [...node.inputPorts, ...node.outputPorts];
+
+    for (final port in allPorts) {
+      final effectivePortSize = port.size ?? portTheme.size;
+      final visualPosition = node.getVisualPortOrigin(
+        port.id,
+        portSize: effectivePortSize,
+        shape: shape,
+      );
+
+      final rect = Rect.fromLTWH(
+        visualPosition.dx - snapDistance,
+        visualPosition.dy - snapDistance,
+        effectivePortSize.width + snapDistance * 2,
+        effectivePortSize.height + snapDistance * 2,
+      );
+
+      if (rect.contains(localPosition)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }
