@@ -1,3 +1,7 @@
+## 0.27.1
+
+ - **FEAT**(connections): add customizable visual properties for connections.
+
 ## 0.27.0
 
  - **FEAT**(ports): consolidate input/output port fields into unified `ports` property.
