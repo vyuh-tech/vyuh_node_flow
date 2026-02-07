@@ -18,6 +18,28 @@ const Map<String, List<Color>> gradientPresets = {
   'cyan_purple': [Colors.cyan, Colors.purple],
 };
 
+// Endpoint shape presets (name → MarkerShape)
+const _endpointShapes = <String, MarkerShape>{
+  'none': MarkerShapes.none,
+  'circle': MarkerShapes.circle,
+  'triangle': MarkerShapes.triangle,
+  'diamond': MarkerShapes.diamond,
+  'rectangle': MarkerShapes.rectangle,
+  'capsule': MarkerShapes.capsuleHalf,
+};
+
+// Color presets for connection and endpoint color selectors
+final _colorPresets = <String, Color>{
+  'Red': Colors.red,
+  'Orange': Colors.orange,
+  'Green': Colors.green,
+  'Blue': Colors.blue,
+  'Purple': Colors.purple,
+  'Cyan': Colors.cyan,
+  'Teal': Colors.teal,
+  'Pink': Colors.pink,
+};
+
 // MobX Store for animation demo state
 class AnimationDemoStore {
   AnimationDemoStore() {
@@ -40,6 +62,12 @@ class AnimationDemoStore {
         widthVariation,
       ],
       (_) => applyAnimationEffect(),
+    );
+
+    // Auto-apply visual properties when they change
+    reaction(
+      (_) => [endpointShape, connectionColor, endpointColor, strokeWidth],
+      (_) => applyVisualProperties(),
     );
   }
 
@@ -151,6 +179,27 @@ class AnimationDemoStore {
   set strokeWidth(double value) =>
       runInAction(() => _strokeWidth.value = value);
 
+  final Observable<String> _endpointShape = Observable('triangle');
+
+  String get endpointShape => _endpointShape.value;
+
+  set endpointShape(String value) =>
+      runInAction(() => _endpointShape.value = value);
+
+  final Observable<Color?> _connectionColor = Observable(null);
+
+  Color? get connectionColor => _connectionColor.value;
+
+  set connectionColor(Color? value) =>
+      runInAction(() => _connectionColor.value = value);
+
+  final Observable<Color?> _endpointColor = Observable(null);
+
+  Color? get endpointColor => _endpointColor.value;
+
+  set endpointColor(Color? value) =>
+      runInAction(() => _endpointColor.value = value);
+
   void applyAnimationEffect() {
     if (selectedConnection == null) return;
 
@@ -216,6 +265,22 @@ class AnimationDemoStore {
 
     runInAction(() {
       selectedConnection!.animationEffect = effect;
+    });
+  }
+
+  void applyVisualProperties() {
+    if (selectedConnection == null) return;
+
+    final shape = _endpointShapes[endpointShape] ?? MarkerShapes.triangle;
+
+    runInAction(() {
+      selectedConnection!.endPoint = ConnectionEndPoint(
+        shape: shape,
+        size: const Size.square(5.0),
+        color: endpointColor,
+      );
+      selectedConnection!.color = connectionColor;
+      selectedConnection!.strokeWidth = strokeWidth;
     });
   }
 }
@@ -513,23 +578,31 @@ class _AnimatedConnectionsExampleState
         _createExampleGraph();
         _controller.fitToView();
       },
-      child: Observer(
-        builder: (context) => NodeFlowEditor<Map<String, dynamic>, dynamic>(
+      child: NodeFlowEditor<Map<String, dynamic>, dynamic>(
           controller: _controller,
           nodeBuilder: _buildNode,
-          theme: NodeFlowTheme.light.copyWith(
-            connectionTheme: NodeFlowTheme.light.connectionTheme.copyWith(
-              strokeWidth: _store.strokeWidth,
-              selectedStrokeWidth: _store.strokeWidth,
-            ),
-          ),
+          theme: NodeFlowTheme.light,
 
           events: NodeFlowEvents<Map<String, dynamic>, dynamic>(
             connection: ConnectionEvents<Map<String, dynamic>, dynamic>(
               onSelected: (connection) {
                 _store.selectedConnection = connection;
                 if (connection != null) {
-                  // Update UI based on current effect
+                  // Read back visual properties
+                  // Use effective endpoint (falls back to theme if null)
+                  final themeEndPoint =
+                      NodeFlowTheme.light.connectionTheme.endPoint;
+                  final ep = connection.endPoint ?? themeEndPoint;
+                  _store.endpointShape = _endpointShapes.entries
+                          .where((e) => e.value == ep.shape)
+                          .map((e) => e.key)
+                          .firstOrNull ??
+                      'capsule';
+                  _store.endpointColor = connection.endPoint?.color;
+                  _store.connectionColor = connection.color;
+                  _store.strokeWidth = connection.strokeWidth ?? 2.0;
+
+                  // Read back animation effect
                   final effect = connection.animationEffect;
                   if (effect is FlowingDashEffect) {
                     _store.selectedEffectType = 'flowing_dash';
@@ -540,7 +613,6 @@ class _AnimatedConnectionsExampleState
                     _store.selectedEffectType = 'particle';
                     _store.speed = effect.speed;
                     _store.particleCount = effect.particleCount;
-                    // Note: particleSize is now part of the particlePainter, not the effect itself
                   } else if (effect is GradientFlowEffect) {
                     _store.selectedEffectType = 'gradient';
                     _store.speed = effect.speed;
@@ -558,7 +630,6 @@ class _AnimatedConnectionsExampleState
               },
             ),
           ),
-        ),
       ),
       children: [
         const SectionTitle('About'),
@@ -566,20 +637,7 @@ class _AnimatedConnectionsExampleState
           child: InfoCard(
             title: 'Instructions',
             content:
-                'Click on a connection to select it and customize its animation effect. Adjust speed, particle count, and other parameters.',
-          ),
-        ),
-        // Connection appearance section (always visible)
-        const SectionTitle('Connection Appearance'),
-        SectionContent(
-          child: Observer(
-            builder: (context) => SliderControl(
-              label: 'Stroke Width',
-              value: _store.strokeWidth,
-              min: 1.0,
-              max: 10.0,
-              onChanged: (value) => _store.strokeWidth = value,
-            ),
+                'Click on a connection to select it. Customize its endpoint shape, colors, stroke width, and animation effect — all per-connection.',
           ),
         ),
         Observer(
@@ -588,7 +646,7 @@ class _AnimatedConnectionsExampleState
                   child: InfoCard(
                     title: 'Select a Connection',
                     content:
-                        'Click on a connection to select it and apply animation effects.',
+                        'Click on a connection to select it and customize its appearance.',
                   ),
                 )
               : Column(
@@ -601,7 +659,23 @@ class _AnimatedConnectionsExampleState
                         controller: _controller,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SectionTitle('Appearance'),
+                    SectionContent(
+                      child: ConnectionAppearanceControls(
+                        endpointShape: _store.endpointShape,
+                        connectionColor: _store.connectionColor,
+                        endpointColor: _store.endpointColor,
+                        strokeWidth: _store.strokeWidth,
+                        onEndpointShapeChanged: (value) =>
+                            _store.endpointShape = value,
+                        onConnectionColorChanged: (value) =>
+                            _store.connectionColor = value,
+                        onEndpointColorChanged: (value) =>
+                            _store.endpointColor = value,
+                        onStrokeWidthChanged: (value) =>
+                            _store.strokeWidth = value,
+                      ),
+                    ),
                     const SectionTitle('Effect Type'),
                     SectionContent(
                       child: EffectTypeSelector(
@@ -1197,6 +1271,190 @@ class PulseControls extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Controls for per-connection visual properties: endpoint shape, colors, stroke width
+class ConnectionAppearanceControls extends StatelessWidget {
+  const ConnectionAppearanceControls({
+    super.key,
+    required this.endpointShape,
+    required this.connectionColor,
+    required this.endpointColor,
+    required this.strokeWidth,
+    required this.onEndpointShapeChanged,
+    required this.onConnectionColorChanged,
+    required this.onEndpointColorChanged,
+    required this.onStrokeWidthChanged,
+  });
+
+  final String endpointShape;
+  final Color? connectionColor;
+  final Color? endpointColor;
+  final double strokeWidth;
+  final ValueChanged<String> onEndpointShapeChanged;
+  final ValueChanged<Color?> onConnectionColorChanged;
+  final ValueChanged<Color?> onEndpointColorChanged;
+  final ValueChanged<double> onStrokeWidthChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Endpoint Shape',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 8),
+        EndpointShapeSelector(
+          selectedShape: endpointShape,
+          onShapeSelected: onEndpointShapeChanged,
+        ),
+        const SubsectionDivider(),
+        ColorSelector(
+          label: 'Connection Color',
+          selectedColor: connectionColor,
+          onColorSelected: onConnectionColorChanged,
+        ),
+        const SubsectionDivider(),
+        ColorSelector(
+          label: 'Endpoint Color',
+          selectedColor: endpointColor,
+          onColorSelected: onEndpointColorChanged,
+        ),
+        const SubsectionDivider(),
+        SliderControl(
+          label: 'Stroke Width',
+          value: strokeWidth,
+          min: 1.0,
+          max: 10.0,
+          onChanged: onStrokeWidthChanged,
+        ),
+      ],
+    );
+  }
+}
+
+/// Chip selector for endpoint marker shapes
+class EndpointShapeSelector extends StatelessWidget {
+  const EndpointShapeSelector({
+    super.key,
+    required this.selectedShape,
+    required this.onShapeSelected,
+  });
+
+  final String selectedShape;
+  final ValueChanged<String> onShapeSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: _endpointShapes.keys.map((key) {
+        final displayName = key[0].toUpperCase() + key.substring(1);
+        return StyledChip(
+          label: displayName,
+          selected: key == selectedShape,
+          onSelected: (selected) {
+            if (selected) onShapeSelected(key);
+          },
+        );
+      }).toList(),
+    );
+  }
+}
+
+/// Color picker showing preset swatches with a "Default" (theme) option
+class ColorSelector extends StatelessWidget {
+  const ColorSelector({
+    super.key,
+    required this.label,
+    required this.selectedColor,
+    required this.onColorSelected,
+  });
+
+  final String label;
+  final Color? selectedColor;
+  final ValueChanged<Color?> onColorSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            // Default (theme) option
+            _ColorSwatch(
+              color: null,
+              isSelected: selectedColor == null,
+              onTap: () => onColorSelected(null),
+            ),
+            ..._colorPresets.values.map(
+              (color) => _ColorSwatch(
+                color: color,
+                isSelected: selectedColor == color,
+                onTap: () => onColorSelected(color),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// A tappable color swatch circle. Null color renders as "Default".
+class _ColorSwatch extends StatelessWidget {
+  const _ColorSwatch({
+    required this.color,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final Color? color;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final borderColor = isSelected
+        ? Theme.of(context).colorScheme.primary
+        : Colors.grey.shade400;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color ?? Colors.grey.shade300,
+          border: Border.all(
+            color: borderColor,
+            width: isSelected ? 2.5 : 1.0,
+          ),
+        ),
+        child: color == null
+            ? Center(
+                child: Icon(
+                  Icons.refresh,
+                  size: 14,
+                  color: Colors.grey.shade600,
+                ),
+              )
+            : null,
+      ),
     );
   }
 }

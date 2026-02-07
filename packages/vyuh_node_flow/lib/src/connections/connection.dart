@@ -66,6 +66,12 @@ part 'connection.g.dart';
 /// - [startLabel]: Label at the start of the connection (anchor 0.0)
 /// - [label]: Label at the center of the connection (anchor 0.5)
 /// - [endLabel]: Label at the end of the connection (anchor 1.0)
+/// - [startPoint]: Custom start endpoint marker
+/// - [endPoint]: Custom end endpoint marker
+/// - [color]: Custom color for the connection line
+/// - [selectedColor]: Custom color when selected
+/// - [strokeWidth]: Custom stroke width for the connection line
+/// - [selectedStrokeWidth]: Custom stroke width when selected
 ///
 /// See also:
 /// - [ConnectionLabel] for label configuration
@@ -114,23 +120,29 @@ class Connection<C> {
     ConnectionLabel? startLabel,
     ConnectionLabel? label,
     ConnectionLabel? endLabel,
-    this.startPoint,
-    this.endPoint,
+    ConnectionEndPoint? startPoint,
+    ConnectionEndPoint? endPoint,
     this.startGap,
     this.endGap,
     ConnectionEffect? animationEffect,
     this.locked = false,
-    this.color,
-    this.selectedColor,
-    this.strokeWidth,
-    this.selectedStrokeWidth,
+    Color? color,
+    Color? selectedColor,
+    double? strokeWidth,
+    double? selectedStrokeWidth,
   }) : _animated = Observable(animated),
        _selected = Observable(selected),
        _visible = Observable(visible),
        _startLabel = Observable(startLabel),
        _label = Observable(label),
        _endLabel = Observable(endLabel),
-       _animationEffect = Observable(animationEffect);
+       _animationEffect = Observable(animationEffect),
+       _startPoint = Observable(startPoint),
+       _endPoint = Observable(endPoint),
+       _color = Observable(color),
+       _selectedColor = Observable(selectedColor),
+       _strokeWidth = Observable(strokeWidth),
+       _selectedStrokeWidth = Observable(selectedStrokeWidth);
 
   /// Unique identifier for this connection.
   final String id;
@@ -154,6 +166,12 @@ class Connection<C> {
   final Observable<ConnectionLabel?> _label;
   final Observable<ConnectionLabel?> _endLabel;
   final Observable<ConnectionEffect?> _animationEffect;
+  final Observable<ConnectionEndPoint?> _startPoint;
+  final Observable<ConnectionEndPoint?> _endPoint;
+  final Observable<Color?> _color;
+  final Observable<Color?> _selectedColor;
+  final Observable<double?> _strokeWidth;
+  final Observable<double?> _selectedStrokeWidth;
 
   /// Optional typed data to attach to the connection.
   ///
@@ -190,12 +208,24 @@ class Connection<C> {
   /// Optional custom start endpoint marker.
   ///
   /// If null, the connection will use the startPoint from [ConnectionTheme].
-  final ConnectionEndPoint? startPoint;
+  /// This property is reactive — changing it will trigger a UI repaint.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  ConnectionEndPoint? get startPoint => _startPoint.value;
+
+  /// Sets the start endpoint marker for this connection.
+  set startPoint(ConnectionEndPoint? value) =>
+      runInAction(() => _startPoint.value = value);
 
   /// Optional custom end endpoint marker.
   ///
   /// If null, the connection will use the endPoint from [ConnectionTheme].
-  final ConnectionEndPoint? endPoint;
+  /// This property is reactive — changing it will trigger a UI repaint.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  ConnectionEndPoint? get endPoint => _endPoint.value;
+
+  /// Sets the end endpoint marker for this connection.
+  set endPoint(ConnectionEndPoint? value) =>
+      runInAction(() => _endPoint.value = value);
 
   /// Optional gap between source port and start endpoint in logical pixels.
   ///
@@ -220,25 +250,46 @@ class Connection<C> {
   ///
   /// If null, the connection will use the color from [ConnectionTheme].
   /// This color is used when the connection is not selected.
-  @ColorConverter()
-  final Color? color;
+  /// This property is reactive — changing it will trigger a UI repaint.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Color? get color => _color.value;
+
+  /// Sets the custom color for the connection line.
+  set color(Color? value) => runInAction(() => _color.value = value);
 
   /// Optional custom color when the connection is selected.
   ///
   /// If null, the connection will use the selectedColor from [ConnectionTheme].
-  @ColorConverter()
-  final Color? selectedColor;
+  /// This property is reactive — changing it will trigger a UI repaint.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Color? get selectedColor => _selectedColor.value;
+
+  /// Sets the custom color when the connection is selected.
+  set selectedColor(Color? value) =>
+      runInAction(() => _selectedColor.value = value);
 
   /// Optional custom stroke width for the connection line.
   ///
   /// If null, the connection will use the strokeWidth from [ConnectionTheme].
   /// This width is used when the connection is not selected.
-  final double? strokeWidth;
+  /// This property is reactive — changing it will trigger a UI repaint.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  double? get strokeWidth => _strokeWidth.value;
+
+  /// Sets the custom stroke width for the connection line.
+  set strokeWidth(double? value) =>
+      runInAction(() => _strokeWidth.value = value);
 
   /// Optional custom stroke width when selected.
   ///
   /// If null, the connection will use the selectedStrokeWidth from [ConnectionTheme].
-  final double? selectedStrokeWidth;
+  /// This property is reactive — changing it will trigger a UI repaint.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  double? get selectedStrokeWidth => _selectedStrokeWidth.value;
+
+  /// Sets the custom stroke width when selected.
+  set selectedStrokeWidth(double? value) =>
+      runInAction(() => _selectedStrokeWidth.value = value);
 
   // Getters and setters for accessing observable values
 
@@ -513,6 +564,38 @@ class Connection<C> {
         json['endLabel'] as Map<String, dynamic>,
       );
     }
+
+    // Initialize observable endpoints from JSON
+    if (json['startPoint'] != null) {
+      connection._startPoint.value = ConnectionEndPoint.fromJson(
+        json['startPoint'] as Map<String, dynamic>,
+      );
+    }
+    if (json['endPoint'] != null) {
+      connection._endPoint.value = ConnectionEndPoint.fromJson(
+        json['endPoint'] as Map<String, dynamic>,
+      );
+    }
+
+    // Initialize observable visual properties from JSON
+    if (json['color'] != null) {
+      connection._color.value = const ColorConverter().fromJson(
+        json['color'] as int,
+      );
+    }
+    if (json['selectedColor'] != null) {
+      connection._selectedColor.value = const ColorConverter().fromJson(
+        json['selectedColor'] as int,
+      );
+    }
+    if (json['strokeWidth'] != null) {
+      connection._strokeWidth.value = (json['strokeWidth'] as num).toDouble();
+    }
+    if (json['selectedStrokeWidth'] != null) {
+      connection._selectedStrokeWidth.value =
+          (json['selectedStrokeWidth'] as num).toDouble();
+    }
+
     return connection;
   }
 
@@ -546,6 +629,30 @@ class Connection<C> {
     if (_endLabel.value != null) {
       json['endLabel'] = _endLabel.value!.toJson();
     }
+
+    // Include observable endpoints in JSON
+    if (_startPoint.value != null) {
+      json['startPoint'] = _startPoint.value!.toJson();
+    }
+    if (_endPoint.value != null) {
+      json['endPoint'] = _endPoint.value!.toJson();
+    }
+
+    // Include observable visual properties in JSON
+    if (_color.value != null) {
+      json['color'] = const ColorConverter().toJson(_color.value!);
+    }
+    if (_selectedColor.value != null) {
+      json['selectedColor'] =
+          const ColorConverter().toJson(_selectedColor.value!);
+    }
+    if (_strokeWidth.value != null) {
+      json['strokeWidth'] = _strokeWidth.value;
+    }
+    if (_selectedStrokeWidth.value != null) {
+      json['selectedStrokeWidth'] = _selectedStrokeWidth.value;
+    }
+
     return json;
   }
 }

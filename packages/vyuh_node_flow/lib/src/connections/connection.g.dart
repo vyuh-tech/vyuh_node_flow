@@ -17,25 +17,9 @@ Connection<C> _$ConnectionFromJson<C>(
   targetPortId: json['targetPortId'] as String,
   data: _$nullableGenericFromJson(json['data'], fromJsonC),
   style: _connectionStyleFromJson(json['style']),
-  startPoint: json['startPoint'] == null
-      ? null
-      : ConnectionEndPoint.fromJson(json['startPoint'] as Map<String, dynamic>),
-  endPoint: json['endPoint'] == null
-      ? null
-      : ConnectionEndPoint.fromJson(json['endPoint'] as Map<String, dynamic>),
   startGap: (json['startGap'] as num?)?.toDouble(),
   endGap: (json['endGap'] as num?)?.toDouble(),
   locked: json['locked'] as bool? ?? false,
-  color: _$JsonConverterFromJson<int, Color>(
-    json['color'],
-    const ColorConverter().fromJson,
-  ),
-  selectedColor: _$JsonConverterFromJson<int, Color>(
-    json['selectedColor'],
-    const ColorConverter().fromJson,
-  ),
-  strokeWidth: (json['strokeWidth'] as num?)?.toDouble(),
-  selectedStrokeWidth: (json['selectedStrokeWidth'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$ConnectionToJson<C>(
@@ -49,21 +33,9 @@ Map<String, dynamic> _$ConnectionToJson<C>(
   'targetPortId': instance.targetPortId,
   'data': _$nullableGenericToJson(instance.data, toJsonC),
   'style': _connectionStyleToJson(instance.style),
-  'startPoint': instance.startPoint,
-  'endPoint': instance.endPoint,
   'startGap': instance.startGap,
   'endGap': instance.endGap,
   'locked': instance.locked,
-  'color': _$JsonConverterToJson<int, Color>(
-    instance.color,
-    const ColorConverter().toJson,
-  ),
-  'selectedColor': _$JsonConverterToJson<int, Color>(
-    instance.selectedColor,
-    const ColorConverter().toJson,
-  ),
-  'strokeWidth': instance.strokeWidth,
-  'selectedStrokeWidth': instance.selectedStrokeWidth,
 };
 
 T? _$nullableGenericFromJson<T>(
@@ -71,17 +43,7 @@ T? _$nullableGenericFromJson<T>(
   T Function(Object? json) fromJson,
 ) => input == null ? null : fromJson(input);
 
-Value? _$JsonConverterFromJson<Json, Value>(
-  Object? json,
-  Value? Function(Json json) fromJson,
-) => json == null ? null : fromJson(json as Json);
-
 Object? _$nullableGenericToJson<T>(
   T? input,
   Object? Function(T value) toJson,
 ) => input == null ? null : toJson(input);
-
-Json? _$JsonConverterToJson<Json, Value>(
-  Value? value,
-  Json? Function(Value value) toJson,
-) => value == null ? null : toJson(value);
