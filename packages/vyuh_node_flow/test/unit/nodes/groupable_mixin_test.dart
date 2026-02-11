@@ -17,9 +17,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
-// Import the mixin directly for testing (it's internal, not exported)
-import 'package:vyuh_node_flow/src/nodes/mixins/groupable_mixin.dart';
-
 import '../../helpers/test_factories.dart';
 
 /// A test node that uses GroupableMixin with configurable behavior.

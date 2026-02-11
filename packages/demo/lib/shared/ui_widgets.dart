@@ -495,7 +495,7 @@ class ControlPanel extends StatelessWidget {
             ),
           ),
           // Fixed footer
-          if (footer != null) footer!,
+          ?footer,
         ],
       ),
     );
