@@ -515,6 +515,10 @@ class NodeFlowController<T, C> {
     final s = _screenSize.value;
     final isViewportInteracting = interaction.isViewportDragging;
 
+    if (!v.x.isFinite || !v.y.isFinite || !v.zoom.isFinite || v.zoom <= 0) {
+      return _nodes.values.toList();
+    }
+
     if (s.isEmpty) return _nodes.values.toList();
 
     // Calculate current viewport rect
@@ -579,6 +583,10 @@ class NodeFlowController<T, C> {
     final v = _viewport.value;
     final s = _screenSize.value;
     final isViewportInteracting = interaction.isViewportDragging;
+
+    if (!v.x.isFinite || !v.y.isFinite || !v.zoom.isFinite || v.zoom <= 0) {
+      return _connections;
+    }
 
     if (s.isEmpty) return _connections;
 

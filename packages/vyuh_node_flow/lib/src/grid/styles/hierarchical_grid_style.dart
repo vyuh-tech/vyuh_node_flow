@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../editor/themes/node_flow_theme.dart';
+import 'grid_sampling_policy.dart';
 import 'grid_style.dart';
 
 /// Grid style that renders a two-level hierarchical grid.
@@ -24,11 +25,25 @@ class HierarchicalGridStyle extends GridStyle {
   void paintGrid(
     Canvas canvas,
     NodeFlowTheme theme,
-    ({double left, double top, double right, double bottom}) gridArea,
+    GridArea gridArea,
   ) {
     final gridTheme = theme.gridTheme;
-    final gridSize = gridTheme.size;
-    final majorGridSize = gridSize * majorGridMultiplier;
+    final minorSampling = GridSamplingPolicy.resolve(
+      area: gridArea,
+      baseSpacing: gridTheme.size,
+      maxColumns: 240,
+      maxRows: 240,
+    );
+    if (minorSampling == null) return;
+
+    final majorBaseSpacing = minorSampling.spacing * majorGridMultiplier;
+    final majorSampling = GridSamplingPolicy.resolve(
+      area: gridArea,
+      baseSpacing: majorBaseSpacing,
+      maxColumns: 120,
+      maxRows: 120,
+    );
+    if (majorSampling == null) return;
 
     // Create paint objects for minor and major grids
     final minorPaint = Paint()
@@ -43,35 +58,31 @@ class HierarchicalGridStyle extends GridStyle {
     final minorPath = Path();
     final majorPath = Path();
 
-    // Calculate grid-aligned start positions for minor grid
-    final minorStartX = (gridArea.left / gridSize).floor() * gridSize;
-    final minorStartY = (gridArea.top / gridSize).floor() * gridSize;
-
-    // Calculate grid-aligned start positions for major grid
-    final majorStartX = (gridArea.left / majorGridSize).floor() * majorGridSize;
-    final majorStartY = (gridArea.top / majorGridSize).floor() * majorGridSize;
-
     // Draw minor grid lines
-    for (double x = minorStartX; x <= gridArea.right; x += gridSize) {
+    for (var col = 0; col < minorSampling.columns; col++) {
+      final x = minorSampling.startX + col * minorSampling.spacing;
       minorPath
         ..moveTo(x, gridArea.top)
         ..lineTo(x, gridArea.bottom);
     }
 
-    for (double y = minorStartY; y <= gridArea.bottom; y += gridSize) {
+    for (var row = 0; row < minorSampling.rows; row++) {
+      final y = minorSampling.startY + row * minorSampling.spacing;
       minorPath
         ..moveTo(gridArea.left, y)
         ..lineTo(gridArea.right, y);
     }
 
     // Draw major grid lines (on top of minor lines)
-    for (double x = majorStartX; x <= gridArea.right; x += majorGridSize) {
+    for (var col = 0; col < majorSampling.columns; col++) {
+      final x = majorSampling.startX + col * majorSampling.spacing;
       majorPath
         ..moveTo(x, gridArea.top)
         ..lineTo(x, gridArea.bottom);
     }
 
-    for (double y = majorStartY; y <= gridArea.bottom; y += majorGridSize) {
+    for (var row = 0; row < majorSampling.rows; row++) {
+      final y = majorSampling.startY + row * majorSampling.spacing;
       majorPath
         ..moveTo(gridArea.left, y)
         ..lineTo(gridArea.right, y);

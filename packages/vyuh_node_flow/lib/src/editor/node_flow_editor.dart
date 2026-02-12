@@ -34,7 +34,6 @@ import 'themes/cursor_theme.dart';
 import 'themes/node_flow_theme.dart';
 import 'unbounded_widgets.dart';
 import 'viewport_animation_mixin.dart';
-import 'viewport_sync_policy.dart';
 
 part 'controller/node_flow_controller_plugins.dart';
 part 'node_flow_editor_hit_testing.dart';
@@ -306,14 +305,9 @@ class NodeFlowEditor<T, C> extends StatefulWidget {
 
 class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     with TickerProviderStateMixin, ViewportAnimationMixin {
-  static const _viewportSyncPolicy = ViewportSyncPolicy();
-
   late final TransformationController _transformationController;
   final List<ReactionDisposer> _disposers = [];
   bool _isSyncingViewportFromTransform = false;
-  GraphViewport? _lastSyncedViewport;
-  DateTime? _lastViewportSyncAt;
-  GraphViewport? _pendingViewportSync;
 
   // Animation controller for animated connections
   AnimationController? _connectionAnimationController;
@@ -383,8 +377,6 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
       ..translateByVector3(Vector3(viewport.x, viewport.y, 0))
       ..scaleByDouble(viewport.zoom, viewport.zoom, viewport.zoom, 1.0);
     _transformationController.value = initialMatrix;
-    _lastSyncedViewport = viewport;
-    _lastViewportSyncAt = DateTime.now();
 
     // Set up reactions for efficient updates
     _setupReactions();
@@ -467,10 +459,6 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
       widget.controller.debug?.setTransformationController(
         _transformationController,
       );
-
-      _lastSyncedViewport = widget.controller.viewport;
-      _lastViewportSyncAt = DateTime.now();
-      _pendingViewportSync = null;
     }
 
     // Update behavior mode if it changed
@@ -561,8 +549,6 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                 onPointerMove: _handlePointerMove,
                 onPointerUp: _handlePointerUp,
                 onPointerCancel: _handlePointerCancel,
-                onPointerPanZoomStart: _handlePointerPanZoomStart,
-                onPointerPanZoomEnd: _handlePointerPanZoomEnd,
                 onPointerHover: _handleMouseHover,
                 child: Observer.withBuiltChild(
                   builder: (context, child) {
@@ -841,6 +827,13 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     _disposers.add(
       reaction((_) => widget.controller.viewport, (GraphViewport viewport) {
         if (mounted) {
+          if (!viewport.x.isFinite ||
+              !viewport.y.isFinite ||
+              !viewport.zoom.isFinite ||
+              viewport.zoom <= 0) {
+            return;
+          }
+
           // Skip feedback updates when viewport was just synced from transform.
           if (_isSyncingViewportFromTransform) {
             return;
@@ -1003,8 +996,8 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
   ///
   /// IMPORTANT: This sync is skipped during viewport animation to prevent
   /// the animation from being interrupted. During active pan/zoom gestures,
-  /// controller viewport writes are throttled to reduce reactive churn while
-  /// keeping the visual transform fully real-time.
+  /// this still syncs every transform tick so hit testing and culling remain
+  /// in lock-step with what the user sees.
   void _syncViewportFromTransform() {
     // Skip sync during animation - final sync happens via onAnimationComplete
     if (isViewportAnimating) {
@@ -1014,6 +1007,12 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     final transform = _transformationController.value;
     final translation = transform.getTranslation();
     final currentZoom = transform.getMaxScaleOnAxis();
+    if (!translation.x.isFinite ||
+        !translation.y.isFinite ||
+        !currentZoom.isFinite ||
+        currentZoom <= 0) {
+      return;
+    }
 
     final viewport = GraphViewport(
       x: translation.x,
@@ -1026,27 +1025,6 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
       return;
     }
 
-    final isViewportInteracting =
-        widget.controller.interaction.isViewportDragging;
-
-    // During active viewport interaction, throttle reactive viewport updates.
-    // InteractiveViewer still updates visual transforms every frame.
-    if (isViewportInteracting) {
-      final now = DateTime.now();
-      final lastSynced = _lastSyncedViewport ?? currentViewport;
-      final shouldSyncNow = _viewportSyncPolicy.shouldSyncNow(
-        candidate: viewport,
-        lastSynced: lastSynced,
-        lastSyncTime: _lastViewportSyncAt,
-        now: now,
-      );
-
-      if (!shouldSyncNow) {
-        _pendingViewportSync = viewport;
-        return;
-      }
-    }
-
     _syncViewportToController(viewport);
   }
 
@@ -1056,9 +1034,6 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     runInAction(() {
       widget.controller.interaction.isViewportInteracting.value = true;
     });
-    _pendingViewportSync = null;
-    _lastSyncedViewport = widget.controller.viewport;
-    _lastViewportSyncAt = DateTime.now();
 
     // Note: Viewport sync is handled by the TransformationController listener.
     // We don't call setViewport here - the listener is the authoritative source.
@@ -1075,13 +1050,11 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
 
     // Fire viewport move event with current viewport state
     widget.controller.events.viewport?.onMove?.call(
-      _pendingViewportSync ?? widget.controller.viewport,
+      widget.controller.viewport,
     );
   }
 
   void _onInteractionEnd(ScaleEndDetails details) {
-    _flushPendingViewportSync();
-
     // Mark viewport interaction as complete
     // Cursor is handled reactively via Observer in the canvas MouseRegion
     runInAction(() {
@@ -1097,22 +1070,6 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     );
   }
 
-  void _flushPendingViewportSync() {
-    final pending = _pendingViewportSync;
-    if (pending == null) {
-      return;
-    }
-
-    if (_isSameViewport(widget.controller.viewport, pending)) {
-      _lastSyncedViewport = pending;
-      _lastViewportSyncAt = DateTime.now();
-      _pendingViewportSync = null;
-      return;
-    }
-
-    _syncViewportToController(pending);
-  }
-
   void _syncViewportToController(GraphViewport viewport) {
     _isSyncingViewportFromTransform = true;
     try {
@@ -1120,9 +1077,6 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     } finally {
       _isSyncingViewportFromTransform = false;
     }
-    _lastSyncedViewport = viewport;
-    _lastViewportSyncAt = DateTime.now();
-    _pendingViewportSync = null;
   }
 
   bool _isSameViewport(GraphViewport a, GraphViewport b) {
@@ -1132,8 +1086,6 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
   }
 
   void _handlePointerDown(PointerDownEvent event) {
-    _releaseViewportInteractionIfOrphaned();
-
     // Handle secondary button (right-click) for context menu
     if (_handleContextMenu(event)) {
       return;
@@ -1361,7 +1313,6 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     }
 
     // Cursor is derived from state via Observer - no update needed
-    _releaseViewportInteractionIfOrphaned();
   }
 
   void _handlePointerCancel(PointerCancelEvent event) {
@@ -1388,26 +1339,6 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
 
     _initialPointerPosition = null;
     _shouldClearSelectionOnTap = false;
-    _releaseViewportInteractionIfOrphaned();
-  }
-
-  void _handlePointerPanZoomStart(PointerPanZoomStartEvent event) {
-    // no-op: viewport interaction state is driven by InteractiveViewer callbacks
-  }
-
-  void _handlePointerPanZoomEnd(PointerPanZoomEndEvent event) {
-    _releaseViewportInteractionIfOrphaned();
-  }
-
-  void _releaseViewportInteractionIfOrphaned() {
-    if (!widget.controller.interaction.isViewportDragging) {
-      return;
-    }
-
-    _flushPendingViewportSync();
-    runInAction(() {
-      widget.controller.interaction.isViewportInteracting.value = false;
-    });
   }
 
   // Helper methods

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../editor/themes/node_flow_theme.dart';
+import 'grid_sampling_policy.dart';
 import 'grid_style.dart';
 
 /// Grid style that renders evenly spaced vertical and horizontal lines.
@@ -18,25 +19,30 @@ class LinesGridStyle extends GridStyle {
   void paintGrid(
     Canvas canvas,
     NodeFlowTheme theme,
-    ({double left, double top, double right, double bottom}) gridArea,
+    GridArea gridArea,
   ) {
+    final sampling = GridSamplingPolicy.resolve(
+      area: gridArea,
+      baseSpacing: theme.gridTheme.size,
+      maxColumns: 480,
+      maxRows: 480,
+    );
+    if (sampling == null) return;
+
     final paint = createGridPaint(theme);
-    final gridSize = theme.gridTheme.size;
     final path = Path();
 
-    // Calculate grid-aligned start positions
-    final startX = (gridArea.left / gridSize).floor() * gridSize;
-    final startY = (gridArea.top / gridSize).floor() * gridSize;
-
     // Draw vertical lines
-    for (double x = startX; x <= gridArea.right; x += gridSize) {
+    for (var col = 0; col < sampling.columns; col++) {
+      final x = sampling.startX + col * sampling.spacing;
       path
         ..moveTo(x, gridArea.top)
         ..lineTo(x, gridArea.bottom);
     }
 
     // Draw horizontal lines
-    for (double y = startY; y <= gridArea.bottom; y += gridSize) {
+    for (var row = 0; row < sampling.rows; row++) {
+      final y = sampling.startY + row * sampling.spacing;
       path
         ..moveTo(gridArea.left, y)
         ..lineTo(gridArea.right, y);

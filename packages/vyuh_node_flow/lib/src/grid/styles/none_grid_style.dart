@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../editor/themes/node_flow_theme.dart';
+import 'grid_sampling_policy.dart';
 import 'grid_style.dart';
 
 /// Grid style that renders nothing.
@@ -16,7 +17,7 @@ class NoneGridStyle extends GridStyle {
   void paintGrid(
     Canvas canvas,
     NodeFlowTheme theme,
-    ({double left, double top, double right, double bottom}) gridArea,
+    GridArea gridArea,
   ) {
     // Intentionally empty - render nothing
   }

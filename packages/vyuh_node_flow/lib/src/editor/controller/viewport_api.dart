@@ -39,13 +39,28 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
   /// controller.setViewport(GraphViewport(x: 100, y: 50, zoom: 1.5));
   /// ```
   void setViewport(GraphViewport viewport) {
+    final minZoom = _config.minZoom.value;
+    final maxZoom = _config.maxZoom.value;
+
+    final safeX = viewport.x.isFinite ? viewport.x : _viewport.value.x;
+    final safeY = viewport.y.isFinite ? viewport.y : _viewport.value.y;
+    final safeZoom = viewport.zoom.isFinite && viewport.zoom > 0
+        ? viewport.zoom.clamp(minZoom, maxZoom).toDouble()
+        : _viewport.value.zoom.clamp(minZoom, maxZoom).toDouble();
+
+    final sanitizedViewport = GraphViewport(
+      x: safeX,
+      y: safeY,
+      zoom: safeZoom,
+    );
+
     final previousViewport = _viewport.value;
     // Immediate viewport updates for real-time panning responsiveness
     runInAction(() {
-      _viewport.value = viewport;
+      _viewport.value = sanitizedViewport;
     });
     // Emit extension event
-    _emitEvent(ViewportChanged(viewport, previousViewport));
+    _emitEvent(ViewportChanged(sanitizedViewport, previousViewport));
   }
 
   /// Sets the screen size used for viewport calculations.

@@ -4,6 +4,7 @@ import 'dart:ui' as ui show PointMode;
 import 'package:flutter/material.dart';
 
 import '../../editor/themes/node_flow_theme.dart';
+import 'grid_sampling_policy.dart';
 import 'grid_style.dart';
 
 /// Grid style that renders dots at grid intersections.
@@ -29,10 +30,16 @@ class DotsGridStyle extends GridStyle {
   void paintGrid(
     Canvas canvas,
     NodeFlowTheme theme,
-    ({double left, double top, double right, double bottom}) gridArea,
+    GridArea gridArea,
   ) {
     final gridTheme = theme.gridTheme;
-    final gridSize = gridTheme.size;
+    final sampling = GridSamplingPolicy.resolve(
+      area: gridArea,
+      baseSpacing: gridTheme.size,
+      maxColumns: 260,
+      maxRows: 260,
+    );
+    if (sampling == null) return;
 
     // Calculate dot radius and create paint.
     // Draw points in a single batch with round stroke caps for lower draw-call cost.
@@ -43,23 +50,18 @@ class DotsGridStyle extends GridStyle {
       ..strokeCap = StrokeCap.round
       ..strokeWidth = radius * 2;
 
-    // Calculate grid-aligned start positions
-    final startX = (gridArea.left / gridSize).floor() * gridSize;
-    final startY = (gridArea.top / gridSize).floor() * gridSize;
-
-    final columnCount = ((gridArea.right - startX) / gridSize).floor() + 1;
-    final rowCount = ((gridArea.bottom - startY) / gridSize).floor() + 1;
-    if (columnCount <= 0 || rowCount <= 0) return;
+    final columnCount = sampling.columns;
+    final rowCount = sampling.rows;
 
     final rawPoints = Float32List(columnCount * rowCount * 2);
     var i = 0;
 
     // Build points in a flat float array for drawRawPoints batching.
     for (var col = 0; col < columnCount; col++) {
-      final x = startX + col * gridSize;
+      final x = sampling.startX + col * sampling.spacing;
       for (var row = 0; row < rowCount; row++) {
         rawPoints[i++] = x;
-        rawPoints[i++] = startY + row * gridSize;
+        rawPoints[i++] = sampling.startY + row * sampling.spacing;
       }
     }
 
