@@ -114,6 +114,9 @@ class ElementScope extends StatefulWidget {
     this.onDragCancel,
     this.createSession,
     this.isDraggable = true,
+    this.canStartDrag,
+    this.shouldCaptureTouch,
+    this.allowTouchPanGesture = false,
     this.dragStartBehavior = DragStartBehavior.start,
     this.onTap,
     this.onDoubleTap,
@@ -139,6 +142,18 @@ class ElementScope extends StatefulWidget {
   /// When false, the drag gesture recognizer is not registered, allowing
   /// drag events to pass through to underlying elements.
   final bool isDraggable;
+
+  /// Optional guard to prevent starting a drag based on external state.
+  /// Return false to block drag start (e.g., when a connection drag is active).
+  final bool Function()? canStartDrag;
+
+  /// Optional guard to decide whether to capture touch pointer for dragging.
+  /// Return false to let child widgets (e.g., ports) handle the touch.
+  final bool Function(Offset localPosition)? shouldCaptureTouch;
+
+  /// When true, allow touch pointers to be handled by the pan gesture recognizer.
+  /// This is useful for widgets like ports that need pointer capture outside bounds.
+  final bool allowTouchPanGesture;
 
   /// Determines when a drag gesture formally starts.
   ///
@@ -309,6 +324,20 @@ class _ElementScopeState extends State<ElementScope> with AutoPanMixin {
   /// Created via [ElementScope.createSession] at drag start, manages canvas
   /// locking/unlocking automatically.
   DragSession? _session;
+  bool _preDragLock = false;
+
+  // Touch drag tracking (pointer-based) to avoid gesture arena conflicts on mobile.
+  int? _touchPointerId;
+  Offset? _touchStartLocal;
+  Offset? _touchStartGlobal;
+  Offset? _lastTouchLocal;
+  bool _touchDragStarted = false;
+
+  bool _isTouchLike(PointerEvent event) {
+    return event.kind == PointerDeviceKind.touch ||
+        event.kind == PointerDeviceKind.stylus ||
+        event.kind == PointerDeviceKind.invertedStylus;
+  }
 
   // ---------------------------------------------------------------------------
   // AutoPanMixin Implementation
@@ -341,6 +370,10 @@ class _ElementScopeState extends State<ElementScope> with AutoPanMixin {
   /// which automatically locks the canvas.
   void _startDrag(DragStartDetails details) {
     if (_isDragging) return;
+    if (!widget.isDraggable) return;
+    if (widget.canStartDrag != null && !widget.canStartDrag!()) {
+      return;
+    }
 
     // If shift is pressed, canvas-level shift-drag selection takes priority.
     // Don't start node drag - let the selection drag handle this pointer.
@@ -351,9 +384,10 @@ class _ElementScopeState extends State<ElementScope> with AutoPanMixin {
     resetAutoPanState(); // Reset drift at drag start (from mixin)
 
     // Create and start session if factory provided (locks canvas automatically)
-    if (widget.createSession != null) {
+    if (widget.createSession != null && _session == null) {
       _session = widget.createSession!();
       _session!.start();
+      _preDragLock = false;
     }
 
     widget.onDragStart(details);
@@ -409,6 +443,7 @@ class _ElementScopeState extends State<ElementScope> with AutoPanMixin {
     // End session if active (unlocks canvas automatically)
     _session?.end();
     _session = null;
+    _preDragLock = false;
 
     widget.onDragEnd(details);
   }
@@ -428,6 +463,7 @@ class _ElementScopeState extends State<ElementScope> with AutoPanMixin {
     // Cancel session if active (unlocks canvas automatically)
     _session?.cancel();
     _session = null;
+    _preDragLock = false;
 
     // Use dedicated cancel callback if provided, otherwise fall back to onDragEnd
     if (widget.onDragCancel != null) {
@@ -450,6 +486,31 @@ class _ElementScopeState extends State<ElementScope> with AutoPanMixin {
   /// Note: This is treated as a cancel because we don't have proper DragEndDetails
   /// from a pointer up event outside the gesture recognizer flow.
   void _handlePointerUp(PointerUpEvent event) {
+    // If we locked the canvas on touch down but never started a drag,
+    // release the lock now.
+    if (_preDragLock && !_isDragging) {
+      _session?.end();
+      _session = null;
+      _preDragLock = false;
+    }
+    // Touch pointer-based drag end (bypasses gesture arena).
+    if (_touchPointerId != null && event.pointer == _touchPointerId) {
+      if (_touchDragStarted) {
+        _endDrag(
+          DragEndDetails(
+            velocity: Velocity(pixelsPerSecond: event.delta),
+            primaryVelocity:
+                event.delta.distance == 0 ? null : event.delta.distance,
+          ),
+        );
+      }
+      _touchPointerId = null;
+      _touchStartLocal = null;
+      _touchStartGlobal = null;
+      _lastTouchLocal = null;
+      _touchDragStarted = false;
+    }
+
     // Only consider canceling if this is the EXACT pointer that started the drag
     if (_isDragging && event.pointer == _dragPointerId) {
       // Schedule for next microtask to give gesture recognizer's onEnd priority.
@@ -490,6 +551,93 @@ class _ElementScopeState extends State<ElementScope> with AutoPanMixin {
 
         _pendingPointerId = event.pointer;
         widget.onTap?.call();
+
+        // Touch drag tracking (pointer-based) to avoid gesture arena conflicts.
+        if (_isTouchLike(event) &&
+            widget.isDraggable &&
+            !widget.allowTouchPanGesture) {
+          if (widget.shouldCaptureTouch != null &&
+              !widget.shouldCaptureTouch!(event.localPosition)) {
+            return;
+          }
+          // Pre-lock the canvas on touch down so the canvas doesn't pan
+          // while we decide whether this is a tap or a drag.
+          if (widget.createSession != null && _session == null) {
+            _session = widget.createSession!();
+            _session!.start();
+            _preDragLock = true;
+          }
+          _touchPointerId = event.pointer;
+          _touchStartLocal = event.localPosition;
+          _touchStartGlobal = event.position;
+          _lastTouchLocal = event.localPosition;
+          _touchDragStarted = false;
+
+          // If configured to start immediately, start the drag on touch down.
+          if (widget.dragStartBehavior == DragStartBehavior.down) {
+            _touchDragStarted = true;
+            _startDrag(
+              DragStartDetails(
+                globalPosition: event.position,
+                localPosition: event.localPosition,
+                sourceTimeStamp: event.timeStamp,
+              ),
+            );
+          }
+        }
+      },
+      onPointerMove: (event) {
+        if (!_isTouchLike(event)) return;
+        if (_touchPointerId == null || event.pointer != _touchPointerId) {
+          return;
+        }
+
+        final startLocal = _touchStartLocal;
+        final lastLocal = _lastTouchLocal;
+        if (startLocal == null || lastLocal == null) return;
+
+        if (!_touchDragStarted) {
+          final slop =
+              widget.dragStartBehavior == DragStartBehavior.down
+                  ? 0.0
+                  : kTouchSlop;
+          if ((event.localPosition - startLocal).distance < slop) {
+            return;
+          }
+          _touchDragStarted = true;
+          _startDrag(
+            DragStartDetails(
+              globalPosition: _touchStartGlobal ?? event.position,
+              localPosition: startLocal,
+              sourceTimeStamp: event.timeStamp,
+            ),
+          );
+        }
+
+        final delta = event.localPosition - lastLocal;
+        _lastTouchLocal = event.localPosition;
+
+        _updateDrag(
+          DragUpdateDetails(
+            globalPosition: event.position,
+            localPosition: event.localPosition,
+            delta: delta,
+            primaryDelta: null,
+            sourceTimeStamp: event.timeStamp,
+          ),
+        );
+      },
+      onPointerCancel: (event) {
+        if (_touchPointerId != null && event.pointer == _touchPointerId) {
+          _touchPointerId = null;
+          _touchStartLocal = null;
+          _touchStartGlobal = null;
+          _lastTouchLocal = null;
+          _touchDragStarted = false;
+          if (_isDragging) {
+            _cancelDrag();
+          }
+        }
       },
       // Track pointer up to ensure drag ends when the correct pointer releases
       onPointerUp: _handlePointerUp,
@@ -503,7 +651,11 @@ class _ElementScopeState extends State<ElementScope> with AutoPanMixin {
             NonTrackpadPanGestureRecognizer:
                 GestureRecognizerFactoryWithHandlers<
                   NonTrackpadPanGestureRecognizer
-                >(() => NonTrackpadPanGestureRecognizer(), (recognizer) {
+                >(
+                  () => NonTrackpadPanGestureRecognizer(
+                    allowTouch: widget.allowTouchPanGesture,
+                  ),
+                  (recognizer) {
                   // Configure drag start behavior (immediate for ports, threshold for elements)
                   recognizer.dragStartBehavior = widget.dragStartBehavior;
                   // Use local methods that track drag state and pass full details

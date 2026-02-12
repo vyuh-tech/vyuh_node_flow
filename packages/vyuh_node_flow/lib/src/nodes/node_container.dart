@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
-import '../connections/connection.dart';
 import '../editor/controller/node_flow_controller.dart';
 import '../editor/drag_session.dart';
 import '../editor/element_scope.dart';
@@ -41,7 +40,6 @@ class NodeContainer<T> extends StatelessWidget {
     required this.controller,
     required this.child,
     this.shape,
-    this.connections = const [],
     this.portBuilder,
     this.onTap,
     this.onDoubleTap,
@@ -65,9 +63,6 @@ class NodeContainer<T> extends StatelessWidget {
 
   /// Optional shape for the node (used for port positioning).
   final NodeShape? shape;
-
-  /// List of connections for determining which ports are connected.
-  final List<Connection> connections;
 
   /// Optional builder for customizing individual port widgets.
   final PortBuilder<T>? portBuilder;
@@ -157,6 +152,19 @@ class NodeContainer<T> extends StatelessWidget {
                     // Drag lifecycle - unified for all node types
                     // Check both node lock state AND behavior mode
                     isDraggable: !node.locked && controller.behavior.canDrag,
+                    // Don't start node drag while a connection drag is active
+                    canStartDrag: () => !controller.isConnecting,
+                    // On touch, don't capture if the pointer is over a port
+                    shouldCaptureTouch: (localPos) {
+                      if (!lodVisibility.showPorts) return true;
+                      return !_isLocalPositionOverPort(
+                        localPos,
+                        node,
+                        shape,
+                        portSnapDistance,
+                        theme,
+                      );
+                    },
                     onDragStart: (_) => controller.startNodeDrag(node.id),
                     onDragUpdate: (details) =>
                         controller.moveNodeDrag(details.delta),
@@ -243,8 +251,8 @@ class NodeContainer<T> extends StatelessWidget {
 
     // Calculate node bounds for port positioning
     final nodeBounds = Rect.fromLTWH(
-      node.position.value.dx,
-      node.position.value.dy,
+      node.visualPosition.value.dx,
+      node.visualPosition.value.dy,
       node.size.value.width,
       node.size.value.height,
     );
@@ -284,27 +292,53 @@ class NodeContainer<T> extends StatelessWidget {
     );
   }
 
-  /// Checks if a port is connected by examining the connections list.
+  /// Checks if a port is connected using controller-maintained connection indexes.
   ///
   /// For [PortType.both] ports, checks both source and target connections
   /// since these ports can act as either input or output.
   bool _isPortConnected(Port port) {
-    return connections.any((connection) {
-      // For bidirectional ports (PortType.both), check both directions
-      if (port.isInput && port.isOutput) {
-        return (connection.sourceNodeId == node.id &&
-                connection.sourcePortId == port.id) ||
-            (connection.targetNodeId == node.id &&
-                connection.targetPortId == port.id);
+    // For bidirectional ports (PortType.both), check both directions.
+    if (port.isInput && port.isOutput) {
+      return controller.hasConnectionsForPort(node.id, port.id);
+    }
+    // For output-only ports, check outgoing connections.
+    if (port.isOutput) {
+      return controller.hasOutgoingConnectionsFromPort(node.id, port.id);
+    }
+    // For input-only ports, check incoming connections.
+    return controller.hasIncomingConnectionsToPort(node.id, port.id);
+  }
+
+  bool _isLocalPositionOverPort(
+    Offset localPosition,
+    Node<T> node,
+    NodeShape? shape,
+    double snapDistance,
+    NodeFlowTheme theme,
+  ) {
+    final portTheme = theme.portTheme;
+    final allPorts = [...node.inputPorts, ...node.outputPorts];
+
+    for (final port in allPorts) {
+      final effectivePortSize = port.size ?? portTheme.size;
+      final visualPosition = node.getVisualPortOrigin(
+        port.id,
+        portSize: effectivePortSize,
+        shape: shape,
+      );
+
+      final rect = Rect.fromLTWH(
+        visualPosition.dx - snapDistance,
+        visualPosition.dy - snapDistance,
+        effectivePortSize.width + snapDistance * 2,
+        effectivePortSize.height + snapDistance * 2,
+      );
+
+      if (rect.contains(localPosition)) {
+        return true;
       }
-      // For output-only ports, check as source
-      if (port.isOutput) {
-        return connection.sourceNodeId == node.id &&
-            connection.sourcePortId == port.id;
-      }
-      // For input-only ports, check as target
-      return connection.targetNodeId == node.id &&
-          connection.targetPortId == port.id;
-    });
+    }
+
+    return false;
   }
 }

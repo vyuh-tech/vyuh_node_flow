@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../editor/themes/node_flow_theme.dart';
+import 'grid_sampling_policy.dart';
 import 'grid_style.dart';
 
 /// Grid style that renders small crosses at grid intersections.
@@ -26,39 +27,43 @@ class CrossGridStyle extends GridStyle {
   void paintGrid(
     Canvas canvas,
     NodeFlowTheme theme,
-    ({double left, double top, double right, double bottom}) gridArea,
+    GridArea gridArea,
   ) {
     final gridTheme = theme.gridTheme;
-    final gridSize = gridTheme.size;
+    final sampling = GridSamplingPolicy.resolve(
+      area: gridArea,
+      baseSpacing: gridTheme.size,
+      maxColumns: 180,
+      maxRows: 180,
+    );
+    if (sampling == null) return;
 
     // Create paint for the crosses
     final paint = createGridPaint(theme)
-      ..strokeWidth = gridTheme.thickness.clamp(0.5, 1.5);
+      ..strokeWidth = gridTheme.thickness.clamp(0.5, 1.5).toDouble();
 
     // Calculate arm length
-    final armLength = crossSize ?? (gridTheme.thickness * 3).clamp(2.0, 6.0);
-
-    // Calculate grid-aligned start positions
-    final startX = (gridArea.left / gridSize).floor() * gridSize;
-    final startY = (gridArea.top / gridSize).floor() * gridSize;
+    final armLength =
+        crossSize ?? (gridTheme.thickness * 3).clamp(2.0, 6.0).toDouble();
+    final path = Path();
 
     // Draw crosses at each grid intersection
-    for (double x = startX; x <= gridArea.right; x += gridSize) {
-      for (double y = startY; y <= gridArea.bottom; y += gridSize) {
-        // Draw horizontal arm
-        canvas.drawLine(
-          Offset(x - armLength, y),
-          Offset(x + armLength, y),
-          paint,
-        );
+    for (var col = 0; col < sampling.columns; col++) {
+      final x = sampling.startX + col * sampling.spacing;
+      for (var row = 0; row < sampling.rows; row++) {
+        final y = sampling.startY + row * sampling.spacing;
+        // Horizontal arm
+        path
+          ..moveTo(x - armLength, y)
+          ..lineTo(x + armLength, y);
 
-        // Draw vertical arm
-        canvas.drawLine(
-          Offset(x, y - armLength),
-          Offset(x, y + armLength),
-          paint,
-        );
+        // Vertical arm
+        path
+          ..moveTo(x, y - armLength)
+          ..lineTo(x, y + armLength);
       }
     }
+
+    canvas.drawPath(path, paint);
   }
 }

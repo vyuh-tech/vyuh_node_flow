@@ -34,8 +34,10 @@ import '../resizer_widget.dart';
 import '../snap_delegate.dart';
 import '../themes/node_flow_theme.dart';
 import '../viewport_animation_mixin.dart';
+import 'viewport_culling_policy.dart';
 
 part 'connection_api.dart';
+part 'connection_index_api.dart';
 part 'dirty_tracking_api.dart';
 part 'editor_init_api.dart';
 part 'graph_api.dart';
@@ -154,6 +156,7 @@ class NodeFlowController<T, C> {
         _nodes[node.id] = node;
       }
       _connections.addAll(connections);
+      _rebuildConnectionIndexes();
     });
 
     // Note: Full infrastructure setup happens when initController is called
@@ -430,6 +433,15 @@ class NodeFlowController<T, C> {
   // Connection index for O(1) lookup by node ID
   final Map<String, Set<String>> _connectionsByNodeId = {};
 
+  // Connection indexes for O(1) port-level queries.
+  // Keys use "nodeId::portId" format.
+  final Map<String, int> _sourceConnectionCountByPortKey = {};
+  final Map<String, int> _targetConnectionCountByPortKey = {};
+
+  // Duplicate-connection detection index keyed by:
+  // "sourceNode::sourcePort->targetNode::targetPort".
+  final Map<String, int> _connectionPairCountByPorts = {};
+
   // Editor initialization tracking - set to true after initializeForEditor() is called
   bool _editorInitialized = false;
 
@@ -441,10 +453,12 @@ class NodeFlowController<T, C> {
   Rect? _cachedNodeQueryRect;
   List<Node<T>> _cachedVisibleNodesList = [];
   int _lastNodeIndexVersion = -1;
+  Rect? _lastNodeViewportRect;
 
   Rect? _cachedConnectionQueryRect;
   List<Connection<C>> _cachedVisibleConnectionsList = [];
   int _lastConnectionIndexVersion = -1;
+  Rect? _lastConnectionViewportRect;
 
   // Computed values - stored as late final fields for proper caching
   late final Computed<bool> _hasSelection = Computed(
@@ -499,6 +513,11 @@ class NodeFlowController<T, C> {
     // Depend on viewport and screen size
     final v = _viewport.value;
     final s = _screenSize.value;
+    final isViewportInteracting = interaction.isViewportDragging;
+
+    if (!v.x.isFinite || !v.y.isFinite || !v.zoom.isFinite || v.zoom <= 0) {
+      return _nodes.values.toList();
+    }
 
     if (s.isEmpty) return _nodes.values.toList();
 
@@ -513,26 +532,25 @@ class NodeFlowController<T, C> {
     // Check if spatial index changed
     final currentIndexVersion = _spatialIndex.version.value;
     final indexChanged = currentIndexVersion != _lastNodeIndexVersion;
+    final previousViewportRect = _lastNodeViewportRect;
 
-    // Check if viewport is safely within cached query rect (Hysteresis)
-    // We use a margin of 200px. If we are within 200px of the edge of the
-    // cached area, we trigger a re-query.
-    final cacheValid =
-        !indexChanged &&
-        _cachedNodeQueryRect != null &&
-        _cachedNodeQueryRect!.contains(
-          currentViewportRect.topLeft - const Offset(200, 200),
-        ) &&
-        _cachedNodeQueryRect!.contains(
-          currentViewportRect.bottomRight + const Offset(200, 200),
-        );
+    // Reuse cache while the viewport remains safely inside the prefetched area.
+    final cacheValid = ViewportCullingPolicy.isCacheValid(
+      cachedQueryRect: _cachedNodeQueryRect,
+      viewportRect: currentViewportRect,
+      indexChanged: indexChanged,
+    );
 
     if (cacheValid) {
+      _lastNodeViewportRect = currentViewportRect;
       return _cachedVisibleNodesList;
     }
 
-    // Re-query: Expand viewport by 1000px (chunk size)
-    final queryRect = currentViewportRect.inflate(1000);
+    final queryRect = ViewportCullingPolicy.buildQueryRect(
+      viewportRect: currentViewportRect,
+      previousViewportRect: previousViewportRect,
+      isViewportInteracting: isViewportInteracting,
+    );
     final nodes = _spatialIndex.nodesIn(queryRect);
 
     // Ensure currently interacting nodes are always included
@@ -554,6 +572,7 @@ class NodeFlowController<T, C> {
     _cachedNodeQueryRect = queryRect;
     _cachedVisibleNodesList = nodes;
     _lastNodeIndexVersion = currentIndexVersion;
+    _lastNodeViewportRect = currentViewportRect;
 
     return nodes;
   });
@@ -563,6 +582,11 @@ class NodeFlowController<T, C> {
     // Depend on viewport and screen size
     final v = _viewport.value;
     final s = _screenSize.value;
+    final isViewportInteracting = interaction.isViewportDragging;
+
+    if (!v.x.isFinite || !v.y.isFinite || !v.zoom.isFinite || v.zoom <= 0) {
+      return _connections;
+    }
 
     if (s.isEmpty) return _connections;
 
@@ -575,27 +599,30 @@ class NodeFlowController<T, C> {
 
     final currentIndexVersion = _spatialIndex.version.value;
     final indexChanged = currentIndexVersion != _lastConnectionIndexVersion;
+    final previousViewportRect = _lastConnectionViewportRect;
 
-    final cacheValid =
-        !indexChanged &&
-        _cachedConnectionQueryRect != null &&
-        _cachedConnectionQueryRect!.contains(
-          currentViewportRect.topLeft - const Offset(200, 200),
-        ) &&
-        _cachedConnectionQueryRect!.contains(
-          currentViewportRect.bottomRight + const Offset(200, 200),
-        );
+    final cacheValid = ViewportCullingPolicy.isCacheValid(
+      cachedQueryRect: _cachedConnectionQueryRect,
+      viewportRect: currentViewportRect,
+      indexChanged: indexChanged,
+    );
 
     if (cacheValid) {
+      _lastConnectionViewportRect = currentViewportRect;
       return _cachedVisibleConnectionsList;
     }
 
-    final queryRect = currentViewportRect.inflate(1000);
+    final queryRect = ViewportCullingPolicy.buildQueryRect(
+      viewportRect: currentViewportRect,
+      previousViewportRect: previousViewportRect,
+      isViewportInteracting: isViewportInteracting,
+    );
     final connections = _spatialIndex.connectionsIn(queryRect);
 
     _cachedConnectionQueryRect = queryRect;
     _cachedVisibleConnectionsList = connections;
     _lastConnectionIndexVersion = currentIndexVersion;
+    _lastConnectionViewportRect = currentViewportRect;
 
     return connections;
   });

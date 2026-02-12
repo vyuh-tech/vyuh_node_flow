@@ -42,14 +42,55 @@ import 'package:flutter/gestures.dart';
 /// we allow the gesture to bubble up to the parent's gesture recognizers.
 class NonTrackpadPanGestureRecognizer extends PanGestureRecognizer {
   /// Creates a pan gesture recognizer that ignores trackpad gestures.
-  NonTrackpadPanGestureRecognizer({super.debugOwner});
+  NonTrackpadPanGestureRecognizer({super.debugOwner, this.allowTouch = false});
+
+  /// Whether touch/stylus pointers are allowed by this recognizer.
+  /// Defaults to false to avoid competing with touch-specific handlers.
+  final bool allowTouch;
+
+  /// Stores the default drag start behavior configured by the caller.
+  /// This lets us override behavior per pointer type without losing the
+  /// caller's intent (e.g., ports use DragStartBehavior.down).
+  DragStartBehavior _defaultDragStartBehavior = DragStartBehavior.start;
+
+  @override
+  set dragStartBehavior(DragStartBehavior value) {
+    _defaultDragStartBehavior = value;
+    super.dragStartBehavior = value;
+  }
+
+  void _applyDragStartBehaviorForPointer(PointerDownEvent event) {
+    final isTouchLike =
+        event.kind == PointerDeviceKind.touch ||
+        event.kind == PointerDeviceKind.stylus ||
+        event.kind == PointerDeviceKind.invertedStylus;
+
+    // On touch devices, starting immediately helps win the gesture arena
+    // against InteractiveViewer panning/zooming.
+    if (isTouchLike && _defaultDragStartBehavior == DragStartBehavior.start) {
+      super.dragStartBehavior = DragStartBehavior.down;
+      return;
+    }
+
+    super.dragStartBehavior = _defaultDragStartBehavior;
+  }
+
+  @override
+  void addPointer(PointerDownEvent event) {
+    _applyDragStartBehaviorForPointer(event);
+    super.addPointer(event);
+  }
 
   @override
   void handleEvent(PointerEvent event) {
     // Reject trackpad events - let them bubble to InteractiveViewer for canvas panning.
     // On macOS, two-finger trackpad gestures generate PointerPanZoomEvent which bypasses
     // addPointer/isPointerAllowed and goes directly to handleEvent.
-    if (event.kind == PointerDeviceKind.trackpad) {
+    if (event.kind == PointerDeviceKind.trackpad ||
+        (!allowTouch &&
+            (event.kind == PointerDeviceKind.touch ||
+                event.kind == PointerDeviceKind.stylus ||
+                event.kind == PointerDeviceKind.invertedStylus))) {
       return;
     }
     super.handleEvent(event);
@@ -58,7 +99,11 @@ class NonTrackpadPanGestureRecognizer extends PanGestureRecognizer {
   @override
   bool isPointerAllowed(PointerEvent event) {
     // Reject trackpad pointers - let them bubble to InteractiveViewer
-    if (event.kind == PointerDeviceKind.trackpad) {
+    if (event.kind == PointerDeviceKind.trackpad ||
+        (!allowTouch &&
+            (event.kind == PointerDeviceKind.touch ||
+                event.kind == PointerDeviceKind.stylus ||
+                event.kind == PointerDeviceKind.invertedStylus))) {
       return false;
     }
     return super.isPointerAllowed(event);
@@ -72,7 +117,11 @@ class NonTrackpadPanGestureRecognizer extends PanGestureRecognizer {
     // ongoing drag gesture. By returning early for trackpad pointers,
     // we ensure that a trackpad tap during a mouse drag doesn't cancel
     // the mouse drag.
-    if (event.kind == PointerDeviceKind.trackpad) {
+    if (event.kind == PointerDeviceKind.trackpad ||
+        (!allowTouch &&
+            (event.kind == PointerDeviceKind.touch ||
+                event.kind == PointerDeviceKind.stylus ||
+                event.kind == PointerDeviceKind.invertedStylus))) {
       return;
     }
     super.handleNonAllowedPointer(event);

@@ -14,6 +14,8 @@ class _CachedConnectionPath {
     required this.originalPath,
     required this.hitTestPath,
     required this.segmentBounds,
+    required this.styleHash,
+    required this.hasHitTestData,
     required this.sourcePosition,
     required this.targetPosition,
     required this.startGap,
@@ -32,6 +34,12 @@ class _CachedConnectionPath {
 
   /// Rectangle bounds for each path segment, used for spatial indexing
   final List<Rect> segmentBounds;
+
+  /// Hash of the [ConnectionStyle] used to generate this cache entry.
+  final int styleHash;
+
+  /// Whether hit-test geometry (segment bounds + hit test path) was generated.
+  final bool hasHitTestData;
 
   /// Cached node positions for invalidation
   final Offset sourcePosition;
@@ -121,11 +129,17 @@ class ConnectionPathCache {
 
     final hitTolerance = tolerance ?? defaultHitTolerance;
     final connectionStyle = theme.connectionTheme.style;
+    final styleHash = connectionStyle.hashCode;
+    final connectionTheme = theme.connectionTheme;
+    final currentStartGap = connection.startGap ?? connectionTheme.startGap;
+    final currentEndGap = connection.endGap ?? connectionTheme.endGap;
 
     // Get cached path
     final cachedPath = _getCachedPath(connection.id);
     final currentSourcePos = sourceNode.position.value;
     final currentTargetPos = targetNode.position.value;
+    final currentSourceSize = sourceNode.size.value;
+    final currentTargetSize = targetNode.size.value;
 
     // Get current port offsets for cache invalidation
     final sourcePort = sourceNode.findPort(connection.sourcePortId);
@@ -133,15 +147,23 @@ class ConnectionPathCache {
     final currentSourcePortOffset = sourcePort?.offset ?? Offset.zero;
     final currentTargetPortOffset = targetPort?.offset ?? Offset.zero;
 
-    // Check if cache is valid (positions and port offsets match)
-    final cacheValid =
-        cachedPath != null &&
-        cachedPath.sourcePosition == currentSourcePos &&
-        cachedPath.targetPosition == currentTargetPos &&
-        cachedPath.sourcePortOffset == currentSourcePortOffset &&
-        cachedPath.targetPortOffset == currentTargetPortOffset;
+    // Check if cache is valid (positions, sizes, style and port offsets match).
+    final cacheValid = _isCacheEntryValid(
+      existing: cachedPath,
+      sourcePosition: currentSourcePos,
+      targetPosition: currentTargetPos,
+      sourceNodeSize: currentSourceSize,
+      targetNodeSize: currentTargetSize,
+      startGap: currentStartGap,
+      endGap: currentEndGap,
+      sourcePortOffset: currentSourcePortOffset,
+      targetPortOffset: currentTargetPortOffset,
+      styleHash: styleHash,
+      requiresHitTestData: true,
+    );
 
     if (cacheValid) {
+      final cached = cachedPath!;
       // Use the pre-computed hit test path (already expanded for tolerance)
       // Only recompute if tolerance differs significantly from default
       if ((hitTolerance - defaultHitTolerance).abs() > 1.0) {
@@ -149,11 +171,11 @@ class ConnectionPathCache {
         // Note: We'd need the segments to do this properly, but for now
         // we can use the cached path bounds with adjusted tolerance
         // This is a simplification - for full accuracy we'd cache segments too
-        return cachedPath.hitTestPath.contains(testPoint);
+        return cached.hitTestPath.contains(testPoint);
       }
 
       // Use cached hit test path (most common case)
-      return cachedPath.hitTestPath.contains(testPoint);
+      return cached.hitTestPath.contains(testPoint);
     }
 
     // Cache is stale or missing - compute path on-demand for hit testing
@@ -165,8 +187,9 @@ class ConnectionPathCache {
       sourcePosition: currentSourcePos,
       targetPosition: currentTargetPos,
       connectionStyle: connectionStyle,
-      startGap: connection.startGap ?? theme.connectionTheme.startGap,
-      endGap: connection.endGap ?? theme.connectionTheme.endGap,
+      startGap: currentStartGap,
+      endGap: currentEndGap,
+      includeHitTestData: true,
     );
 
     if (newCachedPath == null) {
@@ -178,8 +201,10 @@ class ConnectionPathCache {
     return newCachedPath.hitTestPath.contains(testPoint);
   }
 
-  /// Get or create cached path during painting operations
-  /// This is the only place where paths should be created
+  /// Get or create cached path with full hit-test geometry.
+  ///
+  /// This preserves existing behavior for callers that also depend on
+  /// segment bounds and hit-test paths after path creation.
   Path? getOrCreatePath({
     required Connection connection,
     required Node sourceNode,
@@ -198,6 +223,7 @@ class ConnectionPathCache {
     final connectionTheme = theme.connectionTheme;
     final currentStartGap = connection.startGap ?? connectionTheme.startGap;
     final currentEndGap = connection.endGap ?? connectionTheme.endGap;
+    final styleHash = connectionStyle.hashCode;
 
     // Get current port offsets for cache invalidation
     final sourcePort = sourceNode.findPort(connection.sourcePortId);
@@ -205,18 +231,21 @@ class ConnectionPathCache {
     final currentSourcePortOffset = sourcePort?.offset ?? Offset.zero;
     final currentTargetPortOffset = targetPort?.offset ?? Offset.zero;
 
-    // Check if cache needs updating (including node sizes and port offsets)
     final existing = _getCachedPath(connection.id);
-    if (existing != null &&
-        existing.sourcePosition == currentSourcePos &&
-        existing.targetPosition == currentTargetPos &&
-        existing.startGap == currentStartGap &&
-        existing.endGap == currentEndGap &&
-        existing.sourceNodeSize == currentSourceSize &&
-        existing.targetNodeSize == currentTargetSize &&
-        existing.sourcePortOffset == currentSourcePortOffset &&
-        existing.targetPortOffset == currentTargetPortOffset) {
-      return existing.originalPath; // Cache hit
+    if (_isCacheEntryValid(
+      existing: existing,
+      sourcePosition: currentSourcePos,
+      targetPosition: currentTargetPos,
+      sourceNodeSize: currentSourceSize,
+      targetNodeSize: currentTargetSize,
+      startGap: currentStartGap,
+      endGap: currentEndGap,
+      sourcePortOffset: currentSourcePortOffset,
+      targetPortOffset: currentTargetPortOffset,
+      styleHash: styleHash,
+      requiresHitTestData: true,
+    )) {
+      return existing!.originalPath; // Cache hit
     }
 
     // Create new path and cache it
@@ -229,6 +258,68 @@ class ConnectionPathCache {
       connectionStyle: connectionStyle,
       startGap: currentStartGap,
       endGap: currentEndGap,
+      includeHitTestData: true,
+    );
+
+    return newPath?.originalPath;
+  }
+
+  /// Get or create cached path optimized for drawing only.
+  ///
+  /// This avoids generating hit-test geometry on invalidation-heavy frames.
+  Path? getOrCreateDrawPath({
+    required Connection connection,
+    required Node sourceNode,
+    required Node targetNode,
+    required ConnectionStyle connectionStyle,
+  }) {
+    // Skip path creation for hidden connections
+    if (!sourceNode.isVisible || !targetNode.isVisible) {
+      return null;
+    }
+
+    final currentSourcePos = sourceNode.position.value;
+    final currentTargetPos = targetNode.position.value;
+    final currentSourceSize = sourceNode.size.value;
+    final currentTargetSize = targetNode.size.value;
+    final connectionTheme = theme.connectionTheme;
+    final currentStartGap = connection.startGap ?? connectionTheme.startGap;
+    final currentEndGap = connection.endGap ?? connectionTheme.endGap;
+    final styleHash = connectionStyle.hashCode;
+
+    // Get current port offsets for cache invalidation
+    final sourcePort = sourceNode.findPort(connection.sourcePortId);
+    final targetPort = targetNode.findPort(connection.targetPortId);
+    final currentSourcePortOffset = sourcePort?.offset ?? Offset.zero;
+    final currentTargetPortOffset = targetPort?.offset ?? Offset.zero;
+
+    final existing = _getCachedPath(connection.id);
+    if (_isCacheEntryValid(
+      existing: existing,
+      sourcePosition: currentSourcePos,
+      targetPosition: currentTargetPos,
+      sourceNodeSize: currentSourceSize,
+      targetNodeSize: currentTargetSize,
+      startGap: currentStartGap,
+      endGap: currentEndGap,
+      sourcePortOffset: currentSourcePortOffset,
+      targetPortOffset: currentTargetPortOffset,
+      styleHash: styleHash,
+      requiresHitTestData: false,
+    )) {
+      return existing!.originalPath;
+    }
+
+    final newPath = _createAndCachePath(
+      connection: connection,
+      sourceNode: sourceNode,
+      targetNode: targetNode,
+      sourcePosition: currentSourcePos,
+      targetPosition: currentTargetPos,
+      connectionStyle: connectionStyle,
+      startGap: currentStartGap,
+      endGap: currentEndGap,
+      includeHitTestData: false,
     );
 
     return newPath?.originalPath;
@@ -244,6 +335,7 @@ class ConnectionPathCache {
     required ConnectionStyle connectionStyle,
     required double startGap,
     required double endGap,
+    required bool includeHitTestData,
   }) {
     // Get connection and port themes
     final connectionTheme = theme.connectionTheme;
@@ -338,25 +430,29 @@ class ConnectionPathCache {
     // Create segments ONCE - this is the canonical source
     final segmentResult = connectionStyle.createSegments(pathParams);
 
-    // Derive path and hit test from segments using style's build methods
+    // Derive drawing path from segments.
     final originalPath = connectionStyle.buildPath(
       segmentResult.start,
       segmentResult.segments,
     );
-
-    final segmentBounds = connectionStyle.buildHitTestRects(
-      segmentResult.start,
-      segmentResult.segments,
-      defaultHitTolerance,
-    );
-
-    final hitTestPath = connectionStyle.buildHitTestPath(segmentBounds);
+    final segmentBounds = includeHitTestData
+        ? connectionStyle.buildHitTestRects(
+            segmentResult.start,
+            segmentResult.segments,
+            defaultHitTolerance,
+          )
+        : const <Rect>[];
+    final hitTestPath = includeHitTestData
+        ? connectionStyle.buildHitTestPath(segmentBounds)
+        : Path();
 
     // Cache paths and segment bounds for invalidation
     final cachedPath = _CachedConnectionPath(
       originalPath: originalPath,
       hitTestPath: hitTestPath,
       segmentBounds: segmentBounds,
+      styleHash: connectionStyle.hashCode,
+      hasHitTestData: includeHitTestData,
       sourcePosition: sourcePosition,
       targetPosition: targetPosition,
       startGap: startGap,
@@ -374,6 +470,37 @@ class ConnectionPathCache {
   /// Get cached path (read-only)
   _CachedConnectionPath? _getCachedPath(String connectionId) {
     return _pathCache[connectionId];
+  }
+
+  bool _isCacheEntryValid({
+    required _CachedConnectionPath? existing,
+    required Offset sourcePosition,
+    required Offset targetPosition,
+    required Size sourceNodeSize,
+    required Size targetNodeSize,
+    required double startGap,
+    required double endGap,
+    required Offset sourcePortOffset,
+    required Offset targetPortOffset,
+    required int styleHash,
+    required bool requiresHitTestData,
+  }) {
+    if (existing == null) return false;
+    if (existing.sourcePosition != sourcePosition ||
+        existing.targetPosition != targetPosition ||
+        existing.startGap != startGap ||
+        existing.endGap != endGap ||
+        existing.sourceNodeSize != sourceNodeSize ||
+        existing.targetNodeSize != targetNodeSize ||
+        existing.sourcePortOffset != sourcePortOffset ||
+        existing.targetPortOffset != targetPortOffset ||
+        existing.styleHash != styleHash) {
+      return false;
+    }
+    if (requiresHitTestData && !existing.hasHitTestData) {
+      return false;
+    }
+    return true;
   }
 
   /// Remove cached path when connection is deleted
@@ -394,7 +521,9 @@ class ConnectionPathCache {
 
   /// Get the cached hit test path for debugging purposes
   Path? getHitTestPath(String connectionId) {
-    return _getCachedPath(connectionId)?.hitTestPath;
+    final cachedPath = _getCachedPath(connectionId);
+    if (cachedPath == null || !cachedPath.hasHitTestData) return null;
+    return cachedPath.hitTestPath;
   }
 
   /// Get the cached original path for debugging purposes
@@ -405,7 +534,9 @@ class ConnectionPathCache {
   /// Get the cached segment bounds for spatial indexing.
   /// Returns null if there's no cached path for this connection.
   List<Rect>? getSegmentBounds(String connectionId) {
-    return _getCachedPath(connectionId)?.segmentBounds;
+    final cachedPath = _getCachedPath(connectionId);
+    if (cachedPath == null || !cachedPath.hasHitTestData) return null;
+    return cachedPath.segmentBounds;
   }
 
   /// Get or compute segment bounds for a connection.
@@ -428,6 +559,7 @@ class ConnectionPathCache {
     final connectionTheme = theme.connectionTheme;
     final currentStartGap = connection.startGap ?? connectionTheme.startGap;
     final currentEndGap = connection.endGap ?? connectionTheme.endGap;
+    final styleHash = connectionStyle.hashCode;
 
     // Get current port offsets for cache invalidation
     final sourcePort = sourceNode.findPort(connection.sourcePortId);
@@ -435,18 +567,21 @@ class ConnectionPathCache {
     final currentSourcePortOffset = sourcePort?.offset ?? Offset.zero;
     final currentTargetPortOffset = targetPort?.offset ?? Offset.zero;
 
-    // Check if cache is valid (including node sizes and port offsets)
     final existing = _getCachedPath(connection.id);
-    if (existing != null &&
-        existing.sourcePosition == currentSourcePos &&
-        existing.targetPosition == currentTargetPos &&
-        existing.startGap == currentStartGap &&
-        existing.endGap == currentEndGap &&
-        existing.sourceNodeSize == currentSourceSize &&
-        existing.targetNodeSize == currentTargetSize &&
-        existing.sourcePortOffset == currentSourcePortOffset &&
-        existing.targetPortOffset == currentTargetPortOffset) {
-      return existing.segmentBounds;
+    if (_isCacheEntryValid(
+      existing: existing,
+      sourcePosition: currentSourcePos,
+      targetPosition: currentTargetPos,
+      sourceNodeSize: currentSourceSize,
+      targetNodeSize: currentTargetSize,
+      startGap: currentStartGap,
+      endGap: currentEndGap,
+      sourcePortOffset: currentSourcePortOffset,
+      targetPortOffset: currentTargetPortOffset,
+      styleHash: styleHash,
+      requiresHitTestData: true,
+    )) {
+      return existing!.segmentBounds;
     }
 
     // Create new path and get segments
@@ -459,6 +594,7 @@ class ConnectionPathCache {
       connectionStyle: connectionStyle,
       startGap: currentStartGap,
       endGap: currentEndGap,
+      includeHitTestData: true,
     );
 
     return newCachedPath?.segmentBounds ?? [];

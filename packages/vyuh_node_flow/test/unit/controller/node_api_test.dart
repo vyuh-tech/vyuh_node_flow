@@ -23,6 +23,14 @@ void main() {
     resetTestCounters();
   });
 
+  void initializeEditor(NodeFlowController<String, dynamic> controller) {
+    controller.initController(
+      theme: NodeFlowTheme.light,
+      portSizeResolver: (port) =>
+          NodeFlowTheme.light.portTheme.resolveSize(port),
+    );
+  }
+
   // ===========================================================================
   // Model APIs - Lookup
   // ===========================================================================
@@ -348,6 +356,28 @@ void main() {
       expect(controller.getPort('node-1', 'new-output'), isNotNull);
     });
 
+    test('addPort updates spatial index for immediate port hit testing', () {
+      final node = createTestNode(
+        id: 'node-1',
+        position: const Offset(100, 100),
+      );
+      final controller = createTestController(nodes: [node]);
+      initializeEditor(controller);
+
+      final newPort = createInputPort(id: 'new-input');
+      controller.addPort('node-1', newPort);
+
+      final portCenter = node.getPortCenter(
+        newPort.id,
+        portSize: NodeFlowTheme.light.portTheme.resolveSize(newPort),
+      );
+      final hit = controller.hitTestPort(portCenter);
+
+      expect(hit, isNotNull);
+      expect(hit!.nodeId, equals('node-1'));
+      expect(hit.portId, equals('new-input'));
+    });
+
     test('removePort removes port from node', () {
       final port = createInputPort(id: 'port-to-remove');
       final node = createTestNode(id: 'node-1', inputPorts: [port]);
@@ -379,6 +409,27 @@ void main() {
       expect(controller.connections, isEmpty);
     });
 
+    test('removePort updates spatial index for immediate port hit testing', () {
+      final port = createInputPort(id: 'remove-me');
+      final node = createTestNode(
+        id: 'node-1',
+        position: const Offset(100, 100),
+        inputPorts: [port],
+      );
+      final controller = createTestController(nodes: [node]);
+      initializeEditor(controller);
+
+      final portCenter = node.getPortCenter(
+        port.id,
+        portSize: NodeFlowTheme.light.portTheme.resolveSize(port),
+      );
+      expect(controller.hitTestPort(portCenter)?.portId, equals('remove-me'));
+
+      controller.removePort('node-1', 'remove-me');
+
+      expect(controller.hitTestPort(portCenter), isNull);
+    });
+
     test('setNodePorts replaces all ports', () {
       final node = createTestNode(
         id: 'node-1',
@@ -408,6 +459,30 @@ void main() {
 
       expect(controller.getOutputPorts('node-1'), hasLength(1));
       expect(controller.getPort('node-1', 'new-out'), isNotNull);
+    });
+
+    test('setNodePorts updates spatial index for group node ports', () {
+      final loopNode = createTestGroupNode<String>(
+        id: 'loop-node',
+        position: const Offset(200, 200),
+        size: const Size(320, 220),
+        data: 'loop-data',
+      );
+      final controller = createTestController(nodes: [loopNode]);
+      initializeEditor(controller);
+
+      final loopIn = createInputPort(id: 'loop-in');
+      controller.setNodePorts('loop-node', [loopIn]);
+
+      final portCenter = loopNode.getPortCenter(
+        loopIn.id,
+        portSize: NodeFlowTheme.light.portTheme.resolveSize(loopIn),
+      );
+      final hit = controller.hitTestPort(portCenter);
+
+      expect(hit, isNotNull);
+      expect(hit!.nodeId, equals('loop-node'));
+      expect(hit.portId, equals('loop-in'));
     });
   });
 

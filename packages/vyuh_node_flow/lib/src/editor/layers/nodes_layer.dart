@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
-import '../../connections/connection.dart';
 import '../../graph/coordinates.dart';
 import '../../nodes/node.dart';
 import '../../nodes/node_container.dart';
@@ -28,16 +27,15 @@ import 'nodes_thumbnail_layer.dart';
 ///
 /// Use the factory constructors to create filtered layers:
 /// ```dart
-/// NodesLayer.background(controller, nodeBuilder, connections)  // Groups
-/// NodesLayer.middle(controller, nodeBuilder, connections)      // Regular nodes
-/// NodesLayer.foreground(controller, nodeBuilder, connections)  // Stickies, markers
+/// NodesLayer.background(controller, nodeBuilder)  // Groups
+/// NodesLayer.middle(controller, nodeBuilder)      // Regular nodes
+/// NodesLayer.foreground(controller, nodeBuilder)  // Stickies, markers
 /// ```
 class NodesLayer<T> extends StatelessWidget {
   const NodesLayer({
     super.key,
     required this.controller,
     required this.nodeBuilder,
-    required this.connections,
     this.portBuilder,
     this.layerFilter,
     this.onNodeTap,
@@ -56,8 +54,7 @@ class NodesLayer<T> extends StatelessWidget {
   /// typically used for group containers.
   static NodesLayer<T> background<T>(
     NodeFlowController<T, dynamic> controller,
-    Widget Function(BuildContext context, Node<T> node) nodeBuilder,
-    List<Connection> connections, {
+    Widget Function(BuildContext context, Node<T> node) nodeBuilder, {
     PortBuilder<T>? portBuilder,
     ThumbnailBuilder<T>? thumbnailBuilder,
     void Function(Node<T> node)? onNodeTap,
@@ -73,7 +70,6 @@ class NodesLayer<T> extends StatelessWidget {
     return NodesLayer<T>(
       controller: controller,
       nodeBuilder: nodeBuilder,
-      connections: connections,
       portBuilder: portBuilder,
       thumbnailBuilder: thumbnailBuilder,
       layerFilter: NodeRenderLayer.background,
@@ -93,8 +89,7 @@ class NodesLayer<T> extends StatelessWidget {
   /// used for regular nodes.
   static NodesLayer<T> middle<T>(
     NodeFlowController<T, dynamic> controller,
-    Widget Function(BuildContext context, Node<T> node) nodeBuilder,
-    List<Connection> connections, {
+    Widget Function(BuildContext context, Node<T> node) nodeBuilder, {
     PortBuilder<T>? portBuilder,
     ThumbnailBuilder<T>? thumbnailBuilder,
     void Function(Node<T> node)? onNodeTap,
@@ -110,7 +105,6 @@ class NodesLayer<T> extends StatelessWidget {
     return NodesLayer<T>(
       controller: controller,
       nodeBuilder: nodeBuilder,
-      connections: connections,
       portBuilder: portBuilder,
       thumbnailBuilder: thumbnailBuilder,
       layerFilter: NodeRenderLayer.middle,
@@ -130,8 +124,7 @@ class NodesLayer<T> extends StatelessWidget {
   /// typically used for sticky notes and markers.
   static NodesLayer<T> foreground<T>(
     NodeFlowController<T, dynamic> controller,
-    Widget Function(BuildContext context, Node<T> node) nodeBuilder,
-    List<Connection> connections, {
+    Widget Function(BuildContext context, Node<T> node) nodeBuilder, {
     PortBuilder<T>? portBuilder,
     ThumbnailBuilder<T>? thumbnailBuilder,
     void Function(Node<T> node)? onNodeTap,
@@ -147,7 +140,6 @@ class NodesLayer<T> extends StatelessWidget {
     return NodesLayer<T>(
       controller: controller,
       nodeBuilder: nodeBuilder,
-      connections: connections,
       portBuilder: portBuilder,
       thumbnailBuilder: thumbnailBuilder,
       layerFilter: NodeRenderLayer.foreground,
@@ -176,8 +168,6 @@ class NodesLayer<T> extends StatelessWidget {
   /// - [NodesLayer.middle] for middle layer nodes (default for regular nodes)
   /// - [NodesLayer.foreground] for foreground layer nodes
   final NodeRenderLayer? layerFilter;
-
-  final List<Connection> connections;
 
   /// Callback invoked when a node is tapped.
   final void Function(Node<T> node)? onNodeTap;
@@ -286,7 +276,6 @@ class NodesLayer<T> extends StatelessWidget {
       node: node,
       controller: controller,
       shape: shape,
-      connections: connections,
       portBuilder: portBuilder,
       // Event callbacks
       onTap: onNodeTap != null ? () => onNodeTap!(node) : null,

@@ -57,6 +57,7 @@ class ConnectionsCanvas<T, C> extends CustomPainter {
     this.selectedIds,
     this.animation,
     this.connectionStyleBuilder,
+    this.useDrawOnlyPathCache = false,
   }) : _fingerprint = _computeFingerprint(store, connections, selectedIds),
        super(repaint: animation);
 
@@ -90,6 +91,11 @@ class ConnectionsCanvas<T, C> extends CustomPainter {
   /// When provided, this builder is called for each connection to determine
   /// which [ConnectionStyle] (path renderer) to use.
   final ConnectionStyleBuilder<T, C>? connectionStyleBuilder;
+
+  /// When true, uses draw-only path caching (no hit-test geometry generation).
+  ///
+  /// Intended for high-frequency interaction frames.
+  final bool useDrawOnlyPathCache;
 
   /// Cached fingerprint for efficient shouldRepaint comparison.
   final int _fingerprint;
@@ -153,6 +159,7 @@ class ConnectionsCanvas<T, C> extends CustomPainter {
     // Check LOD state for endpoint visibility
     // If LOD extension is not configured, default to showing endpoints
     final skipEndpoints = !(store.lod?.showConnectionEndpoints ?? true);
+    final selectedConnectionIds = selectedIds ?? store.selectedConnectionIds;
 
     // Paint only connection lines and endpoints (no labels)
     // Labels are now rendered in a separate layer for better performance
@@ -168,7 +175,7 @@ class ConnectionsCanvas<T, C> extends CustomPainter {
       // Skip connections where either node is hidden
       if (!sourceNode.isVisible || !targetNode.isVisible) continue;
 
-      final isSelected = store.selectedConnectionIds.contains(connection.id);
+      final isSelected = selectedConnectionIds.contains(connection.id);
 
       // Call builder to get dynamic style override (if provided)
       final overrideStyle = connectionStyleBuilder?.call(
@@ -187,6 +194,7 @@ class ConnectionsCanvas<T, C> extends CustomPainter {
         animationValue: animationValue,
         skipEndpoints: skipEndpoints,
         overrideStyle: overrideStyle,
+        useDrawOnlyCache: useDrawOnlyPathCache,
       );
     }
   }
@@ -197,6 +205,7 @@ class ConnectionsCanvas<T, C> extends CustomPainter {
     if (_fingerprint != oldDelegate._fingerprint) return true;
     // Check theme reference (theme changes are rare)
     if (theme != oldDelegate.theme) return true;
+    if (useDrawOnlyPathCache != oldDelegate.useDrawOnlyPathCache) return true;
     return false;
   }
 
