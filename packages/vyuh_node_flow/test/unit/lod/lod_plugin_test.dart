@@ -372,6 +372,179 @@ void main() {
   });
 
   // ===========================================================================
+  // LodPlugin - Adaptive Interaction
+  // ===========================================================================
+
+  group('LodPlugin - Adaptive Interaction', () {
+    test('viewport interaction keeps full visibility for non-complex graphs', () {
+      final controller = NodeFlowController<String, dynamic>(
+        config: NodeFlowConfig(
+          minZoom: 0.0,
+          maxZoom: 1.0,
+          plugins: [
+            LodPlugin(enabled: false, adaptiveEnabled: true),
+            ...NodeFlowConfig.defaultPlugins().where((e) => e is! LodPlugin),
+          ],
+        ),
+        initialViewport: const GraphViewport(zoom: 0.8),
+      );
+
+      final lod = controller.lod!;
+
+      // Idle: with LOD disabled, base visibility is full.
+      expect(lod.isAdaptiveInteractionActive, isFalse);
+      expect(lod.currentVisibility.showPortLabels, isTrue);
+      expect(lod.currentVisibility.showConnectionLabels, isTrue);
+      expect(lod.currentVisibility.showResizeHandles, isTrue);
+
+      // During viewport panning, adaptive policy should reduce expensive detail.
+      controller.interaction.setViewportInteracting(true);
+
+      expect(lod.isAdaptiveInteractionActive, isTrue);
+      expect(lod.currentVisibility.showPortLabels, isTrue);
+      expect(lod.currentVisibility.showConnectionLabels, isTrue);
+      expect(lod.currentVisibility.showResizeHandles, isTrue);
+
+      controller.interaction.setViewportInteracting(false);
+      expect(lod.isAdaptiveInteractionActive, isFalse);
+      expect(lod.currentVisibility.showPortLabels, isTrue);
+      expect(lod.currentVisibility.showConnectionLabels, isTrue);
+      expect(lod.currentVisibility.showResizeHandles, isTrue);
+
+      controller.dispose();
+    });
+
+    test('complex viewport interaction hides connection labels only', () {
+      final nodes = List.generate(
+        4,
+        (i) => Node<String>(
+          id: 'node-$i',
+          type: 'test',
+          position: Offset(i * 100.0, 0),
+          data: 'data-$i',
+        ),
+      );
+
+      final controller = NodeFlowController<String, dynamic>(
+        nodes: nodes,
+        config: NodeFlowConfig(
+          minZoom: 0.0,
+          maxZoom: 1.0,
+          plugins: [
+            LodPlugin(
+              enabled: false,
+              adaptiveEnabled: true,
+              adaptiveNodeThreshold: 3,
+              adaptiveConnectionThreshold: 1000,
+              adaptiveExtremeNodeThreshold: 100,
+              adaptiveExtremeConnectionThreshold: 1000,
+            ),
+            ...NodeFlowConfig.defaultPlugins().where((e) => e is! LodPlugin),
+          ],
+        ),
+        initialViewport: const GraphViewport(zoom: 0.8),
+      );
+
+      final lod = controller.lod!;
+
+      controller.interaction.setViewportInteracting(true);
+
+      expect(lod.currentVisibility.showPortLabels, isTrue);
+      expect(lod.currentVisibility.showConnectionLabels, isFalse);
+      expect(lod.currentVisibility.showConnectionEndpoints, isFalse);
+      expect(lod.currentVisibility.showResizeHandles, isFalse);
+
+      controller.dispose();
+    });
+
+    test(
+      'useThumbnailMode activates during viewport pan for complex graphs',
+      () {
+        final nodes = List.generate(
+          3,
+          (i) => Node<String>(
+            id: 'node-$i',
+            type: 'test',
+            position: Offset(i * 100.0, 0),
+            data: 'data-$i',
+          ),
+        );
+
+        final controller = NodeFlowController<String, dynamic>(
+          nodes: nodes,
+          config: NodeFlowConfig(
+            plugins: [
+              LodPlugin(
+                enabled: false,
+                adaptiveEnabled: true,
+                adaptiveNodeThreshold: 2,
+                adaptiveConnectionThreshold: 1000,
+                adaptiveExtremeNodeThreshold: 100,
+                adaptiveExtremeConnectionThreshold: 1000,
+              ),
+              ...NodeFlowConfig.defaultPlugins().where((e) => e is! LodPlugin),
+            ],
+          ),
+        );
+
+        final lod = controller.lod!;
+
+        // Idle state should keep widget mode.
+        expect(lod.useThumbnailMode, isFalse);
+
+        // Complex graph + active viewport pan should use thumbnail mode.
+        controller.interaction.setViewportInteracting(true);
+        expect(lod.useThumbnailMode, isTrue);
+
+        // Revert to widget mode when panning ends.
+        controller.interaction.setViewportInteracting(false);
+        expect(lod.useThumbnailMode, isFalse);
+
+        controller.dispose();
+      },
+    );
+
+    test(
+      'useThumbnailMode stays disabled during viewport pan for small graphs',
+      () {
+        final nodes = List.generate(
+          2,
+          (i) => Node<String>(
+            id: 'node-$i',
+            type: 'test',
+            position: Offset(i * 100.0, 0),
+            data: 'data-$i',
+          ),
+        );
+
+        final controller = NodeFlowController<String, dynamic>(
+          nodes: nodes,
+          config: NodeFlowConfig(
+            plugins: [
+              LodPlugin(
+                enabled: false,
+                adaptiveEnabled: true,
+                adaptiveNodeThreshold: 20,
+                adaptiveConnectionThreshold: 20,
+                adaptiveExtremeNodeThreshold: 100,
+                adaptiveExtremeConnectionThreshold: 100,
+              ),
+              ...NodeFlowConfig.defaultPlugins().where((e) => e is! LodPlugin),
+            ],
+          ),
+        );
+
+        final lod = controller.lod!;
+        controller.interaction.setViewportInteracting(true);
+
+        expect(lod.useThumbnailMode, isFalse);
+
+        controller.dispose();
+      },
+    );
+  });
+
+  // ===========================================================================
   // LodPlugin - Plugin ID
   // ===========================================================================
 

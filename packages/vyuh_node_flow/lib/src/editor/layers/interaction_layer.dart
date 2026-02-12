@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
+import '../../connections/styles/connection_style_base.dart';
 import '../../connections/temporary_connection.dart';
 import '../../graph/coordinates.dart';
 import '../../nodes/node.dart';
 import '../../ports/port.dart';
 import '../controller/node_flow_controller.dart';
 import '../themes/node_flow_theme.dart';
+
+typedef TemporaryConnectionStyleResolver<T> =
+    ConnectionStyle? Function(
+      TemporaryConnection temporary,
+      Node<T> startNode,
+      Port startPort,
+      Node<T>? hoveredNode,
+      Port? hoveredPort,
+    );
 
 /// Interaction layer widget that renders temporary connections and selection rectangles.
 ///
@@ -23,6 +33,7 @@ class InteractionLayer<T> extends StatelessWidget {
     required this.controller,
     required this.transformationController,
     this.animation,
+    this.temporaryStyleResolver,
   });
 
   final NodeFlowController<T, dynamic> controller;
@@ -38,6 +49,12 @@ class InteractionLayer<T> extends StatelessWidget {
   /// When provided, the animation value will be passed to temporary connections
   /// for rendering animation effects (if configured in the theme).
   final Animation<double>? animation;
+
+  /// Optional resolver for temporary connection routing style.
+  ///
+  /// Use this to align temporary routing with final connection style selection
+  /// (for example, when using dynamic `connectionStyleBuilder`).
+  final TemporaryConnectionStyleResolver<T>? temporaryStyleResolver;
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +77,11 @@ class InteractionLayer<T> extends StatelessWidget {
             final previewConnections = controller.interaction.previewConnections
                 .toList();
 
+            final hasInteractionVisuals =
+                selectionRect != null ||
+                tempConnection != null ||
+                previewConnections.isNotEmpty;
+
             // Get theme from context - this ensures automatic rebuilds when theme changes
             final theme =
                 Theme.of(builderContext).extension<NodeFlowTheme>() ??
@@ -74,6 +96,8 @@ class InteractionLayer<T> extends StatelessWidget {
                 previewConnections: previewConnections,
                 transformationController: transformationController,
                 animation: animation,
+                temporaryStyleResolver: temporaryStyleResolver,
+                listenToTransform: hasInteractionVisuals,
               ),
               size: Size.infinite,
             );
@@ -90,7 +114,8 @@ class InteractionLayer<T> extends StatelessWidget {
 /// to screen coordinates, enabling rendering of elements that extend beyond
 /// the visible viewport bounds.
 ///
-/// Listens to both [transformationController] and [animation] for repaints.
+/// Listens to [transformationController] (and optionally [animation]) only when
+/// interaction visuals are active.
 class InteractionLayerPainter<T> extends CustomPainter {
   InteractionLayerPainter({
     required this.controller,
@@ -100,10 +125,14 @@ class InteractionLayerPainter<T> extends CustomPainter {
     this.previewConnections = const [],
     required this.transformationController,
     this.animation,
+    this.temporaryStyleResolver,
+    this.listenToTransform = true,
   }) : super(
-         repaint: animation != null
-             ? Listenable.merge([transformationController, animation])
-             : transformationController,
+         repaint: listenToTransform
+             ? (animation != null
+                   ? Listenable.merge([transformationController, animation])
+                   : transformationController)
+             : null,
        );
 
   final NodeFlowController<T, dynamic> controller;
@@ -125,6 +154,15 @@ class InteractionLayerPainter<T> extends CustomPainter {
 
   /// Optional animation for animated temporary connections.
   final Animation<double>? animation;
+
+  /// Optional resolver for temporary connection routing style.
+  final TemporaryConnectionStyleResolver<T>? temporaryStyleResolver;
+
+  /// Whether this painter should listen to viewport transform updates.
+  ///
+  /// Disabled when there are no interaction visuals, avoiding redundant
+  /// repaint scheduling while panning an otherwise idle canvas.
+  final bool listenToTransform;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -218,6 +256,17 @@ class InteractionLayerPainter<T> extends CustomPainter {
         targetNodeBounds = temp.startNodeBounds;
       }
 
+      ConnectionStyle? overrideStyle;
+      if (startNode != null && startPort != null) {
+        overrideStyle = temporaryStyleResolver?.call(
+          temp,
+          startNode,
+          startPort,
+          hoveredNode,
+          hoveredPort,
+        );
+      }
+
       controller.connectionPainter.paintTemporaryConnection(
         canvas,
         sourcePoint,
@@ -226,6 +275,7 @@ class InteractionLayerPainter<T> extends CustomPainter {
         targetPort: targetPort,
         sourceNodeBounds: sourceNodeBounds,
         targetNodeBounds: targetNodeBounds,
+        overrideStyle: overrideStyle,
         animationValue: animation?.value,
       );
     }
@@ -259,6 +309,7 @@ class InteractionLayerPainter<T> extends CustomPainter {
       return true;
     }
 
-    return selectionRect != oldDelegate.selectionRect;
+    return selectionRect != oldDelegate.selectionRect ||
+        listenToTransform != oldDelegate.listenToTransform;
   }
 }

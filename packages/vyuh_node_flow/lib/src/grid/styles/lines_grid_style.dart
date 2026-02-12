@@ -22,6 +22,7 @@ class LinesGridStyle extends GridStyle {
   ) {
     final paint = createGridPaint(theme);
     final gridSize = theme.gridTheme.size;
+    final path = Path();
 
     // Calculate grid-aligned start positions
     final startX = (gridArea.left / gridSize).floor() * gridSize;
@@ -29,20 +30,18 @@ class LinesGridStyle extends GridStyle {
 
     // Draw vertical lines
     for (double x = startX; x <= gridArea.right; x += gridSize) {
-      canvas.drawLine(
-        Offset(x, gridArea.top),
-        Offset(x, gridArea.bottom),
-        paint,
-      );
+      path
+        ..moveTo(x, gridArea.top)
+        ..lineTo(x, gridArea.bottom);
     }
 
     // Draw horizontal lines
     for (double y = startY; y <= gridArea.bottom; y += gridSize) {
-      canvas.drawLine(
-        Offset(gridArea.left, y),
-        Offset(gridArea.right, y),
-        paint,
-      );
+      path
+        ..moveTo(gridArea.left, y)
+        ..lineTo(gridArea.right, y);
     }
+
+    canvas.drawPath(path, paint);
   }
 }

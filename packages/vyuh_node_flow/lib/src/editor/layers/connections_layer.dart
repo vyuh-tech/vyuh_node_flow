@@ -138,6 +138,7 @@ class ConnectionsLayer<T, C> extends StatelessWidget {
                 selectedIds: controller.selectedConnectionIds,
                 animation: animation,
                 connectionStyleBuilder: connectionStyleBuilder,
+                useDrawOnlyPathCache: true,
               ),
               size: Size.infinite,
             );

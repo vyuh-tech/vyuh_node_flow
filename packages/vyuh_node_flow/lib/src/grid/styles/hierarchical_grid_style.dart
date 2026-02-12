@@ -40,6 +40,8 @@ class HierarchicalGridStyle extends GridStyle {
       ..color = gridTheme.color
       ..strokeWidth = gridTheme.thickness * 2
       ..style = PaintingStyle.stroke;
+    final minorPath = Path();
+    final majorPath = Path();
 
     // Calculate grid-aligned start positions for minor grid
     final minorStartX = (gridArea.left / gridSize).floor() * gridSize;
@@ -51,36 +53,31 @@ class HierarchicalGridStyle extends GridStyle {
 
     // Draw minor grid lines
     for (double x = minorStartX; x <= gridArea.right; x += gridSize) {
-      canvas.drawLine(
-        Offset(x, gridArea.top),
-        Offset(x, gridArea.bottom),
-        minorPaint,
-      );
+      minorPath
+        ..moveTo(x, gridArea.top)
+        ..lineTo(x, gridArea.bottom);
     }
 
     for (double y = minorStartY; y <= gridArea.bottom; y += gridSize) {
-      canvas.drawLine(
-        Offset(gridArea.left, y),
-        Offset(gridArea.right, y),
-        minorPaint,
-      );
+      minorPath
+        ..moveTo(gridArea.left, y)
+        ..lineTo(gridArea.right, y);
     }
 
     // Draw major grid lines (on top of minor lines)
     for (double x = majorStartX; x <= gridArea.right; x += majorGridSize) {
-      canvas.drawLine(
-        Offset(x, gridArea.top),
-        Offset(x, gridArea.bottom),
-        majorPaint,
-      );
+      majorPath
+        ..moveTo(x, gridArea.top)
+        ..lineTo(x, gridArea.bottom);
     }
 
     for (double y = majorStartY; y <= gridArea.bottom; y += majorGridSize) {
-      canvas.drawLine(
-        Offset(gridArea.left, y),
-        Offset(gridArea.right, y),
-        majorPaint,
-      );
+      majorPath
+        ..moveTo(gridArea.left, y)
+        ..lineTo(gridArea.right, y);
     }
+
+    canvas.drawPath(minorPath, minorPaint);
+    canvas.drawPath(majorPath, majorPaint);
   }
 }

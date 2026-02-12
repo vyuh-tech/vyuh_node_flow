@@ -36,6 +36,18 @@ extension _HitTestingExtension<T, C> on _NodeFlowEditorState<T, C> {
 
   /// Handles mouse hover events, updating cursor and firing enter/leave events.
   void _handleMouseHover(PointerHoverEvent event) {
+    // During viewport pan/zoom, skip hover hit testing entirely.
+    // This avoids expensive spatial hit tests while the scene is moving.
+    if (widget.controller.interaction.isViewportDragging) {
+      if (_lastHoverHitType != null) {
+        _fireMouseLeaveEvent();
+        _lastHoverHitType = null;
+        _lastHoveredEntityId = null;
+      }
+      widget.controller.interaction.setHoveringConnection(false);
+      return;
+    }
+
     // Check shift key state for selection mode cursor
     final isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
     if (isShiftPressed != _isShiftPressed) {
@@ -43,11 +55,13 @@ extension _HitTestingExtension<T, C> on _NodeFlowEditorState<T, C> {
       widget.controller.interaction.setSelectionStarted(_isShiftPressed);
     }
 
-    // Update mouse position in world coordinates for debug visualization
-    final worldPosition = widget.controller.viewport.toGraph(
-      ScreenPosition(event.localPosition),
-    );
-    widget.controller.setMousePositionWorld(worldPosition);
+    // Update mouse position in world coordinates only for spatial-index debug.
+    if (_shouldTrackMouseWorldPosition) {
+      final worldPosition = widget.controller.viewport.toGraph(
+        ScreenPosition(event.localPosition),
+      );
+      widget.controller.setMousePositionWorld(worldPosition);
+    }
 
     final hitResult = _performHitTest(event.localPosition);
 

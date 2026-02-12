@@ -33,10 +33,12 @@ class CrossGridStyle extends GridStyle {
 
     // Create paint for the crosses
     final paint = createGridPaint(theme)
-      ..strokeWidth = gridTheme.thickness.clamp(0.5, 1.5);
+      ..strokeWidth = gridTheme.thickness.clamp(0.5, 1.5).toDouble();
 
     // Calculate arm length
-    final armLength = crossSize ?? (gridTheme.thickness * 3).clamp(2.0, 6.0);
+    final armLength =
+        crossSize ?? (gridTheme.thickness * 3).clamp(2.0, 6.0).toDouble();
+    final path = Path();
 
     // Calculate grid-aligned start positions
     final startX = (gridArea.left / gridSize).floor() * gridSize;
@@ -45,20 +47,18 @@ class CrossGridStyle extends GridStyle {
     // Draw crosses at each grid intersection
     for (double x = startX; x <= gridArea.right; x += gridSize) {
       for (double y = startY; y <= gridArea.bottom; y += gridSize) {
-        // Draw horizontal arm
-        canvas.drawLine(
-          Offset(x - armLength, y),
-          Offset(x + armLength, y),
-          paint,
-        );
+        // Horizontal arm
+        path
+          ..moveTo(x - armLength, y)
+          ..lineTo(x + armLength, y);
 
-        // Draw vertical arm
-        canvas.drawLine(
-          Offset(x, y - armLength),
-          Offset(x, y + armLength),
-          paint,
-        );
+        // Vertical arm
+        path
+          ..moveTo(x, y - armLength)
+          ..lineTo(x, y + armLength);
       }
     }
+
+    canvas.drawPath(path, paint);
   }
 }

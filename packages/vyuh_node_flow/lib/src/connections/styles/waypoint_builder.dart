@@ -4,6 +4,7 @@ import 'dart:ui';
 import '../../ports/port.dart';
 import 'connection_style_base.dart';
 import 'path_segments.dart';
+import 'waypoint_builder_segment_ops.dart';
 
 // Re-export segment types for convenience
 export 'path_segments.dart';
@@ -249,7 +250,6 @@ class WaypointBuilder {
         startExtended: startExtended,
         endExtended: endExtended,
         sourcePosition: sourcePosition,
-        targetPosition: targetPosition,
       );
     }
 
@@ -387,7 +387,6 @@ class WaypointBuilder {
       startExtended,
       endExtended,
       sourcePosition,
-      targetPosition,
     );
 
     // Check if the L-shape path would cross any node bounds
@@ -410,7 +409,6 @@ class WaypointBuilder {
       startExtended: startExtended,
       endExtended: endExtended,
       sourcePosition: sourcePosition,
-      targetPosition: targetPosition,
     );
   }
 
@@ -419,7 +417,6 @@ class WaypointBuilder {
     required Offset startExtended,
     required Offset endExtended,
     required PortPosition sourcePosition,
-    required PortPosition targetPosition,
   }) {
     // Check clearance based on source port position
     final hasHorizontalClearance = switch (sourcePosition) {
@@ -462,7 +459,6 @@ class WaypointBuilder {
     Offset startExtended,
     Offset endExtended,
     PortPosition sourcePosition,
-    PortPosition targetPosition,
   ) {
     // For horizontal source ports, corner is at (startExtended.dx, endExtended.dy)
     // For vertical source ports, corner is at (endExtended.dx, startExtended.dy)
@@ -481,13 +477,11 @@ class WaypointBuilder {
     required Offset startExtended,
     required Offset endExtended,
     required PortPosition sourcePosition,
-    required PortPosition targetPosition,
   }) {
     final cornerPoint = _getLShapeCorner(
       startExtended,
       endExtended,
       sourcePosition,
-      targetPosition,
     );
 
     return [start, startExtended, cornerPoint, endExtended, end];
@@ -747,12 +741,17 @@ class WaypointBuilder {
         );
 
         if (zCurveIntersects) {
-          // Z-curve would intersect - route around (above or below)
-          // Use union bounds center to determine direction - takes shorter path
-          final routeAbove = start.dy < unionBounds.center.dy;
-          final routeY = routeAbove
-              ? unionBounds.top - backEdgeGap
-              : unionBounds.bottom + backEdgeGap;
+          // Z-curve would intersect - route around (above or below).
+          // Choose the cleaner route by minimizing orthogonal travel distance.
+          final aboveY = unionBounds.top - backEdgeGap;
+          final belowY = unionBounds.bottom + backEdgeGap;
+          final aboveCost =
+              (startExtended.dy - aboveY).abs() +
+              (endExtended.dy - aboveY).abs();
+          final belowCost =
+              (startExtended.dy - belowY).abs() +
+              (endExtended.dy - belowY).abs();
+          final routeY = aboveCost <= belowCost ? aboveY : belowY;
           return [
             start,
             startExtended,
@@ -829,12 +828,16 @@ class WaypointBuilder {
         );
 
         if (zCurveIntersects) {
-          // Z-curve would intersect - route around (left or right)
-          // Use union bounds center to determine direction - takes shorter path
-          final routeLeft = start.dx < unionBounds.center.dx;
-          final routeX = routeLeft
-              ? unionBounds.left - backEdgeGap
-              : unionBounds.right + backEdgeGap;
+          // Z-curve would intersect - route around (left or right).
+          // Choose the cleaner route by minimizing orthogonal travel distance.
+          final leftX = unionBounds.left - backEdgeGap;
+          final rightX = unionBounds.right + backEdgeGap;
+          final leftCost =
+              (startExtended.dx - leftX).abs() + (endExtended.dx - leftX).abs();
+          final rightCost =
+              (startExtended.dx - rightX).abs() +
+              (endExtended.dx - rightX).abs();
+          final routeX = leftCost <= rightCost ? leftX : rightX;
           return [
             start,
             startExtended,
@@ -961,19 +964,12 @@ class WaypointBuilder {
         startExtended: startExtended,
         endExtended: endExtended,
         sourcePosition: sourcePosition,
-        targetPosition: targetPosition,
       );
     }
 
     // Determine the best direction to route around the union
     final direction = _determineLoopbackDirection(
-      start: start,
-      end: end,
-      startExtended: startExtended,
-      endExtended: endExtended,
-      sourcePosition: sourcePosition,
       targetPosition: targetPosition,
-      unionBounds: unionBounds,
     );
 
     return _routeAroundBounds(
@@ -997,13 +993,7 @@ class WaypointBuilder {
   ///
   /// When both source and target allow flexibility, we choose based on position.
   static LoopbackDirection _determineLoopbackDirection({
-    required Offset start,
-    required Offset end,
-    required Offset startExtended,
-    required Offset endExtended,
-    required PortPosition sourcePosition,
     required PortPosition targetPosition,
-    required Rect unionBounds,
   }) {
     // TARGET port direction is a hard constraint - the connection must approach
     // from the direction the port faces. This ensures connections never cross
@@ -1085,7 +1075,6 @@ class WaypointBuilder {
     required Offset startExtended,
     required Offset endExtended,
     required PortPosition sourcePosition,
-    required PortPosition targetPosition,
   }) {
     // Use midpoint-based routing as fallback
     final isHorizontalSource =
@@ -1204,19 +1193,30 @@ class WaypointBuilder {
 
   /// Optimizes waypoints by removing collinear intermediate points.
   static List<Offset> optimizeWaypoints(List<Offset> waypoints) {
-    if (waypoints.length <= 2) return waypoints;
+    final length = waypoints.length;
+    if (length <= 2) return waypoints;
 
-    final optimized = <Offset>[waypoints.first];
+    List<Offset>? optimized;
+    var previousKept = waypoints.first;
 
-    for (int i = 1; i < waypoints.length - 1; i++) {
-      final prev = optimized.last;
+    for (int i = 1; i < length - 1; i++) {
       final current = waypoints[i];
       final next = waypoints[i + 1];
+      final isRedundant = _isCollinear(previousKept, current, next);
 
-      // Check if current point is NOT collinear with prev and next
-      if (!_isCollinear(prev, current, next)) {
+      if (isRedundant) {
+        optimized ??= waypoints.sublist(0, i);
+        continue;
+      }
+
+      if (optimized != null) {
         optimized.add(current);
       }
+      previousKept = current;
+    }
+
+    if (optimized == null) {
+      return waypoints;
     }
 
     optimized.add(waypoints.last);
@@ -1241,391 +1241,64 @@ class WaypointBuilder {
   }
 
   // ============================================================
-  // Path Generation from Waypoints
+  // Segment/Path Delegates
   // ============================================================
 
-  /// Generates a Path from waypoints with optional rounded corners.
-  ///
-  /// This is the central path generation method that all connection styles
-  /// can use for waypoint-based paths (loopback, step, etc.).
-  ///
-  /// Parameters:
-  /// - [waypoints]: The list of points the path passes through
-  /// - [cornerRadius]: Radius for rounding corners (0 for sharp corners)
+  /// Generates a [Path] from waypoints with optional rounded corners.
   static Path generatePathFromWaypoints(
     List<Offset> waypoints, {
     double cornerRadius = 0,
   }) {
-    if (waypoints.length < 2) {
-      return Path();
-    }
-
-    final path = Path();
-    path.moveTo(waypoints.first.dx, waypoints.first.dy);
-
-    if (waypoints.length == 2) {
-      path.lineTo(waypoints.last.dx, waypoints.last.dy);
-      return path;
-    }
-
-    // If corner radius is 0, just draw straight lines
-    if (cornerRadius == 0) {
-      for (int i = 1; i < waypoints.length; i++) {
-        path.lineTo(waypoints[i].dx, waypoints[i].dy);
-      }
-      return path;
-    }
-
-    // Draw path with rounded corners at waypoints
-    for (int i = 1; i < waypoints.length - 1; i++) {
-      final prev = waypoints[i - 1];
-      final current = waypoints[i];
-      final next = waypoints[i + 1];
-
-      // Calculate vectors
-      final incomingVector = current - prev;
-      final outgoingVector = next - current;
-
-      // Skip if vectors are zero (duplicate points)
-      if (incomingVector.distance < 0.01 || outgoingVector.distance < 0.01) {
-        path.lineTo(current.dx, current.dy);
-        continue;
-      }
-
-      // Check if this is a corner (perpendicular segments)
-      final incomingHorizontal = incomingVector.dy.abs() < 0.01;
-      final incomingVertical = incomingVector.dx.abs() < 0.01;
-      final outgoingHorizontal = outgoingVector.dy.abs() < 0.01;
-      final outgoingVertical = outgoingVector.dx.abs() < 0.01;
-
-      // Only round corners between perpendicular segments
-      if ((incomingHorizontal && outgoingVertical) ||
-          (incomingVertical && outgoingHorizontal)) {
-        final incomingDistance = incomingVector.distance;
-        final outgoingDistance = outgoingVector.distance;
-
-        // Adapt corner radius to available space
-        final maxRadius = math.min(incomingDistance / 2, outgoingDistance / 2);
-        final actualRadius = math.min(cornerRadius, maxRadius);
-
-        if (actualRadius < 1.0) {
-          path.lineTo(current.dx, current.dy);
-          continue;
-        }
-
-        // Calculate unit vectors
-        final incomingDirection = incomingVector / incomingDistance;
-        final outgoingDirection = outgoingVector / outgoingDistance;
-
-        // Calculate corner start and end points
-        final cornerStart = current - (incomingDirection * actualRadius);
-        final cornerEnd = current + (outgoingDirection * actualRadius);
-
-        // Draw line to corner start
-        path.lineTo(cornerStart.dx, cornerStart.dy);
-
-        // Draw quadratic bezier curve for the corner
-        path.quadraticBezierTo(
-          current.dx,
-          current.dy,
-          cornerEnd.dx,
-          cornerEnd.dy,
-        );
-      } else {
-        // Not a perpendicular corner, just draw straight line
-        path.lineTo(current.dx, current.dy);
-      }
-    }
-
-    // Draw line to the last point
-    path.lineTo(waypoints.last.dx, waypoints.last.dy);
-
-    return path;
+    return WaypointSegmentOps.generatePathFromWaypoints(
+      waypoints,
+      cornerRadius: cornerRadius,
+    );
   }
 
-  // ============================================================
-  // Hit Test Segment Generation
-  // ============================================================
-
-  /// Generates hit test segments from waypoints.
-  ///
-  /// For waypoint-based paths (step, loopback), the hit test segments
-  /// are simple axis-aligned rectangles around each straight segment.
-  /// This is much more efficient than curve sampling.
-  ///
-  /// Parameters:
-  /// - [waypoints]: The list of waypoints
-  /// - [tolerance]: The hit test tolerance (rectangle will extend this far)
+  /// Generates hit test rectangles from waypoint polylines.
   static List<Rect> generateHitTestSegments(
     List<Offset> waypoints,
     double tolerance,
   ) {
-    if (waypoints.length < 2) return [];
-
-    // Merge collinear segments to minimize rectangle count
-    final mergedSegments = _mergeCollinearSegments(waypoints);
-
-    return mergedSegments.map((segment) {
-      return Rect.fromLTRB(
-        math.min(segment.start.dx, segment.end.dx) - tolerance,
-        math.min(segment.start.dy, segment.end.dy) - tolerance,
-        math.max(segment.start.dx, segment.end.dx) + tolerance,
-        math.max(segment.start.dy, segment.end.dy) + tolerance,
-      );
-    }).toList();
+    return WaypointSegmentOps.generateHitTestSegments(waypoints, tolerance);
   }
-
-  /// Merges consecutive collinear segments to reduce rectangle count.
-  ///
-  /// For example: [A→B→C] where A, B, C are on same line becomes [A→C]
-  static List<({Offset start, Offset end})> _mergeCollinearSegments(
-    List<Offset> waypoints,
-  ) {
-    if (waypoints.length < 2) return [];
-
-    final segments = <({Offset start, Offset end})>[];
-    Offset segmentStart = waypoints[0];
-
-    for (int i = 1; i < waypoints.length; i++) {
-      final current = waypoints[i];
-      bool shouldEndSegment = (i == waypoints.length - 1);
-
-      if (!shouldEndSegment && i < waypoints.length - 1) {
-        final next = waypoints[i + 1];
-
-        final currentVector = current - segmentStart;
-        final nextVector = next - current;
-
-        final currentIsHorizontal = currentVector.dy.abs() < 0.5;
-        final currentIsVertical = currentVector.dx.abs() < 0.5;
-        final nextIsHorizontal = nextVector.dy.abs() < 0.5;
-        final nextIsVertical = nextVector.dx.abs() < 0.5;
-
-        // If direction changes, end this segment
-        shouldEndSegment =
-            (currentIsHorizontal != nextIsHorizontal) ||
-            (currentIsVertical != nextIsVertical);
-      }
-
-      if (shouldEndSegment) {
-        segments.add((start: segmentStart, end: current));
-        segmentStart = current;
-      }
-    }
-
-    return segments;
-  }
-
-  // ============================================================
-  // Segment-Based Path Generation
-  // ============================================================
 
   /// Generates a [Path] from a list of [PathSegment]s.
-  ///
-  /// This is the core method for building paths from segment primitives.
-  /// Each segment type is handled according to its definition:
-  /// - [StraightSegment]: `lineTo`
-  /// - [QuadraticSegment]: `quadraticBezierTo`
-  /// - [CubicSegment]: `cubicTo`
-  ///
-  /// ## Example
-  /// ```dart
-  /// final path = WaypointBuilder.generatePathFromSegments(
-  ///   start: Offset(0, 0),
-  ///   segments: [
-  ///     StraightSegment(end: Offset(50, 0)),
-  ///     QuadraticSegment(controlPoint: Offset(60, 0), end: Offset(60, 10)),
-  ///     StraightSegment(end: Offset(60, 100)),
-  ///   ],
-  /// );
-  /// ```
   static Path generatePathFromSegments({
     required Offset start,
     required List<PathSegment> segments,
   }) {
-    final path = Path();
-    path.moveTo(start.dx, start.dy);
-
-    for (final segment in segments) {
-      switch (segment) {
-        case StraightSegment():
-          path.lineTo(segment.end.dx, segment.end.dy);
-        case QuadraticSegment():
-          path.quadraticBezierTo(
-            segment.controlPoint.dx,
-            segment.controlPoint.dy,
-            segment.end.dx,
-            segment.end.dy,
-          );
-        case CubicSegment():
-          path.cubicTo(
-            segment.controlPoint1.dx,
-            segment.controlPoint1.dy,
-            segment.controlPoint2.dx,
-            segment.controlPoint2.dy,
-            segment.end.dx,
-            segment.end.dy,
-          );
-      }
-    }
-
-    return path;
+    return WaypointSegmentOps.generatePathFromSegments(
+      start: start,
+      segments: segments,
+    );
   }
 
-  // ============================================================
-  // Segment-Based Hit Test Generation
-  // ============================================================
-
-  /// Generates hit test rectangles from a list of [PathSegment]s.
-  ///
-  /// Different segment types have different hit test strategies:
-  /// - [StraightSegment]: Single rectangle around the line
-  /// - [QuadraticSegment]: Sample points along the curve
-  /// - [CubicSegment]: Sample points along the curve
-  ///
-  /// This method ensures tight hit test areas that follow the actual
-  /// path geometry, minimizing false positives from oversized rectangles.
-  ///
-  /// Parameters:
-  /// - [start]: The starting point of the path
-  /// - [segments]: The list of path segments
-  /// - [tolerance]: The hit test tolerance (rectangles extend this far from path)
+  /// Generates hit test rectangles from [PathSegment]s.
   static List<Rect> generateHitTestFromSegments({
     required Offset start,
     required List<PathSegment> segments,
     required double tolerance,
   }) {
-    if (segments.isEmpty) return [];
-
-    final hitRects = <Rect>[];
-    Offset currentPoint = start;
-
-    for (final segment in segments) {
-      // Each segment knows how to generate its own hit test rectangles
-      hitRects.addAll(segment.getHitTestRects(currentPoint, tolerance));
-      currentPoint = segment.end;
-    }
-
-    return hitRects;
+    return WaypointSegmentOps.generateHitTestFromSegments(
+      start: start,
+      segments: segments,
+      tolerance: tolerance,
+    );
   }
 
-  // ============================================================
-  // Segment Builders - Convert Waypoints to Segments
-  // ============================================================
-
-  /// Converts waypoints to path segments with optional rounded corners.
-  ///
-  /// This method transforms a list of waypoints into [PathSegment]s,
-  /// inserting [QuadraticSegment]s at corners when [cornerRadius] > 0.
-  ///
-  /// This is useful for step/smoothstep styles that use waypoint-based
-  /// routing but want the flexibility of the segment-based API.
-  ///
-  /// Parameters:
-  /// - [waypoints]: The list of points to convert
-  /// - [cornerRadius]: Radius for rounded corners (0 for sharp corners)
+  /// Converts waypoints to drawable path segments.
   static List<PathSegment> waypointsToSegments(
     List<Offset> waypoints, {
     double cornerRadius = 0,
   }) {
-    if (waypoints.length < 2) return [];
-
-    final segments = <PathSegment>[];
-
-    if (waypoints.length == 2) {
-      segments.add(StraightSegment(end: waypoints[1]));
-      return segments;
-    }
-
-    // No corner radius - all straight segments
-    if (cornerRadius <= 0) {
-      for (int i = 1; i < waypoints.length; i++) {
-        segments.add(StraightSegment(end: waypoints[i]));
-      }
-      return segments;
-    }
-
-    // Build segments with rounded corners
-    for (int i = 1; i < waypoints.length - 1; i++) {
-      final prev = i == 1 ? waypoints[0] : segments.last.end;
-      final current = waypoints[i];
-      final next = waypoints[i + 1];
-
-      // Calculate vectors
-      final incomingVector = current - prev;
-      final outgoingVector = next - current;
-
-      // Skip if vectors are too short
-      if (incomingVector.distance < 0.01 || outgoingVector.distance < 0.01) {
-        segments.add(StraightSegment(end: current));
-        continue;
-      }
-
-      // Check if this is a perpendicular corner
-      final incomingHorizontal = incomingVector.dy.abs() < 0.01;
-      final incomingVertical = incomingVector.dx.abs() < 0.01;
-      final outgoingHorizontal = outgoingVector.dy.abs() < 0.01;
-      final outgoingVertical = outgoingVector.dx.abs() < 0.01;
-
-      if ((incomingHorizontal && outgoingVertical) ||
-          (incomingVertical && outgoingHorizontal)) {
-        // Calculate corner radius that fits available space
-        final maxRadius = math.min(
-          incomingVector.distance / 2,
-          outgoingVector.distance / 2,
-        );
-        final actualRadius = math.min(cornerRadius, maxRadius);
-
-        if (actualRadius < 1.0) {
-          segments.add(StraightSegment(end: current));
-          continue;
-        }
-
-        // Calculate corner start and end
-        final inDir = incomingVector / incomingVector.distance;
-        final outDir = outgoingVector / outgoingVector.distance;
-        final cornerStart = current - (inDir * actualRadius);
-        final cornerEnd = current + (outDir * actualRadius);
-
-        // Add straight segment to corner start
-        segments.add(StraightSegment(end: cornerStart));
-
-        // Add quadratic curve for the corner
-        // Skip hit test rects - corner is already covered by adjacent straight segments
-        segments.add(
-          QuadraticSegment(
-            controlPoint: current,
-            end: cornerEnd,
-            generateHitTestRects: false,
-          ),
-        );
-      } else {
-        // Not a perpendicular corner - straight line
-        segments.add(StraightSegment(end: current));
-      }
-    }
-
-    // Add final segment
-    segments.add(StraightSegment(end: waypoints.last));
-
-    return segments;
+    return WaypointSegmentOps.waypointsToSegments(
+      waypoints,
+      cornerRadius: cornerRadius,
+    );
   }
 
-  /// Creates a single cubic bezier segment for a forward connection.
-  ///
-  /// This is a convenience method for styles that use cubic bezier curves
-  /// for forward (non-loopback) connections.
-  ///
-  /// Parameters:
-  /// - [start]: The start point
-  /// - [end]: The end point
-  /// - [sourcePosition]: The position of the source port
-  /// - [targetPosition]: The position of the target port
-  /// - [curvature]: How curved the connection should be (0-1)
-  /// - [portExtension]: The default minimum extension from the port
-  /// - [sourceExtension]: Extension for source control point (null = use portExtension)
-  /// - [targetExtension]: Extension for target control point (null = use portExtension).
-  ///   Set to 0 for temporary connections where target is mouse position.
+  /// Creates a cubic bezier segment for forward (non-loopback) connections.
   static CubicSegment createBezierSegment({
     required Offset start,
     required Offset end,
@@ -1636,79 +1309,15 @@ class WaypointBuilder {
     double? sourceExtension,
     double? targetExtension,
   }) {
-    // Use specific extensions if provided, otherwise use default
-    final effectiveSourceExtension = sourceExtension ?? portExtension;
-    final effectiveTargetExtension = targetExtension ?? portExtension;
-
-    // Calculate control points based on port positions
-    final cp1 = _calculateBezierControlPoint(
-      anchor: start,
-      target: end,
-      position: sourcePosition,
-      curvature: curvature,
-      portExtension: effectiveSourceExtension,
-    );
-
-    final cp2 = _calculateBezierControlPoint(
-      anchor: end,
-      target: start,
-      position: targetPosition,
-      curvature: curvature,
-      portExtension: effectiveTargetExtension,
-    );
-
-    return CubicSegment(
-      controlPoint1: cp1,
-      controlPoint2: cp2,
+    return WaypointSegmentOps.createBezierSegment(
+      start: start,
       end: end,
+      sourcePosition: sourcePosition,
+      targetPosition: targetPosition,
       curvature: curvature,
+      portExtension: portExtension,
+      sourceExtension: sourceExtension,
+      targetExtension: targetExtension,
     );
-  }
-
-  /// Calculates a bezier control point for a port.
-  ///
-  /// Matches React Flow's bezier calculation:
-  /// offset = |distance| * curvature
-  ///
-  /// For horizontal ports, offset is based on horizontal distance.
-  /// For vertical ports, offset is based on vertical distance.
-  static Offset _calculateBezierControlPoint({
-    required Offset anchor,
-    required Offset target,
-    required PortPosition position,
-    required double curvature,
-    required double portExtension,
-  }) {
-    // React Flow style: offset = |distance| * curvature
-    // portExtension ensures minimum offset for very close nodes
-    switch (position) {
-      case PortPosition.right:
-        final offset = math.max(
-          portExtension,
-          (target.dx - anchor.dx).abs() * curvature,
-        );
-        return Offset(anchor.dx + offset, anchor.dy);
-
-      case PortPosition.left:
-        final offset = math.max(
-          portExtension,
-          (target.dx - anchor.dx).abs() * curvature,
-        );
-        return Offset(anchor.dx - offset, anchor.dy);
-
-      case PortPosition.bottom:
-        final offset = math.max(
-          portExtension,
-          (target.dy - anchor.dy).abs() * curvature,
-        );
-        return Offset(anchor.dx, anchor.dy + offset);
-
-      case PortPosition.top:
-        final offset = math.max(
-          portExtension,
-          (target.dy - anchor.dy).abs() * curvature,
-        );
-        return Offset(anchor.dx, anchor.dy - offset);
-    }
   }
 }
