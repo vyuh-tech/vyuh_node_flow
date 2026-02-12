@@ -1,3 +1,7 @@
+## 0.28.1
+
+ - **FEAT**: remove viewport sync policy and optimize grid rendering logic.
+
 ## 0.28.0
 
  - **FEAT**: improve panning and connection performance.
