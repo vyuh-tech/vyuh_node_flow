@@ -1,3 +1,7 @@
+## 0.28.0
+
+ - **FEAT**: improve panning and connection performance.
+
 ## 0.27.2
 
  - **FEAT**(mixins): export `GroupableMixin` and `ResizableMixin`, update footer/trailing null checks.
