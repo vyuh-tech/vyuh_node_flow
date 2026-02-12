@@ -300,7 +300,7 @@ extension EditorInitApi<T, C> on NodeFlowController<T, C> {
       Set<String> connectionIds,
     ) {
       // Rebuild connection-by-node index
-      _rebuildConnectionsByNodeIndex();
+      _rebuildConnectionIndexes();
       // Rebuild connection spatial index with proper segments
       rebuildAllConnectionSegments();
     }, fireImmediately: false);

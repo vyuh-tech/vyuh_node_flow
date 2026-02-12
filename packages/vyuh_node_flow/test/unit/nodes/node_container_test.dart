@@ -73,39 +73,6 @@ void main() {
       expect(container.portSnapDistance, equals(12.0));
     });
 
-    test('creates container with empty connections list by default', () {
-      final node = createTestNode();
-      final controller = createTestController();
-
-      final container = NodeContainer<String>(
-        node: node,
-        controller: controller,
-        child: const SizedBox(),
-      );
-
-      expect(container.connections, isEmpty);
-    });
-
-    test('creates container with connections list', () {
-      final node = createTestNodeWithPorts(id: 'node-a');
-      final nodeB = createTestNodeWithPorts(id: 'node-b');
-      final controller = createTestController(nodes: [node, nodeB]);
-      final connection = createTestConnection(
-        sourceNodeId: 'node-a',
-        targetNodeId: 'node-b',
-      );
-
-      final container = NodeContainer<String>(
-        node: node,
-        controller: controller,
-        connections: [connection],
-        child: const SizedBox(),
-      );
-
-      expect(container.connections.length, equals(1));
-      expect(container.connections.first.sourceNodeId, equals('node-a'));
-    });
-
     test('creates container with optional shape', () {
       final node = createTestNode();
       final controller = createTestController();
@@ -303,10 +270,10 @@ void main() {
   });
 
   // ==========================================================================
-  // Port Connection Checking Tests
+  // Port Connection Index Tests
   // ==========================================================================
-  group('Port Connection Detection', () {
-    test('_isPortConnected returns true for connected output port', () {
+  group('Port Connection Index', () {
+    test('controller indexes connected output port', () {
       final node = createTestNodeWithOutputPort(id: 'node-a', portId: 'out-1');
       final nodeB = createTestNodeWithInputPort(id: 'node-b', portId: 'in-1');
       final controller = createTestController(nodes: [node, nodeB]);
@@ -317,25 +284,16 @@ void main() {
         targetPortId: 'in-1',
       );
 
-      final container = NodeContainer<String>(
-        node: node,
-        controller: controller,
-        connections: [connection],
-        child: const SizedBox(),
-      );
+      controller.addConnection(connection);
 
-      // Use reflection or testing helper to access private method
-      // Since _isPortConnected is private, we test indirectly through behavior
-      expect(container.connections.length, equals(1));
       expect(
-        container.connections.any(
-          (c) => c.sourceNodeId == 'node-a' && c.sourcePortId == 'out-1',
-        ),
+        controller.hasOutgoingConnectionsFromPort('node-a', 'out-1'),
         isTrue,
       );
+      expect(controller.hasConnectionsForPort('node-a', 'out-1'), isTrue);
     });
 
-    test('_isPortConnected returns true for connected input port', () {
+    test('controller indexes connected input port', () {
       final nodeA = createTestNodeWithOutputPort(id: 'node-a', portId: 'out-1');
       final node = createTestNodeWithInputPort(id: 'node-b', portId: 'in-1');
       final controller = createTestController(nodes: [nodeA, node]);
@@ -346,22 +304,13 @@ void main() {
         targetPortId: 'in-1',
       );
 
-      final container = NodeContainer<String>(
-        node: node,
-        controller: controller,
-        connections: [connection],
-        child: const SizedBox(),
-      );
+      controller.addConnection(connection);
 
-      expect(
-        container.connections.any(
-          (c) => c.targetNodeId == 'node-b' && c.targetPortId == 'in-1',
-        ),
-        isTrue,
-      );
+      expect(controller.hasIncomingConnectionsToPort('node-b', 'in-1'), isTrue);
+      expect(controller.hasConnectionsForPort('node-b', 'in-1'), isTrue);
     });
 
-    test('multiple connections can be tracked', () {
+    test('controller tracks multiple connected ports', () {
       final node = Node<String>(
         id: 'node-a',
         type: 'test',
@@ -391,14 +340,18 @@ void main() {
         ),
       ];
 
-      final container = NodeContainer<String>(
-        node: node,
-        controller: controller,
-        connections: connections,
-        child: const SizedBox(),
-      );
+      for (final connection in connections) {
+        controller.addConnection(connection);
+      }
 
-      expect(container.connections.length, equals(2));
+      expect(
+        controller.hasOutgoingConnectionsFromPort('node-a', 'out-1'),
+        isTrue,
+      );
+      expect(
+        controller.hasOutgoingConnectionsFromPort('node-a', 'out-2'),
+        isTrue,
+      );
     });
   });
 

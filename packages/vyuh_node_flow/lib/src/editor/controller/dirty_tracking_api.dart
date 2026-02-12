@@ -181,19 +181,6 @@ extension DirtyTrackingExtension<T, C> on NodeFlowController<T, C> {
     }
   }
 
-  /// Rebuilds the connection-by-node index for O(1) lookup.
-  void _rebuildConnectionsByNodeIndex() {
-    _connectionsByNodeId.clear();
-    for (final connection in _connections) {
-      _connectionsByNodeId
-          .putIfAbsent(connection.sourceNodeId, () => {})
-          .add(connection.id);
-      _connectionsByNodeId
-          .putIfAbsent(connection.targetNodeId, () => {})
-          .add(connection.id);
-    }
-  }
-
   /// Updates spatial index bounds for a single node's connections using proper segment bounds.
   void _updateConnectionBoundsForNode(String nodeId) {
     // Use the API method that calculates proper segment bounds from path cache

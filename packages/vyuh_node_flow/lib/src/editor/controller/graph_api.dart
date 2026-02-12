@@ -51,6 +51,7 @@ extension GraphApi<T, C> on NodeFlowController<T, C> {
         _nodes[node.id] = node;
       }
       _connections.addAll(graph.connections);
+      _rebuildConnectionIndexes();
 
       // Set viewport
       _viewport.value = graph.viewport;
@@ -118,6 +119,10 @@ extension GraphApi<T, C> on NodeFlowController<T, C> {
     runInAction(() {
       _nodes.clear();
       _connections.clear();
+      _connectionsByNodeId.clear();
+      _sourceConnectionCountByPortKey.clear();
+      _targetConnectionCountByPortKey.clear();
+      _connectionPairCountByPorts.clear();
       _selectedNodeIds.clear();
       _selectedConnectionIds.clear();
     });

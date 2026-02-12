@@ -204,6 +204,8 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
         _spatialIndex.removeConnection(connection.id);
         // Also remove from path cache to prevent stale rendering
         _connectionPainter?.removeConnectionFromCache(connection.id);
+        _selectedConnectionIds.remove(connection.id);
+        _deindexConnection(connection);
       }
 
       // Then remove from connections list
@@ -362,6 +364,8 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
     if (node == null) return;
 
     node.addPort(port);
+    // Keep spatial index in sync so newly added ports are immediately hit-testable.
+    markNodeDirty(nodeId);
   }
 
   /// Removes a port from a node and all connections involving that port.
@@ -389,6 +393,8 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
       for (final connection in connectionsToRemove) {
         _spatialIndex.removeConnection(connection.id);
         _connectionPainter?.removeConnectionFromCache(connection.id);
+        _selectedConnectionIds.remove(connection.id);
+        _deindexConnection(connection);
       }
 
       // Remove from connections list
@@ -401,6 +407,9 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
       // Remove the port using the node's dynamic method
       node.removePort(portId);
     });
+
+    // Refresh spatial node/port data immediately after port removal.
+    markNodeDirty(nodeId);
   }
 
   /// Sets the ports of a node.
@@ -423,6 +432,9 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
       node.ports.clear();
       node.ports.addAll(ports);
     });
+
+    // Reindex ports so hit testing reflects the new port set immediately.
+    markNodeDirty(nodeId);
   }
 
   // ============================================================================

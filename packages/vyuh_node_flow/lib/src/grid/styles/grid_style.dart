@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../editor/themes/node_flow_theme.dart';
 import '../../graph/viewport.dart';
+import 'grid_sampling_policy.dart';
 
 /// Abstract base class for all grid styles.
 ///
@@ -22,7 +23,7 @@ import '../../graph/viewport.dart';
 ///   void paintGrid(
 ///     Canvas canvas,
 ///     NodeFlowTheme theme,
-///     ({double left, double top, double right, double bottom}) gridArea,
+///     GridArea gridArea,
 ///   ) {
 ///     // Calculate style-specific positions and render
 ///     final gridSize = theme.gridTheme.size;
@@ -33,6 +34,8 @@ import '../../graph/viewport.dart';
 /// ```
 abstract class GridStyle {
   const GridStyle();
+
+  static const double _minZoomEpsilon = 1e-6;
 
   /// Paints the grid pattern on the canvas.
   ///
@@ -51,10 +54,11 @@ abstract class GridStyle {
     GraphViewport viewport,
   ) {
     final gridSize = theme.gridTheme.size;
-    if (gridSize <= 0) return;
+    if (!gridSize.isFinite || gridSize <= 0) return;
 
     // Calculate common parameters once
     final visibleArea = _calculateVisibleArea(viewport, size);
+    if (visibleArea == null) return;
     final gridArea = _calculateGridArea(visibleArea, gridSize);
 
     // Delegate to style-specific implementation
@@ -74,19 +78,29 @@ abstract class GridStyle {
   void paintGrid(
     Canvas canvas,
     NodeFlowTheme theme,
-    ({double left, double top, double right, double bottom}) gridArea,
+    GridArea gridArea,
   );
 
   /// Calculates the visible area in world coordinates.
   ///
   /// Transforms the screen viewport bounds to graph coordinates.
-  ({double left, double top, double right, double bottom})
-  _calculateVisibleArea(GraphViewport viewport, Size canvasSize) {
+  GridArea? _calculateVisibleArea(GraphViewport viewport, Size canvasSize) {
     final zoom = viewport.zoom;
+    if (!zoom.isFinite || zoom.abs() < _minZoomEpsilon) {
+      return null;
+    }
+
     final viewportLeft = -viewport.x / zoom;
     final viewportTop = -viewport.y / zoom;
     final viewportRight = viewportLeft + (canvasSize.width / zoom);
     final viewportBottom = viewportTop + (canvasSize.height / zoom);
+
+    if (!viewportLeft.isFinite ||
+        !viewportTop.isFinite ||
+        !viewportRight.isFinite ||
+        !viewportBottom.isFinite) {
+      return null;
+    }
 
     return (
       left: viewportLeft,
@@ -100,8 +114,8 @@ abstract class GridStyle {
   ///
   /// Extends the visible area by 2 grid cells to prevent grid elements from
   /// popping in/out during panning.
-  ({double left, double top, double right, double bottom}) _calculateGridArea(
-    ({double left, double top, double right, double bottom}) visibleArea,
+  GridArea _calculateGridArea(
+    GridArea visibleArea,
     double gridSize,
   ) {
     final padding = gridSize * 2.0;

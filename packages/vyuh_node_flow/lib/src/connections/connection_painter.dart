@@ -63,6 +63,7 @@ class ConnectionPainter {
     double? animationValue,
     bool skipEndpoints = false,
     ConnectionStyle? overrideStyle,
+    bool useDrawOnlyCache = false,
   }) {
     // Get effective path style:
     // 1. Use overrideStyle from builder (if provided)
@@ -71,13 +72,21 @@ class ConnectionPainter {
         overrideStyle ??
         connection.getEffectiveStyle(theme.connectionTheme.style);
 
-    // Get or create path using the cache with connection style
-    final path = _pathCache.getOrCreatePath(
-      connection: connection,
-      sourceNode: sourceNode,
-      targetNode: targetNode,
-      connectionStyle: effectiveStyle,
-    );
+    // Get or create path using either full cache (with hit data) or
+    // draw-only cache (without hit data) for interaction-heavy frames.
+    final path = useDrawOnlyCache
+        ? _pathCache.getOrCreateDrawPath(
+            connection: connection,
+            sourceNode: sourceNode,
+            targetNode: targetNode,
+            connectionStyle: effectiveStyle,
+          )
+        : _pathCache.getOrCreatePath(
+            connection: connection,
+            sourceNode: sourceNode,
+            targetNode: targetNode,
+            connectionStyle: effectiveStyle,
+          );
 
     if (path == null) {
       return; // Failed to create path
@@ -251,6 +260,7 @@ class ConnectionPainter {
     Port? targetPort,
     Rect? sourceNodeBounds,
     Rect? targetNodeBounds,
+    ConnectionStyle? overrideStyle,
     double? animationValue,
   }) {
     final connectionTheme = theme.temporaryConnectionTheme;
@@ -308,6 +318,7 @@ class ConnectionPainter {
       isSelected: false,
       isTemporary: true,
       drawTargetEndpoint: targetPort != null,
+      overrideStyle: overrideStyle,
       animationValue: animationValue,
     );
   }
@@ -358,13 +369,17 @@ class ConnectionPainter {
     bool isSelected = false,
     bool isTemporary = false,
     bool drawTargetEndpoint = true,
+    ConnectionStyle? overrideStyle,
     double? animationValue,
   }) {
     // Get theme components based on connection type
     final connectionTheme = isTemporary
         ? theme.temporaryConnectionTheme
         : theme.connectionTheme;
-    final connectionStyle = connectionTheme.style;
+    // Temporary edges should reflect the same geometry as final edges.
+    // Keep temporary visuals (color/dash/endpoints), but route with final theme params.
+    final routingTheme = isTemporary ? theme.connectionTheme : connectionTheme;
+    final connectionStyle = overrideStyle ?? routingTheme.style;
 
     // Create connection path parameters and generate path from segments
     // For temporary connections, sourceOffset/targetOffset computed properties
@@ -373,12 +388,12 @@ class ConnectionPainter {
     final pathParams = ConnectionPathParameters(
       start: source.linePos,
       end: target.linePos,
-      curvature: connectionTheme.bezierCurvature,
+      curvature: routingTheme.bezierCurvature,
       sourcePort: sourcePort,
       targetPort: targetPort,
-      cornerRadius: connectionTheme.cornerRadius,
-      offset: connectionTheme.portExtension,
-      backEdgeGap: connectionTheme.backEdgeGap,
+      cornerRadius: routingTheme.cornerRadius,
+      offset: routingTheme.portExtension,
+      backEdgeGap: routingTheme.backEdgeGap,
       sourceNodeBounds: sourceNodeBounds,
       targetNodeBounds: targetNodeBounds,
     );

@@ -4,6 +4,7 @@ import '../../editor/controller/node_flow_controller.dart';
 import '../events/events.dart';
 import '../node_flow_plugin.dart';
 import 'detail_visibility.dart';
+import 'lod_adaptive_policy.dart';
 
 /// Level of Detail (LOD) plugin that provides reactive visibility
 /// settings based on the viewport zoom level.
@@ -59,12 +60,24 @@ class LodPlugin extends NodeFlowPlugin {
     DetailVisibility minVisibility = DetailVisibility.minimal,
     DetailVisibility midVisibility = DetailVisibility.standard,
     DetailVisibility maxVisibility = DetailVisibility.full,
+    bool adaptiveEnabled = true,
+    int adaptiveNodeThreshold = 300,
+    int adaptiveConnectionThreshold = 500,
+    int adaptiveExtremeNodeThreshold = 1000,
+    int adaptiveExtremeConnectionThreshold = 2000,
   }) : _enabled = Observable(enabled),
        _minThreshold = Observable(minThreshold),
        _midThreshold = Observable(midThreshold),
        _minVisibility = Observable(minVisibility),
        _midVisibility = Observable(midVisibility),
-       _maxVisibility = Observable(maxVisibility);
+       _maxVisibility = Observable(maxVisibility),
+       _adaptiveEnabled = Observable(adaptiveEnabled),
+       _adaptiveNodeThreshold = Observable(adaptiveNodeThreshold),
+       _adaptiveConnectionThreshold = Observable(adaptiveConnectionThreshold),
+       _adaptiveExtremeNodeThreshold = Observable(adaptiveExtremeNodeThreshold),
+       _adaptiveExtremeConnectionThreshold = Observable(
+         adaptiveExtremeConnectionThreshold,
+       );
 
   // ═══════════════════════════════════════════════════════════════════════════
   // Observable State
@@ -76,11 +89,21 @@ class LodPlugin extends NodeFlowPlugin {
   final Observable<DetailVisibility> _minVisibility;
   final Observable<DetailVisibility> _midVisibility;
   final Observable<DetailVisibility> _maxVisibility;
+  final Observable<bool> _adaptiveEnabled;
+  final Observable<int> _adaptiveNodeThreshold;
+  final Observable<int> _adaptiveConnectionThreshold;
+  final Observable<int> _adaptiveExtremeNodeThreshold;
+  final Observable<int> _adaptiveExtremeConnectionThreshold;
 
   NodeFlowController? _controller;
 
   late Computed<double> _normalizedZoom;
+  late Computed<DetailVisibility> _baseVisibility;
   late Computed<DetailVisibility> _currentVisibility;
+  late Computed<bool> _isInteractionActive;
+  late Computed<bool> _isViewportPanning;
+  late Computed<bool> _isAdaptiveComplexity;
+  late Computed<bool> _isAdaptiveExtremeComplexity;
 
   @override
   String get id => 'lod';
@@ -213,6 +236,55 @@ class LodPlugin extends NodeFlowPlugin {
       runInAction(() => _maxVisibility.value = visibility);
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // Adaptive Fidelity
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Whether adaptive interaction fidelity is enabled.
+  bool get adaptiveEnabled => _adaptiveEnabled.value;
+
+  /// Enables adaptive interaction fidelity.
+  void enableAdaptive() => runInAction(() => _adaptiveEnabled.value = true);
+
+  /// Disables adaptive interaction fidelity.
+  void disableAdaptive() => runInAction(() => _adaptiveEnabled.value = false);
+
+  /// Sets adaptive interaction fidelity enabled state.
+  void setAdaptiveEnabled(bool enabled) =>
+      runInAction(() => _adaptiveEnabled.value = enabled);
+
+  int get adaptiveNodeThreshold => _adaptiveNodeThreshold.value;
+
+  int get adaptiveConnectionThreshold => _adaptiveConnectionThreshold.value;
+
+  int get adaptiveExtremeNodeThreshold => _adaptiveExtremeNodeThreshold.value;
+
+  int get adaptiveExtremeConnectionThreshold =>
+      _adaptiveExtremeConnectionThreshold.value;
+
+  /// Sets adaptive complexity thresholds.
+  void setAdaptiveThresholds({
+    int? nodeThreshold,
+    int? connectionThreshold,
+    int? extremeNodeThreshold,
+    int? extremeConnectionThreshold,
+  }) {
+    runInAction(() {
+      if (nodeThreshold != null) {
+        _adaptiveNodeThreshold.value = nodeThreshold;
+      }
+      if (connectionThreshold != null) {
+        _adaptiveConnectionThreshold.value = connectionThreshold;
+      }
+      if (extremeNodeThreshold != null) {
+        _adaptiveExtremeNodeThreshold.value = extremeNodeThreshold;
+      }
+      if (extremeConnectionThreshold != null) {
+        _adaptiveExtremeConnectionThreshold.value = extremeConnectionThreshold;
+      }
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // Computed State
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -232,17 +304,35 @@ class LodPlugin extends NodeFlowPlugin {
   /// - [maxVisibility] when normalizedZoom >= midThreshold
   DetailVisibility get currentVisibility => _currentVisibility.value;
 
+  /// Current zoom-only visibility before adaptive interaction adjustments.
+  DetailVisibility get baseVisibility => _baseVisibility.value;
+
+  /// Whether interaction-adaptive mode is currently active.
+  bool get isAdaptiveInteractionActive =>
+      _adaptiveEnabled.value && _isInteractionActive.value;
+
   /// Whether to use thumbnail (paint) mode instead of widget mode.
   ///
   /// Returns `true` when:
-  /// 1. LOD is enabled
-  /// 2. Zoom is below minThreshold (very zoomed out)
+  /// 1. LOD is enabled and zoom is below minThreshold (very zoomed out), OR
+  /// 2. Adaptive mode is enabled and interaction complexity crosses thresholds
   ///
   /// When true, NodesLayer should switch to NodesThumbnailLayer
   /// for maximum performance.
   bool get useThumbnailMode {
-    if (!_enabled.value) return false;
-    return _normalizedZoom.value < _minThreshold.value;
+    final zoomThumbnailMode =
+        _enabled.value && _normalizedZoom.value < _minThreshold.value;
+
+    // Adaptive thumbnail mode is intentionally independent from LOD enabled state.
+    // This keeps full-fidelity while idle but allows aggressive downgrades
+    // during heavy interaction even when zoom-based LOD is turned off.
+    final adaptiveThumbnailMode =
+        _adaptiveEnabled.value &&
+        _isInteractionActive.value &&
+        (_isAdaptiveExtremeComplexity.value ||
+            (_isViewportPanning.value && _isAdaptiveComplexity.value));
+
+    return zoomThumbnailMode || adaptiveThumbnailMode;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -291,7 +381,34 @@ class LodPlugin extends NodeFlowPlugin {
       return ((zoom - minZoom) / range).clamp(0.0, 1.0);
     });
 
-    _currentVisibility = Computed(() {
+    _isInteractionActive = Computed(() {
+      return controller.draggedNodeId != null ||
+          controller.isResizing ||
+          controller.isConnecting ||
+          controller.isDrawingSelection ||
+          controller.canvasLocked ||
+          controller.interaction.isViewportDragging;
+    });
+
+    _isViewportPanning = Computed(
+      () => controller.interaction.isViewportDragging,
+    );
+
+    _isAdaptiveComplexity = Computed(() {
+      return _createAdaptivePolicy().isComplex(
+        nodeCount: controller.nodeCount,
+        connectionCount: controller.connectionCount,
+      );
+    });
+
+    _isAdaptiveExtremeComplexity = Computed(() {
+      return _createAdaptivePolicy().isExtreme(
+        nodeCount: controller.nodeCount,
+        connectionCount: controller.connectionCount,
+      );
+    });
+
+    _baseVisibility = Computed(() {
       // When disabled, always return max visibility
       if (!_enabled.value) {
         return _maxVisibility.value;
@@ -309,6 +426,27 @@ class LodPlugin extends NodeFlowPlugin {
         return _maxVisibility.value;
       }
     });
+
+    _currentVisibility = Computed(() {
+      final base = _baseVisibility.value;
+      if (!_adaptiveEnabled.value) return base;
+
+      return _createAdaptivePolicy().apply(
+        baseVisibility: base,
+        isInteracting: _isInteractionActive.value,
+        nodeCount: controller.nodeCount,
+        connectionCount: controller.connectionCount,
+      );
+    });
+  }
+
+  LodAdaptivePolicy _createAdaptivePolicy() {
+    return LodAdaptivePolicy(
+      complexityNodeThreshold: _adaptiveNodeThreshold.value,
+      complexityConnectionThreshold: _adaptiveConnectionThreshold.value,
+      extremeNodeThreshold: _adaptiveExtremeNodeThreshold.value,
+      extremeConnectionThreshold: _adaptiveExtremeConnectionThreshold.value,
+    );
   }
 }
 

@@ -141,13 +141,7 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
   void addConnection(Connection<C> connection) {
     runInAction(() {
       _connections.add(connection);
-      // Update connection index for O(1) lookup
-      _connectionsByNodeId
-          .putIfAbsent(connection.sourceNodeId, () => {})
-          .add(connection.id);
-      _connectionsByNodeId
-          .putIfAbsent(connection.targetNodeId, () => {})
-          .add(connection.id);
+      _indexConnection(connection);
     });
     // Fire event after successful addition
     events.connection?.onCreated?.call(connection);
@@ -218,14 +212,7 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
     runInAction(() {
       _connections.removeWhere((c) => c.id == connectionId);
       _selectedConnectionIds.remove(connectionId);
-
-      // Update connection index for O(1) lookup
-      _connectionsByNodeId[connectionToDelete.sourceNodeId]?.remove(
-        connectionId,
-      );
-      _connectionsByNodeId[connectionToDelete.targetNodeId]?.remove(
-        connectionId,
-      );
+      _deindexConnection(connectionToDelete);
 
       // Remove from spatial index
       _spatialIndex.removeConnection(connectionId);
@@ -292,9 +279,7 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
         _spatialIndex.removeConnection(conn.id);
         _connectionPainter?.removeConnectionFromCache(conn.id);
 
-        // Update connection index for O(1) lookup
-        _connectionsByNodeId[conn.sourceNodeId]?.remove(conn.id);
-        _connectionsByNodeId[conn.targetNodeId]?.remove(conn.id);
+        _deindexConnection(conn);
 
         // Remove from connections list
         _connections.remove(conn);
@@ -634,20 +619,14 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
       );
     }
 
-    // Get existing connections for this port
-    final existingConnections = _connections
-        .where(
-          (conn) => isOutput
-              ? (conn.sourceNodeId == nodeId && conn.sourcePortId == portId)
-              : (conn.targetNodeId == nodeId && conn.targetPortId == portId),
-        )
-        .map((c) => c.id)
-        .toList();
+    final existingConnectionCount = isOutput
+        ? (_sourceConnectionCountByPortKey[_portKey(nodeId, portId)] ?? 0)
+        : (_targetConnectionCountByPortKey[_portKey(nodeId, portId)] ?? 0);
 
     // Check max connections for source port (output side)
     if (isOutput && port.maxConnections != null) {
       if (port.multiConnections &&
-          existingConnections.length >= port.maxConnections!) {
+          existingConnectionCount >= port.maxConnections!) {
         return const ConnectionValidationResult.deny(
           reason: 'Maximum connections reached',
         );
@@ -657,6 +636,14 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
     // Call custom validation callback if provided
     final onBeforeStart = events.connection?.onBeforeStart;
     if (onBeforeStart != null) {
+      final existingConnections = _connections
+          .where(
+            (conn) => isOutput
+                ? (conn.sourceNodeId == nodeId && conn.sourcePortId == portId)
+                : (conn.targetNodeId == nodeId && conn.targetPortId == portId),
+          )
+          .map((c) => c.id)
+          .toList();
       final context = ConnectionStartContext<T>(
         sourceNode: node,
         sourcePort: port,
@@ -878,32 +865,20 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
       actualTargetPort = sourcePort;
     }
 
-    // Get existing connections for both ports
-    final existingSourceConnections = _connections
-        .where(
-          (conn) =>
-              conn.sourceNodeId == actualSourceNode.id &&
-              conn.sourcePortId == actualSourcePort.id,
-        )
-        .map((c) => c.id)
-        .toList();
-    final existingTargetConnections = _connections
-        .where(
-          (conn) =>
-              conn.targetNodeId == actualTargetNode.id &&
-              conn.targetPortId == actualTargetPort.id,
-        )
-        .map((c) => c.id)
-        .toList();
+    final targetPortKey = _portKey(actualTargetNode.id, actualTargetPort.id);
+    final existingTargetCount =
+        _targetConnectionCountByPortKey[targetPortKey] ?? 0;
 
     // No duplicate connections
-    final duplicateExists = _connections.any(
-      (conn) =>
-          conn.sourceNodeId == actualSourceNode.id &&
-          conn.sourcePortId == actualSourcePort.id &&
-          conn.targetNodeId == actualTargetNode.id &&
-          conn.targetPortId == actualTargetPort.id,
-    );
+    final duplicateExists =
+        (_connectionPairCountByPorts[_connectionPairKey(
+              sourceNodeId: actualSourceNode.id,
+              sourcePortId: actualSourcePort.id,
+              targetNodeId: actualTargetNode.id,
+              targetPortId: actualTargetPort.id,
+            )] ??
+            0) >
+        0;
     if (duplicateExists) {
       return const ConnectionValidationResult.deny(
         reason: 'Connection already exists',
@@ -912,8 +887,7 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
 
     // Max connections limit
     if (actualTargetPort.maxConnections != null) {
-      if (existingTargetConnections.length >=
-          actualTargetPort.maxConnections!) {
+      if (existingTargetCount >= actualTargetPort.maxConnections!) {
         return const ConnectionValidationResult.deny(
           reason: 'Target port has maximum connections',
         );
@@ -924,6 +898,22 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
     if (!skipCustomValidation) {
       final onBeforeComplete = events.connection?.onBeforeComplete;
       if (onBeforeComplete != null) {
+        final existingSourceConnections = _connections
+            .where(
+              (conn) =>
+                  conn.sourceNodeId == actualSourceNode.id &&
+                  conn.sourcePortId == actualSourcePort.id,
+            )
+            .map((c) => c.id)
+            .toList();
+        final existingTargetConnections = _connections
+            .where(
+              (conn) =>
+                  conn.targetNodeId == actualTargetNode.id &&
+                  conn.targetPortId == actualTargetPort.id,
+            )
+            .map((c) => c.id)
+            .toList();
         final context = ConnectionCompleteContext<T>(
           sourceNode: actualSourceNode,
           sourcePort: actualSourcePort,

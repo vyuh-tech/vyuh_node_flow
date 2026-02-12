@@ -77,7 +77,6 @@ class BezierConnectionStyle extends ConnectionStyle {
     if (params.sourceNodeBounds != null) {
       cp1 = _adjustControlPointForNodeAvoidance(
         controlPoint: cp1,
-        anchorPoint: params.start,
         position: sourcePosition,
         nodeBounds: params.sourceNodeBounds!,
         clearance: params.offset,
@@ -87,7 +86,6 @@ class BezierConnectionStyle extends ConnectionStyle {
     if (params.targetNodeBounds != null) {
       cp2 = _adjustControlPointForNodeAvoidance(
         controlPoint: cp2,
-        anchorPoint: params.end,
         position: targetPosition,
         nodeBounds: params.targetNodeBounds!,
         clearance: params.offset,
@@ -120,7 +118,6 @@ class BezierConnectionStyle extends ConnectionStyle {
   /// [clearance] specifies the minimum distance from node edges (defaults to port extension).
   Offset _adjustControlPointForNodeAvoidance({
     required Offset controlPoint,
-    required Offset anchorPoint,
     required PortPosition position,
     required Rect nodeBounds,
     double clearance = 10.0,
