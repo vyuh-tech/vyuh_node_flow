@@ -1,3 +1,7 @@
+## 0.27.2
+
+ - **FEAT**(mixins): export `GroupableMixin` and `ResizableMixin`, update footer/trailing null checks.
+
 ## 0.27.1
 
  - **FEAT**(connections): add customizable visual properties for connections.
