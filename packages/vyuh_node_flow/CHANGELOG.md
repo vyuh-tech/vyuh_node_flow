@@ -1,3 +1,7 @@
+## 0.27.3
+
+ - **FIX**(connections): ensure consistent formatting for serialization and demo alignment adjustments.
+
 ## 0.27.2
 
  - **FEAT**(mixins): export `GroupableMixin` and `ResizableMixin`, update footer/trailing null checks.
