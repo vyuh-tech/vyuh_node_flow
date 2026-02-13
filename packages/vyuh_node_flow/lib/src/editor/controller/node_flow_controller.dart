@@ -154,6 +154,15 @@ class NodeFlowController<T, C> {
         _nodes[node.id] = node;
       }
       _connections.addAll(connections);
+      for (final conn in connections) {
+        _connectionById[conn.id] = conn;
+        _connectionsByNodeId
+            .putIfAbsent(conn.sourceNodeId, () => {})
+            .add(conn.id);
+        _connectionsByNodeId
+            .putIfAbsent(conn.targetNodeId, () => {})
+            .add(conn.id);
+      }
     });
 
     // Note: Full infrastructure setup happens when initController is called
@@ -430,11 +439,24 @@ class NodeFlowController<T, C> {
   // Connection index for O(1) lookup by node ID
   final Map<String, Set<String>> _connectionsByNodeId = {};
 
+  // Connection index for O(1) lookup by connection ID
+  final Map<String, Connection<C>> _connectionById = {};
+
   // Editor initialization tracking - set to true after initializeForEditor() is called
   bool _editorInitialized = false;
 
   // Actions and shortcuts management
   late final NodeFlowShortcutManager<T> shortcuts;
+
+  // zIndex version counter — incremented when any node's zIndex changes.
+  // Used by _sortedVisibleNodes to skip re-sorting when zIndex is unchanged.
+  final Observable<int> _zIndexVersion = Observable(0);
+
+  /// Increments the zIndex version counter.
+  /// Call this after mutating any node's zIndex.
+  void _bumpZIndexVersion() {
+    runInAction(() => _zIndexVersion.value++);
+  }
 
   // Caching state for smart culling (hysteresis)
   // We query a larger chunk and only re-query when approaching the edge
@@ -450,6 +472,22 @@ class NodeFlowController<T, C> {
   late final Computed<bool> _hasSelection = Computed(
     () => _selectedNodeIds.isNotEmpty || _selectedConnectionIds.isNotEmpty,
   );
+
+  /// Set of "nodeId:portId" keys for all connected ports.
+  /// MobX Computed — recomputed only when _connections changes.
+  late final Computed<Set<String>> _connectedPortKeys = Computed(() {
+    final keys = <String>{};
+    for (final conn in _connections) {
+      keys.add('${conn.sourceNodeId}:${conn.sourcePortId}');
+      keys.add('${conn.targetNodeId}:${conn.targetPortId}');
+    }
+    return keys;
+  });
+
+  /// O(1) check whether a port has any connection.
+  bool isPortConnected(String nodeId, String portId) {
+    return _connectedPortKeys.value.contains('$nodeId:$portId');
+  }
 
   late final Computed<List<Node<T>>> _sortedNodes = Computed(
     _computeSortedNodes,
@@ -600,19 +638,32 @@ class NodeFlowController<T, C> {
     return connections;
   });
 
-  /// Visible nodes sorted by z-index (cached Computed).
-  /// This caches the sorted result to avoid O(n log n) sort on every frame.
-  late final Computed<List<Node<T>>> _sortedVisibleNodes = Computed(() {
-    // Get the cached visible nodes
-    final nodes = List<Node<T>>.from(_visibleNodes.value);
+  // Cache for sorted visible nodes — avoids re-sorting when only viewport changed
+  List<Node<T>>? _cachedSortedVisible;
+  List<Node<T>>? _lastVisibleNodesRef;
+  int _lastZIndexVersion = -1;
 
-    // Observe zIndex values to ensure reactivity when zIndex changes
-    for (final node in nodes) {
-      node.zIndex.value;
+  /// Visible nodes sorted by z-index (cached Computed).
+  /// Skips O(n log n) sort when only the viewport moved (zIndex unchanged).
+  late final Computed<List<Node<T>>> _sortedVisibleNodes = Computed(() {
+    final visible = _visibleNodes.value;
+    final zVer = _zIndexVersion.value;
+
+    // If same visible list reference AND same zIndex version, reuse cached sort
+    if (identical(visible, _lastVisibleNodesRef) &&
+        zVer == _lastZIndexVersion &&
+        _cachedSortedVisible != null) {
+      return _cachedSortedVisible!;
     }
 
-    // Sort by zIndex ascending (lower zIndex = rendered first = behind)
+    // Need to re-sort
+    final nodes = List<Node<T>>.from(visible);
     nodes.sort((a, b) => a.zIndex.value.compareTo(b.zIndex.value));
+
+    _lastVisibleNodesRef = visible;
+    _lastZIndexVersion = zVer;
+    _cachedSortedVisible = nodes;
+
     return nodes;
   });
 

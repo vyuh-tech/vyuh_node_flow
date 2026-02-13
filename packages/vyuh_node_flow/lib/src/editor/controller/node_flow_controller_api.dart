@@ -612,6 +612,7 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
             // Dragged group is inside parent - ensure it has higher z-index
             if (draggedGroup.zIndex.value <= parentGroup.zIndex.value) {
               draggedGroup.zIndex.value = parentGroup.zIndex.value + 1;
+              _bumpZIndexVersion();
             }
           }
         }

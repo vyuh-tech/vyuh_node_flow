@@ -44,7 +44,7 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
   /// }
   /// ```
   Connection<C>? getConnection(String connectionId) {
-    return _connections.where((c) => c.id == connectionId).firstOrNull;
+    return _connectionById[connectionId];
   }
 
   /// Gets all connection IDs in the graph.
@@ -63,11 +63,9 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
   /// print('Node has ${connections.length} connections');
   /// ```
   List<Connection<C>> getConnectionsForNode(String nodeId) {
-    return _connections
-        .where(
-          (conn) => conn.sourceNodeId == nodeId || conn.targetNodeId == nodeId,
-        )
-        .toList();
+    final ids = _connectionsByNodeId[nodeId];
+    if (ids == null || ids.isEmpty) return const [];
+    return [for (final id in ids) ?_connectionById[id]];
   }
 
   /// Checks if a node has any connections (as source or target).
@@ -141,6 +139,7 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
   void addConnection(Connection<C> connection) {
     runInAction(() {
       _connections.add(connection);
+      _connectionById[connection.id] = connection;
       // Update connection index for O(1) lookup
       _connectionsByNodeId
           .putIfAbsent(connection.sourceNodeId, () => {})
@@ -211,12 +210,13 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
   ///
   /// Throws [ArgumentError] if the connection doesn't exist.
   void removeConnection(String connectionId) {
-    final connectionToDelete = _connections.firstWhere(
-      (c) => c.id == connectionId,
-      orElse: () => throw ArgumentError('Connection $connectionId not found'),
-    );
+    final connectionToDelete = _connectionById[connectionId];
+    if (connectionToDelete == null) {
+      throw ArgumentError('Connection $connectionId not found');
+    }
     runInAction(() {
       _connections.removeWhere((c) => c.id == connectionId);
+      _connectionById.remove(connectionId);
       _selectedConnectionIds.remove(connectionId);
 
       // Update connection index for O(1) lookup
@@ -292,7 +292,8 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
         _spatialIndex.removeConnection(conn.id);
         _connectionPainter?.removeConnectionFromCache(conn.id);
 
-        // Update connection index for O(1) lookup
+        // Update connection indexes for O(1) lookup
+        _connectionById.remove(conn.id);
         _connectionsByNodeId[conn.sourceNodeId]?.remove(conn.id);
         _connectionsByNodeId[conn.targetNodeId]?.remove(conn.id);
 
@@ -484,12 +485,7 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
     if (_selectedConnectionIds.isEmpty) return;
 
     for (final id in _selectedConnectionIds) {
-      for (final connection in _connections) {
-        if (connection.id == id) {
-          connection.selected = false;
-          break;
-        }
-      }
+      _connectionById[id]?.selected = false;
     }
     _selectedConnectionIds.clear();
 

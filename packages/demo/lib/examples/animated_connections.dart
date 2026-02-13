@@ -579,57 +579,58 @@ class _AnimatedConnectionsExampleState
         _controller.fitToView();
       },
       child: NodeFlowEditor<Map<String, dynamic>, dynamic>(
-          controller: _controller,
-          nodeBuilder: _buildNode,
-          theme: NodeFlowTheme.light,
+        controller: _controller,
+        nodeBuilder: _buildNode,
+        theme: NodeFlowTheme.light,
 
-          events: NodeFlowEvents<Map<String, dynamic>, dynamic>(
-            connection: ConnectionEvents<Map<String, dynamic>, dynamic>(
-              onSelected: (connection) {
-                _store.selectedConnection = connection;
-                if (connection != null) {
-                  // Read back visual properties
-                  // Use effective endpoint (falls back to theme if null)
-                  final themeEndPoint =
-                      NodeFlowTheme.light.connectionTheme.endPoint;
-                  final ep = connection.endPoint ?? themeEndPoint;
-                  _store.endpointShape = _endpointShapes.entries
-                          .where((e) => e.value == ep.shape)
-                          .map((e) => e.key)
-                          .firstOrNull ??
-                      'capsule';
-                  _store.endpointColor = connection.endPoint?.color;
-                  _store.connectionColor = connection.color;
-                  _store.strokeWidth = connection.strokeWidth ?? 2.0;
+        events: NodeFlowEvents<Map<String, dynamic>, dynamic>(
+          connection: ConnectionEvents<Map<String, dynamic>, dynamic>(
+            onSelected: (connection) {
+              _store.selectedConnection = connection;
+              if (connection != null) {
+                // Read back visual properties
+                // Use effective endpoint (falls back to theme if null)
+                final themeEndPoint =
+                    NodeFlowTheme.light.connectionTheme.endPoint;
+                final ep = connection.endPoint ?? themeEndPoint;
+                _store.endpointShape =
+                    _endpointShapes.entries
+                        .where((e) => e.value == ep.shape)
+                        .map((e) => e.key)
+                        .firstOrNull ??
+                    'capsule';
+                _store.endpointColor = connection.endPoint?.color;
+                _store.connectionColor = connection.color;
+                _store.strokeWidth = connection.strokeWidth ?? 2.0;
 
-                  // Read back animation effect
-                  final effect = connection.animationEffect;
-                  if (effect is FlowingDashEffect) {
-                    _store.selectedEffectType = 'flowing_dash';
-                    _store.speed = effect.speed;
-                    _store.dashLength = effect.dashLength;
-                    _store.gapLength = effect.gapLength;
-                  } else if (effect is ParticleEffect) {
-                    _store.selectedEffectType = 'particle';
-                    _store.speed = effect.speed;
-                    _store.particleCount = effect.particleCount;
-                  } else if (effect is GradientFlowEffect) {
-                    _store.selectedEffectType = 'gradient';
-                    _store.speed = effect.speed;
-                    _store.gradientLength = effect.gradientLength;
-                  } else if (effect is PulseEffect) {
-                    _store.selectedEffectType = 'pulse';
-                    _store.speed = effect.speed;
-                    _store.minOpacity = effect.minOpacity;
-                    _store.maxOpacity = effect.maxOpacity;
-                    _store.widthVariation = effect.widthVariation;
-                  } else {
-                    _store.selectedEffectType = 'none';
-                  }
+                // Read back animation effect
+                final effect = connection.animationEffect;
+                if (effect is FlowingDashEffect) {
+                  _store.selectedEffectType = 'flowing_dash';
+                  _store.speed = effect.speed;
+                  _store.dashLength = effect.dashLength;
+                  _store.gapLength = effect.gapLength;
+                } else if (effect is ParticleEffect) {
+                  _store.selectedEffectType = 'particle';
+                  _store.speed = effect.speed;
+                  _store.particleCount = effect.particleCount;
+                } else if (effect is GradientFlowEffect) {
+                  _store.selectedEffectType = 'gradient';
+                  _store.speed = effect.speed;
+                  _store.gradientLength = effect.gradientLength;
+                } else if (effect is PulseEffect) {
+                  _store.selectedEffectType = 'pulse';
+                  _store.speed = effect.speed;
+                  _store.minOpacity = effect.minOpacity;
+                  _store.maxOpacity = effect.maxOpacity;
+                  _store.widthVariation = effect.widthVariation;
+                } else {
+                  _store.selectedEffectType = 'none';
                 }
-              },
-            ),
+              }
+            },
           ),
+        ),
       ),
       children: [
         const SectionTitle('About'),
@@ -1440,10 +1441,7 @@ class _ColorSwatch extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: color ?? Colors.grey.shade300,
-          border: Border.all(
-            color: borderColor,
-            width: isSelected ? 2.5 : 1.0,
-          ),
+          border: Border.all(color: borderColor, width: isSelected ? 2.5 : 1.0),
         ),
         child: color == null
             ? Center(

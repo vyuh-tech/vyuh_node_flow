@@ -643,8 +643,9 @@ class Connection<C> {
       json['color'] = const ColorConverter().toJson(_color.value!);
     }
     if (_selectedColor.value != null) {
-      json['selectedColor'] =
-          const ColorConverter().toJson(_selectedColor.value!);
+      json['selectedColor'] = const ColorConverter().toJson(
+        _selectedColor.value!,
+      );
     }
     if (_strokeWidth.value != null) {
       json['strokeWidth'] = _strokeWidth.value;

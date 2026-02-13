@@ -181,10 +181,12 @@ extension DirtyTrackingExtension<T, C> on NodeFlowController<T, C> {
     }
   }
 
-  /// Rebuilds the connection-by-node index for O(1) lookup.
+  /// Rebuilds the connection indexes for O(1) lookup.
   void _rebuildConnectionsByNodeIndex() {
     _connectionsByNodeId.clear();
+    _connectionById.clear();
     for (final connection in _connections) {
+      _connectionById[connection.id] = connection;
       _connectionsByNodeId
           .putIfAbsent(connection.sourceNodeId, () => {})
           .add(connection.id);

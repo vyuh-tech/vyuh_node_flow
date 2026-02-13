@@ -630,7 +630,6 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                 NodesLayer.background(
                                   widget.controller,
                                   widget.nodeBuilder,
-                                  widget.controller.connections,
                                   portBuilder: widget.portBuilder,
                                   thumbnailBuilder: widget.thumbnailBuilder,
                                   onNodeTap: _handleNodeTap,
@@ -700,7 +699,6 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                 NodesLayer.middle(
                                   widget.controller,
                                   widget.nodeBuilder,
-                                  widget.controller.connections,
                                   portBuilder: widget.portBuilder,
                                   thumbnailBuilder: widget.thumbnailBuilder,
                                   onNodeTap: _handleNodeTap,
@@ -732,7 +730,6 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                 NodesLayer.foreground(
                                   widget.controller,
                                   widget.nodeBuilder,
-                                  widget.controller.connections,
                                   portBuilder: widget.portBuilder,
                                   thumbnailBuilder: widget.thumbnailBuilder,
                                   onNodeTap: _handleNodeTap,

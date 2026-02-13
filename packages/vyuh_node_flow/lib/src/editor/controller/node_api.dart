@@ -832,6 +832,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
             .fold(0, math.max);
         node.zIndex.value = maxZIndex + 1;
       });
+      _bumpZIndexVersion();
     }
   }
 
@@ -845,6 +846,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
             .fold(0, math.min);
         node.zIndex.value = minZIndex - 1;
       });
+      _bumpZIndexVersion();
     }
   }
 
@@ -878,6 +880,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
         }
       }
     });
+    _bumpZIndexVersion();
   }
 
   /// Moves a node one step backward in the z-order.
@@ -910,6 +913,7 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
         }
       }
     });
+    _bumpZIndexVersion();
   }
 
   // ============================================================================

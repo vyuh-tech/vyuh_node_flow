@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
-import '../connections/connection.dart';
 import '../editor/controller/node_flow_controller.dart';
 import '../editor/drag_session.dart';
 import '../editor/element_scope.dart';
@@ -41,7 +40,6 @@ class NodeContainer<T> extends StatelessWidget {
     required this.controller,
     required this.child,
     this.shape,
-    this.connections = const [],
     this.portBuilder,
     this.onTap,
     this.onDoubleTap,
@@ -65,9 +63,6 @@ class NodeContainer<T> extends StatelessWidget {
 
   /// Optional shape for the node (used for port positioning).
   final NodeShape? shape;
-
-  /// List of connections for determining which ports are connected.
-  final List<Connection> connections;
 
   /// Optional builder for customizing individual port widgets.
   final PortBuilder<T>? portBuilder;
@@ -231,7 +226,7 @@ class NodeContainer<T> extends StatelessWidget {
   Widget _buildPort(BuildContext context, Port port, bool isOutput) {
     final theme = controller.theme ?? NodeFlowTheme.light;
     final portTheme = theme.portTheme;
-    final isConnected = _isPortConnected(port);
+    final isConnected = controller.isPortConnected(node.id, port.id);
 
     // Get the visual position from the Node model
     final effectivePortSize = port.size ?? portTheme.size;
@@ -278,33 +273,10 @@ class NodeContainer<T> extends StatelessWidget {
               ));
 
     return Positioned(
+      key: ValueKey(port.id),
       left: visualPosition.dx,
       top: visualPosition.dy,
       child: portWidget,
     );
-  }
-
-  /// Checks if a port is connected by examining the connections list.
-  ///
-  /// For [PortType.both] ports, checks both source and target connections
-  /// since these ports can act as either input or output.
-  bool _isPortConnected(Port port) {
-    return connections.any((connection) {
-      // For bidirectional ports (PortType.both), check both directions
-      if (port.isInput && port.isOutput) {
-        return (connection.sourceNodeId == node.id &&
-                connection.sourcePortId == port.id) ||
-            (connection.targetNodeId == node.id &&
-                connection.targetPortId == port.id);
-      }
-      // For output-only ports, check as source
-      if (port.isOutput) {
-        return connection.sourceNodeId == node.id &&
-            connection.sourcePortId == port.id;
-      }
-      // For input-only ports, check as target
-      return connection.targetNodeId == node.id &&
-          connection.targetPortId == port.id;
-    });
   }
 }

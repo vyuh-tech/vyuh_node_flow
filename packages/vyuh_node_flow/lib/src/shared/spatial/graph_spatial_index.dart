@@ -564,6 +564,11 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
     }
   }
 
+  // Per-hitTest cache: avoids redundant spatial queries when multiple port
+  // candidates are near the same point. Populated at the start of
+  // _hitTestPorts(), consumed by _isPointCoveredByOtherNode(), cleared at end.
+  List<Node<T>>? _hitTestNodesAtPointCache;
+
   HitTestResult? _hitTestPorts(Offset point) {
     // Query port spatial items directly - O(1) spatial lookup
     final nearbyPorts = _grid.queryPoint(point).whereType<PortSpatialItem>();
@@ -604,25 +609,42 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
       return a.distance.compareTo(b.distance);
     });
 
-    // Find the first port that isn't covered by another node
-    for (final candidate in candidates) {
-      final node = _nodes[candidate.item.nodeId];
-      if (node == null) continue;
+    // Pre-compute "nodes at point" for the coverage check cache.
+    // All port candidates share roughly the same point, so one query covers all.
+    _hitTestNodesAtPointCache = _grid
+        .queryPoint(point)
+        .whereType<NodeSpatialItem>()
+        .map((item) => _nodes[item.nodeId])
+        .whereType<Node<T>>()
+        .where((node) => node.isVisible)
+        .toList();
 
-      final portCenter = candidate.item.bounds.center;
-      final isCoveredByOtherNode = _isPointCoveredByOtherNode(portCenter, node);
+    try {
+      // Find the first port that isn't covered by another node
+      for (final candidate in candidates) {
+        final node = _nodes[candidate.item.nodeId];
+        if (node == null) continue;
 
-      if (!isCoveredByOtherNode) {
-        return HitTestResult(
-          nodeId: candidate.item.nodeId,
-          portId: candidate.item.portId,
-          isOutput: candidate.item.isOutput,
-          hitType: HitTarget.port,
+        final portCenter = candidate.item.bounds.center;
+        final isCoveredByOtherNode = _isPointCoveredByOtherNode(
+          portCenter,
+          node,
         );
-      }
-    }
 
-    return null;
+        if (!isCoveredByOtherNode) {
+          return HitTestResult(
+            nodeId: candidate.item.nodeId,
+            portId: candidate.item.portId,
+            isOutput: candidate.item.isOutput,
+            hitType: HitTarget.port,
+          );
+        }
+      }
+
+      return null;
+    } finally {
+      _hitTestNodesAtPointCache = null;
+    }
   }
 
   /// Checks if a point is covered by any node that renders above [excludeNode].
@@ -642,12 +664,19 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
   ///
   /// Used to ensure that ports visually obscured by overlapping nodes are not hit.
   bool _isPointCoveredByOtherNode(Offset point, Node<T> excludeNode) {
-    final nodesAtPoint = _grid
-        .queryPoint(point)
-        .whereType<NodeSpatialItem>()
-        .map((item) => _nodes[item.nodeId])
-        .whereType<Node<T>>()
-        .where((node) => node.id != excludeNode.id && node.isVisible)
+    // Use cached nodes if available (from _hitTestPorts), otherwise query fresh
+    final allNodesAtPoint =
+        _hitTestNodesAtPointCache ??
+        _grid
+            .queryPoint(point)
+            .whereType<NodeSpatialItem>()
+            .map((item) => _nodes[item.nodeId])
+            .whereType<Node<T>>()
+            .where((node) => node.isVisible)
+            .toList();
+
+    final nodesAtPoint = allNodesAtPoint
+        .where((node) => node.id != excludeNode.id)
         .toList();
 
     // If excludeNode is a GroupNode, get its member node IDs
