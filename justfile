@@ -17,6 +17,6 @@ build:
 deploy: build
     wrangler pages deploy packages/demo/build/web --project-name=vyuh-node-flow
 
-preview:
+preview: build
     cd packages/demo/build/web && \
     serve . -s
