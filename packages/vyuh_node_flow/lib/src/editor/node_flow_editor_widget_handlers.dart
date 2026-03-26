@@ -84,10 +84,8 @@ extension _WidgetGestureHandlers<T, C> on _NodeFlowEditorState<T, C> {
     if (node == null) return;
 
     // Find the port
-    final port = [
-      ...node.inputPorts,
-      ...node.outputPorts,
-    ].where((p) => p.id == portId).firstOrNull;
+    // Use node.ports directly to avoid duplicates when port has PortType.both
+    final port = node.ports.where((p) => p.id == portId).firstOrNull;
     if (port == null) return;
 
     widget.controller.events.port?.onContextMenu?.call(
