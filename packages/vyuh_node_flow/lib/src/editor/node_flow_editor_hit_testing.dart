@@ -341,12 +341,12 @@ extension _HitTestingExtension<T, C> on _NodeFlowEditorState<T, C> {
   // Utility Methods
   // ============================================================
 
-  /// Helper to find a port by ID in a node's input or output ports.
+  /// Helper to find a port by ID in a node's ports.
+  ///
+  /// Iterates node.ports rather than inputPorts + outputPorts, since a port with
+  /// PortType.both appears in both lists.
   Port? _findPort(Node<T> node, String portId) {
-    for (final port in node.inputPorts) {
-      if (port.id == portId) return port;
-    }
-    for (final port in node.outputPorts) {
+    for (final port in node.ports) {
       if (port.id == portId) return port;
     }
     return null;

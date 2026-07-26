@@ -142,7 +142,7 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
     final portIds = <String>[];
 
     // Helper to add a port to the spatial index
-    void addPort(Port port, bool isOutput) {
+    void addPort(Port port) {
       final effectivePortSize =
           portSizeResolver?.call(port) ?? const Size.square(10.0);
 
@@ -165,7 +165,7 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
       final spatialItem = PortSpatialItem(
         portId: port.id,
         nodeId: node.id,
-        isOutput: isOutput,
+        isOutput: port.isOutput,
         bounds: portBounds,
       );
 
@@ -173,16 +173,12 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
       portIds.add(spatialItem.id);
     }
 
-    // Add all input ports
-    // Use port.isOutput to respect PortType (input, output, both) rather than list membership
-    for (final port in node.inputPorts) {
-      addPort(port, port.isOutput);
-    }
-
-    // Add all output ports
-    // Use port.isOutput to respect PortType (input, output, both) rather than list membership
-    for (final port in node.outputPorts) {
-      addPort(port, port.isOutput);
+    // Add all ports in a single pass.
+    // Iterate node.ports rather than inputPorts + outputPorts, since a port with
+    // PortType.both appears in both lists and would be visited twice.
+    // port.isOutput respects PortType regardless of list membership.
+    for (final port in node.ports) {
+      addPort(port);
     }
 
     _nodePortIds[node.id] = portIds;
