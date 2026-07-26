@@ -188,7 +188,7 @@ class _ExampleNavigationState extends State<ExampleNavigation> {
 
   Widget _buildIconButton(
     ThemeData theme, {
-    required IconData icon,
+    required FaIconData icon,
     required String tooltip,
     required String url,
   }) {
