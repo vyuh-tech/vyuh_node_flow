@@ -1,3 +1,8 @@
+## 0.27.3+1
+
+ - **FIX**(ports): render a `PortType.both` port once instead of twice, which raised a duplicate `ValueKey` assertion. ([#36](https://github.com/vyuh-tech/vyuh_node_flow/pull/36))
+ - **FIX**(ports): iterate node.ports in a single pass for PortType.both.
+
 ## 0.27.3
 
  - **FIX**(connections): ensure consistent formatting for serialization and demo alignment adjustments.
