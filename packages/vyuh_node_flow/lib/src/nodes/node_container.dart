@@ -181,19 +181,11 @@ class NodeContainer<T> extends StatelessWidget {
                   ),
                 ),
 
-                // Input ports (only when LOD allows and ports exist)
-                // Use port.isOutput to respect PortType (input, output, both)
-                // rather than list membership
-                if (lodVisibility.showPorts && node.inputPorts.isNotEmpty)
-                  ...node.inputPorts.map(
-                    (port) => _buildPort(context, port, port.isOutput),
-                  ),
-
-                // Output ports (only when LOD allows and ports exist)
-                // Use port.isOutput to respect PortType (input, output, both)
-                // rather than list membership
-                if (lodVisibility.showPorts && node.outputPorts.isNotEmpty)
-                  ...node.outputPorts.map(
+                // Ports (only when LOD allows and ports exist)
+                // Iterate over all ports directly to avoid duplicate rendering
+                // when a port has PortType.both (would appear in both inputPorts and outputPorts)
+                if (lodVisibility.showPorts && node.ports.isNotEmpty)
+                  ...node.ports.map(
                     (port) => _buildPort(context, port, port.isOutput),
                   ),
 
