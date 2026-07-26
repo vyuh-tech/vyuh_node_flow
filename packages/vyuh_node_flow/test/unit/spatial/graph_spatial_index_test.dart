@@ -16,6 +16,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vyuh_node_flow/src/nodes/node.dart';
+import 'package:vyuh_node_flow/src/ports/port.dart';
 import 'package:vyuh_node_flow/src/shared/spatial/graph_spatial_index.dart';
 import 'package:vyuh_node_flow/src/shared/spatial/spatial_item.dart';
 
@@ -388,6 +389,54 @@ void main() {
       final outputItem = portItems.firstWhere((p) => p.portId == 'out-port');
       expect(outputItem.nodeId, equals('node-1'));
       expect(outputItem.isOutput, isTrue);
+    });
+
+    // A PortType.both port is a member of both node.inputPorts and
+    // node.outputPorts. Indexing from those two derived lists registered the
+    // same port id twice in _nodePortIds, inflating portCount.
+    test('PortType.both port is indexed exactly once', () {
+      final node = createTestNode(
+        id: 'node-1',
+        ports: [createTestPort(id: 'both-port', type: PortType.both)],
+      );
+
+      index.update(node);
+
+      expect(index.portCount, equals(1));
+
+      final portItems = index.portItems.toList();
+      expect(portItems.length, equals(1));
+      expect(portItems.single.portId, equals('both-port'));
+      expect(portItems.single.isOutput, isTrue);
+    });
+
+    test('port count is accurate for a mix of port types', () {
+      final node = createTestNode(
+        id: 'node-1',
+        ports: [
+          createTestPort(id: 'in-port', type: PortType.input),
+          createTestPort(id: 'out-port', type: PortType.output),
+          createTestPort(id: 'both-port', type: PortType.both),
+        ],
+      );
+
+      index.update(node);
+
+      expect(index.portCount, equals(3));
+      expect(index.portItems.length, equals(3));
+    });
+
+    test('PortType.both port is removed with its node', () {
+      final node = createTestNode(
+        id: 'node-1',
+        ports: [createTestPort(id: 'both-port', type: PortType.both)],
+      );
+      index.update(node);
+
+      index.remove(node);
+
+      expect(index.portCount, equals(0));
+      expect(index.portItems, isEmpty);
     });
   });
 

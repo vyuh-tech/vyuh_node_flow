@@ -1237,4 +1237,71 @@ void main() {
       expect(tooltipPort.tooltip, equals('This is a helpful tooltip'));
     });
   });
+
+  // ===========================================================================
+  // PortType.both Rendering Tests
+  // ===========================================================================
+  //
+  // A PortType.both port satisfies both isInput and isOutput, so it is a member
+  // of node.inputPorts AND node.outputPorts. Rendering from those two derived
+  // lists emitted two children sharing ValueKey(port.id) into the same Stack,
+  // which trips Flutter's duplicate-key assertion. NodeContainer iterates
+  // node.ports directly instead.
+  group('PortType.both Rendering', () {
+    testWidgets('bidirectional port renders exactly one widget', (
+      tester,
+    ) async {
+      final node = createTestNode(
+        id: 'both-node',
+        ports: [createTestPort(id: 'both-1', type: PortType.both)],
+      );
+      controller.addNode(node);
+
+      await tester.pumpWidget(buildTestWidget(controller: controller));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('both-1')), findsOneWidget);
+      expect(find.byType(PortWidget<String>), findsOneWidget);
+    });
+
+    testWidgets('bidirectional port is rendered as an output', (tester) async {
+      final node = createTestNode(
+        id: 'both-node',
+        ports: [createTestPort(id: 'both-1', type: PortType.both)],
+      );
+      controller.addNode(node);
+
+      await tester.pumpWidget(buildTestWidget(controller: controller));
+      await tester.pumpAndSettle();
+
+      // isOutput follows PortType, not which derived list the port came from.
+      final portWidget = tester.widget<PortWidget<String>>(
+        find.byType(PortWidget<String>),
+      );
+      expect(portWidget.isOutput, isTrue);
+    });
+
+    testWidgets('bidirectional port renders alongside input and output ports', (
+      tester,
+    ) async {
+      final node = createTestNode(
+        id: 'mixed-node',
+        ports: [
+          createTestPort(id: 'in-1', type: PortType.input),
+          createTestPort(id: 'out-1', type: PortType.output),
+          createTestPort(id: 'both-1', type: PortType.both),
+        ],
+      );
+      controller.addNode(node);
+
+      await tester.pumpWidget(buildTestWidget(controller: controller));
+      await tester.pumpAndSettle();
+
+      // The derived lists overlap on 'both-1', so concatenating them would
+      // yield four widgets for three ports.
+      expect(node.inputPorts.length, equals(2));
+      expect(node.outputPorts.length, equals(2));
+      expect(find.byType(PortWidget<String>), findsNWidgets(3));
+    });
+  });
 }
