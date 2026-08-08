@@ -14,6 +14,7 @@ import '../nodes/node_shape.dart';
 import '../plugins/autopan/autopan_zone_debug_layer.dart';
 import '../plugins/debug/debug_plugin.dart';
 import '../plugins/layer_provider.dart';
+import '../plugins/lod/lod_plugin.dart';
 import '../ports/port.dart';
 import '../ports/port_widget.dart';
 import '../shared/spatial/graph_spatial_index.dart';
@@ -202,11 +203,13 @@ class NodeFlowEditor<T, C> extends StatefulWidget {
   ///   );
   /// }
   /// ```
-  final LabelBuilder? labelBuilder;
+  final LabelBuilder<C>? labelBuilder;
 
   /// Optional custom thumbnail painter for nodes.
   ///
-  /// When provided, called for each node in thumbnail mode.
+  /// When provided, called for each node in adaptive overview mode. Node tap,
+  /// selection, and drag remain available through root spatial hit-testing;
+  /// port rendering and connection editing resume when full widgets return.
   /// Return `true` to indicate custom painting was done,
   /// `false` to fall back to the node's default `paintThumbnail`.
   final ThumbnailBuilder<T>? thumbnailBuilder;
@@ -306,6 +309,9 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     with TickerProviderStateMixin, ViewportAnimationMixin {
   late final TransformationController _transformationController;
   final List<ReactionDisposer> _disposers = [];
+  bool _viewportInteractionActive = false;
+  bool _applyingCameraViewport = false;
+  bool _updatingCameraFromTransform = false;
 
   // Animation controller for animated connections
   AnimationController? _connectionAnimationController;
@@ -337,6 +343,13 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
   // ups from prematurely ending mouse drags.
   int? _dragPointerId;
 
+  // In adaptive overview mode there are no NodeContainer gesture widgets.
+  // The root Listener therefore owns the candidate/drag lifecycle and routes
+  // movement through the same controller APIs used by full-widget nodes.
+  String? _overviewPointerNodeId;
+  Offset? _overviewLastPointerPosition;
+  bool _overviewDragStarted = false;
+
   @override
   void initState() {
     super.initState();
@@ -353,6 +366,9 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     // The listener fires immediately when the transform value changes, ensuring
     // the viewport is always in sync for accurate hit testing and coordinate conversion.
     _transformationController.addListener(_syncViewportFromTransform);
+    widget.controller.cameraViewportListenable.addListener(
+      _syncTransformFromCamera,
+    );
 
     // Initialize animation controller for animated connections
     _connectionAnimationController = AnimationController(
@@ -443,6 +459,13 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
 
     // Re-attach viewport animation if controller changed
     if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.cameraViewportListenable.removeListener(
+        _syncTransformFromCamera,
+      );
+      widget.controller.cameraViewportListenable.addListener(
+        _syncTransformFromCamera,
+      );
+
       // Detach from old controller and attach to new one
       detachViewportAnimation();
       attachViewportAnimation(
@@ -457,6 +480,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
       widget.controller.debug?.setTransformationController(
         _transformationController,
       );
+      _syncTransformFromCamera();
     }
 
     // Update behavior mode if it changed
@@ -546,6 +570,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                 onPointerDown: _handlePointerDown,
                 onPointerMove: _handlePointerMove,
                 onPointerUp: _handlePointerUp,
+                onPointerCancel: _handlePointerCancel,
                 onPointerHover: _handleMouseHover,
                 child: Observer.withBuiltChild(
                   builder: (context, child) {
@@ -679,7 +704,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                 ),
 
                                 // Connection labels
-                                ConnectionLabelsLayer<T>(
+                                ConnectionLabelsLayer<T, C>(
                                   controller: widget.controller,
                                   labelBuilder: widget.labelBuilder,
                                 ),
@@ -818,20 +843,6 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
   }
 
   void _setupReactions() {
-    // Sync transformation controller with viewport changes - immediate synchronous updates
-    _disposers.add(
-      reaction((_) => widget.controller.viewport, (GraphViewport viewport) {
-        if (mounted) {
-          final matrix = Matrix4.identity()
-            ..translateByVector3(Vector3(viewport.x, viewport.y, 0))
-            ..scaleByDouble(viewport.zoom, viewport.zoom, viewport.zoom, 1.0);
-
-          // Force immediate update without animation for real-time panning
-          _transformationController.value = matrix;
-        }
-      }, fireImmediately: true),
-    );
-
     // Start/stop animation controller based on whether any connections are animated
     _disposers.add(
       reaction(
@@ -895,6 +906,9 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
 
     // Remove transform listener before disposing
     _transformationController.removeListener(_syncViewportFromTransform);
+    widget.controller.cameraViewportListenable.removeListener(
+      _syncTransformFromCamera,
+    );
 
     // Detach viewport animation - this also clears the handler with token check
     detachViewportAnimation();
@@ -924,14 +938,11 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
   /// The onInteraction* callbacks also call setViewport, but empirically
   /// they don't work reliably in all cases. This listener is the safety net.
   ///
-  /// IMPORTANT: This sync is skipped during viewport animation to prevent
-  /// the animation from being interrupted. The viewport is synced once
-  /// when the animation completes via the onAnimationComplete callback.
+  /// Interactive and animated ticks update only the lightweight live camera.
+  /// The committed MobX/plugin boundary is crossed once when the interaction
+  /// or animation completes.
   void _syncViewportFromTransform() {
-    // Skip sync during animation - final sync happens via onAnimationComplete
-    if (isViewportAnimating) {
-      return;
-    }
+    if (_applyingCameraViewport) return;
 
     final transform = _transformationController.value;
     final translation = transform.getTranslation();
@@ -943,16 +954,51 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
       zoom: currentZoom,
     );
 
-    // Only update if viewport actually changed to avoid unnecessary reactions
-    final currentViewport = widget.controller.viewport;
-    if (currentViewport.x != viewport.x ||
-        currentViewport.y != viewport.y ||
-        currentViewport.zoom != viewport.zoom) {
-      widget.controller.setViewport(viewport);
+    _updatingCameraFromTransform = true;
+    try {
+      widget.controller.updateCameraViewport(viewport);
+    } finally {
+      _updatingCameraFromTransform = false;
+    }
+
+    // Direct transformation changes outside a gesture remain observable for
+    // backwards-compatible programmatic control. Viewport animations commit
+    // through their completion callback.
+    if (!_viewportInteractionActive && !isViewportAnimating) {
+      widget.controller.commitCameraViewport();
+    }
+  }
+
+  /// Applies an externally driven live camera directly to the retained scene.
+  /// The transformation listener is suppressed for this one assignment so a
+  /// benchmark or coordinated overlay can move the camera without committing
+  /// graph-wide reactive state.
+  void _syncTransformFromCamera() {
+    if (_updatingCameraFromTransform || !mounted) return;
+
+    final viewport = widget.controller.cameraViewportListenable.value;
+    final currentTransform = _transformationController.value;
+    final translation = currentTransform.getTranslation();
+    final scale = currentTransform.getMaxScaleOnAxis();
+    if (translation.x == viewport.x &&
+        translation.y == viewport.y &&
+        scale == viewport.zoom) {
+      return;
+    }
+
+    final matrix = Matrix4.identity()
+      ..translateByVector3(Vector3(viewport.x, viewport.y, 0))
+      ..scaleByDouble(viewport.zoom, viewport.zoom, viewport.zoom, 1.0);
+    _applyingCameraViewport = true;
+    try {
+      _transformationController.value = matrix;
+    } finally {
+      _applyingCameraViewport = false;
     }
   }
 
   void _onInteractionStart(ScaleStartDetails details) {
+    _viewportInteractionActive = true;
     // Mark viewport as being interacted with (for suppressing port hover during pan)
     // Cursor is handled reactively via Observer in the canvas MouseRegion
     runInAction(() {
@@ -977,6 +1023,9 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
   }
 
   void _onInteractionEnd(ScaleEndDetails details) {
+    _viewportInteractionActive = false;
+    widget.controller.commitCameraViewport();
+
     // Mark viewport interaction as complete
     // Cursor is handled reactively via Observer in the canvas MouseRegion
     runInAction(() {
@@ -1023,6 +1072,13 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     // Store initial pointer position for tap detection
     _initialPointerPosition = event.localPosition;
     _shouldClearSelectionOnTap = false;
+
+    if ((widget.controller.lod?.useThumbnailMode ?? false) &&
+        hitResult.isNode) {
+      _overviewPointerNodeId = hitResult.nodeId;
+      _overviewLastPointerPosition = event.localPosition;
+      _overviewDragStarted = false;
+    }
 
     // Store initial pointer position in widget-local coordinates
     widget.controller._setPointerPosition(ScreenPosition(event.localPosition));
@@ -1101,6 +1157,39 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
         (event.localPosition - _initialPointerPosition!).distance >
             dragThreshold) {
       _shouldClearSelectionOnTap = false;
+    }
+
+    if (_overviewPointerNodeId != null && event.pointer == _dragPointerId) {
+      final node = widget.controller.getNode(_overviewPointerNodeId!);
+      final initialPosition = _initialPointerPosition;
+      final movedPastThreshold =
+          initialPosition != null &&
+          (event.localPosition - initialPosition).distance > dragThreshold;
+
+      if (!_overviewDragStarted &&
+          movedPastThreshold &&
+          widget.behavior.canDrag &&
+          node != null &&
+          !node.locked) {
+        widget.controller.startNodeDrag(node.id);
+        _overviewDragStarted = true;
+
+        final zoom = widget.controller.viewport.zoom;
+        widget.controller.moveNodeDrag(
+          (event.localPosition - initialPosition) / zoom,
+        );
+      } else if (_overviewDragStarted) {
+        final previousPosition = _overviewLastPointerPosition;
+        if (previousPosition != null) {
+          final zoom = widget.controller.viewport.zoom;
+          widget.controller.moveNodeDrag(
+            (event.localPosition - previousPosition) / zoom,
+          );
+        }
+      }
+
+      _overviewLastPointerPosition = event.localPosition;
+      return;
     }
 
     // Note: Node drag is now handled by GestureDetector in NodeWidget
@@ -1210,11 +1299,40 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
       if (widget.controller.draggedNodeId != null) {
         widget.controller.endNodeDrag();
       }
+      if (_overviewPointerNodeId != null) {
+        widget.controller._updateInteractionState(canvasLocked: false);
+      }
       // Clear the drag pointer ID after cleanup
       _dragPointerId = null;
+      _resetOverviewPointerState();
     }
 
     // Cursor is derived from state via Observer - no update needed
+  }
+
+  void _handlePointerCancel(PointerCancelEvent event) {
+    if (_overviewPointerNodeId == null || event.pointer != _dragPointerId) {
+      return;
+    }
+
+    if (_overviewDragStarted && widget.controller.draggedNodeId != null) {
+      widget.controller.cancelNodeDrag(
+        Map<String, Offset>.from(
+          widget.controller.interaction.dragStartPositions,
+        ),
+      );
+    }
+    widget.controller._updateInteractionState(canvasLocked: false);
+    _dragPointerId = null;
+    _initialPointerPosition = null;
+    _shouldClearSelectionOnTap = false;
+    _resetOverviewPointerState();
+  }
+
+  void _resetOverviewPointerState() {
+    _overviewPointerNodeId = null;
+    _overviewLastPointerPosition = null;
+    _overviewDragStarted = false;
   }
 
   // Helper methods

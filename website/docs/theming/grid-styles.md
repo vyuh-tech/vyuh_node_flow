@@ -246,9 +246,10 @@ Control the grid size and color through the GridTheme:
 final theme = NodeFlowTheme.light.copyWith(
   gridTheme: GridTheme(
     style: GridStyles.lines,
-    size: 20.0,                  // Size of each grid cell in pixels
+    size: 20.0,                  // Base cell size in graph units
     color: Colors.grey[300]!,    // Grid line/dot color
     thickness: 1.0,              // Line/dot thickness
+    minScreenSpacing: 24.0,      // Coarsen the grid below 24 screen pixels
   ),
   backgroundColor: Colors.white, // Canvas background
 );
@@ -505,23 +506,30 @@ final theme = NodeFlowTheme.light.copyWith(
     - **Fine grids** (small `gridSize`) require more rendering
     - **Hierarchical** grids are slightly more expensive than simple styles
     - **None** grid has the best performance (no rendering)
-    - Grid rendering is optimized to only draw visible area
+    - Grid rendering is optimized to only draw the visible area
+    - By default, low zoom levels advance to power-of-two grid intervals until
+      primitives are at least 24 screen pixels apart. This keeps dots and
+      crosses from producing hundreds of thousands of draw calls.
 
   ### Optimization
 
 ```dart
-// For large canvases with many nodes, use:
-// 1. Larger grid size
+// For a denser or sparser adaptive grid, tune the screen-space floor.
 NodeFlowTheme.light.copyWith(
-  gridTheme: GridTheme.light.copyWith(size: 40.0), // vs 20.0
+  gridTheme: GridTheme.light.copyWith(minScreenSpacing: 32.0),
 )
 
-// 2. Simpler grid style
+// Use 0 only when every base-grid interval must remain visible at low zoom.
+NodeFlowTheme.light.copyWith(
+  gridTheme: GridTheme.light.copyWith(minScreenSpacing: 0),
+)
+
+// Simpler grid style
 NodeFlowTheme.light.copyWith(
   gridTheme: GridTheme.light.copyWith(style: GridStyles.dots), // vs hierarchical
 )
 
-// 3. Or disable grid for best performance
+// Or disable grid for best performance
 NodeFlowTheme.light.copyWith(
   gridTheme: GridTheme.light.copyWith(style: GridStyles.none),
 )

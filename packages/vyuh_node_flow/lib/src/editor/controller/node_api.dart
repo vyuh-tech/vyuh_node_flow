@@ -6,7 +6,7 @@ part of 'node_flow_controller.dart';
 ///
 /// ## Model APIs
 /// - [getNode], [getNodeIds], [nodeCount] - Lookup operations
-/// - [addNode], [removeNode], [duplicateNode], [deleteNodes] - CRUD operations
+/// - [addNode], [addNodes], [removeNode], [removeNodes], [duplicateNode] - CRUD operations
 ///
 /// ## Port APIs
 /// - [getPort], [getPortWorldPosition] - Port lookup
@@ -91,26 +91,38 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
   /// controller.addNode(node);
   /// ```
   void addNode(Node<T> node) {
-    runInAction(() {
-      _nodes[node.id] = node;
-      // Initialize visual position with snapping
-      node.setVisualPosition(snapToGrid(node.position.value));
+    addNodes([node]);
+  }
 
-      // Attach context for nodes with GroupableMixin (e.g., GroupNode)
-      // This enables the node to monitor child nodes, look up other nodes, etc.
-      if (node is GroupableMixin<T>) {
-        node.attachContext(_createGroupableContext());
-      }
+  /// Adds multiple nodes in one graph and spatial-index transaction.
+  ///
+  /// Prefer this over repeatedly calling [addNode] when importing or generating
+  /// a graph. Observers receive a single MobX action and the spatial index emits
+  /// a single batched change notification.
+  void addNodes(Iterable<Node<T>> nodes) {
+    final nodeList = nodes.toList(growable: false);
+    if (nodeList.isEmpty) return;
 
-      // Update spatial index immediately so ports are hit-testable right away.
-      // The MobX reaction for node add/remove has fireImmediately: false,
-      // which would delay the update and cause hit testing to fail.
-      _spatialIndex.update(node);
+    _spatialIndex.batch(() {
+      runInAction(() {
+        for (final node in nodeList) {
+          _nodes[node.id] = node;
+          node.setVisualPosition(snapToGrid(node.position.value));
+
+          if (node is GroupableMixin<T>) {
+            node.attachContext(_createGroupableContext());
+          }
+
+          // Keep the canonical graph and its index synchronized atomically.
+          _spatialIndex.update(node);
+        }
+      });
     });
-    // Fire event after successful addition
-    events.node?.onCreated?.call(node);
-    // Emit extension event
-    _emitEvent(NodeAdded<T>(node));
+
+    for (final node in nodeList) {
+      events.node?.onCreated?.call(node);
+      _emitEvent(NodeAdded<T>(node));
+    }
   }
 
   /// Requests deletion of a node with lock check and confirmation callback.
@@ -210,17 +222,24 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
       _connections.removeWhere(
         (c) => c.sourceNodeId == nodeId || c.targetNodeId == nodeId,
       );
+      for (final connection in connectionsToRemove) {
+        _connectionById.remove(connection.id);
+        _selectedConnectionIds.remove(connection.id);
+        _connectionsByNodeId[connection.sourceNodeId]?.remove(connection.id);
+        _connectionsByNodeId[connection.targetNodeId]?.remove(connection.id);
+      }
+      _connectionsByNodeId.removeWhere((_, ids) => ids.isEmpty);
 
       // Note: Groupable nodes (like GroupNode) are notified of deletions via MobX reaction
       // in _setupNodeMonitoringReactions that watches _nodes.keys for additions/deletions
     });
-    // Fire event after successful removal
-    events.node?.onDeleted?.call(nodeToDelete);
-    // Emit extension events for removed connections first
+    // Connection deletions precede the node deletion so every event observes
+    // a valid topological teardown order, including cascade removals.
     for (final connection in connectionsToRemove) {
+      events.connection?.onDeleted?.call(connection);
       _emitEvent(ConnectionRemoved(connection));
     }
-    // Emit extension event for removed node
+    events.node?.onDeleted?.call(nodeToDelete);
     _emitEvent(NodeRemoved<T>(nodeToDelete));
   }
 
@@ -269,11 +288,19 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
   /// controller.deleteNodes(['node1', 'node2', 'node3']);
   /// ```
   void deleteNodes(List<String> nodeIds) {
-    runInAction(() {
-      for (final nodeId in nodeIds) {
+    removeNodes(nodeIds);
+  }
+
+  /// Removes multiple nodes in one graph and spatial-index transaction.
+  void removeNodes(Iterable<String> nodeIds) {
+    final ids = nodeIds.toList(growable: false);
+    if (ids.isEmpty) return;
+
+    mutateGraph(() {
+      for (final nodeId in ids) {
         removeNode(nodeId);
       }
-    });
+    }, reason: 'remove-nodes');
   }
 
   // ============================================================================
@@ -397,6 +424,13 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
             (c.sourceNodeId == nodeId && c.sourcePortId == portId) ||
             (c.targetNodeId == nodeId && c.targetPortId == portId),
       );
+      for (final connection in connectionsToRemove) {
+        _connectionById.remove(connection.id);
+        _selectedConnectionIds.remove(connection.id);
+        _connectionsByNodeId[connection.sourceNodeId]?.remove(connection.id);
+        _connectionsByNodeId[connection.targetNodeId]?.remove(connection.id);
+      }
+      _connectionsByNodeId.removeWhere((_, ids) => ids.isEmpty);
 
       // Remove the port using the node's dynamic method
       node.removePort(portId);
@@ -1049,25 +1083,26 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
   void rebuildConnectionSegmentsForNodes(List<String> nodeIds) {
     if (!isConnectionPainterInitialized || _theme == null) return;
 
-    final nodeIdSet = nodeIds.toSet();
     final pathCache = _connectionPainter!.pathCache;
     final connectionStyle = _theme!.connectionTheme.style;
+    final connectionIds = <String>{
+      for (final nodeId in nodeIds) ...?_connectionsByNodeId[nodeId],
+    };
 
-    for (final connection in _connections) {
-      if (nodeIdSet.contains(connection.sourceNodeId) ||
-          nodeIdSet.contains(connection.targetNodeId)) {
-        final sourceNode = _nodes[connection.sourceNodeId];
-        final targetNode = _nodes[connection.targetNodeId];
-        if (sourceNode == null || targetNode == null) continue;
+    for (final connectionId in connectionIds) {
+      final connection = _connectionById[connectionId];
+      if (connection == null) continue;
+      final sourceNode = _nodes[connection.sourceNodeId];
+      final targetNode = _nodes[connection.targetNodeId];
+      if (sourceNode == null || targetNode == null) continue;
 
-        final segments = pathCache.getOrCreateSegmentBounds(
-          connection: connection,
-          sourceNode: sourceNode,
-          targetNode: targetNode,
-          connectionStyle: connectionStyle,
-        );
-        _spatialIndex.updateConnection(connection, segments);
-      }
+      final segments = pathCache.getOrCreateSegmentBounds(
+        connection: connection,
+        sourceNode: sourceNode,
+        targetNode: targetNode,
+        connectionStyle: connectionStyle,
+      );
+      _spatialIndex.updateConnection(connection, segments);
     }
   }
 
@@ -1106,20 +1141,55 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
   // Notification APIs - User-controlled data changes
   // ============================================================================
 
+  /// Mutates controller-owned node data and emits a [NodeDataChanged] event.
+  ///
+  /// This is the preferred API when [T] is a mutable model. Keeping the
+  /// mutation inside the controller ensures plugins such as persistence and
+  /// undo/redo observers receive a matching graph event.
+  ///
+  /// Returns `false` without invoking [mutate] when [nodeId] does not exist.
+  ///
+  /// For mutable models, pass an independent snapshot as [previousData] when
+  /// consumers need the old value. Without one, the event's previous value is
+  /// the same object reference that is being mutated.
+  ///
+  /// Example:
+  /// ```dart
+  /// final previous = node.data.copy();
+  /// controller.mutateNodeData(
+  ///   node.id,
+  ///   (data) => data.title = 'Updated',
+  ///   previousData: previous,
+  /// );
+  /// ```
+  bool mutateNodeData(
+    String nodeId,
+    void Function(T data) mutate, {
+    T? previousData,
+  }) {
+    final node = _nodes[nodeId];
+    if (node == null) return false;
+
+    final dataBeforeMutation = previousData ?? node.data;
+    mutate(node.data);
+    _emitEvent(NodeDataChanged<T>(node, dataBeforeMutation));
+    return true;
+  }
+
   /// Notifies extensions that a node's data has changed.
   ///
-  /// Since node data is controlled by the user (not the controller), this method
-  /// allows the user to emit [NodeDataChanged] events when they modify node data
-  /// directly. This enables extensions like auto-save to react to property changes.
+  /// Use this compatibility API when node data was changed outside
+  /// [mutateNodeData]. New code with mutable data should prefer
+  /// [mutateNodeData], which performs the mutation and notification together.
   ///
   /// The [previousData] parameter should contain the data value before the change,
   /// which can be useful for undo/redo implementations.
   ///
   /// Example:
   /// ```dart
-  /// // When editing a node's properties in a property panel:
-  /// final previousData = node.data;
-  /// node.data = updatedData;
+  /// // If an external state layer already changed the object:
+  /// final previousData = node.data.copy();
+  /// externalStore.updateNode(nodeId);
   /// controller.notifyNodeDataChanged(nodeId, previousData);
   /// ```
   void notifyNodeDataChanged(String nodeId, [T? previousData]) {

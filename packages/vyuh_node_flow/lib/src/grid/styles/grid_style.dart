@@ -50,15 +50,24 @@ abstract class GridStyle {
     NodeFlowTheme theme,
     GraphViewport viewport,
   ) {
-    final gridSize = theme.gridTheme.size;
-    if (gridSize <= 0) return;
+    final baseGridSize = theme.gridTheme.size;
+    if (baseGridSize <= 0) return;
+
+    final gridSize = _effectiveGridSize(
+      baseGridSize,
+      viewport.zoom,
+      theme.gridTheme.minScreenSpacing,
+    );
+    final effectiveTheme = gridSize == baseGridSize
+        ? theme
+        : theme.copyWith(gridTheme: theme.gridTheme.copyWith(size: gridSize));
 
     // Calculate common parameters once
     final visibleArea = _calculateVisibleArea(viewport, size);
     final gridArea = _calculateGridArea(visibleArea, gridSize);
 
     // Delegate to style-specific implementation
-    paintGrid(canvas, theme, gridArea);
+    paintGrid(canvas, effectiveTheme, gridArea);
   }
 
   /// Renders the style-specific grid pattern.
@@ -122,5 +131,21 @@ abstract class GridStyle {
       ..color = gridTheme.color
       ..strokeWidth = gridTheme.thickness
       ..style = PaintingStyle.stroke;
+  }
+
+  double _effectiveGridSize(
+    double gridSize,
+    double zoom,
+    double minScreenSpacing,
+  ) {
+    if (!zoom.isFinite || zoom <= 0 || minScreenSpacing <= 0) {
+      return gridSize;
+    }
+
+    var effectiveSize = gridSize;
+    while (effectiveSize.isFinite && effectiveSize * zoom < minScreenSpacing) {
+      effectiveSize *= 2;
+    }
+    return effectiveSize;
   }
 }

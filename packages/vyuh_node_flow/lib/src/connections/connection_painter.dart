@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+import 'dart:ui' show PointMode;
+
 import 'package:flutter/material.dart';
 
 import '../editor/themes/node_flow_theme.dart';
@@ -7,17 +10,116 @@ import '../ports/port.dart';
 import '../shared/shapes/none_marker_shape.dart';
 import 'connection.dart';
 import 'connection_endpoint.dart';
+import 'effects/connection_effect.dart';
 import 'connection_path_cache.dart';
 import 'connection_theme.dart';
 import 'endpoint_painter.dart';
 import 'styles/connection_style_base.dart';
 import 'styles/endpoint_position_calculator.dart';
 
+/// Immutable endpoint state used by the permanent connection paint path.
+@immutable
+class ConnectionEndpointRenderEntry {
+  const ConnectionEndpointRenderEntry({
+    required this.position,
+    required this.portPosition,
+    required this.endpoint,
+    required this.fillColor,
+    required this.borderColor,
+    required this.borderWidth,
+  });
+
+  final Offset position;
+  final PortPosition portPosition;
+  final ConnectionEndPoint endpoint;
+  final Color fillColor;
+  final Color borderColor;
+  final double borderWidth;
+}
+
+/// Immutable, fully resolved state for drawing one permanent connection.
+///
+/// No graph objects are retained. Paths, endpoint positions, selection colors,
+/// stroke widths, dash geometry, and animation effects are all resolved before
+/// Flutter enters the paint phase.
+@immutable
+class ConnectionRenderEntry {
+  const ConnectionRenderEntry({
+    required this.id,
+    required this.path,
+    required this.staticPath,
+    required this.color,
+    required this.strokeWidth,
+    required this.animationEffect,
+    this.sourceEndpoint,
+    this.targetEndpoint,
+  });
+
+  final String id;
+  final Path path;
+  final Path staticPath;
+  final Color color;
+  final double strokeWidth;
+  final ConnectionEffect? animationEffect;
+  final ConnectionEndpointRenderEntry? sourceEndpoint;
+  final ConnectionEndpointRenderEntry? targetEndpoint;
+}
+
+/// Immutable geometry shared by overview connections with the same paint.
+///
+/// Solid overview edges use packed coordinates with [Canvas.drawRawPoints].
+/// Dashed edges retain a bounded path fallback. Batches are spatially tiled and
+/// contour-capped so neither construction nor rasterization grows into one
+/// graph-spanning operation.
+@immutable
+class ConnectionRenderBatch {
+  const ConnectionRenderBatch({
+    required this.path,
+    required this.linePoints,
+    required this.isDashed,
+    required this.color,
+    required this.strokeWidth,
+    required this.edgeCount,
+  });
+
+  final Path path;
+  final Float32List linePoints;
+  final bool isDashed;
+  final Color color;
+  final double strokeWidth;
+  final int edgeCount;
+}
+
+/// Immutable batch of permanent connection render entries.
+@immutable
+class ConnectionRenderSnapshot {
+  ConnectionRenderSnapshot({
+    required this.revision,
+    required List<ConnectionRenderEntry> entries,
+    List<ConnectionRenderBatch> batches = const [],
+  }) : entries = List.unmodifiable(entries),
+       batches = List.unmodifiable(batches);
+
+  /// Stable render-input identity used for an O(1) repaint decision.
+  final int revision;
+  final List<ConnectionRenderEntry> entries;
+  final List<ConnectionRenderBatch> batches;
+
+  bool get isEmpty => entries.isEmpty && batches.isEmpty;
+  bool get isNotEmpty => !isEmpty;
+}
+
 /// Paints connections on a canvas.
 ///
 /// This is the UI layer - it only handles painting.
 /// The [ConnectionPathCache] (data layer) handles geometry and queries.
 class ConnectionPainter {
+  /// Keeps overview batches small enough for efficient construction and raster.
+  @visibleForTesting
+  static const int overviewBatchMaxContours = 32;
+
+  static const double _overviewBatchTileSize = 512;
+
   ConnectionPainter({
     required NodeFlowTheme theme,
     required ConnectionPathCache pathCache,
@@ -31,12 +133,349 @@ class ConnectionPainter {
 
   final ConnectionPathCache _pathCache;
 
+  // Path is the weak key, so cached dash output disappears with its source
+  // path instead of retaining stale connection geometry indefinitely.
+  final Expando<_DashedPathCacheEntry> _staticDashedPathCache =
+      Expando<_DashedPathCacheEntry>('static dashed connection paths');
+  int _dashedPathCacheBuilds = 0;
+  int _dashedPathCacheHits = 0;
+  int _overviewBatchBuilds = 0;
+  _RetainedOverviewScene? _retainedOverviewScene;
+
+  /// Number of static dashed paths built by this painter.
+  @visibleForTesting
+  int get debugDashedPathCacheBuilds => _dashedPathCacheBuilds;
+
+  /// Number of static dashed-path cache hits served by this painter.
+  @visibleForTesting
+  int get debugDashedPathCacheHits => _dashedPathCacheHits;
+
+  /// Number of bounded overview render batches constructed by this painter.
+  @visibleForTesting
+  int get debugOverviewBatchBuilds => _overviewBatchBuilds;
+
   /// Gets the connection path cache (data layer)
   ConnectionPathCache get pathCache => _pathCache;
 
   /// Optional function to get the shape for a node.
   /// Used to calculate correct port positions for shaped nodes.
   NodeShape? Function(Node node)? nodeShape;
+
+  /// Builds an immutable render snapshot outside the paint phase.
+  ///
+  /// This is the only permanent-connection path that reads nodes, ports, or
+  /// reactive connection properties. [paintRenderEntry] consumes only the
+  /// returned immutable values, so animation ticks never revisit graph state.
+  ConnectionRenderSnapshot buildRenderSnapshot<T, C>({
+    required Iterable<Connection<C>> connections,
+    required Node<T>? Function(String nodeId) nodeForId,
+    required Set<String> selectedIds,
+    required bool skipEndpoints,
+    bool simplifyPaths = false,
+    bool retainOverviewBatches = false,
+    ConnectionStyleBuilder<T, C>? connectionStyleBuilder,
+  }) {
+    final entries = <ConnectionRenderEntry>[];
+    final overviewEdges = <_OverviewEdgeRenderData>[];
+    final connectionTheme = theme.connectionTheme;
+    final portTheme = theme.portTheme;
+    final dashPattern = connectionTheme.dashPattern;
+    var revision = Object.hash(
+      simplifyPaths,
+      simplifyPaths || skipEndpoints,
+      Object.hashAll(dashPattern ?? const <double>[]),
+    );
+
+    for (final connection in connections) {
+      if (!connection.visible) continue;
+
+      final sourceNode = nodeForId(connection.sourceNodeId);
+      final targetNode = nodeForId(connection.targetNodeId);
+      if (sourceNode == null || targetNode == null) continue;
+      if (!sourceNode.isVisible || !targetNode.isVisible) continue;
+
+      final sourcePort = sourceNode.findPort(connection.sourcePortId);
+      final targetPort = targetNode.findPort(connection.targetPortId);
+      if (sourcePort == null || targetPort == null) continue;
+
+      ConnectionStyle? effectiveStyle;
+      if (!simplifyPaths) {
+        final overrideStyle = connectionStyleBuilder?.call(
+          connection,
+          sourceNode,
+          targetNode,
+        );
+        effectiveStyle =
+            overrideStyle ??
+            connection.getEffectiveStyle(connectionTheme.style);
+      }
+      final isSelected = selectedIds.contains(connection.id);
+      final color = isSelected
+          ? connection.selectedColor ?? connectionTheme.selectedColor
+          : connection.color ?? connectionTheme.color;
+      final strokeWidth = isSelected
+          ? connection.selectedStrokeWidth ??
+                connectionTheme.selectedStrokeWidth
+          : connection.strokeWidth ?? connectionTheme.strokeWidth;
+      final animationEffect = connection.getEffectiveAnimationEffect(
+        connectionTheme.animationEffect,
+      );
+
+      Offset? sourceConnectionPoint;
+      Offset? targetConnectionPoint;
+      if (simplifyPaths || !skipEndpoints) {
+        final sourceShape = nodeShape?.call(sourceNode);
+        final targetShape = nodeShape?.call(targetNode);
+        sourceConnectionPoint = sourceNode.getConnectionPoint(
+          connection.sourcePortId,
+          portSize: sourcePort.size ?? portTheme.size,
+          shape: sourceShape,
+        );
+        targetConnectionPoint = targetNode.getConnectionPoint(
+          connection.targetPortId,
+          portSize: targetPort.size ?? portTheme.size,
+          shape: targetShape,
+        );
+      }
+
+      final canBatchOverview =
+          simplifyPaths && !isSelected && animationEffect == null;
+      Path? path;
+      if (simplifyPaths && !canBatchOverview) {
+        path = Path()
+          ..moveTo(sourceConnectionPoint!.dx, sourceConnectionPoint.dy)
+          ..lineTo(targetConnectionPoint!.dx, targetConnectionPoint.dy);
+      } else if (!simplifyPaths) {
+        final cachedPath = _pathCache.getOrCreatePath(
+          connection: connection,
+          sourceNode: sourceNode,
+          targetNode: targetNode,
+          connectionStyle: effectiveStyle!,
+        );
+        if (cachedPath == null) continue;
+        path = cachedPath;
+      }
+
+      ConnectionEndpointRenderEntry? sourceEndpoint;
+      ConnectionEndpointRenderEntry? targetEndpoint;
+      if (!simplifyPaths && !skipEndpoints) {
+        final effectiveStartPoint = connection.getEffectiveStartPoint(
+          connectionTheme.startPoint,
+        );
+        final effectiveEndPoint = connection.getEffectiveEndPoint(
+          connectionTheme.endPoint,
+        );
+        final startPointSize = effectiveStartPoint.shape is NoneMarkerShape
+            ? Size.zero
+            : effectiveStartPoint.size;
+        final endPointSize = effectiveEndPoint.shape is NoneMarkerShape
+            ? Size.zero
+            : effectiveEndPoint.size;
+        final source = EndpointPositionCalculator.calculatePortConnectionPoints(
+          sourceConnectionPoint!,
+          sourcePort.position,
+          startPointSize,
+          gap: connection.startGap ?? connectionTheme.startGap,
+        );
+        final target = EndpointPositionCalculator.calculatePortConnectionPoints(
+          targetConnectionPoint!,
+          targetPort.position,
+          endPointSize,
+          gap: connection.endGap ?? connectionTheme.endGap,
+        );
+
+        sourceEndpoint = _resolveEndpointRenderEntry(
+          position: source.endpointPos,
+          portPosition: sourcePort.position,
+          endpoint: effectiveStartPoint,
+          connectionTheme: connectionTheme,
+        );
+        targetEndpoint = _resolveEndpointRenderEntry(
+          position: target.endpointPos,
+          portPosition: targetPort.position,
+          endpoint: effectiveEndPoint,
+          connectionTheme: connectionTheme,
+        );
+      }
+
+      revision = Object.hash(
+        revision,
+        Object.hashAll([
+          connection.id,
+          isSelected,
+          color,
+          strokeWidth,
+          animationEffect,
+          simplifyPaths ? sourceConnectionPoint : identityHashCode(path!),
+          simplifyPaths ? targetConnectionPoint : effectiveStyle!.id,
+          sourceEndpoint?.position,
+          sourceEndpoint?.portPosition,
+          sourceEndpoint?.endpoint,
+          sourceEndpoint?.fillColor,
+          sourceEndpoint?.borderColor,
+          sourceEndpoint?.borderWidth,
+          targetEndpoint?.position,
+          targetEndpoint?.portPosition,
+          targetEndpoint?.endpoint,
+          targetEndpoint?.fillColor,
+          targetEndpoint?.borderColor,
+          targetEndpoint?.borderWidth,
+        ]),
+      );
+
+      // Selected and animated edges keep independent entries so their visual
+      // state and animation semantics remain isolated. The common overview
+      // case is batched by resolved paint into a multi-contour path.
+      if (canBatchOverview) {
+        final source = sourceConnectionPoint!;
+        final target = targetConnectionPoint!;
+        final midpoint = Offset(
+          (source.dx + target.dx) / 2,
+          (source.dy + target.dy) / 2,
+        );
+        overviewEdges.add(
+          _OverviewEdgeRenderData(
+            id: connection.id,
+            source: source,
+            target: target,
+            color: color,
+            strokeWidth: strokeWidth,
+            tileX: (midpoint.dx / _overviewBatchTileSize).floor(),
+            tileY: (midpoint.dy / _overviewBatchTileSize).floor(),
+          ),
+        );
+        continue;
+      }
+
+      final staticPath = dashPattern == null
+          ? path!
+          : _createDashedPath(path!, dashPattern);
+
+      entries.add(
+        ConnectionRenderEntry(
+          id: connection.id,
+          path: path,
+          staticPath: staticPath,
+          color: color,
+          strokeWidth: strokeWidth,
+          animationEffect: animationEffect,
+          sourceEndpoint: sourceEndpoint,
+          targetEndpoint: targetEndpoint,
+        ),
+      );
+    }
+
+    final rawBatches = retainOverviewBatches && simplifyPaths
+        ? (_retainedOverviewScene ??= _RetainedOverviewScene(
+            onBatchBuild: _recordOverviewBatchBuild,
+          )).update(overviewEdges)
+        : _RetainedOverviewScene(
+            onBatchBuild: _recordOverviewBatchBuild,
+          ).update(overviewEdges);
+    final batches = dashPattern == null
+        ? rawBatches
+        : [
+            for (final batch in rawBatches)
+              ConnectionRenderBatch(
+                path: _createDashedPath(batch.path, dashPattern),
+                linePoints: batch.linePoints,
+                isDashed: true,
+                color: batch.color,
+                strokeWidth: batch.strokeWidth,
+                edgeCount: batch.edgeCount,
+              ),
+          ];
+
+    return ConnectionRenderSnapshot(
+      revision: Object.hash(revision, entries.length, batches.length),
+      entries: entries,
+      batches: batches,
+    );
+  }
+
+  void _recordOverviewBatchBuild() => _overviewBatchBuilds++;
+
+  /// Paints one previously resolved overview batch.
+  void paintRenderBatch(Canvas canvas, ConnectionRenderBatch batch) {
+    final paint = Paint()
+      ..color = batch.color
+      ..strokeWidth = batch.strokeWidth
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    if (batch.isDashed) {
+      canvas.drawPath(batch.path, paint);
+    } else {
+      canvas.drawRawPoints(PointMode.lines, batch.linePoints, paint);
+    }
+  }
+
+  /// Paints one previously resolved immutable permanent-connection entry.
+  void paintRenderEntry(
+    Canvas canvas,
+    ConnectionRenderEntry entry, {
+    double? animationValue,
+  }) {
+    final paint = Paint()
+      ..color = entry.color
+      ..strokeWidth = entry.strokeWidth
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    final effect = entry.animationEffect;
+    if (effect != null && animationValue != null) {
+      effect.paint(canvas, entry.path, paint, animationValue);
+    } else {
+      canvas.drawPath(entry.staticPath, paint);
+    }
+
+    final sourceEndpoint = entry.sourceEndpoint;
+    if (sourceEndpoint != null) {
+      _paintEndpointRenderEntry(canvas, sourceEndpoint);
+    }
+    final targetEndpoint = entry.targetEndpoint;
+    if (targetEndpoint != null) {
+      _paintEndpointRenderEntry(canvas, targetEndpoint);
+    }
+  }
+
+  ConnectionEndpointRenderEntry _resolveEndpointRenderEntry({
+    required Offset position,
+    required PortPosition portPosition,
+    required ConnectionEndPoint endpoint,
+    required ConnectionTheme connectionTheme,
+  }) {
+    return ConnectionEndpointRenderEntry(
+      position: position,
+      portPosition: portPosition,
+      endpoint: endpoint,
+      fillColor: endpoint.color ?? connectionTheme.endpointColor,
+      borderColor: endpoint.borderColor ?? connectionTheme.endpointBorderColor,
+      borderWidth: endpoint.borderWidth ?? connectionTheme.endpointBorderWidth,
+    );
+  }
+
+  void _paintEndpointRenderEntry(
+    Canvas canvas,
+    ConnectionEndpointRenderEntry entry,
+  ) {
+    final fillPaint = Paint()
+      ..color = entry.fillColor
+      ..style = PaintingStyle.fill;
+    final borderPaint = entry.borderWidth > 0
+        ? (Paint()
+            ..color = entry.borderColor
+            ..strokeWidth = entry.borderWidth
+            ..style = PaintingStyle.stroke)
+        : null;
+    EndpointPainter.paint(
+      canvas: canvas,
+      position: entry.position,
+      size: entry.endpoint.size,
+      shape: entry.endpoint.shape,
+      portPosition: entry.portPosition,
+      fillPaint: fillPaint,
+      borderPaint: borderPaint,
+    );
+  }
 
   /// Update the theme
   /// Cache invalidation is handled by the path cache itself
@@ -316,6 +755,12 @@ class ConnectionPainter {
   Path _createDashedPath(Path source, List<double> dashPattern) {
     if (dashPattern.isEmpty) return source;
 
+    final cached = _staticDashedPathCache[source];
+    if (cached != null && cached.matches(dashPattern)) {
+      _dashedPathCacheHits++;
+      return cached.path;
+    }
+
     final dashedPath = Path();
     final pathMetrics = source.computeMetrics();
 
@@ -342,6 +787,11 @@ class ConnectionPainter {
       }
     }
 
+    _staticDashedPathCache[source] = _DashedPathCacheEntry(
+      pattern: List.unmodifiable(dashPattern),
+      path: dashedPath,
+    );
+    _dashedPathCacheBuilds++;
     return dashedPath;
   }
 
@@ -534,6 +984,7 @@ class ConnectionPainter {
 
   /// Dispose and clear all cached paths
   void dispose() {
+    _retainedOverviewScene = null;
     _pathCache.dispose();
   }
 
@@ -555,5 +1006,185 @@ class ConnectionPainter {
   /// Get cache statistics for debugging
   Map<String, dynamic> getCacheStats() {
     return _pathCache.getStats();
+  }
+}
+
+class _DashedPathCacheEntry {
+  const _DashedPathCacheEntry({required this.pattern, required this.path});
+
+  final List<double> pattern;
+  final Path path;
+
+  bool matches(List<double> otherPattern) {
+    if (pattern.length != otherPattern.length) return false;
+
+    for (var index = 0; index < pattern.length; index++) {
+      if (pattern[index] != otherPattern[index]) return false;
+    }
+    return true;
+  }
+}
+
+typedef _OverviewBatchKey = ({
+  Color color,
+  double strokeWidth,
+  int tileX,
+  int tileY,
+});
+
+@immutable
+class _OverviewEdgeRenderData {
+  const _OverviewEdgeRenderData({
+    required this.id,
+    required this.source,
+    required this.target,
+    required this.color,
+    required this.strokeWidth,
+    required this.tileX,
+    required this.tileY,
+  });
+
+  final String id;
+  final Offset source;
+  final Offset target;
+  final Color color;
+  final double strokeWidth;
+  final int tileX;
+  final int tileY;
+
+  _OverviewBatchKey get batchKey =>
+      (color: color, strokeWidth: strokeWidth, tileX: tileX, tileY: tileY);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _OverviewEdgeRenderData &&
+          other.id == id &&
+          other.source == source &&
+          other.target == target &&
+          other.color == color &&
+          other.strokeWidth == strokeWidth &&
+          other.tileX == tileX &&
+          other.tileY == tileY;
+
+  @override
+  int get hashCode =>
+      Object.hash(id, source, target, color, strokeWidth, tileX, tileY);
+}
+
+class _RetainedOverviewScene {
+  _RetainedOverviewScene({required this.onBatchBuild});
+
+  final VoidCallback onBatchBuild;
+  final Map<String, _RetainedOverviewEdge> _edges = {};
+  final Map<_OverviewBatchKey, List<_RetainedOverviewBatch>> _batchesByKey = {};
+  final List<_RetainedOverviewBatch> _orderedBatches = [];
+
+  List<ConnectionRenderBatch> update(List<_OverviewEdgeRenderData> nextEdges) {
+    final retainedIds = <String>{};
+    for (final data in nextEdges) {
+      retainedIds.add(data.id);
+      final previous = _edges[data.id];
+      if (previous?.data == data) continue;
+
+      if (previous != null) _remove(previous);
+      _add(data);
+    }
+
+    final removedIds = [
+      for (final id in _edges.keys)
+        if (!retainedIds.contains(id)) id,
+    ];
+    for (final id in removedIds) {
+      _remove(_edges[id]!);
+    }
+
+    return [for (final batch in _orderedBatches) batch.render()];
+  }
+
+  void _add(_OverviewEdgeRenderData data) {
+    final candidates = _batchesByKey.putIfAbsent(data.batchKey, () => []);
+    var batch = candidates.firstWhere(
+      (candidate) => !candidate.isFull,
+      orElse: () {
+        final created = _RetainedOverviewBatch(
+          key: data.batchKey,
+          onBuild: onBatchBuild,
+        );
+        candidates.add(created);
+        _orderedBatches.add(created);
+        return created;
+      },
+    );
+    batch.add(data);
+    _edges[data.id] = _RetainedOverviewEdge(data: data, batch: batch);
+  }
+
+  void _remove(_RetainedOverviewEdge edge) {
+    _edges.remove(edge.data.id);
+    final batch = edge.batch;
+    batch.remove(edge.data.id);
+    if (!batch.isEmpty) return;
+
+    _orderedBatches.remove(batch);
+    final candidates = _batchesByKey[batch.key]!..remove(batch);
+    if (candidates.isEmpty) _batchesByKey.remove(batch.key);
+  }
+}
+
+class _RetainedOverviewEdge {
+  const _RetainedOverviewEdge({required this.data, required this.batch});
+
+  final _OverviewEdgeRenderData data;
+  final _RetainedOverviewBatch batch;
+}
+
+class _RetainedOverviewBatch {
+  _RetainedOverviewBatch({required this.key, required this.onBuild});
+
+  final _OverviewBatchKey key;
+  final VoidCallback onBuild;
+  final Map<String, _OverviewEdgeRenderData> _edges = {};
+  ConnectionRenderBatch? _renderBatch;
+
+  bool get isEmpty => _edges.isEmpty;
+  bool get isFull =>
+      _edges.length >= ConnectionPainter.overviewBatchMaxContours;
+
+  void add(_OverviewEdgeRenderData data) {
+    _edges[data.id] = data;
+    _renderBatch = null;
+  }
+
+  void remove(String id) {
+    _edges.remove(id);
+    _renderBatch = null;
+  }
+
+  ConnectionRenderBatch render() {
+    final retained = _renderBatch;
+    if (retained != null) return retained;
+
+    final path = Path();
+    final linePoints = Float32List(_edges.length * 4);
+    var pointIndex = 0;
+    for (final edge in _edges.values) {
+      path
+        ..moveTo(edge.source.dx, edge.source.dy)
+        ..lineTo(edge.target.dx, edge.target.dy);
+      linePoints[pointIndex++] = edge.source.dx;
+      linePoints[pointIndex++] = edge.source.dy;
+      linePoints[pointIndex++] = edge.target.dx;
+      linePoints[pointIndex++] = edge.target.dy;
+    }
+    onBuild();
+    return _renderBatch = ConnectionRenderBatch(
+      path: path,
+      linePoints: linePoints,
+      isDashed: false,
+      color: key.color,
+      strokeWidth: key.strokeWidth,
+      edgeCount: _edges.length,
+    );
   }
 }

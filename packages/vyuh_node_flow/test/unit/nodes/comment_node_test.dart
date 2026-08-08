@@ -14,6 +14,9 @@
 @Tags(['unit'])
 library;
 
+import 'dart:ui' as ui;
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart';
@@ -1600,6 +1603,57 @@ void main() {
       expect(comment.containsPoint(const Offset(50, 50)), isFalse);
       expect(comment.containsPoint(const Offset(350, 150)), isFalse);
       expect(comment.containsPoint(const Offset(150, 250)), isFalse);
+    });
+  });
+
+  group('Thumbnail Painting', () {
+    test('thumbnail cache key changes with painted note content', () {
+      final comment = createTestCommentNode<String>(
+        text: 'Original',
+        data: 'unchanged-data',
+      );
+      final originalKey = comment.thumbnailCacheKey;
+
+      comment.text = 'Updated';
+      expect(comment.thumbnailCacheKey, isNot(originalKey));
+
+      final textKey = comment.thumbnailCacheKey;
+      comment.color = Colors.blue;
+      expect(comment.thumbnailCacheKey, isNot(textKey));
+    });
+
+    test('painted thumbnail contains the note text', () async {
+      Future<ByteData> paint(String text) async {
+        final recorder = ui.PictureRecorder();
+        final canvas = Canvas(recorder);
+        final comment = createTestCommentNode<String>(
+          text: text,
+          data: 'data',
+          color: Colors.yellow,
+        );
+        comment.paintThumbnail(
+          canvas,
+          const Rect.fromLTWH(0, 0, 200, 100),
+          color: Colors.grey,
+          isSelected: false,
+        );
+        final picture = recorder.endRecording();
+        final image = await picture.toImage(200, 100);
+        final bytes = (await image.toByteData(
+          format: ui.ImageByteFormat.rawRgba,
+        ))!;
+        image.dispose();
+        picture.dispose();
+        return bytes;
+      }
+
+      final blank = await paint('');
+      final withText = await paint('Visible note content');
+
+      expect(
+        withText.buffer.asUint8List(),
+        isNot(orderedEquals(blank.buffer.asUint8List())),
+      );
     });
   });
 }

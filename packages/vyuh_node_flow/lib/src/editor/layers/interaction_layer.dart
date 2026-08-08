@@ -41,31 +41,36 @@ class InteractionLayer<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: RepaintBoundary(
-        child: Observer(
-          builder: (builderContext) {
-            // Observe selection rectangle (in graph coordinates, typed as GraphRect)
-            final selectionRect = controller.selectionRect;
+    return Observer(
+      builder: (builderContext) {
+        // Observe only interaction content while idle. The transform and
+        // animation listeners are attached later, when there is paint work.
+        final selectionRect = controller.selectionRect;
 
-            // Observe temporary connection and its changing properties
-            final tempConnection = controller.temporaryConnection;
-            if (tempConnection != null) {
-              tempConnection.currentPoint;
-              tempConnection.targetNodeId;
-              tempConnection.targetPortId;
-            }
+        final tempConnection = controller.temporaryConnection;
+        if (tempConnection != null) {
+          tempConnection.currentPoint;
+          tempConnection.targetNodeId;
+          tempConnection.targetPortId;
+        }
 
-            // Observe preview connections (for edge insertion preview etc.)
-            final previewConnections = controller.interaction.previewConnections
-                .toList();
+        final previewConnections = controller.interaction.previewConnections
+            .toList();
 
-            // Get theme from context - this ensures automatic rebuilds when theme changes
-            final theme =
-                Theme.of(builderContext).extension<NodeFlowTheme>() ??
-                NodeFlowTheme.light;
+        if (selectionRect == null &&
+            tempConnection == null &&
+            previewConnections.isEmpty) {
+          return const SizedBox.shrink();
+        }
 
-            return CustomPaint(
+        // Read the theme only for an active paint pass.
+        final theme =
+            Theme.of(builderContext).extension<NodeFlowTheme>() ??
+            NodeFlowTheme.light;
+
+        return IgnorePointer(
+          child: RepaintBoundary(
+            child: CustomPaint(
               painter: InteractionLayerPainter<T>(
                 controller: controller,
                 theme: theme,
@@ -76,10 +81,10 @@ class InteractionLayer<T> extends StatelessWidget {
                 animation: animation,
               ),
               size: Size.infinite,
-            );
-          },
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

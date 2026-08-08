@@ -215,46 +215,101 @@ class NodesLayer<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Observer(
       builder: (_) {
-        // Check if we should use thumbnail mode
-        final useThumbnailMode = controller.lod?.useThumbnailMode ?? false;
+        // Resolve the visible subset before allocating any full-canvas widget.
+        // Most graphs use only the middle render layer, so this keeps the empty
+        // background and foreground passes out of the render tree entirely.
+        var nodesList = controller.visibleNodes;
+        if (layerFilter != null) {
+          nodesList = nodesList
+              .where((node) => node.layer == layerFilter)
+              .toList();
+        }
 
-        if (useThumbnailMode) {
-          // Paint mode: single CustomPaint for all nodes
-          return NodesThumbnailLayer<T>(
-            controller: controller,
-            thumbnailBuilder: thumbnailBuilder,
-            layerFilter: layerFilter,
+        if (nodesList.isEmpty) return const SizedBox.shrink();
+
+        final sceneMode = controller.lod?.sceneMode ?? NodeSceneMode.widgets;
+
+        if (sceneMode == NodeSceneMode.overview) {
+          // Preserve the node under direct manipulation as a real widget.
+          // Ordinary overview nodes remain in one retained painted scene.
+          return _buildPaintedLayer(
+            context,
+            nodesList,
+            promoteSelection: false,
           );
         }
 
+        if (sceneMode == NodeSceneMode.navigation) {
+          return _buildPaintedLayer(context, nodesList, promoteSelection: true);
+        }
+
         // Widget mode: individual widgets per node
-        return _buildWidgetLayer(context);
+        return _buildWidgetLayer(context, nodesList);
       },
     );
   }
 
-  Widget _buildWidgetLayer(BuildContext context) {
+  Widget _buildPaintedLayer(
+    BuildContext context,
+    List<Node<T>> nodesList, {
+    required bool promoteSelection,
+  }) {
+    // Keep only discrete interaction state as live widgets. Camera movement
+    // itself never changes this set, so navigation frames remain paint-only
+    // for the ordinary graph while selection/focus survives the mode switch.
+    final promotedIds = <String>{
+      if (promoteSelection) ...controller.selectedNodeIds,
+    };
+    final draggedNodeId = controller.interaction.draggedNodeId.value;
+    if (draggedNodeId != null) promotedIds.add(draggedNodeId);
+    final resizingNodeId = controller.interaction.resizingNodeId.value;
+    if (resizingNodeId != null) promotedIds.add(resizingNodeId);
+    final temporaryConnection =
+        controller.interaction.temporaryConnection.value;
+    if (temporaryConnection != null) {
+      promotedIds.add(temporaryConnection.startNodeId);
+      final targetNodeId = temporaryConnection.targetNodeId;
+      if (targetNodeId != null) promotedIds.add(targetNodeId);
+    }
+
+    if (promotedIds.isEmpty) {
+      return NodesThumbnailLayer<T>(
+        controller: controller,
+        thumbnailBuilder: thumbnailBuilder,
+        layerFilter: layerFilter,
+        nodes: nodesList,
+      );
+    }
+
+    final paintedNodes = <Node<T>>[];
+    final promotedNodes = <Node<T>>[];
+    for (final node in nodesList) {
+      (promotedIds.contains(node.id) ? promotedNodes : paintedNodes).add(node);
+    }
+
+    return UnboundedStack(
+      clipBehavior: Clip.none,
+      children: [
+        if (paintedNodes.isNotEmpty)
+          NodesThumbnailLayer<T>(
+            controller: controller,
+            thumbnailBuilder: thumbnailBuilder,
+            layerFilter: layerFilter,
+            nodes: paintedNodes,
+          ),
+        if (promotedNodes.isNotEmpty) _buildWidgetLayer(context, promotedNodes),
+      ],
+    );
+  }
+
+  Widget _buildWidgetLayer(BuildContext context, List<Node<T>> nodesList) {
     return UnboundedPositioned.fill(
       child: UnboundedRepaintBoundary(
-        child: Observer(
-          builder: (_) {
-            // Use cached sorted visible nodes - huge performance optimization
-            var nodesList = controller.visibleNodes;
-
-            if (layerFilter != null) {
-              nodesList = nodesList
-                  .where((node) => node.layer == layerFilter)
-                  .toList();
-            }
-
-            return UnboundedStack(
-              clipBehavior: Clip.none,
-              children: [
-                for (final node in nodesList)
-                  _buildNodeContainer(context, node),
-              ],
-            );
-          },
+        child: UnboundedStack(
+          clipBehavior: Clip.none,
+          children: [
+            for (final node in nodesList) _buildNodeContainer(context, node),
+          ],
         ),
       ),
     );

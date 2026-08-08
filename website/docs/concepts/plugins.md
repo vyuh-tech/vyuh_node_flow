@@ -23,7 +23,7 @@ Node Flow includes these built-in plugins:
 | [AutoPanPlugin](/docs/plugins/autopan) | Pan viewport when dragging near edges | Enabled       | `controller.autoPan` |
 | [MinimapPlugin](/docs/plugins/minimap) | Navigate overview panel               | Visible       | `controller.minimap` |
 | [SnapPlugin](/docs/plugins/snap)       | Grid snapping and alignment guides    | Disabled      | `controller.snap`    |
-| [LodPlugin](/docs/plugins/lod)         | Detail visibility based on zoom       | Disabled      | `controller.lod`     |
+| [LodPlugin](/docs/plugins/lod)         | Adaptive overview and detail          | Enabled       | `controller.lod`     |
 | [DebugPlugin](/docs/plugins/debug)     | Debug overlays                        | Disabled      | `controller.debug`   |
 | [StatsPlugin](/docs/plugins/stats)     | Graph statistics                      | Enabled       | `controller.stats`   |
 
@@ -36,7 +36,7 @@ When no plugins are specified, Node Flow includes a default set:
 final defaultPlugins = [
   AutoPanPlugin(),      // Enabled by default
   DebugPlugin(),        // Disabled by default (mode: none)
-  LodPlugin(),          // Disabled by default
+  LodPlugin(),          // Adaptive overview enabled by default
   MinimapPlugin(),      // Visible by default
   SnapPlugin(),         // Disabled by default (grid snapping)
   StatsPlugin(),        // Always available

@@ -1,5 +1,7 @@
+import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show ValueListenable, ValueNotifier;
 import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
@@ -341,7 +343,28 @@ class NodeFlowController<T, C> {
   final ObservableSet<String> _selectedNodeIds = ObservableSet<String>();
   final ObservableSet<String> _selectedConnectionIds = ObservableSet<String>();
   final Observable<GraphViewport> _viewport;
+  late final ValueNotifier<GraphViewport> _cameraViewport = ValueNotifier(
+    _viewport.value,
+  );
+  late final Observable<GraphViewport> _cullingViewport = Observable(
+    _viewport.value,
+  );
   final Observable<Size> _screenSize = Observable(Size.zero);
+
+  // Stable, allocation-free public views over the observable collections.
+  // The wrappers delegate reads to their MobX-backed sources, so collection
+  // access remains reactive inside Observer/autorun while mutation stays behind
+  // the controller API.
+  late final Map<String, Node<T>> _nodesView = UnmodifiableMapView(_nodes);
+  late final List<Connection<C>> _connectionsView = UnmodifiableListView(
+    _connections,
+  );
+  late final Set<String> _selectedNodeIdsView = UnmodifiableSetView(
+    _selectedNodeIds,
+  );
+  late final Set<String> _selectedConnectionIdsView = UnmodifiableSetView(
+    _selectedConnectionIds,
+  );
 
   /// Direct callback to trigger viewport animations.
   ///
@@ -493,6 +516,16 @@ class NodeFlowController<T, C> {
     _computeSortedNodes,
   );
 
+  /// Cached bounds for the complete graph.
+  ///
+  /// Keeping this computed alive makes repeated API reads O(1). MobX tracks the
+  /// node collection plus each node's position and size, invalidating the cache
+  /// only when geometry actually changes.
+  late final Computed<Rect> _nodesBounds = Computed(
+    _computeNodesBounds,
+    keepAlive: true,
+  );
+
   /// Connections currently affected by an interaction (drag/resize).
   /// These should be rendered in the active layer.
   late final Computed<Set<String>> _activeConnectionIds = Computed(() {
@@ -532,10 +565,33 @@ class NodeFlowController<T, C> {
     return result;
   });
 
+  /// Nodes intersecting the actual viewport, without the culling preload.
+  ///
+  /// Rendering uses a much larger hysteresis rectangle so small camera moves do
+  /// not repeatedly query the spatial index. That preload is intentionally not
+  /// used for density decisions such as adaptive LOD.
+  late final Computed<List<Node<T>>> _nodesInViewport = Computed(() {
+    final v = _cullingViewport.value;
+    final s = _screenSize.value;
+    // Establish the MobX dependency before querying the non-observable index.
+    _spatialIndex.version.value;
+
+    if (s.isEmpty) return List<Node<T>>.unmodifiable(_nodes.values);
+
+    final viewportRect = Rect.fromLTWH(
+      -v.x / v.zoom,
+      -v.y / v.zoom,
+      s.width / v.zoom,
+      s.height / v.zoom,
+    );
+    return List<Node<T>>.unmodifiable(_spatialIndex.nodesIn(viewportRect));
+  });
+
   /// Visible nodes based on current viewport with hysteresis.
   late final Computed<List<Node<T>>> _visibleNodes = Computed(() {
-    // Depend on viewport and screen size
-    final v = _viewport.value;
+    // Culling follows a coalesced camera viewport rather than every transform
+    // tick. The live camera remains available through [viewport].
+    final v = _cullingViewport.value;
     final s = _screenSize.value;
 
     if (s.isEmpty) return _nodes.values.toList();
@@ -598,8 +654,9 @@ class NodeFlowController<T, C> {
 
   /// Visible connections based on current viewport with hysteresis.
   late final Computed<List<Connection<C>>> _visibleConnections = Computed(() {
-    // Depend on viewport and screen size
-    final v = _viewport.value;
+    // Culling follows a coalesced camera viewport rather than every transform
+    // tick. The live camera remains available through [viewport].
+    final v = _cullingViewport.value;
     final s = _screenSize.value;
 
     if (s.isEmpty) return _connections;
@@ -671,20 +728,41 @@ class NodeFlowController<T, C> {
 
   /// Gets all connections in the graph.
   ///
-  /// Returns a live list that will automatically update when connections
-  /// are added or removed.
-  List<Connection<C>> get connections => _connections;
+  /// Returns a stable, read-only live view. Reads remain reactive inside MobX
+  /// observers, while graph mutations must go through controller methods such
+  /// as [addConnection] and [removeConnection].
+  List<Connection<C>> get connections => _connectionsView;
 
   /// Gets the IDs of all currently selected nodes.
   ///
-  /// Returns a set of node IDs. An empty set means no nodes are selected.
-  Set<String> get selectedNodeIds => _selectedNodeIds;
+  /// Returns a stable, read-only live view. An empty set means no nodes are
+  /// selected. Use [selectNode], [selectNodes], or [clearNodeSelection] to
+  /// change selection.
+  Set<String> get selectedNodeIds => _selectedNodeIdsView;
 
   /// Gets the current viewport state (position and zoom).
   ///
   /// The viewport determines what portion of the graph is visible and at
   /// what zoom level.
-  GraphViewport get viewport => _viewport.value;
+  /// Gets the live camera viewport.
+  ///
+  /// During an interactive pan or zoom this value updates without invalidating
+  /// the graph-wide MobX state or emitting plugin events on every engine tick.
+  /// Use [viewportObservable] when observing committed viewport changes.
+  GraphViewport get viewport => _cameraViewport.value;
+
+  /// Lightweight live-camera signal for renderers and overlays.
+  ///
+  /// This signal is intentionally separate from the committed MobX viewport so
+  /// high-frequency camera movement can repaint isolated UI without rebuilding
+  /// the graph model.
+  ValueListenable<GraphViewport> get cameraViewportListenable =>
+      _cameraViewport;
+
+  /// Coalesced camera viewport used by spatial culling and render-policy
+  /// decisions. It updates when the camera leaves its cached query area or
+  /// changes zoom materially, rather than on every transform tick.
+  GraphViewport get renderViewport => _cullingViewport.value;
 
   /// Gets the viewport observable for reactive UI updates.
   ///
@@ -697,38 +775,19 @@ class NodeFlowController<T, C> {
   /// ```
   Observable<GraphViewport> get viewportObservable => _viewport;
 
-  /// Gets the nodes observable map for reactive UI updates.
-  ///
-  /// Use this when you need to observe node collection changes in MobX Observer widgets.
-  ObservableMap<String, Node<T>> get nodesObservable => _nodes;
-
-  /// Gets the connections observable list for reactive UI updates.
-  ///
-  /// Use this when you need to observe connection collection changes in MobX Observer widgets.
-  ObservableList<Connection<C>> get connectionsObservable => _connections;
-
-  /// Gets the selected node IDs observable set for reactive UI updates.
-  ///
-  /// Use this when you need to observe selection changes in MobX Observer widgets.
-  ObservableSet<String> get selectedNodeIdsObservable => _selectedNodeIds;
-
-  /// Gets the selected connection IDs observable set for reactive UI updates.
-  ///
-  /// Use this when you need to observe connection selection changes in MobX Observer widgets.
-  ObservableSet<String> get selectedConnectionIdsObservable =>
-      _selectedConnectionIds;
-
   /// Checks if there is any active selection (nodes or connections).
   ///
   /// Returns `true` if anything is selected, `false` otherwise.
   bool get hasSelection => _hasSelection.value;
 
-  // Package-private - for internal widget use only
-
-  /// Gets all nodes in the graph as a map (package-private).
+  /// Gets all nodes in the graph.
   ///
-  /// This is primarily for internal use by the editor widget.
-  Map<String, Node<T>> get nodes => _nodes;
+  /// Returns a stable, read-only live view keyed by node ID. Reads remain
+  /// reactive inside MobX observers. Use the controller's node mutation methods
+  /// rather than modifying this map directly.
+  Map<String, Node<T>> get nodes => _nodesView;
+
+  // Package-private - for internal widget use only
 
   /// Gets nodes sorted by z-index (package-private).
   ///
@@ -741,6 +800,13 @@ class NodeFlowController<T, C> {
   /// Optimized for rendering only what's on screen.
   /// Uses cached Computed to avoid sorting on every access.
   List<Node<T>> get visibleNodes => _sortedVisibleNodes.value;
+
+  /// Gets nodes intersecting the actual on-screen graph bounds.
+  ///
+  /// Unlike [visibleNodes], this list excludes the off-screen culling preload.
+  /// It is read-only, reactive, and intended for viewport statistics and
+  /// density-based rendering policy rather than direct scene rendering.
+  List<Node<T>> get nodesInViewport => _nodesInViewport.value;
 
   /// Gets visible connections (package-private).
   List<Connection<C>> get visibleConnections => _visibleConnections.value;
@@ -818,8 +884,10 @@ class NodeFlowController<T, C> {
 
   /// Gets the IDs of all currently selected connections (package-private).
   ///
-  /// Returns a set of connection IDs. An empty set means no connections are selected.
-  Set<String> get selectedConnectionIds => _selectedConnectionIds;
+  /// Returns a stable, read-only live view. An empty set means no connections
+  /// are selected. Use [selectConnection] or [clearConnectionSelection] to
+  /// change selection.
+  Set<String> get selectedConnectionIds => _selectedConnectionIdsView;
 
   /// Gets the hit tester for spatial queries (package-private).
   ///
@@ -839,6 +907,26 @@ class NodeFlowController<T, C> {
     nodesList.sort((a, b) => a.zIndex.value.compareTo(b.zIndex.value));
 
     return nodesList;
+  }
+
+  Rect _computeNodesBounds() {
+    if (_nodes.isEmpty) return Rect.zero;
+
+    double minX = double.infinity;
+    double minY = double.infinity;
+    double maxX = double.negativeInfinity;
+    double maxY = double.negativeInfinity;
+
+    for (final node in _nodes.values) {
+      final position = node.position.value;
+      final size = node.size.value;
+      minX = math.min(minX, position.dx);
+      minY = math.min(minY, position.dy);
+      maxX = math.max(maxX, position.dx + size.width);
+      maxY = math.max(maxY, position.dy + size.height);
+    }
+
+    return Rect.fromLTRB(minX, minY, maxX, maxY);
   }
 
   // NOTE: _setupNodeMonitoringReactions() and _setupSelectionReactions()
@@ -897,6 +985,7 @@ class NodeFlowController<T, C> {
   void dispose() {
     _canvasFocusNode.dispose();
     _connectionPainter?.dispose();
+    _cameraViewport.dispose();
 
     // Detach all plugins
     for (final plugin in _plugins.toList()) {
@@ -1029,36 +1118,62 @@ class NodeFlowController<T, C> {
     }
   }
 
-  /// Wraps multiple operations in a batch.
+  /// Applies synchronous graph changes through one reactive invalidation
+  /// boundary.
   ///
-  /// Plugins will see [BatchStarted] before the operations and
-  /// [BatchEnded] after. This allows plugins like undo/redo to
-  /// group multiple operations into a single undoable action.
+  /// Use this for logical topology changes that touch multiple nodes and
+  /// connections, such as expanding a node into a subgraph or replacing a
+  /// generated branch. MobX observers are notified after the outer mutation,
+  /// and the spatial index publishes at most one revision for the operation.
   ///
-  /// Batches can be nested. Only the outermost batch emits events.
+  /// Per-element node and connection callbacks/events are preserved. Plugins
+  /// additionally see [BatchStarted] before the mutation and [BatchEnded]
+  /// after it, so history and persistence plugins can treat it as one logical
+  /// change. Nested mutations join the outer boundary and emit no extra batch
+  /// events.
+  ///
+  /// [mutation] must be synchronous. This API consolidates notifications but
+  /// does not provide rollback: if it throws, changes completed before the
+  /// exception remain applied and [BatchEnded] is still emitted.
   ///
   /// Example:
   /// ```dart
-  /// controller.batch('delete-selection', () {
-  ///   for (final id in selectedNodeIds.toList()) {
-  ///     controller.removeNode(id);
-  ///   }
-  /// });
+  /// controller.mutateGraph(
+  ///   () {
+  ///     controller.addNode(generatedNode);
+  ///     controller.addConnections([incoming, outgoing]);
+  ///   },
+  ///   reason: 'expand-generated-node',
+  /// );
   /// ```
-  void batch(String reason, void Function() operations) {
-    if (_batchDepth == 0) {
+  void mutateGraph(
+    void Function() mutation, {
+    String reason = 'graph-mutation',
+  }) {
+    final isOutermost = _batchDepth == 0;
+    if (isOutermost) {
       _emitEvent(BatchStarted(reason));
     }
     _batchDepth++;
 
     try {
-      operations();
+      if (isOutermost) {
+        _spatialIndex.batch(() => runInAction(mutation));
+      } else {
+        mutation();
+      }
     } finally {
       _batchDepth--;
       if (_batchDepth == 0) {
         _emitEvent(BatchEnded());
       }
     }
+  }
+
+  /// Legacy name for [mutateGraph].
+  @Deprecated('Use mutateGraph(callback, reason: reason) instead.')
+  void batch(String reason, void Function() operations) {
+    mutateGraph(operations, reason: reason);
   }
 }
 

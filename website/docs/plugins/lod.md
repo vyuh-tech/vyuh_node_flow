@@ -1,6 +1,6 @@
 ---
 title: Level of Detail (LOD)
-description: Zoom-based visibility for improved performance and reduced clutter
+description: Adaptive overview rendering and zoom-based visibility for large graphs
 ---
 
 # Level of Detail (LOD)
@@ -12,7 +12,9 @@ zoom (full) - all details visible including ports, labels, and resize handles.
 :::
 
 The Level of Detail (LOD) system automatically adjusts which visual elements are rendered based on the current zoom
-level. This improves performance when viewing large graphs and reduces visual clutter at low zoom levels.
+level. It also switches visible nodes from individual widgets to a batched overview painter when their count exceeds
+the interactive-node budget. This improves performance when viewing large graphs and reduces visual clutter at low
+zoom levels.
 
 ## How LOD Works
 
@@ -30,25 +32,41 @@ LOD uses **normalized zoom** (0.0 to 1.0) based on your min/max zoom configurati
 
 ### Default Behavior
 
-LOD is included as a default plugin but is **disabled by default** (always shows full detail):
+LOD is included as a default plugin and is **enabled by default**. It enters adaptive overview mode when the normalized
+zoom is below `minThreshold` or more than `maxInteractiveNodes` nodes intersect
+the actual viewport. The off-screen culling preload does not count toward this
+budget, so nearby nodes cannot unexpectedly trigger overview mode while you are
+zoomed in:
 
 ```dart
 NodeFlowController(
   config: NodeFlowConfig(
-    // Default plugins include LodPlugin() which is disabled
+    // Defaults include LodPlugin(enabled: true, maxInteractiveNodes: 200)
   ),
 )
 ```
 
-### Enable LOD
+In overview mode, nodes remain selectable, tappable, and draggable through spatial hit-testing. The node currently
+being dragged or resized is promoted into a real widget above the painted scene, so its content and interaction state
+remain intact. `CommentNode` thumbnails also retain their note text. Other node child widgets and ports are not built,
+so port-based connection editing resumes after zooming in or reducing the on-screen node count. Use
+`NodeFlowEditor.thumbnailBuilder` when a custom node needs a content-faithful painted representation.
 
-Enable LOD to auto-hide details when zoomed out:
+Connections also switch to an overview render scene: geometry is resolved into
+immutable snapshots outside paint, routes become straight physical-port paths,
+endpoints and labels are omitted, and static edges sharing a color and stroke
+are painted in bounded batches. Selected and animated connections remain
+independent so their interaction feedback is preserved.
+
+### Disable Adaptive LOD
+
+Disable LOD when every visible node must remain a full widget regardless of zoom or graph size:
 
 ```dart
 NodeFlowController(
   config: NodeFlowConfig(
     plugins: [
-      LodPlugin(enabled: true),
+      LodPlugin(enabled: false),
       // ... other plugins
     ],
   ),
@@ -64,9 +82,9 @@ NodeFlowController(
   config: NodeFlowConfig(
     plugins: [
       LodPlugin(
-        enabled: true,
         minThreshold: 0.2,   // Minimal below 20%
         midThreshold: 0.5,   // Standard 20-50%, Full above 50%
+        maxInteractiveNodes: 300,
       ),
       // ... other plugins
     ],
@@ -236,6 +254,9 @@ controller.lod?.setThresholds(
   midThreshold: 0.7,
 );
 
+// Update the visible-node budget for full widget rendering
+controller.lod?.setMaxInteractiveNodes(300);
+
 // Update visibility presets
 controller.lod?.setMinVisibility(DetailVisibility.minimal);
 controller.lod?.setMidVisibility(DetailVisibility.standard);
@@ -249,20 +270,27 @@ controller.lod?.toggle();
 
 ## Performance Benefits
 
-LOD provides significant performance improvements for large graphs:
+LOD reduces work on both the widget and connection paths:
 
-| Graph Size | Without LOD | With LOD (zoomed out) |
-|------------|-------------|-----------------------|
-| 100 nodes  | ~16ms/frame | ~8ms/frame            |
-| 500 nodes  | ~40ms/frame | ~15ms/frame           |
-| 1000 nodes | ~80ms/frame | ~25ms/frame           |
+1. **Batched node rendering**: Overview nodes use one thumbnail painter per
+   populated z-layer instead of building hundreds of child widgets.
+2. **Simplified connection geometry**: Overview edges skip routers, path-cache
+   lookups, endpoints, and labels.
+3. **Batched static edges**: Connections with the same resolved color and stroke
+   are grouped into bounded paths while selected and animated edges remain
+   isolated. Bounded batches avoid a single graph-spanning path becoming a
+   rasterization bottleneck.
+4. **Smaller reactive surface**: Live camera frames do not invalidate committed
+   graph state, and visibility queries are coalesced behind a query margin.
+5. **Idle layer elision**: Empty node layers and inactive interaction overlays do
+   not create full-canvas painters, repaint boundaries, or transform listeners.
 
-The improvements come from:
-
-1. **Skipping widget builds**: When `showNodeContent: false`, complex node widgets aren't built
-2. **Skipping path calculations**: Hidden connection lines don't compute paths
-3. **Reduced paint operations**: Fewer visual elements means faster painting
-4. **Lower memory usage**: Fewer widgets in the tree
+Measure your own node builders, graph density, display, and Flutter target with
+the reproducible 500-node profile harness in
+`packages/demo/integration_test/node_flow_500_benchmark_test.dart`. It reports
+UI/raster/total p50, p95, p99, maximum frame time, and 120 Hz budget misses for
+both full and adaptive rendering; the documentation intentionally does not
+promise hardware-independent frame times.
 
 ## Best Practices
 

@@ -87,6 +87,49 @@ void main() {
       expect(vp.y, equals(100.0));
       expect(vp.zoom, equals(2.5));
     });
+
+    test('transient camera updates do not commit MobX viewport state', () {
+      final controller = createTestController();
+      const transient = GraphViewport(x: 80, y: 40, zoom: 1.02);
+
+      controller.updateCameraViewport(transient);
+
+      expect(controller.viewport, transient);
+      expect(controller.cameraViewportListenable.value, transient);
+      expect(
+        controller.viewportObservable.value,
+        const GraphViewport(x: 0, y: 0, zoom: 1),
+      );
+      expect(controller.renderViewport.zoom, 1);
+    });
+
+    test('transient camera coalesces render viewport by zoom bucket', () {
+      final controller = createTestController();
+
+      controller.updateCameraViewport(const GraphViewport(zoom: 1.02));
+      expect(controller.renderViewport.zoom, 1);
+
+      controller.updateCameraViewport(const GraphViewport(zoom: 1.06));
+      expect(controller.renderViewport.zoom, 1.06);
+      expect(controller.viewportObservable.value.zoom, 1);
+    });
+
+    test('commitCameraViewport crosses the committed event boundary once', () {
+      final controller = createTestController();
+      const transient = GraphViewport(x: 120, y: 60, zoom: 1.5);
+      var cameraNotifications = 0;
+      controller.cameraViewportListenable.addListener(
+        () => cameraNotifications++,
+      );
+
+      controller.updateCameraViewport(transient);
+      controller.commitCameraViewport();
+      controller.commitCameraViewport();
+
+      expect(cameraNotifications, 1);
+      expect(controller.viewportObservable.value, transient);
+      expect(controller.renderViewport, transient);
+    });
   });
 
   // ===========================================================================

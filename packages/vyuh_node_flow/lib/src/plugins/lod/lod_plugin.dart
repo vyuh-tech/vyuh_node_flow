@@ -5,6 +5,19 @@ import '../events/events.dart';
 import '../node_flow_plugin.dart';
 import 'detail_visibility.dart';
 
+/// Rendering representation selected for the visible node scene.
+enum NodeSceneMode {
+  /// Fully interactive node widget subtrees.
+  widgets,
+
+  /// Painted base scene during a camera gesture, with selected or actively
+  /// edited nodes eligible for promotion into a small widget overlay.
+  navigation,
+
+  /// Fully painted overview used for low zoom or high visible-node counts.
+  overview,
+}
+
 /// Level of Detail (LOD) plugin that provides reactive visibility
 /// settings based on the viewport zoom level.
 ///
@@ -31,9 +44,10 @@ import 'detail_visibility.dart';
 ///
 /// ```dart
 /// LodPlugin(
-///   enabled: true,
 ///   minThreshold: 0.2,
 ///   midThreshold: 0.5,
+///   maxInteractiveNodes: 200,
+///   paintDuringViewportInteraction: true,
 /// )
 /// ```
 ///
@@ -46,22 +60,34 @@ class LodPlugin extends NodeFlowPlugin {
   /// Creates a LOD plugin with optional threshold and visibility settings.
   ///
   /// Parameters:
-  /// - [enabled]: Whether LOD is enabled (default: false)
+  /// - [enabled]: Whether adaptive LOD is enabled (default: true)
   /// - [minThreshold]: Normalized zoom below which [minVisibility] is used (default: 0.03)
   /// - [midThreshold]: Normalized zoom below which [midVisibility] is used (default: 0.1)
+  /// - [maxInteractiveNodes]: Maximum number of on-screen nodes rendered as
+  ///   full widgets before switching to the batched overview painter (default: 200)
+  /// - [paintDuringViewportInteraction]: Temporarily replace full node widgets
+  ///   with the batched overview scene while panning or zooming (default: true)
   /// - [minVisibility]: Visibility settings for lowest zoom level (default: minimal)
   /// - [midVisibility]: Visibility settings for medium zoom level (default: standard)
   /// - [maxVisibility]: Visibility settings for highest zoom level (default: full)
   LodPlugin({
-    bool enabled = false,
+    bool enabled = true,
     double minThreshold = 0.03,
     double midThreshold = 0.1,
+    int maxInteractiveNodes = 200,
+    bool paintDuringViewportInteraction = true,
     DetailVisibility minVisibility = DetailVisibility.minimal,
     DetailVisibility midVisibility = DetailVisibility.standard,
     DetailVisibility maxVisibility = DetailVisibility.full,
   }) : _enabled = Observable(enabled),
        _minThreshold = Observable(minThreshold),
        _midThreshold = Observable(midThreshold),
+       _maxInteractiveNodes = Observable(
+         _validateMaxInteractiveNodes(maxInteractiveNodes),
+       ),
+       _paintDuringViewportInteraction = Observable(
+         paintDuringViewportInteraction,
+       ),
        _minVisibility = Observable(minVisibility),
        _midVisibility = Observable(midVisibility),
        _maxVisibility = Observable(maxVisibility);
@@ -73,6 +99,8 @@ class LodPlugin extends NodeFlowPlugin {
   final Observable<bool> _enabled;
   final Observable<double> _minThreshold;
   final Observable<double> _midThreshold;
+  final Observable<int> _maxInteractiveNodes;
+  final Observable<bool> _paintDuringViewportInteraction;
   final Observable<DetailVisibility> _minVisibility;
   final Observable<DetailVisibility> _midVisibility;
   final Observable<DetailVisibility> _maxVisibility;
@@ -81,6 +109,7 @@ class LodPlugin extends NodeFlowPlugin {
 
   late Computed<double> _normalizedZoom;
   late Computed<DetailVisibility> _currentVisibility;
+  late Computed<NodeSceneMode> _sceneMode;
 
   @override
   String get id => 'lod';
@@ -186,6 +215,33 @@ class LodPlugin extends NodeFlowPlugin {
     });
   }
 
+  /// Maximum on-screen node count that uses fully interactive widget rendering.
+  ///
+  /// When more nodes intersect the actual viewport, the editor switches to its
+  /// batched overview painter. The off-screen culling preload is deliberately
+  /// excluded, so nearby nodes cannot blank readable content at high zoom.
+  int get maxInteractiveNodes => _maxInteractiveNodes.value;
+
+  /// Updates the visible-node threshold for adaptive overview rendering.
+  void setMaxInteractiveNodes(int value) {
+    runInAction(
+      () => _maxInteractiveNodes.value = _validateMaxInteractiveNodes(value),
+    );
+  }
+
+  /// Whether camera gestures temporarily use the batched painted scene.
+  ///
+  /// This removes individual node widget/render-object subtrees from active
+  /// pan and zoom frames. Full widgets return when the viewport interaction
+  /// ends, provided zoom and visible-node count do not otherwise require the
+  /// overview scene.
+  bool get paintDuringViewportInteraction =>
+      _paintDuringViewportInteraction.value;
+
+  /// Enables or disables painted navigation frames.
+  void setPaintDuringViewportInteraction(bool value) =>
+      runInAction(() => _paintDuringViewportInteraction.value = value);
+
   // ═══════════════════════════════════════════════════════════════════════════
   // Visibility Presets
   // ═══════════════════════════════════════════════════════════════════════════
@@ -234,16 +290,18 @@ class LodPlugin extends NodeFlowPlugin {
 
   /// Whether to use thumbnail (paint) mode instead of widget mode.
   ///
-  /// Returns `true` when:
-  /// 1. LOD is enabled
-  /// 2. Zoom is below minThreshold (very zoomed out)
+  /// Returns `true` when adaptive LOD is enabled and either:
+  /// 1. Zoom is below [minThreshold], or
+  /// 2. The number of spatially visible nodes exceeds [maxInteractiveNodes].
+  /// 3. A viewport interaction is active and [paintDuringViewportInteraction]
+  ///    is enabled.
   ///
-  /// When true, NodesLayer should switch to NodesThumbnailLayer
-  /// for maximum performance.
-  bool get useThumbnailMode {
-    if (!_enabled.value) return false;
-    return _normalizedZoom.value < _minThreshold.value;
-  }
+  /// Overview mode keeps node tap, selection, and drag interactions. Ports are
+  /// intentionally not rendered or editable until full-widget mode resumes.
+  bool get useThumbnailMode => sceneMode != NodeSceneMode.widgets;
+
+  /// The node-scene representation selected for the current graph state.
+  NodeSceneMode get sceneMode => _sceneMode.value;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // Convenience Accessors
@@ -279,7 +337,7 @@ class LodPlugin extends NodeFlowPlugin {
     final flowConfig = controller.config;
 
     _normalizedZoom = Computed(() {
-      final zoom = controller.currentZoom;
+      final zoom = controller.renderViewport.zoom;
       final minZoom = flowConfig.minZoom.value;
       final maxZoom = flowConfig.maxZoom.value;
 
@@ -309,6 +367,35 @@ class LodPlugin extends NodeFlowPlugin {
         return _maxVisibility.value;
       }
     });
+
+    _sceneMode = Computed(() {
+      if (!_enabled.value) return NodeSceneMode.widgets;
+
+      final zoomRequiresOverview = _normalizedZoom.value < _minThreshold.value;
+      final visibleCountRequiresOverview =
+          controller.nodesInViewport.length > _maxInteractiveNodes.value;
+      if (zoomRequiresOverview || visibleCountRequiresOverview) {
+        return NodeSceneMode.overview;
+      }
+
+      final navigationRequiresOverview =
+          _paintDuringViewportInteraction.value &&
+          controller.interaction.isViewportInteracting.value;
+      return navigationRequiresOverview
+          ? NodeSceneMode.navigation
+          : NodeSceneMode.widgets;
+    });
+  }
+
+  static int _validateMaxInteractiveNodes(int value) {
+    if (value <= 0) {
+      throw ArgumentError.value(
+        value,
+        'maxInteractiveNodes',
+        'must be greater than zero',
+      );
+    }
+    return value;
   }
 }
 

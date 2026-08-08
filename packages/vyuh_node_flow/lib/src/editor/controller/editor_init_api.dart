@@ -288,22 +288,10 @@ extension EditorInitApi<T, C> on NodeFlowController<T, C> {
       }
     }, fireImmediately: false);
 
-    // === NODE ADD/REMOVE SYNC ===
-    // When nodes are added/removed, rebuild the node spatial index
-    reaction((_) => _nodes.keys.toSet(), (Set<String> currentNodeIds) {
-      _spatialIndex.rebuildFromNodes(_nodes.values);
-    }, fireImmediately: false);
-
-    // === CONNECTION ADD/REMOVE SYNC ===
-    // When connections are added/removed, rebuild connection spatial index
-    reaction((_) => _connections.map((c) => c.id).toSet(), (
-      Set<String> connectionIds,
-    ) {
-      // Rebuild connection-by-node index
-      _rebuildConnectionsByNodeIndex();
-      // Rebuild connection spatial index with proper segments
-      rebuildAllConnectionSegments();
-    }, fireImmediately: false);
+    // Node and connection collection changes are synchronized explicitly by the
+    // controller mutation APIs. Core graph invariants must be updated in the
+    // same transaction as the canonical collections; maintaining them through
+    // reactions caused every add/remove to perform an unnecessary full rebuild.
 
     // === THEME/STYLE CHANGE SYNC ===
     // When path-affecting theme properties change, rebuild connection segments

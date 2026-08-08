@@ -4,6 +4,8 @@ library;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobx/mobx.dart';
+import 'package:vyuh_node_flow/src/editor/layers/nodes_thumbnail_layer.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../helpers/test_factories.dart';
@@ -248,6 +250,270 @@ void main() {
 
       // Editor should still be visible
       expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
+    });
+
+    testWidgets('interactive camera commits reactive viewport only on end', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: NodeFlowEditor<String, dynamic>(
+                controller: controller,
+                nodeBuilder: (context, node) => Container(),
+                theme: NodeFlowTheme.light,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final committed = <GraphViewport>[];
+      final dispose = reaction(
+        (_) => controller.viewportObservable.value,
+        (viewport) => committed.add(viewport),
+      );
+      addTearDown(dispose.call);
+
+      final initialCommitted = controller.viewportObservable.value;
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(InteractiveViewer)),
+      );
+      await gesture.moveBy(const Offset(40, 20));
+      await tester.pump();
+      await gesture.moveBy(const Offset(40, 20));
+      await tester.pump();
+
+      expect(controller.viewport, isNot(initialCommitted));
+      expect(controller.viewportObservable.value, initialCommitted);
+      expect(committed, isEmpty);
+
+      await gesture.up();
+      await tester.pump();
+
+      expect(controller.viewportObservable.value, controller.viewport);
+      expect(committed, hasLength(1));
+    });
+
+    testWidgets(
+      'camera gesture replaces node widgets with painted navigation',
+      (tester) async {
+        controller.addNodes([
+          createTestNode(id: 'node-1', position: const Offset(100, 100)),
+          createTestNode(id: 'node-2', position: const Offset(300, 100)),
+        ]);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 800,
+                height: 600,
+                child: NodeFlowEditor<String, dynamic>(
+                  controller: controller,
+                  nodeBuilder: (context, node) => Text(node.id),
+                  theme: NodeFlowTheme.light,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('node-1'), findsOneWidget);
+        expect(find.text('node-2'), findsOneWidget);
+        expect(find.byType(NodesThumbnailLayer<String>), findsNothing);
+
+        final gesture = await tester.startGesture(const Offset(700, 500));
+        await gesture.moveBy(const Offset(40, 20));
+        await tester.pump();
+
+        expect(controller.interaction.isViewportInteracting.value, isTrue);
+        expect(find.byType(NodesThumbnailLayer<String>), findsOneWidget);
+        expect(find.text('node-1'), findsNothing);
+        expect(find.text('node-2'), findsNothing);
+
+        await gesture.up();
+        await tester.pump();
+
+        expect(controller.interaction.isViewportInteracting.value, isFalse);
+        expect(find.byType(NodesThumbnailLayer<String>), findsNothing);
+        expect(find.text('node-1'), findsOneWidget);
+        expect(find.text('node-2'), findsOneWidget);
+      },
+    );
+
+    testWidgets('external live camera drives transform without MobX commit', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: NodeFlowEditor<String, dynamic>(
+                controller: controller,
+                nodeBuilder: (context, node) => Container(),
+                theme: NodeFlowTheme.light,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      const camera = GraphViewport(x: 125, y: 75, zoom: 1.25);
+      final committedBefore = controller.viewportObservable.value;
+      controller.updateCameraViewport(camera);
+      await tester.pump();
+
+      final viewer = tester.widget<InteractiveViewer>(
+        find.byType(InteractiveViewer),
+      );
+      final transform = viewer.transformationController!.value;
+      final translation = transform.getTranslation();
+      expect(translation.x, camera.x);
+      expect(translation.y, camera.y);
+      expect(transform.getMaxScaleOnAxis(), camera.zoom);
+      expect(controller.viewportObservable.value, committedBefore);
+
+      controller.commitCameraViewport();
+      expect(controller.viewportObservable.value, camera);
+    });
+  });
+
+  group('NodeFlowEditor - Adaptive Overview Interaction', () {
+    testWidgets('thumbnail nodes remain selectable, tappable, and draggable', (
+      tester,
+    ) async {
+      controller.dispose();
+      controller = NodeFlowController<String, dynamic>(
+        nodes: [
+          createTestNode(
+            id: 'overview-node',
+            position: const Offset(100, 100),
+            size: const Size(100, 100),
+          ),
+          createTestNode(
+            id: 'threshold-node',
+            position: const Offset(300, 100),
+            size: const Size(100, 100),
+          ),
+        ],
+        config: NodeFlowConfig(
+          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 1)],
+        ),
+      );
+      var tapCount = 0;
+      var dragStartCount = 0;
+      var dragStopCount = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SizedBox(
+            width: 800,
+            height: 600,
+            child: NodeFlowEditor<String, dynamic>(
+              controller: controller,
+              nodeBuilder: (context, node) => Text(node.id),
+              theme: NodeFlowTheme.light,
+              events: NodeFlowEvents<String, dynamic>(
+                node: NodeEvents<String>(
+                  onTap: (_) => tapCount++,
+                  onDragStart: (_) => dragStartCount++,
+                  onDragStop: (_) => dragStopCount++,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(controller.lod!.useThumbnailMode, isTrue);
+      expect(find.byType(NodesThumbnailLayer<String>), findsWidgets);
+      expect(find.text('overview-node'), findsNothing);
+
+      await tester.tapAt(const Offset(150, 150));
+      await tester.pump();
+
+      expect(controller.selectedNodeIds, contains('overview-node'));
+      expect(tapCount, 1);
+
+      await tester.dragFrom(const Offset(150, 150), const Offset(40, 20));
+      await tester.pump();
+
+      expect(
+        controller.getNode('overview-node')!.position.value,
+        const Offset(140, 120),
+      );
+      expect(dragStartCount, 1);
+      expect(dragStopCount, 1);
+      expect(controller.draggedNodeId, isNull);
+      expect(controller.canvasLocked, isFalse);
+    });
+
+    testWidgets('canceling an overview drag restores the node position', (
+      tester,
+    ) async {
+      controller.dispose();
+      controller = NodeFlowController<String, dynamic>(
+        nodes: [
+          createTestNode(
+            id: 'overview-node',
+            position: const Offset(100, 100),
+            size: const Size(100, 100),
+          ),
+          createTestNode(
+            id: 'threshold-node',
+            position: const Offset(300, 100),
+            size: const Size(100, 100),
+          ),
+        ],
+        config: NodeFlowConfig(
+          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 1)],
+        ),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SizedBox(
+            width: 800,
+            height: 600,
+            child: NodeFlowEditor<String, dynamic>(
+              controller: controller,
+              nodeBuilder: (context, node) => Text(node.id),
+              theme: NodeFlowTheme.light,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final gesture = await tester.startGesture(const Offset(150, 150));
+      await gesture.moveBy(const Offset(40, 20));
+      await tester.pump();
+
+      expect(controller.draggedNodeId, 'overview-node');
+      expect(
+        controller.getNode('overview-node')!.position.value,
+        const Offset(140, 120),
+      );
+
+      await gesture.cancel();
+      await tester.pump();
+
+      expect(
+        controller.getNode('overview-node')!.position.value,
+        const Offset(100, 100),
+      );
+      expect(controller.draggedNodeId, isNull);
+      expect(controller.canvasLocked, isFalse);
     });
   });
 

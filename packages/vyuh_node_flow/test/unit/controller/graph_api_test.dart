@@ -567,6 +567,31 @@ void main() {
         expect(bounds.right, equals(150)); // 100 + 50
         expect(bounds.bottom, equals(150)); // 100 + 50
       });
+
+      test('caches repeated reads and invalidates on geometry changes', () {
+        final controller = createTestController();
+        final node = createTestNode(
+          id: 'node-1',
+          position: const Offset(10, 20),
+          size: const Size(100, 50),
+        );
+        controller.addNode(node);
+
+        final initial = controller.nodesBounds;
+        expect(controller.nodesBounds, same(initial));
+
+        controller.setNodePosition(node.id, const Offset(30, 40));
+        final afterMove = controller.nodesBounds;
+        expect(afterMove, isNot(same(initial)));
+        expect(afterMove, const Rect.fromLTWH(30, 40, 100, 50));
+        expect(controller.nodesBounds, same(afterMove));
+
+        controller.setNodeSize(node.id, const Size(200, 80));
+        final afterResize = controller.nodesBounds;
+        expect(afterResize, isNot(same(afterMove)));
+        expect(afterResize, const Rect.fromLTWH(30, 40, 200, 80));
+        expect(controller.nodesBounds, same(afterResize));
+      });
     });
   });
 

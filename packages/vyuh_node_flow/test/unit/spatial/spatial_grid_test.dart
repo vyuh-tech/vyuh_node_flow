@@ -1852,4 +1852,138 @@ void main() {
       grid.endDragging();
     });
   });
+
+  group('Reverse cell membership', () {
+    test('moving a multi-cell item replaces all old cell memberships', () {
+      final grid = SpatialGrid<SpatialItem>(gridSize: 100.0);
+      const original = NodeSpatialItem(
+        nodeId: 'moving',
+        bounds: Rect.fromLTWH(-150, -150, 100, 100),
+      );
+      const moved = NodeSpatialItem(
+        nodeId: 'moving',
+        bounds: Rect.fromLTWH(250, 250, 100, 100),
+      );
+
+      grid.addOrUpdate(original);
+      grid.flushPendingUpdates();
+
+      expect(
+        grid.activeCellKeys.toSet(),
+        equals({'-2_-2', '-2_-1', '-1_-2', '-1_-1'}),
+      );
+
+      grid.addOrUpdate(moved);
+      grid.flushPendingUpdates();
+
+      expect(grid.activeCellKeys.toSet(), equals({'2_2', '2_3', '3_2', '3_3'}));
+      expect(grid.queryPoint(const Offset(-100, -100)), isEmpty);
+      expect(grid.queryPoint(const Offset(300, 300)), contains(moved));
+    });
+
+    test('removing a multi-cell item preserves shared cell occupants', () {
+      final grid = SpatialGrid<SpatialItem>(gridSize: 100.0);
+      const spanning = NodeSpatialItem(
+        nodeId: 'spanning',
+        bounds: Rect.fromLTWH(50, 50, 200, 200),
+      );
+      const sharedCell = NodeSpatialItem(
+        nodeId: 'shared',
+        bounds: Rect.fromLTWH(125, 125, 25, 25),
+      );
+
+      grid.addOrUpdate(spanning);
+      grid.addOrUpdate(sharedCell);
+      grid.flushPendingUpdates();
+      expect(grid.activeCellKeys, hasLength(9));
+      expect(grid.getObjectCountInCell('1_1'), equals(2));
+
+      grid.remove(spanning.id);
+
+      expect(grid.activeCellKeys.toSet(), equals({'1_1'}));
+      expect(grid.getObjectCountInCell('1_1'), equals(1));
+      expect(grid.queryPoint(const Offset(130, 130)), equals([sharedCell]));
+    });
+
+    test('clear discards pending updates and resets drag membership', () {
+      final grid = SpatialGrid<SpatialItem>(gridSize: 100.0);
+      const indexed = NodeSpatialItem(
+        nodeId: 'indexed',
+        bounds: Rect.fromLTWH(-50, -50, 25, 25),
+      );
+      const pending = NodeSpatialItem(
+        nodeId: 'pending',
+        bounds: Rect.fromLTWH(300, 300, 25, 25),
+      );
+
+      grid.addOrUpdate(indexed);
+      grid.flushPendingUpdates();
+      grid.startDragging([indexed.id]);
+      grid.addOrUpdate(pending);
+
+      grid.clear();
+      grid.flushPendingUpdates();
+
+      expect(grid.objectCount, equals(0));
+      expect(grid.activeCellKeys, isEmpty);
+      expect(grid.stats.isDragging, isFalse);
+      expect(grid.stats.draggingObjectCount, equals(0));
+      expect(grid.diagnoseConsistency().pendingCount, equals(0));
+    });
+
+    test('automatic batch processing moves an existing object once', () {
+      final grid = SpatialGrid<SpatialItem>(gridSize: 100.0);
+      const original = NodeSpatialItem(
+        nodeId: 'moving',
+        bounds: Rect.fromLTWH(10, 10, 25, 25),
+      );
+      const moved = NodeSpatialItem(
+        nodeId: 'moving',
+        bounds: Rect.fromLTWH(510, 510, 25, 25),
+      );
+
+      grid.addOrUpdate(original);
+      grid.flushPendingUpdates();
+      grid.addOrUpdate(moved);
+      for (var i = 0; i < 9; i++) {
+        grid.addOrUpdate(
+          NodeSpatialItem(
+            nodeId: 'batch-$i',
+            bounds: Rect.fromLTWH(1000 + i * 100.0, 1000, 25, 25),
+          ),
+        );
+      }
+
+      expect(grid.diagnoseConsistency().pendingCount, equals(0));
+      expect(grid.getObjectCountInCell('0_0'), equals(0));
+      expect(grid.getObjectCountInCell('5_5'), equals(1));
+      expect(grid.queryPoint(const Offset(520, 520)), contains(moved));
+    });
+
+    test('drag rebuild swaps multi-cell memberships at drag end', () {
+      final grid = SpatialGrid<SpatialItem>(gridSize: 100.0);
+      const original = NodeSpatialItem(
+        nodeId: 'dragged',
+        bounds: Rect.fromLTWH(-50, -50, 100, 100),
+      );
+      const moved = NodeSpatialItem(
+        nodeId: 'dragged',
+        bounds: Rect.fromLTWH(250, 250, 100, 100),
+      );
+
+      grid.addOrUpdate(original);
+      grid.flushPendingUpdates();
+      final originalCells = grid.activeCellKeys.toSet();
+
+      grid.startDragging([original.id]);
+      grid.updateDraggingObjects([moved]);
+      expect(grid.activeCellKeys.toSet(), equals(originalCells));
+
+      grid.endDragging();
+
+      expect(grid.activeCellKeys.toSet(), equals({'2_2', '2_3', '3_2', '3_3'}));
+      expect(grid.queryPoint(const Offset(-25, -25)), isEmpty);
+      expect(grid.queryPoint(const Offset(300, 300)), contains(moved));
+    });
+  });
 }

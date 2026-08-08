@@ -1,3 +1,34 @@
+## 0.31.0
+
+> Note: This release has breaking changes.
+
+ - **FIX**(lod): preserve note content in painted scenes.
+ - **BREAKING** **FEAT**: retain graph scenes during navigation and mutations.
+ - **BREAKING** **FEAT**: retain large-graph render scenes at 120 Hz.
+ - **BREAKING** **FEAT**: optimize large graph rendering.
+
+## 0.30.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FEAT**: retain graph scenes during navigation and mutations.
+ - **BREAKING** **FEAT**: retain large-graph render scenes at 120 Hz.
+ - **BREAKING** **FEAT**: optimize large graph rendering.
+
+## 0.29.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FEAT**: retain large-graph render scenes at 120 Hz.
+ - **BREAKING** **FEAT**: optimize large graph rendering.
+
+## 0.28.0
+
+> Note: This release has breaking changes.
+
+ - **FIX**: wire default port hover events.
+ - **BREAKING** **FEAT**: optimize large graph rendering.
+
 ## 0.27.3+2
 
  - **FIX**: wire default port hover events.

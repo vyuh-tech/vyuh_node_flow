@@ -50,7 +50,7 @@ If no plugins are provided, the following defaults are used:
 
 - `AutoPanPlugin` - autopan near viewport edges (enabled by default)
 - `DebugPlugin` - debug overlays (disabled by default)
-- `LodPlugin` - level of detail (disabled by default)
+- `LodPlugin` - adaptive overview and zoom-based detail (enabled by default)
 - `MinimapPlugin` - minimap overlay
 - `StatsPlugin` - performance statistics display (disabled by default)
 

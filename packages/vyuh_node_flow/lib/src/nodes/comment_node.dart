@@ -109,6 +109,9 @@ class CommentNode<T> extends Node<T> with ResizableMixin<T> {
   }
 
   @override
+  Object get thumbnailCacheKey => Object.hash(text, color);
+
+  @override
   void paintThumbnail(
     Canvas canvas,
     Rect bounds, {
@@ -117,8 +120,11 @@ class CommentNode<T> extends Node<T> with ResizableMixin<T> {
     Color? selectedBorderColor,
     double borderRadius = 4.0,
   }) {
-    // Use the comment's own color (not the parameter) with 15% opacity
-    final commentColor = this.color.withValues(alpha: 0.15);
+    // Keep note content recognizable in the retained painted scene. This is
+    // especially important during navigation and dense-graph overview mode,
+    // where replacing the widget with an empty rectangle causes a visible
+    // flash at otherwise readable zoom levels.
+    final noteColor = this.color;
     final rrect = RRect.fromRectAndRadius(
       bounds,
       Radius.circular(borderRadius),
@@ -126,8 +132,37 @@ class CommentNode<T> extends Node<T> with ResizableMixin<T> {
 
     final paint = Paint()
       ..style = PaintingStyle.fill
-      ..color = commentColor;
+      ..color = noteColor.withValues(alpha: 0.9);
     canvas.drawRRect(rrect, paint);
+
+    if (isSelected) {
+      paint
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = selectedBorderColor ?? Colors.blue;
+      canvas.drawRRect(rrect, paint);
+    }
+
+    if (text.isEmpty || bounds.width < 24 || bounds.height < 24) return;
+
+    final paragraph = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          color: Color.lerp(Colors.black, noteColor, 0.2),
+          fontSize: 14,
+          height: 1.25,
+        ),
+      ),
+      maxLines: (bounds.height / 17.5).floor().clamp(1, 20),
+      ellipsis: '…',
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: (bounds.width - 24).clamp(1, double.infinity));
+
+    canvas.save();
+    canvas.clipRRect(rrect);
+    paragraph.paint(canvas, bounds.topLeft + const Offset(12, 10));
+    canvas.restore();
   }
 
   @override

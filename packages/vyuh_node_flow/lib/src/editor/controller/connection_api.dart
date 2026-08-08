@@ -6,7 +6,7 @@ part of 'node_flow_controller.dart';
 ///
 /// ## Model APIs
 /// - [getConnection], [connectionIds], [connectionCount] - Lookup operations
-/// - [addConnection], [removeConnection], [createConnection] - CRUD operations
+/// - [addConnection], [addConnections], [removeConnection], [removeConnections], [createConnection] - CRUD operations
 ///
 /// ## Query APIs
 /// - [getConnectionsForNode] - Get all connections for a node
@@ -137,21 +137,58 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
   /// controller.addConnection(connection);
   /// ```
   void addConnection(Connection<C> connection) {
-    runInAction(() {
-      _connections.add(connection);
-      _connectionById[connection.id] = connection;
-      // Update connection index for O(1) lookup
-      _connectionsByNodeId
-          .putIfAbsent(connection.sourceNodeId, () => {})
-          .add(connection.id);
-      _connectionsByNodeId
-          .putIfAbsent(connection.targetNodeId, () => {})
-          .add(connection.id);
+    addConnections([connection]);
+  }
+
+  /// Adds multiple connections in one graph and spatial-index transaction.
+  ///
+  /// Prefer this when loading or generating graph edges so adjacency maps,
+  /// spatial geometry, and observers are updated as one mutation.
+  void addConnections(Iterable<Connection<C>> connections) {
+    final connectionList = connections.toList(growable: false);
+    if (connectionList.isEmpty) return;
+
+    _spatialIndex.batch(() {
+      runInAction(() {
+        for (final connection in connectionList) {
+          _connections.add(connection);
+          _connectionById[connection.id] = connection;
+          _connectionsByNodeId
+              .putIfAbsent(connection.sourceNodeId, () => {})
+              .add(connection.id);
+          _connectionsByNodeId
+              .putIfAbsent(connection.targetNodeId, () => {})
+              .add(connection.id);
+          _updateConnectionSpatialIndex(connection);
+        }
+      });
     });
-    // Fire event after successful addition
-    events.connection?.onCreated?.call(connection);
-    // Emit extension event
-    _emitEvent(ConnectionAdded(connection));
+
+    for (final connection in connectionList) {
+      events.connection?.onCreated?.call(connection);
+      _emitEvent(ConnectionAdded(connection));
+    }
+  }
+
+  void _updateConnectionSpatialIndex(Connection<C> connection) {
+    final segmentCalculator = _connectionSegmentCalculator;
+    if (segmentCalculator != null) {
+      _spatialIndex.updateConnection(connection, segmentCalculator(connection));
+      return;
+    }
+
+    if (!isConnectionPainterInitialized || _theme == null) return;
+    final sourceNode = _nodes[connection.sourceNodeId];
+    final targetNode = _nodes[connection.targetNodeId];
+    if (sourceNode == null || targetNode == null) return;
+
+    final segments = _connectionPainter!.pathCache.getOrCreateSegmentBounds(
+      connection: connection,
+      sourceNode: sourceNode,
+      targetNode: targetNode,
+      connectionStyle: _theme!.connectionTheme.style,
+    );
+    _spatialIndex.updateConnection(connection, segments);
   }
 
   /// Requests deletion of a connection with lock check and confirmation callback.
@@ -226,6 +263,7 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
       _connectionsByNodeId[connectionToDelete.targetNodeId]?.remove(
         connectionId,
       );
+      _connectionsByNodeId.removeWhere((_, ids) => ids.isEmpty);
 
       // Remove from spatial index
       _spatialIndex.removeConnection(connectionId);
@@ -238,6 +276,20 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
     events.connection?.onDeleted?.call(connectionToDelete);
     // Emit extension event
     _emitEvent(ConnectionRemoved(connectionToDelete));
+  }
+
+  /// Removes multiple connections in one graph and spatial-index transaction.
+  void removeConnections(Iterable<String> connectionIds) {
+    final ids = connectionIds.toList(growable: false);
+    if (ids.isEmpty) return;
+
+    mutateGraph(() {
+      for (final connectionId in ids) {
+        if (_connectionById.containsKey(connectionId)) {
+          removeConnection(connectionId);
+        }
+      }
+    }, reason: 'remove-connections');
   }
 
   /// Creates a connection between two ports.
@@ -280,27 +332,7 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
   /// controller.deleteAllConnectionsForNode('node1');
   /// ```
   void deleteAllConnectionsForNode(String nodeId) {
-    final connectionsToRemove = _connections
-        .where(
-          (conn) => conn.sourceNodeId == nodeId || conn.targetNodeId == nodeId,
-        )
-        .toList();
-
-    runInAction(() {
-      for (final conn in connectionsToRemove) {
-        // Remove from spatial index and path cache
-        _spatialIndex.removeConnection(conn.id);
-        _connectionPainter?.removeConnectionFromCache(conn.id);
-
-        // Update connection indexes for O(1) lookup
-        _connectionById.remove(conn.id);
-        _connectionsByNodeId[conn.sourceNodeId]?.remove(conn.id);
-        _connectionsByNodeId[conn.targetNodeId]?.remove(conn.id);
-
-        // Remove from connections list
-        _connections.remove(conn);
-      }
-    });
+    removeConnections(_connectionsByNodeId[nodeId] ?? const <String>{});
   }
 
   // ============================================================================

@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../editor/controller/node_flow_controller.dart';
+import '../../graph/viewport.dart';
+import '../../nodes/comment_node.dart';
+import '../../nodes/group_node.dart';
 import '../../nodes/node.dart';
 import 'minimap_plugin.dart';
 import 'minimap_theme.dart';
@@ -103,25 +106,49 @@ class _NodeFlowMinimapState<T> extends State<NodeFlowMinimap<T>> {
           padding: minimapTheme.padding,
           child: Stack(
             children: [
-              // Minimap rendering with Observer for reactive updates
+              // The graph overview is isolated from viewport updates. The
+              // painter constructor snapshots and sorts node geometry while
+              // this Observer is tracking graph/style observables.
               Observer(
                 builder: (context) {
-                  // Access observable properties to trigger rebuilds
-                  // These variables are accessed to ensure MobX tracks them for reactivity
-                  widget.controller.viewport;
-                  widget.controller.nodes;
-                  widget.controller.connections;
-
-                  return CustomPaint(
-                    painter: MinimapPainter<T>(
-                      controller: widget.controller,
-                      theme: minimapTheme,
-                      thumbnailBuilder: widget.thumbnailBuilder,
+                  return RepaintBoundary(
+                    child: CustomPaint(
+                      key: const ValueKey('minimap-graph'),
+                      painter: MinimapPainter<T>(
+                        controller: widget.controller,
+                        theme: minimapTheme,
+                        thumbnailBuilder: widget.thumbnailBuilder,
+                      ),
+                      size: Size.infinite,
                     ),
-                    size: Size.infinite,
                   );
                 },
               ),
+              if (minimapTheme.showViewport)
+                Observer(
+                  builder: (context) {
+                    final screenSize = widget.controller.screenSize;
+                    final graphBounds = widget.controller.nodesBounds;
+                    return ValueListenableBuilder<GraphViewport>(
+                      valueListenable:
+                          widget.controller.cameraViewportListenable,
+                      builder: (context, viewport, child) {
+                        return RepaintBoundary(
+                          child: CustomPaint(
+                            key: const ValueKey('minimap-viewport'),
+                            painter: MinimapViewportPainter(
+                              viewport: viewport,
+                              screenSize: screenSize,
+                              graphBounds: graphBounds,
+                              theme: minimapTheme,
+                            ),
+                            size: Size.infinite,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
               // Interactive overlay
               if (widget.interactive) _buildInteractiveArea(),
             ],
@@ -268,16 +295,71 @@ class _NodeFlowMinimapState<T> extends State<NodeFlowMinimap<T>> {
 ///
 /// Paints a scaled-down representation of the entire graph, showing:
 /// - All nodes as simplified rectangles
-/// - Current viewport as a highlighted region
 ///
 /// The painter automatically scales and centers the graph to fit within
-/// the minimap bounds while maintaining aspect ratio.
+/// the minimap bounds while maintaining aspect ratio. The viewport indicator
+/// is rendered independently by [MinimapViewportPainter].
 class MinimapPainter<T> extends CustomPainter {
-  const MinimapPainter({
+  factory MinimapPainter({
+    required NodeFlowController<T, dynamic> controller,
+    required MinimapTheme theme,
+    MinimapThumbnailBuilder? thumbnailBuilder,
+  }) {
+    final nodes = <_MinimapNodeSnapshot<T>>[];
+    for (final node in controller.nodes.values) {
+      final position = node.position.value;
+      final size = node.size.value;
+      nodes.add(
+        _MinimapNodeSnapshot(
+          node: node,
+          bounds: Rect.fromLTWH(
+            position.dx,
+            position.dy,
+            size.width,
+            size.height,
+          ),
+          styleToken: _nodeStyleToken(node),
+        ),
+      );
+    }
+
+    // Preserve the established background -> middle -> foreground ordering,
+    // but do the work only when graph/style observables invalidate the graph
+    // Observer rather than during every paint.
+    nodes.sort((a, b) => a.node.layer.index.compareTo(b.node.layer.index));
+    final graphBounds = controller.nodesBounds;
+    final graphRevision = Object.hashAll([
+      graphBounds,
+      for (final snapshot in nodes)
+        Object.hash(
+          snapshot.node.id,
+          snapshot.node.runtimeType,
+          snapshot.node.layer,
+          snapshot.bounds,
+          snapshot.styleToken,
+        ),
+    ]);
+
+    return MinimapPainter._(
+      controller: controller,
+      theme: theme,
+      thumbnailBuilder: thumbnailBuilder,
+      nodes: List.unmodifiable(nodes),
+      graphBounds: graphBounds,
+      graphRevision: graphRevision,
+    );
+  }
+
+  const MinimapPainter._({
     required this.controller,
     required this.theme,
-    this.thumbnailBuilder,
-  });
+    required this.thumbnailBuilder,
+    required List<_MinimapNodeSnapshot<T>> nodes,
+    required Rect graphBounds,
+    required int graphRevision,
+  }) : _nodes = nodes,
+       _graphBounds = graphBounds,
+       _graphRevision = graphRevision;
 
   /// The controller providing access to graph data.
   final NodeFlowController<T, dynamic> controller;
@@ -288,51 +370,32 @@ class MinimapPainter<T> extends CustomPainter {
   /// Optional custom builder for minimap node painting.
   final MinimapThumbnailBuilder? thumbnailBuilder;
 
+  /// Immutable, layer-sorted geometry captured when the graph Observer ran.
+  final List<_MinimapNodeSnapshot<T>> _nodes;
+
+  /// Cached graph bounds captured with [_nodes].
+  final Rect _graphBounds;
+
+  /// Fingerprint of geometry, layer, and built-in thumbnail style state.
+  final int _graphRevision;
+
   @override
   void paint(Canvas canvas, Size size) {
-    final bounds = controller.nodesBounds;
-    if (bounds.isEmpty) return;
-
-    // Calculate scale to fit bounds in minimap
-    final scaleX = size.width / bounds.width;
-    final scaleY = size.height / bounds.height;
-    final scale = math.min(scaleX, scaleY);
-
-    // Center the content if one dimension is smaller
-    final scaledWidth = bounds.width * scale;
-    final scaledHeight = bounds.height * scale;
-    final offsetX = (size.width - scaledWidth) / 2;
-    final offsetY = (size.height - scaledHeight) / 2;
+    final transform = _MinimapTransform.calculate(size, _graphBounds);
+    if (transform == null) return;
 
     canvas.save();
-    canvas.translate(offsetX, offsetY);
-    canvas.scale(scale);
-    canvas.translate(-bounds.left, -bounds.top);
+    transform.applyTo(canvas);
 
     // Draw nodes only (no connections for performance)
     _drawNodes(canvas);
-
-    // Draw viewport indicator
-    if (theme.showViewport) {
-      _drawViewport(canvas, scale, offsetX, offsetY, size);
-    }
-
     canvas.restore();
   }
 
   void _drawNodes(Canvas canvas) {
-    // Sort nodes by layer: background → middle → foreground
-    // This ensures groups are drawn first, then regular nodes, then comments
-    final sortedNodes = controller.nodes.values.toList()
-      ..sort((a, b) => a.layer.index.compareTo(b.layer.index));
-
-    for (final node in sortedNodes) {
-      final rect = Rect.fromLTWH(
-        node.position.value.dx,
-        node.position.value.dy,
-        node.size.value.width,
-        node.size.value.height,
-      );
+    for (final snapshot in _nodes) {
+      final node = snapshot.node;
+      final rect = snapshot.bounds;
 
       // Try custom thumbnail builder first
       if (thumbnailBuilder != null) {
@@ -350,73 +413,158 @@ class MinimapPainter<T> extends CustomPainter {
     }
   }
 
-  void _drawViewport(
-    Canvas canvas,
-    double scale,
-    double offsetX,
-    double offsetY,
-    Size minimapSize,
-  ) {
-    canvas.restore(); // Restore to minimap coordinate system
+  @override
+  bool shouldRepaint(covariant MinimapPainter<T> oldDelegate) {
+    return oldDelegate.controller != controller ||
+        oldDelegate.theme != theme ||
+        oldDelegate.thumbnailBuilder != thumbnailBuilder ||
+        oldDelegate._graphRevision != _graphRevision;
+  }
+}
 
-    // Calculate visible area based on current viewport
-    final vp = controller.viewport;
-    final screenSize = controller.screenSize;
-    if (screenSize == Size.zero) return;
+/// Cheap viewport-only minimap overlay.
+///
+/// This painter deliberately owns no node list, sorting, or graph traversal so
+/// pan and zoom frames only transform and draw a single rounded rectangle.
+class MinimapViewportPainter extends CustomPainter {
+  const MinimapViewportPainter({
+    required this.viewport,
+    required this.screenSize,
+    required this.graphBounds,
+    required this.theme,
+  });
+
+  final GraphViewport viewport;
+  final Size screenSize;
+  final Rect graphBounds;
+  final MinimapTheme theme;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (!theme.showViewport || screenSize.isEmpty) return;
+
+    final transform = _MinimapTransform.calculate(size, graphBounds);
+    if (transform == null) return;
 
     final viewportRect = Rect.fromLTWH(
-      -vp.x / vp.zoom,
-      -vp.y / vp.zoom,
-      screenSize.width / vp.zoom,
-      screenSize.height / vp.zoom,
+      -viewport.x / viewport.zoom,
+      -viewport.y / viewport.zoom,
+      screenSize.width / viewport.zoom,
+      screenSize.height / viewport.zoom,
+    );
+    final clippedRect = transform
+        .graphToLocal(viewportRect)
+        .intersect(Offset.zero & size);
+    if (clippedRect.isEmpty) return;
+
+    final fillPaint = Paint()
+      ..color = theme.viewportColor.withValues(alpha: theme.viewportFillOpacity)
+      ..style = PaintingStyle.fill;
+    final borderPaint = Paint()
+      ..color = theme.viewportColor.withValues(
+        alpha: theme.viewportBorderOpacity,
+      )
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    final viewportRRect = RRect.fromRectAndRadius(
+      clippedRect,
+      Radius.circular(theme.borderRadius),
     );
 
-    final bounds = controller.nodesBounds;
-    if (bounds.isEmpty) return;
-
-    // Transform viewport rect to minimap coordinates
-    final minimapViewportRect = Rect.fromLTWH(
-      offsetX + (viewportRect.left - bounds.left) * scale,
-      offsetY + (viewportRect.top - bounds.top) * scale,
-      viewportRect.width * scale,
-      viewportRect.height * scale,
-    );
-
-    // Clip to minimap bounds
-    final clippedRect = minimapViewportRect.intersect(
-      Rect.fromLTWH(0, 0, minimapSize.width, minimapSize.height),
-    );
-
-    if (!clippedRect.isEmpty) {
-      final paint = Paint()
-        ..color = theme.viewportColor.withValues(
-          alpha: theme.viewportFillOpacity,
-        )
-        ..style = PaintingStyle.fill;
-
-      final borderPaint = Paint()
-        ..color = theme.viewportColor.withValues(
-          alpha: theme.viewportBorderOpacity,
-        )
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.0;
-
-      // Use the same border radius as the minimap widget
-      final rrect = RRect.fromRectAndRadius(
-        clippedRect,
-        Radius.circular(theme.borderRadius),
-      );
-
-      canvas.drawRRect(rrect, paint);
-      canvas.drawRRect(rrect, borderPaint);
-    }
-
-    canvas.save(); // Re-save for proper cleanup
+    canvas.drawRRect(viewportRRect, fillPaint);
+    canvas.drawRRect(viewportRRect, borderPaint);
   }
 
   @override
-  bool shouldRepaint(covariant MinimapPainter<T> oldDelegate) {
-    return oldDelegate.controller != controller || oldDelegate.theme != theme;
+  bool shouldRepaint(covariant MinimapViewportPainter oldDelegate) {
+    return oldDelegate.viewport != viewport ||
+        oldDelegate.screenSize != screenSize ||
+        oldDelegate.graphBounds != graphBounds ||
+        oldDelegate.theme != theme;
+  }
+}
+
+class _MinimapNodeSnapshot<T> {
+  const _MinimapNodeSnapshot({
+    required this.node,
+    required this.bounds,
+    required this.styleToken,
+  });
+
+  final Node<T> node;
+  final Rect bounds;
+  final Object styleToken;
+}
+
+Object _nodeStyleToken<T>(Node<T> node) {
+  final commonState = Object.hash(
+    node.isVisible,
+    node.selected.value,
+    node.theme,
+  );
+
+  return switch (node) {
+    GroupNode<T> group => Object.hash(
+      commonState,
+      group.currentColor,
+      group.currentTitle,
+      group.behavior,
+    ),
+    CommentNode<T> comment => Object.hash(
+      commonState,
+      comment.color,
+      comment.text,
+    ),
+    _ => commonState,
+  };
+}
+
+class _MinimapTransform {
+  const _MinimapTransform({
+    required this.graphBounds,
+    required this.scale,
+    required this.offset,
+  });
+
+  final Rect graphBounds;
+  final double scale;
+  final Offset offset;
+
+  static _MinimapTransform? calculate(Size size, Rect graphBounds) {
+    if (size.isEmpty || graphBounds.isEmpty) return null;
+
+    final scale = math.min(
+      size.width / graphBounds.width,
+      size.height / graphBounds.height,
+    );
+    final scaledSize = Size(
+      graphBounds.width * scale,
+      graphBounds.height * scale,
+    );
+    return _MinimapTransform(
+      graphBounds: graphBounds,
+      scale: scale,
+      offset: Offset(
+        (size.width - scaledSize.width) / 2,
+        (size.height - scaledSize.height) / 2,
+      ),
+    );
+  }
+
+  void applyTo(Canvas canvas) {
+    canvas
+      ..translate(offset.dx, offset.dy)
+      ..scale(scale)
+      ..translate(-graphBounds.left, -graphBounds.top);
+  }
+
+  Rect graphToLocal(Rect graphRect) {
+    return Rect.fromLTWH(
+      offset.dx + (graphRect.left - graphBounds.left) * scale,
+      offset.dy + (graphRect.top - graphBounds.top) * scale,
+      graphRect.width * scale,
+      graphRect.height * scale,
+    );
   }
 }
 

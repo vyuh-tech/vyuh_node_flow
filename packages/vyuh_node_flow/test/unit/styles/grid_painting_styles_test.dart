@@ -227,6 +227,73 @@ void main() {
     });
   });
 
+  group('Adaptive grid density', () {
+    test('coarsens to a power-of-two spacing at low zoom', () {
+      final style = _RecordingGridStyle();
+      final theme = NodeFlowTheme.light.copyWith(
+        gridTheme: GridTheme.light.copyWith(
+          size: 20,
+          minScreenSpacing: 24,
+          style: style,
+        ),
+      );
+      final recorder = PictureRecorder();
+
+      style.paint(
+        Canvas(recorder),
+        const Size(2560, 1440),
+        theme,
+        createTestViewport(zoom: 0.18),
+      );
+
+      expect(style.lastGridSize, 160);
+      expect(style.lastGridSize! * 0.18, greaterThanOrEqualTo(24));
+      expect(style.lastGridSize! / 2 * 0.18, lessThan(24));
+    });
+
+    test('keeps configured spacing when already readable on screen', () {
+      final style = _RecordingGridStyle();
+      final theme = NodeFlowTheme.light.copyWith(
+        gridTheme: GridTheme.light.copyWith(
+          size: 20,
+          minScreenSpacing: 24,
+          style: style,
+        ),
+      );
+      final recorder = PictureRecorder();
+
+      style.paint(
+        Canvas(recorder),
+        const Size(800, 600),
+        theme,
+        createTestViewport(zoom: 2),
+      );
+
+      expect(style.lastGridSize, 20);
+    });
+
+    test('can disable adaptive coarsening', () {
+      final style = _RecordingGridStyle();
+      final theme = NodeFlowTheme.light.copyWith(
+        gridTheme: GridTheme.light.copyWith(
+          size: 20,
+          minScreenSpacing: 0,
+          style: style,
+        ),
+      );
+      final recorder = PictureRecorder();
+
+      style.paint(
+        Canvas(recorder),
+        const Size(2560, 1440),
+        theme,
+        createTestViewport(zoom: 0.01),
+      );
+
+      expect(style.lastGridSize, 20);
+    });
+  });
+
   group('GridStyles.dots', () {
     group('Paint Method', () {
       test('paint method accepts valid parameters', () {
@@ -874,6 +941,7 @@ void main() {
         expect(theme.color, equals(Colors.grey));
         expect(theme.size, equals(20.0));
         expect(theme.thickness, equals(1.0));
+        expect(theme.minScreenSpacing, equals(24.0));
         expect(theme.style, same(GridStyles.dots));
       });
 
@@ -938,6 +1006,8 @@ void main() {
         expect(GridTheme.light.thickness, equals(1.0));
         expect(GridTheme.dark.size, equals(20.0));
         expect(GridTheme.dark.thickness, equals(1.0));
+        expect(GridTheme.light.minScreenSpacing, equals(24.0));
+        expect(GridTheme.dark.minScreenSpacing, equals(24.0));
       });
     });
 
@@ -976,6 +1046,13 @@ void main() {
         expect(copied.color, equals(original.color));
       });
 
+      test('copies with new minimum screen spacing', () {
+        final copied = GridTheme.light.copyWith(minScreenSpacing: 32);
+
+        expect(copied.minScreenSpacing, equals(32));
+        expect(copied.size, equals(GridTheme.light.size));
+      });
+
       test('returns same values when no parameters provided', () {
         final original = GridTheme(
           color: Colors.purple,
@@ -989,6 +1066,7 @@ void main() {
         expect(copied.size, equals(original.size));
         expect(copied.thickness, equals(original.thickness));
         expect(copied.style, same(original.style));
+        expect(copied.minScreenSpacing, equals(original.minScreenSpacing));
       });
 
       test('can update multiple properties at once', () {
@@ -1258,4 +1336,17 @@ void main() {
       expect(identical(lines1, lines2), isTrue);
     });
   });
+}
+
+class _RecordingGridStyle extends GridStyle {
+  double? lastGridSize;
+
+  @override
+  void paintGrid(
+    Canvas canvas,
+    NodeFlowTheme theme,
+    ({double left, double top, double right, double bottom}) gridArea,
+  ) {
+    lastGridSize = theme.gridTheme.size;
+  }
 }

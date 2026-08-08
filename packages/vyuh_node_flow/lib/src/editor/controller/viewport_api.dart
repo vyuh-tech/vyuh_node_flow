@@ -19,13 +19,13 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
   /// Gets the current zoom level of the viewport.
   ///
   /// Returns the current zoom level (1.0 = 100%, 2.0 = 200%, etc.).
-  double get currentZoom => _viewport.value.zoom;
+  double get currentZoom => _cameraViewport.value.zoom;
 
   /// Gets the current pan position of the viewport.
   ///
   /// Returns the viewport's translation as a [ScreenPosition].
   ScreenOffset get currentPan =>
-      ScreenOffset.fromXY(_viewport.value.x, _viewport.value.y);
+      ScreenOffset.fromXY(_cameraViewport.value.x, _cameraViewport.value.y);
 
   /// Sets the viewport to a specific position and zoom level.
   ///
@@ -40,11 +40,73 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
   /// ```
   void setViewport(GraphViewport viewport) {
     final previousViewport = _viewport.value;
-    // Immediate viewport updates for real-time panning responsiveness
+    updateCameraViewport(viewport, forceCullingUpdate: true);
+
+    if (previousViewport == viewport) return;
+
     runInAction(() {
       _viewport.value = viewport;
     });
-    // Emit extension event
+    _emitEvent(ViewportChanged(viewport, previousViewport));
+  }
+
+  /// Updates the live camera without committing graph-wide reactive state.
+  ///
+  /// Used by [NodeFlowEditor] while an InteractiveViewer gesture or viewport
+  /// animation is in progress. Spatial culling is refreshed only when the live
+  /// camera leaves the cached query area or changes zoom materially.
+  void updateCameraViewport(
+    GraphViewport viewport, {
+    bool forceCullingUpdate = false,
+  }) {
+    if (_cameraViewport.value != viewport) {
+      _cameraViewport.value = viewport;
+    }
+
+    final screenSize = _screenSize.value;
+    final previousCullingViewport = _cullingViewport.value;
+    final zoomChangedMaterially =
+        previousCullingViewport.zoom == 0 ||
+        ((viewport.zoom / previousCullingViewport.zoom) - 1).abs() >= 0.05;
+
+    var outsideCachedQuery = false;
+    if (!screenSize.isEmpty && viewport.zoom > 0) {
+      final visibleRect = Rect.fromLTWH(
+        -viewport.x / viewport.zoom,
+        -viewport.y / viewport.zoom,
+        screenSize.width / viewport.zoom,
+        screenSize.height / viewport.zoom,
+      );
+      final topLeftWithMargin = visibleRect.topLeft - const Offset(200, 200);
+      final bottomRightWithMargin =
+          visibleRect.bottomRight + const Offset(200, 200);
+      final nodeCacheContainsCamera =
+          _cachedNodeQueryRect?.contains(topLeftWithMargin) == true &&
+          _cachedNodeQueryRect?.contains(bottomRightWithMargin) == true;
+      final connectionCacheContainsCamera =
+          _cachedConnectionQueryRect?.contains(topLeftWithMargin) == true &&
+          _cachedConnectionQueryRect?.contains(bottomRightWithMargin) == true;
+      outsideCachedQuery =
+          !nodeCacheContainsCamera || !connectionCacheContainsCamera;
+    }
+
+    if (forceCullingUpdate || zoomChangedMaterially || outsideCachedQuery) {
+      if (_cullingViewport.value != viewport) {
+        runInAction(() => _cullingViewport.value = viewport);
+      }
+    }
+  }
+
+  /// Commits the current live camera to the public MobX/plugin event boundary.
+  void commitCameraViewport() {
+    final viewport = _cameraViewport.value;
+    final previousViewport = _viewport.value;
+    if (previousViewport == viewport) return;
+
+    runInAction(() {
+      _viewport.value = viewport;
+      _cullingViewport.value = viewport;
+    });
     _emitEvent(ViewportChanged(viewport, previousViewport));
   }
 
@@ -58,6 +120,7 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
   void setScreenSize(Size size) {
     runInAction(() {
       _screenSize.value = size;
+      _cullingViewport.value = _cameraViewport.value;
     });
   }
 
@@ -71,7 +134,7 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
   /// - Snap line calculations (to limit candidates to visible nodes)
   /// - Viewport culling optimizations
   Rect get visibleGraphBounds {
-    final v = _viewport.value;
+    final v = _cameraViewport.value;
     final s = _screenSize.value;
 
     if (s.isEmpty) return Rect.zero;
@@ -130,7 +193,7 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
   /// final screenPos = controller.graphToScreen(nodePos);
   /// ```
   ScreenPosition graphToScreen(GraphPosition graphPoint) {
-    return _viewport.value.toScreen(graphPoint);
+    return _cameraViewport.value.toScreen(graphPoint);
   }
 
   /// Converts a screen coordinate point to graph coordinates.
@@ -149,7 +212,7 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
   /// final graphPos = controller.screenToGraph(mousePos);
   /// ```
   GraphPosition screenToGraph(ScreenPosition screenPoint) {
-    return _viewport.value.toGraph(screenPoint);
+    return _cameraViewport.value.toGraph(screenPoint);
   }
 
   // ============================================================================
@@ -170,7 +233,7 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
   /// controller.zoomBy(-0.1); // Zoom out by 10%
   /// ```
   void zoomBy(double delta) {
-    final currentVp = _viewport.value;
+    final currentVp = _cameraViewport.value;
     final newZoom = (currentVp.zoom + delta).clamp(
       _config.minZoom.value,
       _config.maxZoom.value,
@@ -215,7 +278,7 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
       _config.minZoom.value,
       _config.maxZoom.value,
     );
-    final currentVp = _viewport.value;
+    final currentVp = _cameraViewport.value;
     setViewport(
       GraphViewport(x: currentVp.x, y: currentVp.y, zoom: clampedZoom),
     );
@@ -236,12 +299,13 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
   /// controller.panBy(ScreenOffset.fromXY(0, -50)); // Pan up by 50 pixels
   /// ```
   void panBy(ScreenOffset delta) {
-    runInAction(() {
-      _viewport.value = _viewport.value.copyWith(
-        x: _viewport.value.x + delta.dx,
-        y: _viewport.value.y + delta.dy,
-      );
-    });
+    final currentViewport = _cameraViewport.value;
+    setViewport(
+      currentViewport.copyWith(
+        x: currentViewport.x + delta.dx,
+        y: currentViewport.y + delta.dy,
+      ),
+    );
   }
 
   // ============================================================================
@@ -346,7 +410,7 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
 
     final pos = node.position.value;
     final size = node.size.value;
-    final currentVp = _viewport.value;
+    final currentVp = _cameraViewport.value;
 
     final nodeCenterX = pos.dx + size.width / 2;
     final nodeCenterY = pos.dy + size.height / 2;
@@ -395,7 +459,7 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
 
     final centerX = totalX / count;
     final centerY = totalY / count;
-    final currentVp = _viewport.value;
+    final currentVp = _cameraViewport.value;
 
     setViewport(
       GraphViewport(
@@ -438,7 +502,7 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
 
     // Get the center of all nodes
     final center = bounds.center;
-    final currentVp = _viewport.value;
+    final currentVp = _cameraViewport.value;
 
     setViewport(
       GraphViewport(
@@ -471,7 +535,7 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
   void centerOn(GraphOffset point) {
     if (_screenSize.value == Size.zero) return;
 
-    final currentVp = _viewport.value;
+    final currentVp = _cameraViewport.value;
 
     setViewport(
       GraphViewport(
@@ -563,7 +627,7 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
   ///
   /// Returns a [GraphRect] representing the visible portion of the graph.
   GraphRect get viewportExtent {
-    final vp = _viewport.value;
+    final vp = _cameraViewport.value;
     final size = _screenSize.value;
 
     // Convert screen bounds to world coordinates
@@ -777,7 +841,7 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
 
     final pos = node.position.value;
     final size = node.size.value;
-    final targetZoom = (zoom ?? _viewport.value.zoom).clamp(
+    final targetZoom = (zoom ?? _cameraViewport.value.zoom).clamp(
       _config.minZoom.value,
       _config.maxZoom.value,
     );
@@ -876,7 +940,7 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
   }) {
     if (_screenSize.value == Size.zero) return;
 
-    final targetZoom = (zoom ?? _viewport.value.zoom).clamp(
+    final targetZoom = (zoom ?? _cameraViewport.value.zoom).clamp(
       _config.minZoom.value,
       _config.maxZoom.value,
     );
@@ -960,7 +1024,7 @@ extension ViewportApi<T, C> on NodeFlowController<T, C> {
   }) {
     if (_screenSize.value == Size.zero) return;
 
-    final currentVp = _viewport.value;
+    final currentVp = _cameraViewport.value;
     final clampedScale = scale.clamp(
       _config.minZoom.value,
       _config.maxZoom.value,

@@ -310,7 +310,8 @@ bool isNodeSelected(String nodeId)
 
 ### viewport
 
-Current viewport state.
+Current live camera state. This is updated on every interactive pan, zoom, or
+camera animation frame without invalidating graph-wide MobX observers.
 
 ```dart
 GraphViewport get viewport
@@ -319,6 +320,29 @@ GraphViewport get viewport
 Returns `GraphViewport` with:
 - `x`, `y` - Pan offset
 - `zoom` - Zoom level
+
+### viewportObservable / cameraViewportListenable
+
+Use the committed MobX viewport for application state and the lightweight
+camera listenable for rendering that must follow every frame:
+
+```dart
+Observable<GraphViewport> get viewportObservable
+ValueListenable<GraphViewport> get cameraViewportListenable
+```
+
+`viewportObservable` changes once when an interaction or animation commits.
+`cameraViewportListenable` changes for every live camera update.
+
+### renderViewport
+
+The coalesced viewport used by graph culling and LOD calculations. It advances
+when the camera leaves the cached query area or its zoom changes materially,
+avoiding a full visibility query for every small camera movement.
+
+```dart
+GraphViewport get renderViewport
+```
 
 ### currentZoom / currentPan
 
@@ -331,11 +355,25 @@ ScreenOffset get currentPan
 
 ### setViewport
 
-Set viewport directly.
+Set and immediately commit the viewport.
 
 ```dart
 void setViewport(GraphViewport viewport)
 ```
+
+### updateCameraViewport / commitCameraViewport
+
+For high-frequency camera drivers, update the live camera during each frame and
+commit once when the interaction finishes:
+
+```dart
+controller.updateCameraViewport(nextViewport);
+// ...more animation or gesture frames...
+controller.commitCameraViewport();
+```
+
+This keeps rendering smooth while preserving one committed viewport event for
+plugins and application observers.
 
 ### panBy
 

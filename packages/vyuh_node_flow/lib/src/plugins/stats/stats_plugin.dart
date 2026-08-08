@@ -45,27 +45,24 @@ class StatsPlugin extends NodeFlowPlugin {
   NodeFlowController? _controller;
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // Observable Collections (direct access for reactive UI)
+  // Read-only reactive collections
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// The nodes observable map for direct reactive access.
+  /// Read-only live node view for direct reactive access.
   ///
   /// Use in Observer widgets to react to node changes (add/remove/modify).
-  ObservableMap<String, Node> get nodes => _controller!.nodesObservable;
+  Map<String, Node> get nodes => _controller!.nodes;
 
-  /// The connections observable list for direct reactive access.
+  /// Read-only live connection view for direct reactive access.
   ///
   /// Use in Observer widgets to react to connection changes.
-  ObservableList<Connection> get connections =>
-      _controller!.connectionsObservable;
+  List<Connection> get connections => _controller!.connections;
 
-  /// The selected node IDs observable set for direct reactive access.
-  ObservableSet<String> get selectedNodeIds =>
-      _controller!.selectedNodeIdsObservable;
+  /// Read-only live selected-node IDs for direct reactive access.
+  Set<String> get selectedNodeIds => _controller!.selectedNodeIds;
 
-  /// The selected connection IDs observable set for direct reactive access.
-  ObservableSet<String> get selectedConnectionIds =>
-      _controller!.selectedConnectionIdsObservable;
+  /// Read-only live selected-connection IDs for direct reactive access.
+  Set<String> get selectedConnectionIds => _controller!.selectedConnectionIds;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // Node Statistics (derived from controller's observable collections)
@@ -197,7 +194,7 @@ class StatsPlugin extends NodeFlowPlugin {
   // ═══════════════════════════════════════════════════════════════════════════
 
   /// Number of nodes currently visible in the viewport. Reactive.
-  int get nodesInViewport => _controller!.visibleNodes.length;
+  int get nodesInViewport => _controller!.nodesInViewport.length;
 
   /// Whether this is considered a "large" graph (> 100 nodes). Reactive.
   bool get isLargeGraph => nodeCount > 100;

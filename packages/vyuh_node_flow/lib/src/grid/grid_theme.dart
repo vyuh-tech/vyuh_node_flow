@@ -28,7 +28,7 @@ class GridTheme {
   ///
   /// Parameters:
   /// - [color]: Color of the grid lines or dots
-  /// - [size]: Spacing between grid lines in pixels
+  /// - [size]: Base spacing between grid lines in graph units
   /// - [thickness]: Width of grid lines (or radius for dots)
   /// - [style]: The grid pattern style to render
   const GridTheme({
@@ -36,12 +36,13 @@ class GridTheme {
     required this.size,
     required this.thickness,
     required this.style,
+    this.minScreenSpacing = 24.0,
   });
 
   /// Color of the grid lines or dots.
   final Color color;
 
-  /// Spacing between grid lines in pixels.
+  /// Base spacing between grid lines in graph units.
   ///
   /// This determines both horizontal and vertical spacing.
   /// Default is 20.0 in predefined themes.
@@ -52,6 +53,14 @@ class GridTheme {
   /// For dot style, this affects dot radius.
   /// Default is 1.0 in predefined themes.
   final double thickness;
+
+  /// Minimum on-screen distance between grid primitives.
+  ///
+  /// When zoom would place grid points or lines closer than this value, the
+  /// renderer advances to a power-of-two multiple of [size]. This preserves
+  /// world alignment while bounding low-zoom paint work. Set to `0` to disable
+  /// adaptive grid coarsening.
+  final double minScreenSpacing;
 
   /// The grid style to render on the canvas background.
   ///
@@ -78,12 +87,14 @@ class GridTheme {
     double? size,
     double? thickness,
     GridStyle? style,
+    double? minScreenSpacing,
   }) {
     return GridTheme(
       color: color ?? this.color,
       size: size ?? this.size,
       thickness: thickness ?? this.thickness,
       style: style ?? this.style,
+      minScreenSpacing: minScreenSpacing ?? this.minScreenSpacing,
     );
   }
 
