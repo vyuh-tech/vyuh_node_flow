@@ -43,6 +43,7 @@ class NodesLayer<T> extends StatelessWidget {
     this.onNodeContextMenu,
     this.onNodeMouseEnter,
     this.onNodeMouseLeave,
+    this.onPortHover,
     this.onPortContextMenu,
     this.portSnapDistance = 8.0,
     this.thumbnailBuilder,
@@ -63,6 +64,7 @@ class NodesLayer<T> extends StatelessWidget {
     onNodeContextMenu,
     void Function(Node<T> node)? onNodeMouseEnter,
     void Function(Node<T> node)? onNodeMouseLeave,
+    void Function(String nodeId, String portId, bool isHover)? onPortHover,
     void Function(String nodeId, String portId, ScreenPosition screenPosition)?
     onPortContextMenu,
     double portSnapDistance = 8.0,
@@ -78,6 +80,7 @@ class NodesLayer<T> extends StatelessWidget {
       onNodeContextMenu: onNodeContextMenu,
       onNodeMouseEnter: onNodeMouseEnter,
       onNodeMouseLeave: onNodeMouseLeave,
+      onPortHover: onPortHover,
       onPortContextMenu: onPortContextMenu,
       portSnapDistance: portSnapDistance,
     );
@@ -98,6 +101,7 @@ class NodesLayer<T> extends StatelessWidget {
     onNodeContextMenu,
     void Function(Node<T> node)? onNodeMouseEnter,
     void Function(Node<T> node)? onNodeMouseLeave,
+    void Function(String nodeId, String portId, bool isHover)? onPortHover,
     void Function(String nodeId, String portId, ScreenPosition screenPosition)?
     onPortContextMenu,
     double portSnapDistance = 8.0,
@@ -113,6 +117,7 @@ class NodesLayer<T> extends StatelessWidget {
       onNodeContextMenu: onNodeContextMenu,
       onNodeMouseEnter: onNodeMouseEnter,
       onNodeMouseLeave: onNodeMouseLeave,
+      onPortHover: onPortHover,
       onPortContextMenu: onPortContextMenu,
       portSnapDistance: portSnapDistance,
     );
@@ -133,6 +138,7 @@ class NodesLayer<T> extends StatelessWidget {
     onNodeContextMenu,
     void Function(Node<T> node)? onNodeMouseEnter,
     void Function(Node<T> node)? onNodeMouseLeave,
+    void Function(String nodeId, String portId, bool isHover)? onPortHover,
     void Function(String nodeId, String portId, ScreenPosition screenPosition)?
     onPortContextMenu,
     double portSnapDistance = 8.0,
@@ -148,6 +154,7 @@ class NodesLayer<T> extends StatelessWidget {
       onNodeContextMenu: onNodeContextMenu,
       onNodeMouseEnter: onNodeMouseEnter,
       onNodeMouseLeave: onNodeMouseLeave,
+      onPortHover: onPortHover,
       onPortContextMenu: onPortContextMenu,
       portSnapDistance: portSnapDistance,
     );
@@ -185,6 +192,9 @@ class NodesLayer<T> extends StatelessWidget {
 
   /// Callback invoked when mouse leaves a node.
   final void Function(Node<T> node)? onNodeMouseLeave;
+
+  /// Callback invoked when a port hover state changes.
+  final void Function(String nodeId, String portId, bool isHover)? onPortHover;
 
   /// Callback invoked when a port is right-clicked (context menu).
   /// The [screenPosition] is in screen/global coordinates for menu positioning.
@@ -291,6 +301,7 @@ class NodesLayer<T> extends StatelessWidget {
       onMouseLeave: onNodeMouseLeave != null
           ? () => onNodeMouseLeave!(node)
           : null,
+      onPortHover: onPortHover,
       onPortContextMenu: onPortContextMenu,
       portSnapDistance: portSnapDistance,
       child: NodeWidget<T>(

@@ -637,6 +637,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                   onNodeContextMenu: _handleNodeContextMenu,
                                   onNodeMouseEnter: _handleNodeMouseEnter,
                                   onNodeMouseLeave: _handleNodeMouseLeave,
+                                  onPortHover: _handlePortHover,
                                   onPortContextMenu: _handlePortContextMenu,
                                   portSnapDistance: widget
                                       .controller
@@ -706,6 +707,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                   onNodeContextMenu: _handleNodeContextMenu,
                                   onNodeMouseEnter: _handleNodeMouseEnter,
                                   onNodeMouseLeave: _handleNodeMouseLeave,
+                                  onPortHover: _handlePortHover,
                                   onPortContextMenu: _handlePortContextMenu,
                                   portSnapDistance: widget
                                       .controller
@@ -737,6 +739,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                   onNodeContextMenu: _handleNodeContextMenu,
                                   onNodeMouseEnter: _handleNodeMouseEnter,
                                   onNodeMouseLeave: _handleNodeMouseLeave,
+                                  onPortHover: _handlePortHover,
                                   onPortContextMenu: _handlePortContextMenu,
                                   portSnapDistance: widget
                                       .controller
