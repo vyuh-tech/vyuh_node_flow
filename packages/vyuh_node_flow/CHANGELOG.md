@@ -1,3 +1,11 @@
+## 0.30.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FEAT**: retain graph scenes during navigation and mutations.
+ - **BREAKING** **FEAT**: retain large-graph render scenes at 120 Hz.
+ - **BREAKING** **FEAT**: optimize large graph rendering.
+
 ## 0.29.0
 
 > Note: This release has breaking changes.
