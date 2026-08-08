@@ -31,6 +31,35 @@ Replace `macos` with another configured device ID. For the web target, use
 `-d chrome`. Keep the window size, device, Flutter version, renderer, and power
 state fixed when comparing runs.
 
+## Local web release testing
+
+For an interactive release build of the demo that stays open in Chrome:
+
+```sh
+cd packages/demo
+flutter run --release --wasm -d chrome
+```
+
+For the exact automated 500-node release fixture, start a ChromeDriver that
+matches the installed Chrome major version, then run:
+
+```sh
+chromedriver --port=4444
+
+cd packages/demo
+flutter drive \
+  --release \
+  --wasm \
+  -d chrome \
+  --driver=test_driver/integration_test.dart \
+  --target=integration_test/node_flow_500_benchmark_test.dart \
+  --dart-define=NODE_FLOW_BENCHMARK_RENDER_MODE=all
+```
+
+Use `navigation` or `adaptive` instead of `all` to run one representation.
+The automated driver opens a visible Chrome window, performs the workloads,
+writes `build/node_flow_500_benchmark.json`, and closes the window when done.
+
 The driver writes the structured result to
 `build/node_flow_500_benchmark.json`. The same report is also printed with a
 `NODE_FLOW_500_BENCHMARK` prefix. Each workload reports p50, p95, p99, and
