@@ -10,6 +10,7 @@
 @Tags(['unit'])
 library;
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
@@ -559,6 +560,45 @@ void main() {
       );
 
       expect(controller.lod!.useThumbnailMode, isFalse);
+
+      controller.dispose();
+    });
+
+    test('off-screen culling preload does not force overview mode', () {
+      final controller = NodeFlowController<String, dynamic>(
+        nodes: [
+          createTestNode(id: 'on-screen', position: const Offset(100, 100)),
+          for (var index = 0; index < 20; index++)
+            createTestNode(
+              id: 'preloaded-$index',
+              position: Offset(900, index * 20),
+            ),
+        ],
+        config: NodeFlowConfig(
+          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 2)],
+        ),
+      );
+      controller.initController(
+        theme: NodeFlowTheme.light,
+        portSizeResolver: (port) => const Size(10, 10),
+        nodeShapeBuilder: (node) => null,
+        connectionHitTesterBuilder: (painter) =>
+            (connection, point) => false,
+        connectionSegmentCalculator: (connection) => const [],
+      );
+      controller.setScreenSize(const Size(800, 600));
+
+      // The rendering cache deliberately preloads nearby off-screen nodes, but
+      // adaptive density decisions must use only the actual viewport.
+      expect(controller.visibleNodes.length, greaterThan(2));
+      expect(controller.nodesInViewport.map((node) => node.id), ['on-screen']);
+      expect(controller.lod!.sceneMode, NodeSceneMode.widgets);
+
+      controller
+        ..setNodePosition('preloaded-0', const Offset(300, 100))
+        ..setNodePosition('preloaded-1', const Offset(500, 100));
+      expect(controller.nodesInViewport.length, 3);
+      expect(controller.lod!.sceneMode, NodeSceneMode.overview);
 
       controller.dispose();
     });

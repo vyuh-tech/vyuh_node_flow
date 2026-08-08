@@ -194,7 +194,7 @@ class StatsPlugin extends NodeFlowPlugin {
   // ═══════════════════════════════════════════════════════════════════════════
 
   /// Number of nodes currently visible in the viewport. Reactive.
-  int get nodesInViewport => _controller!.visibleNodes.length;
+  int get nodesInViewport => _controller!.nodesInViewport.length;
 
   /// Whether this is considered a "large" graph (> 100 nodes). Reactive.
   bool get isLargeGraph => nodeCount > 100;

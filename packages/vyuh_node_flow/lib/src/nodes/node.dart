@@ -426,6 +426,13 @@ class Node<T> {
   // Thumbnail Painting
   // ===========================================================================
 
+  /// Value included in retained thumbnail-scene invalidation.
+  ///
+  /// Override when [paintThumbnail] reads visual state beyond the standard
+  /// position, size, visibility, and selection fields. The value should change
+  /// whenever that painted representation changes.
+  Object? get thumbnailCacheKey => data;
+
   /// Paints a simplified thumbnail representation of this node.
   ///
   /// Called when the editor is in thumbnail mode (very zoomed out).

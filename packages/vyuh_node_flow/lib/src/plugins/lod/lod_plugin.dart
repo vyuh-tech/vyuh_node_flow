@@ -63,7 +63,7 @@ class LodPlugin extends NodeFlowPlugin {
   /// - [enabled]: Whether adaptive LOD is enabled (default: true)
   /// - [minThreshold]: Normalized zoom below which [minVisibility] is used (default: 0.03)
   /// - [midThreshold]: Normalized zoom below which [midVisibility] is used (default: 0.1)
-  /// - [maxInteractiveNodes]: Maximum number of visible nodes rendered as
+  /// - [maxInteractiveNodes]: Maximum number of on-screen nodes rendered as
   ///   full widgets before switching to the batched overview painter (default: 200)
   /// - [paintDuringViewportInteraction]: Temporarily replace full node widgets
   ///   with the batched overview scene while panning or zooming (default: true)
@@ -215,11 +215,11 @@ class LodPlugin extends NodeFlowPlugin {
     });
   }
 
-  /// Maximum visible-node count that uses fully interactive widget rendering.
+  /// Maximum on-screen node count that uses fully interactive widget rendering.
   ///
-  /// When more nodes are visible, the editor switches to its batched overview
-  /// painter even at a high zoom level. The mode switches back automatically as
-  /// spatial culling reduces the visible count.
+  /// When more nodes intersect the actual viewport, the editor switches to its
+  /// batched overview painter. The off-screen culling preload is deliberately
+  /// excluded, so nearby nodes cannot blank readable content at high zoom.
   int get maxInteractiveNodes => _maxInteractiveNodes.value;
 
   /// Updates the visible-node threshold for adaptive overview rendering.
@@ -373,7 +373,7 @@ class LodPlugin extends NodeFlowPlugin {
 
       final zoomRequiresOverview = _normalizedZoom.value < _minThreshold.value;
       final visibleCountRequiresOverview =
-          controller.visibleNodes.length > _maxInteractiveNodes.value;
+          controller.nodesInViewport.length > _maxInteractiveNodes.value;
       if (zoomRequiresOverview || visibleCountRequiresOverview) {
         return NodeSceneMode.overview;
       }

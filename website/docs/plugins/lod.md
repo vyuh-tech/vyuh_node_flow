@@ -33,7 +33,10 @@ LOD uses **normalized zoom** (0.0 to 1.0) based on your min/max zoom configurati
 ### Default Behavior
 
 LOD is included as a default plugin and is **enabled by default**. It enters adaptive overview mode when the normalized
-zoom is below `minThreshold` or more than `maxInteractiveNodes` nodes are visible:
+zoom is below `minThreshold` or more than `maxInteractiveNodes` nodes intersect
+the actual viewport. The off-screen culling preload does not count toward this
+budget, so nearby nodes cannot unexpectedly trigger overview mode while you are
+zoomed in:
 
 ```dart
 NodeFlowController(
@@ -43,8 +46,11 @@ NodeFlowController(
 )
 ```
 
-In overview mode, nodes remain selectable, tappable, and draggable through spatial hit-testing. Node child widgets and
-ports are not built, so port-based connection editing resumes after zooming in or reducing the visible-node count.
+In overview mode, nodes remain selectable, tappable, and draggable through spatial hit-testing. The node currently
+being dragged or resized is promoted into a real widget above the painted scene, so its content and interaction state
+remain intact. `CommentNode` thumbnails also retain their note text. Other node child widgets and ports are not built,
+so port-based connection editing resumes after zooming in or reducing the on-screen node count. Use
+`NodeFlowEditor.thumbnailBuilder` when a custom node needs a content-faithful painted representation.
 
 Connections also switch to an overview render scene: geometry is resolved into
 immutable snapshots outside paint, routes become straight physical-port paths,

@@ -37,8 +37,12 @@ For an interactive release build of the demo that stays open in Chrome:
 
 ```sh
 cd packages/demo
-flutter run --release --wasm -d chrome
+flutter run --release --wasm -d chrome --web-port 8092
 ```
+
+The explicit port avoids taking over another application already using
+`localhost:8080`. Open the URL printed by Flutter (normally
+`http://localhost:8092`).
 
 For the exact automated 500-node release fixture, start a ChromeDriver that
 matches the installed Chrome major version, then run:

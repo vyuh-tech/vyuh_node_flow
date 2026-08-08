@@ -158,6 +158,65 @@ void main() {
     expect(thumbnail.nodes!.map((node) => node.id), ['two']);
   });
 
+  testWidgets('dragged note remains a full widget in dense overview', (
+    tester,
+  ) async {
+    final controller = NodeFlowController<String, dynamic>(
+      nodes: [
+        createTestCommentNode<String>(
+          id: 'note-one',
+          text: 'Keep this note visible',
+          data: 'one',
+        ),
+        createTestCommentNode<String>(
+          id: 'note-two',
+          position: const Offset(250, 0),
+          text: 'Painted neighbor',
+          data: 'two',
+        ),
+      ],
+      config: NodeFlowConfig(
+        plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 1)],
+      ),
+    );
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(extensions: [NodeFlowTheme.light]),
+        home: SizedBox(
+          width: 800,
+          height: 600,
+          child: Stack(
+            children: [
+              NodesLayer.foreground<String>(
+                controller,
+                (context, node) => Text(node.id),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(controller.lod!.sceneMode, NodeSceneMode.overview);
+    expect(find.text('Keep this note visible'), findsNothing);
+
+    controller.startNodeDrag('note-one');
+    await tester.pump();
+
+    expect(find.text('Keep this note visible'), findsOneWidget);
+    final thumbnail = tester.widget<NodesThumbnailLayer<String>>(
+      find.byType(NodesThumbnailLayer<String>),
+    );
+    expect(thumbnail.nodes!.map((node) => node.id), ['note-two']);
+
+    controller.endNodeDrag();
+    await tester.pump();
+    expect(find.text('Keep this note visible'), findsNothing);
+  });
+
   testWidgets('empty widget layer allocates no full-canvas render objects', (
     tester,
   ) async {

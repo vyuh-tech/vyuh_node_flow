@@ -116,6 +116,7 @@ class _NodesThumbnailPainter<T> extends CustomPainter {
         node.size.value.height.toInt(),
         node.isVisible,
         selectedIds.contains(node.id),
+        node.thumbnailCacheKey,
       );
     }
 

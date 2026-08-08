@@ -565,6 +565,28 @@ class NodeFlowController<T, C> {
     return result;
   });
 
+  /// Nodes intersecting the actual viewport, without the culling preload.
+  ///
+  /// Rendering uses a much larger hysteresis rectangle so small camera moves do
+  /// not repeatedly query the spatial index. That preload is intentionally not
+  /// used for density decisions such as adaptive LOD.
+  late final Computed<List<Node<T>>> _nodesInViewport = Computed(() {
+    final v = _cullingViewport.value;
+    final s = _screenSize.value;
+    // Establish the MobX dependency before querying the non-observable index.
+    _spatialIndex.version.value;
+
+    if (s.isEmpty) return List<Node<T>>.unmodifiable(_nodes.values);
+
+    final viewportRect = Rect.fromLTWH(
+      -v.x / v.zoom,
+      -v.y / v.zoom,
+      s.width / v.zoom,
+      s.height / v.zoom,
+    );
+    return List<Node<T>>.unmodifiable(_spatialIndex.nodesIn(viewportRect));
+  });
+
   /// Visible nodes based on current viewport with hysteresis.
   late final Computed<List<Node<T>>> _visibleNodes = Computed(() {
     // Culling follows a coalesced camera viewport rather than every transform
@@ -778,6 +800,13 @@ class NodeFlowController<T, C> {
   /// Optimized for rendering only what's on screen.
   /// Uses cached Computed to avoid sorting on every access.
   List<Node<T>> get visibleNodes => _sortedVisibleNodes.value;
+
+  /// Gets nodes intersecting the actual on-screen graph bounds.
+  ///
+  /// Unlike [visibleNodes], this list excludes the off-screen culling preload.
+  /// It is read-only, reactive, and intended for viewport statistics and
+  /// density-based rendering policy rather than direct scene rendering.
+  List<Node<T>> get nodesInViewport => _nodesInViewport.value;
 
   /// Gets visible connections (package-private).
   List<Connection<C>> get visibleConnections => _visibleConnections.value;

@@ -230,17 +230,17 @@ class NodesLayer<T> extends StatelessWidget {
         final sceneMode = controller.lod?.sceneMode ?? NodeSceneMode.widgets;
 
         if (sceneMode == NodeSceneMode.overview) {
-          // Paint mode: one CustomPaint for the non-empty filtered layer.
-          return NodesThumbnailLayer<T>(
-            controller: controller,
-            thumbnailBuilder: thumbnailBuilder,
-            layerFilter: layerFilter,
-            nodes: nodesList,
+          // Preserve the node under direct manipulation as a real widget.
+          // Ordinary overview nodes remain in one retained painted scene.
+          return _buildPaintedLayer(
+            context,
+            nodesList,
+            promoteSelection: false,
           );
         }
 
         if (sceneMode == NodeSceneMode.navigation) {
-          return _buildNavigationLayer(context, nodesList);
+          return _buildPaintedLayer(context, nodesList, promoteSelection: true);
         }
 
         // Widget mode: individual widgets per node
@@ -249,11 +249,17 @@ class NodesLayer<T> extends StatelessWidget {
     );
   }
 
-  Widget _buildNavigationLayer(BuildContext context, List<Node<T>> nodesList) {
+  Widget _buildPaintedLayer(
+    BuildContext context,
+    List<Node<T>> nodesList, {
+    required bool promoteSelection,
+  }) {
     // Keep only discrete interaction state as live widgets. Camera movement
     // itself never changes this set, so navigation frames remain paint-only
     // for the ordinary graph while selection/focus survives the mode switch.
-    final promotedIds = <String>{...controller.selectedNodeIds};
+    final promotedIds = <String>{
+      if (promoteSelection) ...controller.selectedNodeIds,
+    };
     final draggedNodeId = controller.interaction.draggedNodeId.value;
     if (draggedNodeId != null) promotedIds.add(draggedNodeId);
     final resizingNodeId = controller.interaction.resizingNodeId.value;
