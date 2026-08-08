@@ -162,10 +162,8 @@ extension DirtyTrackingExtension<T, C> on NodeFlowController<T, C> {
     final connectionStyle = _theme!.connectionTheme.style;
 
     for (final connectionId in _pendingConnectionUpdates) {
-      final connection = _connections.firstWhere(
-        (c) => c.id == connectionId,
-        orElse: () => throw StateError('Connection not found: $connectionId'),
-      );
+      final connection = _connectionById[connectionId];
+      if (connection == null) continue;
 
       final sourceNode = _nodes[connection.sourceNodeId];
       final targetNode = _nodes[connection.targetNodeId];
@@ -178,21 +176,6 @@ extension DirtyTrackingExtension<T, C> on NodeFlowController<T, C> {
         connectionStyle: connectionStyle,
       );
       _spatialIndex.updateConnection(connection, segments);
-    }
-  }
-
-  /// Rebuilds the connection indexes for O(1) lookup.
-  void _rebuildConnectionsByNodeIndex() {
-    _connectionsByNodeId.clear();
-    _connectionById.clear();
-    for (final connection in _connections) {
-      _connectionById[connection.id] = connection;
-      _connectionsByNodeId
-          .putIfAbsent(connection.sourceNodeId, () => {})
-          .add(connection.id);
-      _connectionsByNodeId
-          .putIfAbsent(connection.targetNodeId, () => {})
-          .add(connection.id);
     }
   }
 

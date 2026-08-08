@@ -97,11 +97,11 @@ void main() {
   });
 
   // ===========================================================================
-  // StatsPlugin - Observable Collections Access
+  // StatsPlugin - Read-only Reactive Collections Access
   // ===========================================================================
 
-  group('StatsPlugin - Observable Collections', () {
-    test('nodes returns observable map of nodes', () {
+  group('StatsPlugin - Read-only Reactive Collections', () {
+    test('nodes returns a read-only live map of nodes', () {
       final controller = NodeFlowController<String, dynamic>(
         nodes: [
           createTestNode(id: 'node-1'),
@@ -115,11 +115,12 @@ void main() {
       expect(stats.nodes.length, equals(2));
       expect(stats.nodes.containsKey('node-1'), isTrue);
       expect(stats.nodes.containsKey('node-2'), isTrue);
+      expect(() => stats.nodes.clear(), throwsUnsupportedError);
 
       controller.dispose();
     });
 
-    test('connections returns observable list of connections', () {
+    test('connections returns a read-only live list of connections', () {
       final nodeA = createTestNodeWithOutputPort(id: 'node-a');
       final nodeB = createTestNodeWithInputPort(id: 'node-b');
       final connection = createTestConnection(
@@ -136,11 +137,12 @@ void main() {
 
       expect(stats.connections, isNotNull);
       expect(stats.connections.length, equals(1));
+      expect(() => stats.connections.clear(), throwsUnsupportedError);
 
       controller.dispose();
     });
 
-    test('selectedNodeIds returns observable set', () {
+    test('selectedNodeIds returns a read-only live set', () {
       final controller = NodeFlowController<String, dynamic>(
         nodes: [createTestNode(id: 'node-1')],
         config: NodeFlowConfig(plugins: [StatsPlugin()]),
@@ -152,11 +154,12 @@ void main() {
 
       controller.selectNode('node-1');
       expect(stats.selectedNodeIds, contains('node-1'));
+      expect(() => stats.selectedNodeIds.clear(), throwsUnsupportedError);
 
       controller.dispose();
     });
 
-    test('selectedConnectionIds returns observable set', () {
+    test('selectedConnectionIds returns a read-only live set', () {
       final nodeA = createTestNodeWithOutputPort(id: 'node-a');
       final nodeB = createTestNodeWithInputPort(id: 'node-b');
       final connection = createTestConnection(
@@ -177,6 +180,7 @@ void main() {
 
       controller.selectConnection('conn-1');
       expect(stats.selectedConnectionIds, contains('conn-1'));
+      expect(() => stats.selectedConnectionIds.clear(), throwsUnsupportedError);
 
       controller.dispose();
     });

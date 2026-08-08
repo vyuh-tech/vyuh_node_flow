@@ -7,12 +7,15 @@ abstract class SpatialIndexable {
   Rect getBounds();
 }
 
+typedef _GridCell = ({int x, int y});
+
 /// Ultra-fast spatial grid system using grid-based hashing.
 /// This is the low-level implementation used by [SpatialIndex].
 /// Optimized for large numbers of 2D objects with frequent position updates.
 class SpatialGrid<T extends SpatialIndexable> {
   SpatialGrid({this.gridSize = 500.0, this.enableCaching = true})
-    : _spatialGrid = <String, Set<String>>{},
+    : _spatialGrid = <_GridCell, Set<String>>{},
+      _objectCells = <String, Set<_GridCell>>{},
       _spatialRects = <String, Rect>{},
       _objects = <String, T>{},
       _cachedVisibleObjects = <T>[],
@@ -22,7 +25,8 @@ class SpatialGrid<T extends SpatialIndexable> {
   final bool enableCaching;
 
   // Core spatial data structures
-  final Map<String, Set<String>> _spatialGrid;
+  final Map<_GridCell, Set<String>> _spatialGrid;
+  final Map<String, Set<_GridCell>> _objectCells;
   final Map<String, Rect> _spatialRects;
   final Map<String, T> _objects;
 
@@ -57,18 +61,23 @@ class SpatialGrid<T extends SpatialIndexable> {
   void remove(String objectId) {
     final object = _objects.remove(objectId);
     if (object != null) {
-      _removeFromSpatialGrid(object);
+      _removeFromSpatialGrid(objectId);
       _spatialRects.remove(objectId);
+      _pendingUpdates.remove(objectId);
+      _draggingObjectIds.remove(objectId);
       _invalidateCache();
     }
   }
 
   /// Clear all objects from the spatial index
   void clear() {
-    if (_objects.isEmpty) return;
     _objects.clear();
     _spatialGrid.clear();
+    _objectCells.clear();
     _spatialRects.clear();
+    _pendingUpdates.clear();
+    _draggingObjectIds.clear();
+    _isDragging = false;
     _invalidateCache();
   }
 
@@ -90,7 +99,7 @@ class SpatialGrid<T extends SpatialIndexable> {
     // Check all cells in range (typically just 1-4 cells for small radius)
     for (var x = minX; x <= maxX; x++) {
       for (var y = minY; y <= maxY; y++) {
-        final cellKey = '${x}_$y';
+        final cellKey = (x: x, y: y);
         final objectIds = _spatialGrid[cellKey];
 
         if (objectIds != null) {
@@ -303,7 +312,8 @@ class SpatialGrid<T extends SpatialIndexable> {
   ///
   /// Returns an iterable of cell keys in the format "${x}_${y}".
   /// Use [parseCellKey] to convert these to coordinates.
-  Iterable<String> get activeCellKeys => _spatialGrid.keys;
+  Iterable<String> get activeCellKeys =>
+      _spatialGrid.keys.map((cell) => '${cell.x}_${cell.y}');
 
   /// Parses a cell key into its (x, y) coordinates.
   ///
@@ -331,7 +341,8 @@ class SpatialGrid<T extends SpatialIndexable> {
   ///
   /// Returns 0 if the cell doesn't exist.
   int getObjectCountInCell(String cellKey) {
-    return _spatialGrid[cellKey]?.length ?? 0;
+    final (x, y) = parseCellKey(cellKey);
+    return _spatialGrid[(x: x, y: y)]?.length ?? 0;
   }
 
   /// Gets all cell bounds with their object counts for debug visualization.
@@ -340,7 +351,8 @@ class SpatialGrid<T extends SpatialIndexable> {
   /// of objects in that cell, broken down by type.
   List<CellDebugInfo> getActiveCellsInfo() {
     return _spatialGrid.entries.map((entry) {
-      final (cellX, cellY) = parseCellKey(entry.key);
+      final cellX = entry.key.x;
+      final cellY = entry.key.y;
       final objects = entry.value;
 
       // Count objects by type based on ID prefix.
@@ -382,7 +394,7 @@ class SpatialGrid<T extends SpatialIndexable> {
 
   void _updateSpatialGrid(T object, Rect bounds) {
     // Remove from old grid cells
-    _removeFromSpatialGrid(object);
+    _removeFromSpatialGrid(object.id);
 
     // Add to new grid cells
     _addToGridCells(object.id, bounds);
@@ -395,19 +407,30 @@ class SpatialGrid<T extends SpatialIndexable> {
     final startY = (bounds.top / gridSize).floor();
     final endY = (bounds.bottom / gridSize).floor();
 
+    final occupiedCells = <_GridCell>{};
     for (int x = startX; x <= endX; x++) {
       for (int y = startY; y <= endY; y++) {
-        final cellKey = '${x}_$y';
+        final cellKey = (x: x, y: y);
         _spatialGrid.putIfAbsent(cellKey, () => <String>{}).add(objectId);
+        occupiedCells.add(cellKey);
       }
     }
+    _objectCells[objectId] = occupiedCells;
   }
 
-  void _removeFromSpatialGrid(T object) {
-    _spatialGrid.removeWhere((key, objectSet) {
-      objectSet.remove(object.id);
-      return objectSet.isEmpty;
-    });
+  void _removeFromSpatialGrid(String objectId) {
+    final occupiedCells = _objectCells.remove(objectId);
+    if (occupiedCells == null) return;
+
+    for (final cellKey in occupiedCells) {
+      final objectIds = _spatialGrid[cellKey];
+      if (objectIds == null) continue;
+
+      objectIds.remove(objectId);
+      if (objectIds.isEmpty) {
+        _spatialGrid.remove(cellKey);
+      }
+    }
   }
 
   void _queryWithSpatialGrid(Rect bounds, List<T> result) {
@@ -424,7 +447,7 @@ class SpatialGrid<T extends SpatialIndexable> {
       // For small areas, use simpler iteration
       for (int x = startX; x <= endX; x++) {
         for (int y = startY; y <= endY; y++) {
-          final cellKey = '${x}_$y';
+          final cellKey = (x: x, y: y);
           final objectIds = _spatialGrid[cellKey];
 
           if (objectIds != null) {
@@ -444,7 +467,7 @@ class SpatialGrid<T extends SpatialIndexable> {
       final candidates = <String>{};
       for (int x = startX; x <= endX; x++) {
         for (int y = startY; y <= endY; y++) {
-          final cellKey = '${x}_$y';
+          final cellKey = (x: x, y: y);
           final objectIds = _spatialGrid[cellKey];
           if (objectIds != null) {
             candidates.addAll(objectIds);

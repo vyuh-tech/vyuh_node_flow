@@ -1,6 +1,6 @@
 ---
 title: Level of Detail (LOD)
-description: Zoom-based visibility for improved performance and reduced clutter
+description: Adaptive overview rendering and zoom-based visibility for large graphs
 ---
 
 # Level of Detail (LOD)
@@ -12,7 +12,9 @@ zoom (full) - all details visible including ports, labels, and resize handles.
 :::
 
 The Level of Detail (LOD) system automatically adjusts which visual elements are rendered based on the current zoom
-level. This improves performance when viewing large graphs and reduces visual clutter at low zoom levels.
+level. It also switches visible nodes from individual widgets to a batched overview painter when their count exceeds
+the interactive-node budget. This improves performance when viewing large graphs and reduces visual clutter at low
+zoom levels.
 
 ## How LOD Works
 
@@ -30,25 +32,29 @@ LOD uses **normalized zoom** (0.0 to 1.0) based on your min/max zoom configurati
 
 ### Default Behavior
 
-LOD is included as a default plugin but is **disabled by default** (always shows full detail):
+LOD is included as a default plugin and is **enabled by default**. It enters adaptive overview mode when the normalized
+zoom is below `minThreshold` or more than `maxInteractiveNodes` nodes are visible:
 
 ```dart
 NodeFlowController(
   config: NodeFlowConfig(
-    // Default plugins include LodPlugin() which is disabled
+    // Defaults include LodPlugin(enabled: true, maxInteractiveNodes: 200)
   ),
 )
 ```
 
-### Enable LOD
+In overview mode, nodes remain selectable, tappable, and draggable through spatial hit-testing. Node child widgets and
+ports are not built, so port-based connection editing resumes after zooming in or reducing the visible-node count.
 
-Enable LOD to auto-hide details when zoomed out:
+### Disable Adaptive LOD
+
+Disable LOD when every visible node must remain a full widget regardless of zoom or graph size:
 
 ```dart
 NodeFlowController(
   config: NodeFlowConfig(
     plugins: [
-      LodPlugin(enabled: true),
+      LodPlugin(enabled: false),
       // ... other plugins
     ],
   ),
@@ -64,9 +70,9 @@ NodeFlowController(
   config: NodeFlowConfig(
     plugins: [
       LodPlugin(
-        enabled: true,
         minThreshold: 0.2,   // Minimal below 20%
         midThreshold: 0.5,   // Standard 20-50%, Full above 50%
+        maxInteractiveNodes: 300,
       ),
       // ... other plugins
     ],
@@ -235,6 +241,9 @@ controller.lod?.setThresholds(
   minThreshold: 0.3,
   midThreshold: 0.7,
 );
+
+// Update the visible-node budget for full widget rendering
+controller.lod?.setMaxInteractiveNodes(300);
 
 // Update visibility presets
 controller.lod?.setMinVisibility(DetailVisibility.minimal);

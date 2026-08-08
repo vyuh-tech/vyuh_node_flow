@@ -594,6 +594,126 @@ void main() {
     });
   });
 
+  group('Static and Animated Rendering Partition', () {
+    testWidgets(
+      'only animated permanent connections receive the animation repaint',
+      (tester) async {
+        final graph = _createConnectionPartitionGraph();
+        addTearDown(graph.controller.dispose);
+        graph.animatedConnection.animationEffect =
+            ConnectionEffects.flowingDash;
+        final animation = AnimationController(
+          vsync: tester,
+          duration: const Duration(seconds: 1),
+        );
+        addTearDown(animation.dispose);
+
+        await _pumpConnectionsLayer(
+          tester,
+          controller: graph.controller,
+          animation: animation,
+        );
+
+        final staticCanvas = _connectionCanvasFor(tester, 'connections-static');
+        final animatedCanvas = _connectionCanvasFor(
+          tester,
+          'connections-animated',
+        );
+
+        expect(staticCanvas.animation, isNull);
+        expect(
+          staticCanvas.connections!.map((connection) => connection.id),
+          equals([graph.staticConnection.id]),
+        );
+        expect(animatedCanvas.animation, same(animation));
+        expect(
+          animatedCanvas.connections!.map((connection) => connection.id),
+          equals([graph.animatedConnection.id]),
+        );
+        expect(find.byKey(const ValueKey('connections-active')), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'theme-wide effect places all permanent edges in animation layer',
+      (tester) async {
+        final theme = NodeFlowTheme.light.copyWith(
+          connectionTheme: NodeFlowTheme.light.connectionTheme.copyWith(
+            animationEffect: ConnectionEffects.pulse,
+          ),
+        );
+        final graph = _createConnectionPartitionGraph(theme: theme);
+        addTearDown(graph.controller.dispose);
+        final animation = AnimationController(
+          vsync: tester,
+          duration: const Duration(seconds: 1),
+        );
+        addTearDown(animation.dispose);
+
+        await _pumpConnectionsLayer(
+          tester,
+          controller: graph.controller,
+          animation: animation,
+        );
+
+        expect(find.byKey(const ValueKey('connections-static')), findsNothing);
+        final animatedCanvas = _connectionCanvasFor(
+          tester,
+          'connections-animated',
+        );
+        expect(animatedCanvas.animation, same(animation));
+        expect(
+          animatedCanvas.connections!
+              .map((connection) => connection.id)
+              .toSet(),
+          equals({graph.staticConnection.id, graph.animatedConnection.id}),
+        );
+      },
+    );
+
+    testWidgets('active animated edge is excluded from permanent partitions', (
+      tester,
+    ) async {
+      final graph = _createConnectionPartitionGraph();
+      addTearDown(graph.controller.dispose);
+      graph.animatedConnection.animationEffect = ConnectionEffects.flowingDash;
+      graph.controller.startNodeDrag('node-a');
+      final animation = AnimationController(
+        vsync: tester,
+        duration: const Duration(seconds: 1),
+      );
+      addTearDown(animation.dispose);
+
+      await _pumpConnectionsLayer(
+        tester,
+        controller: graph.controller,
+        animation: animation,
+      );
+
+      final staticCanvas = _connectionCanvasFor(tester, 'connections-static');
+      final activeCanvas = _connectionCanvasFor(tester, 'connections-active');
+
+      expect(staticCanvas.animation, isNull);
+      expect(
+        staticCanvas.connections!.map((connection) => connection.id),
+        equals([graph.staticConnection.id]),
+      );
+      expect(find.byKey(const ValueKey('connections-animated')), findsNothing);
+      expect(activeCanvas.animation, same(animation));
+      expect(
+        activeCanvas.connections!.map((connection) => connection.id),
+        equals([graph.animatedConnection.id]),
+      );
+
+      final renderedIds = <String>[
+        ...staticCanvas.connections!.map((connection) => connection.id),
+        ...activeCanvas.connections!.map((connection) => connection.id),
+      ];
+      expect(renderedIds, hasLength(2));
+      expect(renderedIds.toSet(), hasLength(2));
+    });
+  });
+
   // ===========================================================================
   // Selected Connection IDs Tests
   // ===========================================================================
@@ -1159,6 +1279,93 @@ void main() {
       expect(layer, isA<ConnectionsLayer<String, dynamic>>());
     });
   });
+}
+
+({
+  NodeFlowController<String, dynamic> controller,
+  Connection<dynamic> animatedConnection,
+  Connection<dynamic> staticConnection,
+})
+_createConnectionPartitionGraph({NodeFlowTheme? theme}) {
+  final sourceA = createTestNodeWithOutputPort(id: 'node-a', portId: 'output-a')
+    ..setSize(const Size(100, 50));
+  final targetA = createTestNodeWithInputPort(
+    id: 'node-b',
+    portId: 'input-a',
+    position: const Offset(200, 0),
+  )..setSize(const Size(100, 50));
+  final sourceB = createTestNodeWithOutputPort(
+    id: 'node-c',
+    portId: 'output-b',
+    position: const Offset(0, 200),
+  )..setSize(const Size(100, 50));
+  final targetB = createTestNodeWithInputPort(
+    id: 'node-d',
+    portId: 'input-b',
+    position: const Offset(200, 200),
+  )..setSize(const Size(100, 50));
+  final controller = createTestController(
+    nodes: [sourceA, targetA, sourceB, targetB],
+  );
+  controller.initController(
+    theme: theme ?? NodeFlowTheme.light,
+    portSizeResolver: (_) => const Size.square(10),
+  );
+
+  final animatedConnection = createTestConnection(
+    id: 'animated',
+    sourceNodeId: sourceA.id,
+    sourcePortId: 'output-a',
+    targetNodeId: targetA.id,
+    targetPortId: 'input-a',
+  );
+  final staticConnection = createTestConnection(
+    id: 'static',
+    sourceNodeId: sourceB.id,
+    sourcePortId: 'output-b',
+    targetNodeId: targetB.id,
+    targetPortId: 'input-b',
+  );
+  controller.addConnection(animatedConnection);
+  controller.addConnection(staticConnection);
+
+  return (
+    controller: controller,
+    animatedConnection: animatedConnection,
+    staticConnection: staticConnection,
+  );
+}
+
+Future<void> _pumpConnectionsLayer(
+  WidgetTester tester, {
+  required NodeFlowController<String, dynamic> controller,
+  required Animation<double> animation,
+}) {
+  return tester.pumpWidget(
+    Directionality(
+      textDirection: TextDirection.ltr,
+      child: SizedBox(
+        width: 800,
+        height: 600,
+        child: Stack(
+          children: [
+            ConnectionsLayer<String, dynamic>(
+              controller: controller,
+              animation: animation,
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+ConnectionsCanvas<String, dynamic> _connectionCanvasFor(
+  WidgetTester tester,
+  String key,
+) {
+  final customPaint = tester.widget<CustomPaint>(find.byKey(ValueKey(key)));
+  return customPaint.painter! as ConnectionsCanvas<String, dynamic>;
 }
 
 /// Test implementation of TickerProvider for animations

@@ -1546,6 +1546,98 @@ void main() {
       expect(mockCanvas.drawPathCalls, greaterThanOrEqualTo(1));
     });
 
+    test(
+      'static dashed path cache reuses and invalidates transformed paths',
+      () {
+        final dashedTheme = NodeFlowTheme.light.copyWith(
+          connectionTheme: ConnectionTheme.light.copyWith(dashPattern: [5, 5]),
+        );
+        final dashedPainter = createTestConnectionPainter(theme: dashedTheme);
+
+        dashedPainter.paintConnection(
+          mockCanvas,
+          connection,
+          sourceNode,
+          targetNode,
+          skipEndpoints: true,
+        );
+        final firstDashedPath = mockCanvas.lastPath;
+        expect(dashedPainter.debugDashedPathCacheBuilds, equals(1));
+        expect(dashedPainter.debugDashedPathCacheHits, equals(0));
+
+        mockCanvas.reset();
+        dashedPainter.paintConnection(
+          mockCanvas,
+          connection,
+          sourceNode,
+          targetNode,
+          skipEndpoints: true,
+        );
+        expect(mockCanvas.lastPath, same(firstDashedPath));
+        expect(dashedPainter.debugDashedPathCacheBuilds, equals(1));
+        expect(dashedPainter.debugDashedPathCacheHits, equals(1));
+
+        dashedPainter.updateTheme(
+          dashedTheme.copyWith(
+            connectionTheme: dashedTheme.connectionTheme.copyWith(
+              dashPattern: [10, 3],
+            ),
+          ),
+        );
+        mockCanvas.reset();
+        dashedPainter.paintConnection(
+          mockCanvas,
+          connection,
+          sourceNode,
+          targetNode,
+          skipEndpoints: true,
+        );
+        final changedPatternPath = mockCanvas.lastPath;
+        expect(changedPatternPath, isNot(same(firstDashedPath)));
+        expect(dashedPainter.debugDashedPathCacheBuilds, equals(2));
+
+        sourceNode.position.value = const Offset(25, 0);
+        mockCanvas.reset();
+        dashedPainter.paintConnection(
+          mockCanvas,
+          connection,
+          sourceNode,
+          targetNode,
+          skipEndpoints: true,
+        );
+        expect(mockCanvas.lastPath, isNot(same(changedPatternPath)));
+        expect(dashedPainter.debugDashedPathCacheBuilds, equals(3));
+      },
+    );
+
+    test('animated flowing dash output bypasses static dashed path cache', () {
+      final dashedTheme = NodeFlowTheme.light.copyWith(
+        connectionTheme: ConnectionTheme.light.copyWith(dashPattern: [5, 5]),
+      );
+      final dashedPainter = createTestConnectionPainter(theme: dashedTheme);
+      connection.animationEffect = FlowingDashEffect();
+
+      dashedPainter.paintConnection(
+        mockCanvas,
+        connection,
+        sourceNode,
+        targetNode,
+        animationValue: 0.25,
+        skipEndpoints: true,
+      );
+      dashedPainter.paintConnection(
+        mockCanvas,
+        connection,
+        sourceNode,
+        targetNode,
+        animationValue: 0.75,
+        skipEndpoints: true,
+      );
+
+      expect(dashedPainter.debugDashedPathCacheBuilds, equals(0));
+      expect(dashedPainter.debugDashedPathCacheHits, equals(0));
+    });
+
     test('paintConnection skips endpoints when skipEndpoints is true', () {
       // First paint with endpoints
       painter.paintConnection(

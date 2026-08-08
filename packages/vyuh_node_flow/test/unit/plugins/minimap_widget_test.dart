@@ -876,7 +876,9 @@ void main() {
         of: find.byType(NodeFlowMinimap<String>),
         matching: find.byType(CustomPaint),
       );
-      expect(customPaintFinder, findsOneWidget);
+      expect(customPaintFinder, findsNWidgets(2));
+      expect(find.byKey(const ValueKey('minimap-graph')), findsOneWidget);
+      expect(find.byKey(const ValueKey('minimap-viewport')), findsOneWidget);
     });
 
     testWidgets('viewport indicator responds to zoom changes', (tester) async {
@@ -977,6 +979,115 @@ void main() {
       );
 
       expect(painter1.shouldRepaint(painter2), isFalse);
+    });
+
+    test('graph painter does not repaint for viewport-only changes', () {
+      controller.addNode(
+        createTestNode(
+          id: 'node-1',
+          position: const Offset(10, 20),
+          size: const Size(100, 80),
+        ),
+      );
+      final before = MinimapPainter<String>(
+        controller: controller,
+        theme: MinimapTheme.light,
+      );
+
+      controller.setViewport(const GraphViewport(x: 50, y: 25, zoom: 2));
+      final after = MinimapPainter<String>(
+        controller: controller,
+        theme: MinimapTheme.light,
+      );
+
+      expect(after.shouldRepaint(before), isFalse);
+    });
+
+    test('graph painter repaints when node geometry changes', () {
+      controller.addNode(
+        createTestNode(
+          id: 'node-1',
+          position: const Offset(10, 20),
+          size: const Size(100, 80),
+        ),
+      );
+      final before = MinimapPainter<String>(
+        controller: controller,
+        theme: MinimapTheme.light,
+      );
+
+      controller.moveNode('node-1', const Offset(200, 150));
+      final after = MinimapPainter<String>(
+        controller: controller,
+        theme: MinimapTheme.light,
+      );
+
+      expect(after.shouldRepaint(before), isTrue);
+    });
+  });
+
+  group('MinimapViewportPainter', () {
+    test('repaints for viewport changes only', () {
+      const bounds = Rect.fromLTWH(0, 0, 500, 400);
+      const before = MinimapViewportPainter(
+        viewport: GraphViewport(),
+        screenSize: Size(800, 600),
+        graphBounds: bounds,
+        theme: MinimapTheme.light,
+      );
+      const after = MinimapViewportPainter(
+        viewport: GraphViewport(x: 50, y: 25, zoom: 2),
+        screenSize: Size(800, 600),
+        graphBounds: bounds,
+        theme: MinimapTheme.light,
+      );
+
+      expect(after.shouldRepaint(before), isTrue);
+      expect(before.shouldRepaint(before), isFalse);
+    });
+
+    testWidgets('panning rebuilds only the viewport painter', (tester) async {
+      controller.addNode(
+        createTestNode(
+          id: 'node-1',
+          position: const Offset(0, 0),
+          size: const Size(500, 400),
+        ),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: NodeFlowMinimap<String>(
+            controller: controller,
+            size: const Size(200, 150),
+          ),
+        ),
+      );
+
+      final graphBefore = tester
+          .widget<CustomPaint>(find.byKey(const ValueKey('minimap-graph')))
+          .painter;
+      final viewportBefore = tester
+          .widget<CustomPaint>(find.byKey(const ValueKey('minimap-viewport')))
+          .painter;
+
+      controller.setViewport(const GraphViewport(x: 50, y: 25, zoom: 2));
+      await tester.pump();
+
+      final graphAfter = tester
+          .widget<CustomPaint>(find.byKey(const ValueKey('minimap-graph')))
+          .painter;
+      final viewportAfter = tester
+          .widget<CustomPaint>(find.byKey(const ValueKey('minimap-viewport')))
+          .painter;
+
+      expect(graphAfter, same(graphBefore));
+      expect(viewportAfter, isNot(same(viewportBefore)));
+      expect(
+        (viewportAfter! as MinimapViewportPainter).shouldRepaint(
+          viewportBefore! as MinimapViewportPainter,
+        ),
+        isTrue,
+      );
     });
   });
 
@@ -1200,7 +1311,7 @@ void main() {
         of: find.byType(NodeFlowMinimap<String>),
         matching: find.byType(CustomPaint),
       );
-      expect(customPaintFinder, findsOneWidget);
+      expect(customPaintFinder, findsNWidgets(2));
     });
 
     testWidgets('Stack layout contains minimap content', (tester) async {

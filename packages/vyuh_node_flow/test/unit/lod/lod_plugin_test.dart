@@ -13,6 +13,8 @@ library;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
+import '../../helpers/test_factories.dart';
+
 void main() {
   // ===========================================================================
   // LodPlugin - Individual Threshold Setters
@@ -489,6 +491,84 @@ void main() {
       // Detach should not throw
       expect(() => lod.detach(), returnsNormally);
 
+      controller.dispose();
+    });
+  });
+
+  group('LodPlugin - Adaptive Overview', () {
+    test('500 visible nodes use overview mode with default settings', () {
+      final controller = NodeFlowController<String, dynamic>(
+        nodes: List.generate(500, (index) => createTestNode(id: 'node-$index')),
+      );
+      final lod = controller.lod!;
+
+      expect(lod.isEnabled, isTrue);
+      expect(lod.maxInteractiveNodes, 200);
+      expect(lod.useThumbnailMode, isTrue);
+
+      controller.dispose();
+    });
+
+    test('visible count crossing threshold switches modes reactively', () {
+      final controller = NodeFlowController<String, dynamic>(
+        nodes: [
+          createTestNode(id: 'one'),
+          createTestNode(id: 'two'),
+          createTestNode(id: 'three'),
+        ],
+        config: NodeFlowConfig(
+          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 2)],
+        ),
+      );
+      final lod = controller.lod!;
+
+      expect(lod.useThumbnailMode, isTrue);
+
+      controller.removeNode('three');
+      expect(lod.useThumbnailMode, isFalse);
+
+      lod.setMaxInteractiveNodes(1);
+      expect(lod.useThumbnailMode, isTrue);
+
+      controller.dispose();
+    });
+
+    test('zoomed-out state uses overview below the count threshold', () {
+      final controller = NodeFlowController<String, dynamic>(
+        config: NodeFlowConfig(
+          minZoom: 0,
+          maxZoom: 1,
+          plugins: [LodPlugin(minThreshold: 0.2, maxInteractiveNodes: 200)],
+        ),
+        initialViewport: const GraphViewport(zoom: 0.1),
+      );
+      final lod = controller.lod!;
+
+      expect(lod.useThumbnailMode, isTrue);
+
+      controller.setViewport(const GraphViewport(zoom: 0.8));
+      expect(lod.useThumbnailMode, isFalse);
+
+      controller.dispose();
+    });
+
+    test('disabled adaptive LOD always keeps full widgets', () {
+      final controller = NodeFlowController<String, dynamic>(
+        nodes: List.generate(500, (index) => createTestNode(id: 'node-$index')),
+        config: NodeFlowConfig(plugins: [LodPlugin(enabled: false)]),
+      );
+
+      expect(controller.lod!.useThumbnailMode, isFalse);
+
+      controller.dispose();
+    });
+
+    test('rejects non-positive interactive node thresholds', () {
+      expect(() => LodPlugin(maxInteractiveNodes: 0), throwsArgumentError);
+
+      final controller = NodeFlowController<String, dynamic>();
+      final lod = controller.lod!;
+      expect(() => lod.setMaxInteractiveNodes(-1), throwsArgumentError);
       controller.dispose();
     });
   });

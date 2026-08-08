@@ -626,6 +626,7 @@ void main() {
   group('Batch Operations', () {
     test('batch operations work correctly', () {
       final controller = createTestController();
+      final initialSpatialVersion = controller.spatialIndex.version.value;
 
       controller.batch('add-multiple-nodes', () {
         controller.addNode(createTestNode(id: 'node-1'));
@@ -634,6 +635,11 @@ void main() {
       });
 
       expect(controller.nodeCount, equals(3));
+      expect(
+        controller.spatialIndex.version.value,
+        initialSpatialVersion + 1,
+        reason: 'A graph batch should publish one spatial-index revision',
+      );
     });
 
     test('nested batch operations work correctly', () {

@@ -110,6 +110,8 @@ void main() {
       // Actual defaults: minThreshold=0.03, midThreshold=0.1
       expect(lod.minThreshold, equals(0.03));
       expect(lod.midThreshold, equals(0.1));
+      expect(lod.maxInteractiveNodes, equals(200));
+      expect(lod.isEnabled, isTrue);
       expect(lod.minVisibility, same(DetailVisibility.minimal));
       expect(lod.midVisibility, same(DetailVisibility.standard));
       expect(lod.maxVisibility, same(DetailVisibility.full));
@@ -117,21 +119,20 @@ void main() {
       controller.dispose();
     });
 
-    test('disabled LOD always shows full detail', () {
+    test('default adaptive LOD responds to zoom', () {
       final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(minZoom: 0.0, maxZoom: 1.0),
         initialViewport: const GraphViewport(zoom: 0.1),
       );
       final lod = controller.lod!;
 
-      // LOD disabled by default
-      expect(lod.isEnabled, isFalse);
+      expect(lod.isEnabled, isTrue);
 
-      // At any zoom we get full visibility when disabled
+      // Normalized zoom 0.1 is at the max-detail threshold.
       expect(lod.currentVisibility, same(DetailVisibility.full));
 
-      controller.setViewport(const GraphViewport(zoom: 0.5));
-      expect(lod.currentVisibility, same(DetailVisibility.full));
+      controller.setViewport(const GraphViewport(zoom: 0.0));
+      expect(lod.currentVisibility, same(DetailVisibility.minimal));
 
       controller.setViewport(const GraphViewport(zoom: 1.0));
       expect(lod.currentVisibility, same(DetailVisibility.full));

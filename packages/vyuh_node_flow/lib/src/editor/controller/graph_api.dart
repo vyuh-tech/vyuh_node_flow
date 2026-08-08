@@ -53,6 +53,12 @@ extension GraphApi<T, C> on NodeFlowController<T, C> {
       _connections.addAll(graph.connections);
       for (final conn in graph.connections) {
         _connectionById[conn.id] = conn;
+        _connectionsByNodeId
+            .putIfAbsent(conn.sourceNodeId, () => <String>{})
+            .add(conn.id);
+        _connectionsByNodeId
+            .putIfAbsent(conn.targetNodeId, () => <String>{})
+            .add(conn.id);
       }
 
       // Set viewport
@@ -678,23 +684,5 @@ extension GraphApi<T, C> on NodeFlowController<T, C> {
   /// final bounds = controller.nodesBounds;
   /// print('Graph size: ${bounds.width} x ${bounds.height}');
   /// ```
-  Rect get nodesBounds {
-    if (_nodes.isEmpty) return Rect.zero;
-
-    double minX = double.infinity;
-    double minY = double.infinity;
-    double maxX = double.negativeInfinity;
-    double maxY = double.negativeInfinity;
-
-    for (final node in _nodes.values) {
-      final pos = node.position.value;
-      final size = node.size.value;
-      minX = math.min(minX, pos.dx);
-      minY = math.min(minY, pos.dy);
-      maxX = math.max(maxX, pos.dx + size.width);
-      maxY = math.max(maxY, pos.dy + size.height);
-    }
-
-    return Rect.fromLTRB(minX, minY, maxX, maxY);
-  }
+  Rect get nodesBounds => _nodesBounds.value;
 }

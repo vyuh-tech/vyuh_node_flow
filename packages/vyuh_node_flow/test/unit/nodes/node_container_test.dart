@@ -13,6 +13,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vyuh_node_flow/src/editor/element_scope.dart';
 import 'package:vyuh_node_flow/src/editor/resizer_widget.dart';
 // Import NodeContainer and ResizerWidget directly as they're not part of the public API
 import 'package:vyuh_node_flow/src/nodes/node_container.dart';
@@ -1423,6 +1424,58 @@ void main() {
 
       // Widget should still be rendered (just moved)
       expect(find.byKey(const Key('move-content')), findsOneWidget);
+    });
+
+    testWidgets('cursor changes do not rebuild node ports', (tester) async {
+      final node = createTestNodeWithOutputPort(id: 'cursor-node');
+      controller.addNode(node);
+      var portBuildCount = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Stack(
+            children: [
+              NodeContainer<String>(
+                node: node,
+                controller: controller,
+                portBuilder: (context, node, port) {
+                  portBuildCount++;
+                  return const SizedBox(width: 12, height: 12);
+                },
+                child: const SizedBox(key: Key('cursor-node-content')),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      await tester.pump();
+      expect(portBuildCount, 1);
+      expect(
+        tester.widget<ElementScope>(find.byType(ElementScope)).cursor,
+        SystemMouseCursors.click,
+      );
+      final elementScopeState = tester.state(find.byType(ElementScope));
+
+      controller.interaction.setCursorOverride(SystemMouseCursors.forbidden);
+      await tester.pump();
+
+      expect(
+        tester.widget<ElementScope>(find.byType(ElementScope)).cursor,
+        SystemMouseCursors.forbidden,
+      );
+      expect(portBuildCount, 1);
+      expect(tester.state(find.byType(ElementScope)), same(elementScopeState));
+      expect(find.byKey(const Key('cursor-node-content')), findsOneWidget);
+
+      controller.interaction.setCursorOverride(null);
+      await tester.pump();
+
+      expect(
+        tester.widget<ElementScope>(find.byType(ElementScope)).cursor,
+        SystemMouseCursors.click,
+      );
+      expect(portBuildCount, 1);
     });
 
     testWidgets('resizable node shows ResizerWidget in design mode', (
