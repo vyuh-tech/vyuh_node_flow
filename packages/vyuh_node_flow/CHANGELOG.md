@@ -1,3 +1,12 @@
+## 0.31.0
+
+> Note: This release has breaking changes.
+
+ - **FIX**(lod): preserve note content in painted scenes.
+ - **BREAKING** **FEAT**: retain graph scenes during navigation and mutations.
+ - **BREAKING** **FEAT**: retain large-graph render scenes at 120 Hz.
+ - **BREAKING** **FEAT**: optimize large graph rendering.
+
 ## 0.30.0
 
 > Note: This release has breaking changes.
