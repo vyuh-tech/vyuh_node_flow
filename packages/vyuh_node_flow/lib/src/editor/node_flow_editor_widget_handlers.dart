@@ -71,6 +71,21 @@ extension _WidgetGestureHandlers<T, C> on _NodeFlowEditorState<T, C> {
   // Port Gesture Handlers
   // ============================================================
 
+  /// Handles port hover changes.
+  void _handlePortHover(String nodeId, String portId, bool isHover) {
+    final node = widget.controller.getNode(nodeId);
+    if (node == null) return;
+
+    final port = node.ports.where((p) => p.id == portId).firstOrNull;
+    if (port == null) return;
+
+    if (isHover) {
+      widget.controller.events.port?.onMouseEnter?.call(node, port);
+    } else {
+      widget.controller.events.port?.onMouseLeave?.call(node, port);
+    }
+  }
+
   /// Handles port context menu (right-click).
   ///
   /// The [screenPosition] is in screen/global coordinates, passed directly

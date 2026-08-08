@@ -1,3 +1,7 @@
+## 0.27.3+2
+
+ - **FIX**: wire default port hover events.
+
 ## 0.27.3+1
 
  - **FIX**(ports): render a `PortType.both` port once instead of twice, which raised a duplicate `ValueKey` assertion. ([#36](https://github.com/vyuh-tech/vyuh_node_flow/pull/36))

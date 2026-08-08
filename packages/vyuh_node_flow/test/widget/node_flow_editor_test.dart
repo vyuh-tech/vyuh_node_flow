@@ -1,6 +1,7 @@
 @Tags(['widget'])
 library;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
@@ -338,6 +339,67 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(initCalled, isTrue);
+    });
+
+    testWidgets('default ports fire mouse enter and leave callbacks', (
+      tester,
+    ) async {
+      final node = createTestNodeWithOutputPort(
+        id: 'node-1',
+        portId: 'output-1',
+      );
+      controller.addNode(node);
+
+      Node<String>? enteredNode;
+      Port? enteredPort;
+      Node<String>? leftNode;
+      Port? leftPort;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: NodeFlowEditor<String, dynamic>(
+                controller: controller,
+                nodeBuilder: (context, node) => const SizedBox.expand(),
+                theme: NodeFlowTheme.light,
+                events: NodeFlowEvents<String, dynamic>(
+                  port: PortEvents<String>(
+                    onMouseEnter: (node, port) {
+                      enteredNode = node;
+                      enteredPort = port;
+                    },
+                    onMouseLeave: (node, port) {
+                      leftNode = node;
+                      leftPort = port;
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final portFinder = find.byType(PortWidget<String>);
+      expect(portFinder, findsOneWidget);
+
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: const Offset(700, 500));
+      await mouse.moveTo(tester.getCenter(portFinder));
+      await tester.pump();
+
+      expect(enteredNode, same(node));
+      expect(enteredPort, same(node.ports.single));
+
+      await mouse.moveTo(const Offset(700, 500));
+      await tester.pump();
+
+      expect(leftNode, same(node));
+      expect(leftPort, same(node.ports.single));
     });
   });
 
