@@ -8,8 +8,11 @@ import '../unbounded_widgets.dart';
 
 /// A layer that renders all nodes using a single CustomPaint.
 ///
-/// Used when zoomed out below the LOD minThreshold for maximum performance.
-/// No interaction is possible in this mode - just visual representation.
+/// Used when zoomed out below the LOD minThreshold or when the visible-node
+/// count exceeds the adaptive interaction budget. Node tap, selection, and
+/// drag are handled by [NodeFlowEditor]'s root spatial hit-testing while this
+/// layer is active. Port rendering and connection editing intentionally resume
+/// only after the editor returns to full-widget mode.
 class NodesThumbnailLayer<T> extends StatelessWidget {
   const NodesThumbnailLayer({
     super.key,

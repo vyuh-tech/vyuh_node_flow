@@ -115,13 +115,6 @@ class NodeContainer<T> extends StatelessWidget {
         final isSelected = node.isSelected;
         final size = node.size.value;
 
-        // Derive cursor from interaction state
-        final cursor = theme.cursorTheme.cursorFor(
-          ElementType.node,
-          controller.interaction,
-          isLocked: node.locked,
-        );
-
         // Get LOD visibility state - default to full visibility if not configured
         final lodVisibility =
             controller.lod?.currentVisibility ?? DetailVisibility.full;
@@ -144,42 +137,7 @@ class NodeContainer<T> extends StatelessWidget {
               clipBehavior: Clip.none, // Allow ports/handles to overflow
               children: [
                 // Main node visual with gesture handling via ElementScope
-                Positioned.fill(
-                  child: ElementScope(
-                    // Session for canvas locking during drag
-                    createSession: () =>
-                        controller.createSession(DragSessionType.nodeDrag),
-                    // Drag lifecycle - unified for all node types
-                    // Check both node lock state AND behavior mode
-                    isDraggable: !node.locked && controller.behavior.canDrag,
-                    onDragStart: (_) => controller.startNodeDrag(node.id),
-                    onDragUpdate: (details) =>
-                        controller.moveNodeDrag(details.delta),
-                    onDragEnd: (_) => controller.endNodeDrag(),
-                    // Interaction callbacks
-                    onTap: onTap,
-                    onDoubleTap: onDoubleTap,
-                    onContextMenu: onContextMenu,
-                    onMouseEnter: onMouseEnter,
-                    onMouseLeave: onMouseLeave,
-                    cursor: cursor,
-                    // Background/foreground layers use translucent for hit testing
-                    hitTestBehavior: HitTestBehavior.opaque,
-                    // Autopan configuration
-                    autoPan: controller.autoPan,
-                    getViewportBounds: () =>
-                        controller.viewportScreenBounds.rect,
-                    onAutoPan: (delta) {
-                      final zoom = controller.viewport.zoom;
-                      controller.panBy(
-                        ScreenOffset(
-                          Offset(-delta.dx * zoom, -delta.dy * zoom),
-                        ),
-                      );
-                    },
-                    child: child,
-                  ),
-                ),
+                Positioned.fill(child: _buildElementScope(theme)),
 
                 // Ports (only when LOD allows and ports exist)
                 // Iterate over all ports directly to avoid duplicate rendering
@@ -190,28 +148,78 @@ class NodeContainer<T> extends StatelessWidget {
                   ),
 
                 // Resize handles (shown when selected and resizable)
-                if (showResizer)
-                  Positioned.fill(
-                    child: ResizerWidget(
-                      handleSize: theme.resizerTheme.handleSize,
-                      color: theme.resizerTheme.color,
-                      borderColor: theme.resizerTheme.borderColor,
-                      borderWidth: theme.resizerTheme.borderWidth,
-                      snapDistance: theme.resizerTheme.snapDistance,
-                      isResizing: controller.interaction.isResizing,
-                      onResizeStart: (handle, globalPos) =>
-                          controller.startResize(node.id, handle, globalPos),
-                      onResizeUpdate: (globalPos) =>
-                          controller.updateResize(globalPos),
-                      onResizeEnd: () => controller.endResize(),
-                      child: const SizedBox.expand(),
-                    ),
-                  ),
+                if (showResizer) Positioned.fill(child: _buildResizer(theme)),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  /// Builds the interaction shell separately from the node's structural
+  /// observer. Global interaction state changes frequently, but only the cursor
+  /// and drag eligibility depend on it. Keeping those reads here prevents a
+  /// cursor-only change from rebuilding node layout, ports, and resize handles.
+  Widget _buildElementScope(NodeFlowTheme theme) {
+    return Observer(
+      builder: (context) {
+        final cursor = theme.cursorTheme.cursorFor(
+          ElementType.node,
+          controller.interaction,
+          isLocked: node.locked,
+        );
+
+        return ElementScope(
+          // Session for canvas locking during drag
+          createSession: () =>
+              controller.createSession(DragSessionType.nodeDrag),
+          // Drag lifecycle - unified for all node types
+          // Check both node lock state AND behavior mode
+          isDraggable: !node.locked && controller.behavior.canDrag,
+          onDragStart: (_) => controller.startNodeDrag(node.id),
+          onDragUpdate: (details) => controller.moveNodeDrag(details.delta),
+          onDragEnd: (_) => controller.endNodeDrag(),
+          // Interaction callbacks
+          onTap: onTap,
+          onDoubleTap: onDoubleTap,
+          onContextMenu: onContextMenu,
+          onMouseEnter: onMouseEnter,
+          onMouseLeave: onMouseLeave,
+          cursor: cursor,
+          // Background/foreground layers use translucent for hit testing
+          hitTestBehavior: HitTestBehavior.opaque,
+          // Autopan configuration
+          autoPan: controller.autoPan,
+          getViewportBounds: () => controller.viewportScreenBounds.rect,
+          onAutoPan: (delta) {
+            final zoom = controller.viewport.zoom;
+            controller.panBy(
+              ScreenOffset(Offset(-delta.dx * zoom, -delta.dy * zoom)),
+            );
+          },
+          child: child,
+        );
+      },
+    );
+  }
+
+  /// Isolates resize interaction updates from the node structure and ports.
+  Widget _buildResizer(NodeFlowTheme theme) {
+    return Observer(
+      builder: (context) => ResizerWidget(
+        handleSize: theme.resizerTheme.handleSize,
+        color: theme.resizerTheme.color,
+        borderColor: theme.resizerTheme.borderColor,
+        borderWidth: theme.resizerTheme.borderWidth,
+        snapDistance: theme.resizerTheme.snapDistance,
+        isResizing: controller.interaction.isResizing,
+        onResizeStart: (handle, globalPos) =>
+            controller.startResize(node.id, handle, globalPos),
+        onResizeUpdate: (globalPos) => controller.updateResize(globalPos),
+        onResizeEnd: () => controller.endResize(),
+        child: const SizedBox.expand(),
+      ),
     );
   }
 

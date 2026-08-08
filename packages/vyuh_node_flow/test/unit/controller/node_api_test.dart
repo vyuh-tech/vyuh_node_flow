@@ -127,6 +127,24 @@ void main() {
       expect(controller.nodes['test-node'], equals(node));
     });
 
+    test('addNodes adds a graph batch', () {
+      final controller = createTestController();
+      final nodes = List.generate(
+        50,
+        (index) => createTestNode(id: 'node-$index'),
+      );
+
+      controller.addNodes(nodes);
+
+      expect(controller.nodeCount, 50);
+      expect(controller.getNode('node-0'), same(nodes.first));
+      expect(controller.getNode('node-49'), same(nodes.last));
+      expect(
+        controller.getVisibleNodes().map((node) => node.id),
+        containsAll(['node-0', 'node-49']),
+      );
+    });
+
     test('addNode with snap-to-grid enabled snaps position', () {
       final controller = createTestController(
         config: NodeFlowConfig(
@@ -170,6 +188,8 @@ void main() {
       controller.removeNode('node-a');
 
       expect(controller.connections, isEmpty);
+      expect(controller.getConnection(connection.id), isNull);
+      expect(controller.getConnectionsForNode('node-b'), isEmpty);
     });
 
     test('removeNode removes node from selection if selected', () {
@@ -242,6 +262,19 @@ void main() {
 
       expect(controller.nodeCount, equals(1));
       expect(controller.getNode('node-2'), isNotNull);
+    });
+
+    test('removeNodes publishes one spatial-index revision', () {
+      final controller = createTestController();
+      controller.addNodes(
+        List.generate(10, (index) => createTestNode(id: 'node-$index')),
+      );
+      final initialVersion = controller.spatialIndex.version.value;
+
+      controller.removeNodes(controller.nodeIds);
+
+      expect(controller.nodeCount, 0);
+      expect(controller.spatialIndex.version.value, initialVersion + 1);
     });
   });
 

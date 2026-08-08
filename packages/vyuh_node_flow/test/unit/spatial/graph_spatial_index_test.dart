@@ -827,6 +827,22 @@ void main() {
       expect(index.nodeCount, equals(3));
     });
 
+    test('nested batches publish one notification', () {
+      var notificationCount = 0;
+      index.version.observe((_) => notificationCount++);
+
+      index.batch(() {
+        index.update(createTestNode(id: 'node-1'));
+        index.batch(() {
+          index.update(createTestNode(id: 'node-2'));
+        });
+        index.update(createTestNode(id: 'node-3'));
+      });
+
+      expect(index.nodeCount, 3);
+      expect(notificationCount, 1);
+    });
+
     test('batch can include mixed operations', () {
       final node1 = createTestNodeWithOutputPort(id: 'node-1');
       final node2 = createTestNodeWithInputPort(id: 'node-2');

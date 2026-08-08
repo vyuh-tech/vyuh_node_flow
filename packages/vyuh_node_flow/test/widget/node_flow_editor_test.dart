@@ -4,6 +4,7 @@ library;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vyuh_node_flow/src/editor/layers/nodes_thumbnail_layer.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../helpers/test_factories.dart';
@@ -248,6 +249,136 @@ void main() {
 
       // Editor should still be visible
       expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
+    });
+  });
+
+  group('NodeFlowEditor - Adaptive Overview Interaction', () {
+    testWidgets('thumbnail nodes remain selectable, tappable, and draggable', (
+      tester,
+    ) async {
+      controller.dispose();
+      controller = NodeFlowController<String, dynamic>(
+        nodes: [
+          createTestNode(
+            id: 'overview-node',
+            position: const Offset(100, 100),
+            size: const Size(100, 100),
+          ),
+          createTestNode(
+            id: 'threshold-node',
+            position: const Offset(300, 100),
+            size: const Size(100, 100),
+          ),
+        ],
+        config: NodeFlowConfig(
+          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 1)],
+        ),
+      );
+      var tapCount = 0;
+      var dragStartCount = 0;
+      var dragStopCount = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SizedBox(
+            width: 800,
+            height: 600,
+            child: NodeFlowEditor<String, dynamic>(
+              controller: controller,
+              nodeBuilder: (context, node) => Text(node.id),
+              theme: NodeFlowTheme.light,
+              events: NodeFlowEvents<String, dynamic>(
+                node: NodeEvents<String>(
+                  onTap: (_) => tapCount++,
+                  onDragStart: (_) => dragStartCount++,
+                  onDragStop: (_) => dragStopCount++,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(controller.lod!.useThumbnailMode, isTrue);
+      expect(find.byType(NodesThumbnailLayer<String>), findsWidgets);
+      expect(find.text('overview-node'), findsNothing);
+
+      await tester.tapAt(const Offset(150, 150));
+      await tester.pump();
+
+      expect(controller.selectedNodeIds, contains('overview-node'));
+      expect(tapCount, 1);
+
+      await tester.dragFrom(const Offset(150, 150), const Offset(40, 20));
+      await tester.pump();
+
+      expect(
+        controller.getNode('overview-node')!.position.value,
+        const Offset(140, 120),
+      );
+      expect(dragStartCount, 1);
+      expect(dragStopCount, 1);
+      expect(controller.draggedNodeId, isNull);
+      expect(controller.canvasLocked, isFalse);
+    });
+
+    testWidgets('canceling an overview drag restores the node position', (
+      tester,
+    ) async {
+      controller.dispose();
+      controller = NodeFlowController<String, dynamic>(
+        nodes: [
+          createTestNode(
+            id: 'overview-node',
+            position: const Offset(100, 100),
+            size: const Size(100, 100),
+          ),
+          createTestNode(
+            id: 'threshold-node',
+            position: const Offset(300, 100),
+            size: const Size(100, 100),
+          ),
+        ],
+        config: NodeFlowConfig(
+          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 1)],
+        ),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SizedBox(
+            width: 800,
+            height: 600,
+            child: NodeFlowEditor<String, dynamic>(
+              controller: controller,
+              nodeBuilder: (context, node) => Text(node.id),
+              theme: NodeFlowTheme.light,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final gesture = await tester.startGesture(const Offset(150, 150));
+      await gesture.moveBy(const Offset(40, 20));
+      await tester.pump();
+
+      expect(controller.draggedNodeId, 'overview-node');
+      expect(
+        controller.getNode('overview-node')!.position.value,
+        const Offset(140, 120),
+      );
+
+      await gesture.cancel();
+      await tester.pump();
+
+      expect(
+        controller.getNode('overview-node')!.position.value,
+        const Offset(100, 100),
+      );
+      expect(controller.draggedNodeId, isNull);
+      expect(controller.canvasLocked, isFalse);
     });
   });
 

@@ -68,7 +68,9 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
   final Map<String, List<String>> _nodePortIds = {};
 
   // Batch mode tracking
-  bool _inBatch = false;
+  int _batchDepth = 0;
+
+  bool get _inBatch => _batchDepth > 0;
 
   /// Observable version counter that increments on every spatial index change.
   ///
@@ -282,13 +284,15 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
   /// });
   /// ```
   void batch(void Function() operations) {
-    _inBatch = true;
+    _batchDepth++;
     try {
       operations();
     } finally {
-      _inBatch = false;
-      _grid.flushPendingUpdates();
-      _notifyChanged();
+      _batchDepth--;
+      if (_batchDepth == 0) {
+        _grid.flushPendingUpdates();
+        _notifyChanged();
+      }
     }
   }
 
@@ -564,6 +568,7 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
   // candidates are near the same point. Populated at the start of
   // _hitTestPorts(), consumed by _isPointCoveredByOtherNode(), cleared at end.
   List<Node<T>>? _hitTestNodesAtPointCache;
+  Map<String, int>? _hitTestRenderRanks;
 
   HitTestResult? _hitTestPorts(Offset point) {
     // Query port spatial items directly - O(1) spatial lookup
@@ -614,6 +619,13 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
         .whereType<Node<T>>()
         .where((node) => node.isVisible)
         .toList();
+    final renderOrder = _renderOrderProvider?.call();
+    if (renderOrder != null) {
+      _hitTestRenderRanks = {
+        for (var index = 0; index < renderOrder.length; index++)
+          renderOrder[index].id: index,
+      };
+    }
 
     try {
       // Find the first port that isn't covered by another node
@@ -640,6 +652,7 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
       return null;
     } finally {
       _hitTestNodesAtPointCache = null;
+      _hitTestRenderRanks = null;
     }
   }
 
@@ -746,9 +759,9 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
 
     // 3. Same layer and same zIndex - check render order if provider is available
     if (_renderOrderProvider != null) {
-      final renderOrder = _renderOrderProvider!();
-      final indexA = renderOrder.indexWhere((n) => n.id == nodeA.id);
-      final indexB = renderOrder.indexWhere((n) => n.id == nodeB.id);
+      final renderRanks = _hitTestRenderRanks;
+      final indexA = renderRanks?[nodeA.id] ?? -1;
+      final indexB = renderRanks?[nodeB.id] ?? -1;
 
       // Higher index in render order = renders later = visually on top
       if (indexA >= 0 && indexB >= 0) {

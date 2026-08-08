@@ -29,7 +29,8 @@ import '../unbounded_widgets.dart';
 ///
 /// Example:
 /// ```dart
-/// LabelBuilder myLabelBuilder = (context, connection, label, position, onTap) {
+/// LabelBuilder<MyConnectionData> myLabelBuilder =
+///     (context, connection, label, position, onTap) {
 ///   return GestureDetector(
 ///     onTap: onTap, // Use the provided tap handler for selection
 ///     child: Container(
@@ -50,10 +51,10 @@ import '../unbounded_widgets.dart';
 ///   );
 /// };
 /// ```
-typedef LabelBuilder =
+typedef LabelBuilder<C> =
     Widget Function(
       BuildContext context,
-      Connection connection,
+      Connection<C> connection,
       ConnectionLabel label,
       Rect position,
       VoidCallback? onTap,
@@ -61,14 +62,14 @@ typedef LabelBuilder =
 
 /// Layer that renders connection labels independently from connection lines
 /// This allows for optimized repainting when only labels change
-class ConnectionLabelsLayer<T> extends StatelessWidget {
+class ConnectionLabelsLayer<T, C> extends StatelessWidget {
   const ConnectionLabelsLayer({
     super.key,
     required this.controller,
     this.labelBuilder,
   });
 
-  final NodeFlowController<T, dynamic> controller;
+  final NodeFlowController<T, C> controller;
 
   /// Optional builder for customizing individual label widgets.
   ///
@@ -78,7 +79,7 @@ class ConnectionLabelsLayer<T> extends StatelessWidget {
   /// - [position] - The calculated rect position for the label
   ///
   /// The returned widget replaces the default label rendering.
-  final LabelBuilder? labelBuilder;
+  final LabelBuilder<C>? labelBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -91,8 +92,9 @@ class ConnectionLabelsLayer<T> extends StatelessWidget {
             return const SizedBox.shrink();
           }
 
-          // Observe connections list changes
-          final connections = controller.connections;
+          // Labels use the same spatially culled set as connection lines. This
+          // avoids building and observing label widgets for off-screen edges.
+          final connections = controller.visibleConnections;
 
           // Filter to only connections that have at least one label
           final connectionsWithLabels = connections.where((connection) {
@@ -102,7 +104,7 @@ class ConnectionLabelsLayer<T> extends StatelessWidget {
           return UnboundedStack(
             clipBehavior: Clip.none,
             children: connectionsWithLabels.map((connection) {
-              return _ConnectionLabelWidget<T>(
+              return _ConnectionLabelWidget<T, C>(
                 key: ValueKey('label_${connection.id}'),
                 connection: connection,
                 controller: controller,
@@ -127,7 +129,7 @@ class ConnectionLabelsLayer<T> extends StatelessWidget {
 
 /// Individual widget for rendering a single connection's labels
 /// This provides granular repaint boundaries for label updates
-class _ConnectionLabelWidget<T> extends StatelessWidget {
+class _ConnectionLabelWidget<T, C> extends StatelessWidget {
   const _ConnectionLabelWidget({
     super.key,
     required this.connection,
@@ -136,9 +138,9 @@ class _ConnectionLabelWidget<T> extends StatelessWidget {
     this.onLabelTap,
   });
 
-  final Connection connection;
-  final NodeFlowController<T, dynamic> controller;
-  final LabelBuilder? labelBuilder;
+  final Connection<C> connection;
+  final NodeFlowController<T, C> controller;
+  final LabelBuilder<C>? labelBuilder;
 
   /// Called on tap completion for any label.
   final VoidCallback? onLabelTap;

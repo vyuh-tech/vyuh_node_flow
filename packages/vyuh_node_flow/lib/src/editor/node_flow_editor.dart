@@ -14,6 +14,7 @@ import '../nodes/node_shape.dart';
 import '../plugins/autopan/autopan_zone_debug_layer.dart';
 import '../plugins/debug/debug_plugin.dart';
 import '../plugins/layer_provider.dart';
+import '../plugins/lod/lod_plugin.dart';
 import '../ports/port.dart';
 import '../ports/port_widget.dart';
 import '../shared/spatial/graph_spatial_index.dart';
@@ -202,11 +203,13 @@ class NodeFlowEditor<T, C> extends StatefulWidget {
   ///   );
   /// }
   /// ```
-  final LabelBuilder? labelBuilder;
+  final LabelBuilder<C>? labelBuilder;
 
   /// Optional custom thumbnail painter for nodes.
   ///
-  /// When provided, called for each node in thumbnail mode.
+  /// When provided, called for each node in adaptive overview mode. Node tap,
+  /// selection, and drag remain available through root spatial hit-testing;
+  /// port rendering and connection editing resume when full widgets return.
   /// Return `true` to indicate custom painting was done,
   /// `false` to fall back to the node's default `paintThumbnail`.
   final ThumbnailBuilder<T>? thumbnailBuilder;
@@ -336,6 +339,13 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
   // that started the drag is the one that ended. This prevents trackpad pointer
   // ups from prematurely ending mouse drags.
   int? _dragPointerId;
+
+  // In adaptive overview mode there are no NodeContainer gesture widgets.
+  // The root Listener therefore owns the candidate/drag lifecycle and routes
+  // movement through the same controller APIs used by full-widget nodes.
+  String? _overviewPointerNodeId;
+  Offset? _overviewLastPointerPosition;
+  bool _overviewDragStarted = false;
 
   @override
   void initState() {
@@ -546,6 +556,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                 onPointerDown: _handlePointerDown,
                 onPointerMove: _handlePointerMove,
                 onPointerUp: _handlePointerUp,
+                onPointerCancel: _handlePointerCancel,
                 onPointerHover: _handleMouseHover,
                 child: Observer.withBuiltChild(
                   builder: (context, child) {
@@ -679,7 +690,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
                                 ),
 
                                 // Connection labels
-                                ConnectionLabelsLayer<T>(
+                                ConnectionLabelsLayer<T, C>(
                                   controller: widget.controller,
                                   labelBuilder: widget.labelBuilder,
                                 ),
@@ -1024,6 +1035,13 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     _initialPointerPosition = event.localPosition;
     _shouldClearSelectionOnTap = false;
 
+    if ((widget.controller.lod?.useThumbnailMode ?? false) &&
+        hitResult.isNode) {
+      _overviewPointerNodeId = hitResult.nodeId;
+      _overviewLastPointerPosition = event.localPosition;
+      _overviewDragStarted = false;
+    }
+
     // Store initial pointer position in widget-local coordinates
     widget.controller._setPointerPosition(ScreenPosition(event.localPosition));
 
@@ -1101,6 +1119,39 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
         (event.localPosition - _initialPointerPosition!).distance >
             dragThreshold) {
       _shouldClearSelectionOnTap = false;
+    }
+
+    if (_overviewPointerNodeId != null && event.pointer == _dragPointerId) {
+      final node = widget.controller.getNode(_overviewPointerNodeId!);
+      final initialPosition = _initialPointerPosition;
+      final movedPastThreshold =
+          initialPosition != null &&
+          (event.localPosition - initialPosition).distance > dragThreshold;
+
+      if (!_overviewDragStarted &&
+          movedPastThreshold &&
+          widget.behavior.canDrag &&
+          node != null &&
+          !node.locked) {
+        widget.controller.startNodeDrag(node.id);
+        _overviewDragStarted = true;
+
+        final zoom = widget.controller.viewport.zoom;
+        widget.controller.moveNodeDrag(
+          (event.localPosition - initialPosition) / zoom,
+        );
+      } else if (_overviewDragStarted) {
+        final previousPosition = _overviewLastPointerPosition;
+        if (previousPosition != null) {
+          final zoom = widget.controller.viewport.zoom;
+          widget.controller.moveNodeDrag(
+            (event.localPosition - previousPosition) / zoom,
+          );
+        }
+      }
+
+      _overviewLastPointerPosition = event.localPosition;
+      return;
     }
 
     // Note: Node drag is now handled by GestureDetector in NodeWidget
@@ -1210,11 +1261,40 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
       if (widget.controller.draggedNodeId != null) {
         widget.controller.endNodeDrag();
       }
+      if (_overviewPointerNodeId != null) {
+        widget.controller._updateInteractionState(canvasLocked: false);
+      }
       // Clear the drag pointer ID after cleanup
       _dragPointerId = null;
+      _resetOverviewPointerState();
     }
 
     // Cursor is derived from state via Observer - no update needed
+  }
+
+  void _handlePointerCancel(PointerCancelEvent event) {
+    if (_overviewPointerNodeId == null || event.pointer != _dragPointerId) {
+      return;
+    }
+
+    if (_overviewDragStarted && widget.controller.draggedNodeId != null) {
+      widget.controller.cancelNodeDrag(
+        Map<String, Offset>.from(
+          widget.controller.interaction.dragStartPositions,
+        ),
+      );
+    }
+    widget.controller._updateInteractionState(canvasLocked: false);
+    _dragPointerId = null;
+    _initialPointerPosition = null;
+    _shouldClearSelectionOnTap = false;
+    _resetOverviewPointerState();
+  }
+
+  void _resetOverviewPointerState() {
+    _overviewPointerNodeId = null;
+    _overviewLastPointerPosition = null;
+    _overviewDragStarted = false;
   }
 
   // Helper methods

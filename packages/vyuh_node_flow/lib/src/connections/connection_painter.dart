@@ -31,6 +31,21 @@ class ConnectionPainter {
 
   final ConnectionPathCache _pathCache;
 
+  // Path is the weak key, so cached dash output disappears with its source
+  // path instead of retaining stale connection geometry indefinitely.
+  final Expando<_DashedPathCacheEntry> _staticDashedPathCache =
+      Expando<_DashedPathCacheEntry>('static dashed connection paths');
+  int _dashedPathCacheBuilds = 0;
+  int _dashedPathCacheHits = 0;
+
+  /// Number of static dashed paths built by this painter.
+  @visibleForTesting
+  int get debugDashedPathCacheBuilds => _dashedPathCacheBuilds;
+
+  /// Number of static dashed-path cache hits served by this painter.
+  @visibleForTesting
+  int get debugDashedPathCacheHits => _dashedPathCacheHits;
+
   /// Gets the connection path cache (data layer)
   ConnectionPathCache get pathCache => _pathCache;
 
@@ -316,6 +331,12 @@ class ConnectionPainter {
   Path _createDashedPath(Path source, List<double> dashPattern) {
     if (dashPattern.isEmpty) return source;
 
+    final cached = _staticDashedPathCache[source];
+    if (cached != null && cached.matches(dashPattern)) {
+      _dashedPathCacheHits++;
+      return cached.path;
+    }
+
     final dashedPath = Path();
     final pathMetrics = source.computeMetrics();
 
@@ -342,6 +363,11 @@ class ConnectionPainter {
       }
     }
 
+    _staticDashedPathCache[source] = _DashedPathCacheEntry(
+      pattern: List.unmodifiable(dashPattern),
+      path: dashedPath,
+    );
+    _dashedPathCacheBuilds++;
     return dashedPath;
   }
 
@@ -555,5 +581,21 @@ class ConnectionPainter {
   /// Get cache statistics for debugging
   Map<String, dynamic> getCacheStats() {
     return _pathCache.getStats();
+  }
+}
+
+class _DashedPathCacheEntry {
+  const _DashedPathCacheEntry({required this.pattern, required this.path});
+
+  final List<double> pattern;
+  final Path path;
+
+  bool matches(List<double> otherPattern) {
+    if (pattern.length != otherPattern.length) return false;
+
+    for (var index = 0; index < pattern.length; index++) {
+      if (pattern[index] != otherPattern[index]) return false;
+    }
+    return true;
   }
 }

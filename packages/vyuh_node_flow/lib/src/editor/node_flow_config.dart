@@ -27,7 +27,7 @@ export '../plugins/debug/debug_plugin.dart' show DebugMode;
 /// NodeFlowConfig(
 ///   plugins: [
 ///     MinimapPlugin(visible: true, interactive: true),
-///     LodPlugin(enabled: false),
+///     LodPlugin(enabled: true, maxInteractiveNodes: 200),
 ///     AutoPanPlugin(config: AutoPanConfig.fast),
 ///     DebugPlugin(mode: DebugMode.spatialIndex),
 ///     StatsPlugin(),
@@ -40,7 +40,7 @@ export '../plugins/debug/debug_plugin.dart' show DebugMode;
 /// If no plugins are provided, these defaults are used:
 /// - [AutoPanPlugin] - autopan near edges (normal mode)
 /// - [DebugPlugin] - debug overlays (disabled by default)
-/// - [LodPlugin] - level of detail (disabled by default)
+/// - [LodPlugin] - adaptive level of detail (enabled by default)
 /// - [MinimapPlugin] - minimap overlay
 /// - [SnapPlugin] - grid and alignment snapping (disabled by default)
 /// - [StatsPlugin] - graph statistics (nodeCount, connectionCount, etc.)

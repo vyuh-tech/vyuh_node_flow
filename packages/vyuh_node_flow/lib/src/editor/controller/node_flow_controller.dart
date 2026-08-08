@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -343,6 +344,21 @@ class NodeFlowController<T, C> {
   final Observable<GraphViewport> _viewport;
   final Observable<Size> _screenSize = Observable(Size.zero);
 
+  // Stable, allocation-free public views over the observable collections.
+  // The wrappers delegate reads to their MobX-backed sources, so collection
+  // access remains reactive inside Observer/autorun while mutation stays behind
+  // the controller API.
+  late final Map<String, Node<T>> _nodesView = UnmodifiableMapView(_nodes);
+  late final List<Connection<C>> _connectionsView = UnmodifiableListView(
+    _connections,
+  );
+  late final Set<String> _selectedNodeIdsView = UnmodifiableSetView(
+    _selectedNodeIds,
+  );
+  late final Set<String> _selectedConnectionIdsView = UnmodifiableSetView(
+    _selectedConnectionIds,
+  );
+
   /// Direct callback to trigger viewport animations.
   ///
   /// This callback is set by [NodeFlowEditor] and invoked by
@@ -491,6 +507,16 @@ class NodeFlowController<T, C> {
 
   late final Computed<List<Node<T>>> _sortedNodes = Computed(
     _computeSortedNodes,
+  );
+
+  /// Cached bounds for the complete graph.
+  ///
+  /// Keeping this computed alive makes repeated API reads O(1). MobX tracks the
+  /// node collection plus each node's position and size, invalidating the cache
+  /// only when geometry actually changes.
+  late final Computed<Rect> _nodesBounds = Computed(
+    _computeNodesBounds,
+    keepAlive: true,
   );
 
   /// Connections currently affected by an interaction (drag/resize).
@@ -671,14 +697,17 @@ class NodeFlowController<T, C> {
 
   /// Gets all connections in the graph.
   ///
-  /// Returns a live list that will automatically update when connections
-  /// are added or removed.
-  List<Connection<C>> get connections => _connections;
+  /// Returns a stable, read-only live view. Reads remain reactive inside MobX
+  /// observers, while graph mutations must go through controller methods such
+  /// as [addConnection] and [removeConnection].
+  List<Connection<C>> get connections => _connectionsView;
 
   /// Gets the IDs of all currently selected nodes.
   ///
-  /// Returns a set of node IDs. An empty set means no nodes are selected.
-  Set<String> get selectedNodeIds => _selectedNodeIds;
+  /// Returns a stable, read-only live view. An empty set means no nodes are
+  /// selected. Use [selectNode], [selectNodes], or [clearNodeSelection] to
+  /// change selection.
+  Set<String> get selectedNodeIds => _selectedNodeIdsView;
 
   /// Gets the current viewport state (position and zoom).
   ///
@@ -697,38 +726,19 @@ class NodeFlowController<T, C> {
   /// ```
   Observable<GraphViewport> get viewportObservable => _viewport;
 
-  /// Gets the nodes observable map for reactive UI updates.
-  ///
-  /// Use this when you need to observe node collection changes in MobX Observer widgets.
-  ObservableMap<String, Node<T>> get nodesObservable => _nodes;
-
-  /// Gets the connections observable list for reactive UI updates.
-  ///
-  /// Use this when you need to observe connection collection changes in MobX Observer widgets.
-  ObservableList<Connection<C>> get connectionsObservable => _connections;
-
-  /// Gets the selected node IDs observable set for reactive UI updates.
-  ///
-  /// Use this when you need to observe selection changes in MobX Observer widgets.
-  ObservableSet<String> get selectedNodeIdsObservable => _selectedNodeIds;
-
-  /// Gets the selected connection IDs observable set for reactive UI updates.
-  ///
-  /// Use this when you need to observe connection selection changes in MobX Observer widgets.
-  ObservableSet<String> get selectedConnectionIdsObservable =>
-      _selectedConnectionIds;
-
   /// Checks if there is any active selection (nodes or connections).
   ///
   /// Returns `true` if anything is selected, `false` otherwise.
   bool get hasSelection => _hasSelection.value;
 
-  // Package-private - for internal widget use only
-
-  /// Gets all nodes in the graph as a map (package-private).
+  /// Gets all nodes in the graph.
   ///
-  /// This is primarily for internal use by the editor widget.
-  Map<String, Node<T>> get nodes => _nodes;
+  /// Returns a stable, read-only live view keyed by node ID. Reads remain
+  /// reactive inside MobX observers. Use the controller's node mutation methods
+  /// rather than modifying this map directly.
+  Map<String, Node<T>> get nodes => _nodesView;
+
+  // Package-private - for internal widget use only
 
   /// Gets nodes sorted by z-index (package-private).
   ///
@@ -818,8 +828,10 @@ class NodeFlowController<T, C> {
 
   /// Gets the IDs of all currently selected connections (package-private).
   ///
-  /// Returns a set of connection IDs. An empty set means no connections are selected.
-  Set<String> get selectedConnectionIds => _selectedConnectionIds;
+  /// Returns a stable, read-only live view. An empty set means no connections
+  /// are selected. Use [selectConnection] or [clearConnectionSelection] to
+  /// change selection.
+  Set<String> get selectedConnectionIds => _selectedConnectionIdsView;
 
   /// Gets the hit tester for spatial queries (package-private).
   ///
@@ -839,6 +851,26 @@ class NodeFlowController<T, C> {
     nodesList.sort((a, b) => a.zIndex.value.compareTo(b.zIndex.value));
 
     return nodesList;
+  }
+
+  Rect _computeNodesBounds() {
+    if (_nodes.isEmpty) return Rect.zero;
+
+    double minX = double.infinity;
+    double minY = double.infinity;
+    double maxX = double.negativeInfinity;
+    double maxY = double.negativeInfinity;
+
+    for (final node in _nodes.values) {
+      final position = node.position.value;
+      final size = node.size.value;
+      minX = math.min(minX, position.dx);
+      minY = math.min(minY, position.dy);
+      maxX = math.max(maxX, position.dx + size.width);
+      maxY = math.max(maxY, position.dy + size.height);
+    }
+
+    return Rect.fromLTRB(minX, minY, maxX, maxY);
   }
 
   // NOTE: _setupNodeMonitoringReactions() and _setupSelectionReactions()
@@ -1046,13 +1078,18 @@ class NodeFlowController<T, C> {
   /// });
   /// ```
   void batch(String reason, void Function() operations) {
-    if (_batchDepth == 0) {
+    final isOutermost = _batchDepth == 0;
+    if (isOutermost) {
       _emitEvent(BatchStarted(reason));
     }
     _batchDepth++;
 
     try {
-      operations();
+      if (isOutermost) {
+        _spatialIndex.batch(() => runInAction(operations));
+      } else {
+        operations();
+      }
     } finally {
       _batchDepth--;
       if (_batchDepth == 0) {

@@ -205,6 +205,28 @@ void main() {
       expect(controller.connections.any((c) => c.id == 'new-conn'), isTrue);
     });
 
+    test('addConnections updates graph and adjacency indexes as one batch', () {
+      final nodeA = createTestNodeWithOutputPort(id: 'node-a');
+      final nodeB = createTestNodeWithInputPort(id: 'node-b');
+      final controller = createTestController(nodes: [nodeA, nodeB]);
+      final connections = List.generate(
+        25,
+        (index) => createTestConnection(
+          id: 'connection-$index',
+          sourceNodeId: 'node-a',
+          targetNodeId: 'node-b',
+        ),
+      );
+
+      controller.addConnections(connections);
+
+      expect(controller.connectionCount, 25);
+      expect(controller.getConnection('connection-0'), same(connections.first));
+      expect(controller.getConnection('connection-24'), same(connections.last));
+      expect(controller.getConnectionsForNode('node-a'), hasLength(25));
+      expect(controller.getConnectionsForNode('node-b'), hasLength(25));
+    });
+
     test('removeConnection removes connection from controller', () {
       final controller = createConnectedNodesController();
       final connectionId = controller.connections.first.id;
@@ -222,6 +244,30 @@ void main() {
       controller.removeConnection(connectionId);
 
       expect(controller.selectedConnectionIds, isEmpty);
+    });
+
+    test('removeConnections removes a graph batch', () {
+      final nodeA = createTestNodeWithOutputPort(id: 'node-a');
+      final nodeB = createTestNodeWithInputPort(id: 'node-b');
+      final controller = createTestController(nodes: [nodeA, nodeB]);
+      final connections = List.generate(
+        10,
+        (index) => createTestConnection(
+          id: 'connection-$index',
+          sourceNodeId: 'node-a',
+          targetNodeId: 'node-b',
+        ),
+      );
+      controller.addConnections(connections);
+      final initialVersion = controller.spatialIndex.version.value;
+
+      controller.removeConnections(
+        connections.map((connection) => connection.id),
+      );
+
+      expect(controller.connectionCount, 0);
+      expect(controller.getConnectionsForNode('node-a'), isEmpty);
+      expect(controller.spatialIndex.version.value, initialVersion + 1);
     });
 
     test('removeConnection throws for non-existent connection', () {

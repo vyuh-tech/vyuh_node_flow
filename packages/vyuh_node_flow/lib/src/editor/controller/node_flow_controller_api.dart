@@ -435,20 +435,18 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
   ///
   /// Call this from NodeWidget's GestureDetector.onPanEnd.
   void endNodeDrag() {
-    // Capture dragged nodes before clearing state
-    final draggedNodes = <Node<T>>[];
-    final draggedNodeIds = <String>[];
-    for (final node in _nodes.values) {
-      if (node.dragging.value) {
-        draggedNodes.add(node);
-        draggedNodeIds.add(node.id);
-      }
-    }
-
     // Capture original positions before clearing them
     final originalPositions = Map<String, Offset>.from(
       interaction.dragStartPositions,
     );
+    // Drag completion is not a per-frame path. Scan here to recover any stale
+    // flags left by interrupted or externally manipulated gesture state.
+    final draggedNodes = _nodes.values
+        .where((node) => node.dragging.value)
+        .toList(growable: false);
+    final draggedNodeIds = draggedNodes
+        .map((node) => node.id)
+        .toList(growable: false);
 
     // Notify nodes of drag end
     for (final node in draggedNodes) {
@@ -502,13 +500,10 @@ extension NodeFlowControllerAPI<T, C> on NodeFlowController<T, C> {
   /// Parameters:
   /// - [originalPositions]: Map of node ID to original position before drag
   void cancelNodeDrag(Map<String, Offset> originalPositions) {
-    // Capture dragged nodes before clearing state
-    final draggedNodes = <Node<T>>[];
-    for (final node in _nodes.values) {
-      if (node.dragging.value) {
-        draggedNodes.add(node);
-      }
-    }
+    final draggedNodes = originalPositions.keys
+        .map((id) => _nodes[id])
+        .whereType<Node<T>>()
+        .toList(growable: false);
 
     // Revert positions
     runInAction(() {

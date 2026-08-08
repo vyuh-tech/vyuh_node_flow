@@ -259,7 +259,12 @@ extension _HitTestingExtension<T, C> on _NodeFlowEditorState<T, C> {
       // Note: Node tap is now handled by widget-level gestures (NodeWidget.onTap)
       // to avoid double-firing the callback.
       case HitTarget.node:
-        // Widget handles tap - nothing to do here
+        // In overview mode NodeContainers are replaced by one CustomPaint, so
+        // the root spatial hit-test owns the normal selection/event behavior.
+        if (widget.controller.lod?.useThumbnailMode ?? false) {
+          final node = widget.controller.getNode(hitResult.nodeId!);
+          if (node != null) _handleNodeTap(node);
+        }
         break;
 
       case HitTarget.port:
@@ -296,7 +301,10 @@ extension _HitTestingExtension<T, C> on _NodeFlowEditorState<T, C> {
       // Note: Node double-tap is now handled by widget-level gestures (NodeWidget.onDoubleTap)
       // to avoid double-firing the callback.
       case HitTarget.node:
-        // Widget handles double-tap - nothing to do here
+        if (widget.controller.lod?.useThumbnailMode ?? false) {
+          final node = widget.controller.getNode(hitResult.nodeId!);
+          if (node != null) _handleNodeDoubleTap(node);
+        }
         break;
 
       case HitTarget.port:
@@ -358,6 +366,21 @@ extension _HitTestingExtension<T, C> on _NodeFlowEditorState<T, C> {
     final graphPosition = widget.controller.viewport.toGraph(
       ScreenPosition(localPosition),
     );
-    return widget.controller.spatialIndex.hitTest(graphPosition.offset);
+    final result = widget.controller.spatialIndex.hitTest(graphPosition.offset);
+
+    // Ports are not rendered or editable in adaptive overview mode. Treat
+    // their hit regions as part of the owning node so edge clicks still select
+    // and drag the thumbnail instead of initiating an invisible connection.
+    if ((widget.controller.lod?.useThumbnailMode ?? false) &&
+        result.isPort &&
+        result.nodeId != null) {
+      return HitTestResult(
+        nodeId: result.nodeId,
+        position: result.position,
+        hitType: HitTarget.node,
+      );
+    }
+
+    return result;
   }
 }

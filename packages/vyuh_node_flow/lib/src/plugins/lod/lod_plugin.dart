@@ -31,9 +31,9 @@ import 'detail_visibility.dart';
 ///
 /// ```dart
 /// LodPlugin(
-///   enabled: true,
 ///   minThreshold: 0.2,
 ///   midThreshold: 0.5,
+///   maxInteractiveNodes: 200,
 /// )
 /// ```
 ///
@@ -46,22 +46,28 @@ class LodPlugin extends NodeFlowPlugin {
   /// Creates a LOD plugin with optional threshold and visibility settings.
   ///
   /// Parameters:
-  /// - [enabled]: Whether LOD is enabled (default: false)
+  /// - [enabled]: Whether adaptive LOD is enabled (default: true)
   /// - [minThreshold]: Normalized zoom below which [minVisibility] is used (default: 0.03)
   /// - [midThreshold]: Normalized zoom below which [midVisibility] is used (default: 0.1)
+  /// - [maxInteractiveNodes]: Maximum number of visible nodes rendered as
+  ///   full widgets before switching to the batched overview painter (default: 200)
   /// - [minVisibility]: Visibility settings for lowest zoom level (default: minimal)
   /// - [midVisibility]: Visibility settings for medium zoom level (default: standard)
   /// - [maxVisibility]: Visibility settings for highest zoom level (default: full)
   LodPlugin({
-    bool enabled = false,
+    bool enabled = true,
     double minThreshold = 0.03,
     double midThreshold = 0.1,
+    int maxInteractiveNodes = 200,
     DetailVisibility minVisibility = DetailVisibility.minimal,
     DetailVisibility midVisibility = DetailVisibility.standard,
     DetailVisibility maxVisibility = DetailVisibility.full,
   }) : _enabled = Observable(enabled),
        _minThreshold = Observable(minThreshold),
        _midThreshold = Observable(midThreshold),
+       _maxInteractiveNodes = Observable(
+         _validateMaxInteractiveNodes(maxInteractiveNodes),
+       ),
        _minVisibility = Observable(minVisibility),
        _midVisibility = Observable(midVisibility),
        _maxVisibility = Observable(maxVisibility);
@@ -73,6 +79,7 @@ class LodPlugin extends NodeFlowPlugin {
   final Observable<bool> _enabled;
   final Observable<double> _minThreshold;
   final Observable<double> _midThreshold;
+  final Observable<int> _maxInteractiveNodes;
   final Observable<DetailVisibility> _minVisibility;
   final Observable<DetailVisibility> _midVisibility;
   final Observable<DetailVisibility> _maxVisibility;
@@ -81,6 +88,7 @@ class LodPlugin extends NodeFlowPlugin {
 
   late Computed<double> _normalizedZoom;
   late Computed<DetailVisibility> _currentVisibility;
+  late Computed<bool> _useThumbnailMode;
 
   @override
   String get id => 'lod';
@@ -186,6 +194,20 @@ class LodPlugin extends NodeFlowPlugin {
     });
   }
 
+  /// Maximum visible-node count that uses fully interactive widget rendering.
+  ///
+  /// When more nodes are visible, the editor switches to its batched overview
+  /// painter even at a high zoom level. The mode switches back automatically as
+  /// spatial culling reduces the visible count.
+  int get maxInteractiveNodes => _maxInteractiveNodes.value;
+
+  /// Updates the visible-node threshold for adaptive overview rendering.
+  void setMaxInteractiveNodes(int value) {
+    runInAction(
+      () => _maxInteractiveNodes.value = _validateMaxInteractiveNodes(value),
+    );
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // Visibility Presets
   // ═══════════════════════════════════════════════════════════════════════════
@@ -234,16 +256,13 @@ class LodPlugin extends NodeFlowPlugin {
 
   /// Whether to use thumbnail (paint) mode instead of widget mode.
   ///
-  /// Returns `true` when:
-  /// 1. LOD is enabled
-  /// 2. Zoom is below minThreshold (very zoomed out)
+  /// Returns `true` when adaptive LOD is enabled and either:
+  /// 1. Zoom is below [minThreshold], or
+  /// 2. The number of spatially visible nodes exceeds [maxInteractiveNodes].
   ///
-  /// When true, NodesLayer should switch to NodesThumbnailLayer
-  /// for maximum performance.
-  bool get useThumbnailMode {
-    if (!_enabled.value) return false;
-    return _normalizedZoom.value < _minThreshold.value;
-  }
+  /// Overview mode keeps node tap, selection, and drag interactions. Ports are
+  /// intentionally not rendered or editable until full-widget mode resumes.
+  bool get useThumbnailMode => _useThumbnailMode.value;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // Convenience Accessors
@@ -309,6 +328,26 @@ class LodPlugin extends NodeFlowPlugin {
         return _maxVisibility.value;
       }
     });
+
+    _useThumbnailMode = Computed(() {
+      if (!_enabled.value) return false;
+
+      final zoomRequiresOverview = _normalizedZoom.value < _minThreshold.value;
+      final visibleCountRequiresOverview =
+          controller.visibleNodes.length > _maxInteractiveNodes.value;
+      return zoomRequiresOverview || visibleCountRequiresOverview;
+    });
+  }
+
+  static int _validateMaxInteractiveNodes(int value) {
+    if (value <= 0) {
+      throw ArgumentError.value(
+        value,
+        'maxInteractiveNodes',
+        'must be greater than zero',
+      );
+    }
+    return value;
   }
 }
 

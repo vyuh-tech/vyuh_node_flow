@@ -545,9 +545,10 @@ void main() {
     test('creates with default values', () {
       final ext = LodPlugin();
 
-      expect(ext.isEnabled, isFalse);
+      expect(ext.isEnabled, isTrue);
       expect(ext.minThreshold, equals(0.03));
       expect(ext.midThreshold, equals(0.1));
+      expect(ext.maxInteractiveNodes, equals(200));
       expect(ext.minVisibility, equals(DetailVisibility.minimal));
       expect(ext.midVisibility, equals(DetailVisibility.standard));
       expect(ext.maxVisibility, equals(DetailVisibility.full));
@@ -618,16 +619,15 @@ void main() {
   });
 
   group('LodPlugin - Visibility Calculations', () {
-    test('returns max visibility when disabled', () {
+    test('default plugin uses minimal visibility when zoomed out', () {
       final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(minZoom: 0.0, maxZoom: 1.0),
         initialViewport: const GraphViewport(zoom: 0.0), // Very zoomed out
       );
       final lod = controller.lod!;
 
-      // LOD disabled by default
-      expect(lod.isEnabled, isFalse);
-      expect(lod.currentVisibility, equals(DetailVisibility.full));
+      expect(lod.isEnabled, isTrue);
+      expect(lod.currentVisibility, equals(DetailVisibility.minimal));
 
       controller.dispose();
     });

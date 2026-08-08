@@ -247,6 +247,88 @@ void main() {
 
       expect(customLabelBuilderCalled, isTrue);
     });
+
+    testWidgets('does not build labels for off-screen connections', (
+      tester,
+    ) async {
+      controller.addNode(
+        createTestNodeWithOutputPort(
+          id: 'visible-source',
+          portId: 'out',
+          position: const Offset(100, 200),
+        ),
+      );
+      controller.addNode(
+        createTestNodeWithInputPort(
+          id: 'visible-target',
+          portId: 'in',
+          position: const Offset(400, 200),
+        ),
+      );
+      controller.addNode(
+        createTestNodeWithOutputPort(
+          id: 'offscreen-source',
+          portId: 'out',
+          position: const Offset(5000, 5000),
+        ),
+      );
+      controller.addNode(
+        createTestNodeWithInputPort(
+          id: 'offscreen-target',
+          portId: 'in',
+          position: const Offset(5300, 5000),
+        ),
+      );
+
+      controller.addConnection(
+        Connection(
+          id: 'visible-connection',
+          sourceNodeId: 'visible-source',
+          sourcePortId: 'out',
+          targetNodeId: 'visible-target',
+          targetPortId: 'in',
+          label: ConnectionLabel(text: 'Visible'),
+        ),
+      );
+      controller.addConnection(
+        Connection(
+          id: 'offscreen-connection',
+          sourceNodeId: 'offscreen-source',
+          sourcePortId: 'out',
+          targetNodeId: 'offscreen-target',
+          targetPortId: 'in',
+          label: ConnectionLabel(text: 'Off-screen'),
+        ),
+      );
+
+      final builtConnectionIds = <String>{};
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: NodeFlowEditor<String, dynamic>(
+                controller: controller,
+                nodeBuilder: (context, node) =>
+                    const SizedBox(width: 100, height: 60),
+                labelBuilder: (context, connection, label, rect, onTap) {
+                  builtConnectionIds.add(connection.id);
+                  return Text(label.text);
+                },
+                theme: NodeFlowTheme.light,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(builtConnectionIds, contains('visible-connection'));
+      expect(builtConnectionIds, isNot(contains('offscreen-connection')));
+    });
   });
 
   group('Connection Rendering - Animation', () {
