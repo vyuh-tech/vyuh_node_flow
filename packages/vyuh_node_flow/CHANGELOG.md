@@ -1,3 +1,10 @@
+## 0.28.0
+
+> Note: This release has breaking changes.
+
+ - **FIX**: wire default port hover events.
+ - **BREAKING** **FEAT**: optimize large graph rendering.
+
 ## 0.27.3+2
 
  - **FIX**: wire default port hover events.
