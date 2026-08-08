@@ -30,11 +30,11 @@ const _requestedRenderMode = String.fromEnvironment(
 
 const _warmupFrames = int.fromEnvironment(
   'NODE_FLOW_BENCHMARK_WARMUP_FRAMES',
-  defaultValue: 60,
+  defaultValue: 100,
 );
 const _scenarioFrames = int.fromEnvironment(
   'NODE_FLOW_BENCHMARK_SCENARIO_FRAMES',
-  defaultValue: 180,
+  defaultValue: 100,
 );
 
 void main() {
@@ -83,63 +83,124 @@ Future<void> _runBenchmark(
   expect(controller.connectionCount, fixture.connections.length);
 
   _centerGraph(controller, _initialZoom);
-  await _pumpFrames(tester, _warmupFrames, (frame) {
-    final phase = frame / math.max(1, _warmupFrames - 1);
-    _setOscillatingViewport(controller, phase, _initialZoom, panRadius: 12);
-  });
+  await tester.pump();
+  final warmup = await _measurePhase(
+    tester: tester,
+    phase: 'warmup',
+    requestedFrames: _warmupFrames,
+    action: () => _pumpViewportFrames(
+      tester: tester,
+      controller: controller,
+      frameCount: _warmupFrames,
+      viewportForFrame: (frame) {
+        final phase = frame / math.max(1, _warmupFrames - 1);
+        return _oscillatingViewport(
+          controller,
+          phase,
+          _initialZoom,
+          panRadius: 12,
+        );
+      },
+    ),
+  );
+  controller.commitCameraViewport();
+  await tester.pump();
   final initialRenderState = _renderState(controller);
-
-  // The engine may batch FrameTiming delivery. Let warm-up timings drain
-  // before registering the first scenario callback.
-  await Future<void>.delayed(const Duration(seconds: 2));
 
   final results = <String, Map<String, Object?>>{};
 
   _centerGraph(controller, _initialZoom);
   await tester.pump();
-  results['pan'] = {
-    ...await _measureScenario(
+  final pan = await _measurePhase(
+    tester: tester,
+    phase: 'steady_state',
+    requestedFrames: _scenarioFrames,
+    action: () => _pumpViewportFrames(
       tester: tester,
-      action: () => _pumpFrames(tester, _scenarioFrames, (frame) {
+      controller: controller,
+      frameCount: _scenarioFrames,
+      viewportForFrame: (frame) {
         final phase = frame / math.max(1, _scenarioFrames - 1);
-        _setOscillatingViewport(controller, phase, _initialZoom, panRadius: 90);
-      }),
+        return _oscillatingViewport(
+          controller,
+          phase,
+          _initialZoom,
+          panRadius: 90,
+        );
+      },
     ),
-    'render_state': _renderState(controller),
-  };
+  );
+  controller.commitCameraViewport();
+  await tester.pump();
+  results['pan'] = {...pan, 'render_state': _renderState(controller)};
 
   _centerGraph(controller, _initialZoom);
   await tester.pump();
-  results['zoom'] = {
-    ...await _measureScenario(
+  final zoom = await _measurePhase(
+    tester: tester,
+    phase: 'steady_state',
+    requestedFrames: _scenarioFrames,
+    action: () => _pumpViewportFrames(
       tester: tester,
-      action: () => _pumpFrames(tester, _scenarioFrames, (frame) {
+      controller: controller,
+      frameCount: _scenarioFrames,
+      viewportForFrame: (frame) {
         final phase = frame / math.max(1, _scenarioFrames - 1);
         final zoom = _initialZoom + 0.055 * math.sin(phase * math.pi * 2);
-        _centerGraph(controller, zoom);
-      }),
+        return _centeredViewport(controller, zoom);
+      },
     ),
-    'render_state': _renderState(controller),
-  };
+  );
+  controller.commitCameraViewport();
+  await tester.pump();
+  results['zoom'] = {...zoom, 'render_state': _renderState(controller)};
 
   _centerGraph(controller, 0.24);
   await tester.pump();
   results['single_node_drag'] = {
-    ...await _measureScenario(
+    ...await _measurePhase(
       tester: tester,
+      phase: 'steady_state',
+      requestedFrames: _scenarioFrames,
       action: () async {
         const nodeId = 'node-249';
         controller.startNodeDrag(nodeId);
-        await _pumpFrames(tester, _scenarioFrames, (frame) {
+        final counters = await _pumpFrames(tester, _scenarioFrames, (frame) {
           final direction = frame < _scenarioFrames ~/ 2 ? 1.0 : -1.0;
           controller.moveNodeDrag(Offset(0.9 * direction, 0.45 * direction));
-        });
+        }, graphUpdatesPerFrame: 1);
         controller.endNodeDrag();
-        await tester.pump();
+        return counters;
       },
     ),
     'render_state': _renderState(controller),
   };
+  // Commit the drag-end state outside the measured steady-state phase.
+  await tester.pump();
+
+  _centerGraph(controller, 0.24);
+  await tester.pump();
+  results['node_and_edge_churn'] = {
+    ...await _measurePhase(
+      tester: tester,
+      phase: 'steady_state',
+      requestedFrames: _scenarioFrames,
+      action: () => _pumpTopologyFrames(
+        tester: tester,
+        controller: controller,
+        frameCount: _scenarioFrames,
+      ),
+    ),
+    'render_state': _renderState(controller),
+  };
+  // An odd frame count leaves the last transient node mounted. Restore the
+  // deterministic 500-node fixture outside the measured phase.
+  if (_scenarioFrames.isOdd) {
+    controller.removeNode('churn-node-${_scenarioFrames ~/ 2}');
+    await tester.pump();
+  }
+  expect(controller.nodeCount, _nodeCount);
+  expect(controller.connectionCount, fixture.connections.length);
 
   final report = <String, Object?>{
     'render_mode': renderMode.name,
@@ -164,7 +225,12 @@ Future<void> _runBenchmark(
       'target_frame_ms': _targetFrameMicros / 1000,
       'warmup_frames': _warmupFrames,
       'scenario_frames': _scenarioFrames,
+      'phases': {
+        'warmup': {'requested_frames': _warmupFrames},
+        'steady_state': {'requested_frames_per_scenario': _scenarioFrames},
+      },
     },
+    'warmup': warmup,
     'initial_render_state': initialRenderState,
     'scenarios': results,
   };
@@ -278,28 +344,10 @@ class _BenchmarkFixture {
       for (var column = 0; column < _columnCount; column++) {
         final index = row * _columnCount + column;
         nodes.add(
-          Node<String>(
+          _benchmarkNode(
             id: 'node-$index',
-            type: 'benchmark',
-            position: Offset(column * _columnSpacing, row * _rowSpacing),
-            size: _nodeSize,
             data: 'Processor $index',
-            ports: [
-              Port(
-                id: 'in',
-                name: 'Input',
-                position: PortPosition.left,
-                offset: Offset(0, 40),
-                multiConnections: true,
-              ),
-              Port(
-                id: 'out',
-                name: 'Output',
-                position: PortPosition.right,
-                offset: Offset(0, 40),
-                multiConnections: true,
-              ),
-            ],
+            position: Offset(column * _columnSpacing, row * _rowSpacing),
           ),
         );
 
@@ -335,27 +383,150 @@ class _BenchmarkFixture {
   final List<Connection<void>> connections;
 }
 
-Future<void> _pumpFrames(
+Node<String> _benchmarkNode({
+  required String id,
+  required String data,
+  required Offset position,
+}) {
+  return Node<String>(
+    id: id,
+    type: 'benchmark',
+    position: position,
+    size: _nodeSize,
+    data: data,
+    ports: [
+      Port(
+        id: 'in',
+        name: 'Input',
+        position: PortPosition.left,
+        offset: const Offset(0, 40),
+        multiConnections: true,
+      ),
+      Port(
+        id: 'out',
+        name: 'Output',
+        position: PortPosition.right,
+        offset: const Offset(0, 40),
+        multiConnections: true,
+      ),
+    ],
+  );
+}
+
+Future<_WorkloadCounters> _pumpFrames(
   WidgetTester tester,
   int frameCount,
-  void Function(int frame) update,
-) async {
+  void Function(int frame) update, {
+  int graphUpdatesPerFrame = 0,
+}) async {
+  var pumpedFrames = 0;
   for (var frame = 0; frame < frameCount; frame++) {
     update(frame);
     await tester.pump(const Duration(microseconds: _targetFrameMicros));
+    pumpedFrames++;
   }
+
+  return _WorkloadCounters(
+    requestedFrames: frameCount,
+    pumpedFrames: pumpedFrames,
+    viewportUpdates: 0,
+    graphUpdates: pumpedFrames * graphUpdatesPerFrame,
+  );
 }
 
-Future<Map<String, Object?>> _measureScenario({
+Future<_WorkloadCounters> _pumpViewportFrames({
   required WidgetTester tester,
-  required Future<void> Function() action,
+  required NodeFlowController<String, void> controller,
+  required int frameCount,
+  required GraphViewport Function(int frame) viewportForFrame,
+}) async {
+  // Drive the lightweight live camera once per frame. The committed
+  // MobX/plugin viewport boundary is crossed outside the measured phase.
+  var pumpedFrames = 0;
+  var viewportUpdates = 0;
+  for (var frame = 0; frame < frameCount; frame++) {
+    controller.updateCameraViewport(viewportForFrame(frame));
+    viewportUpdates++;
+    await tester.pump(const Duration(microseconds: _targetFrameMicros));
+    pumpedFrames++;
+  }
+
+  return _WorkloadCounters(
+    requestedFrames: frameCount,
+    pumpedFrames: pumpedFrames,
+    viewportUpdates: viewportUpdates,
+    graphUpdates: 0,
+  );
+}
+
+Future<_WorkloadCounters> _pumpTopologyFrames({
+  required WidgetTester tester,
+  required NodeFlowController<String, void> controller,
+  required int frameCount,
+}) async {
+  var pumpedFrames = 0;
+  var graphUpdates = 0;
+
+  for (var frame = 0; frame < frameCount; frame++) {
+    final cycle = frame ~/ 2;
+    final nodeId = 'churn-node-$cycle';
+    if (frame.isEven) {
+      controller.addNode(
+        _benchmarkNode(
+          id: nodeId,
+          data: 'Transient processor $cycle',
+          position: Offset(9.5 * _columnSpacing, 12.5 * _rowSpacing),
+        ),
+      );
+      controller.addConnections([
+        Connection<void>(
+          id: 'churn-in-$cycle',
+          sourceNodeId: 'node-249',
+          sourcePortId: 'out',
+          targetNodeId: nodeId,
+          targetPortId: 'in',
+        ),
+        Connection<void>(
+          id: 'churn-out-$cycle',
+          sourceNodeId: nodeId,
+          sourcePortId: 'out',
+          targetNodeId: 'node-250',
+          targetPortId: 'in',
+        ),
+      ]);
+      graphUpdates += 3;
+    } else {
+      // Removing the node also removes both incident connections, exercising
+      // adjacency cleanup and connection-scene invalidation.
+      controller.removeNode(nodeId);
+      graphUpdates++;
+    }
+
+    await tester.pump(const Duration(microseconds: _targetFrameMicros));
+    pumpedFrames++;
+  }
+
+  return _WorkloadCounters(
+    requestedFrames: frameCount,
+    pumpedFrames: pumpedFrames,
+    viewportUpdates: 0,
+    graphUpdates: graphUpdates,
+  );
+}
+
+Future<Map<String, Object?>> _measurePhase({
+  required WidgetTester tester,
+  required String phase,
+  required int requestedFrames,
+  required Future<_WorkloadCounters> Function() action,
 }) async {
   final timings = <FrameTiming>[];
   void collect(List<FrameTiming> batch) => timings.addAll(batch);
 
+  late final _WorkloadCounters counters;
   SchedulerBinding.instance.addTimingsCallback(collect);
   try {
-    await action();
+    counters = await action();
     // Frame timings can be delivered by the engine in batches, approximately
     // once per second. Waiting here makes the report much less likely to omit
     // the final batch without adding idle frames to the workload.
@@ -364,10 +535,21 @@ Future<Map<String, Object?>> _measureScenario({
     SchedulerBinding.instance.removeTimingsCallback(collect);
   }
 
-  return _summarize(timings);
+  assert(counters.requestedFrames == requestedFrames);
+  return _summarize(
+    timings,
+    phase: phase,
+    requestedFrames: requestedFrames,
+    workload: counters,
+  );
 }
 
-Map<String, Object?> _summarize(List<FrameTiming> timings) {
+Map<String, Object?> _summarize(
+  List<FrameTiming> timings, {
+  required String phase,
+  required int requestedFrames,
+  required _WorkloadCounters workload,
+}) {
   final build = [
     for (final timing in timings) timing.buildDuration.inMicroseconds,
   ];
@@ -386,16 +568,56 @@ Map<String, Object?> _summarize(List<FrameTiming> timings) {
     };
   }
 
+  final deliveredFrames = timings.length;
+  final budgetMisses = total.where((time) => time > _targetFrameMicros).length;
+  final undeliveredFrames = math.max(0, requestedFrames - deliveredFrames);
+  final extraDeliveredFrames = math.max(0, deliveredFrames - requestedFrames);
+
   return {
+    'phase': phase,
+    'requested_frames': requestedFrames,
+    'delivered_frames': deliveredFrames,
+    'undelivered_frames': undeliveredFrames,
+    'extra_delivered_frames': extraDeliveredFrames,
+    'delivery_ratio': requestedFrames == 0
+        ? 0.0
+        : deliveredFrames / requestedFrames,
+    'workload': workload.toJson(),
+    'frame_budget': {
+      'target_ms': _targetFrameMicros / 1000,
+      'misses': budgetMisses,
+      'met': math.max(0, deliveredFrames - budgetMisses),
+      'miss_ratio': deliveredFrames == 0 ? 0.0 : budgetMisses / deliveredFrames,
+    },
+    // Compatibility aliases retained for existing report consumers.
     'frame_count': timings.length,
     'ui': distribution(build),
     'raster': distribution(raster),
     'total': distribution(total),
-    'frames_over_8_33_ms': total
-        .where((time) => time > _targetFrameMicros)
-        .length,
+    'frames_over_8_33_ms': budgetMisses,
     if (timings.isEmpty)
       'note': 'No FrameTiming values were delivered by this target.',
+  };
+}
+
+class _WorkloadCounters {
+  const _WorkloadCounters({
+    required this.requestedFrames,
+    required this.pumpedFrames,
+    required this.viewportUpdates,
+    required this.graphUpdates,
+  });
+
+  final int requestedFrames;
+  final int pumpedFrames;
+  final int viewportUpdates;
+  final int graphUpdates;
+
+  Map<String, Object?> toJson() => {
+    'requested_frames': requestedFrames,
+    'pumped_frames': pumpedFrames,
+    'viewport_updates': viewportUpdates,
+    'graph_updates': graphUpdates,
   };
 }
 
@@ -406,6 +628,13 @@ int _percentile(List<int> sortedValues, double percentile) {
 }
 
 void _centerGraph(NodeFlowController<String, void> controller, double zoom) {
+  controller.setViewport(_centeredViewport(controller, zoom));
+}
+
+GraphViewport _centeredViewport(
+  NodeFlowController<String, void> controller,
+  double zoom,
+) {
   final graphCenter = Offset(
     ((_columnCount - 1) * _columnSpacing + _nodeSize.width) / 2,
     ((_rowCount - 1) * _rowSpacing + _nodeSize.height) / 2,
@@ -414,28 +643,23 @@ void _centerGraph(NodeFlowController<String, void> controller, double zoom) {
     controller.screenSize.width / 2,
     controller.screenSize.height / 2,
   );
-  controller.setViewport(
-    GraphViewport(
-      x: screenCenter.dx - graphCenter.dx * zoom,
-      y: screenCenter.dy - graphCenter.dy * zoom,
-      zoom: zoom,
-    ),
+  return GraphViewport(
+    x: screenCenter.dx - graphCenter.dx * zoom,
+    y: screenCenter.dy - graphCenter.dy * zoom,
+    zoom: zoom,
   );
 }
 
-void _setOscillatingViewport(
+GraphViewport _oscillatingViewport(
   NodeFlowController<String, void> controller,
   double phase,
   double zoom, {
   required double panRadius,
 }) {
-  _centerGraph(controller, zoom);
-  final centered = controller.viewport;
+  final centered = _centeredViewport(controller, zoom);
   final angle = phase * math.pi * 2;
-  controller.setViewport(
-    centered.copyWith(
-      x: centered.x + math.sin(angle) * panRadius,
-      y: centered.y + math.cos(angle) * panRadius * 0.45,
-    ),
+  return centered.copyWith(
+    x: centered.x + math.sin(angle) * panRadius,
+    y: centered.y + math.cos(angle) * panRadius * 0.45,
   );
 }

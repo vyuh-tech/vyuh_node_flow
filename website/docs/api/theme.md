@@ -288,15 +288,17 @@ GridTheme({
   required Color color,
   required double size,
   required double thickness,
+  double minScreenSpacing = 24.0,
 })
 ```
 
-| Property    | Type        | Description         |
-| ----------- | ----------- | ------------------- |
-| `style`     | `GridStyle` | Grid pattern style  |
-| `color`     | `Color`     | Grid line/dot color |
-| `size`      | `double`    | Grid cell size      |
-| `thickness` | `double`    | Line thickness      |
+| Property           | Type        | Description                                      |
+| ------------------ | ----------- | ------------------------------------------------ |
+| `style`            | `GridStyle` | Grid pattern style                               |
+| `color`            | `Color`     | Grid line/dot color                              |
+| `size`             | `double`    | Base grid cell size in graph units               |
+| `thickness`        | `double`    | Line thickness                                   |
+| `minScreenSpacing` | `double`    | Minimum rendered spacing before adaptive coarsening |
 
 ### GridStyle
 
@@ -323,6 +325,7 @@ GridTheme(
   color: Colors.grey[300]!,
   size: 20,
   thickness: 1,
+  minScreenSpacing: 24,
 )
 ```
 

@@ -309,6 +309,9 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     with TickerProviderStateMixin, ViewportAnimationMixin {
   late final TransformationController _transformationController;
   final List<ReactionDisposer> _disposers = [];
+  bool _viewportInteractionActive = false;
+  bool _applyingCameraViewport = false;
+  bool _updatingCameraFromTransform = false;
 
   // Animation controller for animated connections
   AnimationController? _connectionAnimationController;
@@ -363,6 +366,9 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
     // The listener fires immediately when the transform value changes, ensuring
     // the viewport is always in sync for accurate hit testing and coordinate conversion.
     _transformationController.addListener(_syncViewportFromTransform);
+    widget.controller.cameraViewportListenable.addListener(
+      _syncTransformFromCamera,
+    );
 
     // Initialize animation controller for animated connections
     _connectionAnimationController = AnimationController(
@@ -453,6 +459,13 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
 
     // Re-attach viewport animation if controller changed
     if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.cameraViewportListenable.removeListener(
+        _syncTransformFromCamera,
+      );
+      widget.controller.cameraViewportListenable.addListener(
+        _syncTransformFromCamera,
+      );
+
       // Detach from old controller and attach to new one
       detachViewportAnimation();
       attachViewportAnimation(
@@ -467,6 +480,7 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
       widget.controller.debug?.setTransformationController(
         _transformationController,
       );
+      _syncTransformFromCamera();
     }
 
     // Update behavior mode if it changed
@@ -829,20 +843,6 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
   }
 
   void _setupReactions() {
-    // Sync transformation controller with viewport changes - immediate synchronous updates
-    _disposers.add(
-      reaction((_) => widget.controller.viewport, (GraphViewport viewport) {
-        if (mounted) {
-          final matrix = Matrix4.identity()
-            ..translateByVector3(Vector3(viewport.x, viewport.y, 0))
-            ..scaleByDouble(viewport.zoom, viewport.zoom, viewport.zoom, 1.0);
-
-          // Force immediate update without animation for real-time panning
-          _transformationController.value = matrix;
-        }
-      }, fireImmediately: true),
-    );
-
     // Start/stop animation controller based on whether any connections are animated
     _disposers.add(
       reaction(
@@ -906,6 +906,9 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
 
     // Remove transform listener before disposing
     _transformationController.removeListener(_syncViewportFromTransform);
+    widget.controller.cameraViewportListenable.removeListener(
+      _syncTransformFromCamera,
+    );
 
     // Detach viewport animation - this also clears the handler with token check
     detachViewportAnimation();
@@ -935,14 +938,11 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
   /// The onInteraction* callbacks also call setViewport, but empirically
   /// they don't work reliably in all cases. This listener is the safety net.
   ///
-  /// IMPORTANT: This sync is skipped during viewport animation to prevent
-  /// the animation from being interrupted. The viewport is synced once
-  /// when the animation completes via the onAnimationComplete callback.
+  /// Interactive and animated ticks update only the lightweight live camera.
+  /// The committed MobX/plugin boundary is crossed once when the interaction
+  /// or animation completes.
   void _syncViewportFromTransform() {
-    // Skip sync during animation - final sync happens via onAnimationComplete
-    if (isViewportAnimating) {
-      return;
-    }
+    if (_applyingCameraViewport) return;
 
     final transform = _transformationController.value;
     final translation = transform.getTranslation();
@@ -954,16 +954,51 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
       zoom: currentZoom,
     );
 
-    // Only update if viewport actually changed to avoid unnecessary reactions
-    final currentViewport = widget.controller.viewport;
-    if (currentViewport.x != viewport.x ||
-        currentViewport.y != viewport.y ||
-        currentViewport.zoom != viewport.zoom) {
-      widget.controller.setViewport(viewport);
+    _updatingCameraFromTransform = true;
+    try {
+      widget.controller.updateCameraViewport(viewport);
+    } finally {
+      _updatingCameraFromTransform = false;
+    }
+
+    // Direct transformation changes outside a gesture remain observable for
+    // backwards-compatible programmatic control. Viewport animations commit
+    // through their completion callback.
+    if (!_viewportInteractionActive && !isViewportAnimating) {
+      widget.controller.commitCameraViewport();
+    }
+  }
+
+  /// Applies an externally driven live camera directly to the retained scene.
+  /// The transformation listener is suppressed for this one assignment so a
+  /// benchmark or coordinated overlay can move the camera without committing
+  /// graph-wide reactive state.
+  void _syncTransformFromCamera() {
+    if (_updatingCameraFromTransform || !mounted) return;
+
+    final viewport = widget.controller.cameraViewportListenable.value;
+    final currentTransform = _transformationController.value;
+    final translation = currentTransform.getTranslation();
+    final scale = currentTransform.getMaxScaleOnAxis();
+    if (translation.x == viewport.x &&
+        translation.y == viewport.y &&
+        scale == viewport.zoom) {
+      return;
+    }
+
+    final matrix = Matrix4.identity()
+      ..translateByVector3(Vector3(viewport.x, viewport.y, 0))
+      ..scaleByDouble(viewport.zoom, viewport.zoom, viewport.zoom, 1.0);
+    _applyingCameraViewport = true;
+    try {
+      _transformationController.value = matrix;
+    } finally {
+      _applyingCameraViewport = false;
     }
   }
 
   void _onInteractionStart(ScaleStartDetails details) {
+    _viewportInteractionActive = true;
     // Mark viewport as being interacted with (for suppressing port hover during pan)
     // Cursor is handled reactively via Observer in the canvas MouseRegion
     runInAction(() {
@@ -988,6 +1023,9 @@ class _NodeFlowEditorState<T, C> extends State<NodeFlowEditor<T, C>>
   }
 
   void _onInteractionEnd(ScaleEndDetails details) {
+    _viewportInteractionActive = false;
+    widget.controller.commitCameraViewport();
+
     // Mark viewport interaction as complete
     // Cursor is handled reactively via Observer in the canvas MouseRegion
     runInAction(() {

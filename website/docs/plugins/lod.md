@@ -46,6 +46,12 @@ NodeFlowController(
 In overview mode, nodes remain selectable, tappable, and draggable through spatial hit-testing. Node child widgets and
 ports are not built, so port-based connection editing resumes after zooming in or reducing the visible-node count.
 
+Connections also switch to an overview render scene: geometry is resolved into
+immutable snapshots outside paint, routes become straight physical-port paths,
+endpoints and labels are omitted, and static edges sharing a color and stroke
+are painted in bounded batches. Selected and animated connections remain
+independent so their interaction feedback is preserved.
+
 ### Disable Adaptive LOD
 
 Disable LOD when every visible node must remain a full widget regardless of zoom or graph size:
@@ -258,20 +264,27 @@ controller.lod?.toggle();
 
 ## Performance Benefits
 
-LOD provides significant performance improvements for large graphs:
+LOD reduces work on both the widget and connection paths:
 
-| Graph Size | Without LOD | With LOD (zoomed out) |
-|------------|-------------|-----------------------|
-| 100 nodes  | ~16ms/frame | ~8ms/frame            |
-| 500 nodes  | ~40ms/frame | ~15ms/frame           |
-| 1000 nodes | ~80ms/frame | ~25ms/frame           |
+1. **Batched node rendering**: Overview nodes use one thumbnail painter per
+   populated z-layer instead of building hundreds of child widgets.
+2. **Simplified connection geometry**: Overview edges skip routers, path-cache
+   lookups, endpoints, and labels.
+3. **Batched static edges**: Connections with the same resolved color and stroke
+   are grouped into bounded paths while selected and animated edges remain
+   isolated. Bounded batches avoid a single graph-spanning path becoming a
+   rasterization bottleneck.
+4. **Smaller reactive surface**: Live camera frames do not invalidate committed
+   graph state, and visibility queries are coalesced behind a query margin.
+5. **Idle layer elision**: Empty node layers and inactive interaction overlays do
+   not create full-canvas painters, repaint boundaries, or transform listeners.
 
-The improvements come from:
-
-1. **Skipping widget builds**: When `showNodeContent: false`, complex node widgets aren't built
-2. **Skipping path calculations**: Hidden connection lines don't compute paths
-3. **Reduced paint operations**: Fewer visual elements means faster painting
-4. **Lower memory usage**: Fewer widgets in the tree
+Measure your own node builders, graph density, display, and Flutter target with
+the reproducible 500-node profile harness in
+`packages/demo/integration_test/node_flow_500_benchmark_test.dart`. It reports
+UI/raster/total p50, p95, p99, maximum frame time, and 120 Hz budget misses for
+both full and adaptive rendering; the documentation intentionally does not
+promise hardware-independent frame times.
 
 ## Best Practices
 

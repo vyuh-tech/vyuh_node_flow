@@ -127,17 +127,25 @@ class _NodeFlowMinimapState<T> extends State<NodeFlowMinimap<T>> {
               if (minimapTheme.showViewport)
                 Observer(
                   builder: (context) {
-                    return RepaintBoundary(
-                      child: CustomPaint(
-                        key: const ValueKey('minimap-viewport'),
-                        painter: MinimapViewportPainter(
-                          viewport: widget.controller.viewport,
-                          screenSize: widget.controller.screenSize,
-                          graphBounds: widget.controller.nodesBounds,
-                          theme: minimapTheme,
-                        ),
-                        size: Size.infinite,
-                      ),
+                    final screenSize = widget.controller.screenSize;
+                    final graphBounds = widget.controller.nodesBounds;
+                    return ValueListenableBuilder<GraphViewport>(
+                      valueListenable:
+                          widget.controller.cameraViewportListenable,
+                      builder: (context, viewport, child) {
+                        return RepaintBoundary(
+                          child: CustomPaint(
+                            key: const ValueKey('minimap-viewport'),
+                            painter: MinimapViewportPainter(
+                              viewport: viewport,
+                              screenSize: screenSize,
+                              graphBounds: graphBounds,
+                              theme: minimapTheme,
+                            ),
+                            size: Size.infinite,
+                          ),
+                        );
+                      },
                     );
                   },
                 ),

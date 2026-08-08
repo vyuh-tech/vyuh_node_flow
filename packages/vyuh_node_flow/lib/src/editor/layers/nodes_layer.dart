@@ -215,46 +215,44 @@ class NodesLayer<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Observer(
       builder: (_) {
-        // Check if we should use thumbnail mode
+        // Resolve the visible subset before allocating any full-canvas widget.
+        // Most graphs use only the middle render layer, so this keeps the empty
+        // background and foreground passes out of the render tree entirely.
+        var nodesList = controller.visibleNodes;
+        if (layerFilter != null) {
+          nodesList = nodesList
+              .where((node) => node.layer == layerFilter)
+              .toList();
+        }
+
+        if (nodesList.isEmpty) return const SizedBox.shrink();
+
         final useThumbnailMode = controller.lod?.useThumbnailMode ?? false;
 
         if (useThumbnailMode) {
-          // Paint mode: single CustomPaint for all nodes
+          // Paint mode: one CustomPaint for the non-empty filtered layer.
           return NodesThumbnailLayer<T>(
             controller: controller,
             thumbnailBuilder: thumbnailBuilder,
             layerFilter: layerFilter,
+            nodes: nodesList,
           );
         }
 
         // Widget mode: individual widgets per node
-        return _buildWidgetLayer(context);
+        return _buildWidgetLayer(context, nodesList);
       },
     );
   }
 
-  Widget _buildWidgetLayer(BuildContext context) {
+  Widget _buildWidgetLayer(BuildContext context, List<Node<T>> nodesList) {
     return UnboundedPositioned.fill(
       child: UnboundedRepaintBoundary(
-        child: Observer(
-          builder: (_) {
-            // Use cached sorted visible nodes - huge performance optimization
-            var nodesList = controller.visibleNodes;
-
-            if (layerFilter != null) {
-              nodesList = nodesList
-                  .where((node) => node.layer == layerFilter)
-                  .toList();
-            }
-
-            return UnboundedStack(
-              clipBehavior: Clip.none,
-              children: [
-                for (final node in nodesList)
-                  _buildNodeContainer(context, node),
-              ],
-            );
-          },
+        child: UnboundedStack(
+          clipBehavior: Clip.none,
+          children: [
+            for (final node in nodesList) _buildNodeContainer(context, node),
+          ],
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show ValueListenable, ValueNotifier;
 import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
@@ -342,6 +343,12 @@ class NodeFlowController<T, C> {
   final ObservableSet<String> _selectedNodeIds = ObservableSet<String>();
   final ObservableSet<String> _selectedConnectionIds = ObservableSet<String>();
   final Observable<GraphViewport> _viewport;
+  late final ValueNotifier<GraphViewport> _cameraViewport = ValueNotifier(
+    _viewport.value,
+  );
+  late final Observable<GraphViewport> _cullingViewport = Observable(
+    _viewport.value,
+  );
   final Observable<Size> _screenSize = Observable(Size.zero);
 
   // Stable, allocation-free public views over the observable collections.
@@ -560,8 +567,9 @@ class NodeFlowController<T, C> {
 
   /// Visible nodes based on current viewport with hysteresis.
   late final Computed<List<Node<T>>> _visibleNodes = Computed(() {
-    // Depend on viewport and screen size
-    final v = _viewport.value;
+    // Culling follows a coalesced camera viewport rather than every transform
+    // tick. The live camera remains available through [viewport].
+    final v = _cullingViewport.value;
     final s = _screenSize.value;
 
     if (s.isEmpty) return _nodes.values.toList();
@@ -624,8 +632,9 @@ class NodeFlowController<T, C> {
 
   /// Visible connections based on current viewport with hysteresis.
   late final Computed<List<Connection<C>>> _visibleConnections = Computed(() {
-    // Depend on viewport and screen size
-    final v = _viewport.value;
+    // Culling follows a coalesced camera viewport rather than every transform
+    // tick. The live camera remains available through [viewport].
+    final v = _cullingViewport.value;
     final s = _screenSize.value;
 
     if (s.isEmpty) return _connections;
@@ -713,7 +722,25 @@ class NodeFlowController<T, C> {
   ///
   /// The viewport determines what portion of the graph is visible and at
   /// what zoom level.
-  GraphViewport get viewport => _viewport.value;
+  /// Gets the live camera viewport.
+  ///
+  /// During an interactive pan or zoom this value updates without invalidating
+  /// the graph-wide MobX state or emitting plugin events on every engine tick.
+  /// Use [viewportObservable] when observing committed viewport changes.
+  GraphViewport get viewport => _cameraViewport.value;
+
+  /// Lightweight live-camera signal for renderers and overlays.
+  ///
+  /// This signal is intentionally separate from the committed MobX viewport so
+  /// high-frequency camera movement can repaint isolated UI without rebuilding
+  /// the graph model.
+  ValueListenable<GraphViewport> get cameraViewportListenable =>
+      _cameraViewport;
+
+  /// Coalesced camera viewport used by spatial culling and render-policy
+  /// decisions. It updates when the camera leaves its cached query area or
+  /// changes zoom materially, rather than on every transform tick.
+  GraphViewport get renderViewport => _cullingViewport.value;
 
   /// Gets the viewport observable for reactive UI updates.
   ///
@@ -929,6 +956,7 @@ class NodeFlowController<T, C> {
   void dispose() {
     _canvasFocusNode.dispose();
     _connectionPainter?.dispose();
+    _cameraViewport.dispose();
 
     // Detach all plugins
     for (final plugin in _plugins.toList()) {

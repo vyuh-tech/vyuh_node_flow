@@ -63,6 +63,8 @@ extension GraphApi<T, C> on NodeFlowController<T, C> {
 
       // Set viewport
       _viewport.value = graph.viewport;
+      _cullingViewport.value = graph.viewport;
+      _cameraViewport.value = graph.viewport;
 
       // Set up infrastructure if editor is already initialized.
       // If not initialized yet, _initController will handle this when called.
@@ -95,7 +97,7 @@ extension GraphApi<T, C> on NodeFlowController<T, C> {
     return NodeGraph<T, C>(
       nodes: _nodes.values.toList(),
       connections: _connections.toList(),
-      viewport: _viewport.value,
+      viewport: _cameraViewport.value,
     );
   }
 

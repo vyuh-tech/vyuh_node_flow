@@ -56,23 +56,14 @@ class ConnectionsLayer<T, C> extends StatelessWidget {
             final activeIds = controller.activeConnectionIds;
             final staticConnections = <Connection<C>>[];
             final animatedConnections = <Connection<C>>[];
+            final simplifyPaths = controller.lod?.useThumbnailMode ?? false;
+            final skipEndpoints =
+                simplifyPaths ||
+                !(controller.lod?.showConnectionEndpoints ?? true);
 
-            controller.selectedConnectionIds.length;
             for (final connection in controller.visibleConnections) {
               // Active edges are painted exclusively by the interaction layer.
               if (activeIds.contains(connection.id)) continue;
-
-              final sourceNode = controller.getNode(connection.sourceNodeId);
-              final targetNode = controller.getNode(connection.targetNodeId);
-
-              if (sourceNode != null) {
-                sourceNode.position.value;
-                sourceNode.isVisible;
-              }
-              if (targetNode != null) {
-                targetNode.position.value;
-                targetNode.isVisible;
-              }
 
               final hasAnimation =
                   connection.getEffectiveAnimationEffect(
@@ -84,35 +75,46 @@ class ConnectionsLayer<T, C> extends StatelessWidget {
               );
             }
 
+            final staticSnapshot = controller.connectionPainter
+                .buildRenderSnapshot<T, C>(
+                  connections: staticConnections,
+                  nodeForId: controller.getNode,
+                  selectedIds: controller.selectedConnectionIds,
+                  skipEndpoints: skipEndpoints,
+                  simplifyPaths: simplifyPaths,
+                  connectionStyleBuilder: connectionStyleBuilder,
+                );
+            final animatedSnapshot = controller.connectionPainter
+                .buildRenderSnapshot<T, C>(
+                  connections: animatedConnections,
+                  nodeForId: controller.getNode,
+                  selectedIds: controller.selectedConnectionIds,
+                  skipEndpoints: skipEndpoints,
+                  simplifyPaths: simplifyPaths,
+                  connectionStyleBuilder: connectionStyleBuilder,
+                );
+
             return Stack(
               children: [
-                if (staticConnections.isNotEmpty)
+                if (staticSnapshot.isNotEmpty)
                   RepaintBoundary(
                     child: CustomPaint(
                       key: const ValueKey('connections-static'),
-                      painter: ConnectionsCanvas<T, C>(
-                        store: controller,
-                        theme: theme,
+                      painter: ConnectionsCanvas<T, C>.fromSnapshot(
+                        snapshot: staticSnapshot,
                         connectionPainter: controller.connectionPainter,
-                        connections: staticConnections,
-                        selectedIds: controller.selectedConnectionIds,
-                        connectionStyleBuilder: connectionStyleBuilder,
                       ),
                       size: Size.infinite,
                     ),
                   ),
-                if (animatedConnections.isNotEmpty)
+                if (animatedSnapshot.isNotEmpty)
                   RepaintBoundary(
                     child: CustomPaint(
                       key: const ValueKey('connections-animated'),
-                      painter: ConnectionsCanvas<T, C>(
-                        store: controller,
-                        theme: theme,
+                      painter: ConnectionsCanvas<T, C>.fromSnapshot(
+                        snapshot: animatedSnapshot,
                         connectionPainter: controller.connectionPainter,
-                        connections: animatedConnections,
-                        selectedIds: controller.selectedConnectionIds,
                         animation: animation,
-                        connectionStyleBuilder: connectionStyleBuilder,
                       ),
                       size: Size.infinite,
                     ),
@@ -127,7 +129,6 @@ class ConnectionsLayer<T, C> extends StatelessWidget {
         // Updates frequently (60fps) during interaction
         Observer(
           builder: (context) {
-            final theme = controller.theme ?? NodeFlowTheme.light;
             final activeIds = controller.activeConnectionIds;
 
             if (activeIds.isEmpty) return const SizedBox.shrink();
@@ -139,35 +140,24 @@ class ConnectionsLayer<T, C> extends StatelessWidget {
             final activeConnections = [
               for (final id in activeIds) ?controller.getConnection(id),
             ];
-
-            // Dependency tracking for active connections
-            // This triggers repaint on every frame of drag
-            for (final connection in activeConnections) {
-              final sourceNode = controller.getNode(connection.sourceNodeId);
-              final targetNode = controller.getNode(connection.targetNodeId);
-
-              if (sourceNode != null) {
-                sourceNode.position.value;
-                sourceNode.isVisible;
-              }
-              if (targetNode != null) {
-                targetNode.position.value;
-                targetNode.isVisible;
-              }
-
-              connection.animationEffect;
-            }
+            final snapshot = controller.connectionPainter
+                .buildRenderSnapshot<T, C>(
+                  connections: activeConnections,
+                  nodeForId: controller.getNode,
+                  selectedIds: controller.selectedConnectionIds,
+                  skipEndpoints:
+                      (controller.lod?.useThumbnailMode ?? false) ||
+                      !(controller.lod?.showConnectionEndpoints ?? true),
+                  simplifyPaths: controller.lod?.useThumbnailMode ?? false,
+                  connectionStyleBuilder: connectionStyleBuilder,
+                );
 
             return CustomPaint(
               key: const ValueKey('connections-active'),
-              painter: ConnectionsCanvas<T, C>(
-                store: controller,
-                theme: theme,
+              painter: ConnectionsCanvas<T, C>.fromSnapshot(
+                snapshot: snapshot,
                 connectionPainter: controller.connectionPainter,
-                connections: activeConnections,
-                selectedIds: controller.selectedConnectionIds,
                 animation: animation,
-                connectionStyleBuilder: connectionStyleBuilder,
               ),
               size: Size.infinite,
             );

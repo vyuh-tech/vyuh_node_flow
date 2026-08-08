@@ -298,7 +298,7 @@ class LodPlugin extends NodeFlowPlugin {
     final flowConfig = controller.config;
 
     _normalizedZoom = Computed(() {
-      final zoom = controller.currentZoom;
+      final zoom = controller.renderViewport.zoom;
       final minZoom = flowConfig.minZoom.value;
       final maxZoom = flowConfig.maxZoom.value;
 

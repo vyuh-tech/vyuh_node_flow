@@ -18,6 +18,16 @@ import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../helpers/test_factories.dart';
 
+class _TrackingTransformationController extends TransformationController {
+  int addListenerCalls = 0;
+
+  @override
+  void addListener(VoidCallback listener) {
+    addListenerCalls++;
+    super.addListener(listener);
+  }
+}
+
 void main() {
   setUp(() {
     resetTestCounters();
@@ -68,6 +78,10 @@ void main() {
     setUp(() {
       controller = createTestController();
       transformationController = TransformationController();
+      controller.interaction.updateSelection(
+        startPoint: const GraphPosition(Offset.zero),
+        rectangle: const GraphRect(Rect.fromLTWH(0, 0, 100, 100)),
+      );
     });
 
     testWidgets('wraps content in IgnorePointer', (tester) async {
@@ -166,6 +180,92 @@ void main() {
         matching: find.byType(CustomPaint),
       );
       expect(customPaintFinder, findsOneWidget);
+    });
+  });
+
+  group('InteractionLayer Idle Behavior', () {
+    testWidgets(
+      'does not build or subscribe a painter when interaction content is empty',
+      (tester) async {
+        final controller = createTestController();
+        final transformationController = _TrackingTransformationController();
+        addTearDown(controller.dispose);
+        addTearDown(transformationController.dispose);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: InteractionLayer<String>(
+              controller: controller,
+              transformationController: transformationController,
+              animation: const AlwaysStoppedAnimation(0.5),
+            ),
+          ),
+        );
+
+        final layer = find.byType(InteractionLayer<String>);
+        expect(
+          find.descendant(of: layer, matching: find.byType(CustomPaint)),
+          findsNothing,
+        );
+        expect(
+          find.descendant(of: layer, matching: find.byType(RepaintBoundary)),
+          findsNothing,
+        );
+        expect(transformationController.addListenerCalls, 0);
+
+        transformationController.value = Matrix4.translationValues(40, 20, 0);
+        await tester.pump();
+
+        expect(transformationController.addListenerCalls, 0);
+        expect(
+          find.descendant(of: layer, matching: find.byType(CustomPaint)),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets('attaches the painter only while interaction content exists', (
+      tester,
+    ) async {
+      final controller = createTestController();
+      final transformationController = _TrackingTransformationController();
+      addTearDown(controller.dispose);
+      addTearDown(transformationController.dispose);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: InteractionLayer<String>(
+            controller: controller,
+            transformationController: transformationController,
+          ),
+        ),
+      );
+
+      final layer = find.byType(InteractionLayer<String>);
+      expect(
+        find.descendant(of: layer, matching: find.byType(CustomPaint)),
+        findsNothing,
+      );
+
+      controller.interaction.updateSelection(
+        startPoint: const GraphPosition(Offset.zero),
+        rectangle: const GraphRect(Rect.fromLTWH(0, 0, 100, 100)),
+      );
+      await tester.pump();
+
+      expect(
+        find.descendant(of: layer, matching: find.byType(CustomPaint)),
+        findsOneWidget,
+      );
+      expect(transformationController.addListenerCalls, 1);
+
+      controller.interaction.finishSelection();
+      await tester.pump();
+
+      expect(
+        find.descendant(of: layer, matching: find.byType(CustomPaint)),
+        findsNothing,
+      );
     });
   });
 
@@ -1078,6 +1178,10 @@ void main() {
     testWidgets('repaint boundary isolates painting', (tester) async {
       final controller = createTestController();
       final transformationController = TransformationController();
+      controller.interaction.updateSelection(
+        startPoint: const GraphPosition(Offset.zero),
+        rectangle: const GraphRect(Rect.fromLTWH(0, 0, 100, 100)),
+      );
 
       await tester.pumpWidget(
         MaterialApp(

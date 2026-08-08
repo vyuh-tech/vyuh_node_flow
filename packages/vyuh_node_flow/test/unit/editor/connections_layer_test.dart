@@ -15,6 +15,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 // Import internal classes for testing
 import 'package:vyuh_node_flow/src/connections/connections_canvas.dart';
+import 'package:vyuh_node_flow/src/connections/connection_painter.dart';
 import 'package:vyuh_node_flow/src/editor/layers/connections_layer.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
@@ -182,97 +183,45 @@ void main() {
   // ===========================================================================
 
   group('ConnectionsCanvas shouldRepaint', () {
-    test('shouldRepaint returns false when fingerprint and theme match', () {
-      final controller = createTestController();
+    test('shouldRepaint is false for the same snapshot revision', () {
       final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
-
-      final canvas1 = ConnectionsCanvas<String, dynamic>(
-        store: controller,
-        theme: NodeFlowTheme.light,
+      final snapshot = ConnectionRenderSnapshot(revision: 1, entries: const []);
+      final canvas1 = ConnectionsCanvas<String, dynamic>.fromSnapshot(
+        snapshot: snapshot,
+        connectionPainter: painter,
+      );
+      final canvas2 = ConnectionsCanvas<String, dynamic>.fromSnapshot(
+        snapshot: snapshot,
         connectionPainter: painter,
       );
 
-      final canvas2 = ConnectionsCanvas<String, dynamic>(
-        store: controller,
-        theme: NodeFlowTheme.light,
-        connectionPainter: painter,
-      );
-
-      // shouldRepaint returns false when fingerprint and theme are identical
       expect(canvas1.shouldRepaint(canvas2), isFalse);
     });
 
-    test('shouldRepaint returns false with same canvas instance', () {
-      final controller = createTestController();
+    test('shouldRepaint is true for a new snapshot revision', () {
       final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
-
-      final canvas = ConnectionsCanvas<String, dynamic>(
-        store: controller,
-        theme: NodeFlowTheme.light,
+      final canvas1 = ConnectionsCanvas<String, dynamic>.fromSnapshot(
+        snapshot: ConnectionRenderSnapshot(revision: 1, entries: const []),
         connectionPainter: painter,
       );
-
-      // Same canvas instance has same fingerprint and theme
-      expect(canvas.shouldRepaint(canvas), isFalse);
-    });
-
-    test('shouldRepaint returns true with different themes', () {
-      final controller = createTestController();
-      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
-
-      final canvas1 = ConnectionsCanvas<String, dynamic>(
-        store: controller,
-        theme: NodeFlowTheme.light,
-        connectionPainter: painter,
-      );
-
-      final canvas2 = ConnectionsCanvas<String, dynamic>(
-        store: controller,
-        theme: NodeFlowTheme.dark,
+      final canvas2 = ConnectionsCanvas<String, dynamic>.fromSnapshot(
+        snapshot: ConnectionRenderSnapshot(revision: 2, entries: const []),
         connectionPainter: painter,
       );
 
       expect(canvas1.shouldRepaint(canvas2), isTrue);
     });
 
-    test('shouldRepaint returns false with different empty controllers', () {
-      final controller1 = createTestController();
-      final controller2 = createTestController();
-      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
-
-      final canvas1 = ConnectionsCanvas<String, dynamic>(
-        store: controller1,
-        theme: NodeFlowTheme.light,
-        connectionPainter: painter,
-      );
-
-      final canvas2 = ConnectionsCanvas<String, dynamic>(
-        store: controller2,
-        theme: NodeFlowTheme.light,
-        connectionPainter: painter,
-      );
-
-      // Empty controllers have the same fingerprint (no connections)
-      expect(canvas1.shouldRepaint(canvas2), isFalse);
-    });
-
-    test('shouldRepaint returns true when connections change', () {
+    test('snapshot resolves graph state before paint', () {
       final controller = createTestController();
       final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
-
-      // Add nodes with ports for connections
       final node1 = createTestNodeWithPorts(id: 'n1');
-      final node2 = createTestNodeWithPorts(id: 'n2');
+      final node2 = createTestNodeWithPorts(
+        id: 'n2',
+        position: const Offset(200, 0),
+      );
       controller.addNode(node1);
       controller.addNode(node2);
-
-      final canvas1 = ConnectionsCanvas<String, dynamic>(
-        store: controller,
-        theme: NodeFlowTheme.light,
-        connectionPainter: painter,
-      );
-
-      // Add a connection to change the fingerprint
       controller.addConnection(
         Connection(
           id: 'c1',
@@ -282,16 +231,240 @@ void main() {
           targetPortId: node2.inputPorts.first.id,
         ),
       );
+      final snapshot = painter.buildRenderSnapshot<String, dynamic>(
+        connections: controller.connections,
+        nodeForId: controller.getNode,
+        selectedIds: controller.selectedConnectionIds,
+        skipEndpoints: false,
+      );
+      final originalTarget = snapshot.entries.single.targetEndpoint!.position;
 
-      final canvas2 = ConnectionsCanvas<String, dynamic>(
-        store: controller,
-        theme: NodeFlowTheme.light,
+      node2.position.value = const Offset(500, 500);
+
+      expect(snapshot.entries.single.targetEndpoint!.position, originalTarget);
+      final canvas = ConnectionsCanvas<String, dynamic>.fromSnapshot(
+        snapshot: snapshot,
+        connectionPainter: painter,
+      );
+      expect(canvas.store, isNull);
+      expect(canvas.theme, isNull);
+    });
+
+    test('unchanged render inputs keep a stable snapshot revision', () {
+      final controller = createConnectedNodesController();
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
+
+      ConnectionRenderSnapshot buildSnapshot() =>
+          painter.buildRenderSnapshot<String, dynamic>(
+            connections: controller.connections,
+            nodeForId: controller.getNode,
+            selectedIds: controller.selectedConnectionIds,
+            skipEndpoints: false,
+          );
+
+      final first = buildSnapshot();
+      final second = buildSnapshot();
+      final firstCanvas = ConnectionsCanvas<String, dynamic>.fromSnapshot(
+        snapshot: first,
+        connectionPainter: painter,
+      );
+      final secondCanvas = ConnectionsCanvas<String, dynamic>.fromSnapshot(
+        snapshot: second,
         connectionPainter: painter,
       );
 
-      // Fingerprint changed due to new connection
-      expect(canvas1.shouldRepaint(canvas2), isTrue);
+      expect(second.revision, first.revision);
+      expect(secondCanvas.shouldRepaint(firstCanvas), isFalse);
     });
+
+    test('overview geometry changes produce a new snapshot revision', () {
+      final controller = createConnectedNodesController();
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
+
+      ConnectionRenderSnapshot buildSnapshot() =>
+          painter.buildRenderSnapshot<String, dynamic>(
+            connections: controller.connections,
+            nodeForId: controller.getNode,
+            selectedIds: controller.selectedConnectionIds,
+            skipEndpoints: true,
+            simplifyPaths: true,
+          );
+
+      final first = buildSnapshot();
+      final target = controller.getNode('node-b')!;
+      target.position.value = const Offset(350.25, 70.5);
+      target.setVisualPosition(target.position.value);
+      final second = buildSnapshot();
+
+      expect(second.revision, isNot(first.revision));
+    });
+
+    test(
+      'overview batches straight static edges without populating path cache',
+      () {
+        final source = createTestNodeWithOutputPort(id: 'source', portId: 'out')
+          ..setSize(const Size(100, 50));
+        final target = createTestNodeWithInputPort(
+          id: 'target',
+          portId: 'in',
+          position: const Offset(300, 100),
+        )..setSize(const Size(100, 50));
+        final nodes = {source.id: source, target.id: target};
+        final connections = [
+          createTestConnection(
+            id: 'one',
+            sourceNodeId: source.id,
+            sourcePortId: 'out',
+            targetNodeId: target.id,
+            targetPortId: 'in',
+          ),
+          createTestConnection(
+            id: 'two',
+            sourceNodeId: source.id,
+            sourcePortId: 'out',
+            targetNodeId: target.id,
+            targetPortId: 'in',
+          ),
+        ];
+        final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
+
+        final snapshot = painter.buildRenderSnapshot<String, dynamic>(
+          connections: connections,
+          nodeForId: (id) => nodes[id],
+          selectedIds: const {},
+          skipEndpoints: false,
+          simplifyPaths: true,
+        );
+
+        expect(snapshot.entries, isEmpty);
+        expect(snapshot.batches, hasLength(1));
+        expect(snapshot.batches.single.edgeCount, 2);
+        expect(snapshot.batches.single.linePoints, hasLength(8));
+        expect(
+          snapshot.batches.single.path.computeMetrics().toList(),
+          hasLength(2),
+        );
+        expect(painter.getCacheStats()['cachedPaths'], 0);
+      },
+    );
+
+    test('overview bounds large same-style batches without losing edges', () {
+      const edgeCount = 955;
+      final source = createTestNodeWithOutputPort(id: 'source', portId: 'out')
+        ..setSize(const Size(100, 50));
+      final target = createTestNodeWithInputPort(
+        id: 'target',
+        portId: 'in',
+        position: const Offset(300, 100),
+      )..setSize(const Size(100, 50));
+      final nodes = {source.id: source, target.id: target};
+      final connections = List.generate(
+        edgeCount,
+        (index) => createTestConnection(
+          id: 'edge-$index',
+          sourceNodeId: source.id,
+          sourcePortId: 'out',
+          targetNodeId: target.id,
+          targetPortId: 'in',
+        ),
+      );
+      final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
+
+      final snapshot = painter.buildRenderSnapshot<String, dynamic>(
+        connections: connections,
+        nodeForId: (id) => nodes[id],
+        selectedIds: const {},
+        skipEndpoints: true,
+        simplifyPaths: true,
+      );
+
+      expect(snapshot.entries, isEmpty);
+      expect(snapshot.batches.length, greaterThan(1));
+      expect(
+        snapshot.batches.every(
+          (batch) =>
+              batch.edgeCount <= ConnectionPainter.overviewBatchMaxContours,
+        ),
+        isTrue,
+      );
+      expect(
+        snapshot.batches.fold<int>(
+          0,
+          (total, batch) => total + batch.edgeCount,
+        ),
+        edgeCount,
+      );
+      expect(
+        snapshot.batches.fold<int>(
+          0,
+          (total, batch) => total + batch.linePoints.length,
+        ),
+        edgeCount * 4,
+      );
+      expect(
+        snapshot.batches.fold<int>(
+          0,
+          (total, batch) => total + batch.path.computeMetrics().length,
+        ),
+        edgeCount,
+      );
+      expect(painter.getCacheStats()['cachedPaths'], 0);
+    });
+
+    test(
+      'overview keeps selected and animated edges as endpoint-free entries',
+      () {
+        final source = createTestNodeWithOutputPort(id: 'source', portId: 'out')
+          ..setSize(const Size(100, 50));
+        final target = createTestNodeWithInputPort(
+          id: 'target',
+          portId: 'in',
+          position: const Offset(300, 100),
+        )..setSize(const Size(100, 50));
+        final nodes = {source.id: source, target.id: target};
+        final selected = createTestConnection(
+          id: 'selected',
+          sourceNodeId: source.id,
+          sourcePortId: 'out',
+          targetNodeId: target.id,
+          targetPortId: 'in',
+        );
+        final animated = createTestConnection(
+          id: 'animated',
+          sourceNodeId: source.id,
+          sourcePortId: 'out',
+          targetNodeId: target.id,
+          targetPortId: 'in',
+        )..animationEffect = ConnectionEffects.flowingDash;
+        final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
+
+        final snapshot = painter.buildRenderSnapshot<String, dynamic>(
+          connections: [selected, animated],
+          nodeForId: (id) => nodes[id],
+          selectedIds: const {'selected'},
+          skipEndpoints: false,
+          simplifyPaths: true,
+        );
+
+        expect(snapshot.batches, isEmpty);
+        expect(snapshot.entries.map((entry) => entry.id), [
+          'selected',
+          'animated',
+        ]);
+        expect(
+          snapshot.entries.every(
+            (entry) =>
+                entry.sourceEndpoint == null && entry.targetEndpoint == null,
+          ),
+          isTrue,
+        );
+        expect(
+          snapshot.entries.last.animationEffect,
+          same(animated.animationEffect),
+        );
+        expect(painter.getCacheStats()['cachedPaths'], 0);
+      },
+    );
   });
 
   // ===========================================================================
@@ -622,12 +795,12 @@ void main() {
 
         expect(staticCanvas.animation, isNull);
         expect(
-          staticCanvas.connections!.map((connection) => connection.id),
+          staticCanvas.snapshot.entries.map((entry) => entry.id),
           equals([graph.staticConnection.id]),
         );
         expect(animatedCanvas.animation, same(animation));
         expect(
-          animatedCanvas.connections!.map((connection) => connection.id),
+          animatedCanvas.snapshot.entries.map((entry) => entry.id),
           equals([graph.animatedConnection.id]),
         );
         expect(find.byKey(const ValueKey('connections-active')), findsNothing);
@@ -663,9 +836,7 @@ void main() {
         );
         expect(animatedCanvas.animation, same(animation));
         expect(
-          animatedCanvas.connections!
-              .map((connection) => connection.id)
-              .toSet(),
+          animatedCanvas.snapshot.entries.map((entry) => entry.id).toSet(),
           equals({graph.staticConnection.id, graph.animatedConnection.id}),
         );
       },
@@ -695,22 +866,60 @@ void main() {
 
       expect(staticCanvas.animation, isNull);
       expect(
-        staticCanvas.connections!.map((connection) => connection.id),
+        staticCanvas.snapshot.entries.map((entry) => entry.id),
         equals([graph.staticConnection.id]),
       );
       expect(find.byKey(const ValueKey('connections-animated')), findsNothing);
       expect(activeCanvas.animation, same(animation));
       expect(
-        activeCanvas.connections!.map((connection) => connection.id),
+        activeCanvas.snapshot.entries.map((entry) => entry.id),
         equals([graph.animatedConnection.id]),
       );
 
       final renderedIds = <String>[
-        ...staticCanvas.connections!.map((connection) => connection.id),
-        ...activeCanvas.connections!.map((connection) => connection.id),
+        ...staticCanvas.snapshot.entries.map((entry) => entry.id),
+        ...activeCanvas.snapshot.entries.map((entry) => entry.id),
       ];
       expect(renderedIds, hasLength(2));
       expect(renderedIds.toSet(), hasLength(2));
+    });
+
+    testWidgets('batch-only overview still renders the static canvas', (
+      tester,
+    ) async {
+      final graph = _createConnectionPartitionGraph(
+        config: NodeFlowConfig(
+          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 1)],
+        ),
+      );
+      addTearDown(graph.controller.dispose);
+      final cachedPathsBefore = graph.controller.connectionPainter
+          .getCacheStats()['cachedPaths'];
+      final animation = AnimationController(
+        vsync: tester,
+        duration: const Duration(seconds: 1),
+      );
+      addTearDown(animation.dispose);
+
+      await _pumpConnectionsLayer(
+        tester,
+        controller: graph.controller,
+        animation: animation,
+      );
+
+      expect(graph.controller.lod!.useThumbnailMode, isTrue);
+      expect(find.byKey(const ValueKey('connections-static')), findsOneWidget);
+      final staticCanvas = _connectionCanvasFor(tester, 'connections-static');
+      expect(staticCanvas.snapshot.entries, isEmpty);
+      expect(staticCanvas.snapshot.batches, hasLength(1));
+      expect(
+        staticCanvas.snapshot.batches.single.path.computeMetrics().toList(),
+        hasLength(2),
+      );
+      expect(
+        graph.controller.connectionPainter.getCacheStats()['cachedPaths'],
+        cachedPathsBefore,
+      );
     });
   });
 
@@ -923,8 +1132,8 @@ void main() {
         connectionPainter: painter,
       );
 
-      expect(canvas.store.connections, isEmpty);
-      expect(canvas.store.nodes, isEmpty);
+      expect(canvas.store!.connections, isEmpty);
+      expect(canvas.store!.nodes, isEmpty);
     });
 
     test('handles connections with missing source node', () {
@@ -1286,7 +1495,10 @@ void main() {
   Connection<dynamic> animatedConnection,
   Connection<dynamic> staticConnection,
 })
-_createConnectionPartitionGraph({NodeFlowTheme? theme}) {
+_createConnectionPartitionGraph({
+  NodeFlowTheme? theme,
+  NodeFlowConfig? config,
+}) {
   final sourceA = createTestNodeWithOutputPort(id: 'node-a', portId: 'output-a')
     ..setSize(const Size(100, 50));
   final targetA = createTestNodeWithInputPort(
@@ -1306,6 +1518,7 @@ _createConnectionPartitionGraph({NodeFlowTheme? theme}) {
   )..setSize(const Size(100, 50));
   final controller = createTestController(
     nodes: [sourceA, targetA, sourceB, targetB],
+    config: config,
   );
   controller.initController(
     theme: theme ?? NodeFlowTheme.light,

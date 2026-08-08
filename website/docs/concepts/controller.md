@@ -80,6 +80,16 @@ final zoom = controller.currentZoom;
 final pan = controller.currentPan;
 ```
 
+The controller separates the live camera from committed reactive state.
+Interactive gestures and animations update `cameraViewportListenable` every
+frame, then update `viewportObservable` once when they finish. Graph culling and
+LOD use the coalesced `renderViewport`, so small camera movements do not trigger
+full visibility queries.
+
+When implementing a custom camera animation, use
+`updateCameraViewport()` for each frame and call `commitCameraViewport()` once
+at the end. Use `setViewport()` when the change should commit immediately.
+
 ## Node Operations
 
 ::: code-group

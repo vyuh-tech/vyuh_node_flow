@@ -19,52 +19,62 @@ class NodesThumbnailLayer<T> extends StatelessWidget {
     required this.controller,
     required this.thumbnailBuilder,
     this.layerFilter,
+    this.nodes,
   });
 
   final NodeFlowController<T, dynamic> controller;
   final ThumbnailBuilder<T>? thumbnailBuilder;
   final NodeRenderLayer? layerFilter;
 
+  /// A prefiltered visible-node snapshot supplied by [NodesLayer].
+  ///
+  /// Direct users may omit this and let this layer read and filter the
+  /// controller's visible nodes reactively.
+  final List<Node<T>>? nodes;
+
   @override
   Widget build(BuildContext context) {
-    return UnboundedPositioned.fill(
-      child: UnboundedRepaintBoundary(
-        child: Observer(
-          builder: (_) {
-            // Get visible nodes (already cached and sorted)
-            var nodes = controller.visibleNodes;
+    return Observer(
+      builder: (_) {
+        // Get visible nodes (already cached and sorted), unless NodesLayer has
+        // already supplied the filtered subset.
+        var visibleNodes = nodes ?? controller.visibleNodes;
 
-            // Apply layer filter if specified
-            if (layerFilter != null) {
-              nodes = nodes.where((n) => n.layer == layerFilter).toList();
-            }
+        if (nodes == null && layerFilter != null) {
+          visibleNodes = visibleNodes
+              .where((node) => node.layer == layerFilter)
+              .toList();
+        }
 
-            // Build selected IDs by checking each node's isSelected property.
-            // This creates MobX dependencies on node.selected.value - same as widget layer.
-            final selectedIds = <String>{
-              for (final node in nodes)
-                if (node.isSelected) node.id,
-            };
+        if (visibleNodes.isEmpty) return const SizedBox.shrink();
 
-            // Get theme for default colors
-            final theme = controller.theme;
-            final defaultColor =
-                theme?.nodeTheme.backgroundColor ?? Colors.grey;
-            final selectedBorderColor = theme?.nodeTheme.selectedBorderColor;
+        // Build selected IDs by checking each node's isSelected property.
+        // This creates MobX dependencies on node.selected.value - same as widget layer.
+        final selectedIds = <String>{
+          for (final node in visibleNodes)
+            if (node.isSelected) node.id,
+        };
 
-            return CustomPaint(
+        // Get theme for default colors
+        final theme = controller.theme;
+        final defaultColor = theme?.nodeTheme.backgroundColor ?? Colors.grey;
+        final selectedBorderColor = theme?.nodeTheme.selectedBorderColor;
+
+        return UnboundedPositioned.fill(
+          child: UnboundedRepaintBoundary(
+            child: CustomPaint(
               painter: _NodesThumbnailPainter<T>(
-                nodes: nodes,
+                nodes: visibleNodes,
                 selectedIds: selectedIds,
                 defaultColor: defaultColor,
                 selectedBorderColor: selectedBorderColor,
                 thumbnailBuilder: thumbnailBuilder,
               ),
               size: Size.infinite,
-            );
-          },
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

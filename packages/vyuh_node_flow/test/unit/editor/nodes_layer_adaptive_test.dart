@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vyuh_node_flow/src/editor/layers/nodes_layer.dart';
 import 'package:vyuh_node_flow/src/editor/layers/nodes_thumbnail_layer.dart';
+import 'package:vyuh_node_flow/src/editor/unbounded_widgets.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
 import '../../helpers/test_factories.dart';
@@ -65,4 +66,110 @@ void main() {
       expect(find.byType(NodesThumbnailLayer<String>), findsOneWidget);
     },
   );
+
+  testWidgets('empty widget layer allocates no full-canvas render objects', (
+    tester,
+  ) async {
+    final controller = NodeFlowController<String, dynamic>(
+      config: NodeFlowConfig(plugins: [LodPlugin(enabled: false)]),
+    );
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: NodesLayer.middle<String>(
+          controller,
+          (context, node) => Text(node.id),
+        ),
+      ),
+    );
+
+    final layer = find.byType(NodesLayer<String>);
+    expect(
+      find.descendant(
+        of: layer,
+        matching: find.byType(UnboundedRepaintBoundary),
+      ),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: layer, matching: find.byType(CustomPaint)),
+      findsNothing,
+    );
+  });
+
+  testWidgets(
+    'overview allocates a full-canvas painter only for non-empty z-layers',
+    (tester) async {
+      final controller = NodeFlowController<String, dynamic>(
+        nodes: [
+          createTestNode(id: 'one'),
+          createTestNode(id: 'two'),
+          createTestNode(id: 'three'),
+        ],
+        config: NodeFlowConfig(
+          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 1)],
+        ),
+      );
+      addTearDown(controller.dispose);
+
+      Widget nodeBuilder(BuildContext context, Node<String> node) =>
+          Text(node.id);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Stack(
+            children: [
+              NodesLayer.background<String>(controller, nodeBuilder),
+              NodesLayer.middle<String>(controller, nodeBuilder),
+              NodesLayer.foreground<String>(controller, nodeBuilder),
+            ],
+          ),
+        ),
+      );
+
+      final layers = find.byType(NodesLayer<String>);
+      expect(find.byType(NodesThumbnailLayer<String>), findsOneWidget);
+      expect(
+        find.descendant(
+          of: layers,
+          matching: find.byType(UnboundedRepaintBoundary),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: layers, matching: find.byType(CustomPaint)),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets('direct empty thumbnail layer allocates no painter or boundary', (
+    tester,
+  ) async {
+    final controller = NodeFlowController<String, dynamic>();
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: NodesThumbnailLayer<String>(
+          controller: controller,
+          thumbnailBuilder: null,
+        ),
+      ),
+    );
+
+    final layer = find.byType(NodesThumbnailLayer<String>);
+    expect(
+      find.descendant(
+        of: layer,
+        matching: find.byType(UnboundedRepaintBoundary),
+      ),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: layer, matching: find.byType(CustomPaint)),
+      findsNothing,
+    );
+  });
 }

@@ -4,6 +4,7 @@ library;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobx/mobx.dart';
 import 'package:vyuh_node_flow/src/editor/layers/nodes_thumbnail_layer.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
@@ -249,6 +250,92 @@ void main() {
 
       // Editor should still be visible
       expect(find.byType(NodeFlowEditor<String, dynamic>), findsOneWidget);
+    });
+
+    testWidgets('interactive camera commits reactive viewport only on end', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: NodeFlowEditor<String, dynamic>(
+                controller: controller,
+                nodeBuilder: (context, node) => Container(),
+                theme: NodeFlowTheme.light,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final committed = <GraphViewport>[];
+      final dispose = reaction(
+        (_) => controller.viewportObservable.value,
+        (viewport) => committed.add(viewport),
+      );
+      addTearDown(dispose.call);
+
+      final initialCommitted = controller.viewportObservable.value;
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(InteractiveViewer)),
+      );
+      await gesture.moveBy(const Offset(40, 20));
+      await tester.pump();
+      await gesture.moveBy(const Offset(40, 20));
+      await tester.pump();
+
+      expect(controller.viewport, isNot(initialCommitted));
+      expect(controller.viewportObservable.value, initialCommitted);
+      expect(committed, isEmpty);
+
+      await gesture.up();
+      await tester.pump();
+
+      expect(controller.viewportObservable.value, controller.viewport);
+      expect(committed, hasLength(1));
+    });
+
+    testWidgets('external live camera drives transform without MobX commit', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: NodeFlowEditor<String, dynamic>(
+                controller: controller,
+                nodeBuilder: (context, node) => Container(),
+                theme: NodeFlowTheme.light,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      const camera = GraphViewport(x: 125, y: 75, zoom: 1.25);
+      final committedBefore = controller.viewportObservable.value;
+      controller.updateCameraViewport(camera);
+      await tester.pump();
+
+      final viewer = tester.widget<InteractiveViewer>(
+        find.byType(InteractiveViewer),
+      );
+      final transform = viewer.transformationController!.value;
+      final translation = transform.getTranslation();
+      expect(translation.x, camera.x);
+      expect(translation.y, camera.y);
+      expect(transform.getMaxScaleOnAxis(), camera.zoom);
+      expect(controller.viewportObservable.value, committedBefore);
+
+      controller.commitCameraViewport();
+      expect(controller.viewportObservable.value, camera);
     });
   });
 
