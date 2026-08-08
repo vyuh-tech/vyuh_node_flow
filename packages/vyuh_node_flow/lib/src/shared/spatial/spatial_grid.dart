@@ -43,6 +43,29 @@ class SpatialGrid<T extends SpatialIndexable> {
   final Set<String> _pendingUpdates = <String>{};
   static const int _batchDelayMs = 8; // ~120fps batching
 
+  // Explicit mutation batches defer cache clearing until the outermost batch
+  // completes. The cache is marked unusable immediately, so queries during a
+  // batch remain correct without repeatedly allocating an empty cache list.
+  int _batchDepth = 0;
+  bool _cacheInvalidationPending = false;
+
+  bool get _inBatch => _batchDepth > 0;
+
+  /// Executes a group of mutations with one pending-update flush and cache
+  /// invalidation at the end of the outermost batch.
+  void batch(void Function() operations) {
+    _batchDepth++;
+    try {
+      operations();
+    } finally {
+      _batchDepth--;
+      if (!_inBatch) {
+        _processPendingUpdates();
+        _applyPendingCacheInvalidation();
+      }
+    }
+  }
+
   /// Add or update an object in the spatial index
   void addOrUpdate(T object) {
     _objects[object.id] = object;
@@ -87,6 +110,8 @@ class SpatialGrid<T extends SpatialIndexable> {
   /// to handle objects that span cell boundaries. Results are not cached
   /// since hit testing typically involves different points each time.
   List<T> queryPoint(Offset point, {double radius = 0}) {
+    _prepareForQuery();
+
     final result = <T>[];
     final checkedObjects = <String>{};
 
@@ -130,6 +155,8 @@ class SpatialGrid<T extends SpatialIndexable> {
 
   /// Ultra-fast query with surgical caching
   List<T> query(Rect bounds) {
+    _prepareForQuery();
+
     // Use surgical cache during dragging for ultra-fast updates
     if (_isDragging && _shouldUseSurgicalCache(bounds)) {
       return _applySurgicalUpdates(bounds);
@@ -161,7 +188,8 @@ class SpatialGrid<T extends SpatialIndexable> {
 
   /// Check if we can use surgical cache (faster than full recalculation)
   bool _shouldUseSurgicalCache(Rect bounds) {
-    return _lastQueryBounds != Rect.zero &&
+    return !_cacheInvalidationPending &&
+        _lastQueryBounds != Rect.zero &&
         _cachedVisibleObjects.isNotEmpty &&
         (bounds.left - _lastQueryBounds.left).abs() < 50 &&
         (bounds.top - _lastQueryBounds.top).abs() < 50 &&
@@ -505,7 +533,11 @@ class SpatialGrid<T extends SpatialIndexable> {
   }
 
   bool _shouldUseCache(Rect bounds) {
-    if (!enableCaching || _lastQueryBounds == Rect.zero) return false;
+    if (!enableCaching ||
+        _cacheInvalidationPending ||
+        _lastQueryBounds == Rect.zero) {
+      return false;
+    }
 
     // During dragging, use cache only for very similar bounds
     if (_isDragging) {
@@ -531,15 +563,35 @@ class SpatialGrid<T extends SpatialIndexable> {
   }
 
   void _invalidateCache() {
-    if (enableCaching) {
-      _cachedVisibleObjects.clear();
-      _lastQueryBounds = Rect.zero;
+    if (!enableCaching) return;
+    if (_inBatch) {
+      _cacheInvalidationPending = true;
+      return;
+    }
+    _clearCache();
+  }
+
+  void _applyPendingCacheInvalidation() {
+    if (!_cacheInvalidationPending) return;
+    _clearCache();
+  }
+
+  void _clearCache() {
+    _cachedVisibleObjects.clear();
+    _lastQueryBounds = Rect.zero;
+    _cacheInvalidationPending = false;
+  }
+
+  void _prepareForQuery() {
+    if (_pendingUpdates.isNotEmpty) {
+      _processPendingUpdates();
     }
   }
 
   /// Process pending updates in batches for better performance
   void _processPendingUpdatesIfNeeded() {
     if (_pendingUpdates.isEmpty) return;
+    if (_inBatch) return;
 
     final now = DateTime.now();
     final timeSinceLastBatch = now.difference(_lastBatchUpdate).inMilliseconds;

@@ -412,6 +412,168 @@ void main() {
     });
 
     test(
+      'retained overview rebuilds only batches touched by topology churn',
+      () {
+        const baseEdgeCount = 955;
+        final source = createTestNodeWithOutputPort(id: 'source', portId: 'out')
+          ..setSize(const Size(100, 50));
+        final target = createTestNodeWithInputPort(
+          id: 'target',
+          portId: 'in',
+          position: const Offset(300, 100),
+        )..setSize(const Size(100, 50));
+        final nodes = <String, Node<String>>{
+          source.id: source,
+          target.id: target,
+        };
+        final baseConnections = List<Connection<dynamic>>.generate(
+          baseEdgeCount,
+          (index) => createTestConnection(
+            id: 'edge-$index',
+            sourceNodeId: source.id,
+            sourcePortId: 'out',
+            targetNodeId: target.id,
+            targetPortId: 'in',
+          ),
+        );
+        final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
+
+        ConnectionRenderSnapshot build(List<Connection<dynamic>> connections) =>
+            painter.buildRenderSnapshot<String, dynamic>(
+              connections: connections,
+              nodeForId: (id) => nodes[id],
+              selectedIds: const {},
+              skipEndpoints: true,
+              simplifyPaths: true,
+              retainOverviewBatches: true,
+            );
+
+        final initial = build(baseConnections);
+        final initialBuildCount = painter.debugOverviewBatchBuilds;
+        final unchanged = build(baseConnections);
+
+        expect(painter.debugOverviewBatchBuilds, initialBuildCount);
+        expect(unchanged.revision, initial.revision);
+        expect(
+          List.generate(
+            initial.batches.length,
+            (index) =>
+                identical(initial.batches[index], unchanged.batches[index]),
+          ).every((reused) => reused),
+          isTrue,
+        );
+
+        final middle = createTestNodeWithPorts(
+          id: 'middle',
+          inputPortId: 'in',
+          outputPortId: 'out',
+          position: const Offset(150, 50),
+        )..setSize(const Size(100, 50));
+        nodes[middle.id] = middle;
+        final incidentConnections = <Connection<dynamic>>[
+          createTestConnection(
+            id: 'incident-in',
+            sourceNodeId: source.id,
+            sourcePortId: 'out',
+            targetNodeId: middle.id,
+            targetPortId: 'in',
+          ),
+          createTestConnection(
+            id: 'incident-out',
+            sourceNodeId: middle.id,
+            sourcePortId: 'out',
+            targetNodeId: target.id,
+            targetPortId: 'in',
+          ),
+        ];
+        final added = build([...baseConnections, ...incidentConnections]);
+
+        expect(painter.debugOverviewBatchBuilds - initialBuildCount, 1);
+        expect(
+          added.batches.fold<int>(0, (total, batch) => total + batch.edgeCount),
+          baseEdgeCount + 2,
+        );
+        expect(
+          added.batches.where(
+            (batch) =>
+                initial.batches.any((previous) => identical(previous, batch)),
+          ),
+          hasLength(initial.batches.length - 1),
+        );
+
+        nodes.remove(middle.id);
+        final buildsBeforeRemoval = painter.debugOverviewBatchBuilds;
+        final removed = build(baseConnections);
+
+        expect(painter.debugOverviewBatchBuilds - buildsBeforeRemoval, 1);
+        expect(
+          removed.batches.fold<int>(
+            0,
+            (total, batch) => total + batch.edgeCount,
+          ),
+          baseEdgeCount,
+        );
+        expect(removed.revision, initial.revision);
+      },
+    );
+
+    test(
+      'retained overview migrates selected and animated edges out of batches',
+      () {
+        final source = createTestNodeWithOutputPort(id: 'source', portId: 'out')
+          ..setSize(const Size(100, 50));
+        final target = createTestNodeWithInputPort(
+          id: 'target',
+          portId: 'in',
+          position: const Offset(300, 100),
+        )..setSize(const Size(100, 50));
+        final nodes = {source.id: source, target.id: target};
+        final selected = createTestConnection(
+          id: 'selected',
+          sourceNodeId: source.id,
+          sourcePortId: 'out',
+          targetNodeId: target.id,
+          targetPortId: 'in',
+        );
+        final animated = createTestConnection(
+          id: 'animated',
+          sourceNodeId: source.id,
+          sourcePortId: 'out',
+          targetNodeId: target.id,
+          targetPortId: 'in',
+        );
+        final painter = createTestConnectionPainter(theme: NodeFlowTheme.light);
+
+        ConnectionRenderSnapshot build(Set<String> selectedIds) =>
+            painter.buildRenderSnapshot<String, dynamic>(
+              connections: [selected, animated],
+              nodeForId: (id) => nodes[id],
+              selectedIds: selectedIds,
+              skipEndpoints: true,
+              simplifyPaths: true,
+              retainOverviewBatches: true,
+            );
+
+        expect(build(const {}).batches.single.edgeCount, 2);
+
+        animated.animationEffect = ConnectionEffects.flowingDash;
+        final isolated = build(const {'selected'});
+
+        expect(isolated.batches, isEmpty);
+        expect(isolated.entries.map((entry) => entry.id), [
+          'selected',
+          'animated',
+        ]);
+
+        animated.animationEffect = null;
+        final restored = build(const {});
+
+        expect(restored.entries, isEmpty);
+        expect(restored.batches.single.edgeCount, 2);
+      },
+    );
+
+    test(
       'overview keeps selected and animated edges as endpoint-free entries',
       () {
         final source = createTestNodeWithOutputPort(id: 'source', portId: 'out')

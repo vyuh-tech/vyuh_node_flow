@@ -227,9 +227,9 @@ class NodesLayer<T> extends StatelessWidget {
 
         if (nodesList.isEmpty) return const SizedBox.shrink();
 
-        final useThumbnailMode = controller.lod?.useThumbnailMode ?? false;
+        final sceneMode = controller.lod?.sceneMode ?? NodeSceneMode.widgets;
 
-        if (useThumbnailMode) {
+        if (sceneMode == NodeSceneMode.overview) {
           // Paint mode: one CustomPaint for the non-empty filtered layer.
           return NodesThumbnailLayer<T>(
             controller: controller,
@@ -239,9 +239,60 @@ class NodesLayer<T> extends StatelessWidget {
           );
         }
 
+        if (sceneMode == NodeSceneMode.navigation) {
+          return _buildNavigationLayer(context, nodesList);
+        }
+
         // Widget mode: individual widgets per node
         return _buildWidgetLayer(context, nodesList);
       },
+    );
+  }
+
+  Widget _buildNavigationLayer(BuildContext context, List<Node<T>> nodesList) {
+    // Keep only discrete interaction state as live widgets. Camera movement
+    // itself never changes this set, so navigation frames remain paint-only
+    // for the ordinary graph while selection/focus survives the mode switch.
+    final promotedIds = <String>{...controller.selectedNodeIds};
+    final draggedNodeId = controller.interaction.draggedNodeId.value;
+    if (draggedNodeId != null) promotedIds.add(draggedNodeId);
+    final resizingNodeId = controller.interaction.resizingNodeId.value;
+    if (resizingNodeId != null) promotedIds.add(resizingNodeId);
+    final temporaryConnection =
+        controller.interaction.temporaryConnection.value;
+    if (temporaryConnection != null) {
+      promotedIds.add(temporaryConnection.startNodeId);
+      final targetNodeId = temporaryConnection.targetNodeId;
+      if (targetNodeId != null) promotedIds.add(targetNodeId);
+    }
+
+    if (promotedIds.isEmpty) {
+      return NodesThumbnailLayer<T>(
+        controller: controller,
+        thumbnailBuilder: thumbnailBuilder,
+        layerFilter: layerFilter,
+        nodes: nodesList,
+      );
+    }
+
+    final paintedNodes = <Node<T>>[];
+    final promotedNodes = <Node<T>>[];
+    for (final node in nodesList) {
+      (promotedIds.contains(node.id) ? promotedNodes : paintedNodes).add(node);
+    }
+
+    return UnboundedStack(
+      clipBehavior: Clip.none,
+      children: [
+        if (paintedNodes.isNotEmpty)
+          NodesThumbnailLayer<T>(
+            controller: controller,
+            thumbnailBuilder: thumbnailBuilder,
+            layerFilter: layerFilter,
+            nodes: paintedNodes,
+          ),
+        if (promotedNodes.isNotEmpty) _buildWidgetLayer(context, promotedNodes),
+      ],
     );
   }
 

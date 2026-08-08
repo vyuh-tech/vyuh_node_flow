@@ -563,6 +563,37 @@ void main() {
       controller.dispose();
     });
 
+    test(
+      'viewport interaction temporarily uses the painted overview scene',
+      () {
+        final controller = NodeFlowController<String, dynamic>(
+          nodes: [createTestNode(id: 'one')],
+          config: NodeFlowConfig(
+            plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 10)],
+          ),
+        );
+        final lod = controller.lod!;
+
+        expect(lod.paintDuringViewportInteraction, isTrue);
+        expect(lod.sceneMode, NodeSceneMode.widgets);
+        expect(lod.useThumbnailMode, isFalse);
+
+        controller.interaction.setViewportInteracting(true);
+        expect(lod.sceneMode, NodeSceneMode.navigation);
+        expect(lod.useThumbnailMode, isTrue);
+
+        controller.interaction.setViewportInteracting(false);
+        expect(lod.sceneMode, NodeSceneMode.widgets);
+        expect(lod.useThumbnailMode, isFalse);
+
+        lod.setPaintDuringViewportInteraction(false);
+        controller.interaction.setViewportInteracting(true);
+        expect(lod.useThumbnailMode, isFalse);
+
+        controller.dispose();
+      },
+    );
+
     test('rejects non-positive interactive node thresholds', () {
       expect(() => LodPlugin(maxInteractiveNodes: 0), throwsArgumentError);
 

@@ -283,13 +283,13 @@ extension ConnectionApi<T, C> on NodeFlowController<T, C> {
     final ids = connectionIds.toList(growable: false);
     if (ids.isEmpty) return;
 
-    batch('remove-connections', () {
+    mutateGraph(() {
       for (final connectionId in ids) {
         if (_connectionById.containsKey(connectionId)) {
           removeConnection(connectionId);
         }
       }
-    });
+    }, reason: 'remove-connections');
   }
 
   /// Creates a connection between two ports.

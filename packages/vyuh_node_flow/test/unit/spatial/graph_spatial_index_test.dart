@@ -551,6 +551,21 @@ void main() {
       expect(index.version.value, greaterThan(versionBefore));
     });
 
+    test('removeConnection notifies for a connection without segments', () {
+      final connection = createTestConnection(
+        id: 'conn-without-geometry',
+        sourceNodeId: 'node-1',
+        targetNodeId: 'node-2',
+      );
+      index.updateConnection(connection, const []);
+      final versionBefore = index.version.value;
+
+      index.removeConnection(connection.id);
+
+      expect(index.connectionCount, 0);
+      expect(index.version.value, versionBefore + 1);
+    });
+
     test('getConnection returns connection by ID', () {
       final connection = createTestConnection(
         id: 'conn-1',
@@ -714,6 +729,29 @@ void main() {
       expect(index.portCount, equals(2));
     });
 
+    test('rebuildFromNodes reconciles unchanged node geometry in place', () {
+      final retainedNode = createTestNode(id: 'retained');
+      index.update(retainedNode);
+      index.update(createTestNode(id: 'removed'));
+      final retainedItemBefore = index.nodeItems.singleWhere(
+        (item) => item.nodeId == retainedNode.id,
+      );
+      final versionBefore = index.version.value;
+
+      index.rebuildFromNodes([
+        retainedNode,
+        createTestNode(id: 'added', position: const Offset(500, 500)),
+      ]);
+
+      final retainedItemAfter = index.nodeItems.singleWhere(
+        (item) => item.nodeId == retainedNode.id,
+      );
+      expect(identical(retainedItemAfter, retainedItemBefore), isTrue);
+      expect(index.getNode('removed'), isNull);
+      expect(index.getNode('added'), isNotNull);
+      expect(index.version.value, versionBefore + 1);
+    });
+
     test('rebuildConnections clears and rebuilds connection index', () {
       final node1 = createTestNodeWithOutputPort(id: 'node-1');
       final node2 = createTestNodeWithInputPort(id: 'node-2');
@@ -771,6 +809,30 @@ void main() {
       expect(index.connectionSegmentItems.length, equals(2));
     });
 
+    test('connection rebuild retains unchanged segment objects', () {
+      final connection = createTestConnection(
+        id: 'conn-1',
+        sourceNodeId: 'node-1',
+        targetNodeId: 'node-2',
+      );
+      const bounds = [
+        Rect.fromLTWH(0, 0, 50, 50),
+        Rect.fromLTWH(50, 0, 50, 50),
+      ];
+      index.updateConnection(connection, bounds);
+      final segmentsBefore = index.connectionSegmentItems.toList()
+        ..sort((a, b) => a.segmentIndex.compareTo(b.segmentIndex));
+      final versionBefore = index.version.value;
+
+      index.rebuildConnectionsWithSegments([connection], (_) => bounds);
+
+      final segmentsAfter = index.connectionSegmentItems.toList()
+        ..sort((a, b) => a.segmentIndex.compareTo(b.segmentIndex));
+      expect(identical(segmentsAfter[0], segmentsBefore[0]), isTrue);
+      expect(identical(segmentsAfter[1], segmentsBefore[1]), isTrue);
+      expect(index.version.value, versionBefore + 1);
+    });
+
     test('rebuild clears everything and rebuilds from scratch', () {
       index.update(createTestNode(id: 'old-node'));
 
@@ -793,6 +855,19 @@ void main() {
       expect(index.nodeCount, equals(2));
       expect(index.connectionCount, equals(1));
       expect(index.getNode('old-node'), isNull);
+    });
+
+    test('full rebuild publishes one topology change', () {
+      index.update(createTestNode(id: 'old-node'));
+      final versionBefore = index.version.value;
+
+      index.rebuild(
+        nodes: [createTestNode(id: 'new-node')],
+        connections: const [],
+        connectionSegmentCalculator: (_) => const [],
+      );
+
+      expect(index.version.value, versionBefore + 1);
     });
   });
 
@@ -863,6 +938,38 @@ void main() {
       expect(index.nodeCount, equals(2));
       expect(index.connectionCount, equals(1));
     });
+
+    test(
+      'batch defers cache clearing while keeping in-batch queries current',
+      () {
+        final removedNode = createTestNode(id: 'removed-node');
+        index.update(removedNode);
+        expect(
+          index.nodesIn(const Rect.fromLTWH(0, 0, 200, 200)),
+          hasLength(1),
+        );
+        expect(index.stats.cacheSize, 1);
+
+        index.batch(() {
+          index.removeNode(removedNode.id);
+
+          // Removal marks the existing cache unusable without clearing it once
+          // per topology mutation.
+          expect(index.stats.cacheSize, 1);
+
+          index.update(
+            createTestNode(id: 'added-node', position: const Offset(500, 500)),
+          );
+          expect(index.nodesIn(const Rect.fromLTWH(0, 0, 200, 200)), isEmpty);
+          expect(
+            index.nodesIn(const Rect.fromLTWH(450, 450, 200, 200)),
+            hasLength(1),
+          );
+        });
+
+        expect(index.stats.cacheSize, 0);
+      },
+    );
   });
 
   group('Hit Testing', () {
@@ -1409,7 +1516,8 @@ void main() {
         // No operations
       });
 
-      // Version should still increment (batch completion notifies)
+      // A batch remains a graph-level invalidation boundary even when there
+      // is no spatial geometry to update.
       expect(index.version.value, equals(initialVersion + 1));
     });
 

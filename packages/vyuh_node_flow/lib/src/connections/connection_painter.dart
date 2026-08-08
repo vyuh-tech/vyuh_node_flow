@@ -139,6 +139,8 @@ class ConnectionPainter {
       Expando<_DashedPathCacheEntry>('static dashed connection paths');
   int _dashedPathCacheBuilds = 0;
   int _dashedPathCacheHits = 0;
+  int _overviewBatchBuilds = 0;
+  _RetainedOverviewScene? _retainedOverviewScene;
 
   /// Number of static dashed paths built by this painter.
   @visibleForTesting
@@ -147,6 +149,10 @@ class ConnectionPainter {
   /// Number of static dashed-path cache hits served by this painter.
   @visibleForTesting
   int get debugDashedPathCacheHits => _dashedPathCacheHits;
+
+  /// Number of bounded overview render batches constructed by this painter.
+  @visibleForTesting
+  int get debugOverviewBatchBuilds => _overviewBatchBuilds;
 
   /// Gets the connection path cache (data layer)
   ConnectionPathCache get pathCache => _pathCache;
@@ -166,12 +172,11 @@ class ConnectionPainter {
     required Set<String> selectedIds,
     required bool skipEndpoints,
     bool simplifyPaths = false,
+    bool retainOverviewBatches = false,
     ConnectionStyleBuilder<T, C>? connectionStyleBuilder,
   }) {
     final entries = <ConnectionRenderEntry>[];
-    final overviewBatches = <_OverviewBatchBuilder>[];
-    final currentOverviewBatchByKey =
-        <(Color, double, int, int), _OverviewBatchBuilder>{};
+    final overviewEdges = <_OverviewEdgeRenderData>[];
     final connectionTheme = theme.connectionTheme;
     final portTheme = theme.portTheme;
     final dashPattern = connectionTheme.dashPattern;
@@ -328,19 +333,17 @@ class ConnectionPainter {
           (source.dx + target.dx) / 2,
           (source.dy + target.dy) / 2,
         );
-        final key = (
-          color,
-          strokeWidth,
-          (midpoint.dx / _overviewBatchTileSize).floor(),
-          (midpoint.dy / _overviewBatchTileSize).floor(),
+        overviewEdges.add(
+          _OverviewEdgeRenderData(
+            id: connection.id,
+            source: source,
+            target: target,
+            color: color,
+            strokeWidth: strokeWidth,
+            tileX: (midpoint.dx / _overviewBatchTileSize).floor(),
+            tileY: (midpoint.dy / _overviewBatchTileSize).floor(),
+          ),
         );
-        var batch = currentOverviewBatchByKey[key];
-        if (batch == null || batch.isFull) {
-          batch = _OverviewBatchBuilder(color: color, strokeWidth: strokeWidth);
-          currentOverviewBatchByKey[key] = batch;
-          overviewBatches.add(batch);
-        }
-        batch.addLine(source, target);
         continue;
       }
 
@@ -362,19 +365,26 @@ class ConnectionPainter {
       );
     }
 
-    final batches = [
-      for (final batch in overviewBatches)
-        ConnectionRenderBatch(
-          path: dashPattern == null
-              ? batch.path
-              : _createDashedPath(batch.path, dashPattern),
-          linePoints: Float32List.fromList(batch.linePoints),
-          isDashed: dashPattern != null,
-          color: batch.color,
-          strokeWidth: batch.strokeWidth,
-          edgeCount: batch.edgeCount,
-        ),
-    ];
+    final rawBatches = retainOverviewBatches && simplifyPaths
+        ? (_retainedOverviewScene ??= _RetainedOverviewScene(
+            onBatchBuild: _recordOverviewBatchBuild,
+          )).update(overviewEdges)
+        : _RetainedOverviewScene(
+            onBatchBuild: _recordOverviewBatchBuild,
+          ).update(overviewEdges);
+    final batches = dashPattern == null
+        ? rawBatches
+        : [
+            for (final batch in rawBatches)
+              ConnectionRenderBatch(
+                path: _createDashedPath(batch.path, dashPattern),
+                linePoints: batch.linePoints,
+                isDashed: true,
+                color: batch.color,
+                strokeWidth: batch.strokeWidth,
+                edgeCount: batch.edgeCount,
+              ),
+          ];
 
     return ConnectionRenderSnapshot(
       revision: Object.hash(revision, entries.length, batches.length),
@@ -382,6 +392,8 @@ class ConnectionPainter {
       batches: batches,
     );
   }
+
+  void _recordOverviewBatchBuild() => _overviewBatchBuilds++;
 
   /// Paints one previously resolved overview batch.
   void paintRenderBatch(Canvas canvas, ConnectionRenderBatch batch) {
@@ -972,6 +984,7 @@ class ConnectionPainter {
 
   /// Dispose and clear all cached paths
   void dispose() {
+    _retainedOverviewScene = null;
     _pathCache.dispose();
   }
 
@@ -1012,22 +1025,166 @@ class _DashedPathCacheEntry {
   }
 }
 
-class _OverviewBatchBuilder {
-  _OverviewBatchBuilder({required this.color, required this.strokeWidth});
+typedef _OverviewBatchKey = ({
+  Color color,
+  double strokeWidth,
+  int tileX,
+  int tileY,
+});
 
+@immutable
+class _OverviewEdgeRenderData {
+  const _OverviewEdgeRenderData({
+    required this.id,
+    required this.source,
+    required this.target,
+    required this.color,
+    required this.strokeWidth,
+    required this.tileX,
+    required this.tileY,
+  });
+
+  final String id;
+  final Offset source;
+  final Offset target;
   final Color color;
   final double strokeWidth;
-  final Path path = Path();
-  final List<double> linePoints = [];
-  int edgeCount = 0;
+  final int tileX;
+  final int tileY;
 
-  bool get isFull => edgeCount >= ConnectionPainter.overviewBatchMaxContours;
+  _OverviewBatchKey get batchKey =>
+      (color: color, strokeWidth: strokeWidth, tileX: tileX, tileY: tileY);
 
-  void addLine(Offset source, Offset target) {
-    path
-      ..moveTo(source.dx, source.dy)
-      ..lineTo(target.dx, target.dy);
-    linePoints.addAll([source.dx, source.dy, target.dx, target.dy]);
-    edgeCount++;
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _OverviewEdgeRenderData &&
+          other.id == id &&
+          other.source == source &&
+          other.target == target &&
+          other.color == color &&
+          other.strokeWidth == strokeWidth &&
+          other.tileX == tileX &&
+          other.tileY == tileY;
+
+  @override
+  int get hashCode =>
+      Object.hash(id, source, target, color, strokeWidth, tileX, tileY);
+}
+
+class _RetainedOverviewScene {
+  _RetainedOverviewScene({required this.onBatchBuild});
+
+  final VoidCallback onBatchBuild;
+  final Map<String, _RetainedOverviewEdge> _edges = {};
+  final Map<_OverviewBatchKey, List<_RetainedOverviewBatch>> _batchesByKey = {};
+  final List<_RetainedOverviewBatch> _orderedBatches = [];
+
+  List<ConnectionRenderBatch> update(List<_OverviewEdgeRenderData> nextEdges) {
+    final retainedIds = <String>{};
+    for (final data in nextEdges) {
+      retainedIds.add(data.id);
+      final previous = _edges[data.id];
+      if (previous?.data == data) continue;
+
+      if (previous != null) _remove(previous);
+      _add(data);
+    }
+
+    final removedIds = [
+      for (final id in _edges.keys)
+        if (!retainedIds.contains(id)) id,
+    ];
+    for (final id in removedIds) {
+      _remove(_edges[id]!);
+    }
+
+    return [for (final batch in _orderedBatches) batch.render()];
+  }
+
+  void _add(_OverviewEdgeRenderData data) {
+    final candidates = _batchesByKey.putIfAbsent(data.batchKey, () => []);
+    var batch = candidates.firstWhere(
+      (candidate) => !candidate.isFull,
+      orElse: () {
+        final created = _RetainedOverviewBatch(
+          key: data.batchKey,
+          onBuild: onBatchBuild,
+        );
+        candidates.add(created);
+        _orderedBatches.add(created);
+        return created;
+      },
+    );
+    batch.add(data);
+    _edges[data.id] = _RetainedOverviewEdge(data: data, batch: batch);
+  }
+
+  void _remove(_RetainedOverviewEdge edge) {
+    _edges.remove(edge.data.id);
+    final batch = edge.batch;
+    batch.remove(edge.data.id);
+    if (!batch.isEmpty) return;
+
+    _orderedBatches.remove(batch);
+    final candidates = _batchesByKey[batch.key]!..remove(batch);
+    if (candidates.isEmpty) _batchesByKey.remove(batch.key);
+  }
+}
+
+class _RetainedOverviewEdge {
+  const _RetainedOverviewEdge({required this.data, required this.batch});
+
+  final _OverviewEdgeRenderData data;
+  final _RetainedOverviewBatch batch;
+}
+
+class _RetainedOverviewBatch {
+  _RetainedOverviewBatch({required this.key, required this.onBuild});
+
+  final _OverviewBatchKey key;
+  final VoidCallback onBuild;
+  final Map<String, _OverviewEdgeRenderData> _edges = {};
+  ConnectionRenderBatch? _renderBatch;
+
+  bool get isEmpty => _edges.isEmpty;
+  bool get isFull =>
+      _edges.length >= ConnectionPainter.overviewBatchMaxContours;
+
+  void add(_OverviewEdgeRenderData data) {
+    _edges[data.id] = data;
+    _renderBatch = null;
+  }
+
+  void remove(String id) {
+    _edges.remove(id);
+    _renderBatch = null;
+  }
+
+  ConnectionRenderBatch render() {
+    final retained = _renderBatch;
+    if (retained != null) return retained;
+
+    final path = Path();
+    final linePoints = Float32List(_edges.length * 4);
+    var pointIndex = 0;
+    for (final edge in _edges.values) {
+      path
+        ..moveTo(edge.source.dx, edge.source.dy)
+        ..lineTo(edge.target.dx, edge.target.dy);
+      linePoints[pointIndex++] = edge.source.dx;
+      linePoints[pointIndex++] = edge.source.dy;
+      linePoints[pointIndex++] = edge.target.dx;
+      linePoints[pointIndex++] = edge.target.dy;
+    }
+    onBuild();
+    return _renderBatch = ConnectionRenderBatch(
+      path: path,
+      linePoints: linePoints,
+      isDashed: false,
+      color: key.color,
+      strokeWidth: key.strokeWidth,
+      edgeCount: _edges.length,
+    );
   }
 }

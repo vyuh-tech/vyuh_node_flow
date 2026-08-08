@@ -69,6 +69,7 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
 
   // Batch mode tracking
   int _batchDepth = 0;
+  bool _batchChanged = false;
 
   bool get _inBatch => _batchDepth > 0;
 
@@ -83,9 +84,11 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
   /// Notifies observers that the spatial index has changed.
   /// Only notifies if not currently in a batch operation.
   void _notifyChanged() {
-    if (!_inBatch) {
-      runInAction(() => version.value++);
+    if (_inBatch) {
+      _batchChanged = true;
+      return;
     }
+    runInAction(() => version.value++);
   }
 
   /// Forces a notification to observers that the spatial index has changed.
@@ -126,7 +129,10 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
   void update(Node<T> node) {
     _nodes[node.id] = node;
     final item = NodeSpatialItem(nodeId: node.id, bounds: node.getBounds());
-    _grid.addOrUpdate(item);
+    final indexedItem = _grid.getObject(item.id);
+    if (indexedItem is! NodeSpatialItem || indexedItem.bounds != item.bounds) {
+      _grid.addOrUpdate(item);
+    }
 
     // Update port positions for this node
     _updatePortsForNode(node);
@@ -137,9 +143,6 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
 
   /// Updates all port spatial items for a node.
   void _updatePortsForNode(Node<T> node) {
-    // Remove existing port items for this node
-    _removePortsForNode(node.id, notify: false);
-
     final shape = nodeShapeBuilder?.call(node);
     final portIds = <String>[];
 
@@ -171,7 +174,12 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
         bounds: portBounds,
       );
 
-      _grid.addOrUpdate(spatialItem);
+      final indexedItem = _grid.getObject(spatialItem.id);
+      if (indexedItem is! PortSpatialItem ||
+          indexedItem.bounds != spatialItem.bounds ||
+          indexedItem.isOutput != spatialItem.isOutput) {
+        _grid.addOrUpdate(spatialItem);
+      }
       portIds.add(spatialItem.id);
     }
 
@@ -181,6 +189,16 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
     // port.isOutput respects PortType regardless of list membership.
     for (final port in node.ports) {
       addPort(port);
+    }
+
+    final retainedPortIds = portIds.toSet();
+    final previousPortIds = _nodePortIds[node.id];
+    if (previousPortIds != null) {
+      for (final portId in previousPortIds) {
+        if (!retainedPortIds.contains(portId)) {
+          _grid.remove(portId);
+        }
+      }
     }
 
     _nodePortIds[node.id] = portIds;
@@ -202,12 +220,6 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
   /// Connections use multiple segments for accurate curved path hit testing.
   void updateConnection(Connection<C> connection, List<Rect> segmentBounds) {
     _connections[connection.id] = connection;
-    _removeConnectionSegments(connectionId: connection.id, notify: false);
-
-    if (segmentBounds.isEmpty) {
-      _notifyChanged();
-      return;
-    }
 
     final segmentIds = <String>[];
     for (int i = 0; i < segmentBounds.length; i++) {
@@ -216,10 +228,29 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
         segmentIndex: i,
         bounds: segmentBounds[i],
       );
-      _grid.addOrUpdate(item);
+      final indexedItem = _grid.getObject(item.id);
+      if (indexedItem is! ConnectionSegmentItem ||
+          indexedItem.bounds != item.bounds) {
+        _grid.addOrUpdate(item);
+      }
       segmentIds.add(item.id);
     }
-    _connectionSegmentIds[connection.id] = segmentIds;
+
+    final retainedSegmentIds = segmentIds.toSet();
+    final previousSegmentIds = _connectionSegmentIds[connection.id];
+    if (previousSegmentIds != null) {
+      for (final segmentId in previousSegmentIds) {
+        if (!retainedSegmentIds.contains(segmentId)) {
+          _grid.remove(segmentId);
+        }
+      }
+    }
+
+    if (segmentIds.isEmpty) {
+      _connectionSegmentIds.remove(connection.id);
+    } else {
+      _connectionSegmentIds[connection.id] = segmentIds;
+    }
     _autoFlush();
     _notifyChanged();
   }
@@ -240,11 +271,17 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
 
   /// Removes a connection from the spatial index.
   void removeConnection(String connectionId) {
-    _connections.remove(connectionId);
-    _removeConnectionSegments(connectionId: connectionId, notify: true);
+    final removedConnection = _connections.remove(connectionId);
+    final removedSegments = _removeConnectionSegments(
+      connectionId: connectionId,
+      notify: false,
+    );
+    if (removedConnection != null || removedSegments) {
+      _notifyChanged();
+    }
   }
 
-  void _removeConnectionSegments({
+  bool _removeConnectionSegments({
     required String connectionId,
     required bool notify,
   }) {
@@ -254,11 +291,20 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
         _grid.remove(segmentId);
       }
       if (notify) _notifyChanged();
+      return true;
     }
+    return false;
   }
 
   /// Clears all items from the spatial index.
   void clear() {
+    final changed =
+        _nodes.isNotEmpty ||
+        _connections.isNotEmpty ||
+        _nodePortIds.isNotEmpty ||
+        _connectionSegmentIds.isNotEmpty;
+    if (!changed) return;
+
     _nodes.clear();
     _connections.clear();
     _connectionSegmentIds.clear();
@@ -284,14 +330,26 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
   /// });
   /// ```
   void batch(void Function() operations) {
+    final isOutermostBatch = !_inBatch;
+    if (isOutermostBatch) {
+      // A graph batch is also a topology invalidation boundary. Some callers
+      // mutate their canonical graph even when no connection geometry has
+      // been calculated yet, so preserve one notification for an empty
+      // spatial batch rather than losing that graph-level invalidation.
+      _batchChanged = true;
+    }
     _batchDepth++;
     try {
-      operations();
+      if (isOutermostBatch) {
+        _grid.batch(operations);
+      } else {
+        operations();
+      }
     } finally {
       _batchDepth--;
-      if (_batchDepth == 0) {
-        _grid.flushPendingUpdates();
-        _notifyChanged();
+      if (!_inBatch && _batchChanged) {
+        _batchChanged = false;
+        runInAction(() => version.value++);
       }
     }
   }
@@ -445,8 +503,8 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
     required Iterable<Connection<C>> connections,
     required List<Rect> Function(Connection) connectionSegmentCalculator,
   }) {
-    clear();
     batch(() {
+      clear();
       for (final node in nodes) {
         update(node);
       }
@@ -460,16 +518,16 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
   /// Rebuilds only nodes from the given iterable.
   /// Also rebuilds all port spatial items.
   void rebuildFromNodes(Iterable<Node<T>> nodes) {
-    // Clear existing nodes and their ports
-    for (final nodeId in _nodes.keys.toList()) {
-      _grid.remove(NodeSpatialItem(nodeId: nodeId, bounds: Rect.zero).id);
-      _removePortsForNode(nodeId, notify: false);
-    }
-    _nodes.clear();
+    final nodeList = nodes.toList(growable: false);
+    final incomingNodeIds = nodeList.map((node) => node.id).toSet();
 
-    // Add new nodes (update() also adds their ports)
     batch(() {
-      for (final node in nodes) {
+      for (final nodeId in _nodes.keys.toList(growable: false)) {
+        if (!incomingNodeIds.contains(nodeId)) {
+          removeNode(nodeId);
+        }
+      }
+      for (final node in nodeList) {
         update(node);
       }
     });
@@ -480,15 +538,18 @@ class GraphSpatialIndex<T, C> implements SpatialQueries<T, C> {
     Iterable<Connection<C>> connections,
     List<Rect> Function(Connection) segmentBoundsCalculator,
   ) {
-    // Clear existing connections
-    for (final connectionId in _connections.keys.toList()) {
-      _removeConnectionSegments(connectionId: connectionId, notify: false);
-    }
-    _connections.clear();
+    final connectionList = connections.toList(growable: false);
+    final incomingConnectionIds = connectionList
+        .map((connection) => connection.id)
+        .toSet();
 
-    // Add new connections
     batch(() {
-      for (final connection in connections) {
+      for (final connectionId in _connections.keys.toList(growable: false)) {
+        if (!incomingConnectionIds.contains(connectionId)) {
+          removeConnection(connectionId);
+        }
+      }
+      for (final connection in connectionList) {
         final segments = segmentBoundsCalculator(connection);
         updateConnection(connection, segments);
       }

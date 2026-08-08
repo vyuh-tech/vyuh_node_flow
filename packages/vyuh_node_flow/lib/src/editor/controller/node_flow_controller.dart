@@ -1089,23 +1089,38 @@ class NodeFlowController<T, C> {
     }
   }
 
-  /// Wraps multiple operations in a batch.
+  /// Applies synchronous graph changes through one reactive invalidation
+  /// boundary.
   ///
-  /// Plugins will see [BatchStarted] before the operations and
-  /// [BatchEnded] after. This allows plugins like undo/redo to
-  /// group multiple operations into a single undoable action.
+  /// Use this for logical topology changes that touch multiple nodes and
+  /// connections, such as expanding a node into a subgraph or replacing a
+  /// generated branch. MobX observers are notified after the outer mutation,
+  /// and the spatial index publishes at most one revision for the operation.
   ///
-  /// Batches can be nested. Only the outermost batch emits events.
+  /// Per-element node and connection callbacks/events are preserved. Plugins
+  /// additionally see [BatchStarted] before the mutation and [BatchEnded]
+  /// after it, so history and persistence plugins can treat it as one logical
+  /// change. Nested mutations join the outer boundary and emit no extra batch
+  /// events.
+  ///
+  /// [mutation] must be synchronous. This API consolidates notifications but
+  /// does not provide rollback: if it throws, changes completed before the
+  /// exception remain applied and [BatchEnded] is still emitted.
   ///
   /// Example:
   /// ```dart
-  /// controller.batch('delete-selection', () {
-  ///   for (final id in selectedNodeIds.toList()) {
-  ///     controller.removeNode(id);
-  ///   }
-  /// });
+  /// controller.mutateGraph(
+  ///   () {
+  ///     controller.addNode(generatedNode);
+  ///     controller.addConnections([incoming, outgoing]);
+  ///   },
+  ///   reason: 'expand-generated-node',
+  /// );
   /// ```
-  void batch(String reason, void Function() operations) {
+  void mutateGraph(
+    void Function() mutation, {
+    String reason = 'graph-mutation',
+  }) {
     final isOutermost = _batchDepth == 0;
     if (isOutermost) {
       _emitEvent(BatchStarted(reason));
@@ -1114,9 +1129,9 @@ class NodeFlowController<T, C> {
 
     try {
       if (isOutermost) {
-        _spatialIndex.batch(() => runInAction(operations));
+        _spatialIndex.batch(() => runInAction(mutation));
       } else {
-        operations();
+        mutation();
       }
     } finally {
       _batchDepth--;
@@ -1124,6 +1139,12 @@ class NodeFlowController<T, C> {
         _emitEvent(BatchEnded());
       }
     }
+  }
+
+  /// Legacy name for [mutateGraph].
+  @Deprecated('Use mutateGraph(callback, reason: reason) instead.')
+  void batch(String reason, void Function() operations) {
+    mutateGraph(operations, reason: reason);
   }
 }
 

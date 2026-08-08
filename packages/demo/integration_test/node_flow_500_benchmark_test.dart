@@ -68,8 +68,11 @@ Future<void> _runBenchmark(
       showAttribution: false,
       plugins: [
         LodPlugin(
-          enabled: renderMode == _RenderMode.adaptive,
-          maxInteractiveNodes: _adaptiveNodeLimit,
+          enabled: renderMode != _RenderMode.full,
+          minThreshold: renderMode == _RenderMode.navigation ? 0 : 0.03,
+          maxInteractiveNodes: renderMode == _RenderMode.navigation
+              ? _nodeCount * 2
+              : _adaptiveNodeLimit,
         ),
       ],
     ),
@@ -84,8 +87,10 @@ Future<void> _runBenchmark(
 
   _centerGraph(controller, _initialZoom);
   await tester.pump();
-  final warmup = await _measurePhase(
+  final warmup = await _measureViewportPhase(
     tester: tester,
+    controller: controller,
+    paintedNavigation: renderMode == _RenderMode.navigation,
     phase: 'warmup',
     requestedFrames: _warmupFrames,
     action: () => _pumpViewportFrames(
@@ -111,8 +116,10 @@ Future<void> _runBenchmark(
 
   _centerGraph(controller, _initialZoom);
   await tester.pump();
-  final pan = await _measurePhase(
+  final pan = await _measureViewportPhase(
     tester: tester,
+    controller: controller,
+    paintedNavigation: renderMode == _RenderMode.navigation,
     phase: 'steady_state',
     requestedFrames: _scenarioFrames,
     action: () => _pumpViewportFrames(
@@ -136,8 +143,10 @@ Future<void> _runBenchmark(
 
   _centerGraph(controller, _initialZoom);
   await tester.pump();
-  final zoom = await _measurePhase(
+  final zoom = await _measureViewportPhase(
     tester: tester,
+    controller: controller,
+    paintedNavigation: renderMode == _RenderMode.navigation,
     phase: 'steady_state',
     requestedFrames: _scenarioFrames,
     action: () => _pumpViewportFrames(
@@ -246,17 +255,18 @@ Future<void> _runBenchmark(
   debugPrint('NODE_FLOW_500_BENCHMARK ${jsonEncode(report)}');
 }
 
-enum _RenderMode { full, adaptive }
+enum _RenderMode { full, navigation, adaptive }
 
 List<_RenderMode> _selectedRenderModes() {
   return switch (_requestedRenderMode) {
     'all' => _RenderMode.values,
     'full' => const [_RenderMode.full],
+    'navigation' => const [_RenderMode.navigation],
     'adaptive' => const [_RenderMode.adaptive],
     _ => throw ArgumentError.value(
       _requestedRenderMode,
       'NODE_FLOW_BENCHMARK_RENDER_MODE',
-      'Expected all, full, or adaptive',
+      'Expected all, full, navigation, or adaptive',
     ),
   };
 }
@@ -277,7 +287,9 @@ Map<String, Object?> _renderState(NodeFlowController<String, void> controller) {
     'lod_enabled': lod?.isEnabled ?? false,
     'lod_detail': detailLevel,
     'thumbnail_mode': lod?.useThumbnailMode ?? false,
+    'node_scene_mode': lod?.sceneMode.name,
     'max_interactive_nodes': lod?.maxInteractiveNodes,
+    'paint_during_viewport_interaction': lod?.paintDuringViewportInteraction,
   };
 }
 
@@ -471,34 +483,39 @@ Future<_WorkloadCounters> _pumpTopologyFrames({
     final cycle = frame ~/ 2;
     final nodeId = 'churn-node-$cycle';
     if (frame.isEven) {
-      controller.addNode(
-        _benchmarkNode(
-          id: nodeId,
-          data: 'Transient processor $cycle',
-          position: Offset(9.5 * _columnSpacing, 12.5 * _rowSpacing),
-        ),
-      );
-      controller.addConnections([
-        Connection<void>(
-          id: 'churn-in-$cycle',
-          sourceNodeId: 'node-249',
-          sourcePortId: 'out',
-          targetNodeId: nodeId,
-          targetPortId: 'in',
-        ),
-        Connection<void>(
-          id: 'churn-out-$cycle',
-          sourceNodeId: nodeId,
-          sourcePortId: 'out',
-          targetNodeId: 'node-250',
-          targetPortId: 'in',
-        ),
-      ]);
+      controller.mutateGraph(() {
+        controller.addNode(
+          _benchmarkNode(
+            id: nodeId,
+            data: 'Transient processor $cycle',
+            position: Offset(9.5 * _columnSpacing, 12.5 * _rowSpacing),
+          ),
+        );
+        controller.addConnections([
+          Connection<void>(
+            id: 'churn-in-$cycle',
+            sourceNodeId: 'node-249',
+            sourcePortId: 'out',
+            targetNodeId: nodeId,
+            targetPortId: 'in',
+          ),
+          Connection<void>(
+            id: 'churn-out-$cycle',
+            sourceNodeId: nodeId,
+            sourcePortId: 'out',
+            targetNodeId: 'node-250',
+            targetPortId: 'in',
+          ),
+        ]);
+      }, reason: 'benchmark-add-node-with-edges');
       graphUpdates += 3;
     } else {
       // Removing the node also removes both incident connections, exercising
       // adjacency cleanup and connection-scene invalidation.
-      controller.removeNode(nodeId);
+      controller.mutateGraph(
+        () => controller.removeNode(nodeId),
+        reason: 'benchmark-remove-node-with-edges',
+      );
       graphUpdates++;
     }
 
@@ -512,6 +529,40 @@ Future<_WorkloadCounters> _pumpTopologyFrames({
     viewportUpdates: 0,
     graphUpdates: graphUpdates,
   );
+}
+
+Future<Map<String, Object?>> _measureViewportPhase({
+  required WidgetTester tester,
+  required NodeFlowController<String, void> controller,
+  required bool paintedNavigation,
+  required String phase,
+  required int requestedFrames,
+  required Future<_WorkloadCounters> Function() action,
+}) async {
+  if (paintedNavigation) {
+    controller.interaction.setViewportInteracting(true);
+    // Keep the one-time widget-to-painted transition outside the steady
+    // navigation sample, matching a real gesture's start boundary.
+    await tester.pump();
+    // FrameTiming delivery is asynchronous and batched. Give the transition
+    // timing a chance to arrive before the measured callback is registered.
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+  }
+
+  try {
+    final result = await _measurePhase(
+      tester: tester,
+      phase: phase,
+      requestedFrames: requestedFrames,
+      action: action,
+    );
+    return {...result, 'measured_render_state': _renderState(controller)};
+  } finally {
+    if (paintedNavigation) {
+      controller.interaction.setViewportInteracting(false);
+      await tester.pump();
+    }
+  }
 }
 
 Future<Map<String, Object?>> _measurePhase({

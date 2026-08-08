@@ -299,6 +299,54 @@ void main() {
       expect(committed, hasLength(1));
     });
 
+    testWidgets(
+      'camera gesture replaces node widgets with painted navigation',
+      (tester) async {
+        controller.addNodes([
+          createTestNode(id: 'node-1', position: const Offset(100, 100)),
+          createTestNode(id: 'node-2', position: const Offset(300, 100)),
+        ]);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 800,
+                height: 600,
+                child: NodeFlowEditor<String, dynamic>(
+                  controller: controller,
+                  nodeBuilder: (context, node) => Text(node.id),
+                  theme: NodeFlowTheme.light,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('node-1'), findsOneWidget);
+        expect(find.text('node-2'), findsOneWidget);
+        expect(find.byType(NodesThumbnailLayer<String>), findsNothing);
+
+        final gesture = await tester.startGesture(const Offset(700, 500));
+        await gesture.moveBy(const Offset(40, 20));
+        await tester.pump();
+
+        expect(controller.interaction.isViewportInteracting.value, isTrue);
+        expect(find.byType(NodesThumbnailLayer<String>), findsOneWidget);
+        expect(find.text('node-1'), findsNothing);
+        expect(find.text('node-2'), findsNothing);
+
+        await gesture.up();
+        await tester.pump();
+
+        expect(controller.interaction.isViewportInteracting.value, isFalse);
+        expect(find.byType(NodesThumbnailLayer<String>), findsNothing);
+        expect(find.text('node-1'), findsOneWidget);
+        expect(find.text('node-2'), findsOneWidget);
+      },
+    );
+
     testWidgets('external live camera drives transform without MobX commit', (
       tester,
     ) async {

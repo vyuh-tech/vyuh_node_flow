@@ -233,13 +233,13 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
       // Note: Groupable nodes (like GroupNode) are notified of deletions via MobX reaction
       // in _setupNodeMonitoringReactions that watches _nodes.keys for additions/deletions
     });
-    // Fire event after successful removal
-    events.node?.onDeleted?.call(nodeToDelete);
-    // Emit extension events for removed connections first
+    // Connection deletions precede the node deletion so every event observes
+    // a valid topological teardown order, including cascade removals.
     for (final connection in connectionsToRemove) {
+      events.connection?.onDeleted?.call(connection);
       _emitEvent(ConnectionRemoved(connection));
     }
-    // Emit extension event for removed node
+    events.node?.onDeleted?.call(nodeToDelete);
     _emitEvent(NodeRemoved<T>(nodeToDelete));
   }
 
@@ -296,11 +296,11 @@ extension NodeApi<T, C> on NodeFlowController<T, C> {
     final ids = nodeIds.toList(growable: false);
     if (ids.isEmpty) return;
 
-    batch('remove-nodes', () {
+    mutateGraph(() {
       for (final nodeId in ids) {
         removeNode(nodeId);
       }
-    });
+    }, reason: 'remove-nodes');
   }
 
   // ============================================================================

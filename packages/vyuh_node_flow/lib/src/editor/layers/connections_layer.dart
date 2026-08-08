@@ -82,6 +82,7 @@ class ConnectionsLayer<T, C> extends StatelessWidget {
                   selectedIds: controller.selectedConnectionIds,
                   skipEndpoints: skipEndpoints,
                   simplifyPaths: simplifyPaths,
+                  retainOverviewBatches: true,
                   connectionStyleBuilder: connectionStyleBuilder,
                 );
             final animatedSnapshot = controller.connectionPainter

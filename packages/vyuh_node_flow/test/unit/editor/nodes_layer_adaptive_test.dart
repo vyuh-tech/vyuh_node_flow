@@ -67,6 +67,97 @@ void main() {
     },
   );
 
+  testWidgets(
+    'removes full node widget subtrees from active navigation frames',
+    (tester) async {
+      final controller = NodeFlowController<String, dynamic>(
+        nodes: [
+          createTestNode(id: 'one'),
+          createTestNode(id: 'two'),
+        ],
+        config: NodeFlowConfig(
+          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 10)],
+        ),
+      );
+      addTearDown(controller.dispose);
+      var nodeBuildCount = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Stack(
+            children: [
+              NodesLayer.middle<String>(controller, (context, node) {
+                nodeBuildCount++;
+                return Text(node.id);
+              }),
+            ],
+          ),
+        ),
+      );
+
+      expect(find.byType(NodesThumbnailLayer<String>), findsNothing);
+      expect(find.text('one'), findsOneWidget);
+      expect(find.text('two'), findsOneWidget);
+      expect(nodeBuildCount, 2);
+
+      controller.interaction.setViewportInteracting(true);
+      await tester.pump();
+
+      expect(find.byType(NodesThumbnailLayer<String>), findsOneWidget);
+      expect(find.text('one'), findsNothing);
+      expect(find.text('two'), findsNothing);
+
+      controller.interaction.setViewportInteracting(false);
+      await tester.pump();
+
+      expect(find.byType(NodesThumbnailLayer<String>), findsNothing);
+      expect(find.text('one'), findsOneWidget);
+      expect(find.text('two'), findsOneWidget);
+    },
+  );
+
+  testWidgets('selected nodes remain promoted during painted navigation', (
+    tester,
+  ) async {
+    final controller = NodeFlowController<String, dynamic>(
+      nodes: [
+        createTestNode(id: 'one'),
+        createTestNode(id: 'two'),
+      ],
+      config: NodeFlowConfig(
+        plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 10)],
+      ),
+    );
+    addTearDown(controller.dispose);
+    controller.selectNode('one');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Stack(
+          children: [
+            NodesLayer.middle<String>(
+              controller,
+              (context, node) => Text(node.id),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    controller.interaction.setViewportInteracting(true);
+    await tester.pump();
+
+    expect(controller.lod!.sceneMode, NodeSceneMode.navigation);
+    expect(find.byType(NodesThumbnailLayer<String>), findsOneWidget);
+    expect(find.text('one'), findsOneWidget);
+    expect(find.text('two'), findsNothing);
+
+    final thumbnail = tester.widget<NodesThumbnailLayer<String>>(
+      find.byType(NodesThumbnailLayer<String>),
+    );
+    expect(thumbnail.nodes!.map((node) => node.id), ['two']);
+  });
+
   testWidgets('empty widget layer allocates no full-canvas render objects', (
     tester,
   ) async {

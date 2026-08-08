@@ -7,9 +7,13 @@ Flutter's engine-provided `FrameTiming` values. The topology workload
 alternately creates a visible node with two incident edges and removes that
 node with its edges, keeping the fixture near 500 nodes while exercising widget
 mounting, the spatial index, adjacency cleanup, and connection-scene
-invalidation. By default, it runs the same fixture and workloads in two configurations:
+invalidation. By default, it runs the same fixture and workloads in three
+configurations:
 
 - `full`: adaptive LOD disabled, so every visible node uses its full widget.
+- `navigation`: all 500 nodes use full widgets while idle, but camera gestures
+  replace ordinary nodes with the painted scene. Selected or actively edited
+  nodes remain promoted as a small widget overlay.
 - `adaptive`: adaptive LOD enabled with `maxInteractiveNodes: 200`, allowing
   the editor to switch to its batched overview painter.
 
@@ -52,7 +56,7 @@ phase. The topology workload reports its add/remove API calls in
 after measurement.
 
 To iterate on only one configuration, set `NODE_FLOW_BENCHMARK_RENDER_MODE` to
-`full` or `adaptive` (`all` is the default):
+`full`, `navigation`, or `adaptive` (`all` is the default):
 
 ```sh
 flutter drive \
