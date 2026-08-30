@@ -32,6 +32,13 @@ jobs:
           cd packages/demo
           flutter build web --release --wasm
 
+      - name: Verify Wasm hosting headers
+        run: |
+          test -f packages/demo/build/web/_headers
+          grep -Fq "Cross-Origin-Opener-Policy: same-origin" packages/demo/build/web/_headers
+          grep -Fq "Cross-Origin-Embedder-Policy: credentialless" packages/demo/build/web/_headers
+          grep -Fq "Cache-Control: no-cache, no-store, must-revalidate" packages/demo/build/web/_headers
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:

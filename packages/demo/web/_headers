@@ -1,0 +1,48 @@
+# Flutter's Wasm renderer uses shared memory only in a cross-origin isolated
+# browsing context. `credentialless` keeps external demo images usable while
+# enabling multi-threaded SkWasm in browsers that support it.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless
+  Origin-Agent-Cluster: ?1
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), geolocation=(), microphone=()
+
+# These files select or describe a coherent Flutter build. Never reuse them
+# without revalidation across a Cloudflare Pages deployment.
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/flutter_bootstrap.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/flutter.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/flutter_service_worker.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/version.json
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# The Wasm module and its JavaScript support runtime must always come from the
+# same deployment. Conditional revalidation preserves browser caching without
+# allowing either half of the pair to become stale.
+/main.dart.mjs
+  Cache-Control: public, max-age=0, must-revalidate
+
+/main.dart.wasm
+  Cache-Control: public, max-age=0, must-revalidate
+
+/canvaskit/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/assets/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/manifest.json
+  Cache-Control: public, max-age=0, must-revalidate
