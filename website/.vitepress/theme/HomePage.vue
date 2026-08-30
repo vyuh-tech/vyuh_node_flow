@@ -14,7 +14,6 @@ import FlutterBrand from './components/FlutterBrand.vue';
 import GridBackground from './components/GridBackground.vue';
 import HeroSection from './components/HeroSection.vue';
 import MarqueeGroup from './components/MarqueeGroup.vue';
-import PackageShields from './components/PackageShields.vue';
 import QuickStartSection from './components/QuickStartSection.vue';
 import Section from './components/Section.vue';
 import SectionConnector from './components/SectionConnector.vue';
@@ -407,13 +406,6 @@ const heroBlinkCells = generateBlinkCells(20, 42);
             <dd>LOD + culling</dd>
           </div>
         </dl>
-        <PackageShields
-          class="hero-adoption"
-          :show-version="false"
-          :show-license="false"
-          :show-coverage="false"
-          compact
-        />
       </template>
 
       <template #visual>
@@ -585,10 +577,6 @@ const heroBlinkCells = generateBlinkCells(20, 42);
 
 .hero-proof dd {
   @apply mt-1 text-xs text-slate-500 dark:text-zinc-400;
-}
-
-.hero-adoption {
-  @apply mt-4 max-xl:justify-center;
 }
 
 .community-heading {
