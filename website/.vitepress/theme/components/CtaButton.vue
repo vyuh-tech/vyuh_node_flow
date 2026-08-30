@@ -25,6 +25,7 @@ defineEmits<{
       size === 'large' ? 'hero-btn-lg' : '',
     ]"
     :target="external ? '_blank' : undefined"
+    :rel="external ? 'noopener noreferrer' : undefined"
   >
     <Icon v-if="icon" :icon="icon" />
     <slot />
@@ -51,25 +52,20 @@ defineEmits<{
 .hero-btn {
   @apply inline-flex items-center gap-2 px-7 py-3.5 font-semibold text-sm rounded-xl cursor-pointer no-underline;
   @apply max-md:justify-center max-md:w-full;
-  font-family: var(--vn-font-display);
-  transition: all 0.3s var(--vn-ease-out);
+  font-family: var(--vn-font-body);
+  transition: transform 160ms var(--vn-ease-out), border-color 160ms ease-out, background-color 160ms ease-out, color 160ms ease-out, box-shadow 160ms ease-out;
 }
 
 .hero-btn-primary {
-  @apply text-white border-none;
-  background: linear-gradient(
-    135deg,
-    theme('colors.blue.600'),
-    theme('colors.violet.500')
-  );
-  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
+  @apply text-white border border-blue-700 bg-blue-700;
+  box-shadow: 0 8px 18px -14px rgba(29, 78, 216, 0.75);
 }
 
 .hero-btn-primary:hover {
-  @apply -translate-y-1;
+  @apply -translate-y-0.5 bg-blue-800 border-blue-800;
   box-shadow:
-    0 12px 40px rgba(37, 99, 235, 0.5),
-    0 0 60px rgba(139, 92, 246, 0.3);
+    0 14px 30px -14px rgba(29, 78, 216, 0.78),
+    0 0 0 4px rgba(37, 99, 235, 0.1);
 }
 
 .hero-btn-secondary {
@@ -78,8 +74,20 @@ defineEmits<{
 }
 
 .hero-btn-secondary:hover {
-  @apply border-violet-600 text-violet-600;
-  @apply dark:border-violet-400 dark:text-violet-400;
+  @apply -translate-y-0.5 border-blue-700 text-blue-700;
+  @apply dark:border-blue-400 dark:text-blue-400;
+  box-shadow:
+    0 12px 26px -16px rgba(30, 64, 175, 0.45),
+    0 0 0 4px rgba(37, 99, 235, 0.07);
+}
+
+.hero-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.hero-btn:focus-visible {
+  @apply outline-2 outline-offset-2 outline-blue-600;
 }
 
 .hero-btn-lg {

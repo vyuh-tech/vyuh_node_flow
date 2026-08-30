@@ -173,6 +173,33 @@ class Connection<C> {
   final Observable<double?> _strokeWidth;
   final Observable<double?> _selectedStrokeWidth;
 
+  /// Registers a lightweight listener for renderer-relevant state changes.
+  ///
+  /// This is an internal renderer hook. Raw MobX listeners preserve the
+  /// existing setter behavior without creating a reactive dependency graph.
+  VoidCallback observeSceneChanges(VoidCallback listener) {
+    final disposers = <Dispose>[
+      _animated.observe((_) => listener()),
+      _selected.observe((_) => listener()),
+      _visible.observe((_) => listener()),
+      _startLabel.observe((_) => listener()),
+      _label.observe((_) => listener()),
+      _endLabel.observe((_) => listener()),
+      _animationEffect.observe((_) => listener()),
+      _startPoint.observe((_) => listener()),
+      _endPoint.observe((_) => listener()),
+      _color.observe((_) => listener()),
+      _selectedColor.observe((_) => listener()),
+      _strokeWidth.observe((_) => listener()),
+      _selectedStrokeWidth.observe((_) => listener()),
+    ];
+    return () {
+      for (final dispose in disposers) {
+        dispose();
+      }
+    };
+  }
+
   /// Optional typed data to attach to the connection.
   ///
   /// This can be used to store custom metadata, validation state, or any other

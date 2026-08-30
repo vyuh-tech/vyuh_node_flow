@@ -256,7 +256,7 @@ class NodeContainer<T> extends StatelessWidget {
                 port: port,
                 theme: portTheme,
                 isConnected: isConnected,
-                snapDistance: portSnapDistance,
+                snapDistance: port.isConnectable ? portSnapDistance : 0,
                 controller: controller,
                 nodeId: node.id,
                 isOutput: isOutput,

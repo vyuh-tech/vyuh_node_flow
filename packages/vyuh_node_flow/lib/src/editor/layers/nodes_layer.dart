@@ -259,6 +259,10 @@ class NodesLayer<T> extends StatelessWidget {
     // for the ordinary graph while selection/focus survives the mode switch.
     final promotedIds = <String>{
       if (promoteSelection) ...controller.selectedNodeIds,
+      for (final node in nodesList)
+        if (node.isEditing ||
+            node.retainedRendering == RetainedNodeRendering.live)
+          node.id,
     };
     final draggedNodeId = controller.interaction.draggedNodeId.value;
     if (draggedNodeId != null) promotedIds.add(draggedNodeId);

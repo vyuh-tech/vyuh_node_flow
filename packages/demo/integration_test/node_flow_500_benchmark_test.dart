@@ -13,15 +13,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:vyuh_node_flow/vyuh_node_flow.dart';
 
-const _nodeCount = 500;
-const _columnCount = 20;
-const _rowCount = 25;
+const _nodeCount = int.fromEnvironment(
+  'NODE_FLOW_BENCHMARK_NODE_COUNT',
+  defaultValue: 500,
+);
+final _columnCount = math.max(2, math.sqrt(_nodeCount * 0.8).ceil());
+final _rowCount = (_nodeCount / _columnCount).ceil();
 const _nodeSize = Size(160, 80);
 const _columnSpacing = 210.0;
 const _rowSpacing = 125.0;
 const _initialZoom = 0.18;
-const _targetFrameMicros = 8333;
+const _targetFrameMicros = 16667;
+const _legacy120HzFrameMicros = 8333;
 const _adaptiveNodeLimit = 200;
+const _isWasm = bool.fromEnvironment('dart.tool.dart2wasm');
 
 const _requestedRenderMode = String.fromEnvironment(
   'NODE_FLOW_BENCHMARK_RENDER_MODE',
@@ -43,7 +48,7 @@ void main() {
 
   for (final renderMode in _selectedRenderModes()) {
     testWidgets(
-      '500-node rendered frame benchmark (${renderMode.name})',
+      '$_nodeCount-node rendered frame benchmark (${renderMode.name})',
       (tester) async {
         await _runBenchmark(tester, binding, renderMode);
       },
@@ -58,34 +63,50 @@ Future<void> _runBenchmark(
   _RenderMode renderMode,
 ) async {
   final fixture = _BenchmarkFixture.create();
+  final retainedFull = renderMode == _RenderMode.retainedFull;
   final controller = NodeFlowController<String, void>(
     nodes: fixture.nodes,
     connections: fixture.connections,
     initialViewport: const GraphViewport(x: 24, y: 24, zoom: _initialZoom),
     config: NodeFlowConfig(
-      minZoom: 0.12,
+      minZoom: 0.01,
       maxZoom: 2,
       showAttribution: false,
       plugins: [
         LodPlugin(
           enabled: renderMode != _RenderMode.full,
-          minThreshold: renderMode == _RenderMode.navigation ? 0 : 0.03,
-          maxInteractiveNodes: renderMode == _RenderMode.navigation
-              ? _nodeCount * 2
-              : _adaptiveNodeLimit,
+          minThreshold: renderMode == _RenderMode.navigation || retainedFull
+              ? 0
+              : 0.03,
+          midThreshold: retainedFull ? 0 : 0.1,
+          maxInteractiveNodes: switch (renderMode) {
+            _RenderMode.navigation => _nodeCount * 2,
+            _RenderMode.retainedFull => 1,
+            _ => _adaptiveNodeLimit,
+          },
+          minVisibility: retainedFull
+              ? DetailVisibility.full
+              : DetailVisibility.minimal,
+          midVisibility: retainedFull
+              ? DetailVisibility.full
+              : DetailVisibility.standard,
+          maxVisibility: DetailVisibility.full,
         ),
       ],
     ),
   );
   addTearDown(controller.dispose);
 
-  await tester.pumpWidget(_BenchmarkApp(controller: controller));
+  await tester.pumpWidget(
+    _BenchmarkApp(controller: controller, renderMode: renderMode),
+  );
   await tester.pumpAndSettle();
 
   expect(controller.nodeCount, _nodeCount);
   expect(controller.connectionCount, fixture.connections.length);
+  final benchmarkZoom = _fitGraphZoom(controller);
 
-  _centerGraph(controller, _initialZoom);
+  _centerGraph(controller, benchmarkZoom);
   await tester.pump();
   final warmup = await _measureViewportPhase(
     tester: tester,
@@ -102,7 +123,7 @@ Future<void> _runBenchmark(
         return _oscillatingViewport(
           controller,
           phase,
-          _initialZoom,
+          benchmarkZoom,
           panRadius: 12,
         );
       },
@@ -114,7 +135,7 @@ Future<void> _runBenchmark(
 
   final results = <String, Map<String, Object?>>{};
 
-  _centerGraph(controller, _initialZoom);
+  _centerGraph(controller, benchmarkZoom);
   await tester.pump();
   final pan = await _measureViewportPhase(
     tester: tester,
@@ -131,7 +152,7 @@ Future<void> _runBenchmark(
         return _oscillatingViewport(
           controller,
           phase,
-          _initialZoom,
+          benchmarkZoom,
           panRadius: 90,
         );
       },
@@ -141,7 +162,7 @@ Future<void> _runBenchmark(
   await tester.pump();
   results['pan'] = {...pan, 'render_state': _renderState(controller)};
 
-  _centerGraph(controller, _initialZoom);
+  _centerGraph(controller, benchmarkZoom);
   await tester.pump();
   final zoom = await _measureViewportPhase(
     tester: tester,
@@ -155,7 +176,7 @@ Future<void> _runBenchmark(
       frameCount: _scenarioFrames,
       viewportForFrame: (frame) {
         final phase = frame / math.max(1, _scenarioFrames - 1);
-        final zoom = _initialZoom + 0.055 * math.sin(phase * math.pi * 2);
+        final zoom = benchmarkZoom * (1 + 0.2 * math.sin(phase * math.pi * 2));
         return _centeredViewport(controller, zoom);
       },
     ),
@@ -164,7 +185,7 @@ Future<void> _runBenchmark(
   await tester.pump();
   results['zoom'] = {...zoom, 'render_state': _renderState(controller)};
 
-  _centerGraph(controller, 0.24);
+  _centerGraph(controller, benchmarkZoom);
   await tester.pump();
   results['single_node_drag'] = {
     ...await _measurePhase(
@@ -172,7 +193,7 @@ Future<void> _runBenchmark(
       phase: 'steady_state',
       requestedFrames: _scenarioFrames,
       action: () async {
-        const nodeId = 'node-249';
+        final nodeId = 'node-${_nodeCount ~/ 2}';
         controller.startNodeDrag(nodeId);
         final counters = await _pumpFrames(tester, _scenarioFrames, (frame) {
           final direction = frame < _scenarioFrames ~/ 2 ? 1.0 : -1.0;
@@ -187,7 +208,7 @@ Future<void> _runBenchmark(
   // Commit the drag-end state outside the measured steady-state phase.
   await tester.pump();
 
-  _centerGraph(controller, 0.24);
+  _centerGraph(controller, benchmarkZoom);
   await tester.pump();
   results['node_and_edge_churn'] = {
     ...await _measurePhase(
@@ -203,7 +224,7 @@ Future<void> _runBenchmark(
     'render_state': _renderState(controller),
   };
   // An odd frame count leaves the last transient node mounted. Restore the
-  // deterministic 500-node fixture outside the measured phase.
+  // deterministic baseline fixture outside the measured phase.
   if (_scenarioFrames.isOdd) {
     controller.removeNode('churn-node-${_scenarioFrames ~/ 2}');
     await tester.pump();
@@ -219,6 +240,10 @@ Future<void> _runBenchmark(
       'columns': _columnCount,
       'rows': _rowCount,
     },
+    'rendering': {
+      'visual_detail': retainedFull ? 'full-retained' : renderMode.name,
+      'retained_node_pictures': retainedFull,
+    },
     'runtime': {
       'build_mode': kProfileMode
           ? 'profile'
@@ -226,6 +251,7 @@ Future<void> _runBenchmark(
           ? 'release'
           : 'debug',
       'web': kIsWeb,
+      'wasm': _isWasm,
       'platform': defaultTargetPlatform.name,
       'logical_surface': {
         'width': controller.screenSize.width,
@@ -245,28 +271,30 @@ Future<void> _runBenchmark(
   };
 
   binding.reportData ??= <String, dynamic>{};
-  final modeReports =
+  final graphReports =
       binding.reportData!.putIfAbsent(
-            'node_flow_500',
+            'node_flow_$_nodeCount',
             () => <String, Object?>{},
           )
           as Map<String, Object?>;
-  modeReports[renderMode.name] = report;
-  debugPrint('NODE_FLOW_500_BENCHMARK ${jsonEncode(report)}');
+  graphReports[renderMode.name] = report;
+  debugPrint('NODE_FLOW_BENCHMARK ${jsonEncode(report)}');
 }
 
-enum _RenderMode { full, navigation, adaptive }
+enum _RenderMode { full, retainedFull, navigation, adaptive }
 
 List<_RenderMode> _selectedRenderModes() {
   return switch (_requestedRenderMode) {
     'all' => _RenderMode.values,
+    'comparison' => const [_RenderMode.full, _RenderMode.retainedFull],
     'full' => const [_RenderMode.full],
+    'retained-full' => const [_RenderMode.retainedFull],
     'navigation' => const [_RenderMode.navigation],
     'adaptive' => const [_RenderMode.adaptive],
     _ => throw ArgumentError.value(
       _requestedRenderMode,
       'NODE_FLOW_BENCHMARK_RENDER_MODE',
-      'Expected all, full, navigation, or adaptive',
+      'Expected all, comparison, full, retained-full, navigation, or adaptive',
     ),
   };
 }
@@ -294,9 +322,10 @@ Map<String, Object?> _renderState(NodeFlowController<String, void> controller) {
 }
 
 class _BenchmarkApp extends StatelessWidget {
-  const _BenchmarkApp({required this.controller});
+  const _BenchmarkApp({required this.controller, required this.renderMode});
 
   final NodeFlowController<String, void> controller;
+  final _RenderMode renderMode;
 
   @override
   Widget build(BuildContext context) {
@@ -306,6 +335,9 @@ class _BenchmarkApp extends StatelessWidget {
         body: NodeFlowEditor<String, void>(
           controller: controller,
           theme: NodeFlowTheme.light,
+          thumbnailBuilder: renderMode == _RenderMode.retainedFull
+              ? _paintRetainedBenchmarkNode
+              : null,
           nodeBuilder: (context, node) => Container(
             width: _nodeSize.width,
             height: _nodeSize.height,
@@ -345,6 +377,70 @@ class _BenchmarkApp extends StatelessWidget {
   }
 }
 
+bool _paintRetainedBenchmarkNode(
+  Canvas canvas,
+  Node<String> node,
+  Rect bounds,
+  bool isSelected,
+) {
+  final card = RRect.fromRectAndRadius(bounds, const Radius.circular(8));
+  canvas.drawRRect(card, Paint()..color = const Color(0xfff8fafc));
+  canvas.drawRRect(
+    card,
+    Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = isSelected ? 2 : 1
+      ..color = isSelected ? const Color(0xff2563eb) : const Color(0xffcbd5e1),
+  );
+
+  void paintText(
+    String text,
+    Offset offset,
+    TextStyle style, {
+    double maxWidth = 132,
+  }) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+      ellipsis: '…',
+    )..layout(maxWidth: maxWidth);
+    painter.paint(canvas, offset);
+  }
+
+  paintText(
+    node.data,
+    bounds.topLeft + const Offset(12, 10),
+    const TextStyle(
+      color: Color(0xff0f172a),
+      fontSize: 13,
+      fontWeight: FontWeight.w600,
+    ),
+  );
+  paintText(
+    node.id,
+    bounds.topLeft + const Offset(12, 34),
+    const TextStyle(color: Color(0xff64748b), fontSize: 11),
+  );
+  paintText(
+    'Input',
+    Offset(bounds.left + 10, bounds.bottom - 20),
+    const TextStyle(color: Color(0xff64748b), fontSize: 9),
+    maxWidth: 52,
+  );
+  paintText(
+    'Output',
+    Offset(bounds.right - 40, bounds.bottom - 20),
+    const TextStyle(color: Color(0xff64748b), fontSize: 9),
+    maxWidth: 34,
+  );
+
+  final portPaint = Paint()..color = const Color(0xff2563eb);
+  canvas.drawCircle(Offset(bounds.left, bounds.center.dy), 4, portPaint);
+  canvas.drawCircle(Offset(bounds.right, bounds.center.dy), 4, portPaint);
+  return true;
+}
+
 class _BenchmarkFixture {
   const _BenchmarkFixture({required this.nodes, required this.connections});
 
@@ -355,6 +451,7 @@ class _BenchmarkFixture {
     for (var row = 0; row < _rowCount; row++) {
       for (var column = 0; column < _columnCount; column++) {
         final index = row * _columnCount + column;
+        if (index >= _nodeCount) break;
         nodes.add(
           _benchmarkNode(
             id: 'node-$index',
@@ -494,7 +591,7 @@ Future<_WorkloadCounters> _pumpTopologyFrames({
         controller.addConnections([
           Connection<void>(
             id: 'churn-in-$cycle',
-            sourceNodeId: 'node-249',
+            sourceNodeId: 'node-${math.max(0, _nodeCount ~/ 2 - 1)}',
             sourcePortId: 'out',
             targetNodeId: nodeId,
             targetPortId: 'in',
@@ -503,7 +600,7 @@ Future<_WorkloadCounters> _pumpTopologyFrames({
             id: 'churn-out-$cycle',
             sourceNodeId: nodeId,
             sourcePortId: 'out',
-            targetNodeId: 'node-250',
+            targetNodeId: 'node-${_nodeCount ~/ 2}',
             targetPortId: 'in',
           ),
         ]);
@@ -621,6 +718,9 @@ Map<String, Object?> _summarize(
 
   final deliveredFrames = timings.length;
   final budgetMisses = total.where((time) => time > _targetFrameMicros).length;
+  final legacy120HzMisses = total
+      .where((time) => time > _legacy120HzFrameMicros)
+      .length;
   final undeliveredFrames = math.max(0, requestedFrames - deliveredFrames);
   final extraDeliveredFrames = math.max(0, deliveredFrames - requestedFrames);
 
@@ -645,7 +745,8 @@ Map<String, Object?> _summarize(
     'ui': distribution(build),
     'raster': distribution(raster),
     'total': distribution(total),
-    'frames_over_8_33_ms': budgetMisses,
+    'frames_over_16_67_ms': budgetMisses,
+    'frames_over_8_33_ms': legacy120HzMisses,
     if (timings.isEmpty)
       'note': 'No FrameTiming values were delivered by this target.',
   };
@@ -676,6 +777,16 @@ int _percentile(List<int> sortedValues, double percentile) {
   if (sortedValues.isEmpty) return 0;
   final index = (percentile * sortedValues.length).ceil() - 1;
   return sortedValues[index.clamp(0, sortedValues.length - 1)];
+}
+
+double _fitGraphZoom(NodeFlowController<String, void> controller) {
+  final graphWidth = (_columnCount - 1) * _columnSpacing + _nodeSize.width;
+  final graphHeight = (_rowCount - 1) * _rowSpacing + _nodeSize.height;
+  final availableWidth = math.max(1.0, controller.screenSize.width - 48);
+  final availableHeight = math.max(1.0, controller.screenSize.height - 48);
+  return math
+      .min(availableWidth / graphWidth, availableHeight / graphHeight)
+      .clamp(0.01, 0.24);
 }
 
 void _centerGraph(NodeFlowController<String, void> controller, double zoom) {

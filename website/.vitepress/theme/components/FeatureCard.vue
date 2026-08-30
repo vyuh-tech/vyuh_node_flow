@@ -29,7 +29,7 @@ defineProps<{
 
 .card {
   @apply relative p-6 bg-white dark:bg-zinc-800 border border-slate-200/60 dark:border-zinc-500/40 rounded-2xl;
-  transition: all 0.4s var(--vn-ease-out);
+  transition: transform 160ms ease-out, border-color 160ms ease-out, box-shadow 160ms ease-out;
 }
 
 .card:hover {
@@ -41,32 +41,8 @@ defineProps<{
 .card-teal:hover { @apply border-teal-500/30 dark:border-teal-400/30; }
 .card-amber:hover { @apply border-amber-500/30 dark:border-amber-400/30; }
 
-/* Light mode: color-tinted shadows */
-.card-blue:hover {
-  box-shadow: 0 20px 40px -10px rgba(37, 99, 235, 0.25), 0 8px 16px -8px rgba(37, 99, 235, 0.15);
-}
-.card-purple:hover {
-  box-shadow: 0 20px 40px -10px rgba(139, 92, 246, 0.25), 0 8px 16px -8px rgba(139, 92, 246, 0.15);
-}
-.card-teal:hover {
-  box-shadow: 0 20px 40px -10px rgba(20, 184, 166, 0.25), 0 8px 16px -8px rgba(20, 184, 166, 0.15);
-}
-.card-amber:hover {
-  box-shadow: 0 20px 40px -10px rgba(245, 158, 11, 0.25), 0 8px 16px -8px rgba(245, 158, 11, 0.15);
-}
-
-/* Dark mode: color-specific glow effects */
-.dark .card-blue:hover {
-  box-shadow: 0 0 30px rgba(96, 165, 250, 0.3), 0 0 60px rgba(96, 165, 250, 0.15);
-}
-.dark .card-purple:hover {
-  box-shadow: 0 0 30px rgba(167, 139, 250, 0.3), 0 0 60px rgba(167, 139, 250, 0.15);
-}
-.dark .card-teal:hover {
-  box-shadow: 0 0 30px rgba(45, 212, 191, 0.3), 0 0 60px rgba(45, 212, 191, 0.15);
-}
-.dark .card-amber:hover {
-  box-shadow: 0 0 30px rgba(251, 191, 36, 0.3), 0 0 60px rgba(251, 191, 36, 0.15);
+.card:hover {
+  @apply shadow-lg;
 }
 
 .header {

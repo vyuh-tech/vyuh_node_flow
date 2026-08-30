@@ -17,12 +17,7 @@ defineProps<{
       borderBottom && 'border-b border-slate-200/50 dark:border-zinc-700/50',
     ]"
   >
-    <!-- Blur effects background -->
-    <div class="absolute inset-0 z-0">
-      <div class="hero-blur bg-blue-500 -top-48 -left-24 w-[600px] h-[600px] opacity-15 dark:opacity-25" />
-      <div class="hero-blur bg-violet-500 top-24 -right-36 w-[500px] h-[500px] opacity-12 dark:opacity-20" />
-      <div class="hero-blur bg-teal-500 -bottom-24 left-1/3 w-[400px] h-[400px] opacity-10 dark:opacity-18" />
-    </div>
+    <div class="hero-rule" aria-hidden="true" />
 
     <!-- Split layout (default) - two columns -->
     <div v-if="variant !== 'centered'" class="hero-content-split">
@@ -45,29 +40,26 @@ defineProps<{
 @reference "../style.css";
 
 .hero-section {
-  @apply relative min-h-screen flex items-center justify-center py-10 px-6 overflow-hidden;
+  @apply relative min-h-dvh flex items-center justify-center px-6 py-24 overflow-hidden border-b border-slate-200 bg-transparent;
+  @apply dark:border-zinc-800;
 }
 
-.hero-blur {
-  @apply absolute rounded-full;
-  filter: blur(120px);
+.hero-rule {
+  @apply absolute top-0 bottom-0 left-[calc(50%-1px)] w-px bg-slate-100 dark:bg-zinc-900 max-xl:hidden;
 }
 
 /* Split layout - two columns on xl+, single column below */
 .hero-content-split {
-  @apply relative z-10 max-w-7xl w-full grid xl:grid-cols-[1fr_1.4fr] gap-16 items-center;
+  @apply relative z-10 max-w-7xl w-full grid xl:grid-cols-[1fr_1.35fr] gap-16 items-center;
   @apply max-xl:grid-cols-1 max-xl:text-center max-xl:justify-items-center;
 }
 
 .hero-text {
-  animation: fadeSlideUp 0.8s var(--vn-ease-out) forwards;
-  @apply opacity-0;
+  @apply max-w-2xl;
 }
 
 .hero-visual {
   @apply relative w-full;
-  animation: fadeSlideUp 0.8s var(--vn-ease-out) 0.5s forwards;
-  @apply opacity-0;
 }
 
 /* Centered layout - single column */
@@ -75,14 +67,4 @@ defineProps<{
   @apply relative z-10 max-w-4xl w-full flex flex-col items-center text-center;
 }
 
-@keyframes fadeSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 </style>

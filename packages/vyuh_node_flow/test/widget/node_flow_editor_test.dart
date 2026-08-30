@@ -302,6 +302,7 @@ void main() {
     testWidgets(
       'camera gesture replaces node widgets with painted navigation',
       (tester) async {
+        controller.lod!.enable();
         controller.addNodes([
           createTestNode(id: 'node-1', position: const Offset(100, 100)),
           createTestNode(id: 'node-2', position: const Offset(300, 100)),
@@ -406,7 +407,9 @@ void main() {
           ),
         ],
         config: NodeFlowConfig(
-          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 1)],
+          plugins: [
+            LodPlugin(enabled: true, minThreshold: 0, maxInteractiveNodes: 1),
+          ],
         ),
       );
       var tapCount = 0;
@@ -476,7 +479,9 @@ void main() {
           ),
         ],
         config: NodeFlowConfig(
-          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 1)],
+          plugins: [
+            LodPlugin(enabled: true, minThreshold: 0, maxInteractiveNodes: 1),
+          ],
         ),
       );
 

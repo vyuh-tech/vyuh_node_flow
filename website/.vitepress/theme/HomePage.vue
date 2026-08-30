@@ -5,6 +5,7 @@ import Badge from './components/Badge.vue';
 import BentoGrid from './components/BentoGrid.vue';
 import CtaButton from './components/CtaButton.vue';
 import CtaSection from './components/CtaSection.vue';
+import CommunityShowcase from './components/CommunityShowcase.vue';
 import DemoFrame from './components/DemoFrame.vue';
 import FeatureCard from './components/FeatureCard.vue';
 import FeatureSection from './components/FeatureSection.vue';
@@ -13,12 +14,12 @@ import FlutterBrand from './components/FlutterBrand.vue';
 import GridBackground from './components/GridBackground.vue';
 import HeroSection from './components/HeroSection.vue';
 import MarqueeGroup from './components/MarqueeGroup.vue';
+import PackageShields from './components/PackageShields.vue';
 import QuickStartSection from './components/QuickStartSection.vue';
 import Section from './components/Section.vue';
 import SectionConnector from './components/SectionConnector.vue';
 import SectionHeader from './components/SectionHeader.vue';
 import SiteFooter from './components/SiteFooter.vue';
-import WordFlipper from './components/WordFlipper.vue';
 
 // Demo URL - use localhost in dev mode, production URL otherwise
 const demoUrl = computed(() => {
@@ -28,18 +29,6 @@ const demoUrl = computed(() => {
     // ? `http://localhost:8080/${path}`
     : `https://flow.demo.vyuh.tech/${path}`;
 });
-
-// Full words for the flipper
-const flipperWords = [
-  'WORK FLOW',
-  'DATA FLOW',
-  'TASK FLOW',
-  'PROCESS FLOW',
-  'NODE FLOW',
-  'CONTENT FLOW',
-  'STATE FLOW',
-  'CODE FLOW',
-];
 
 // Marquee content
 const marqueeLines = [
@@ -181,7 +170,7 @@ const capabilities = [
   {
     icon: 'ph:eye-fill',
     title: 'Level of Detail',
-    desc: 'Progressive rendering that adapts node complexity based on zoom level for smooth scaling.',
+    desc: 'Opt-in progressive rendering for graph-heavy experiences that need an adaptive overview.',
     color: 'teal' as const,
   },
   {
@@ -323,7 +312,34 @@ const useCases = [
   },
 ];
 
-// Blinking grid cells generator
+const communityProjects = [
+  {
+    title: 'Vyuh Workflow Editor',
+    description:
+      'A visual workflow editor for building BPMN-inspired workflows in Flutter, powered by Vyuh Node Flow.',
+    authorHandle: '@vyuh_tech',
+    href: 'https://editor.flow.vyuh.tech',
+    media: {
+      type: 'image' as const,
+      src: 'https://editor.flow.vyuh.tech/workflow-editor-banner.png',
+      alt: 'Vyuh Workflow Editor showing a visual workflow built with connected nodes',
+    },
+  },
+  {
+    title: 'Zen Router Dev Tools',
+    description:
+      'A Flutter DevTools extension for exploring route graphs in real time, testing deep links, and debugging navigation with Vyuh Node Flow.',
+    authorHandle: '@definev2',
+    href: 'https://pub.dev/packages/zenrouter',
+    media: {
+      type: 'video' as const,
+      src: '/videos/zenrouter-devtools.mp4',
+      poster: '/images/community/zenrouter-devtools.webp',
+      alt: 'Zen Router Dev Tools showing a live route graph powered by Vyuh Node Flow',
+    },
+  },
+];
+
 const generateBlinkCells = (count: number, seed: number) => {
   const cells = [];
   for (let i = 0; i < count; i++) {
@@ -342,35 +358,24 @@ const heroBlinkCells = generateBlinkCells(20, 42);
 </script>
 
 <template>
-  <div class="min-h-screen relative overflow-x-hidden">
-    <!-- Canvas-based Grid Background with blinking cells -->
+  <div class="home-page min-h-screen relative isolate overflow-x-hidden">
     <GridBackground color="blue" :blinkCells="heroBlinkCells" />
-
-    <!-- Decorative floating nodes -->
     <FloatingNodes />
 
     <!-- Hero Section -->
     <HeroSection>
       <template #text>
-        <Badge icon="simple-icons:flutter" color="blue"
-          >Built for Flutter</Badge
-        >
+        <Badge icon="simple-icons:flutter" color="blue">Flutter native</Badge>
         <h1 class="hero-title">
-          <span class="block text-5xl sm:text-6xl lg:text-7xl mb-2"
-            >Visualize any</span
-          >
-          <WordFlipper :words="flipperWords" :interval="1250" />
+          Turn complex systems into
+          <span class="hero-accent">clear, interactive flows.</span>
         </h1>
-        <p
-          class="text-xl font-medium text-slate-600 dark:text-zinc-300 leading-relaxed max-w-lg hero-animate-3 opacity-0 max-xl:mx-auto"
-        >
-          A flexible, high-performance node-based flow editor for
-          <FlutterBrand />. Build workflow editors, visual programming
-          interfaces, and interactive diagrams.
+        <p class="hero-summary">
+          A production-ready node editor for <FlutterBrand />. Shape workflows,
+          visual programming tools, system maps, and any experience where
+          connections matter.
         </p>
-        <div
-          class="flex gap-4 flex-wrap hero-animate-4 opacity-0 max-xl:justify-center mt-12"
-        >
+        <div class="hero-actions">
           <CtaButton
             href="/docs/start/installation"
             variant="primary"
@@ -388,6 +393,27 @@ const heroBlinkCells = generateBlinkCells(20, 42);
             Live Demo
           </CtaButton>
         </div>
+        <dl class="hero-proof" aria-label="Product highlights">
+          <div>
+            <dt>Typed</dt>
+            <dd>Pure Dart APIs</dd>
+          </div>
+          <div>
+            <dt>Native</dt>
+            <dd>Flutter widgets</dd>
+          </div>
+          <div>
+            <dt>Scalable</dt>
+            <dd>LOD + culling</dd>
+          </div>
+        </dl>
+        <PackageShields
+          class="hero-adoption"
+          :show-version="false"
+          :show-license="false"
+          :show-coverage="false"
+          compact
+        />
       </template>
 
       <template #visual>
@@ -469,6 +495,29 @@ const heroBlinkCells = generateBlinkCells(20, 42);
       </div>
     </Section>
 
+    <!-- Community Showcase -->
+    <Section id="community" border-bottom size="xl">
+      <div class="community-heading">
+        <SectionHeader
+          badge="Community showcase"
+          badge-icon="ph:users-three-fill"
+          badge-color="blue"
+          title="What people are building"
+          subtitle="Real tools, experiments, and products made with Vyuh Node Flow. Share yours and help the next builder see what is possible."
+        />
+        <a
+          class="community-submit"
+          href="https://github.com/vyuh-tech/vyuh_node_flow/issues/new?title=Community%20showcase%20submission"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Submit your project
+          <Icon icon="ph:arrow-up-right-bold" />
+        </a>
+      </div>
+      <CommunityShowcase :projects="communityProjects" />
+    </Section>
+
     <!-- CTA Section -->
     <CtaSection
       badge="Ready"
@@ -505,36 +554,77 @@ const heroBlinkCells = generateBlinkCells(20, 42);
 <style>
 @reference "./style.css";
 
-/* Hero title styling - kept here as it's page-specific */
 .hero-title {
-  @apply text-4xl sm:text-5xl lg:text-6xl font-black leading-tight mb-6 text-slate-900 dark:text-zinc-100 tracking-tight;
+  @apply mt-6 mb-6 text-balance text-5xl sm:text-6xl lg:text-7xl font-bold leading-[0.98] text-slate-950 dark:text-zinc-50;
   font-family: var(--vn-font-display);
-  animation: fadeSlideUp 0.8s var(--vn-ease-out) 0.2s forwards;
-  @apply opacity-0;
 }
 
-/* WordFlipper text one notch smaller */
-.hero-title .word-flipper {
-  @apply text-3xl sm:text-4xl lg:text-5xl;
+.hero-accent {
+  @apply block text-blue-600 dark:text-blue-400;
 }
 
-/* Staggered animation delays */
-.hero-animate-3 {
-  animation: fadeSlideUp 0.8s var(--vn-ease-out) 0.3s forwards;
+.hero-summary {
+  @apply max-w-xl text-pretty text-lg sm:text-xl leading-relaxed text-slate-600 dark:text-zinc-300 max-xl:mx-auto;
 }
 
-.hero-animate-4 {
-  animation: fadeSlideUp 0.8s var(--vn-ease-out) 0.4s forwards;
+.hero-actions {
+  @apply mt-10 flex flex-wrap gap-3 max-xl:justify-center;
 }
 
-@keyframes fadeSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
+.hero-proof {
+  @apply mt-12 grid max-w-xl grid-cols-3 border-y border-slate-200 py-5 text-left dark:border-zinc-700 max-xl:mx-auto;
+}
+
+.hero-proof div {
+  @apply px-5 first:pl-0 last:pr-0;
+}
+
+.hero-proof dt {
+  @apply text-sm font-bold text-slate-950 dark:text-zinc-50;
+}
+
+.hero-proof dd {
+  @apply mt-1 text-xs text-slate-500 dark:text-zinc-400;
+}
+
+.hero-adoption {
+  @apply mt-4 max-xl:justify-center;
+}
+
+.community-heading {
+  @apply flex items-end justify-between gap-8;
+}
+
+.community-heading :deep(.section-subtitle) {
+  @apply mb-0;
+}
+
+.community-submit {
+  @apply mb-1 inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-950 no-underline;
+  @apply dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50;
+  transition: transform 160ms ease-out, border-color 160ms ease-out;
+}
+
+.community-submit:hover {
+  @apply border-blue-600;
+  transform: translateY(-2px);
+}
+
+.community-submit:focus-visible {
+  @apply outline-2 outline-offset-2 outline-blue-600;
+}
+
+@media (max-width: 767px) {
+  .hero-proof {
+    @apply text-center;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  .hero-proof div {
+    @apply px-2 first:pl-0 last:pr-0;
+  }
+
+  .community-heading {
+    @apply items-start flex-col;
   }
 }
 </style>

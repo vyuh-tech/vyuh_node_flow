@@ -458,10 +458,13 @@ controller.addProcessNode(Offset(100, 100), 'My Process');
 
 ## Performance Tips
 
-1. **Batch Updates**: Group multiple operations together using `runInAction`
-2. **Observer Scope**: Keep `Observer` widgets focused and small
-3. **Dispose**: Always dispose the controller when done
-4. **Node Count**: Monitor performance with large graphs (1000+ nodes)
+1. **Batch Updates**: Group graph operations with `controller.mutateGraph(...)`
+2. **Retained Scene**: Use adaptive LOD for dense graphs and mark continuously
+   changing nodes with `RetainedNodeRendering.live`
+3. **Observer Scope**: Keep application-level `Observer` widgets focused and small;
+   retained painting already consumes immutable scene deltas directly
+4. **Dispose**: Always dispose the controller when done
+5. **Measure**: Use the release-WASM benchmark before setting a large-graph limit
 
 ## Complete Example
 

@@ -8,3 +8,4 @@
 library;
 
 export 'src/editor/controller/node_flow_controller.dart';
+export 'src/editor/scene/graph_scene.dart';

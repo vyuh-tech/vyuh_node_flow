@@ -1051,7 +1051,9 @@ void main() {
     ) async {
       final graph = _createConnectionPartitionGraph(
         config: NodeFlowConfig(
-          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 1)],
+          plugins: [
+            LodPlugin(enabled: true, minThreshold: 0, maxInteractiveNodes: 1),
+          ],
         ),
       );
       addTearDown(graph.controller.dispose);

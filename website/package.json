@@ -9,16 +9,16 @@
     "preview": "vitepress preview"
   },
   "devDependencies": {
-    "@iconify/vue": "^5.0.0",
-    "rollup-plugin-visualizer": "^6.0.5",
+    "@iconify/vue": "^5.0.1",
+    "rollup-plugin-visualizer": "^7.1.1",
     "vitepress": "next",
-    "vue": "^3.5.26"
+    "vue": "^3.5.42"
   },
   "dependencies": {
-    "@shikijs/transformers": "^3.20.0",
-    "@tailwindcss/typography": "^0.5.19",
-    "@tailwindcss/vite": "^4.1.18",
-    "shiki": "^3.20.0",
-    "tailwindcss": "^4.1.18"
+    "@shikijs/transformers": "^4.4.3",
+    "@tailwindcss/typography": "^0.5.20",
+    "@tailwindcss/vite": "^4.3.3",
+    "shiki": "^4.4.3",
+    "tailwindcss": "^4.3.3"
   }
 }

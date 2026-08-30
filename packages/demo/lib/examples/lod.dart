@@ -23,7 +23,7 @@ class _LODExampleState extends State<LODExample> {
     _controller = NodeFlowController<Map<String, dynamic>, dynamic>(
       config: NodeFlowConfig(
         plugins: [
-          LodPlugin(),
+          LodPlugin(enabled: true),
           AutoPanPlugin(),
           DebugPlugin(),
           MinimapPlugin(),

@@ -306,6 +306,37 @@ Check if a specific node is selected.
 bool isNodeSelected(String nodeId)
 ```
 
+## Immutable Render Scene
+
+### sceneSnapshot
+
+Captures the current renderer-facing graph as immutable node and connection
+records. Existing `Node`, `Connection`, builder, and MobX APIs remain the
+authoritative mutation surface.
+
+```dart
+SceneSnapshot<T, C> get sceneSnapshot
+```
+
+### sceneProjection
+
+Use the projection for a renderer or diagnostic that needs O(1) entity lookup
+and granular repaint signals without rebuilding Flutter widgets:
+
+```dart
+final scene = controller.sceneProjection;
+final node = scene.nodeSnapshot(nodeId);
+
+scene.nodeDeltas.addListener(() {
+  final delta = scene.nodeDeltas.value;
+  // Inspect only added, removed, geometry, visual, or selection changes.
+});
+```
+
+Node and connection deltas are independent and coalesced within the same event
+loop turn. A previously captured `SceneSnapshot` does not change when the graph
+is mutated later.
+
 ## Viewport
 
 ### viewport

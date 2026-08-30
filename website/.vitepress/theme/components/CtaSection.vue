@@ -33,8 +33,6 @@ defineProps<{
       borderBottom && 'border-b border-slate-200/50 dark:border-zinc-700/50',
     ]"
   >
-    <div class="cta-blur cta-blur-1" />
-    <div class="cta-blur cta-blur-2" />
     <div class="cta-content">
       <Badge :icon="badgeIcon" :color="badgeColor || 'amber'">{{
         badge
@@ -75,20 +73,7 @@ defineProps<{
 @reference "../style.css";
 
 .cta-section {
-  @apply relative py-32 px-6 text-center overflow-hidden;
-}
-
-.cta-blur {
-  @apply absolute rounded-full pointer-events-none;
-  filter: blur(150px);
-}
-
-.cta-blur-1 {
-  @apply w-[600px] h-[600px] bg-blue-500 -top-48 left-[10%] opacity-12 dark:opacity-20;
-}
-
-.cta-blur-2 {
-  @apply w-[500px] h-[500px] bg-violet-500 -bottom-36 right-[10%] opacity-10 dark:opacity-18;
+  @apply relative py-32 px-6 text-center overflow-hidden bg-slate-950 border-t border-slate-800;
 }
 
 .cta-content {
@@ -96,12 +81,12 @@ defineProps<{
 }
 
 .cta-title {
-  @apply text-4xl sm:text-5xl font-black text-slate-900 dark:text-zinc-100 mb-6 tracking-tight;
+  @apply text-balance text-4xl sm:text-5xl font-bold text-white mb-6;
   font-family: var(--vn-font-display);
 }
 
 .cta-subtitle {
-  @apply text-lg text-slate-600 dark:text-zinc-400 leading-relaxed mb-14;
+  @apply text-pretty text-lg text-slate-300 leading-relaxed mb-14;
 }
 
 .cta-actions {

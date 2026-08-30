@@ -61,6 +61,17 @@ enum NodeRenderLayer {
   foreground,
 }
 
+/// How a node participates in a retained painted scene.
+enum RetainedNodeRendering {
+  /// Cache the painted representation until its visual key or retained visual
+  /// revision changes. Best for static content and occasional updates.
+  cached,
+
+  /// Keep this node as a live Flutter widget over the retained base scene.
+  /// Use for continuously animated, streaming, or frequently changing content.
+  live,
+}
+
 /// Represents a single node in the flow graph.
 ///
 /// A node is a visual element that can be connected to other nodes via [Port]s.
@@ -126,6 +137,7 @@ class Node<T> {
     this.layer = NodeRenderLayer.middle,
     this.locked = false,
     this.selectable = true,
+    this.retainedRendering = RetainedNodeRendering.cached,
     this.widgetBuilder,
     this.theme,
   }) : size = Observable(size ?? const Size(150, 100)),
@@ -195,6 +207,9 @@ class Node<T> {
 
   /// Whether this node participates in marquee selection.
   final bool selectable;
+
+  /// Whether retained scenes cache this node or keep it as a live widget.
+  final RetainedNodeRendering retainedRendering;
 
   /// Per-instance widget builder for custom node rendering.
   ///
@@ -432,6 +447,45 @@ class Node<T> {
   /// position, size, visibility, and selection fields. The value should change
   /// whenever that painted representation changes.
   Object? get thumbnailCacheKey => data;
+
+  /// Monotonic invalidation revision for retained node pictures.
+  int get retainedVisualRevision => _retainedVisualRevision.value;
+
+  final Observable<int> _retainedVisualRevision = Observable(0);
+
+  /// Registers a lightweight listener for renderer-relevant state changes.
+  ///
+  /// Unlike a MobX reaction, these change listeners do not make the fields
+  /// observed and therefore preserve the existing direct-Observable API. The
+  /// returned callback removes every listener installed by this method.
+  VoidCallback observeSceneChanges(VoidCallback listener) {
+    final disposers = <Dispose>[
+      position.observe((_) => listener()),
+      visualPosition.observe((_) => listener()),
+      size.observe((_) => listener()),
+      selected.observe((_) => listener()),
+      dragging.observe((_) => listener()),
+      zIndex.observe((_) => listener()),
+      _isVisible.observe((_) => listener()),
+      _isEditing.observe((_) => listener()),
+      _retainedVisualRevision.observe((_) => listener()),
+      ports.observe((_) => listener()),
+    ];
+    return () {
+      for (final dispose in disposers) {
+        dispose();
+      }
+    };
+  }
+
+  /// Invalidates this node's cached retained picture without rebuilding the
+  /// rest of the scene.
+  ///
+  /// Call this after occasional internal visual changes that are not reflected
+  /// by [thumbnailCacheKey]. Continuously changing content should instead use
+  /// [RetainedNodeRendering.live].
+  void invalidateRetainedVisual() =>
+      runInAction(() => _retainedVisualRevision.value++);
 
   /// Paints a simplified thumbnail representation of this node.
   ///

@@ -1,3 +1,10 @@
+## Unreleased
+
+ - **FEAT**(renderer): add immutable scene snapshots and coalesced node/connection deltas without changing the existing controller, node-builder, or MobX integration APIs.
+ - **PERF**(renderer): repaint retained node pictures directly from scene deltas, reuse unchanged node-local pictures, and keep animated or frequently changing nodes in a live widget overlay.
+ - **PERF**(wasm): add reproducible 500/1,000-node release SkWasm measurements against a 16.67 ms 60 FPS frame budget.
+ - **FIX**(lod): keep full widget detail at every zoom level by default; adaptive LOD is now opt-in.
+
 ## 0.31.0
 
 > Note: This release has breaking changes.

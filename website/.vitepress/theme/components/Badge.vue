@@ -26,11 +26,11 @@ defineProps<{
 @reference "../style.css";
 
 .badge-wrapper {
-  @apply relative inline-flex flex-col items-center mb-6;
+  @apply relative inline-flex items-center mb-6;
 }
 
 .badge-connector {
-  @apply flex flex-col items-center;
+  @apply hidden;
 }
 
 .badge-line {
@@ -49,7 +49,7 @@ defineProps<{
 }
 
 .badge-port-wrapper {
-  @apply relative h-0 w-full flex justify-center;
+  @apply hidden;
 }
 
 .badge-port {
@@ -61,7 +61,7 @@ defineProps<{
 }
 
 .badge {
-  @apply inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-semibold uppercase tracking-widest w-fit;
+  @apply inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold w-fit;
   font-family: var(--vn-font-mono);
 }
 
@@ -74,36 +74,32 @@ defineProps<{
   @apply text-blue-600 dark:text-blue-400;
 }
 .badge-color-blue .badge {
-  @apply bg-blue-600/10 border border-blue-600/30;
-  @apply dark:bg-blue-400/15 dark:border-blue-400/30;
-  box-shadow: var(--glow-blue);
+  @apply bg-blue-50 border border-blue-600/30;
+  @apply dark:bg-blue-950 dark:border-blue-400/30;
 }
 
 .badge-color-purple {
   @apply text-violet-500 dark:text-violet-400;
 }
 .badge-color-purple .badge {
-  @apply bg-violet-500/10 border border-violet-500/30;
-  @apply dark:bg-violet-400/15 dark:border-violet-400/30;
-  box-shadow: var(--glow-purple);
+  @apply bg-violet-50 border border-violet-500/30;
+  @apply dark:bg-violet-950 dark:border-violet-400/30;
 }
 
 .badge-color-teal {
   @apply text-teal-500 dark:text-teal-400;
 }
 .badge-color-teal .badge {
-  @apply bg-teal-500/10 border border-teal-500/30;
-  @apply dark:bg-teal-400/15 dark:border-teal-400/30;
-  box-shadow: var(--glow-teal);
+  @apply bg-teal-50 border border-teal-500/30;
+  @apply dark:bg-teal-950 dark:border-teal-400/30;
 }
 
 .badge-color-amber {
   @apply text-amber-600 dark:text-amber-400;
 }
 .badge-color-amber .badge {
-  @apply bg-amber-600/10 border border-amber-600/30;
-  @apply dark:bg-amber-400/15 dark:border-amber-400/30;
-  box-shadow: var(--glow-amber);
+  @apply bg-amber-50 border border-amber-600/30;
+  @apply dark:bg-amber-950 dark:border-amber-400/30;
 }
 
 .badge-color-gray {

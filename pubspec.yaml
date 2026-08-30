@@ -10,7 +10,7 @@ workspace:
 
 dev_dependencies:
   flutter_lints: ^6.0.0
-  melos: ^7.3.0
+  melos: ^7.8.1
 
 melos:
   ide:
@@ -32,6 +32,20 @@ melos:
       run: flutter test
       exec:
         concurrency: 1
+
+    test:core:
+      description: Fast contract gate for graph APIs, rendering, spatial queries, and viewport math
+      run: >-
+        flutter test
+        packages/vyuh_node_flow/test/unit/controller/node_api_test.dart
+        packages/vyuh_node_flow/test/unit/controller/connection_api_test.dart
+        packages/vyuh_node_flow/test/unit/controller/graph_api_test.dart
+        packages/vyuh_node_flow/test/unit/editor/graph_scene_test.dart
+        packages/vyuh_node_flow/test/unit/editor/nodes_layer_adaptive_test.dart
+        packages/vyuh_node_flow/test/unit/editor/connections_layer_test.dart
+        packages/vyuh_node_flow/test/unit/graph/graph_test.dart
+        packages/vyuh_node_flow/test/unit/spatial/graph_spatial_index_test.dart
+        packages/vyuh_node_flow/test/unit/viewport/viewport_transform_test.dart
 
     format:
       description: Format all packages

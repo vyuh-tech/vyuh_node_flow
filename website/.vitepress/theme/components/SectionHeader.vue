@@ -34,7 +34,7 @@ defineProps<{
 }
 
 .section-title {
-  @apply text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-slate-100 leading-tight mb-4 tracking-tight;
+  @apply text-balance text-4xl sm:text-5xl font-bold text-slate-950 dark:text-slate-50 leading-tight mb-4;
   font-family: var(--vn-font-display);
 }
 
@@ -43,6 +43,6 @@ defineProps<{
 }
 
 .section-subtitle {
-  @apply text-lg font-medium text-slate-600 dark:text-slate-400 mb-16 max-w-xl;
+  @apply text-pretty text-lg text-slate-600 dark:text-slate-400 mb-16 max-w-2xl;
 }
 </style>

@@ -40,7 +40,7 @@ export '../plugins/debug/debug_plugin.dart' show DebugMode;
 /// If no plugins are provided, these defaults are used:
 /// - [AutoPanPlugin] - autopan near edges (normal mode)
 /// - [DebugPlugin] - debug overlays (disabled by default)
-/// - [LodPlugin] - adaptive level of detail (enabled by default)
+/// - [LodPlugin] - adaptive level of detail (disabled by default)
 /// - [MinimapPlugin] - minimap overlay
 /// - [SnapPlugin] - grid and alignment snapping (disabled by default)
 /// - [StatsPlugin] - graph statistics (nodeCount, connectionCount, etc.)

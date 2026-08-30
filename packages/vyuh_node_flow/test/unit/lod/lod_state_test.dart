@@ -111,7 +111,7 @@ void main() {
       expect(lod.minThreshold, equals(0.03));
       expect(lod.midThreshold, equals(0.1));
       expect(lod.maxInteractiveNodes, equals(200));
-      expect(lod.isEnabled, isTrue);
+      expect(lod.isEnabled, isFalse);
       expect(lod.minVisibility, same(DetailVisibility.minimal));
       expect(lod.midVisibility, same(DetailVisibility.standard));
       expect(lod.maxVisibility, same(DetailVisibility.full));
@@ -119,23 +119,27 @@ void main() {
       controller.dispose();
     });
 
-    test('default adaptive LOD responds to zoom', () {
+    test('default LOD keeps full widgets and details at every zoom level', () {
       final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(minZoom: 0.0, maxZoom: 1.0),
-        initialViewport: const GraphViewport(zoom: 0.1),
+        initialViewport: const GraphViewport(zoom: 0.0),
       );
       final lod = controller.lod!;
 
-      expect(lod.isEnabled, isTrue);
-
-      // Normalized zoom 0.1 is at the max-detail threshold.
+      expect(lod.isEnabled, isFalse);
       expect(lod.currentVisibility, same(DetailVisibility.full));
-
-      controller.setViewport(const GraphViewport(zoom: 0.0));
-      expect(lod.currentVisibility, same(DetailVisibility.minimal));
+      expect(lod.sceneMode, NodeSceneMode.widgets);
+      expect(lod.showNodeContent, isTrue);
+      expect(lod.showPorts, isTrue);
+      expect(lod.showPortLabels, isTrue);
+      expect(lod.showConnectionLines, isTrue);
+      expect(lod.showConnectionLabels, isTrue);
+      expect(lod.showConnectionEndpoints, isTrue);
+      expect(lod.showResizeHandles, isTrue);
 
       controller.setViewport(const GraphViewport(zoom: 1.0));
       expect(lod.currentVisibility, same(DetailVisibility.full));
+      expect(lod.sceneMode, NodeSceneMode.widgets);
 
       controller.dispose();
     });

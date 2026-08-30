@@ -11,10 +11,10 @@ rectangles, connections hidden. At 40% zoom (standard) - node content visible, c
 zoom (full) - all details visible including ports, labels, and resize handles.
 :::
 
-The Level of Detail (LOD) system automatically adjusts which visual elements are rendered based on the current zoom
-level. It also switches visible nodes from individual widgets to a batched overview painter when their count exceeds
+The Level of Detail (LOD) system can adjust which visual elements are rendered based on the current zoom
+level. It can also switch visible nodes from individual widgets to a batched overview painter when their count exceeds
 the interactive-node budget. This improves performance when viewing large graphs and reduces visual clutter at low
-zoom levels.
+zoom levels. Adaptive rendering is opt-in; the default editor keeps the complete node experience at every zoom level.
 
 ## How LOD Works
 
@@ -32,7 +32,22 @@ LOD uses **normalized zoom** (0.0 to 1.0) based on your min/max zoom configurati
 
 ### Default Behavior
 
-LOD is included as a default plugin and is **enabled by default**. It enters adaptive overview mode when the normalized
+LOD is included as a default plugin but is **disabled by default**. Nodes, ports,
+labels, connection details, and resize handles therefore remain available at
+every zoom level:
+
+```dart
+NodeFlowController(
+  config: NodeFlowConfig(
+    // Defaults include LodPlugin(enabled: false)
+  ),
+)
+```
+
+### Enable Adaptive LOD
+
+Enable LOD explicitly when a graph benefits more from reduced widget work than
+from full-detail rendering. It enters adaptive overview mode when the normalized
 zoom is below `minThreshold` or more than `maxInteractiveNodes` nodes intersect
 the actual viewport. The off-screen culling preload does not count toward this
 budget, so nearby nodes cannot unexpectedly trigger overview mode while you are
@@ -41,7 +56,10 @@ zoomed in:
 ```dart
 NodeFlowController(
   config: NodeFlowConfig(
-    // Defaults include LodPlugin(enabled: true, maxInteractiveNodes: 200)
+    plugins: [
+      LodPlugin(enabled: true, maxInteractiveNodes: 200),
+      // ... other plugins
+    ],
   ),
 )
 ```
@@ -58,9 +76,10 @@ endpoints and labels are omitted, and static edges sharing a color and stroke
 are painted in bounded batches. Selected and animated connections remain
 independent so their interaction feedback is preserved.
 
-### Disable Adaptive LOD
+### Keep Full Detail Explicitly
 
-Disable LOD when every visible node must remain a full widget regardless of zoom or graph size:
+The default already keeps every visible node as a full widget. You can state
+that requirement explicitly in a custom plugin list:
 
 ```dart
 NodeFlowController(
@@ -288,7 +307,7 @@ LOD reduces work on both the widget and connection paths:
 Measure your own node builders, graph density, display, and Flutter target with
 the reproducible 500-node profile harness in
 `packages/demo/integration_test/node_flow_500_benchmark_test.dart`. It reports
-UI/raster/total p50, p95, p99, maximum frame time, and 120 Hz budget misses for
+UI/raster/total p50, p95, p99, maximum frame time, and 60 FPS budget misses for
 both full and adaptive rendering; the documentation intentionally does not
 promise hardware-independent frame times.
 
@@ -297,14 +316,15 @@ promise hardware-independent frame times.
 1. **Tune thresholds for your use case**: Large complex nodes may need higher thresholds
 2. **Test at various zoom levels**: Ensure transitions feel natural
 3. **Consider connection density**: Dense graphs benefit more from hiding connection labels early
-4. **Use disabled for demos**: When showcasing, disable LOD to always show full detail
+4. **Keep the default for demos**: The disabled default always shows full detail
 5. **Custom presets for specific views**: Create visibility presets that make sense for your domain
 
 ## Common Patterns
 
 ### Presentation Mode
 
-Disable LOD when presenting to always show full detail:
+LOD is disabled by default. Presentation mode can restore that state after a
+user has opted into adaptive rendering:
 
 ```dart
 void enterPresentationMode() {

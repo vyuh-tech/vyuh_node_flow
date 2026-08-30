@@ -13,7 +13,8 @@
 
 :root {
   /* Typography - system font stacks as fallbacks for FOUT prevention */
-  --vn-font-display: 'Montserrat', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --vn-font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --vn-font-body: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --vn-font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
 
   /* Animation */
@@ -41,9 +42,9 @@
   --vp-c-bg: theme('colors.slate.50');
   --vp-c-bg-soft: theme('colors.white');
   --vp-c-bg-mute: theme('colors.slate.100');
-  --vp-c-brand-1: theme('colors.violet.600');
-  --vp-c-brand-2: theme('colors.violet.500');
-  --vp-c-brand-3: theme('colors.violet.400');
+  --vp-c-brand-1: theme('colors.blue.700');
+  --vp-c-brand-2: theme('colors.blue.600');
+  --vp-c-brand-3: theme('colors.blue.500');
   --vp-c-text-1: theme('colors.slate.900');
   --vp-c-text-2: theme('colors.slate.600');
 }
@@ -52,9 +53,9 @@
   --vp-c-bg: theme('colors.zinc.800');
   --vp-c-bg-soft: theme('colors.zinc.700');
   --vp-c-bg-mute: theme('colors.zinc.700');
-  --vp-c-brand-1: theme('colors.violet.400');
-  --vp-c-brand-2: theme('colors.violet.300');
-  --vp-c-brand-3: theme('colors.violet.200');
+  --vp-c-brand-1: theme('colors.blue.400');
+  --vp-c-brand-2: theme('colors.blue.300');
+  --vp-c-brand-3: theme('colors.blue.200');
   --vp-c-text-1: theme('colors.zinc.100');
   --vp-c-text-2: theme('colors.zinc.400');
 }
@@ -74,7 +75,55 @@ html.dark {
 }
 
 body {
-  font-family: var(--vn-font-display);
+  font-family: var(--vn-font-body);
+}
+
+@media (min-width: 768px) {
+  .VPNavBarMenu {
+    gap: 0.5rem;
+  }
+
+  .VPNavBarMenuLink,
+  .VPNavBarMenuGroup > .button {
+    height: 32px;
+    padding: 0 0.625rem;
+    border-radius: 8px;
+    transition: color 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out;
+  }
+
+  .VPNavBarMenuLink:hover,
+  .VPNavBarMenuGroup > .button:hover,
+  .VPNavBarMenuGroup > .button[aria-expanded='true'] {
+    color: theme('colors.slate.950');
+    background: theme('colors.slate.200 / 70%');
+    box-shadow: inset 0 0 0 1px theme('colors.slate.300 / 80%');
+  }
+
+  .VPNavBarMenuLink.active {
+    color: theme('colors.blue.700');
+    background: theme('colors.blue.50');
+    box-shadow: inset 0 0 0 1px theme('colors.blue.200');
+  }
+
+  .VPNavBarMenuLink:focus-visible,
+  .VPNavBarMenuGroup > .button:focus-visible {
+    outline: 2px solid theme('colors.blue.600');
+    outline-offset: 2px;
+  }
+
+  .dark .VPNavBarMenuLink:hover,
+  .dark .VPNavBarMenuGroup > .button:hover,
+  .dark .VPNavBarMenuGroup > .button[aria-expanded='true'] {
+    color: theme('colors.zinc.50');
+    background: theme('colors.zinc.800');
+    box-shadow: inset 0 0 0 1px theme('colors.zinc.700');
+  }
+
+  .dark .VPNavBarMenuLink.active {
+    color: theme('colors.blue.300');
+    background: theme('colors.blue.950');
+    box-shadow: inset 0 0 0 1px theme('colors.blue.800');
+  }
 }
 
 /* Hide VitePress defaults on custom pages */
@@ -83,39 +132,6 @@ body {
 .pro-page + .VPHome,
 .pro-page ~ .VPFooter {
   display: none !important;
-}
-
-/* Demo banner height offset for fixed VitePress elements */
-:root {
-  --demo-banner-height: 28px;
-}
-
-@media (max-width: 639px) {
-  /* Banner is hidden on mobile, so no offset needed */
-  :root {
-    --demo-banner-height: 0px;
-  }
-}
-
-/* Offset VitePress fixed nav to sit below banner */
-.VPNav {
-  z-index: 50;
-  top: var(--demo-banner-height) !important;
-}
-
-/* Offset sidebar and content for the nav displacement */
-.VPSidebar {
-  padding-top: calc(var(--vp-nav-height) + var(--demo-banner-height) + 32px) !important;
-  top: 0 !important;
-  height: 100vh !important;
-}
-
-.VPContent.has-sidebar {
-  padding-top: calc(var(--vp-nav-height) + var(--demo-banner-height)) !important;
-}
-
-.VPDoc {
-  padding-top: calc(32px + var(--demo-banner-height)) !important;
 }
 
 /* Mobile navigation menu spacing improvements */

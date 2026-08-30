@@ -545,7 +545,7 @@ void main() {
     test('creates with default values', () {
       final ext = LodPlugin();
 
-      expect(ext.isEnabled, isTrue);
+      expect(ext.isEnabled, isFalse);
       expect(ext.minThreshold, equals(0.03));
       expect(ext.midThreshold, equals(0.1));
       expect(ext.maxInteractiveNodes, equals(200));
@@ -619,15 +619,16 @@ void main() {
   });
 
   group('LodPlugin - Visibility Calculations', () {
-    test('default plugin uses minimal visibility when zoomed out', () {
+    test('default plugin preserves full visibility when zoomed out', () {
       final controller = NodeFlowController<String, dynamic>(
         config: NodeFlowConfig(minZoom: 0.0, maxZoom: 1.0),
         initialViewport: const GraphViewport(zoom: 0.0), // Very zoomed out
       );
       final lod = controller.lod!;
 
-      expect(lod.isEnabled, isTrue);
-      expect(lod.currentVisibility, equals(DetailVisibility.minimal));
+      expect(lod.isEnabled, isFalse);
+      expect(lod.currentVisibility, equals(DetailVisibility.full));
+      expect(lod.sceneMode, equals(NodeSceneMode.widgets));
 
       controller.dispose();
     });

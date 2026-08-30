@@ -86,12 +86,12 @@ defineProps<{
 
 /* Section title is inherited from SectionHeader, but we need it here too */
 .section-title {
-  @apply text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-zinc-100 leading-tight mb-4 tracking-tight;
+  @apply text-balance text-4xl sm:text-5xl font-bold text-slate-950 dark:text-zinc-50 leading-tight mb-4;
   font-family: var(--vn-font-display);
 }
 
 .feature-section-subtitle {
-  @apply text-lg font-medium text-slate-600 dark:text-zinc-400 leading-relaxed mb-10;
+  @apply text-pretty text-lg text-slate-600 dark:text-zinc-400 leading-relaxed mb-10;
 }
 
 .feature-section-bullets {
@@ -112,17 +112,9 @@ defineProps<{
 }
 
 .feature-video {
-  @apply relative w-full rounded-2xl overflow-hidden;
+  @apply relative w-full aspect-video rounded-2xl overflow-hidden;
   @apply bg-slate-900 dark:bg-zinc-900;
-  box-shadow:
-    0 0 60px -15px rgba(99, 102, 241, 0.4),
-    0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-:root.dark .feature-video {
-  box-shadow:
-    0 0 80px -15px rgba(129, 140, 248, 0.3),
-    0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  @apply shadow-xl;
 }
 
 .feature-video video {
@@ -130,17 +122,9 @@ defineProps<{
 }
 
 .feature-image {
-  @apply relative w-full rounded-2xl overflow-hidden;
+  @apply relative w-full aspect-video rounded-2xl overflow-hidden;
   @apply bg-slate-100 dark:bg-zinc-800;
-  box-shadow:
-    0 0 60px -15px rgba(99, 102, 241, 0.4),
-    0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-:root.dark .feature-image {
-  box-shadow:
-    0 0 80px -15px rgba(129, 140, 248, 0.3),
-    0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  @apply shadow-xl;
 }
 
 .feature-image img {

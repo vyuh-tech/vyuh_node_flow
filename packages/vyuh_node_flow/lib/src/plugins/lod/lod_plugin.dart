@@ -60,7 +60,7 @@ class LodPlugin extends NodeFlowPlugin {
   /// Creates a LOD plugin with optional threshold and visibility settings.
   ///
   /// Parameters:
-  /// - [enabled]: Whether adaptive LOD is enabled (default: true)
+  /// - [enabled]: Whether adaptive LOD is enabled (default: false)
   /// - [minThreshold]: Normalized zoom below which [minVisibility] is used (default: 0.03)
   /// - [midThreshold]: Normalized zoom below which [midVisibility] is used (default: 0.1)
   /// - [maxInteractiveNodes]: Maximum number of on-screen nodes rendered as
@@ -71,7 +71,7 @@ class LodPlugin extends NodeFlowPlugin {
   /// - [midVisibility]: Visibility settings for medium zoom level (default: standard)
   /// - [maxVisibility]: Visibility settings for highest zoom level (default: full)
   LodPlugin({
-    bool enabled = true,
+    bool enabled = false,
     double minThreshold = 0.03,
     double midThreshold = 0.1,
     int maxInteractiveNodes = 200,

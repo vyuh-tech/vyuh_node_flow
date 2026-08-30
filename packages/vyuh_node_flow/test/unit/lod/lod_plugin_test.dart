@@ -497,18 +497,25 @@ void main() {
   });
 
   group('LodPlugin - Adaptive Overview', () {
-    test('500 visible nodes use overview mode with default settings', () {
-      final controller = NodeFlowController<String, dynamic>(
-        nodes: List.generate(500, (index) => createTestNode(id: 'node-$index')),
-      );
-      final lod = controller.lod!;
+    test(
+      '500 visible nodes use overview mode when adaptive LOD is enabled',
+      () {
+        final controller = NodeFlowController<String, dynamic>(
+          nodes: List.generate(
+            500,
+            (index) => createTestNode(id: 'node-$index'),
+          ),
+          config: NodeFlowConfig(plugins: [LodPlugin(enabled: true)]),
+        );
+        final lod = controller.lod!;
 
-      expect(lod.isEnabled, isTrue);
-      expect(lod.maxInteractiveNodes, 200);
-      expect(lod.useThumbnailMode, isTrue);
+        expect(lod.isEnabled, isTrue);
+        expect(lod.maxInteractiveNodes, 200);
+        expect(lod.useThumbnailMode, isTrue);
 
-      controller.dispose();
-    });
+        controller.dispose();
+      },
+    );
 
     test('visible count crossing threshold switches modes reactively', () {
       final controller = NodeFlowController<String, dynamic>(
@@ -518,7 +525,9 @@ void main() {
           createTestNode(id: 'three'),
         ],
         config: NodeFlowConfig(
-          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 2)],
+          plugins: [
+            LodPlugin(enabled: true, minThreshold: 0, maxInteractiveNodes: 2),
+          ],
         ),
       );
       final lod = controller.lod!;
@@ -539,7 +548,13 @@ void main() {
         config: NodeFlowConfig(
           minZoom: 0,
           maxZoom: 1,
-          plugins: [LodPlugin(minThreshold: 0.2, maxInteractiveNodes: 200)],
+          plugins: [
+            LodPlugin(
+              enabled: true,
+              minThreshold: 0.2,
+              maxInteractiveNodes: 200,
+            ),
+          ],
         ),
         initialViewport: const GraphViewport(zoom: 0.1),
       );
@@ -575,7 +590,9 @@ void main() {
             ),
         ],
         config: NodeFlowConfig(
-          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 2)],
+          plugins: [
+            LodPlugin(enabled: true, minThreshold: 0, maxInteractiveNodes: 2),
+          ],
         ),
       );
       controller.initController(
@@ -609,7 +626,13 @@ void main() {
         final controller = NodeFlowController<String, dynamic>(
           nodes: [createTestNode(id: 'one')],
           config: NodeFlowConfig(
-            plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 10)],
+            plugins: [
+              LodPlugin(
+                enabled: true,
+                minThreshold: 0,
+                maxInteractiveNodes: 10,
+              ),
+            ],
           ),
         );
         final lod = controller.lod!;

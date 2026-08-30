@@ -61,13 +61,13 @@ export default defineConfig({
         ['link', {rel: 'preconnect', href: 'https://api.iconify.design'}],
         ['link', {rel: 'preconnect', href: 'https://flow.demo.vyuh.tech'}],
         // Non-blocking font loading - reduced weights for faster load
-        // Montserrat: 400 (regular body), 600 (semibold), 700 (bold), 900 (black for headers)
-        // JetBrains Mono: 400 only (code doesn't need variants)
+        // Bricolage Grotesque carries the editorial display voice while
+        // Instrument Sans keeps product copy crisp at smaller sizes.
         [
             'link',
             {
                 rel: 'stylesheet',
-                href: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&family=Montserrat:wght@400;600;700;900&display=swap',
+                href: 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap',
                 media: 'print',
                 onload: "this.media='all'",
             },
@@ -76,7 +76,7 @@ export default defineConfig({
         [
             'noscript',
             {},
-            '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&family=Montserrat:wght@400;600;700;900&display=swap">',
+            '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">',
         ],
         ['link', {rel: 'icon', href: '/icon.svg', type: 'image/svg+xml'}],
         ['meta', {property: 'og:type', content: 'website'}],
@@ -136,6 +136,7 @@ export default defineConfig({
 
         nav: [
             {text: 'Docs', link: '/docs/start/installation'},
+            {text: 'Community', link: '/#community'},
             {component: 'NavProBadge'},
             {
                 text: 'Links',

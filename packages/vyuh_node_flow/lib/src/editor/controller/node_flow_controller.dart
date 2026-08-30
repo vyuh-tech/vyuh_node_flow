@@ -33,6 +33,7 @@ import '../node_flow_behavior.dart';
 import '../node_flow_config.dart';
 import '../node_flow_events.dart';
 import '../resizer_widget.dart';
+import '../scene/graph_scene.dart';
 import '../snap_delegate.dart';
 import '../themes/node_flow_theme.dart';
 import '../viewport_animation_mixin.dart';
@@ -45,6 +46,7 @@ part 'group_api.dart';
 part 'node_api.dart';
 part 'node_flow_controller_api.dart';
 part 'resize_api.dart';
+part 'scene_projection_api.dart';
 part 'viewport_api.dart';
 
 /// Alignment options for node alignment operations
@@ -144,6 +146,8 @@ class NodeFlowController<T, C> {
     if (nodes != null && nodes.isNotEmpty) {
       _loadInitialGraph(nodes, connections ?? const []);
     }
+
+    _initializeSceneProjection();
   }
 
   /// Loads initial graph data during construction.
@@ -340,6 +344,13 @@ class NodeFlowController<T, C> {
       ObservableMap<String, Node<T>>();
   final ObservableList<Connection<C>> _connections =
       ObservableList<Connection<C>>();
+  final GraphSceneProjection<T, C> _sceneProjection =
+      GraphSceneProjection<T, C>();
+  final Map<String, VoidCallback> _sceneNodeReactions = {};
+  final Map<String, VoidCallback> _sceneConnectionReactions = {};
+  final Map<String, Node<T>> _sceneNodeSources = {};
+  final Map<String, Connection<C>> _sceneConnectionSources = {};
+  final List<ReactionDisposer> _sceneCollectionReactions = [];
   final ObservableSet<String> _selectedNodeIds = ObservableSet<String>();
   final ObservableSet<String> _selectedConnectionIds = ObservableSet<String>();
   final Observable<GraphViewport> _viewport;
@@ -983,6 +994,7 @@ class NodeFlowController<T, C> {
   /// }
   /// ```
   void dispose() {
+    _disposeSceneProjection();
     _canvasFocusNode.dispose();
     _connectionPainter?.dispose();
     _cameraViewport.dispose();

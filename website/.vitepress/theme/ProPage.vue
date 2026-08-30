@@ -224,7 +224,7 @@ const comparisonRows: ComparisonRow[] = [
 </script>
 
 <template>
-  <div class="min-h-screen relative overflow-x-hidden">
+  <div class="pro-page min-h-screen relative isolate overflow-x-hidden">
     <!-- Grid Background -->
     <GridBackground color="purple" :blinkCells="proBlinkCells" />
 
@@ -335,7 +335,7 @@ const comparisonRows: ComparisonRow[] = [
     >
       <template #subtitle>
         <p
-          class="text-lg text-slate-600 dark:text-zinc-400 leading-relaxed mb-10"
+          class="text-lg text-slate-300 leading-relaxed mb-10"
         >
           We're collaborating with a select group of customers to build the
           future of visual flow editing in

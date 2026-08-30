@@ -24,7 +24,9 @@ void main() {
           createTestNode(id: 'three'),
         ],
         config: NodeFlowConfig(
-          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 2)],
+          plugins: [
+            LodPlugin(enabled: true, minThreshold: 0, maxInteractiveNodes: 2),
+          ],
         ),
       );
       addTearDown(controller.dispose);
@@ -76,7 +78,9 @@ void main() {
           createTestNode(id: 'two'),
         ],
         config: NodeFlowConfig(
-          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 10)],
+          plugins: [
+            LodPlugin(enabled: true, minThreshold: 0, maxInteractiveNodes: 10),
+          ],
         ),
       );
       addTearDown(controller.dispose);
@@ -125,7 +129,9 @@ void main() {
         createTestNode(id: 'two'),
       ],
       config: NodeFlowConfig(
-        plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 10)],
+        plugins: [
+          LodPlugin(enabled: true, minThreshold: 0, maxInteractiveNodes: 10),
+        ],
       ),
     );
     addTearDown(controller.dispose);
@@ -158,6 +164,244 @@ void main() {
     expect(thumbnail.nodes!.map((node) => node.id), ['two']);
   });
 
+  testWidgets('editing nodes remain promoted in dense retained scenes', (
+    tester,
+  ) async {
+    final first = createTestNode(id: 'one');
+    final controller = NodeFlowController<String, dynamic>(
+      nodes: [
+        first,
+        createTestNode(id: 'two'),
+      ],
+      config: NodeFlowConfig(
+        plugins: [
+          LodPlugin(enabled: true, minThreshold: 0, maxInteractiveNodes: 1),
+        ],
+      ),
+    );
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Stack(
+          children: [
+            NodesLayer.middle<String>(
+              controller,
+              (context, node) => Text(node.id),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(controller.lod!.sceneMode, NodeSceneMode.overview);
+    expect(find.text('one'), findsNothing);
+
+    first.isEditing = true;
+    await tester.pump();
+
+    expect(find.text('one'), findsOneWidget);
+    final thumbnail = tester.widget<NodesThumbnailLayer<String>>(
+      find.byType(NodesThumbnailLayer<String>),
+    );
+    expect(thumbnail.nodes!.map((node) => node.id), ['two']);
+  });
+
+  testWidgets('live nodes remain widgets over dense retained scenes', (
+    tester,
+  ) async {
+    final controller = NodeFlowController<String, dynamic>(
+      nodes: [
+        createTestNode(
+          id: 'live',
+          retainedRendering: RetainedNodeRendering.live,
+        ),
+        createTestNode(id: 'cached'),
+      ],
+      config: NodeFlowConfig(
+        plugins: [
+          LodPlugin(enabled: true, minThreshold: 0, maxInteractiveNodes: 1),
+        ],
+      ),
+    );
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Stack(
+          children: [
+            NodesLayer.middle<String>(
+              controller,
+              (context, node) => Text(node.id),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('live'), findsOneWidget);
+    expect(find.text('cached'), findsNothing);
+    final thumbnail = tester.widget<NodesThumbnailLayer<String>>(
+      find.byType(NodesThumbnailLayer<String>),
+    );
+    expect(thumbnail.nodes!.map((node) => node.id), ['cached']);
+  });
+
+  testWidgets('retains unchanged node pictures across scene repaints', (
+    tester,
+  ) async {
+    final controller = NodeFlowController<String, dynamic>(
+      nodes: [
+        createTestNode(id: 'one'),
+        createTestNode(id: 'two', position: const Offset(200, 0)),
+      ],
+      config: NodeFlowConfig(
+        plugins: [
+          LodPlugin(enabled: true, minThreshold: 0, maxInteractiveNodes: 1),
+        ],
+      ),
+    );
+    addTearDown(controller.dispose);
+    final paintCounts = <String, int>{};
+    bool paintNode(
+      Canvas canvas,
+      Node<String> node,
+      Rect bounds,
+      bool isSelected,
+    ) {
+      paintCounts.update(node.id, (count) => count + 1, ifAbsent: () => 1);
+      canvas.drawRect(bounds, Paint()..color = Colors.blue);
+      return true;
+    }
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SizedBox(
+          width: 800,
+          height: 600,
+          child: Stack(
+            children: [
+              NodesLayer.middle<String>(
+                controller,
+                (context, node) => Text(node.id),
+                thumbnailBuilder: paintNode,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(paintCounts, {'one': 1, 'two': 1});
+
+    controller.moveNode('one', const Offset(20, 0));
+    await tester.pump();
+    expect(paintCounts, {
+      'one': 1,
+      'two': 1,
+    }, reason: 'position-only changes should reuse node-local pictures');
+
+    controller.selectNode('one');
+    await tester.pump();
+    expect(paintCounts, {'one': 2, 'two': 1});
+
+    controller.nodes['two']!.invalidateRetainedVisual();
+    await tester.pump();
+    await tester.pump();
+    expect(paintCounts, {'one': 2, 'two': 2});
+  });
+
+  testWidgets('repaints a stable retained delegate when its node set changes', (
+    tester,
+  ) async {
+    final controller = NodeFlowController<String, dynamic>(
+      nodes: [
+        createTestNode(id: 'one'),
+        createTestNode(id: 'two'),
+      ],
+      config: NodeFlowConfig(
+        plugins: [
+          LodPlugin(enabled: true, minThreshold: 0, maxInteractiveNodes: 1),
+        ],
+      ),
+    );
+    addTearDown(controller.dispose);
+    final paintCounts = <String, int>{};
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Stack(
+          children: [
+            NodesLayer.middle<String>(
+              controller,
+              (context, node) => Text(node.id),
+              thumbnailBuilder: (canvas, node, bounds, isSelected) {
+                paintCounts.update(
+                  node.id,
+                  (count) => count + 1,
+                  ifAbsent: () => 1,
+                );
+                return true;
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(paintCounts, {'one': 1, 'two': 1});
+
+    controller.addNode(createTestNode(id: 'three'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(paintCounts, {
+      'one': 1,
+      'two': 1,
+      'three': 1,
+    }, reason: 'the stable painter must schedule paint for a new visible ID');
+  });
+
+  testWidgets('retained layer follows a replacement controller', (
+    tester,
+  ) async {
+    final first = NodeFlowController<String, dynamic>(
+      nodes: [createTestNode(id: 'first')],
+    );
+    final second = NodeFlowController<String, dynamic>(
+      nodes: [createTestNode(id: 'second')],
+    );
+    addTearDown(first.dispose);
+    addTearDown(second.dispose);
+    final paintedIds = <String>[];
+
+    Widget buildLayer(NodeFlowController<String, dynamic> controller) {
+      return MaterialApp(
+        home: Stack(
+          children: [
+            NodesThumbnailLayer<String>(
+              controller: controller,
+              thumbnailBuilder: (canvas, node, bounds, isSelected) {
+                paintedIds.add(node.id);
+                return true;
+              },
+            ),
+          ],
+        ),
+      );
+    }
+
+    await tester.pumpWidget(buildLayer(first));
+    await tester.pump();
+    expect(paintedIds, ['first']);
+
+    paintedIds.clear();
+    await tester.pumpWidget(buildLayer(second));
+    await tester.pump();
+    expect(paintedIds, ['second']);
+  });
+
   testWidgets('dragged note remains a full widget in dense overview', (
     tester,
   ) async {
@@ -176,7 +420,9 @@ void main() {
         ),
       ],
       config: NodeFlowConfig(
-        plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 1)],
+        plugins: [
+          LodPlugin(enabled: true, minThreshold: 0, maxInteractiveNodes: 1),
+        ],
       ),
     );
     addTearDown(controller.dispose);
@@ -258,7 +504,9 @@ void main() {
           createTestNode(id: 'three'),
         ],
         config: NodeFlowConfig(
-          plugins: [LodPlugin(minThreshold: 0, maxInteractiveNodes: 1)],
+          plugins: [
+            LodPlugin(enabled: true, minThreshold: 0, maxInteractiveNodes: 1),
+          ],
         ),
       );
       addTearDown(controller.dispose);

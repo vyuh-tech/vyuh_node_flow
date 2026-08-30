@@ -33,6 +33,7 @@ Node<String> createTestNode({
   List<Port>? outputPorts,
   int zIndex = 0,
   bool visible = true,
+  RetainedNodeRendering retainedRendering = RetainedNodeRendering.cached,
 }) {
   // Use ports if provided, otherwise merge inputPorts and outputPorts
   final effectivePorts = ports ?? [...?inputPorts, ...?outputPorts];
@@ -46,6 +47,7 @@ Node<String> createTestNode({
     ports: effectivePorts,
     initialZIndex: zIndex,
     visible: visible,
+    retainedRendering: retainedRendering,
   );
   // Initialize visual position to match logical position for tests
   // (in production, the controller calls setVisualPosition with snapping)
