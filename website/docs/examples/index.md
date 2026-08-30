@@ -54,6 +54,8 @@ Explore sophisticated capabilities for production applications.
 
   - **Connection Validation** - Type checking and connection limit enforcement.
 
+  - **Layering Panel** - View stacking order and reorder overlapping nodes.
+
   - **Full Workbench** - Complete demo with all features integrated.
 
 ## Example Code Patterns
