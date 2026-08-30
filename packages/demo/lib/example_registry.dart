@@ -14,6 +14,7 @@ import 'examples/connection_labels.dart' deferred as connection_labels;
 import 'examples/controlling_nodes.dart' deferred as controlling_nodes;
 import 'examples/dynamic_ports.dart' deferred as dynamic_ports;
 import 'examples/interactive_widgets.dart' deferred as interactive_widgets;
+import 'examples/layering.dart' deferred as layering;
 import 'examples/lod.dart' deferred as lod;
 import 'examples/minimap.dart' deferred as minimap;
 import 'examples/node_shapes.dart' deferred as node_shapes;
@@ -281,6 +282,17 @@ class ExampleRegistry {
           loader: () async {
             await visibility.loadLibrary();
             return (_) => visibility.VisibilityExample();
+          },
+        ),
+        Example(
+          id: 'layering',
+          title: 'Layering Panel',
+          description:
+              'See stacking order and reorder overlapping nodes',
+          icon: Icons.flip_to_front_outlined,
+          loader: () async {
+            await layering.loadLibrary();
+            return (_) => layering.LayeringPanelExample();
           },
         ),
       ],
