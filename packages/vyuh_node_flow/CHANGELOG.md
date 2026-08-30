@@ -1,4 +1,4 @@
-## Unreleased
+## 0.32.0
 
  - **FEAT**(renderer): add immutable scene snapshots and coalesced node/connection deltas without changing the existing controller, node-builder, or MobX integration APIs.
  - **PERF**(renderer): repaint retained node pictures directly from scene deltas, reuse unchanged node-local pictures, and keep animated or frequently changing nodes in a live widget overlay.
